@@ -1,0 +1,3 @@
+[submodule "references/upstreams/bilibili-cli"]
+	path = references/upstreams/bilibili-cli
+	url = https://github.com/public-clis/bilibili-cli.git

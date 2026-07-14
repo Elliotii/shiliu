@@ -1,0 +1,80 @@
+{
+  "schema_version": "1",
+  "upstream_commit": "dbe28551930df43b633baa52e9639832aeada967",
+  "focused_tests": {
+    "passed": 61,
+    "deselected": 108
+  },
+  "auth": {
+    "isolated_home_exit_code": 1,
+    "isolated_home_error_code": "not_authenticated",
+    "browser_cookie_extraction": "timeout_after_15_seconds",
+    "qr_login": "success",
+    "credential_mode": "0600",
+    "new_process_status": "authenticated",
+    "isolated_invalid_credential": {
+      "error_code": "not_authenticated",
+      "credential_cleared": true,
+      "secret_leaked_to_stderr": false
+    }
+  },
+  "target_folder": {
+    "name": "llm",
+    "initial_count": 1,
+    "has_more": false,
+    "two_scans_same_source_ids": true,
+    "baseline_comparison": {
+      "pages_scanned": 1,
+      "new_source_ids": [],
+      "removed_source_ids": []
+    }
+  },
+  "target_baseline_video": {
+    "source_id": "BV1FPTT6uEd2",
+    "exit_code": 0,
+    "stdout_is_json": true,
+    "stderr_empty": true,
+    "subtitle_available": true,
+    "subtitle_item_count": 525,
+    "subtitle_language": "ai-zh",
+    "subtitle_source": "ai",
+    "subtitle_upstream_type": 1,
+    "subtitle_first_from": 0.08,
+    "subtitle_last_to": 944.52,
+    "transcript_sha256": "ab2357a35745b699182319317bbd5936ee7a39d4b48bdf37f0df450b0caa73cc"
+  },
+  "no_subtitle_sample": {
+    "source_id": "BV1MW4y1z7Tk",
+    "exit_code": 0,
+    "stdout_is_json": true,
+    "stderr_empty": true,
+    "subtitle_available": false,
+    "subtitle_item_count": 0
+  },
+  "multi_part_samples": [
+    {
+      "source_id": "BV15t4y1m7Eo",
+      "page_count": 5,
+      "pages_with_tracks": 1,
+      "pages_without_tracks": 4
+    },
+    {
+      "source_id": "BV1QA411N7Vu",
+      "page_count": 8,
+      "pages_with_chinese_and_english_tracks": 8
+    }
+  ],
+  "contract_boundary_tests": {
+    "passed": 3,
+    "confirmed_v0_first_part_only": true,
+    "confirmed_arbitrary_non_chinese_fallback": true,
+    "confirmed_http_412_mapping": true
+  },
+  "missing_video_sample": {
+    "source_id": "BV0000000000",
+    "exit_code": 1,
+    "expected_error_code": "not_found",
+    "actual_error_code": "internal_error",
+    "message_exposes_low_level_exception": true
+  }
+}

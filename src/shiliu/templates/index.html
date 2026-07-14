@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}拾流 · 内容流{% endblock %}
+{% block content %}
+<main class="page-shell">
+  <section class="hero-row">
+    <div>
+      <p class="eyebrow">BILIBILI FAVORITES · LOCAL READING</p>
+      <h1>最近流入</h1>
+      <p class="muted">最新收藏优先。立即同步先给出快速版，定时任务生成正式版。</p>
+    </div>
+    <div class="sync-block">
+      <button class="primary" data-sync data-sync-url="{% if selected_source %}/api/sources/{{ selected_source }}/sync{% else %}/api/sync{% endif %}">立即同步{% if selected_source %}当前来源{% endif %}</button>
+      <span class="sync-status" data-sync-status>
+        {% if latest_sync %}上次：{{ latest_sync.status }}{% else %}尚未同步{% endif %}
+      </span>
+    </div>
+  </section>
+
+  <section class="source-strip">
+    <a class="source-chip {% if not selected_source %}is-selected{% endif %}" href="/">全部来源</a>
+    {% for source in sources %}
+    <a class="source-chip {% if selected_source == source.id %}is-selected{% endif %}" href="/?source={{ source.id }}">{{ source.account_name or '当前账号' }} · {{ source.folder_title }}{% if source.status != 'active' %} · {{ source.status }}{% endif %}</a>
+    {% endfor %}
+    {% if history_pending_count %}<span class="history-count">历史待处理 {{ history_pending_count }}</span>{% endif %}
+  </section>
+
+  {% if not config.baseline_confirmed %}
+  <a class="setup-banner" href="/setup">尚未完成首次设置，先选择收藏夹、模型并确认基线 →</a>
+  {% endif %}
+
+  {% if videos %}
+  <section class="waterfall">
+    {% for video in videos %}
+    <article class="video-card {% if video.is_ignored %}is-ignored{% endif %}" data-video-id="{{ video.id }}">
+      <div class="cover-wrap">
+        {% if video.cover_path %}<img src="/media/{{ video.id }}/cover" alt="{{ video.title }} 的封面" loading="lazy">
+        {% else %}<div class="cover-fallback">NO COVER</div>{% endif %}
+        <span class="state state-{{ video.status }}">{{ video.status }}</span>
+        {% if video.active_revision == 'fast' %}<span class="revision-badge">快速版{% if video.refinement_status == 'processing' %} · 精修中{% elif video.refinement_status == 'failed' %} · 精修失败{% endif %}</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <h2>{{ video.title }}</h2>
+        {% if video.sources %}<div class="source-tags">{% for source in video.sources %}<span>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</span>{% endfor %}</div>{% endif %}
+        {% if video.is_ignored %}
+          <button class="ghost" data-action="restore">恢复</button>
+        {% else %}
+          {% if video.summary %}
+          <p class="conclusion">{{ video.summary.conclusion }}</p>
+          <ul class="key-points">{% for point in video.summary.key_points %}<li>{{ point }}</li>{% endfor %}</ul>
+          <details class="deep-notes">
+            <summary>深度笔记</summary>
+            <div class="notes-content">
+              {% for paragraph in video.summary.detailed_notes %}<p>{{ paragraph }}</p>{% endfor %}
+              {% if video.summary.important_chapters %}<h3>重要章节</h3><ul>{% for item in video.summary.important_chapters %}<li><code>{{ item.start_seconds }}s</code> {{ item.title }}{% if item.summary %}：{{ item.summary }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+              {% if video.summary.entities %}<h3>模型、工具与项目</h3><ul>{% for item in video.summary.entities %}<li><strong>{{ item.name }}</strong>{% if item.note %}：{{ item.note }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+              {% if video.summary.action_items %}<h3>可执行事项</h3><ul>{% for item in video.summary.action_items %}<li>{{ item.action }}{% if item.rationale %}：{{ item.rationale }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+              {% if video.summary.limitations %}<h3>局限与时效性</h3><ul>{% for item in video.summary.limitations %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+              {% if video.summary.related_links %}<h3>相关链接</h3><ul class="related-links">{% for url in video.summary.related_links %}<li><a href="{{ url }}" target="_blank" rel="noreferrer">{{ url }}</a></li>{% endfor %}</ul>{% endif %}
+            </div>
+          </details>
+          {% else %}
+          <p class="pending-copy">{% if video.error_message %}{{ video.error_message }}{% else %}正在等待可用内容。{% endif %}</p>
+          {% endif %}
+          <div class="card-actions">
+            {% if video.transcript_path %}<a class="text-button" href="/videos/{{ video.id }}/transcript">完整原文</a>{% endif %}
+            {% if video.status in ['needs_review', 'retry_wait'] %}<button class="text-button" data-action="retry">立即重试</button>{% endif %}
+            {% if video.active_revision == 'fast' %}<button class="text-button" data-action="refine">立即精修</button>{% endif %}
+            <button class="text-button muted-action" data-action="ignore">忽略</button>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="empty-state"><p>还没有新增内容。</p><span>完成设置后，新收藏的视频会从这里开始出现。</span></section>
+  {% endif %}
+</main>
+{% endblock %}

@@ -1,0 +1,111 @@
+from __future__ import annotations
+
+import argparse
+import getpass
+import json
+from dataclasses import replace
+from pathlib import Path
+
+from shiliu.app import Application
+from shiliu.bilibili import BilibiliAdapter
+from shiliu.config import AppConfig, AppPaths, save_config, store_api_key
+from shiliu.db import Database
+from shiliu.domain import SyncMode
+from shiliu.launchd import install_launch_agent
+from shiliu.llm import OpenAICompatibleProvider
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="shiliu", description="拾流本地收藏整理工具")
+    subcommands = parser.add_subparsers(dest="command", required=True)
+    subcommands.add_parser("setup", help="交互式首次设置")
+    sync = subcommands.add_parser("sync", help="执行一次同步后退出")
+    mode = sync.add_mutually_exclusive_group()
+    mode.add_argument("--scheduled", action="store_true", help="定时同步（历史积压 24 小时可处理）")
+    mode.add_argument("--manual", action="store_true", help="立即同步，不受暂停时段限制")
+    serve = subcommands.add_parser("serve", help="启动本地页面")
+    serve.add_argument("--host", default="127.0.0.1", choices=["127.0.0.1"], help="V0 只允许本机监听")
+    serve.add_argument("--port", type=int, default=18520)
+    subcommands.add_parser("install-launchd", help="安装每小时同步任务")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    arguments = build_parser().parse_args(argv)
+    if arguments.command == "setup":
+        return run_setup()
+    if arguments.command == "sync":
+        app = Application()
+        mode = SyncMode.MANUAL if arguments.manual else SyncMode.SCHEDULED
+        result = app.sync_service.sync(mode)
+        print(result.model_dump_json(indent=2))
+        return 0
+    if arguments.command == "serve":
+        import uvicorn
+
+        from shiliu.web import create_web_app
+
+        uvicorn.run(create_web_app(), host=arguments.host, port=arguments.port)
+        return 0
+    if arguments.command == "install-launchd":
+        app = Application()
+        destination = install_launch_agent(app.paths)
+        print(destination)
+        return 0
+    return 2
+
+
+def run_setup() -> int:
+    paths = AppPaths.defaults()
+    config = AppConfig.default(paths)
+    content = input(f"内容目录 [{config.content_dir}]: ").strip() or config.content_dir
+    config = replace(config, content_dir=str(Path(content).expanduser()))
+
+    adapter = BilibiliAdapter(Path(config.bili_cli_root))
+    login_answer = input("现在进行 B 站二维码登录？[Y/n]: ").strip().lower()
+    if login_answer not in {"n", "no"} and adapter.login() != 0:
+        raise SystemExit("B 站登录失败")
+    folders = adapter.list_favorite_folders()
+    if not folders:
+        raise SystemExit("没有读取到收藏夹")
+    for folder in folders:
+        print(f"{folder.get('id')}\t{folder.get('title', '')}\t{folder.get('media_count', 0)} 条")
+    favorite_id = int(input("请输入要监控的收藏夹 ID: ").strip())
+    selected = next((item for item in folders if int(item.get("id", 0)) == favorite_id), None)
+    if selected is None:
+        raise SystemExit("收藏夹 ID 不在当前列表中")
+
+    base_url = input("OpenAI-compatible Base URL [https://api.openai.com/v1]: ").strip() or "https://api.openai.com/v1"
+    model = input("模型名称: ").strip()
+    api_key = getpass.getpass("API Key（只写入 macOS Keychain）: ")
+    store_api_key(api_key)
+    provider = OpenAICompatibleProvider(base_url=base_url, api_key=api_key, model=model)
+    print(f"模型连接测试：{provider.test_connection()}")
+
+    items = adapter.list_favorite_items(favorite_id)
+    print(f"当前收藏夹共 {len(items)} 条。首次确认只建立基线，不处理这些历史内容。")
+    if input("输入 BASELINE 确认: ").strip() != "BASELINE":
+        raise SystemExit("未确认基线，设置已取消")
+    config = replace(
+        config,
+        favorite_id=favorite_id,
+        favorite_title=str(selected.get("title", "")),
+        llm_base_url=base_url.rstrip("/"),
+        llm_model=model,
+        baseline_confirmed=True,
+    )
+    resolved = save_config(config, paths)
+    database = Database(resolved.database)
+    database.initialize()
+    database.establish_baseline([item.bvid for item in items])
+    print(f"设置完成，基线 {len(items)} 条，配置保存在 {resolved.config}")
+    if input("安装每小时 launchd 同步任务？[Y/n]: ").strip().lower() not in {"n", "no"}:
+        install_launch_agent(resolved)
+        config = replace(config, auto_sync_enabled=True)
+        save_config(config, paths)
+        print("launchd 已安装；历史积压会 24 小时处理，05:00–11:59 仅暂停自动发现和精修。")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

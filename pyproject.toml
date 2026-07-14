@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shiliu"
+version = "0.2.0"
+description = "A local Bilibili favorites reading pipeline."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.27,<1",
+  "jinja2>=3.1,<4",
+  "keyring>=25,<26",
+  "markdown>=3.7,<4",
+  "pydantic>=2.9,<3",
+  "tomli>=2,<3; python_version < '3.11'",
+  "uvicorn>=0.30,<1",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.3,<9",
+]
+
+[project.scripts]
+shiliu = "shiliu.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shiliu"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

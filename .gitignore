@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*.db
+*.db-shm
+*.db-wal
+.coverage
+htmlcov/
+spikes/bilibili-cli-evaluation/artifacts/bilibili-login-qr.png

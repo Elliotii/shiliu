@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ video.title }} · 完整原文{% endblock %}
+{% block content %}
+<main class="workbench">
+  <aside class="workbench-side">
+    <a class="back-link" href="/">← 返回内容流</a>
+    <p class="eyebrow">FULL TRANSCRIPT</p>
+    <h1>{{ video.title }}</h1>
+    <dl>
+      <dt>字幕</dt><dd>{{ video.subtitle_language or '—' }} · {{ video.subtitle_source or 'unknown' }}</dd>
+      <dt>状态</dt><dd>{{ video.status }}</dd>
+    </dl>
+    {% if video.raw_subtitle_path %}<a class="raw-link" href="/media/{{ video.id }}/raw-subtitle" target="_blank">打开原始带时间戳字幕 ↗</a>{% endif %}
+    <a class="raw-link" href="{{ video.video_url }}" target="_blank" rel="noreferrer">打开 B 站视频 ↗</a>
+  </aside>
+  <article class="transcript-paper markdown-body">{{ transcript_html | safe }}</article>
+</main>
+{% endblock %}
+

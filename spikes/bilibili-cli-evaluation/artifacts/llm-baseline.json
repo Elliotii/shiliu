@@ -1,0 +1,12 @@
+{
+  "schema_version": "1",
+  "captured_at": "2026-07-15T00:02:06+08:00",
+  "source": "bilibili",
+  "folder_name": "llm",
+  "folder_id": 4093672622,
+  "initial_scan_policy": "baseline_only",
+  "has_more": false,
+  "seen_source_ids": [
+    "BV1FPTT6uEd2"
+  ]
+}
