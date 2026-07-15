@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}拾流 · 分类实验{% endblock %}
+{% block content %}
+<main class="taxonomy-shell">
+  <p class="eyebrow">V3 · CORPUS SNAPSHOTS</p>
+  <h1>分类实验</h1>
+  <p class="muted taxonomy-intro">先冻结可复现的内容语料。本页面不会调用模型，也不会修改视频、收藏夹或阅读状态。</p>
+
+  <section class="taxonomy-panel">
+    <div class="taxonomy-panel-heading"><div><span class="step-number">01</span><h2>选择收藏夹</h2></div><p>默认不选择。只有当前仍存在于所选收藏夹中的内容会进入快照。</p></div>
+    <div class="taxonomy-source-grid" data-taxonomy-sources>
+      {% for source in sources %}
+      <label class="taxonomy-source-option"><input type="checkbox" value="{{ source.id }}"><span><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>{{ source.media_count }} 条{% if source.status == 'paused' %} · 已暂停同步，可读取本地关系{% endif %}</small></span></label>
+      {% else %}<p class="muted">尚无启用的收藏夹来源。</p>{% endfor %}
+    </div>
+    <div class="inline-actions taxonomy-actions"><button class="secondary" type="button" data-taxonomy-preview>预览语料</button><button class="primary" type="button" data-taxonomy-freeze disabled>冻结 Snapshot</button></div>
+    <p class="connection-status" data-taxonomy-status></p>
+  </section>
+
+  <section class="taxonomy-panel" data-taxonomy-preview-panel hidden>
+    <div class="taxonomy-panel-heading"><div><span class="step-number">02</span><h2>语料预览</h2></div><p>D 级不参与开放发现，但会保留给后续 Trial Assignment。</p></div>
+    <div class="taxonomy-metrics" data-taxonomy-metrics></div>
+    <div class="taxonomy-samples" data-taxonomy-samples></div>
+  </section>
+
+  <section class="taxonomy-panel">
+    <div class="taxonomy-panel-heading"><div><span class="step-number">03</span><h2>已冻结快照</h2></div><p>同范围、同内容 Hash 会复用已有快照。</p></div>
+    <div class="snapshot-list">
+      {% for snapshot in snapshots %}
+      <article><div><strong>Snapshot #{{ snapshot.id }}</strong><small>{{ snapshot.created_at }} · {{ snapshot.content_count }} 张 Card · Eligible {{ snapshot.discovery_eligible_count }}</small></div><div class="snapshot-links"><code>{{ snapshot.snapshot_hash[:12] }}…</code><a href="/api/taxonomy/snapshots/{{ snapshot.id }}/reference-candidates">候选清单</a></div></article>
+      {% else %}<p class="muted">尚未冻结 Snapshot。</p>{% endfor %}
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -9,3 +9,7 @@ __pycache__/
 .coverage
 htmlcov/
 spikes/bilibili-cli-evaluation/artifacts/bilibili-login-qr.png
+eval/private_reference/reference_taxonomy_v*.yaml
+eval/private_reference/gold_eval_set_*.jsonl
+eval/private_reference/reference_manifest_v*.json
+eval/private_reference/candidate_videos_*.jsonl

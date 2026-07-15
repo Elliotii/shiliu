@@ -12,7 +12,7 @@ from typing import Any
 
 import markdown
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -97,6 +97,10 @@ class NoteRequest(BaseModel):
     content: str
 
 
+class TaxonomySourcesRequest(BaseModel):
+    source_ids: list[int] = Field(min_length=1)
+
+
 def create_web_app(application: Application | None = None) -> FastAPI:
     web = FastAPI(title="拾流 Shiliu", docs_url=None, redoc_url=None)
     web.mount("/static", StaticFiles(directory=str(PACKAGE_DIR / "static")), name="static")
@@ -146,6 +150,70 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             {
                 "config": public_config(_core(request).config),
                 "sources": _core(request).db.list_sources(),
+            },
+        )
+
+    @web.get("/taxonomy", response_class=HTMLResponse)
+    async def taxonomy_page(request: Request) -> HTMLResponse:
+        core = _core(request)
+        return templates.TemplateResponse(
+            request,
+            "taxonomy.html",
+            {
+                "sources": core.taxonomy_corpus.repository.selectable_sources(),
+                "snapshots": core.taxonomy_corpus.repository.list_snapshots(),
+            },
+        )
+
+    @web.post("/api/taxonomy/snapshots/preview")
+    async def preview_taxonomy_snapshot(
+        payload: TaxonomySourcesRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            preview = await asyncio.to_thread(
+                _core(request).taxonomy_corpus.preview, payload.source_ids
+            )
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+        value = preview.model_dump(mode="json", exclude={"cards"})
+        value["sample_cards"] = [card.model_dump(mode="json") for card in preview.cards[:5]]
+        return JSONResponse({"ok": True, "preview": value})
+
+    @web.post("/api/taxonomy/snapshots")
+    async def create_taxonomy_snapshot(
+        payload: TaxonomySourcesRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            snapshot = await asyncio.to_thread(
+                _core(request).taxonomy_corpus.freeze, payload.source_ids
+            )
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+        return JSONResponse(
+            {"ok": True, "snapshot": snapshot.model_dump(mode="json")}, status_code=201
+        )
+
+    @web.get("/api/taxonomy/snapshots/{snapshot_id}")
+    async def taxonomy_snapshot(snapshot_id: int, request: Request) -> JSONResponse:
+        snapshot = _core(request).taxonomy_corpus.repository.get_snapshot(snapshot_id)
+        if snapshot is None:
+            raise HTTPException(404, "快照不存在")
+        return JSONResponse({"ok": True, "snapshot": snapshot})
+
+    @web.get("/api/taxonomy/snapshots/{snapshot_id}/reference-candidates")
+    async def taxonomy_reference_candidates(
+        snapshot_id: int, request: Request
+    ) -> PlainTextResponse:
+        try:
+            rows = _core(request).taxonomy_corpus.repository.candidate_rows(snapshot_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        body = "\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + "\n"
+        return PlainTextResponse(
+            body,
+            media_type="application/x-ndjson",
+            headers={
+                "Content-Disposition": f'attachment; filename="candidate_videos_snapshot_{snapshot_id}.jsonl"'
             },
         )
 

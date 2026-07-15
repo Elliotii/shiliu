@@ -10,7 +10,7 @@ from typing import Any, Iterator
 from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
 
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 
 def utc_now() -> str:
@@ -186,6 +186,90 @@ class Database:
                     updated_at TEXT NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS taxonomy_corpus_snapshots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    selected_source_ids_json TEXT NOT NULL,
+                    membership_count INTEGER NOT NULL,
+                    content_count INTEGER NOT NULL,
+                    duplicate_memberships_merged INTEGER NOT NULL,
+                    discovery_eligible_count INTEGER NOT NULL,
+                    trial_assignment_only_count INTEGER NOT NULL,
+                    evidence_counts_json TEXT NOT NULL,
+                    snapshot_hash TEXT NOT NULL UNIQUE,
+                    created_at TEXT NOT NULL,
+                    frozen_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS taxonomy_classification_cards (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    snapshot_id INTEGER NOT NULL REFERENCES taxonomy_corpus_snapshots(id) ON DELETE RESTRICT,
+                    content_key TEXT NOT NULL,
+                    video_id INTEGER REFERENCES videos(id) ON DELETE SET NULL,
+                    platform TEXT NOT NULL,
+                    source_content_id TEXT NOT NULL,
+                    ordinal INTEGER NOT NULL,
+                    evidence_level TEXT NOT NULL,
+                    discovery_eligible INTEGER NOT NULL,
+                    selected_revision TEXT,
+                    stored_card_json TEXT NOT NULL,
+                    discovery_view_json TEXT NOT NULL,
+                    card_hash TEXT NOT NULL,
+                    discovery_view_hash TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(snapshot_id, content_key),
+                    UNIQUE(snapshot_id, ordinal)
+                );
+
+                CREATE TABLE IF NOT EXISTS taxonomy_runs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_kind TEXT NOT NULL DEFAULT 'production',
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    current_stage TEXT,
+                    corpus_snapshot_id INTEGER REFERENCES taxonomy_corpus_snapshots(id) ON DELETE RESTRICT,
+                    engine TEXT,
+                    engine_version TEXT,
+                    parameters_json TEXT NOT NULL DEFAULT '{}',
+                    search_enabled INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    started_at TEXT,
+                    updated_at TEXT NOT NULL,
+                    completed_at TEXT,
+                    last_error_code TEXT,
+                    last_error_message TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS taxonomy_stage_runs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id INTEGER NOT NULL REFERENCES taxonomy_runs(id) ON DELETE CASCADE,
+                    stage_name TEXT NOT NULL,
+                    unit_key TEXT NOT NULL DEFAULT 'main',
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    attempt_count INTEGER NOT NULL DEFAULT 0,
+                    next_retry_at TEXT,
+                    input_hash TEXT,
+                    output_path TEXT,
+                    output_hash TEXT,
+                    provider TEXT,
+                    model TEXT,
+                    prompt_version TEXT,
+                    prompt_hash TEXT,
+                    thinking_enabled INTEGER,
+                    reasoning_effort TEXT,
+                    temperature REAL,
+                    input_tokens INTEGER,
+                    output_tokens INTEGER,
+                    reasoning_tokens INTEGER,
+                    cost_value REAL,
+                    cost_currency TEXT,
+                    elapsed_seconds REAL,
+                    last_error_code TEXT,
+                    last_error_message TEXT,
+                    started_at TEXT,
+                    completed_at TEXT,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(run_id, stage_name, unit_key)
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
                 CREATE INDEX IF NOT EXISTS idx_stages_due ON pipeline_stages(status, next_retry_at);
                 CREATE INDEX IF NOT EXISTS idx_events_status ON events(status, created_at);
@@ -194,6 +278,9 @@ class Database:
                 CREATE INDEX IF NOT EXISTS idx_memberships_history ON video_source_memberships(queued_history, source_id, source_position);
                 CREATE INDEX IF NOT EXISTS idx_asr_jobs_due ON asr_jobs(status, next_retry_at);
                 CREATE INDEX IF NOT EXISTS idx_video_notes_video ON video_notes(video_id, created_at, id);
+                CREATE INDEX IF NOT EXISTS idx_taxonomy_cards_snapshot ON taxonomy_classification_cards(snapshot_id, ordinal);
+                CREATE INDEX IF NOT EXISTS idx_taxonomy_runs_status ON taxonomy_runs(status, updated_at);
+                CREATE INDEX IF NOT EXISTS idx_taxonomy_stages_due ON taxonomy_stage_runs(status, next_retry_at);
                 """
             )
             self._ensure_columns(connection)

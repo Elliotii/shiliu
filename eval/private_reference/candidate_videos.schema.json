@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shiliu reference candidate row",
+  "type": "object",
+  "required": ["content_key", "title", "uploader", "evidence_level"],
+  "additionalProperties": false,
+  "properties": {
+    "content_key": {"type": "string"},
+    "title": {"type": "string"},
+    "uploader": {"type": "string"},
+    "evidence_level": {"enum": ["A", "B", "C", "D"]}
+  }
+}

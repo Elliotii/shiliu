@@ -1,0 +1,33 @@
+.taxonomy-shell{max-width:1240px;margin:0 auto;padding:64px clamp(22px,5vw,76px) 90px}
+.taxonomy-shell>h1{font:500 clamp(42px,6vw,72px)/.95 Georgia,"Songti SC",serif;margin:0 0 18px}
+.taxonomy-intro{max-width:760px;line-height:1.7;margin-bottom:42px}
+.taxonomy-panel{border-top:1px solid var(--line);padding:34px 0 44px}
+.taxonomy-panel-heading{display:flex;justify-content:space-between;gap:40px;align-items:flex-start;margin-bottom:24px}
+.taxonomy-panel-heading>div{display:flex;gap:20px;align-items:baseline}
+.taxonomy-panel-heading h2{font:600 25px Georgia,"Songti SC",serif;margin:0}
+.taxonomy-panel-heading p{max-width:520px;color:var(--muted);font-size:13px;line-height:1.6;margin:0}
+.taxonomy-source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.taxonomy-source-option{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);padding:16px;cursor:pointer}
+.taxonomy-source-option input{width:auto}
+.taxonomy-source-option small{display:block;color:var(--muted);margin-top:5px}
+.taxonomy-actions{margin-top:18px}
+.taxonomy-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.taxonomy-metrics>div{background:var(--card);border:1px solid var(--line);padding:17px}
+.taxonomy-metrics small{display:block;color:var(--muted);margin-bottom:8px}
+.taxonomy-metrics strong{font:600 22px Georgia,"Songti SC",serif}
+.taxonomy-samples{display:grid;gap:10px;margin-top:24px}
+.taxonomy-samples details{background:var(--card);border:1px solid var(--line);padding:15px}
+.taxonomy-samples summary{cursor:pointer;font-weight:650}
+.evidence{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:10px;border-radius:50%;background:var(--green);color:white;font-size:11px}
+.evidence-d{background:var(--muted)}
+.card-compare{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:16px}
+.card-compare section{min-width:0}
+.card-compare h3{font-size:12px;color:var(--accent)}
+.card-compare pre{max-height:420px;overflow:auto;background:#f1ede4;padding:14px;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.snapshot-list{display:grid;gap:10px}
+.snapshot-list article{display:flex;justify-content:space-between;gap:20px;align-items:center;background:var(--card);border:1px solid var(--line);padding:16px}
+.snapshot-list small{display:block;color:var(--muted);margin-top:5px}
+.snapshot-links{display:flex;align-items:center;gap:16px}
+.snapshot-links code{font-size:11px;color:var(--muted)}
+.snapshot-links a{color:var(--green);font-size:13px;text-decoration:none}
+@media(max-width:700px){.taxonomy-panel-heading{display:block}.taxonomy-panel-heading p{margin-top:12px}.taxonomy-source-grid,.taxonomy-metrics,.card-compare{grid-template-columns:1fr}.snapshot-list article{align-items:flex-start;flex-direction:column}}

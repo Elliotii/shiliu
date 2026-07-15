@@ -13,6 +13,7 @@ from shiliu.domain import PipelineError
 from shiliu.logging_config import configure_logging
 from shiliu.pipeline import PipelineService
 from shiliu.sync import SyncService
+from shiliu.taxonomy import TaxonomyCorpusService
 
 
 class Application:
@@ -32,6 +33,7 @@ class Application:
             )
         self.adapter = BilibiliAdapter(Path(self.config.bili_cli_root))
         self.artifacts = ArtifactStore(self.paths.videos_dir)
+        self.taxonomy_corpus = TaxonomyCorpusService(self.db, self.artifacts)
         self.pipeline = PipelineService(
             db=self.db,
             adapter=self.adapter,
