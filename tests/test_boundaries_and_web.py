@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from shiliu.app import Application
 from shiliu.artifacts import ArtifactStore, extract_urls
-from shiliu.domain import SubtitleLanguage, SubtitleSegment, SummaryResult
+from shiliu.domain import FavoriteItem, SubtitleLanguage, SubtitleSegment, SummaryResult
 from shiliu.llm import OpenAICompatibleProvider
 from shiliu.prompts import build_transcript_prompt
 from shiliu.web import create_web_app
@@ -80,6 +80,12 @@ def test_homepage_transcript_and_ignore_routes(app_paths) -> None:
         artifact_dir=str(directory),
         status="completed",
     )
+    source_id = application.db.create_favorite_source(folder_id=1, folder_title="测试收藏夹")
+    application.db.record_source_snapshot(
+        source_id,
+        [FavoriteItem(bvid="BV1234567890", title="测试视频", favorite_time=1)],
+        processing_profile="formal",
+    )
     client = TestClient(create_web_app(application))
 
     home = client.get("/")
@@ -111,6 +117,12 @@ def test_retry_wait_card_offers_immediate_retry(app_paths) -> None:
     application = Application(app_paths)
     video_id = application.db.create_video("BV1234567890", "等待重试")
     application.db.update_video(video_id, status="retry_wait", error_message="稍后重试")
+    source_id = application.db.create_favorite_source(folder_id=1, folder_title="测试收藏夹")
+    application.db.record_source_snapshot(
+        source_id,
+        [FavoriteItem(bvid="BV1234567890", title="等待重试", favorite_time=1)],
+        processing_profile="formal",
+    )
     client = TestClient(create_web_app(application))
     page = client.get("/")
     assert page.status_code == 200

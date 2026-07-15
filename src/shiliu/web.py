@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 import html
 import json
+import re
 import threading
 from dataclasses import replace
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +31,7 @@ from shiliu.db import Database
 from shiliu.domain import PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
+from shiliu.library import LibraryNotFound, LibraryValidationError
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 
 
@@ -86,6 +89,14 @@ class ASRSettingsRequest(BaseModel):
     model: str = "paraformer-v2"
 
 
+class ReadingStateRequest(BaseModel):
+    reading_state: str
+
+
+class NoteRequest(BaseModel):
+    content: str
+
+
 def create_web_app(application: Application | None = None) -> FastAPI:
     web = FastAPI(title="拾流 Shiliu", docs_url=None, redoc_url=None)
     web.mount("/static", StaticFiles(directory=str(PACKAGE_DIR / "static")), name="static")
@@ -102,9 +113,17 @@ def create_web_app(application: Application | None = None) -> FastAPI:
     @web.get("/", response_class=HTMLResponse)
     async def home(request: Request) -> HTMLResponse:
         core = _core(request)
+        selected_view = request.query_params.get("view", "feed")
+        if selected_view not in {"feed", "marked", "noted", "archived"}:
+            selected_view = "feed"
         selected_source = request.query_params.get("source")
         source_db_id = int(selected_source) if selected_source and selected_source.isdigit() else None
-        cards = [_video_view(core, item) for item in core.db.list_videos(source_db_id)]
+        rows = core.db.list_video_cards(view=selected_view, source_db_id=source_db_id)
+        notes_by_video = core.db.list_notes_for_videos([int(item["id"]) for item in rows])
+        cards = [
+            _video_view(core, item, notes=notes_by_video.get(int(item["id"]), []))
+            for item in rows
+        ]
         return templates.TemplateResponse(
             request,
             "index.html",
@@ -114,6 +133,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 "config": public_config(core.config),
                 "sources": core.db.list_sources(),
                 "selected_source": source_db_id,
+                "selected_view": selected_view,
                 "history_pending_count": core.db.history_pending_count(),
             },
         )
@@ -207,6 +227,62 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             raise HTTPException(404, "视频不存在")
         core.db.set_ignored(video_id, False)
         return JSONResponse({"ok": True})
+
+    @web.patch("/api/videos/{video_id}/reading-state")
+    async def reading_state(
+        video_id: int, payload: ReadingStateRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            video = _core(request).library.set_reading_state(video_id, payload.reading_state)
+        except (LibraryNotFound, LibraryValidationError) as exc:
+            raise HTTPException(404 if isinstance(exc, LibraryNotFound) else 400, str(exc)) from exc
+        return JSONResponse({"ok": True, "video": _library_state(video)})
+
+    @web.post("/api/videos/{video_id}/mark")
+    async def mark(video_id: int, request: Request) -> JSONResponse:
+        return _library_video_response(_core(request), video_id, "mark", True)
+
+    @web.delete("/api/videos/{video_id}/mark")
+    async def unmark(video_id: int, request: Request) -> JSONResponse:
+        return _library_video_response(_core(request), video_id, "mark", False)
+
+    @web.post("/api/videos/{video_id}/archive")
+    async def archive(video_id: int, request: Request) -> JSONResponse:
+        return _library_video_response(_core(request), video_id, "archive", True)
+
+    @web.delete("/api/videos/{video_id}/archive")
+    async def unarchive(video_id: int, request: Request) -> JSONResponse:
+        return _library_video_response(_core(request), video_id, "archive", False)
+
+    @web.get("/api/videos/{video_id}/notes")
+    async def list_notes(video_id: int, request: Request) -> JSONResponse:
+        if _core(request).db.get_video(video_id) is None:
+            raise HTTPException(404, "视频不存在")
+        return JSONResponse({"ok": True, "notes": [_note_view(item) for item in _core(request).db.list_notes(video_id)]})
+
+    @web.post("/api/videos/{video_id}/notes")
+    async def add_note(video_id: int, payload: NoteRequest, request: Request) -> JSONResponse:
+        try:
+            note = _core(request).library.add_note(video_id, payload.content)
+        except (LibraryNotFound, LibraryValidationError) as exc:
+            raise HTTPException(404 if isinstance(exc, LibraryNotFound) else 400, str(exc)) from exc
+        return JSONResponse({"ok": True, "note": _note_view(note)}, status_code=201)
+
+    @web.patch("/api/notes/{note_id}")
+    async def update_note(note_id: int, payload: NoteRequest, request: Request) -> JSONResponse:
+        try:
+            note = _core(request).library.update_note(note_id, payload.content)
+        except (LibraryNotFound, LibraryValidationError) as exc:
+            raise HTTPException(404 if isinstance(exc, LibraryNotFound) else 400, str(exc)) from exc
+        return JSONResponse({"ok": True, "note": _note_view(note)})
+
+    @web.delete("/api/notes/{note_id}")
+    async def delete_note(note_id: int, request: Request) -> JSONResponse:
+        try:
+            note = _core(request).library.delete_note(note_id)
+        except LibraryNotFound as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return JSONResponse({"ok": True, "video_id": note["video_id"]})
 
     @web.post("/api/videos/{video_id}/retry")
     async def retry(video_id: int, request: Request) -> JSONResponse:
@@ -582,11 +658,14 @@ def _resolve_api_key(submitted: str, core: Application) -> str:
     return load_api_key(core.config.api_key_ref)
 
 
-def _video_view(core: Application, video: dict[str, Any]) -> dict[str, Any]:
+def _video_view(
+    core: Application, video: dict[str, Any], *, notes: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     value = dict(video)
     value["summary"] = None
     value.setdefault("sources", core.db.video_sources(int(video["id"])))
     value["asr_job"] = core.db.get_asr_job(int(video["id"]))
+    value["notes"] = [_note_view(item) for item in (notes or [])]
     if video.get("summary_path"):
         revision = str(video.get("active_revision") or "refined")
         json_path = core.artifacts.video_dir(str(video["source_id"])) / f"summary.{revision}.json"
@@ -598,6 +677,50 @@ def _video_view(core: Application, video: dict[str, Any]) -> dict[str, Any]:
             except (json.JSONDecodeError, OSError):
                 value["summary"] = None
     return value
+
+
+def _note_view(note: dict[str, Any]) -> dict[str, Any]:
+    value = dict(note)
+    value["display_updated_at"] = _display_minute(str(note["updated_at"]))
+    safe_markdown = html.escape(str(note["content"]))
+    rendered = markdown.markdown(
+        safe_markdown, extensions=["extra", "sane_lists"]
+    )
+    rendered = re.sub(r"<img\b[^>]*>", "", rendered, flags=re.IGNORECASE)
+    rendered = re.sub(
+        r'href="(?!https?://|#)[^"]*"', 'href="#"', rendered, flags=re.IGNORECASE
+    )
+    value["rendered_html"] = rendered
+    return value
+
+
+def _display_minute(value: str) -> str:
+    try:
+        return datetime.fromisoformat(value).astimezone().strftime("%Y-%m-%d %H:%M")
+    except ValueError:
+        return value[:16].replace("T", " ")
+
+
+def _library_state(video: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": video["id"],
+        "reading_state": video["reading_state"],
+        "is_marked": bool(video["is_marked"]),
+        "archived": bool(video["archived_at"]),
+    }
+
+
+def _library_video_response(
+    core: Application, video_id: int, action: str, enabled: bool
+) -> JSONResponse:
+    try:
+        if action == "mark":
+            video = core.library.set_marked(video_id, enabled)
+        else:
+            video = core.library.set_archived(video_id, enabled)
+    except LibraryNotFound as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return JSONResponse({"ok": True, "video": _library_state(video)})
 
 
 def _start_background_sync(app: FastAPI, core: Application, source_db_id: int | None) -> dict[str, Any]:

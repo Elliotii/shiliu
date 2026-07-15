@@ -50,6 +50,12 @@ class RefinementStatus(str, Enum):
     FAILED = "failed"
 
 
+class ReadingState(str, Enum):
+    UNREAD = "unread"
+    IN_PROGRESS = "in_progress"
+    READ = "read"
+
+
 class SubtitleLanguage(str, Enum):
     ZH = "zh"
     EN = "en"

@@ -8,6 +8,7 @@ from shiliu.bilibili import BilibiliAdapter
 from shiliu.config import AppConfig, AppPaths, load_api_key, load_config
 from shiliu.db import Database
 from shiliu.llm import OpenAICompatibleProvider
+from shiliu.library import LibraryService
 from shiliu.domain import PipelineError
 from shiliu.logging_config import configure_logging
 from shiliu.pipeline import PipelineService
@@ -23,6 +24,7 @@ class Application:
         configure_logging(self.paths.logs_dir)
         self.db = Database(self.paths.database)
         self.db.initialize()
+        self.library = LibraryService(self.db)
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,

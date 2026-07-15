@@ -1,0 +1,36 @@
+.video-card.is-marked { border: 2px solid transparent; background: linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,#ff9a6f 0%,#e85f42 42%,#a92f3c 100%) border-box; box-shadow: 0 20px 52px rgba(23,33,29,.12),0 10px 28px rgba(190,57,47,.28),0 2px 6px rgba(169,47,60,.2); }
+.video-card.is-read:not(.is-ignored) > * { opacity: .48; transition: opacity .2s ease; }
+.mark-badge { position: absolute; left: 12px; top: 44px; background: rgba(23,33,29,.86); color: #fff; padding: 6px 9px; border-radius: 2px; font-size: 10px; letter-spacing: .05em; }
+.library-controls { display: flex; align-items: center; gap: 8px; margin: 16px 0 4px; }
+.reading-switch { position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(3,1fr); min-width: 230px; border: 1px solid var(--line); border-radius: 99px; padding: 3px; background: rgba(255,255,255,.28); }
+.reading-switch::before { content: ""; position: absolute; z-index: -1; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px)/3); border-radius: 99px; background: var(--ink); transition: transform .18s ease; }
+.reading-switch[data-reading-state="in_progress"]::before { transform: translateX(100%); }
+.reading-switch[data-reading-state="read"]::before { transform: translateX(200%); }
+.reading-switch button { border: 0; background: transparent; padding: 7px 10px; color: var(--muted); font: 600 11px/1 Inter; cursor: pointer; white-space: nowrap; }
+.reading-switch[data-reading-state="unread"] button[data-reading-value="unread"], .reading-switch[data-reading-state="in_progress"] button[data-reading-value="in_progress"], .reading-switch[data-reading-state="read"] button[data-reading-value="read"] { color: #fff; }
+.library-icon { width: 31px; height: 31px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; }
+.library-icon svg { width: 15px; height: 15px; display: block; margin: auto; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.mark-toggle svg { fill: currentColor; stroke: none; }
+.mark-badge { display: inline-flex; align-items: center; gap: 4px; }
+.mark-badge svg { width: 10px; height: 10px; fill: currentColor; }
+.inline-notes { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 12px; text-align: left; }
+.notes-heading { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; }
+.notes-heading b { font-weight: 500; }
+.notes-heading button, .note-row > [data-note-delete] { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 3px 5px; font-size: 16px; }
+.note-row { display: flex; align-items: flex-start; gap: 8px; border-bottom: 1px solid rgba(23,33,29,.07); padding: 9px 0; text-align: left; }
+.note-main { min-width: 0; flex: 1; }
+.note-main small { display: block; margin-top: 4px; color: #928e84; font-size: 10px; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.markdown-note { font: 13px/1.6 Inter,"PingFang SC",sans-serif; color: #505954; cursor: text; overflow-wrap: anywhere; }
+.markdown-note > :first-child { margin-top: 0; }
+.markdown-note > :last-child { margin-bottom: 0; }
+.note-editor { width: 100%; min-height: 72px; resize: vertical; border: 1px solid var(--line); background: rgba(255,255,255,.4); padding: 8px; font: 13px/1.6 Inter,"PingFang SC",sans-serif; color: var(--ink); }
+.note-error { margin: 7px 0 0; color: #a74732; font-size: 11px; }
+.compact-meta, .archive-meta { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 11px; margin-top: 10px; }
+.video-card.is-archived .cover-wrap { aspect-ratio: 2.2/1; }
+.video-card.is-archived .card-body { display: block; padding: 16px 18px; }
+.video-card.is-archived h2 { font-size: 17px; margin-bottom: 8px; }
+.video-card.is-ignored .source-tags, .video-card.is-ignored .reading-switch { display: none; }
+.video-card.is-ignored .library-controls { margin: 0; }
+.collapse-summary { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 22px; padding: 11px 0 2px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--green); font: 650 12px/1 Inter,"PingFang SC",sans-serif; cursor: pointer; }
+.collapse-summary svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@media(max-width:700px) { nav { gap: 10px; overflow-x: auto; } .library-controls { align-items: stretch; flex-wrap: wrap; } .reading-switch { min-width: 100%; order: 2; } }

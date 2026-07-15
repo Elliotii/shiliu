@@ -4,14 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}拾流{% endblock %}</title>
-  <link rel="stylesheet" href="/static/app.css?v=5">
+  <link rel="stylesheet" href="/static/app.css?v=6">
+  <link rel="stylesheet" href="/static/library.css?v=3">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/"><span>拾流</span><small>SHILIU</small></a>
-    <nav><a href="/">内容流</a><a href="/setup">设置</a></nav>
+    <nav><a href="/">内容流</a><a href="/?view=marked">Mark</a><a href="/?view=noted">我的笔记</a><a href="/?view=archived">归档</a><a href="/setup">设置</a></nav>
   </header>
   {% block content %}{% endblock %}
-  <script src="/static/app.js?v=5"></script>
+  <script src="/static/app.js?v=6"></script>
+  <script src="/static/library.js?v=2"></script>
 </body>
 </html>
