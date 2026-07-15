@@ -76,6 +76,9 @@ class SyncService:
         run_id: int | None = None,
     ) -> SyncResult:
         result = SyncResult(mode=mode, run_id=run_id)
+        begin_cycle = getattr(self.pipeline, "begin_sync_cycle", None)
+        if begin_cycle is not None:
+            begin_cycle()
         quiet_hours = mode == SyncMode.SCHEDULED and is_quiet_hour(self.now_factory())
 
         sources = self.db.list_sources(active_only=True)

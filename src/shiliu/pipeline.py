@@ -7,10 +7,12 @@ from pathlib import Path
 from typing import Callable
 
 from shiliu.artifacts import ArtifactStore, extract_urls
+from shiliu.asr import ASRService
 from shiliu.bilibili import BilibiliAdapter
 from shiliu.db import Database, utc_now
 from shiliu.domain import (
     PipelineError,
+    ASRTriggerMode,
     ProcessingProfile,
     RefinementStatus,
     StageName,
@@ -33,6 +35,7 @@ from shiliu.prompts import (
 
 
 ProviderFactory = Callable[..., OpenAICompatibleProvider]
+ASRServiceFactory = Callable[[], ASRService]
 
 
 class PipelineService:
@@ -43,11 +46,17 @@ class PipelineService:
         adapter: BilibiliAdapter,
         artifacts: ArtifactStore,
         provider_factory: ProviderFactory,
+        asr_service_factory: ASRServiceFactory | None = None,
     ) -> None:
         self.db = db
         self.adapter = adapter
         self.artifacts = artifacts
         self.provider_factory = provider_factory
+        self.asr_service_factory = asr_service_factory
+        self._automatic_asr_submissions = 0
+
+    def begin_sync_cycle(self) -> None:
+        self._automatic_asr_submissions = 0
 
     def process_video(self, video_id: int) -> bool:
         video = self._require_video(video_id)
@@ -56,7 +65,12 @@ class PipelineService:
             return False
 
         if not video.get("raw_subtitle_path"):
-            if not self._fetch_source(video):
+            asr_job = self.db.get_asr_job(video_id)
+            if asr_job is not None:
+                if not self._acquire_asr(video_id, ASRTriggerMode(str(asr_job["trigger_mode"]))):
+                    return True
+                video = self._require_video(video_id)
+            elif not self._fetch_source(video):
                 return True
             video = self._require_video(video_id)
 
@@ -78,6 +92,15 @@ class PipelineService:
             if summary is None:
                 return True
         return True
+
+    def process_manual_asr(self, video_id: int) -> bool:
+        video = self._require_video(video_id)
+        if video.get("raw_subtitle_path"):
+            return False
+        acquired = self._acquire_asr(video_id, ASRTriggerMode.MANUAL, wait_seconds=180)
+        if not acquired:
+            return True
+        return self.process_video(video_id)
 
     def process_refinement(self, video_id: int, *, force: bool = False) -> bool:
         video = self._require_video(video_id)
@@ -165,12 +188,18 @@ class PipelineService:
             cover_url=bundle.cover_url,
             cover_path=str(cover_path) if cover_path else None,
             artifact_dir=str(self.artifacts.video_dir(bvid)),
+            duration_seconds=bundle.duration_seconds,
+            page_count=bundle.page_count,
             error_code=None,
             error_message=None,
         )
 
         if bundle.subtitle_track is None or not bundle.subtitle_segments:
-            self._record_missing_subtitle(video_id, video)
+            automatic = self._record_missing_subtitle(
+                video_id, video, duration_seconds=bundle.duration_seconds
+            )
+            if automatic:
+                return self._acquire_asr(video_id, ASRTriggerMode.AUTOMATIC)
             return False
 
         _, raw_text_path = self.artifacts.save_raw_subtitle(bvid, bundle.subtitle_segments)
@@ -188,23 +217,50 @@ class PipelineService:
         )
         return True
 
-    def _record_missing_subtitle(self, video_id: int, previous: dict[str, object]) -> None:
+    def _record_missing_subtitle(
+        self,
+        video_id: int,
+        previous: dict[str, object],
+        *,
+        duration_seconds: int,
+    ) -> bool:
         now = datetime.now(timezone.utc)
         count = int(previous.get("subtitle_check_count") or 0) + 1
         first_text = previous.get("subtitle_first_checked_at")
         first = _parse_time(str(first_text)) if first_text else now
         expired = now - first >= timedelta(hours=24)
         if count >= 3 or expired:
+            short_video = 0 < duration_seconds <= 300 and self.asr_service_factory is not None
+            eligible = short_video and self._automatic_asr_submissions < 1
+            deferred = short_video and not eligible
             self.db.update_video(
                 video_id,
-                status=VideoStatus.SKIPPED_NO_SUBTITLE.value,
+                status=(
+                    VideoStatus.SUBTITLE_PENDING.value
+                    if eligible or deferred
+                    else VideoStatus.SKIPPED_NO_SUBTITLE.value
+                ),
                 subtitle_check_count=count,
                 subtitle_first_checked_at=first.isoformat(timespec="seconds"),
-                subtitle_next_check_at=None,
-                error_code="no_supported_subtitle",
-                error_message="三次检查或 24 小时内未发现中文/英文字幕",
+                subtitle_next_check_at=_iso_after(minutes=60) if deferred else None,
+                error_code=(
+                    "asr_pending"
+                    if eligible
+                    else "asr_deferred_capacity"
+                    if deferred
+                    else "no_supported_subtitle"
+                ),
+                error_message=(
+                    "未发现站内字幕，将尝试语音识别"
+                    if eligible
+                    else "本轮自动识别名额已使用，将在下次同步继续"
+                    if deferred
+                    else "三次检查或 24 小时内未发现中文/英文字幕"
+                ),
             )
-            return
+            if eligible:
+                self._automatic_asr_submissions += 1
+            return eligible
         self.db.update_video(
             video_id,
             status=VideoStatus.SUBTITLE_PENDING.value,
@@ -214,6 +270,32 @@ class PipelineService:
             error_code="subtitle_pending",
             error_message="尚未发现中文或英文字幕，将在后续同步中重试",
         )
+        return False
+
+    def _acquire_asr(
+        self,
+        video_id: int,
+        trigger_mode: ASRTriggerMode,
+        *,
+        wait_seconds: int = 0,
+    ) -> bool:
+        if self.asr_service_factory is None:
+            return False
+        try:
+            service = self.asr_service_factory()
+            return service.acquire(
+                video_id, trigger_mode=trigger_mode, wait_seconds=wait_seconds
+            )
+        except PipelineError as exc:
+            video = self._require_video(video_id)
+            self.db.update_video(
+                video_id,
+                status=VideoStatus.SKIPPED_NO_SUBTITLE.value,
+                error_code=exc.code,
+                error_message=str(exc),
+                subtitle_next_check_at=None,
+            )
+            return False
 
     def _run_transcript_stage(self, video_id: int) -> TranscriptResult | None:
         stage = self.db.ensure_stage(video_id, StageName.TRANSCRIPT)

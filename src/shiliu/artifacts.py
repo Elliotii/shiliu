@@ -56,6 +56,11 @@ class ArtifactStore:
         self.write_text(text_path, "\n".join(lines) + ("\n" if lines else ""))
         return json_path, text_path
 
+    def save_asr_raw(self, bvid: str, payload: Any) -> Path:
+        path = self.video_dir(bvid) / "asr-raw.json"
+        self.write_json(path, payload)
+        return path
+
     def save_transcript(
         self, bvid: str, transcript: TranscriptResult, *, revision: str | None = None
     ) -> tuple[Path, Path]:

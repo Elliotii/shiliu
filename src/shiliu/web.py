@@ -16,7 +16,15 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from shiliu.app import Application
-from shiliu.config import load_api_key, public_config, save_config, store_api_key
+from shiliu.asr import ParaformerProvider
+from shiliu.config import (
+    ASR_KEYCHAIN_ACCOUNT,
+    ASR_KEYCHAIN_SERVICE,
+    load_api_key,
+    public_config,
+    save_config,
+    store_api_key,
+)
 from shiliu.db import Database
 from shiliu.domain import PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
@@ -70,6 +78,12 @@ class AddFavoriteSourceRequest(FavoriteUrlRequest):
 
 class MoveFavoriteSourceRequest(BaseModel):
     direction: str
+
+
+class ASRSettingsRequest(BaseModel):
+    base_url: str = "https://dashscope.aliyuncs.com/api/v1"
+    api_key: str = ""
+    model: str = "paraformer-v2"
 
 
 def create_web_app(application: Application | None = None) -> FastAPI:
@@ -218,6 +232,28 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             _start_background_refinement(request.app, core, video_id),
             status_code=202,
         )
+
+    @web.post("/api/videos/{video_id}/asr")
+    async def generate_asr(video_id: int, request: Request) -> JSONResponse:
+        core = _core(request)
+        video = core.db.get_video(video_id)
+        if video is None:
+            raise HTTPException(404, "视频不存在")
+        if video.get("raw_subtitle_path"):
+            return JSONResponse({"ok": False, "error": "该视频已经有字幕"}, status_code=400)
+        job = core.db.get_asr_job(video_id)
+        if job and job["status"] in {"audio_downloading", "uploading", "submitted", "processing"}:
+            active = core.db.active_sync_run()
+            return JSONResponse(
+                {
+                    "ok": True,
+                    "run_id": int(active["id"]) if active else None,
+                    "reused": True,
+                    "message": "语音识别已经在进行中",
+                },
+                status_code=202,
+            )
+        return JSONResponse(_start_background_asr(request.app, core, video_id), status_code=202)
 
     @web.post("/api/setup/bilibili-login")
     async def start_bilibili_login(request: Request) -> JSONResponse:
@@ -415,6 +451,42 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             )
         return JSONResponse({"ok": True, "result": result})
 
+    @web.post("/api/setup/asr")
+    async def save_asr_settings(payload: ASRSettingsRequest, request: Request) -> JSONResponse:
+        core = _core(request)
+        try:
+            if payload.api_key.strip():
+                key = payload.api_key.strip()
+            else:
+                try:
+                    key = load_api_key(core.config.asr_api_key_ref)
+                except RuntimeError as exc:
+                    raise RuntimeError("macOS Keychain 中没有找到 Paraformer API Key") from exc
+            provider = ParaformerProvider(
+                base_url=payload.base_url, api_key=key, model=payload.model
+            )
+            await asyncio.to_thread(provider.test_connection)
+            if payload.api_key.strip():
+                await asyncio.to_thread(
+                    store_api_key,
+                    payload.api_key,
+                    service=ASR_KEYCHAIN_SERVICE,
+                    account=ASR_KEYCHAIN_ACCOUNT,
+                )
+            config = replace(
+                core.config,
+                asr_base_url=payload.base_url.rstrip("/"),
+                asr_model=payload.model,
+            )
+            save_config(config, core.paths)
+            core.config = config
+        except (PipelineError, RuntimeError, OSError, ValueError) as exc:
+            return JSONResponse(
+                {"ok": False, "error": str(exc), "code": getattr(exc, "code", "asr_error")},
+                status_code=400,
+            )
+        return JSONResponse({"ok": True, "result": "Paraformer 连接成功，设置已保存"})
+
     @web.post("/api/setup/draft")
     async def save_setup_draft(payload: SetupDraftRequest, request: Request) -> JSONResponse:
         core = _core(request)
@@ -514,6 +586,7 @@ def _video_view(core: Application, video: dict[str, Any]) -> dict[str, Any]:
     value = dict(video)
     value["summary"] = None
     value.setdefault("sources", core.db.video_sources(int(video["id"])))
+    value["asr_job"] = core.db.get_asr_job(int(video["id"]))
     if video.get("summary_path"):
         revision = str(video.get("active_revision") or "refined")
         json_path = core.artifacts.video_dir(str(video["source_id"])) / f"summary.{revision}.json"
@@ -592,6 +665,52 @@ def _start_background_refinement(
                 )
 
         thread = threading.Thread(target=target, name=f"shiliu-refine-{run_id}", daemon=True)
+        app.state.background_thread = thread
+        thread.start()
+    return {"ok": True, "run_id": run_id, "reused": False}
+
+
+def _start_background_asr(
+    app: FastAPI, core: Application, video_id: int
+) -> dict[str, Any]:
+    with app.state.background_lock:
+        active = core.db.active_sync_run()
+        if active is not None:
+            return {"ok": True, "run_id": int(active["id"]), "reused": True}
+        run_id = core.db.start_sync_run("manual")
+        core.db.update_sync_run(
+            run_id,
+            current_phase="asr",
+            current_video_id=video_id,
+            message="正在下载音频并生成字幕",
+        )
+
+        def target() -> None:
+            try:
+                with ProcessLock(core.paths.sync_lock):
+                    changed = core.pipeline.process_manual_asr(video_id)
+                job = core.db.get_asr_job(video_id) or {}
+                completed = job.get("status") == "completed"
+                core.db.finish_sync_run(
+                    run_id,
+                    status="completed" if completed else "completed_with_errors",
+                    current_phase="completed",
+                    processed_count=int(changed),
+                    message=(
+                        "语音识别及内容处理完成"
+                        if completed
+                        else str(job.get("last_error_message") or "识别尚未完成，将在后续同步恢复")
+                    ),
+                )
+            except Exception as exc:
+                core.db.finish_sync_run(
+                    run_id,
+                    status="failed",
+                    current_phase="failed",
+                    error_summary=f"{type(exc).__name__}: {exc}",
+                )
+
+        thread = threading.Thread(target=target, name=f"shiliu-asr-{run_id}", daemon=True)
         app.state.background_thread = thread
         thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}

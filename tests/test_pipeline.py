@@ -201,3 +201,53 @@ def test_fractional_timestamps_from_model_are_valid() -> None:
     )
     assert transcript.sections[0].start_seconds == 0.08
     assert transcript.sections[1].start_seconds == 20.259
+
+
+def test_scheduled_cycle_submits_only_one_automatic_asr_and_defers_the_next(app_paths) -> None:
+    first = bundle(subtitle=False).model_copy(
+        update={"duration_seconds": 183}
+    )
+    second = first.model_copy(
+        update={
+            "bvid": "BV2234567890",
+            "title": "第二条无字幕视频",
+            "video_url": "https://www.bilibili.com/video/BV2234567890",
+        }
+    )
+
+    class Adapter:
+        def fetch_video_bundle(self, bvid: str) -> VideoBundle:
+            return first if bvid == first.bvid else second
+
+    class ASR:
+        def __init__(self) -> None:
+            self.calls: list[int] = []
+
+        def acquire(self, video_id: int, **_: object) -> bool:
+            self.calls.append(video_id)
+            return False
+
+    db = Database(app_paths.database)
+    db.initialize()
+    asr = ASR()
+    service = PipelineService(
+        db=db,
+        adapter=Adapter(),
+        artifacts=ArtifactStore(app_paths.videos_dir),
+        provider_factory=lambda: FakeProvider(),
+        asr_service_factory=lambda: asr,
+    )
+    first_id = db.create_video(first.bvid, first.title)
+    second_id = db.create_video(second.bvid, second.title)
+    service.begin_sync_cycle()
+
+    for _ in range(3):
+        service.process_video(first_id)
+    for _ in range(3):
+        service.process_video(second_id)
+
+    assert asr.calls == [first_id]
+    deferred = db.get_video(second_id)
+    assert deferred["status"] == "subtitle_pending"
+    assert deferred["error_code"] == "asr_deferred_capacity"
+    assert deferred["subtitle_next_check_at"] is not None

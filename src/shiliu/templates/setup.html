@@ -22,6 +22,19 @@
     </section>
   </form>
 
+  <section class="setup-step">
+    <span class="step-number">ASR</span>
+    <div class="form-area">
+      <h2>无字幕视频 · Paraformer</h2>
+      <p>5 分钟以内在第三次确认没有站内字幕后自动使用；更长视频只在你点击时使用。API Key 单独保存在 macOS Keychain。</p>
+      <label>Base URL<input data-asr-base-url type="url" value="{{ config.asr_base_url }}"></label>
+      <label>API Key<input data-asr-api-key type="password" autocomplete="off" placeholder="已保存过可留空"></label>
+      <label>模型<input data-asr-model value="{{ config.asr_model }}"></label>
+      <button type="button" class="secondary" data-save-asr>测试成功后保存</button>
+      <p class="connection-status" data-asr-status></p>
+    </div>
+  </section>
+
   <section class="setup-step source-manager">
     <span class="step-number">05</span>
     <div class="form-area">

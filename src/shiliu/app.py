@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from shiliu.artifacts import ArtifactStore
+from shiliu.asr import ASRService, ParaformerProvider
 from shiliu.bilibili import BilibiliAdapter
 from shiliu.config import AppConfig, AppPaths, load_api_key, load_config
 from shiliu.db import Database
@@ -34,6 +35,7 @@ class Application:
             adapter=self.adapter,
             artifacts=self.artifacts,
             provider_factory=self.provider,
+            asr_service_factory=self.asr_service,
         )
         self.sync_service = SyncService(
             db=self.db,
@@ -56,4 +58,25 @@ class Application:
             timeout_seconds=180 if is_fast else 600,
             thinking_enabled=not is_fast,
             reasoning_effort=None if is_fast else self.config.formal_reasoning_effort,
+        )
+
+    def asr_service(self) -> ASRService:
+        try:
+            api_key = load_api_key(self.config.asr_api_key_ref)
+        except RuntimeError as exc:
+            raise PipelineError(
+                "macOS Keychain 中没有找到 Paraformer API Key",
+                code="asr_api_key_missing",
+                retryable=False,
+            ) from exc
+        provider = ParaformerProvider(
+            base_url=self.config.asr_base_url,
+            api_key=api_key,
+            model=self.config.asr_model,
+        )
+        return ASRService(
+            db=self.db,
+            adapter=self.adapter,
+            artifacts=self.artifacts,
+            provider=provider,
         )

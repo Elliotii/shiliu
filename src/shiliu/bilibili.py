@@ -102,7 +102,18 @@ class BilibiliAdapter:
             raise PipelineError("视频详情返回格式无效", code="upstream_schema", retryable=True)
         return VideoBundle.model_validate(data)
 
-    def _run_bridge(self, arguments: list[str]) -> Any:
+    def download_audio(self, bvid: str, output_path: Path) -> Path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        data = self._run_bridge(
+            ["download-audio", bvid, str(output_path)], timeout_seconds=360
+        )
+        if not isinstance(data, dict) or int(data.get("bytes") or 0) <= 0:
+            raise PipelineError("音频下载结果无效", code="audio_download_empty", retryable=True)
+        if not output_path.is_file():
+            raise PipelineError("音频文件没有落盘", code="audio_download_missing", retryable=True)
+        return output_path
+
+    def _run_bridge(self, arguments: list[str], *, timeout_seconds: int | None = None) -> Any:
         self._ensure_runtime()
         try:
             result = subprocess.run(
@@ -110,7 +121,7 @@ class BilibiliAdapter:
                 check=False,
                 capture_output=True,
                 text=True,
-                timeout=self.timeout_seconds,
+                timeout=timeout_seconds or self.timeout_seconds,
                 env=self._bridge_env(),
             )
         except subprocess.TimeoutExpired as exc:

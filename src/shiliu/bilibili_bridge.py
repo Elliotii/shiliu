@@ -165,6 +165,13 @@ async def qr_login_file(path: Path) -> None:
         await asyncio.sleep(2)
 
 
+async def download_audio(bvid: str, path: Path) -> dict[str, Any]:
+    credential = get_credential(mode="optional")
+    audio_url = await client.get_audio_url(bvid, credential)
+    size = await client.download_audio(audio_url, str(path))
+    return {"path": str(path), "bytes": size}
+
+
 async def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else ""
     valid = {
@@ -173,6 +180,7 @@ async def main() -> int:
         "favorite-folders": 2,
         "favorites-page": 4,
         "favorite-preview": 3,
+        "download-audio": 4,
     }
     if command not in valid or len(sys.argv) != valid[command]:
         print(json.dumps({"ok": False, "error": {"code": "usage", "message": "invalid bridge command"}}))
@@ -181,13 +189,15 @@ async def main() -> int:
         if command == "qr-login-file":
             await qr_login_file(Path(sys.argv[2]))
             return 0
+        if command == "download-audio":
+            data = await download_audio(sys.argv[2], Path(sys.argv[3]))
         if command == "favorite-folders":
             data = await fetch_favorite_folders()
         elif command == "favorites-page":
             data = await fetch_favorites_page(int(sys.argv[2]), int(sys.argv[3]))
         elif command == "favorite-preview":
             data = await fetch_favorite_preview(int(sys.argv[2]))
-        else:
+        elif command != "download-audio":
             data = await fetch_video(sys.argv[2])
     except Exception as exc:
         name = type(exc).__name__

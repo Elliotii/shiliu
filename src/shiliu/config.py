@@ -15,6 +15,8 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 only
 APP_NAME = "Shiliu"
 KEYCHAIN_SERVICE = "app.shiliu.llm"
 KEYCHAIN_ACCOUNT = "default"
+ASR_KEYCHAIN_SERVICE = "app.shiliu.asr"
+ASR_KEYCHAIN_ACCOUNT = "paraformer"
 
 
 @dataclass(frozen=True)
@@ -70,6 +72,9 @@ class AppConfig:
     formal_summary_model: str = ""
     formal_reasoning_effort: str = "max"
     api_key_ref: str = f"{KEYCHAIN_SERVICE}:{KEYCHAIN_ACCOUNT}"
+    asr_base_url: str = "https://dashscope.aliyuncs.com/api/v1"
+    asr_model: str = "paraformer-v2"
+    asr_api_key_ref: str = f"{ASR_KEYCHAIN_SERVICE}:{ASR_KEYCHAIN_ACCOUNT}"
     process_all_parts: bool = False
     baseline_confirmed: bool = False
     auto_sync_enabled: bool = False
@@ -97,6 +102,7 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
     data = tomllib.loads(resolved.config.read_text(encoding="utf-8"))
     app = data.get("app", {})
     llm = data.get("llm", {})
+    asr = data.get("asr", {})
     bili = data.get("bilibili", {})
     legacy_model = str(llm.get("model", ""))
     effort = str(llm.get("formal_reasoning_effort", "max")).lower()
@@ -120,6 +126,11 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
         formal_summary_model=str(llm.get("formal_summary_model", legacy_model)),
         formal_reasoning_effort=effort,
         api_key_ref=str(llm.get("api_key_ref", f"{KEYCHAIN_SERVICE}:{KEYCHAIN_ACCOUNT}")),
+        asr_base_url=str(asr.get("base_url", "https://dashscope.aliyuncs.com/api/v1")),
+        asr_model=str(asr.get("model", "paraformer-v2")),
+        asr_api_key_ref=str(
+            asr.get("api_key_ref", f"{ASR_KEYCHAIN_SERVICE}:{ASR_KEYCHAIN_ACCOUNT}")
+        ),
         process_all_parts=bool(app.get("process_all_parts", False)),
         baseline_confirmed=bool(app.get("baseline_confirmed", False)),
         auto_sync_enabled=bool(app.get("auto_sync_enabled", False)),
@@ -150,6 +161,11 @@ def save_config(config: AppConfig, paths: AppPaths | None = None) -> AppPaths:
         f"formal_summary_model = {_toml_string(config.model_for('formal_summary'))}",
         f"formal_reasoning_effort = {_toml_string('max' if config.formal_reasoning_effort == 'xhigh' else config.formal_reasoning_effort)}",
         f"api_key_ref = {_toml_string(config.api_key_ref)}",
+        "",
+        "[asr]",
+        f"base_url = {_toml_string(config.asr_base_url.rstrip('/'))}",
+        f"model = {_toml_string(config.asr_model)}",
+        f"api_key_ref = {_toml_string(config.asr_api_key_ref)}",
         "",
     ]
     temporary = resolved.config.with_suffix(".toml.tmp")
@@ -190,6 +206,9 @@ def public_config(config: AppConfig) -> dict[str, Any]:
         "formal_summary_model": config.model_for("formal_summary"),
         "formal_reasoning_effort": "max" if config.formal_reasoning_effort == "xhigh" else config.formal_reasoning_effort,
         "has_api_key_reference": bool(config.api_key_ref),
+        "asr_base_url": config.asr_base_url,
+        "asr_model": config.asr_model,
+        "has_asr_api_key_reference": bool(config.asr_api_key_ref),
         "process_all_parts": config.process_all_parts,
         "baseline_confirmed": config.baseline_confirmed,
         "auto_sync_enabled": config.auto_sync_enabled,

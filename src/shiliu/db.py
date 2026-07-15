@@ -10,7 +10,7 @@ from typing import Any, Iterator
 from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 def utc_now() -> str:
@@ -157,12 +157,34 @@ class Database:
                     PRIMARY KEY(source_id, bvid)
                 );
 
+                CREATE TABLE IF NOT EXISTS asr_jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    video_id INTEGER NOT NULL UNIQUE REFERENCES videos(id) ON DELETE CASCADE,
+                    provider TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    trigger_mode TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    task_id TEXT,
+                    remote_file_url TEXT,
+                    result_url TEXT,
+                    audio_path TEXT,
+                    attempt_count INTEGER NOT NULL DEFAULT 0,
+                    next_retry_at TEXT,
+                    last_error_code TEXT,
+                    last_error_message TEXT,
+                    submitted_at TEXT,
+                    completed_at TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
                 CREATE INDEX IF NOT EXISTS idx_stages_due ON pipeline_stages(status, next_retry_at);
                 CREATE INDEX IF NOT EXISTS idx_events_status ON events(status, created_at);
                 CREATE INDEX IF NOT EXISTS idx_sources_status ON favorite_sources(status, cooldown_until);
                 CREATE INDEX IF NOT EXISTS idx_memberships_video ON video_source_memberships(video_id);
                 CREATE INDEX IF NOT EXISTS idx_memberships_history ON video_source_memberships(queued_history, source_id, source_position);
+                CREATE INDEX IF NOT EXISTS idx_asr_jobs_due ON asr_jobs(status, next_retry_at);
                 """
             )
             self._ensure_columns(connection)
@@ -189,7 +211,8 @@ class Database:
         if version <= 0 or version >= SCHEMA_VERSION:
             source.close()
             return
-        backup_path = self.path.with_name(f"{self.path.stem}.pre-v{SCHEMA_VERSION}.backup.db")
+        backup_version = 3 if version < 3 else SCHEMA_VERSION
+        backup_path = self.path.with_name(f"{self.path.stem}.pre-v{backup_version}.backup.db")
         if backup_path.exists():
             source.close()
             return
@@ -208,6 +231,10 @@ class Database:
                 "active_revision": "TEXT NOT NULL DEFAULT 'refined'",
                 "refinement_status": "TEXT NOT NULL DEFAULT 'not_required'",
                 "display_favorite_time": "INTEGER",
+                "duration_seconds": "INTEGER NOT NULL DEFAULT 0",
+                "page_count": "INTEGER NOT NULL DEFAULT 1",
+                "asr_provider": "TEXT",
+                "asr_model": "TEXT",
             },
             "pipeline_stages": {
                 "profile": "TEXT NOT NULL DEFAULT 'formal'",
@@ -822,6 +849,7 @@ class Database:
             "subtitle_check_count", "subtitle_first_checked_at", "subtitle_next_check_at",
             "completed_at", "removed_at", "processing_profile", "active_revision",
             "refinement_status", "display_favorite_time",
+            "duration_seconds", "page_count", "asr_provider", "asr_model",
         }
         unknown = set(fields) - allowed
         if unknown:
@@ -883,6 +911,57 @@ class Database:
                 (moment,),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def ensure_asr_job(
+        self,
+        video_id: int,
+        *,
+        provider: str,
+        model: str,
+        trigger_mode: str,
+    ) -> dict[str, Any]:
+        now = utc_now()
+        with self.connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO asr_jobs(
+                    video_id, provider, model, trigger_mode, status, created_at, updated_at
+                ) VALUES(?, ?, ?, ?, 'pending', ?, ?)
+                ON CONFLICT(video_id) DO NOTHING
+                """,
+                (video_id, provider, model, trigger_mode, now, now),
+            )
+            row = connection.execute(
+                "SELECT * FROM asr_jobs WHERE video_id=?", (video_id,)
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("无法创建语音识别任务")
+        return dict(row)
+
+    def get_asr_job(self, video_id: int) -> dict[str, Any] | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM asr_jobs WHERE video_id=?", (video_id,)
+            ).fetchone()
+        return dict(row) if row else None
+
+    def update_asr_job(self, video_id: int, **fields: Any) -> None:
+        allowed = {
+            "provider", "model", "trigger_mode", "status", "task_id",
+            "remote_file_url", "result_url", "audio_path", "attempt_count",
+            "next_retry_at", "last_error_code", "last_error_message",
+            "submitted_at", "completed_at",
+        }
+        unknown = set(fields) - allowed
+        if unknown:
+            raise ValueError(f"Unsupported ASR job fields: {sorted(unknown)}")
+        fields["updated_at"] = utc_now()
+        assignments = ", ".join(f"{name}=?" for name in fields)
+        with self.connect() as connection:
+            connection.execute(
+                f"UPDATE asr_jobs SET {assignments} WHERE video_id=?",
+                [*fields.values(), video_id],
+            )
 
     def ensure_stage(self, video_id: int, stage: StageName) -> dict[str, Any]:
         now = utc_now()

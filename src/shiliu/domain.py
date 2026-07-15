@@ -58,7 +58,24 @@ class SubtitleLanguage(str, Enum):
 class SubtitleSource(str, Enum):
     HUMAN = "human"
     AI = "ai"
+    ASR = "asr"
     UNKNOWN = "unknown"
+
+
+class ASRTriggerMode(str, Enum):
+    AUTOMATIC = "automatic"
+    MANUAL = "manual"
+
+
+class ASRJobStatus(str, Enum):
+    PENDING = "pending"
+    AUDIO_DOWNLOADING = "audio_downloading"
+    UPLOADING = "uploading"
+    SUBMITTED = "submitted"
+    PROCESSING = "processing"
+    RETRY_WAIT = "retry_wait"
+    COMPLETED = "completed"
+    NEEDS_REVIEW = "needs_review"
 
 
 class FavoriteItem(BaseModel):
