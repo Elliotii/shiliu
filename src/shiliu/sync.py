@@ -14,6 +14,12 @@ from shiliu.domain import PipelineError, SyncMode, SyncResult
 from shiliu.pipeline import PipelineService
 
 
+# Temporarily disabled on 2026-07-16 so scheduled discovery, refinement, and
+# retries can continue throughout the day. Keep the time-window function below
+# so the previous behavior can be restored without rewriting the workflow.
+QUIET_HOURS_ENABLED = False
+
+
 class SyncAlreadyRunning(RuntimeError):
     pass
 
@@ -79,7 +85,11 @@ class SyncService:
         begin_cycle = getattr(self.pipeline, "begin_sync_cycle", None)
         if begin_cycle is not None:
             begin_cycle()
-        quiet_hours = mode == SyncMode.SCHEDULED and is_quiet_hour(self.now_factory())
+        quiet_hours = (
+            QUIET_HOURS_ENABLED
+            and mode == SyncMode.SCHEDULED
+            and is_quiet_hour(self.now_factory())
+        )
 
         sources = self.db.list_sources(active_only=True)
         if source_db_id is not None:

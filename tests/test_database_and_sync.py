@@ -4,7 +4,7 @@ from datetime import datetime
 
 from shiliu.db import Database
 from shiliu.domain import FavoriteItem, SyncMode
-from shiliu.sync import SyncService, is_quiet_hour
+from shiliu.sync import QUIET_HOURS_ENABLED, SyncService, is_quiet_hour
 
 
 class FakeAdapter:
@@ -85,7 +85,7 @@ def test_only_post_baseline_new_item_becomes_card_and_readd_does_not_repeat(app_
     assert db.get_video_by_source("BV2234567890")["removed_at"] is None
 
 
-def test_quiet_hours_only_skip_scheduled_sync(app_paths) -> None:
+def test_quiet_hours_are_temporarily_disabled_for_scheduled_sync(app_paths) -> None:
     db = Database(app_paths.database)
     db.initialize()
     adapter = FakeAdapter([])
@@ -97,14 +97,15 @@ def test_quiet_hours_only_skip_scheduled_sync(app_paths) -> None:
         favorite_id=42,
         lock_path=app_paths.sync_lock,
         now_factory=lambda: datetime(2026, 7, 15, 8, 0),
+        sleep=lambda _: None,
+        randint=lambda _start, _end: 60,
     )
 
     scheduled = service.sync(SyncMode.SCHEDULED)
-    manual = service.sync(SyncMode.MANUAL)
-
-    assert scheduled.skipped_quiet_hours is True
+    assert QUIET_HOURS_ENABLED is False
+    assert scheduled.skipped_quiet_hours is False
     assert adapter.pages_read == 1
-    assert manual.baseline_created is True
+    assert scheduled.baseline_created is True
 
 
 def test_quiet_hour_boundaries() -> None:
@@ -129,4 +130,3 @@ def test_ignore_is_display_state_only(app_paths) -> None:
     restored = db.get_video(video_id)
     assert restored["is_ignored"] == 0
     assert restored["status"] == "summary_processing"
-

@@ -357,7 +357,7 @@ def test_scheduled_history_backlog_uses_formal_profile_and_caps_batch_at_eight(a
     assert all(db.get_video(video_id)["processing_profile"] == "formal" for video_id in pipeline.video_ids)
 
 
-def test_quiet_hours_still_process_history_without_scanning_or_refining(app_paths) -> None:
+def test_scheduled_sync_runs_normally_during_former_quiet_hours(app_paths) -> None:
     from datetime import datetime
 
     db = Database(app_paths.database)
@@ -371,8 +371,11 @@ def test_quiet_hours_still_process_history_without_scanning_or_refining(app_path
     assert db.initialize_source_memberships(source_id, items) == 1
 
     class Adapter:
+        calls = 0
+
         def list_favorite_items(self, folder_id: int):
-            raise AssertionError("静默时段不应扫描收藏夹")
+            self.calls += 1
+            return items
 
     class Pipeline:
         def __init__(self):
@@ -402,9 +405,9 @@ def test_quiet_hours_still_process_history_without_scanning_or_refining(app_path
 
     result = service.sync(SyncMode.SCHEDULED)
 
-    assert result.skipped_quiet_hours is True
+    assert result.skipped_quiet_hours is False
     assert result.processed_count == 1
     assert result.history_pending_count == 0
+    assert service.adapter.calls == 1
     assert len(pipeline.video_ids) == 1
     assert pipeline.refinement_calls == 0
-    assert "历史积压继续处理" in result.messages[0]

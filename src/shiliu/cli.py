@@ -103,7 +103,7 @@ def run_setup() -> int:
         install_launch_agent(resolved)
         config = replace(config, auto_sync_enabled=True)
         save_config(config, paths)
-        print("launchd 已安装；历史积压会 24 小时处理，05:00–11:59 仅暂停自动发现和精修。")
+        print("launchd 已安装；当前已临时取消静默时段，历史积压和自动处理均可全天运行。")
     return 0
 
 
