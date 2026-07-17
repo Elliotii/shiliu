@@ -6,8 +6,8 @@ Baseline branch: `feat/v3-taxonomy-bootstrap`
 
 Baseline commit: `c1b7228`
 
-Current implementation checkpoint: Checkpoint 3.5 implemented and pending this
-checkpoint's reviewed Git commit
+Current implementation checkpoint: Checkpoint 3.6 completed; final 48-card
+low-cost regression passed and is pending this checkpoint's reviewed Git commit
 
 This document is the execution baseline for V3. It records the target product,
 the real repository state, checkpoint boundaries, acceptance gates, and Git
@@ -320,7 +320,7 @@ refactor: reduce taxonomy context amplification
 
 ### Checkpoint 3.6 — 48-card low-cost regression
 
-Status: **Planned; forbidden during Checkpoint 3.5**
+Status: **Existing; final Run #4 passed all Checkpoint 3.6 hard gates**
 
 Input: same frozen 48-card regression selection and the Checkpoint 3.5 pipeline.
 
@@ -346,6 +346,23 @@ Cost gates:
 - ideal Repair count is zero.
 
 If the hard gate fails, stop and analyze before any formal Discovery.
+
+Measured final result:
+
+- 23,134 total Tokens;
+- 16,673 prompt Tokens and 6,461 completion Tokens;
+- 2,465 reasoning Tokens, contained in the Consolidation completion count;
+- 95 seconds end to end;
+- Local Discovery: 9,374 Tokens;
+- Content Type plus Consolidation: 13,760 Tokens;
+- zero Repair, retry, and local Validator calls;
+- 8 Content Types and 10 top-level Domains;
+- zero invalid supporting IDs, Entity Leakage, or Content Type Leakage;
+- completed-Run resume returned without changing any attempt count.
+
+Run #2 and Run #3 are retained as private diagnostic evidence. They exposed
+bounded auxiliary-field overflow and motivated deterministic local truncation;
+neither is the final acceptance Run.
 
 Commit:
 

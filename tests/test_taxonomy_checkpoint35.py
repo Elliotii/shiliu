@@ -10,6 +10,7 @@ from shiliu.db import Database, utc_now
 from shiliu.domain import PipelineError
 from shiliu.taxonomy.candidates import (
     CompactCandidateTable,
+    ContentTypeDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
     build_content_type_prompt,
@@ -20,7 +21,9 @@ from shiliu.taxonomy.candidates import (
 )
 from shiliu.taxonomy.discovery import build_consolidation_prompt
 from shiliu.taxonomy.quality import (
+    LocalValidationReport,
     build_local_validation_prompt,
+    combine_top_level_quality,
     evaluate_top_level_rules,
 )
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
@@ -94,25 +97,32 @@ def _table() -> CompactCandidateTable:
     )
 
 
-def test_local_schema_enforces_quantity_and_forbids_entities() -> None:
+def test_local_contract_caps_quantity_and_forbids_entities() -> None:
     candidate = _local("软件工程", ["C001"]).domains[0].model_dump(mode="json")
-    with pytest.raises(ValidationError):
-        LocalTopLevelDiscoveryOutput.model_validate(
-            {"domains": [{**candidate, "provisional_id": f"ld_{index}"} for index in range(9)]}
-        )
+    capped = LocalTopLevelDiscoveryOutput.model_validate(
+        {
+            "domains": [
+                {
+                    **candidate,
+                    "provisional_id": f"ld_{index}",
+                    "definition": "定义" * 100,
+                    "supporting_ids": [f"C{item:03d}" for item in range(1, 8)],
+                }
+                for index in range(9)
+            ],
+            "topic_hints": [
+                {"name": f"topic-{index}", "supporting_ids": ["C001"]}
+                for index in range(6)
+            ],
+        }
+    )
+    assert len(capped.domains) == 8
+    assert len(capped.domains[0].definition) == 140
+    assert len(capped.domains[0].supporting_ids) == 5
+    assert len(capped.topic_hints) == 5
     with pytest.raises(ValidationError):
         LocalTopLevelDiscoveryOutput.model_validate(
             {"domains": [candidate], "entities": [{"name": "ToolX"}]}
-        )
-    with pytest.raises(ValidationError):
-        LocalTopLevelDiscoveryOutput.model_validate(
-            {
-                "domains": [candidate],
-                "topic_hints": [
-                    {"name": f"topic-{index}", "supporting_ids": ["C001"]}
-                    for index in range(6)
-                ],
-            }
         )
 
 
@@ -125,6 +135,10 @@ def test_content_type_contract_is_independent_from_domain_discovery() -> None:
     assert '"domains"' not in content_prompt
     assert '"content_types"' not in domain_prompt
     assert "不得输出 Content Type、二级领域、Entity" in domain_prompt
+    with pytest.raises(ValidationError):
+        ContentTypeDiscoveryOutputV1.model_validate(
+            {"content_types": [], "ambiguous_ids": ["C001"]}
+        )
 
 
 def test_normalizer_deduplicates_and_caps_transmitted_support() -> None:
@@ -164,6 +178,17 @@ def test_top_level_draft_forbids_children_and_mixed_facets() -> None:
         TopLevelDomainDraft.model_validate(payload)
 
 
+def test_top_level_draft_caps_non_semantic_consolidation_notes() -> None:
+    payload = _draft().model_dump(mode="json")
+    payload["consolidation_notes"] = [f"note-{index}" for index in range(7)]
+    payload["domains"][0]["includes"] = [f"include-{index}" for index in range(7)]
+
+    value = TopLevelDomainDraft.model_validate(payload)
+
+    assert value.consolidation_notes == [f"note-{index}" for index in range(5)]
+    assert value.domains[0].includes == [f"include-{index}" for index in range(5)]
+
+
 def test_rules_detect_entity_leak_and_localize_sibling_review() -> None:
     table = _table()
     draft = _draft(overlap=True, entity_name="ToolX")
@@ -198,6 +223,37 @@ def test_clean_structure_does_not_schedule_llm_validation() -> None:
         known_entity_names=set(),
     )
     assert rules.validation_units == []
+
+
+def test_constructed_sibling_conflict_is_blocked_by_local_validator() -> None:
+    rules = evaluate_top_level_rules(
+        draft=_draft(overlap=True),
+        candidate_table=_table(),
+        allowed_ids={f"C{index:03d}" for index in range(1, 8)},
+        known_entity_names=set(),
+    )
+    unit = rules.validation_units[0]
+    report = LocalValidationReport.model_validate(
+        {
+            "unit_id": unit.unit_id,
+            "findings": [
+                {
+                    "code": "sibling_overlap",
+                    "message": "两个一级领域的定义和代表内容高度重叠",
+                    "node_ids": unit.node_ids,
+                    "severity": "blocking",
+                    "check": "sibling_overlap",
+                }
+            ],
+            "inspected_node_ids": unit.node_ids,
+            "summary": "需要重新归并",
+        }
+    )
+    result = combine_top_level_quality(rules=rules, reports=[report])
+
+    assert result.passed is False
+    assert result.retry_stage == "consolidation"
+    assert "sibling_overlap" in {item.code for item in result.blocking_issues}
 
 
 def test_new_consolidation_prompt_is_materially_smaller_than_legacy_payload() -> None:

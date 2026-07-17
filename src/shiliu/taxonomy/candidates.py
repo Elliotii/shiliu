@@ -7,7 +7,7 @@ import unicodedata
 from collections import defaultdict
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from shiliu.domain import PipelineError
 
@@ -25,6 +25,11 @@ class TopicHint(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     supporting_ids: list[str] = Field(min_length=1, max_length=5)
 
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(value, text={"name": 60}, lists={"supporting_ids": 5})
+
 
 class LocalTopLevelDomainCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -35,6 +40,15 @@ class LocalTopLevelDomainCandidate(BaseModel):
     supporting_ids: list[str] = Field(min_length=1, max_length=5)
     evidence_codes: list[str] = Field(default_factory=list, max_length=3)
 
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(
+            value,
+            text={"name": 60, "definition": 140},
+            lists={"supporting_ids": 5, "evidence_codes": 3},
+        )
+
 
 class LocalTopLevelDiscoveryOutput(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -42,6 +56,14 @@ class LocalTopLevelDiscoveryOutput(BaseModel):
     domains: list[LocalTopLevelDomainCandidate] = Field(default_factory=list, max_length=8)
     topic_hints: list[TopicHint] = Field(default_factory=list, max_length=5)
     ambiguous_ids: list[str] = Field(default_factory=list, max_length=32)
+
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(
+            value,
+            lists={"domains": 8, "topic_hints": 5, "ambiguous_ids": 32},
+        )
 
 
 class ContentTypeCandidateV1(BaseModel):
@@ -52,12 +74,26 @@ class ContentTypeCandidateV1(BaseModel):
     definition: str = Field(min_length=1, max_length=140)
     supporting_ids: list[str] = Field(min_length=1, max_length=5)
 
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(
+            value,
+            text={"name": 60, "definition": 140},
+            lists={"supporting_ids": 5},
+        )
+
 
 class ContentTypeDiscoveryOutputV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    content_types: list[ContentTypeCandidateV1] = Field(default_factory=list, max_length=8)
+    content_types: list[ContentTypeCandidateV1] = Field(min_length=1, max_length=8)
     ambiguous_ids: list[str] = Field(default_factory=list, max_length=32)
+
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(value, lists={"content_types": 8, "ambiguous_ids": 32})
 
 
 class CompactDomainCandidate(BaseModel):
@@ -101,12 +137,37 @@ class TopLevelDomainNode(BaseModel):
     supporting_ids: list[str] = Field(min_length=1, max_length=32)
     representative_ids: list[str] = Field(min_length=1, max_length=3)
 
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(
+            value,
+            text={"name": 80, "definition": 240},
+            lists={
+                "includes": 5,
+                "excludes": 5,
+                "supporting_ids": 32,
+                "representative_ids": 3,
+            },
+        )
+
 
 class TopLevelDomainDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     domains: list[TopLevelDomainNode] = Field(min_length=1, max_length=12)
     consolidation_notes: list[str] = Field(default_factory=list, max_length=5)
+
+    @model_validator(mode="before")
+    @classmethod
+    def cap_auxiliary_notes(cls, value):
+        if not isinstance(value, dict):
+            return value
+        normalized = dict(value)
+        notes = normalized.get("consolidation_notes")
+        if isinstance(notes, list):
+            normalized["consolidation_notes"] = notes[:5]
+        return normalized
 
 
 LOCAL_TOP_LEVEL_SCHEMA_HINT = (
@@ -135,6 +196,7 @@ def build_top_level_local_prompt(rows: list[list[Any]]) -> str:
 每批最多 8 个 Domain；每个候选只写短名称、一句话定义、最多 5 个 supporting IDs 和最多 3 个短证据代码。
 如必须保留阶段性信号，只能输出最多 5 个 topic_hints，且只有短名称和 supporting IDs。
 证据不足内容放入 ambiguous_ids。所有 ID 必须来自本批。只输出 JSON。
+名称和定义使用中文，专有名词保留英文；定义最多 140 个字符。
 
 精简输出结构：{LOCAL_TOP_LEVEL_SCHEMA_HINT}
 输入行协议：A/B=[id,等级,标题,一句话结论,最多3条观点,最多5个已有实体]；C=[id,C,标题,最多300字简介]。
@@ -147,6 +209,7 @@ def build_content_type_prompt(rows: list[list[Any]]) -> str:
 Content Type 只回答内容采用什么表达形式或使用形式，不回答知识领域。
 不得输出 Domain、Topic 或 Entity。最多输出 8 个候选，每个候选只保留短名称、一句话定义和最多 5 个 supporting IDs。
 证据不足内容放入 ambiguous_ids。所有 ID 必须来自本批。只输出 JSON。
+名称和定义使用中文，专有名词保留英文；定义最多 140 个字符。
 
 精简输出结构：{CONTENT_TYPE_SCHEMA_HINT}
 本批卡片：
@@ -162,7 +225,9 @@ def build_top_level_consolidation_prompt(table: CompactCandidateTable) -> str:
 输入只有确定性归一化后的 Compact Candidate Table，不包含卡片、原始局部响应、Content Type、Entity、Topic 或二级领域。
 合并语义相同但名称不同的候选，统一名称，生成短定义和必要的 includes/excludes。
 输出通常 5 至 10 个一级 Domain，硬上限 12 个；不得生成 children、二级结构或其他对象。
+名称、定义和边界说明使用中文，专有名词保留英文。每个节点 includes/excludes 各最多 5 条。
 supporting_ids 只能来自输入；representative_ids 必须属于 supporting_ids 且最多 3 个。只输出 JSON。
+consolidation_notes 是可选辅助信息，最多 5 条；不要逐节点重复解释。
 
 精简输出结构：{TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT}
 Compact Candidate Table：{_compact_json(payload)}"""
@@ -308,6 +373,26 @@ def normalized_name(value: str) -> str:
 def stable_hash(value: Any) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _cap_fields(
+    value: Any,
+    *,
+    text: dict[str, int] | None = None,
+    lists: dict[str, int] | None = None,
+) -> Any:
+    if not isinstance(value, dict):
+        return value
+    normalized = dict(value)
+    for key, limit in (text or {}).items():
+        item = normalized.get(key)
+        if isinstance(item, str):
+            normalized[key] = item[:limit]
+    for key, limit in (lists or {}).items():
+        item = normalized.get(key)
+        if isinstance(item, list):
+            normalized[key] = item[:limit]
+    return normalized
 
 
 def _short_id_order(value: str) -> tuple[int, str]:

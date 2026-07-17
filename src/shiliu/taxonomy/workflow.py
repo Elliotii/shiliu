@@ -15,16 +15,21 @@ from shiliu.taxonomy.discovery import (
 )
 from shiliu.taxonomy.candidates import (
     CANDIDATE_NORMALIZATION_VERSION,
+    CONTENT_TYPE_PROMPT_VERSION,
+    CONTENT_TYPE_SCHEMA_HINT,
     LOCAL_TOP_LEVEL_PROMPT_VERSION,
     LOCAL_TOP_LEVEL_SCHEMA_HINT,
     TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
     TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT,
     CompactCandidateTable,
+    ContentTypeDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
+    build_content_type_prompt,
     build_top_level_consolidation_prompt,
     build_top_level_local_prompt,
     normalize_candidates,
+    validate_content_types,
     validate_local_top_level,
     validate_top_level_draft,
 )
@@ -45,7 +50,7 @@ from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "top-level-cost-bounded-workflow-v2"
+WORKFLOW_ENGINE_VERSION = "top-level-cost-bounded-workflow-v5"
 
 
 class TaxonomyWorkflow:
@@ -182,6 +187,23 @@ class TaxonomyWorkflow:
 
         local_payload = [value.model_dump(mode="json") for value in local_outputs]
         _write_json(run_dir / "local-candidates.json", local_payload)
+        content_types = self._model_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            stage_name="content_type_discovery",
+            unit_key="main",
+            role="taxonomy_content_type",
+            prompt=build_content_type_prompt(eligible),
+            prompt_version=CONTENT_TYPE_PROMPT_VERSION,
+            schema=ContentTypeDiscoveryOutputV1,
+            schema_hint=CONTENT_TYPE_SCHEMA_HINT,
+            max_tokens=4096,
+            input_ids=[row[0] for row in eligible],
+            validator=lambda value: validate_content_types(
+                value, {row[0] for row in eligible}
+            ),
+        )
+        _write_json(run_dir / "content-types.json", content_types.model_dump(mode="json"))
         candidate_table = self._candidate_normalization_stage(
             run_id=run_id,
             run_dir=run_dir,
@@ -226,6 +248,7 @@ class TaxonomyWorkflow:
             candidate_table=candidate_table,
             allowed_ids=set(compact["id_map"]),
             known_entity_names=known_entities,
+            content_type_names={item.name for item in content_types.content_types},
         )
         rows_by_id = {str(row[0]): row for row in compact["rows"]}
         validation_reports: list[LocalValidationReport] = []
@@ -398,11 +421,13 @@ class TaxonomyWorkflow:
         candidate_table: CompactCandidateTable,
         allowed_ids: set[str],
         known_entity_names: set[str],
+        content_type_names: set[str],
     ) -> TopLevelRuleResult:
         input_value = {
             "draft": draft.model_dump(mode="json"),
             "candidates": candidate_table.model_dump(mode="json"),
             "known_entities": sorted(known_entity_names),
+            "content_types": sorted(content_type_names),
         }
         input_hash = _stable_hash(input_value)
         stage = self.run_repository.ensure_stage(
@@ -425,6 +450,7 @@ class TaxonomyWorkflow:
             candidate_table=candidate_table,
             allowed_ids=allowed_ids,
             known_entity_names=known_entity_names,
+            content_type_names=content_type_names,
         )
         output_path = run_dir / "structural-validation" / "validation-plan.json"
         _write_json(output_path, result.model_dump(mode="json"))
@@ -567,6 +593,28 @@ def _combined_audit(audit: dict[str, Any]) -> dict[str, Any]:
         key: sum(value for source in usage_values if isinstance((value := source.get(key)), (int, float)))
         for key in numeric_keys
     }
+    reasoning_values = [
+        details.get("reasoning_tokens")
+        for source in usage_values
+        if isinstance((details := source.get("completion_tokens_details")), dict)
+    ]
+    cached_values = [
+        details.get("cached_tokens")
+        for source in usage_values
+        if isinstance((details := source.get("prompt_tokens_details")), dict)
+    ]
+    if any(isinstance(value, (int, float)) for value in reasoning_values):
+        usage["completion_tokens_details"] = {
+            "reasoning_tokens": sum(
+                value for value in reasoning_values if isinstance(value, (int, float))
+            )
+        }
+    if any(isinstance(value, (int, float)) for value in cached_values):
+        usage["prompt_tokens_details"] = {
+            "cached_tokens": sum(
+                value for value in cached_values if isinstance(value, (int, float))
+            )
+        }
     return {
         **audit,
         "usage": usage or None,

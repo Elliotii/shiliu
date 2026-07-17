@@ -10,6 +10,7 @@ from shiliu.db import Database, utc_now
 from shiliu.domain import PipelineError
 from shiliu.llm import CompletionResponse
 from shiliu.taxonomy.candidates import (
+    ContentTypeDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
 )
@@ -258,6 +259,7 @@ class WorkflowProvider:
         self.fail_second_local_once = fail_second_local_once
         self.bad_first_consolidation = bad_first_consolidation
         self.local_calls = 0
+        self.content_type_calls = 0
         self.consolidation_calls = 0
         self.calls: list[str] = []
 
@@ -280,6 +282,23 @@ class WorkflowProvider:
                         }
                     ],
                     "topic_hints": [],
+                    "ambiguous_ids": [],
+                }
+            ).model_dump(mode="json")
+        elif "独立 Content Type 候选发现器" in prompt:
+            self.content_type_calls += 1
+            self.calls.append("content_type")
+            ids = _ids_after(prompt, "本批卡片：")
+            output = ContentTypeDiscoveryOutputV1.model_validate(
+                {
+                    "content_types": [
+                        {
+                            "provisional_id": "lct_tutorial",
+                            "name": "教程与实操",
+                            "definition": "以讲解和操作步骤帮助完成任务",
+                            "supporting_ids": ids[:5],
+                        }
+                    ],
                     "ambiguous_ids": [],
                 }
             ).model_dump(mode="json")
@@ -377,6 +396,7 @@ def test_workflow_resume_skips_completed_batch_after_interruption(app_paths) -> 
     result = workflow.execute(run_id, resume=True)
     assert result["run"]["status"] == "completed"
     assert provider.local_calls == 3
+    assert provider.content_type_calls == 1
     stages = {
         (item["stage_name"], item["unit_key"]): item for item in result["stages"]
     }
@@ -404,11 +424,13 @@ def test_quality_retry_reruns_consolidation_but_not_local_batches(app_paths) -> 
     first = workflow.execute(run_id)
     assert first["run"]["status"] == "quality_failed"
     assert provider.local_calls == 2
+    assert provider.content_type_calls == 1
     assert provider.consolidation_calls == 1
 
     second = workflow.execute(run_id, resume=True)
     assert second["run"]["status"] == "completed"
     assert provider.local_calls == 2
+    assert provider.content_type_calls == 1
     assert provider.consolidation_calls == 2
     consolidation = [
         item for item in second["stages"] if item["stage_name"] == "consolidation"
@@ -434,8 +456,9 @@ def test_clean_top_level_workflow_uses_no_content_type_recovery_or_validator(app
     result = workflow.execute(run_id)
     assert result["run"]["status"] == "completed"
     assert provider.local_calls == 2
+    assert provider.content_type_calls == 1
     assert provider.consolidation_calls == 1
-    assert provider.calls == ["local", "local", "consolidation"]
+    assert provider.calls == ["local", "local", "content_type", "consolidation"]
     stages = {(item["stage_name"], item["unit_key"]) for item in result["stages"]}
     assert ("candidate_normalization", "main") in stages
     assert ("structural_validation", "main") in stages
@@ -516,6 +539,34 @@ def test_request_retry_preserves_each_attempt_usage(tmp_path) -> None:
     assert audit["request_attempt_count"] == 2
     assert audit["attempt_history"][0]["response_id"] == "empty-1"
     assert combined["usage"] == {"prompt_tokens": 21, "completion_tokens": 2}
+
+
+def test_combined_audit_preserves_reasoning_and_cached_token_details() -> None:
+    combined = _combined_audit(
+        {
+            "usage": {
+                "prompt_tokens": 100,
+                "completion_tokens": 80,
+                "prompt_tokens_details": {"cached_tokens": 20},
+                "completion_tokens_details": {"reasoning_tokens": 60},
+            },
+            "elapsed_seconds": 3,
+            "repair": {
+                "usage": {
+                    "prompt_tokens": 30,
+                    "completion_tokens": 10,
+                    "prompt_tokens_details": {"cached_tokens": 5},
+                },
+                "elapsed_seconds": 2,
+            },
+        }
+    )
+
+    assert combined["usage"]["prompt_tokens"] == 130
+    assert combined["usage"]["completion_tokens"] == 90
+    assert combined["usage"]["prompt_tokens_details"] == {"cached_tokens": 25}
+    assert combined["usage"]["completion_tokens_details"] == {"reasoning_tokens": 60}
+    assert combined["elapsed_seconds"] == 5
 
 
 def test_resume_retries_only_repair_not_original_request(tmp_path) -> None:
