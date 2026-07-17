@@ -8,6 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from shiliu.taxonomy.discovery import ConsolidatedDraft, LocalDiscoveryOutput
 from shiliu.taxonomy.candidates import (
     CompactCandidateTable,
+    CompactContentTypeTable,
+    ContentTypeDiscoveryOutputV1,
+    ContentTypeDraftV1,
     TopLevelDomainDraft,
     normalized_name,
 )
@@ -374,11 +377,15 @@ class TopLevelQualityResult(BaseModel):
     passed: bool
     blocking_issues: list[QualityIssue]
     warnings: list[QualityIssue]
-    retry_stage: Literal["consolidation", "local_validation"] | None
+    recommended_next_stage: Literal["run_b", "targeted_retry"]
+    retry_stage: Literal[
+        "consolidation", "content_type_consolidation", "local_validation", "quality_gate"
+    ] | None
     metrics: dict[str, int | float]
 
 
 LOCAL_VALIDATION_PROMPT_VERSION = "local-top-level-validation-v1"
+TOP_LEVEL_QUALITY_GATE_VERSION = "top-level-quality-gate-v2"
 LOCAL_VALIDATION_SCHEMA_HINT = (
     '{"unit_id":"sibling_001","findings":[{"code":"",'
     '"message":"","node_ids":["d_01","d_02"],'
@@ -395,6 +402,10 @@ def evaluate_top_level_rules(
     allowed_ids: set[str],
     known_entity_names: set[str],
     content_type_names: set[str] | None = None,
+    content_type_draft: ContentTypeDraftV1 | None = None,
+    content_type_table: CompactContentTypeTable | None = None,
+    local_content_types: list[ContentTypeDiscoveryOutputV1] | None = None,
+    evidence_by_id: dict[str, str] | None = None,
 ) -> TopLevelRuleResult:
     blocking: list[QualityIssue] = []
     warnings: list[QualityIssue] = []
@@ -403,8 +414,18 @@ def evaluate_top_level_rules(
     known_entities = {normalized_name(value) for value in known_entity_names}
     candidate_names = {normalized_name(item.name) for item in candidate_table.domains}
 
-    ids = [node.id for node in draft.domains]
-    names = [normalized_name(node.name) for node in draft.domains]
+    if content_type_draft is not None and not content_type_draft.content_types:
+        blocking.append(
+            QualityIssue(
+                code="content_types_missing",
+                message="Content Type Draft 为空。",
+            )
+        )
+
+    children = [child for node in draft.domains for child in node.children]
+    all_nodes = [*draft.domains, *children]
+    ids = [node.id for node in all_nodes]
+    names = [normalized_name(node.name) for node in all_nodes]
     if len(ids) != len(set(ids)):
         blocking.append(QualityIssue(code="duplicate_node_ids", message="一级 Domain ID 不唯一。"))
     if len(names) != len(set(names)):
@@ -419,7 +440,7 @@ def evaluate_top_level_rules(
     entity_leaks: list[str] = []
     type_leaks: list[str] = []
     unsupported_names: list[str] = []
-    for node in draft.domains:
+    for node in all_nodes:
         invalid_support.update(set(node.supporting_ids) - allowed_ids)
         if not set(node.representative_ids) <= set(node.supporting_ids):
             bad_representatives.append(node.id)
@@ -471,27 +492,187 @@ def evaluate_top_level_rules(
             )
         )
 
-    for left_index, left in enumerate(draft.domains):
-        for right in draft.domains[left_index + 1:]:
-            left_ids = set(left.supporting_ids)
-            right_ids = set(right.supporting_ids)
-            intersection = left_ids & right_ids
-            union = left_ids | right_ids
-            overlap = len(intersection) / len(union) if union else 0.0
-            if len(intersection) < 2 or overlap < 0.5:
-                continue
-            representatives = list(
-                dict.fromkeys([*left.representative_ids, *right.representative_ids])
-            )[:6]
-            units.append(
-                LocalValidationUnit(
-                    unit_id=f"sibling_{len(units) + 1:03d}",
-                    check="sibling_overlap",
-                    node_ids=[left.id, right.id],
-                    reason=f"supporting ID Jaccard={overlap:.2f}，共同支持 {len(intersection)} 条",
-                    representative_ids=representatives,
+    bad_children = [
+        child.id
+        for parent in draft.domains
+        for child in parent.children
+        if child.parent_id != parent.id
+        or not set(child.supporting_ids) <= set(parent.supporting_ids)
+    ]
+    if bad_children:
+        blocking.append(
+            QualityIssue(
+                code="parent_child_inadequate",
+                message="二级 Domain 的父级或 supporting IDs 与一级 Domain 不一致。",
+                node_ids=bad_children,
+            )
+        )
+    low_support = [child.id for child in children if len(child.supporting_ids) < 2]
+    if low_support:
+        warnings.append(
+            QualityIssue(
+                code="subdomain_support_low",
+                message="部分二级 Domain 的语料支持过少。",
+                node_ids=low_support,
+            )
+        )
+    missing_subdomains: list[str] = []
+    for parent in draft.domains:
+        if parent.children:
+            continue
+        parent_key = normalized_name(parent.name)
+        hinted = [
+            item
+            for item in candidate_table.domains
+            if parent_key in {normalized_name(value) for value in item.parent_hints}
+        ]
+        if len(hinted) >= 2 and sum(item.support_count for item in hinted) >= 4:
+            missing_subdomains.append(parent.id)
+    if missing_subdomains:
+        warnings.append(
+            QualityIssue(
+                code="missing_reasonable_subdomains",
+                message="局部候选显示可能存在合理稳定细分，但一级 Domain 未建立二级节点。",
+                node_ids=missing_subdomains,
+            )
+        )
+
+    if content_type_draft is not None:
+        domain_names = {normalized_name(item.name) for item in all_nodes}
+        ct_domain_leaks = [
+            item.id
+            for item in content_type_draft.content_types
+            if normalized_name(item.name) in domain_names
+        ]
+        ct_entity_leaks = [
+            item.id
+            for item in content_type_draft.content_types
+            if normalized_name(item.name) in known_entities
+        ]
+        if ct_domain_leaks:
+            blocking.append(
+                QualityIssue(
+                    code="domain_leakage_into_content_type",
+                    message="Domain 被用作 Content Type。",
+                    node_ids=ct_domain_leaks,
                 )
             )
+        if ct_entity_leaks:
+            blocking.append(
+                QualityIssue(
+                    code="entity_leakage_into_content_type",
+                    message="Entity 被用作 Content Type。",
+                    node_ids=ct_entity_leaks,
+                )
+            )
+
+        low_content_type_support = [
+            item.id
+            for item in content_type_draft.content_types
+            if len(item.supporting_ids) < 2
+        ]
+        if low_content_type_support:
+            warnings.append(
+                QualityIssue(
+                    code="content_type_support_low",
+                    message="部分 Content Type 的语料支持过少。",
+                    node_ids=low_content_type_support,
+                )
+            )
+
+    rejected_content_type_candidates = 0
+    lost_content_type_batches = 0
+    if content_type_draft is not None and content_type_table is not None:
+        decisions = {
+            item.candidate_id: item for item in content_type_draft.candidate_decisions
+        }
+        rejected_content_type_candidates = sum(
+            item.action == "rejected" for item in decisions.values()
+        )
+        if local_content_types:
+            candidates_by_name = {
+                normalized_name(item.name): item.candidate_id
+                for item in content_type_table.content_types
+            }
+            for output in local_content_types:
+                batch_candidate_ids = {
+                    candidates_by_name.get(normalized_name(item.name))
+                    for item in output.content_types
+                }
+                batch_candidate_ids.discard(None)
+                if batch_candidate_ids and all(
+                    decisions.get(candidate_id) is not None
+                    and decisions[candidate_id].action == "rejected"
+                    for candidate_id in batch_candidate_ids
+                ):
+                    lost_content_type_batches += 1
+        if lost_content_type_batches:
+            warnings.append(
+                QualityIssue(
+                    code="content_type_batch_candidates_all_dropped",
+                    message="部分 Content Type 批次的候选在全局归并中全部被拒绝。",
+                )
+            )
+
+    c_ids = {
+        short_id
+        for short_id, level in (evidence_by_id or {}).items()
+        if level == "C"
+    }
+    c_ambiguous: set[str] = set()
+    if local_content_types:
+        for output in local_content_types:
+            c_ambiguous.update(set(output.ambiguous_ids) & c_ids)
+    c_ambiguous_ratio = len(c_ambiguous) / len(c_ids) if c_ids else 0.0
+    if c_ids and c_ambiguous_ratio > 0.5:
+        warnings.append(
+            QualityIssue(
+                code="c_level_ambiguity_high",
+                message="超过一半 C 级内容在局部 Content Type 发现中被标为 ambiguous。",
+                node_ids=sorted(c_ambiguous),
+            )
+        )
+
+    overbroad = [
+        node.id
+        for node in draft.domains
+        if len(set(node.supporting_ids)) / max(len(allowed_ids), 1) > 0.5
+    ]
+    if overbroad:
+        warnings.append(
+            QualityIssue(
+                code="domain_support_concentration_high",
+                message="部分一级 Domain 承载超过一半 Discovery 语料，可能过宽。",
+                node_ids=overbroad,
+            )
+        )
+
+    sibling_groups = [draft.domains, *[node.children for node in draft.domains]]
+    for siblings in sibling_groups:
+        for left_index, left in enumerate(siblings):
+            for right in siblings[left_index + 1:]:
+                left_ids = set(left.supporting_ids)
+                right_ids = set(right.supporting_ids)
+                intersection = left_ids & right_ids
+                union = left_ids | right_ids
+                overlap = len(intersection) / len(union) if union else 0.0
+                if len(intersection) < 2 or overlap < 0.5:
+                    continue
+                representatives = list(
+                    dict.fromkeys([*left.representative_ids, *right.representative_ids])
+                )[:6]
+                units.append(
+                    LocalValidationUnit(
+                        unit_id=f"sibling_{len(units) + 1:03d}",
+                        check="sibling_overlap",
+                        node_ids=[left.id, right.id],
+                        reason=(
+                            f"supporting ID Jaccard={overlap:.2f}，"
+                            f"共同支持 {len(intersection)} 条"
+                        ),
+                        representative_ids=representatives,
+                    )
+                )
 
     return TopLevelRuleResult(
         blocking_issues=blocking,
@@ -499,10 +680,25 @@ def evaluate_top_level_rules(
         validation_units=units,
         metrics={
             "primary_domain_count": len(draft.domains),
+            "secondary_domain_count": len(children),
             "invalid_supporting_id_count": len(invalid_support),
             "entity_leakage_count": len(entity_leaks),
             "content_type_leakage_count": len(type_leaks),
             "local_validation_unit_count": len(units),
+            "content_type_count": (
+                len(content_type_draft.content_types) if content_type_draft else 0
+            ),
+            "domain_leakage_into_content_type_count": (
+                len(ct_domain_leaks) if content_type_draft else 0
+            ),
+            "entity_leakage_into_content_type_count": (
+                len(ct_entity_leaks) if content_type_draft else 0
+            ),
+            "content_type_rejected_candidate_count": rejected_content_type_candidates,
+            "content_type_lost_batch_count": lost_content_type_batches,
+            "c_level_ambiguous_count": len(c_ambiguous),
+            "c_level_ambiguous_ratio": c_ambiguous_ratio,
+            "overbroad_primary_domain_count": len(overbroad),
         },
     )
 
@@ -513,7 +709,13 @@ def build_local_validation_prompt(
     draft: TopLevelDomainDraft,
     rows_by_id: dict[str, list[Any]],
 ) -> str:
-    nodes_by_id = {node.id: node for node in draft.domains}
+    nodes_by_id = {
+        node.id: node
+        for node in [
+            *draft.domains,
+            *(child for parent in draft.domains for child in parent.children),
+        ]
+    }
     nodes = [nodes_by_id[node_id].model_dump(mode="json") for node_id in unit.node_ids]
     profiles = [rows_by_id[value] for value in unit.representative_ids if value in rows_by_id][:6]
     payload = {
@@ -570,17 +772,26 @@ def combine_top_level_quality(
                     node_ids=finding.node_ids,
                 )
             )
-    retry_stage: Literal["consolidation", "local_validation"] | None = None
+    retry_stage: Literal[
+        "consolidation", "content_type_consolidation", "local_validation", "quality_gate"
+    ] | None = None
     if blocking:
-        retry_stage = (
-            "local_validation"
-            if {item.code for item in blocking} == {"local_validation_incomplete"}
-            else "consolidation"
-        )
+        codes = {item.code for item in blocking}
+        if codes == {"local_validation_incomplete"}:
+            retry_stage = "local_validation"
+        elif codes & {
+            "content_types_missing",
+            "domain_leakage_into_content_type",
+            "entity_leakage_into_content_type",
+        }:
+            retry_stage = "content_type_consolidation"
+        else:
+            retry_stage = "consolidation"
     return TopLevelQualityResult(
         passed=not blocking,
         blocking_issues=blocking,
         warnings=warnings,
+        recommended_next_stage="targeted_retry" if blocking else "run_b",
         retry_stage=retry_stage,
         metrics={
             **rules.metrics,

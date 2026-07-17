@@ -230,3 +230,44 @@ def test_profile_spike_is_private_batched_audited_and_resumable(tmp_path) -> Non
 
     assert resumed["profiles_hash"] == result["profiles_hash"]
     assert provider.calls == calls_before
+
+
+def test_profile_corpus_reuses_accepted_rows_and_generates_only_missing(tmp_path) -> None:
+    cards = [card(index, "A" if index < 5 else "C") for index in range(1, 6)]
+    output_dir = tmp_path / "profile_spikes"
+    source_dir = output_dir / "accepted-source"
+    source_dir.mkdir(parents=True)
+    source_profiles = [profile("C001"), profile("C002")]
+    (source_dir / "profiles.jsonl").write_text(
+        "".join(item.model_dump_json() + "\n" for item in source_profiles),
+        encoding="utf-8",
+    )
+    (source_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "status": "completed",
+                "snapshot_hash": "c" * 64,
+                "prompt_version": "classification-profile-generation-v2",
+                "profiles_hash": "source-hash",
+                "gates": {"schema": True, "repair": True},
+            }
+        ),
+        encoding="utf-8",
+    )
+    provider = ProfileProvider()
+    service = ClassificationProfileService(
+        repository=SnapshotRepository(cards),  # type: ignore[arg-type]
+        provider_factory=lambda role: provider,  # type: ignore[arg-type]
+        output_dir=output_dir,
+    )
+
+    result = service.materialize_snapshot(
+        2, reuse_run_id="accepted-source", batch_size=2
+    )
+
+    assert result["status"] == "completed"
+    assert result["completed_count"] == 5
+    assert result["reused_count"] == 2
+    assert result["generated_count"] == 3
+    assert provider.calls == 2
+    assert result["repair_count"] == 0

@@ -289,13 +289,104 @@ class ClassificationProfileService:
         _write_json(run_dir / "manifest.json", manifest)
         return self._execute(run_dir, manifest, snapshot["cards"], resume=False)
 
+    def materialize_snapshot(
+        self,
+        snapshot_id: int,
+        *,
+        reuse_run_id: str,
+        seed: int = 73,
+        batch_size: int = 12,
+    ) -> dict[str, Any]:
+        snapshot = self.repository.get_snapshot(snapshot_id)
+        if snapshot is None:
+            raise LookupError("快照不存在")
+        compact = build_compact_corpus(snapshot["cards"])
+        eligible_count = sum(row[1] in {"A", "B", "C"} for row in compact["rows"])
+        rows, id_map = select_profile_rows(
+            snapshot["cards"], limit=eligible_count, seed=seed
+        )
+        source_dir = self.output_dir / reuse_run_id
+        source_manifest_path = source_dir / "manifest.json"
+        source_profiles_path = source_dir / "profiles.jsonl"
+        if not source_manifest_path.is_file() or not source_profiles_path.is_file():
+            raise LookupError("复用的 Classification Profile Run 不存在")
+        source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
+        if (
+            source_manifest.get("status") != "completed"
+            or source_manifest.get("snapshot_hash") != snapshot["snapshot_hash"]
+            or source_manifest.get("prompt_version") != PROFILE_PROMPT_VERSION
+            or not source_manifest.get("gates")
+            or not all(source_manifest["gates"].values())
+        ):
+            raise PipelineError(
+                "复用的 Classification Profile Run 未通过 3.7A",
+                code="profile_reuse_unaccepted",
+                retryable=False,
+            )
+        reused: list[dict[str, Any]] = []
+        for line in source_profiles_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            value = json.loads(line)
+            reused.append(
+                {
+                    key: value[key]
+                    for key in ClassificationProfile.model_fields
+                    if key in value
+                }
+            )
+        reused_ids = {str(value["content_id"]) for value in reused}
+        selected_ids = [str(row[0]) for row in rows]
+        if not reused_ids <= set(selected_ids):
+            raise PipelineError(
+                "复用 Profile 不属于当前 Snapshot",
+                code="profile_reuse_id_mismatch",
+                retryable=False,
+            )
+        run_id = (
+            f"profile-corpus-s{snapshot_id}-"
+            f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}"
+        )
+        run_dir = self.output_dir / run_id
+        run_dir.mkdir(parents=True, exist_ok=False)
+        _write_jsonl(run_dir / "reused-profiles.jsonl", reused)
+        generation_ids = [short_id for short_id in selected_ids if short_id not in reused_ids]
+        manifest = {
+            "run_id": run_id,
+            "kind": "classification_profile_corpus",
+            "production_stage": False,
+            "profile_version": PROFILE_VERSION,
+            "prompt_version": PROFILE_PROMPT_VERSION,
+            "snapshot_id": snapshot_id,
+            "snapshot_hash": snapshot["snapshot_hash"],
+            "seed": seed,
+            "limit": eligible_count,
+            "batch_size": batch_size,
+            "selected_ids": selected_ids,
+            "generation_ids": generation_ids,
+            "reused_count": len(reused),
+            "reuse_run_id": reuse_run_id,
+            "reuse_profiles_hash": source_manifest.get("profiles_hash"),
+            "selected_content_keys_hash": stable_hash(
+                [id_map[str(row[0])] for row in rows]
+            ),
+            "status": "pending",
+            "calls": [],
+            "created_at": _utc_now(),
+        }
+        _write_json(run_dir / "manifest.json", manifest)
+        return self._execute(run_dir, manifest, snapshot["cards"], resume=False)
+
     def resume_spike(self, run_id: str) -> dict[str, Any]:
         run_dir = self.output_dir / run_id
         manifest_path = run_dir / "manifest.json"
         if not manifest_path.is_file():
             raise LookupError("Profile Spike 不存在")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if manifest.get("kind") != "classification_profile_spike":
+        if manifest.get("kind") not in {
+            "classification_profile_spike",
+            "classification_profile_corpus",
+        }:
             raise PipelineError(
                 "运行目录不是 Classification Profile Spike",
                 code="profile_resume_corrupt",
@@ -327,16 +418,27 @@ class ClassificationProfileService:
                 code="profile_resume_input_mismatch",
                 retryable=False,
             )
+        generation_ids = set(manifest.get("generation_ids") or manifest["selected_ids"])
+        generation_rows = [row for row in rows if str(row[0]) in generation_ids]
         batches = [
-            rows[index:index + int(manifest["batch_size"])]
-            for index in range(0, len(rows), int(manifest["batch_size"]))
+            generation_rows[index:index + int(manifest["batch_size"])]
+            for index in range(0, len(generation_rows), int(manifest["batch_size"]))
         ]
         provider = self.provider_factory("taxonomy_profile")
         repair_provider = self.provider_factory("taxonomy_repair")
         caller = AuditedJsonCaller(
             provider=provider, repair_provider=repair_provider
         )
-        all_profiles: list[ClassificationProfile] = []
+        reused_path = run_dir / "reused-profiles.jsonl"
+        all_profiles: list[ClassificationProfile] = (
+            [
+                ClassificationProfile.model_validate(json.loads(line))
+                for line in reused_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            if reused_path.is_file()
+            else []
+        )
         calls: list[dict[str, Any]] = []
         manifest.update(status="running", model=provider.model, calls=[])
         _write_json(run_dir / "manifest.json", manifest)
@@ -417,6 +519,8 @@ class ClassificationProfileService:
                 level: sum(item.source_evidence_level == level for item in ordered)
                 for level in ("A", "B", "C")
             },
+            generated_count=len(generation_ids),
+            reused_count=len(ordered) - len(generation_ids),
             calls=calls,
             usage=_aggregate_calls(calls),
             compression=metrics,

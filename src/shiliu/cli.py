@@ -45,6 +45,15 @@ def build_parser() -> argparse.ArgumentParser:
         "profile-resume", help="恢复指定 Classification Profile Spike"
     )
     profile_resume.add_argument("run_id")
+    profile_materialize = taxonomy_commands.add_parser(
+        "profile-materialize", help="复用已验收 Profile 并补齐 Snapshot 全量语义表示"
+    )
+    profile_materialize.add_argument("--snapshot-id", type=int, required=True)
+    profile_materialize.add_argument("--reuse-run-id", required=True)
+    profile_materialize.add_argument("--seed", type=int, default=73)
+    profile_materialize.add_argument(
+        "--batch-size", type=int, default=12, choices=range(1, 13)
+    )
     profile_compare_resume = taxonomy_commands.add_parser(
         "profile-compare-resume", help="只读恢复或重算已冻结的 Checkpoint 3.7B 审计"
     )
@@ -78,6 +87,13 @@ def build_parser() -> argparse.ArgumentParser:
     dual_view_regression.add_argument(
         "--batch-size", type=int, default=24, choices=range(20, 33)
     )
+    full_run_a = taxonomy_commands.add_parser(
+        "create-full-run-a", help="冻结并创建 Snapshot #2 Full Discovery Run A"
+    )
+    full_run_a.add_argument("--snapshot-id", type=int, default=2)
+    full_run_a.add_argument("--profile-run-id", required=True)
+    full_run_a.add_argument("--seed", type=int, default=101)
+    full_run_a.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -134,6 +150,16 @@ def main(argv: list[str] | None = None) -> int:
         result = app.taxonomy_profiles.resume_spike(arguments.run_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-materialize":
+        app = Application()
+        result = app.taxonomy_profiles.materialize_snapshot(
+            arguments.snapshot_id,
+            reuse_run_id=arguments.reuse_run_id,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
     if (
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "profile-compare-resume"
@@ -171,6 +197,16 @@ def main(argv: list[str] | None = None) -> int:
     ):
         app = Application()
         run_id = app.taxonomy_workflow.create_dual_view_regression(
+            snapshot_id=arguments.snapshot_id,
+            profile_run_id=arguments.profile_run_id,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-full-run-a":
+        app = Application()
+        run_id = app.taxonomy_workflow.create_full_discovery_run_a(
             snapshot_id=arguments.snapshot_id,
             profile_run_id=arguments.profile_run_id,
             seed=arguments.seed,

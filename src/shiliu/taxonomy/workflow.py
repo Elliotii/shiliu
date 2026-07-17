@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import random
+import subprocess
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -17,13 +18,17 @@ from shiliu.taxonomy.candidates import (
     CANDIDATE_NORMALIZATION_VERSION,
     CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
     CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
+    CONTENT_TYPE_DRAFT_SCHEMA_VERSION,
     CONTENT_TYPE_NORMALIZATION_VERSION,
     CONTENT_TYPE_PROMPT_VERSION,
+    CONTENT_TYPE_SCHEMA_VERSION,
     CONTENT_TYPE_SCHEMA_HINT,
     LOCAL_TOP_LEVEL_PROMPT_VERSION,
+    LOCAL_TOP_LEVEL_SCHEMA_VERSION,
     LOCAL_TOP_LEVEL_SCHEMA_HINT,
     TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
     TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT,
+    TOP_LEVEL_DOMAIN_SCHEMA_VERSION,
     CompactCandidateTable,
     CompactContentTypeTable,
     ContentTypeDraftV1,
@@ -49,6 +54,7 @@ from shiliu.taxonomy.quality import (
     LocalValidationReport,
     TopLevelQualityResult,
     TopLevelRuleResult,
+    TOP_LEVEL_QUALITY_GATE_VERSION,
     build_local_validation_prompt,
     combine_top_level_quality,
     evaluate_top_level_rules,
@@ -59,7 +65,7 @@ from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v7"
+WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v8"
 SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
 
 
@@ -93,6 +99,7 @@ class TaxonomyWorkflow:
         representation: str = "compact",
         profile_run_id: str | None = None,
         selected_ids: list[str] | None = None,
+        protocol_manifest: dict[str, Any] | None = None,
     ) -> int:
         if not 20 <= batch_size <= 32:
             raise ValueError("Taxonomy batch_size must be between 20 and 32")
@@ -116,6 +123,7 @@ class TaxonomyWorkflow:
             "representation": representation,
             "profile_run_id": profile_run_id,
             "selected_ids": selected_ids,
+            "protocol_manifest": protocol_manifest,
         }
         return self.run_repository.create_run(
             snapshot_id=snapshot_id,
@@ -165,6 +173,107 @@ class TaxonomyWorkflow:
             selected_ids=selected_ids,
         )
 
+    def create_full_discovery_run_a(
+        self,
+        *,
+        snapshot_id: int,
+        profile_run_id: str,
+        seed: int = 101,
+        batch_size: int = 24,
+    ) -> int:
+        snapshot = self.snapshot_repository.get_snapshot(snapshot_id)
+        if snapshot is None:
+            raise LookupError("快照不存在")
+        expected = {
+            "id": 2,
+            "content_count": 131,
+            "discovery_eligible_count": 128,
+            "trial_assignment_only_count": 3,
+            "evidence_counts": {"A": 76, "B": 17, "C": 35, "D": 3},
+            "snapshot_hash": "1143f0999c569db30b2184a0129e446d3301c0c84e53a34a2807ac9f39db02a2",
+        }
+        for key, value in expected.items():
+            if snapshot.get(key) != value:
+                raise PipelineError(
+                    f"Full Run A Snapshot 字段不匹配：{key}",
+                    code="run_a_snapshot_contract_mismatch",
+                    retryable=False,
+                )
+        profile_manifest = self._accepted_profile_manifest(
+            profile_run_id=profile_run_id,
+            snapshot_hash=str(snapshot["snapshot_hash"]),
+        )
+        selected_ids = [str(value) for value in profile_manifest.get("selected_ids") or []]
+        if len(selected_ids) != 128 or len(set(selected_ids)) != 128:
+            raise PipelineError(
+                "Full Run A 要求 128 条已验收 Profile",
+                code="run_a_profile_corpus_incomplete",
+                retryable=False,
+            )
+        git_commit, git_clean = _git_state()
+        if not git_clean:
+            raise PipelineError(
+                "冻结 Full Run A 前 Git 工作区必须干净",
+                code="run_a_git_dirty",
+                retryable=False,
+            )
+        providers = {
+            role: _provider_manifest(self.provider_factory(role))
+            for role in (
+                "taxonomy_local",
+                "taxonomy_content_type",
+                "taxonomy_content_type_global",
+                "taxonomy_global",
+                "taxonomy_validator",
+                "taxonomy_repair",
+            )
+        }
+        protocol = {
+            "protocol_version": "full-discovery-run-a-v1",
+            "snapshot_id": snapshot_id,
+            "snapshot_hash": snapshot["snapshot_hash"],
+            "snapshot_card_count": snapshot["content_count"],
+            "discovery_eligible_count": snapshot["discovery_eligible_count"],
+            "trial_assignment_only_count": snapshot["trial_assignment_only_count"],
+            "evidence_counts": snapshot["evidence_counts"],
+            "profile_run_id": profile_run_id,
+            "profile_hash": profile_manifest.get("profiles_hash"),
+            "profile_version": "classification_profile_v1",
+            "compact_form_view_version": "compact_form_view_v1",
+            "domain_prompt_version": LOCAL_TOP_LEVEL_PROMPT_VERSION,
+            "content_type_prompt_version": CONTENT_TYPE_PROMPT_VERSION,
+            "domain_schema_version": LOCAL_TOP_LEVEL_SCHEMA_VERSION,
+            "content_type_schema_version": CONTENT_TYPE_SCHEMA_VERSION,
+            "domain_draft_schema_version": TOP_LEVEL_DOMAIN_SCHEMA_VERSION,
+            "content_type_draft_schema_version": CONTENT_TYPE_DRAFT_SCHEMA_VERSION,
+            "domain_normalization_version": CANDIDATE_NORMALIZATION_VERSION,
+            "content_type_normalization_version": CONTENT_TYPE_NORMALIZATION_VERSION,
+            "domain_consolidation_prompt_version": TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
+            "content_type_consolidation_prompt_version": CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
+            "quality_gate_version": TOP_LEVEL_QUALITY_GATE_VERSION,
+            "providers": providers,
+            "temperature": None,
+            "batch_size": batch_size,
+            "run_seed": seed,
+            "ordering_strategy": "stable_short_id_map_then_seeded_shuffle",
+            "git_commit": git_commit,
+            "git_worktree_clean": True,
+        }
+        run_id = self.create_run(
+            snapshot_id=snapshot_id,
+            run_kind="full_discovery_run_a",
+            seed=seed,
+            batch_size=batch_size,
+            limit=None,
+            representation="classification_profile_v1",
+            profile_run_id=profile_run_id,
+            selected_ids=selected_ids,
+            protocol_manifest=protocol,
+        )
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        _write_json_once(run_dir / "run-manifest.json", protocol)
+        return run_id
+
     def execute(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
         run = self.run_repository.get_run(run_id)
         if run is None:
@@ -191,6 +300,29 @@ class TaxonomyWorkflow:
             quality_feedback = self._persisted_quality_feedback(run_id)
 
         parameters = run["parameters"]
+        if run["run_kind"] == "full_discovery_run_a":
+            protocol = parameters.get("protocol_manifest")
+            run_manifest_path = self.output_dir / f"run-{run_id:06d}" / "run-manifest.json"
+            if not protocol or not run_manifest_path.is_file():
+                raise PipelineError(
+                    "Full Run A 缺少冻结 Manifest",
+                    code="run_a_manifest_missing",
+                    retryable=False,
+                )
+            frozen = json.loads(run_manifest_path.read_text(encoding="utf-8"))
+            if frozen != protocol:
+                raise PipelineError(
+                    "Full Run A Manifest 已改变",
+                    code="run_a_manifest_changed",
+                    retryable=False,
+                )
+            git_commit, git_clean = _git_state()
+            if git_commit != protocol["git_commit"] or not git_clean:
+                raise PipelineError(
+                    "Full Run A 执行代码或工作区状态与冻结 Manifest 不一致",
+                    code="run_a_code_state_changed",
+                    retryable=False,
+                )
         snapshot = self.snapshot_repository.get_snapshot(int(run["corpus_snapshot_id"]))
         if snapshot is None or snapshot["snapshot_hash"] != parameters["snapshot_hash"]:
             raise PipelineError(
@@ -308,13 +440,26 @@ class TaxonomyWorkflow:
             local_outputs=local_content_types,
             allowed_ids=allowed_ids,
         )
+        content_type_prompt = build_content_type_consolidation_prompt(
+            content_type_table
+        )
+        if (
+            quality_feedback
+            and quality_feedback.get("retry_stage") == "content_type_consolidation"
+        ):
+            content_type_prompt += (
+                "\n\n上次质量门禁反馈。只修正这些 Content Type 问题，不改变已验证的其他结构："
+                + json.dumps(
+                    quality_feedback, ensure_ascii=False, separators=(",", ":")
+                )
+            )
         content_types = self._model_stage(
             run_id=run_id,
             run_dir=run_dir,
             stage_name="content_type_consolidation",
             unit_key="main",
             role="taxonomy_content_type_global",
-            prompt=build_content_type_consolidation_prompt(content_type_table),
+            prompt=content_type_prompt,
             prompt_version=CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
             schema=ContentTypeDraftV1,
             schema_hint=CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
@@ -327,7 +472,11 @@ class TaxonomyWorkflow:
                 }
             ),
             validator=lambda value: validate_content_type_draft(
-                value, allowed_ids=allowed_ids
+                value,
+                allowed_ids=allowed_ids,
+                candidate_ids={
+                    item.candidate_id for item in content_type_table.content_types
+                },
             ),
         )
         _write_json(run_dir / "content-types.json", content_types.model_dump(mode="json"))
@@ -362,7 +511,9 @@ class TaxonomyWorkflow:
                 }
             ),
             validator=lambda value: validate_top_level_draft(
-                value, allowed_ids=allowed_ids
+                value,
+                allowed_ids=allowed_ids,
+                candidate_ids={item.candidate_id for item in candidate_table.domains},
             ),
         )
         _write_json(run_dir / "taxonomy-draft.json", draft.model_dump(mode="json"))
@@ -376,6 +527,10 @@ class TaxonomyWorkflow:
             allowed_ids=allowed_ids,
             known_entity_names=known_entities,
             content_type_names={item.name for item in content_types.content_types},
+            content_type_draft=content_types,
+            content_type_table=content_type_table,
+            local_content_types=local_content_types,
+            evidence_by_id={str(row[0]): str(row[1]) for row in selected_compact_rows},
         )
         rows_by_id = {str(row[0]): row for row in eligible}
         validation_reports: list[LocalValidationReport] = []
@@ -669,12 +824,22 @@ class TaxonomyWorkflow:
         allowed_ids: set[str],
         known_entity_names: set[str],
         content_type_names: set[str],
+        content_type_draft: ContentTypeDraftV1,
+        content_type_table: CompactContentTypeTable,
+        local_content_types: list[ContentTypeDiscoveryOutputV1],
+        evidence_by_id: dict[str, str],
     ) -> TopLevelRuleResult:
         input_value = {
             "draft": draft.model_dump(mode="json"),
             "candidates": candidate_table.model_dump(mode="json"),
             "known_entities": sorted(known_entity_names),
             "content_types": sorted(content_type_names),
+            "content_type_draft": content_type_draft.model_dump(mode="json"),
+            "content_type_candidates": content_type_table.model_dump(mode="json"),
+            "local_content_types": [
+                item.model_dump(mode="json") for item in local_content_types
+            ],
+            "evidence_by_id": evidence_by_id,
         }
         input_hash = _stable_hash(input_value)
         stage = self.run_repository.ensure_stage(
@@ -698,6 +863,10 @@ class TaxonomyWorkflow:
             allowed_ids=allowed_ids,
             known_entity_names=known_entity_names,
             content_type_names=content_type_names,
+            content_type_draft=content_type_draft,
+            content_type_table=content_type_table,
+            local_content_types=local_content_types,
+            evidence_by_id=evidence_by_id,
         )
         output_path = run_dir / "structural-validation" / "validation-plan.json"
         _write_json(output_path, result.model_dump(mode="json"))
@@ -734,7 +903,7 @@ class TaxonomyWorkflow:
             "main",
             input_hash=input_hash,
             model=None,
-            prompt_version="top-level-quality-gate-v1",
+            prompt_version=TOP_LEVEL_QUALITY_GATE_VERSION,
             thinking_enabled=None,
             reasoning_effort=None,
         )
@@ -769,6 +938,10 @@ class TaxonomyWorkflow:
             "consolidation": [
                 "consolidation", "structural_validation", "local_validation",
                 "quality_gate",
+            ],
+            "content_type_consolidation": [
+                "content_type_consolidation", "structural_validation",
+                "local_validation", "quality_gate",
             ],
             "local_validation": [
                 "local_validation", "quality_gate",
@@ -902,3 +1075,32 @@ def _write_json_once(path: Path, value: Any) -> None:
             )
         return
     _write_json(path, value)
+
+
+def _git_state() -> tuple[str, bool]:
+    root = Path(__file__).resolve().parents[3]
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return commit, not bool(status.strip())
+
+
+def _provider_manifest(provider: OpenAICompatibleProvider) -> dict[str, Any]:
+    return {
+        "provider": getattr(provider, "name", "openai-compatible"),
+        "model": provider.model,
+        "thinking_enabled": provider.thinking_enabled,
+        "reasoning_effort": provider.reasoning_effort,
+        "temperature": None,
+    }

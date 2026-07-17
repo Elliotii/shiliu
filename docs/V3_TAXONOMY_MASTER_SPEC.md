@@ -532,6 +532,53 @@ Commit:
 feat: establish dual-view taxonomy discovery
 ```
 
+### Checkpoint 3.9 — Full Discovery Run A protocol
+
+Status: **Protocol implemented; execution pending**
+
+Formal Run A keeps the Checkpoint 3.8 dual-view boundary and adds no new
+classification path:
+
+```text
+128 eligible Snapshot #2 Cards
+├── classification_profile_v1 -> six Domain batches -> normalization
+│   -> at-most-two-level Domain Consolidation
+└── compact_form_view_v1 -> six Content Type batches -> normalization
+    -> Content Type Consolidation
+                                   -> deterministic Quality Gate
+```
+
+Before Run A can be frozen, the accepted 48-card Profile artifact must be
+materialized to all 128 eligible Cards. The materializer reuses the accepted 48
+rows byte-for-byte and calls the existing Profile Provider only for the 80
+missing rows. The three D-level Cards remain in Snapshot #2 but are excluded
+from Profile materialization and Discovery.
+
+`full-discovery-run-a-v1` freezes the Snapshot counts and hash, both input-view
+versions, Prompt/Schema/normalization/Quality versions, Provider routes, model
+thinking settings, batch size 24, seed, ordering strategy, Profile hash, Git
+commit, and clean-worktree state. Execution refuses a changed Manifest, changed
+Git commit, or dirty worktree. Existing batch-stage hashes, raw-before-parse
+auditing, isolated JSON Repair, and database-backed resume remain the recovery
+mechanism.
+
+Run A schemas now preserve explicit candidate decisions. Every normalized
+Domain candidate is recorded as merged, downgraded to Topic/Entity, or rejected;
+every Content Type candidate is recorded as merged or rejected. This makes the
+required Run A report auditable without rereading the 128 Cards. Domain output
+allows zero to six children per root but never a third level.
+
+The Quality Gate checks both branches together. Blocking issues route to the
+smallest retryable stage (`content_type_consolidation`, `consolidation`, or
+`local_validation`); warnings include missing reasonable subdomains, weak
+support, high C-level ambiguity, all-dropped Content Type batches, and excessive
+single-Domain concentration. A passing result recommends `run_b`, but this
+checkpoint stops after reporting Run A and does not start Run B.
+
+No Provider call is authorized merely by this protocol implementation. The
+private 80-row Profile materialization and the later 128-row Run A each require
+an explicit execution confirmation.
+
 ### Checkpoint 4 — Formal top-level Taxonomy Discovery
 
 Status: **Planned**

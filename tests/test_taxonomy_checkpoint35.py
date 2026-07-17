@@ -134,7 +134,7 @@ def test_content_type_contract_is_independent_from_domain_discovery() -> None:
     assert "不得输出 Domain、Topic 或 Entity" in content_prompt
     assert '"domains"' not in content_prompt
     assert '"content_types"' not in domain_prompt
-    assert "不得输出 Content Type、二级领域、Entity" in domain_prompt
+    assert "不得输出 Content Type、Entity 或完整 Topic" in domain_prompt
     with pytest.raises(ValidationError):
         ContentTypeDiscoveryOutputV1.model_validate(
             {"content_types": [], "ambiguous_ids": ["C001"]}
@@ -166,9 +166,22 @@ def test_consolidation_receives_only_compact_domain_table() -> None:
     assert "batch_count" in prompt
 
 
-def test_top_level_draft_forbids_children_and_mixed_facets() -> None:
+def test_domain_draft_allows_only_two_levels_and_forbids_mixed_facets() -> None:
     payload = _draft().model_dump(mode="json")
-    payload["domains"][0]["children"] = []
+    payload["domains"][0]["children"] = [
+        {
+            "id": "d_01_01",
+            "name": "系统设计",
+            "definition": "软件系统结构设计",
+            "includes": ["架构"],
+            "excludes": ["单一工具"],
+            "supporting_ids": ["C001", "C002"],
+            "representative_ids": ["C001"],
+            "parent_id": "d_01",
+            "node_type": "domain",
+            "children": [],
+        }
+    ]
     with pytest.raises(ValidationError):
         TopLevelDomainDraft.model_validate(payload)
 

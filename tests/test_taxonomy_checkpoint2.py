@@ -268,7 +268,7 @@ class WorkflowProvider:
         self.calls: list[str] = []
 
     def complete_raw(self, prompt: str, *, max_tokens: int | None = None):
-        if "局部一级知识领域候选发现器" in prompt:
+        if "局部知识领域候选发现器" in prompt:
             self.local_calls += 1
             self.calls.append("local")
             if self.fail_second_local_once and self.local_calls == 2:
@@ -316,6 +316,7 @@ class WorkflowProvider:
             self.content_type_consolidation_calls += 1
             self.calls.append("content_type_consolidation")
             ids = list(dict.fromkeys(re.findall(r'"(C\d{3})"', prompt)))
+            candidate_ids = list(dict.fromkeys(re.findall(r'"(nct_\d{3})"', prompt)))
             output = ContentTypeDraftV1.model_validate(
                 {
                     "content_types": [
@@ -330,6 +331,15 @@ class WorkflowProvider:
                             "node_type": "content_type",
                         }
                     ],
+                    "candidate_decisions": [
+                        {
+                            "candidate_id": candidate_id,
+                            "action": "merged_to_content_type",
+                            "target_id": "ct_01",
+                            "reason": "合并同义内容形式候选",
+                        }
+                        for candidate_id in candidate_ids
+                    ],
                     "consolidation_notes": [],
                 }
             ).model_dump(mode="json")
@@ -337,6 +347,7 @@ class WorkflowProvider:
             self.calls.append("consolidation")
             self.consolidation_calls += 1
             ids = list(dict.fromkeys(re.findall(r'"(C\d{3})"', prompt)))
+            candidate_ids = list(dict.fromkeys(re.findall(r'"(nc_\d{3})"', prompt)))
             name = (
                 "ToolX"
                 if self.bad_first_consolidation and self.consolidation_calls == 1
@@ -354,6 +365,15 @@ class WorkflowProvider:
                             "supporting_ids": ids[:5],
                             "representative_ids": ids[:3],
                         }
+                    ],
+                    "candidate_decisions": [
+                        {
+                            "candidate_id": candidate_id,
+                            "action": "merged_to_domain",
+                            "target_id": "d_01",
+                            "reason": "合并同义领域候选",
+                        }
+                        for candidate_id in candidate_ids
                     ],
                     "consolidation_notes": ["合并同名候选"],
                 }
