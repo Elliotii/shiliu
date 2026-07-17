@@ -16,6 +16,7 @@ from shiliu.sync import SyncService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.discovery import BatchedDiscoverySpikeService
 from shiliu.taxonomy.facets import FacetExtractionService
+from shiliu.taxonomy.profiles import ClassificationProfileService
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 from shiliu.taxonomy.workflow import TaxonomyWorkflow
 
@@ -48,6 +49,11 @@ class Application:
             provider_factory=self.provider,
             output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "discovery_spikes",
         )
+        self.taxonomy_profiles = ClassificationProfileService(
+            repository=self.taxonomy_corpus.repository,
+            provider_factory=self.provider,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "profile_spikes",
+        )
         self.taxonomy_run_repository = TaxonomyRunRepository(self.db)
         self.taxonomy_workflow = TaxonomyWorkflow(
             snapshot_repository=self.taxonomy_corpus.repository,
@@ -78,7 +84,7 @@ class Application:
         is_transcript = role in {"fast_transcript", "formal_transcript"}
         is_taxonomy_light = role in {
             "taxonomy_local", "taxonomy_content_type", "taxonomy_validator",
-            "taxonomy_assignment", "taxonomy_repair",
+            "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
         }
         model_role = "formal_summary" if role.startswith("taxonomy_") else role
         return OpenAICompatibleProvider(
@@ -90,7 +96,7 @@ class Application:
                 False
                 if is_transcript or role in {
                     "taxonomy_local", "taxonomy_content_type", "taxonomy_validator",
-                    "taxonomy_assignment", "taxonomy_repair",
+                    "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
                 }
                 else True
             ),

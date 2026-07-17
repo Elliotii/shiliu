@@ -305,10 +305,12 @@ def test_thinking_route_reserves_high_for_global_consolidation(monkeypatch) -> N
 
     app.provider("taxonomy_local")
     app.provider("taxonomy_validator")
+    app.provider("taxonomy_profile")
     app.provider("taxonomy_global")
     app.provider("taxonomy_repair")
 
     assert [(item["thinking_enabled"], item["reasoning_effort"]) for item in captured] == [
+        (False, None),
         (False, None),
         (False, None),
         (True, "high"),

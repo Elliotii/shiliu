@@ -34,6 +34,17 @@ def build_parser() -> argparse.ArgumentParser:
     facet_spike.add_argument("--limit", type=int, default=12, choices=range(10, 21))
     facet_spike.add_argument("--seed", type=int, default=42)
     facet_spike.add_argument("--batch-size", type=int, default=4, choices=range(1, 6))
+    profile_spike = taxonomy_commands.add_parser(
+        "profile-spike", help="运行 Checkpoint 3.7A Classification Profile Spike"
+    )
+    profile_spike.add_argument("--snapshot-id", type=int, required=True)
+    profile_spike.add_argument("--limit", type=int, default=48, choices=range(1, 49))
+    profile_spike.add_argument("--seed", type=int, default=73)
+    profile_spike.add_argument("--batch-size", type=int, default=12, choices=range(1, 13))
+    profile_resume = taxonomy_commands.add_parser(
+        "profile-resume", help="恢复指定 Classification Profile Spike"
+    )
+    profile_resume.add_argument("run_id")
     discovery_spike = taxonomy_commands.add_parser(
         "discovery-spike", help="运行紧凑视图、分批候选发现和试分类 Spike"
     )
@@ -92,6 +103,21 @@ def main(argv: list[str] | None = None) -> int:
             seed=arguments.seed,
             batch_size=arguments.batch_size,
         )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-spike":
+        app = Application()
+        result = app.taxonomy_profiles.run_spike(
+            arguments.snapshot_id,
+            limit=arguments.limit,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-resume":
+        app = Application()
+        result = app.taxonomy_profiles.resume_spike(arguments.run_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "discovery-spike":

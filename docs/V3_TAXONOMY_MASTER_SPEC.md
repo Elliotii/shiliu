@@ -225,7 +225,7 @@ Only repeated `taxonomy_gap` evidence can drive later Taxonomy evolution.
 
 ## 6. Target logical data objects
 
-### 6.1 Classification Profile — Planned for Checkpoint 3.7
+### 6.1 Classification Profile — Implemented by Checkpoint 3.7A
 
 ```json
 {
@@ -234,9 +234,9 @@ Only repeated `taxonomy_gap` evidence can drive later Taxonomy evolution.
   "content_goal": "",
   "key_concepts": [],
   "usage_contexts": [],
-  "entities": [{"name": "", "type": "project|tool|model|paper|person|company|other"}],
+  "entities": [],
   "unknown_terms": [],
-  "source_evidence_level": "A|B|C|D"
+  "source_evidence_level": "A|B|C"
 }
 ```
 
@@ -370,26 +370,80 @@ Commit:
 test: validate low-cost taxonomy regression
 ```
 
-### Checkpoint 3.7 — Classification Profile comparison
+### Checkpoint 3.7A — Classification Profile generation
 
-Status: **Planned**
+Status: **Completed and accepted; isolated from production processing**
 
-Input: title, conclusion, key points, extracted entities, and evidence level for
-the same 48 contents. It does not reread subtitles.
+Input for the same frozen 48-content selection:
 
-Output: `classification_profile_v1` comparison artifacts for 48 items only.
+- A/B: title, conclusion, at most three key points, at most five extracted
+  entities, and evidence level;
+- C: title, at most 300 characters of the already frozen description, and
+  evidence level;
+- D: excluded from this experiment.
+
+It does not reread subtitles, Silver Reference, folder names, user behavior, or
+user notes. It does not modify summaries or the production video pipeline.
+
+Output: private `classification_profile_v1` artifacts for 48 items only, plus
+generation usage, elapsed time, Repair, missing-field, average-length,
+pollution, and offline compression metrics.
 
 Gates:
 
-- at least about 25% lower discovery input Tokens;
-- no material loss of primary Domains or low-frequency content;
-- no material increase in `insufficient_evidence` or `taxonomy_gap`;
-- stable Schema and tracked one-time Profile generation cost.
+- conservative estimated Discovery input reduction at least 25%;
+- Schema success 100%;
+- zero missing or duplicate content IDs;
+- no Domain/Taxonomy output fields or explicit classification instructions;
+- Repair zero;
+- generation cost and Profile length fully audited.
+
+Failure stops before Checkpoint 3.7B.
+
+Acceptance result for Prompt v2 over the frozen 48-content selection:
+
+- 48/48 Profiles completed across four batches;
+- Evidence distribution: A 22, B 9, C 17;
+- Schema success 100%, Repair 0, retry 0, missing fields 0;
+- Domain/Taxonomy pollution 0;
+- 15,263 total generation Tokens, including 8,831 prompt and 6,432
+  completion Tokens;
+- 0 reasoning Tokens and 1,280 cached prompt Tokens;
+- 75.505 seconds of Provider-reported model time;
+- average compact Profile row length 164.71 characters;
+- estimated Discovery-row Token reduction 53.18% and character reduction
+  45.31% relative to the Compact View.
+
+Prompt v1 is retained only as private diagnostic evidence. It produced four
+empty `content_goal` values on C-level cards and therefore required one JSON
+Repair. Prompt v2 requires non-empty scalar fields and the explicit
+`information insufficient` sentinel when a goal cannot be supported. A fresh
+full 48-card Run then passed without Repair.
 
 Commit:
 
 ```text
 feat: add classification profile projection
+```
+
+### Checkpoint 3.7B — Paired Compact/Profile Discovery comparison
+
+Status: **Planned; forbidden until Checkpoint 3.7A passes and the user approves**
+
+Runs two paired groups over identical IDs, task prompts, output Schemas, model,
+thinking configuration, batch membership, and within-pair input order. The only
+experimental variable is Compact View versus `classification_profile_v1` and
+its necessary row-protocol description.
+
+It compares one-time Profile cost, repeated Discovery savings, Token
+break-even, semantic Domain recovery, discovery-support coverage, C-level
+support coverage, ambiguity, leakage, Repair, and within-representation
+stability. It does not run Trial Assignment or claim classification accuracy.
+
+Commit:
+
+```text
+test: compare compact and profile taxonomy discovery
 ```
 
 ### Checkpoint 4 — Formal top-level Taxonomy Discovery
