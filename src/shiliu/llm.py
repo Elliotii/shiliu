@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass
 from typing import Any, TypeVar
 
 import httpx
@@ -11,6 +12,17 @@ from shiliu.domain import PipelineError
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
+
+
+@dataclass(frozen=True)
+class CompletionResponse:
+    """Raw provider response metadata used by recoverable long workflows."""
+
+    content: str
+    finish_reason: str | None
+    usage: dict[str, Any] | None
+    response_id: str | None
+    reasoning_content: str | None = None
 
 
 class OpenAICompatibleProvider:
@@ -74,24 +86,52 @@ class OpenAICompatibleProvider:
         )
         return payload.strip()
 
-    def complete_json(self, prompt: str, schema: type[SchemaT]) -> SchemaT:
+    def complete_json(
+        self,
+        prompt: str,
+        schema: type[SchemaT],
+        *,
+        max_tokens: int | None = None,
+    ) -> SchemaT:
         content = self._generate(
             [
                 {"role": "system", "content": "Follow the user's transformation rules and return valid JSON only."},
                 {"role": "user", "content": prompt},
-            ]
+            ],
+            max_tokens=max_tokens,
         )
-        try:
-            parsed = json.loads(_extract_json(content))
-            return schema.model_validate(parsed)
-        except (json.JSONDecodeError, ValidationError, ValueError) as exc:
-            raise PipelineError(
-                f"模型返回未通过结构校验：{exc}",
-                code="invalid_model_output",
-                retryable=True,
-            ) from exc
+        return parse_json_content(content, schema)
+
+    def complete_raw(
+        self,
+        prompt: str,
+        *,
+        max_tokens: int | None = None,
+    ) -> CompletionResponse:
+        """Return raw content and usage before application-level parsing."""
+
+        return self._generate_response(
+            [
+                {
+                    "role": "system",
+                    "content": "Follow the user's transformation rules and return valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=max_tokens,
+            allow_incomplete=True,
+        )
 
     def _generate(self, messages: list[dict[str, str]], *, max_tokens: int | None = None) -> str:
+        return self._generate_response(messages, max_tokens=max_tokens).content
+
+    def _generate_response(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int | None = None,
+        allow_incomplete: bool = False,
+    ) -> CompletionResponse:
         body: dict[str, Any] = {"model": self.model, "messages": messages}
         if self.thinking_enabled is not None:
             body["thinking"] = {"type": "enabled" if self.thinking_enabled else "disabled"}
@@ -120,17 +160,28 @@ class OpenAICompatibleProvider:
             content = message.get("content")
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise PipelineError("模型服务返回格式无效", code="provider_schema", retryable=True) from exc
-        if not isinstance(content, str) or not content.strip():
-            finish_reason = choice.get("finish_reason") if isinstance(choice, dict) else None
-            reasoning = message.get("reasoning_content") if isinstance(message, dict) else None
-            if finish_reason == "length" and reasoning:
-                raise PipelineError(
-                    "推理模型已连接，但输出预算被推理内容耗尽，没有生成最终答案",
-                    code="reasoning_output_truncated",
-                    retryable=True,
-                )
+        finish_reason = choice.get("finish_reason") if isinstance(choice, dict) else None
+        if finish_reason == "length" and not allow_incomplete:
+            raise PipelineError(
+                "模型输出达到保险上限，请人工确认后重试",
+                code="output_budget_exhausted",
+                retryable=False,
+            )
+        reasoning = message.get("reasoning_content") if isinstance(message, dict) else None
+        if (not isinstance(content, str) or not content.strip()) and not allow_incomplete:
             raise PipelineError("模型返回为空", code="empty_model_output", retryable=True)
-        return content
+        usage = payload.get("usage") if isinstance(payload, dict) else None
+        return CompletionResponse(
+            content=content if isinstance(content, str) else "",
+            finish_reason=str(finish_reason) if finish_reason is not None else None,
+            usage=usage if isinstance(usage, dict) else None,
+            response_id=(
+                str(payload["id"])
+                if isinstance(payload, dict) and payload.get("id") is not None
+                else None
+            ),
+            reasoning_content=reasoning if isinstance(reasoning, str) else None,
+        )
 
     @staticmethod
     def _raise_for_status(response: httpx.Response) -> None:
@@ -140,6 +191,8 @@ class OpenAICompatibleProvider:
         body = response.text[:500].lower()
         if status in {401}:
             raise PipelineError("API Key 无效", code="provider_authentication", retryable=False)
+        if status == 402:
+            raise PipelineError("模型账户余额不足", code="provider_insufficient_balance", retryable=False)
         if status == 403:
             raise PipelineError("模型服务拒绝访问", code="provider_forbidden", retryable=False)
         if status == 404:
@@ -161,3 +214,17 @@ def _extract_json(content: str) -> str:
     if start < 0 or end < start:
         raise ValueError("response has no JSON object")
     return text[start : end + 1]
+
+
+def parse_json_content(content: str, schema: type[SchemaT]) -> SchemaT:
+    """Validate raw content after callers have durably persisted it."""
+
+    try:
+        parsed = json.loads(_extract_json(content))
+        return schema.model_validate(parsed)
+    except (json.JSONDecodeError, ValidationError, ValueError) as exc:
+        raise PipelineError(
+            f"模型返回未通过结构校验：{exc}",
+            code="invalid_model_output",
+            retryable=True,
+        ) from exc

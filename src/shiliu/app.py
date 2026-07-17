@@ -54,14 +54,14 @@ class Application:
             api_key = load_api_key(self.config.api_key_ref)
         except RuntimeError as exc:
             raise PipelineError(str(exc), code="api_key_missing", retryable=False) from exc
-        is_fast = role == "fast_transcript"
+        is_transcript = role in {"fast_transcript", "formal_transcript"}
         return OpenAICompatibleProvider(
             base_url=self.config.llm_base_url,
             api_key=api_key,
             model=self.config.model_for(role),
-            timeout_seconds=180 if is_fast else 600,
-            thinking_enabled=not is_fast,
-            reasoning_effort=None if is_fast else self.config.formal_reasoning_effort,
+            timeout_seconds=180 if is_transcript else 600,
+            thinking_enabled=not is_transcript,
+            reasoning_effort=None if is_transcript else "high",
         )
 
     def asr_service(self) -> ASRService:

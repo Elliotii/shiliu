@@ -70,7 +70,7 @@ class AppConfig:
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
     formal_summary_model: str = ""
-    formal_reasoning_effort: str = "max"
+    formal_reasoning_effort: str = "high"
     api_key_ref: str = f"{KEYCHAIN_SERVICE}:{KEYCHAIN_ACCOUNT}"
     asr_base_url: str = "https://dashscope.aliyuncs.com/api/v1"
     asr_model: str = "paraformer-v2"
@@ -81,9 +81,10 @@ class AppConfig:
     bili_cli_root: str = ""
 
     def model_for(self, role: str) -> str:
+        if role == "formal_transcript":
+            return self.fast_transcript_model or self.formal_transcript_model or self.llm_model
         configured = {
             "fast_transcript": self.fast_transcript_model,
-            "formal_transcript": self.formal_transcript_model,
             "formal_summary": self.formal_summary_model,
         }.get(role, "")
         return configured or self.llm_model
@@ -105,11 +106,10 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
     asr = data.get("asr", {})
     bili = data.get("bilibili", {})
     legacy_model = str(llm.get("model", ""))
-    effort = str(llm.get("formal_reasoning_effort", "max")).lower()
-    if effort == "xhigh":
-        effort = "max"
-    if effort not in {"high", "max"}:
-        effort = "max"
+    # V2.1 deliberately routes every thinking-enabled video stage through
+    # high. Legacy max/xhigh values remain readable but no longer control the
+    # runtime, which prevents an old local config from restoring max effort.
+    effort = "high"
     return AppConfig(
         content_dir=str(app.get("content_dir", resolved.content_dir)),
         favorite_id=_optional_int(bili.get("favorite_id")),
@@ -159,7 +159,7 @@ def save_config(config: AppConfig, paths: AppPaths | None = None) -> AppPaths:
         f"fast_transcript_model = {_toml_string(config.model_for('fast_transcript'))}",
         f"formal_transcript_model = {_toml_string(config.model_for('formal_transcript'))}",
         f"formal_summary_model = {_toml_string(config.model_for('formal_summary'))}",
-        f"formal_reasoning_effort = {_toml_string('max' if config.formal_reasoning_effort == 'xhigh' else config.formal_reasoning_effort)}",
+        f"formal_reasoning_effort = {_toml_string('high')}",
         f"api_key_ref = {_toml_string(config.api_key_ref)}",
         "",
         "[asr]",
@@ -204,7 +204,7 @@ def public_config(config: AppConfig) -> dict[str, Any]:
         "fast_transcript_model": config.model_for("fast_transcript"),
         "formal_transcript_model": config.model_for("formal_transcript"),
         "formal_summary_model": config.model_for("formal_summary"),
-        "formal_reasoning_effort": "max" if config.formal_reasoning_effort == "xhigh" else config.formal_reasoning_effort,
+        "formal_reasoning_effort": "high",
         "has_api_key_reference": bool(config.api_key_ref),
         "asr_base_url": config.asr_base_url,
         "asr_model": config.asr_model,

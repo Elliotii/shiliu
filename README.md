@@ -2,7 +2,7 @@
 
 拾流是一个只在本机运行的 B 站收藏阅读与内容管理工具。它使用一个只读 B 站登录读取多个公开收藏夹，通过 OpenAI-compatible 模型生成整理原文和结构化摘要，并提供阅读状态、Mark、归档与人工笔记。
 
-当前 V2 需求和验收边界见 [`docs/specs/2026-07-15-shiliu-reading-mark-notes.md`](docs/specs/2026-07-15-shiliu-reading-mark-notes.md)。多来源与双处理路径见 [`docs/specs/2026-07-15-shiliu-v1.md`](docs/specs/2026-07-15-shiliu-v1.md)，无字幕兜底见 [`docs/specs/2026-07-15-shiliu-paraformer-asr-fallback.md`](docs/specs/2026-07-15-shiliu-paraformer-asr-fallback.md)。
+当前 V2 需求和验收边界见 [`docs/specs/2026-07-15-shiliu-reading-mark-notes.md`](docs/specs/2026-07-15-shiliu-reading-mark-notes.md)。多来源与双处理路径见 [`docs/specs/2026-07-15-shiliu-v1.md`](docs/specs/2026-07-15-shiliu-v1.md)，无字幕兜底见 [`docs/specs/2026-07-15-shiliu-paraformer-asr-fallback.md`](docs/specs/2026-07-15-shiliu-paraformer-asr-fallback.md)，按视频时长控制 AI 调用的补丁见 [`docs/specs/2026-07-16-shiliu-v2.1-duration-processing-patch.md`](docs/specs/2026-07-16-shiliu-v2.1-duration-processing-patch.md)。
 
 ## V2 能力
 
@@ -18,8 +18,13 @@
 
 - 只处理 P1，优先选择中文字幕，其次英文字幕。
 - 无中英文字幕时，5 分钟以内的视频可自动使用 Paraformer-v2；更长视频可手动触发。
+- 有字幕且不超过 8 分钟时，使用 Flash（关闭思考）轻度整理原文，再使用 Pro（`high` 思考）生成总结。
+- 有字幕且超过 8 分钟、不超过 16 分钟时跳过原文整理，只使用 Pro 生成总结；超过 16 分钟时默认只保存原字幕，不调用 LLM。
+- 视频时长未知时不自动调用 LLM；手动 ASR 不受 16 分钟的“只存字幕”限制，但超过 8 分钟后仍跳过原文整理。
+- 模型输出使用按视频时长计算的宽松保险上限；触顶后转为人工确认，不自动重复消耗额度。
 - 生成轻度整理的完整原文、结构化 AI 总结、重要章节、实体、可执行事项和相关链接。
 - 保存封面、原始带时间戳字幕、整理原文、摘要 JSON 和 Markdown 本地资产。
+- 首页封面右下角显示已知视频时长；未知时长不显示占位文字。
 
 ### 阅读管理
 

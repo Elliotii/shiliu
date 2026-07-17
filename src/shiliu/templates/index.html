@@ -36,6 +36,7 @@
         {% if video.cover_path %}<img src="/media/{{ video.id }}/cover" alt="{{ video.title }} 的封面" loading="lazy">
         {% else %}<div class="cover-fallback">NO COVER</div>{% endif %}
         <span class="state state-{{ video.status }}">{{ video.status }}</span>
+        {% if video.duration_label %}<span class="duration-badge">{{ video.duration_label }}</span>{% endif %}
         {% if video.active_revision == 'fast' %}<span class="revision-badge">快速版{% if video.refinement_status == 'processing' %} · 精修中{% elif video.refinement_status == 'failed' %} · 精修失败{% endif %}</span>{% endif %}
         <span class="mark-badge" {% if not video.is_marked %}hidden{% endif %} aria-label="已 Mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10v14.5l-5-3.1-5 3.1z"/></svg> Mark</span>
       </div>
@@ -70,10 +71,11 @@
             <button class="collapse-summary" type="button" data-collapse-summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>收起完整总结</span></button>
           </details>
           {% else %}
-          <p class="pending-copy">{% if video.asr_job %}语音识别：{{ video.asr_job.status }}{% if video.asr_job.next_retry_at %} · 冷却至 {{ video.asr_job.next_retry_at }}{% endif %}{% elif video.error_message %}{{ video.error_message }}{% else %}正在等待可用内容。{% endif %}</p>
+          <p class="pending-copy">{% if video.content_message %}{{ video.content_message }}{% elif video.asr_job %}语音识别：{{ video.asr_job.status }}{% if video.asr_job.next_retry_at %} · 冷却至 {{ video.asr_job.next_retry_at }}{% endif %}{% elif video.error_message %}{{ video.error_message }}{% else %}正在等待可用内容。{% endif %}</p>
           {% endif %}
           <div class="card-actions">
             {% if video.transcript_path %}<a class="text-button" href="/videos/{{ video.id }}/transcript">完整原文</a>{% endif %}
+            {% if video.raw_subtitle_path and not video.transcript_path %}<a class="text-button" href="/media/{{ video.id }}/raw-subtitle" target="_blank">原字幕</a>{% endif %}
             {% if video.status in ['needs_review', 'retry_wait'] %}<button class="text-button" data-action="retry">立即重试</button>{% endif %}
             {% if not video.raw_subtitle_path and (video.status == 'skipped_no_subtitle' or video.asr_job) %}<button class="text-button" data-action="asr">立即生成字幕</button>{% endif %}
             {% if video.active_revision == 'fast' %}<button class="text-button" data-action="refine">立即精修</button>{% endif %}

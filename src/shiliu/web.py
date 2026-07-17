@@ -44,7 +44,7 @@ class ProviderRequest(BaseModel):
     api_key: str = ""
     model: str = ""
     thinking_enabled: bool = True
-    reasoning_effort: str = "max"
+    reasoning_effort: str = "high"
 
 
 class SetupDraftRequest(ProviderRequest):
@@ -647,9 +647,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 llm_base_url=payload.base_url.rstrip("/"),
                 llm_model=payload.model,
                 fast_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_transcript_model=payload.formal_transcript_model or payload.model,
+                formal_transcript_model=payload.fast_transcript_model or payload.model,
                 formal_summary_model=payload.formal_summary_model or payload.model,
-                formal_reasoning_effort="max",
+                formal_reasoning_effort="high",
             )
             save_config(config, core.paths)
             core.config = config
@@ -670,7 +670,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 model=payload.formal_summary_model or payload.model,
                 timeout_seconds=600,
                 thinking_enabled=True,
-                reasoning_effort="max",
+                reasoning_effort="high",
             )
             test_result = await asyncio.to_thread(provider.test_connection)
             folders = await asyncio.to_thread(core.adapter.list_favorite_folders)
@@ -688,9 +688,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 llm_base_url=payload.base_url.rstrip("/"),
                 llm_model=payload.model,
                 fast_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_transcript_model=payload.formal_transcript_model or payload.model,
+                formal_transcript_model=payload.fast_transcript_model or payload.model,
                 formal_summary_model=payload.formal_summary_model or payload.model,
-                formal_reasoning_effort="max",
+                formal_reasoning_effort="high",
                 baseline_confirmed=True,
                 auto_sync_enabled=payload.install_scheduler,
             )
@@ -734,6 +734,16 @@ def _video_view(
     value.setdefault("sources", core.db.video_sources(int(video["id"])))
     value["asr_job"] = core.db.get_asr_job(int(video["id"]))
     value["notes"] = [_note_view(item) for item in (notes or [])]
+    duration_seconds = int(video.get("duration_seconds") or 0)
+    value["duration_label"] = _format_duration(duration_seconds)
+    value["content_message"] = None
+    if (
+        video.get("status") == "completed"
+        and video.get("raw_subtitle_path")
+        and not video.get("summary_path")
+        and duration_seconds > 16 * 60
+    ):
+        value["content_message"] = "仅保存原字幕（时长策略）"
     if video.get("summary_path"):
         revision = str(video.get("active_revision") or "refined")
         json_path = core.artifacts.video_dir(str(video["source_id"])) / f"summary.{revision}.json"
@@ -767,6 +777,16 @@ def _display_minute(value: str) -> str:
         return datetime.fromisoformat(value).astimezone().strftime("%Y-%m-%d %H:%M")
     except ValueError:
         return value[:16].replace("T", " ")
+
+
+def _format_duration(duration_seconds: int) -> str:
+    if duration_seconds <= 0:
+        return ""
+    hours, remainder = divmod(duration_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes:02d}:{seconds:02d}"
 
 
 def _library_state(video: dict[str, Any]) -> dict[str, Any]:

@@ -685,6 +685,11 @@ class Database:
                         display_favorite_time=item.favorite_time or _epoch_seconds(now),
                         now=now,
                     )
+                if existing_video and item.duration_seconds > 0:
+                    connection.execute(
+                        "UPDATE videos SET duration_seconds=?, updated_at=? WHERE id=?",
+                        (item.duration_seconds, now, int(existing_video["id"])),
+                    )
             connection.execute(
                 """
                 UPDATE favorite_sources
@@ -728,6 +733,7 @@ class Database:
                     item.uploader,
                     processing_profile=processing_profile,
                     display_favorite_time=effective_time,
+                    duration_seconds=item.duration_seconds,
                 )
                 if existing_video is None:
                     created.append(video_id)
@@ -801,6 +807,11 @@ class Database:
                             WHERE id=?
                             """,
                             (effective_time, now, video_id),
+                        )
+                    if item.duration_seconds > 0:
+                        connection.execute(
+                            "UPDATE videos SET duration_seconds=?, updated_at=? WHERE id=?",
+                            (item.duration_seconds, now, video_id),
                         )
         with self.connect() as connection:
             if current:
@@ -984,6 +995,7 @@ class Database:
         *,
         processing_profile: str = "formal",
         display_favorite_time: int | None = None,
+        duration_seconds: int = 0,
     ) -> int:
         now = utc_now()
         with self.connect() as connection:
@@ -996,13 +1008,17 @@ class Database:
                 INSERT INTO videos(
                     platform, source_id, part, title, uploader, video_url,
                     status, processing_profile, active_revision, refinement_status,
-                    display_favorite_time, discovered_at, updated_at
-                ) VALUES('bilibili', ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    display_favorite_time, duration_seconds, discovered_at, updated_at
+                ) VALUES('bilibili', ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(platform, source_id, part) DO UPDATE SET
                     title=excluded.title,
                     uploader=excluded.uploader,
                     removed_at=NULL,
                     display_favorite_time=COALESCE(excluded.display_favorite_time, videos.display_favorite_time),
+                    duration_seconds=CASE
+                        WHEN excluded.duration_seconds>0 THEN excluded.duration_seconds
+                        ELSE videos.duration_seconds
+                    END,
                     updated_at=excluded.updated_at
                 RETURNING id
                 """,
@@ -1016,6 +1032,7 @@ class Database:
                     "fast" if processing_profile == "fast" else "refined",
                     "pending" if processing_profile == "fast" else "not_required",
                     display_favorite_time,
+                    max(0, int(duration_seconds)),
                     now,
                     now,
                 ),
@@ -1033,6 +1050,31 @@ class Database:
                     (video_id, json.dumps({"source_id": source_id}, ensure_ascii=False), now),
                 )
         return video_id
+
+    def update_video_durations(self, items: list[FavoriteItem]) -> int:
+        """Backfill materialized videos from a favorite-list scan without creating work."""
+        values = {
+            item.bvid: int(item.duration_seconds)
+            for item in items
+            if int(item.duration_seconds) > 0
+        }
+        if not values:
+            return 0
+        changed = 0
+        now = utc_now()
+        with self.connect() as connection:
+            for bvid, duration in values.items():
+                cursor = connection.execute(
+                    """
+                    UPDATE videos
+                    SET duration_seconds=?, updated_at=?
+                    WHERE platform='bilibili' AND source_id=? AND part=1
+                      AND COALESCE(duration_seconds, 0)<=0
+                    """,
+                    (duration, now, bvid),
+                )
+                changed += int(cursor.rowcount)
+        return changed
 
     def update_video(self, video_id: int, **fields: Any) -> None:
         if not fields:

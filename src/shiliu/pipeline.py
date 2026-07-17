@@ -20,7 +20,9 @@ from shiliu.domain import (
     SubtitleLanguage,
     SummaryResult,
     SummaryReviewResult,
+    SubtitleSegment,
     TranscriptResult,
+    TranscriptSection,
     VideoStatus,
 )
 from shiliu.llm import OpenAICompatibleProvider
@@ -36,6 +38,9 @@ from shiliu.prompts import (
 
 ProviderFactory = Callable[..., OpenAICompatibleProvider]
 ASRServiceFactory = Callable[[], ASRService]
+
+FULL_PIPELINE_MAX_SECONDS = 8 * 60
+SUMMARY_ONLY_MAX_SECONDS = 16 * 60
 
 
 class PipelineService:
@@ -73,22 +78,65 @@ class PipelineService:
             elif not self._fetch_source(video):
                 return True
             video = self._require_video(video_id)
-
-        transcript = self._load_completed_transcript(video_id)
-        if transcript is None:
-            transcript_stage = self.db.ensure_stage(video_id, StageName.TRANSCRIPT)
-            if not _stage_is_due(transcript_stage):
-                return False
-            transcript = self._run_transcript_stage(video_id)
-            if transcript is None:
+        elif int(video.get("duration_seconds") or 0) <= 0:
+            if not self._fetch_source(video):
                 return True
+            video = self._require_video(video_id)
+
+        asr_job = self.db.get_asr_job(video_id)
+        manual_asr = bool(asr_job and str(asr_job.get("trigger_mode")) == ASRTriggerMode.MANUAL.value)
+        policy = processing_policy(int(video.get("duration_seconds") or 0), manual_asr=manual_asr)
+        if policy == "unknown_duration":
+            self.db.update_video(
+                video_id,
+                status=VideoStatus.NEEDS_REVIEW.value,
+                error_code="duration_unknown",
+                error_message="时长未知 · 未自动处理",
+            )
+            return True
+        if policy == "subtitle_only":
+            now = utc_now()
+            self.db.update_video(
+                video_id,
+                status=VideoStatus.COMPLETED.value,
+                completed_at=now,
+                refinement_status=RefinementStatus.NOT_REQUIRED.value,
+                error_code=None,
+                error_message=None,
+            )
+            return True
+
+        if policy == "summary_only":
+            try:
+                transcript = self._raw_transcript_for_summary(video)
+            except (OSError, ValueError, PipelineError) as exc:
+                error = exc if isinstance(exc, PipelineError) else PipelineError(
+                    "原始字幕无法用于摘要",
+                    code="raw_subtitle_invalid",
+                    retryable=False,
+                )
+                self._mark_video_needs_review(video_id, error)
+                return True
+        else:
+            transcript = self._load_completed_transcript(video_id)
+            if transcript is None:
+                transcript_stage = self.db.ensure_stage(video_id, StageName.TRANSCRIPT)
+                if not _stage_is_due(transcript_stage):
+                    return False
+                transcript = self._run_transcript_stage(video_id)
+                if transcript is None:
+                    return True
 
         summary = self._load_completed_summary(video_id)
         if summary is None:
             summary_stage = self.db.ensure_stage(video_id, StageName.SUMMARY)
             if not _stage_is_due(summary_stage):
                 return False
-            summary = self._run_summary_stage(video_id, transcript)
+            summary = self._run_summary_stage(
+                video_id,
+                transcript,
+                final_result=policy == "summary_only",
+            )
             if summary is None:
                 return True
         return True
@@ -115,6 +163,14 @@ class PipelineService:
             return False
         if not video.get("raw_subtitle_path"):
             return False
+        if int(video.get("duration_seconds") or 0) > FULL_PIPELINE_MAX_SECONDS:
+            self.db.update_video(
+                video_id,
+                refinement_status=RefinementStatus.NOT_REQUIRED.value,
+                error_code=None,
+                error_message=None,
+            )
+            return True
 
         transcript_stage = self.db.ensure_stage(video_id, StageName.REFINED_TRANSCRIPT)
         if force and transcript_stage["status"] == StageStatus.NEEDS_REVIEW.value:
@@ -194,7 +250,18 @@ class PipelineService:
             error_message=None,
         )
 
+        if bundle.duration_seconds <= 0:
+            self.db.update_video(
+                video_id,
+                status=VideoStatus.NEEDS_REVIEW.value,
+                error_code="duration_unknown",
+                error_message="时长未知 · 未自动处理",
+            )
+            return False
+
         if bundle.subtitle_track is None or not bundle.subtitle_segments:
+            if video.get("raw_subtitle_path"):
+                return True
             automatic = self._record_missing_subtitle(
                 video_id, video, duration_seconds=bundle.duration_seconds
             )
@@ -255,7 +322,7 @@ class PipelineService:
                     if eligible
                     else "本轮自动识别名额已使用，将在下次同步继续"
                     if deferred
-                    else "三次检查或 24 小时内未发现中文/英文字幕"
+                    else "无字幕 · 未自动处理"
                 ),
             )
             if eligible:
@@ -305,14 +372,10 @@ class PipelineService:
         bvid = str(video["source_id"])
         raw_json_path = self.artifacts.video_dir(bvid) / "subtitle-raw.json"
         segments_data = json.loads(raw_json_path.read_text(encoding="utf-8"))
-        from shiliu.domain import SubtitleSegment
-
         segments = [SubtitleSegment.model_validate(item) for item in segments_data]
         language = SubtitleLanguage(str(video["subtitle_language"]))
         attempt = int(stage["attempt_count"]) + 1
         profile = str(video.get("processing_profile") or ProcessingProfile.FORMAL.value)
-        role = "fast_transcript" if profile == ProcessingProfile.FAST.value else "formal_transcript"
-        thinking = profile != ProcessingProfile.FAST.value
         self.db.update_stage(
             video_id,
             StageName.TRANSCRIPT,
@@ -322,13 +385,13 @@ class PipelineService:
             started_at=utc_now(),
             prompt_version=TRANSCRIPT_PROMPT_VERSION,
             profile=profile,
-            thinking_enabled=int(thinking),
-            reasoning_effort="max" if thinking else None,
+            thinking_enabled=0,
+            reasoning_effort=None,
         )
         self.db.update_video(video_id, status=VideoStatus.TRANSCRIPT_PROCESSING.value)
         try:
             started = time.monotonic()
-            provider = self._provider(role)
+            provider = self._provider("fast_transcript")
             self.db.update_stage(
                 video_id,
                 StageName.TRANSCRIPT,
@@ -336,7 +399,11 @@ class PipelineService:
                 model=provider.model,
             )
             prompt = build_transcript_prompt(title=str(video["title"]), language=language, segments=segments)
-            result = provider.complete_json(prompt, TranscriptResult)
+            result = provider.complete_json(
+                prompt,
+                TranscriptResult,
+                max_tokens=transcript_token_limit(int(video.get("duration_seconds") or 0)),
+            )
         except PipelineError as exc:
             self._record_stage_failure(video_id, StageName.TRANSCRIPT, attempt, exc)
             return None
@@ -364,7 +431,13 @@ class PipelineService:
         )
         return result
 
-    def _run_summary_stage(self, video_id: int, transcript: TranscriptResult) -> SummaryResult | None:
+    def _run_summary_stage(
+        self,
+        video_id: int,
+        transcript: TranscriptResult,
+        *,
+        final_result: bool = False,
+    ) -> SummaryResult | None:
         stage = self.db.ensure_stage(video_id, StageName.SUMMARY)
         if not _stage_is_due(stage):
             return None
@@ -382,7 +455,7 @@ class PipelineService:
             prompt_version=SUMMARY_PROMPT_VERSION,
             profile=profile,
             thinking_enabled=1,
-            reasoning_effort="max",
+            reasoning_effort="high",
         )
         self.db.update_video(video_id, status=VideoStatus.SUMMARY_PROCESSING.value)
         try:
@@ -400,12 +473,20 @@ class PipelineService:
                 links=links,
                 transcript=transcript,
             )
-            result = provider.complete_json(prompt, SummaryResult)
+            result = provider.complete_json(
+                prompt,
+                SummaryResult,
+                max_tokens=summary_token_limit(int(video.get("duration_seconds") or 0)),
+            )
             result.related_links = links
         except PipelineError as exc:
             self._record_stage_failure(video_id, StageName.SUMMARY, attempt, exc)
             return None
-        revision = "fast" if profile == ProcessingProfile.FAST.value else "refined"
+        revision = (
+            "refined"
+            if final_result or profile != ProcessingProfile.FAST.value
+            else "fast"
+        )
         _, markdown_path = self.artifacts.save_summary(
             str(video["source_id"]), result, revision=revision
         )
@@ -431,7 +512,7 @@ class PipelineService:
             active_revision=revision,
             refinement_status=(
                 RefinementStatus.PENDING.value
-                if revision == "fast"
+                if revision == "fast" and not final_result
                 else RefinementStatus.NOT_REQUIRED.value
             ),
             error_code=None,
@@ -447,8 +528,6 @@ class PipelineService:
         bvid = str(video["source_id"])
         raw_json_path = self.artifacts.video_dir(bvid) / "subtitle-raw.json"
         segments_data = json.loads(raw_json_path.read_text(encoding="utf-8"))
-        from shiliu.domain import SubtitleSegment
-
         segments = [SubtitleSegment.model_validate(item) for item in segments_data]
         language = SubtitleLanguage(str(video["subtitle_language"]))
         attempt = int(stage["attempt_count"]) + 1
@@ -461,12 +540,12 @@ class PipelineService:
             started_at=utc_now(),
             prompt_version=TRANSCRIPT_PROMPT_VERSION,
             profile="refinement",
-            thinking_enabled=1,
-            reasoning_effort="max",
+            thinking_enabled=0,
+            reasoning_effort=None,
         )
         started = time.monotonic()
         try:
-            provider = self._provider("formal_transcript")
+            provider = self._provider("fast_transcript")
             self.db.update_stage(
                 video_id,
                 StageName.REFINED_TRANSCRIPT,
@@ -474,7 +553,11 @@ class PipelineService:
                 model=provider.model,
             )
             prompt = build_transcript_prompt(title=str(video["title"]), language=language, segments=segments)
-            result = provider.complete_json(prompt, TranscriptResult)
+            result = provider.complete_json(
+                prompt,
+                TranscriptResult,
+                max_tokens=transcript_token_limit(int(video.get("duration_seconds") or 0)),
+            )
         except PipelineError as exc:
             self._record_refinement_failure(
                 video_id, StageName.REFINED_TRANSCRIPT, attempt, exc
@@ -526,7 +609,7 @@ class PipelineService:
             prompt_version=REFINEMENT_REVIEW_PROMPT_VERSION,
             profile="refinement",
             thinking_enabled=1,
-            reasoning_effort="max",
+            reasoning_effort="high",
         )
         started = time.monotonic()
         try:
@@ -544,7 +627,11 @@ class PipelineService:
                 refined_transcript=refined_transcript,
                 fast_summary=fast_summary,
             )
-            review = provider.complete_json(prompt, SummaryReviewResult)
+            review = provider.complete_json(
+                prompt,
+                SummaryReviewResult,
+                max_tokens=summary_token_limit(int(video.get("duration_seconds") or 0)),
+            )
             final_summary = fast_summary if review.decision == "keep" else review.revised_summary
             if final_summary is None:
                 raise PipelineError(
@@ -692,6 +779,55 @@ class PipelineService:
             path = self.artifacts.video_dir(str(video["source_id"])) / "summary.json"
         return SummaryResult.model_validate_json(path.read_text(encoding="utf-8"))
 
+    def _raw_transcript_for_summary(self, video: dict[str, object]) -> TranscriptResult:
+        raw_json_path = self.artifacts.video_dir(str(video["source_id"])) / "subtitle-raw.json"
+        segments_data = json.loads(raw_json_path.read_text(encoding="utf-8"))
+        segments = [SubtitleSegment.model_validate(item) for item in segments_data]
+        if not segments:
+            raise PipelineError(
+                "原始字幕为空，无法生成摘要",
+                code="raw_subtitle_empty",
+                retryable=False,
+            )
+
+        sections: list[TranscriptSection] = []
+        current_bucket: int | None = None
+        current_lines: list[str] = []
+        current_start = 0.0
+        for segment in segments:
+            content = segment.content.strip()
+            if not content:
+                continue
+            bucket = int(segment.start // 120)
+            if current_bucket is not None and bucket != current_bucket and current_lines:
+                sections.append(
+                    TranscriptSection(
+                        title=f"原字幕 {_clock_label(current_start)}",
+                        start_seconds=current_start,
+                        paragraphs=[" ".join(current_lines)],
+                    )
+                )
+                current_lines = []
+            if current_bucket != bucket:
+                current_bucket = bucket
+                current_start = segment.start
+            current_lines.append(content)
+        if current_lines:
+            sections.append(
+                TranscriptSection(
+                    title=f"原字幕 {_clock_label(current_start)}",
+                    start_seconds=current_start,
+                    paragraphs=[" ".join(current_lines)],
+                )
+            )
+        if not sections:
+            raise PipelineError(
+                "原始字幕没有有效文本，无法生成摘要",
+                code="raw_subtitle_empty",
+                retryable=False,
+            )
+        return TranscriptResult(sections=sections)
+
     def _require_video(self, video_id: int) -> dict[str, object]:
         value = self.db.get_video(video_id)
         if value is None:
@@ -704,6 +840,31 @@ def _stage_is_due(stage: dict[str, object]) -> bool:
         return False
     next_retry = stage.get("next_retry_at")
     return not next_retry or _parse_time(str(next_retry)) <= datetime.now(timezone.utc)
+
+
+def processing_policy(duration_seconds: int, *, manual_asr: bool = False) -> str:
+    if duration_seconds <= 0:
+        return "unknown_duration"
+    if duration_seconds <= FULL_PIPELINE_MAX_SECONDS:
+        return "full"
+    if manual_asr or duration_seconds <= SUMMARY_ONLY_MAX_SECONDS:
+        return "summary_only"
+    return "subtitle_only"
+
+
+def transcript_token_limit(duration_seconds: int) -> int:
+    minutes = max(1, (max(0, duration_seconds) + 59) // 60)
+    return min(24576, max(16384, minutes * 3072))
+
+
+def summary_token_limit(duration_seconds: int) -> int:
+    minutes = max(1, (max(0, duration_seconds) + 59) // 60)
+    return min(65536, max(32768, minutes * 4096))
+
+
+def _clock_label(seconds: float) -> str:
+    total = max(0, int(seconds))
+    return f"{total // 60:02d}:{total % 60:02d}"
 
 
 def _iso_after(*, minutes: int) -> str:

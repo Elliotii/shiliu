@@ -36,7 +36,7 @@ class FakeProvider:
         self.transcript_calls = 0
         self.summary_calls = 0
 
-    def complete_json(self, prompt: str, schema):
+    def complete_json(self, prompt: str, schema, *, max_tokens: int | None = None):
         if schema is TranscriptResult:
             self.transcript_calls += 1
             return TranscriptResult.model_validate(
@@ -65,6 +65,7 @@ def bundle(*, subtitle: bool = True) -> VideoBundle:
         "description": "项目 https://github.com/example/demo ，文档 https://example.com/docs",
         "video_url": "https://www.bilibili.com/video/BV1234567890",
         "cover_url": None,
+        "duration_seconds": 300,
         "page_count": 2,
         "subtitle_track": None,
         "subtitle_segments": [],

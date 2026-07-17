@@ -186,6 +186,7 @@ class SyncService:
                             raise
                         result.failed_count += 1
                         continue
+                    self.db.update_video_durations(items)
                     result.current_count += len(items)
                     if not bool(source.get("baseline_initialized")):
                         queued = self.db.initialize_source_memberships(source_id, items)
@@ -386,6 +387,7 @@ class SyncService:
         result.run_id = active_run_id
         try:
             items = self.adapter.list_favorite_items(int(self.favorite_id))
+            self.db.update_video_durations(items)
             current_ids = {item.bvid for item in items}
             result.current_count = len(current_ids)
             if not self.db.has_baseline():
@@ -408,6 +410,7 @@ class SyncService:
                     item.uploader,
                     processing_profile=profile,
                     display_favorite_time=item.favorite_time,
+                    duration_seconds=item.duration_seconds,
                 )
             result.discovered_count = len(new_items)
             self._process_new_and_due(active_run_id, result, [])

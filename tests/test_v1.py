@@ -111,7 +111,7 @@ def test_source_move_endpoint_updates_settings_and_home_order(app_paths) -> None
     assert client.get("/").text.index("新收藏夹") < client.get("/").text.index("LLM")
 
 
-def test_old_xhigh_config_is_normalized_to_max(app_paths) -> None:
+def test_old_xhigh_config_is_normalized_to_high(app_paths) -> None:
     app_paths.state_dir.mkdir(parents=True)
     app_paths.config.write_text(
         f'''[app]
@@ -126,7 +126,7 @@ formal_reasoning_effort = "xhigh"
         encoding="utf-8",
     )
     config = load_config(app_paths)
-    assert config.formal_reasoning_effort == "max"
+    assert config.formal_reasoning_effort == "high"
     assert config.model_for("fast_transcript") == "demo"
 
 
@@ -226,7 +226,7 @@ class RefinementProvider:
     def __init__(self) -> None:
         self.calls: list[type] = []
 
-    def complete_json(self, prompt: str, schema):
+    def complete_json(self, prompt: str, schema, *, max_tokens: int | None = None):
         self.calls.append(schema)
         if schema is TranscriptResult:
             text = "快速整理原文。" if self.calls.count(TranscriptResult) == 1 else "精修后的原文。"
