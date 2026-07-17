@@ -27,6 +27,36 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1", choices=["127.0.0.1"], help="V0 只允许本机监听")
     serve.add_argument("--port", type=int, default=18520)
     subcommands.add_parser("install-launchd", help="安装每小时同步任务")
+    taxonomy = subcommands.add_parser("taxonomy", help="运行可恢复的 V3 Taxonomy 工作流")
+    taxonomy_commands = taxonomy.add_subparsers(dest="taxonomy_command", required=True)
+    facet_spike = taxonomy_commands.add_parser("facet-spike", help="运行 10～20 条 Facet 小样本 Spike")
+    facet_spike.add_argument("--snapshot-id", type=int, required=True)
+    facet_spike.add_argument("--limit", type=int, default=12, choices=range(10, 21))
+    facet_spike.add_argument("--seed", type=int, default=42)
+    facet_spike.add_argument("--batch-size", type=int, default=4, choices=range(1, 6))
+    discovery_spike = taxonomy_commands.add_parser(
+        "discovery-spike", help="运行紧凑视图、分批候选发现和试分类 Spike"
+    )
+    discovery_spike.add_argument("--snapshot-id", type=int, required=True)
+    discovery_spike.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    discovery_spike.add_argument("--seed", type=int, default=73)
+    discovery_spike.add_argument("--limit", type=int)
+    discovery_spike.add_argument("--skip-assignment", action="store_true")
+    create_taxonomy_run = taxonomy_commands.add_parser(
+        "create-run", help="创建数据库持久化的 Taxonomy Run"
+    )
+    create_taxonomy_run.add_argument("--snapshot-id", type=int, required=True)
+    create_taxonomy_run.add_argument("--kind", default="regression")
+    create_taxonomy_run.add_argument("--seed", type=int, default=73)
+    create_taxonomy_run.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    create_taxonomy_run.add_argument("--limit", type=int, default=48)
+    create_taxonomy_run.add_argument("--discovery-only", action="store_true")
+    taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
+    taxonomy_run.add_argument("run_id", type=int)
+    taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
+    taxonomy_resume.add_argument("run_id", type=int)
+    taxonomy_status = taxonomy_commands.add_parser("status", help="查看 Taxonomy Run 状态")
+    taxonomy_status.add_argument("run_id", type=int)
     return parser
 
 
@@ -51,6 +81,52 @@ def main(argv: list[str] | None = None) -> int:
         app = Application()
         destination = install_launch_agent(app.paths)
         print(destination)
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "facet-spike":
+        app = Application()
+        result = app.taxonomy_facets.run_spike(
+            arguments.snapshot_id,
+            limit=arguments.limit,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "discovery-spike":
+        app = Application()
+        result = app.taxonomy_discovery_spikes.run_spike(
+            arguments.snapshot_id,
+            batch_size=arguments.batch_size,
+            seed=arguments.seed,
+            limit=arguments.limit,
+            include_assignment=not arguments.skip_assignment,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-run":
+        app = Application()
+        run_id = app.taxonomy_workflow.create_run(
+            snapshot_id=arguments.snapshot_id,
+            run_kind=arguments.kind,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+            limit=arguments.limit,
+            include_assignment=not arguments.discovery_only,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command in {
+        "run", "resume", "status"
+    }:
+        app = Application()
+        if arguments.taxonomy_command == "status":
+            result = app.taxonomy_workflow.status(arguments.run_id)
+        else:
+            result = app.taxonomy_workflow.execute(
+                arguments.run_id,
+                resume=arguments.taxonomy_command == "resume",
+            )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     return 2
 

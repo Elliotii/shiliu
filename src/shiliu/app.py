@@ -14,6 +14,10 @@ from shiliu.logging_config import configure_logging
 from shiliu.pipeline import PipelineService
 from shiliu.sync import SyncService
 from shiliu.taxonomy import TaxonomyCorpusService
+from shiliu.taxonomy.discovery import BatchedDiscoverySpikeService
+from shiliu.taxonomy.facets import FacetExtractionService
+from shiliu.taxonomy.run_repository import TaxonomyRunRepository
+from shiliu.taxonomy.workflow import TaxonomyWorkflow
 
 
 class Application:
@@ -34,6 +38,23 @@ class Application:
         self.adapter = BilibiliAdapter(Path(self.config.bili_cli_root))
         self.artifacts = ArtifactStore(self.paths.videos_dir)
         self.taxonomy_corpus = TaxonomyCorpusService(self.db, self.artifacts)
+        self.taxonomy_facets = FacetExtractionService(
+            repository=self.taxonomy_corpus.repository,
+            provider_factory=self.provider,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "facet_spikes",
+        )
+        self.taxonomy_discovery_spikes = BatchedDiscoverySpikeService(
+            repository=self.taxonomy_corpus.repository,
+            provider_factory=self.provider,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "discovery_spikes",
+        )
+        self.taxonomy_run_repository = TaxonomyRunRepository(self.db)
+        self.taxonomy_workflow = TaxonomyWorkflow(
+            snapshot_repository=self.taxonomy_corpus.repository,
+            run_repository=self.taxonomy_run_repository,
+            provider_factory=self.provider,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "runs",
+        )
         self.pipeline = PipelineService(
             db=self.db,
             adapter=self.adapter,
@@ -55,13 +76,23 @@ class Application:
         except RuntimeError as exc:
             raise PipelineError(str(exc), code="api_key_missing", retryable=False) from exc
         is_transcript = role in {"fast_transcript", "formal_transcript"}
+        is_taxonomy_light = role in {
+            "taxonomy_local", "taxonomy_assignment", "taxonomy_repair"
+        }
+        model_role = "formal_summary" if role.startswith("taxonomy_") else role
         return OpenAICompatibleProvider(
             base_url=self.config.llm_base_url,
             api_key=api_key,
-            model=self.config.model_for(role),
+            model=self.config.model_for(model_role),
             timeout_seconds=180 if is_transcript else 600,
-            thinking_enabled=not is_transcript,
-            reasoning_effort=None if is_transcript else "high",
+            thinking_enabled=(
+                False
+                if is_transcript or role in {
+                    "taxonomy_local", "taxonomy_assignment", "taxonomy_repair"
+                }
+                else True
+            ),
+            reasoning_effort=None if is_transcript or is_taxonomy_light else "high",
         )
 
     def asr_service(self) -> ASRService:
