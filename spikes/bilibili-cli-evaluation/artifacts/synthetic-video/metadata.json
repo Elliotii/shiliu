@@ -1,0 +1,22 @@
+{
+  "id": "synthetic-video",
+  "bvid": "BV1SYNTHETIC",
+  "aid": 100000001,
+  "title": "Synthetic Agent Evaluation Fixture",
+  "description": "Synthetic metadata for offline tests and documentation.",
+  "duration_seconds": 75,
+  "duration": "01:15",
+  "url": "https://example.invalid/video/synthetic-video",
+  "owner": {
+    "id": "synthetic-uploader",
+    "name": "Synthetic Uploader"
+  },
+  "stats": {
+    "view": 0,
+    "danmaku": 0,
+    "like": 0,
+    "coin": 0,
+    "favorite": 0,
+    "share": 0
+  }
+}

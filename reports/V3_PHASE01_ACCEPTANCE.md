@@ -29,31 +29,31 @@
   - `taxonomy_runs`
   - `taxonomy_stage_runs`
 
-## 真实快照结果
+## 脱敏快照结果
 
-来源：`零分姐姐 · 2026找工作学习`
+来源：`<private-source>`
 
 - 来源状态：`paused`，冻结后仍为 `paused`；
-- 原始活跃 membership：131；
-- 去重 Card：131；
+- 原始活跃 membership：`<private-count>`；
+- 去重 Card：`<private-count>`；
 - 合并的重复 membership：0；
-- Discovery Eligible：65；
-- Trial Assignment only：66；
-- A/B/C/D：49 / 10 / 6 / 66；
-- Snapshot ID：1；
-- Snapshot Hash：`9dd91c9d682f3ff0debf655bd0b938605351308a03d000abd9527e4225ca37e6`。
+- Discovery Eligible：`<private-count>`；
+- Trial Assignment only：`<private-count>`；
+- A/B/C/D：`<private-distribution>`；
+- Snapshot ID：`<local-snapshot-id>`；
+- Snapshot Hash：`<private-snapshot-hash>`。
 
 重复冻结相同内容时复用 Snapshot #1，没有新增重复快照。
 
-## 真实样例 Card
+## 合成样例 Card
 
 | content_key | 证据 | 是否已物化 | 标题 |
 |---|---:|---:|---|
-| `bilibili:BV1qhE26VEbS:p1` | D | 是 | 我做Agent平台这一年，评测这关卡了我整整一个月 |
-| `bilibili:BV1EZ7p6CE8h:p1` | D | 是 | agent 项目不会写面试一面就不过怎么优化 |
-| `bilibili:BV1fRSfBWE5X:p1` | A | 是 | vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！ |
-| `bilibili:BV1HhJs6oEap:p1` | B | 是 | 别再问Agent学习路线了，你的学习顺序从头就是反的 |
-| `bilibili:BV1ySLc6QEcB:p1` | D | 否 | Git+Github核心概念大串讲，从零到一全攻略，详细实战教程 |
+| `synthetic:video-001:p1` | D | 是 | 示例：只有标题的 Agent 工程视频 |
+| `synthetic:video-002:p1` | D | 是 | 示例：只有列表元数据的视频 |
+| `synthetic:video-003:p1` | A | 是 | 示例：具有简介和摘要的 Coding Agent 视频 |
+| `synthetic:video-004:p1` | B | 是 | 示例：具有标题和摘要的视频 |
+| `synthetic:video-005:p1` | D | 否 | 示例：尚未物化的收藏视频 |
 
 页面会同时展示这些样例的完整 Stored Card 和 Discovery View JSON。
 

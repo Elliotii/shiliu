@@ -197,19 +197,19 @@ def test_public_favorite_url_preview_parses_fid_without_importing(tmp_path: Path
         adapter,
         "_run_bridge",
         return_value={
-            "account_id": 32958899,
-            "account_name": "零分姐姐",
-            "folder_id": 3876418799,
-            "folder_title": "2026找工作学习",
-            "media_count": 128,
+            "account_id": 42424242,
+            "account_name": "示例账号",
+            "folder_id": 9001001,
+            "folder_title": "示例收藏夹",
+            "media_count": 42,
         },
     ) as bridge:
         preview = adapter.preview_favorite_url(
-            "https://space.bilibili.com/32958899/favlist?fid=3876418799&ftype=create"
+            "https://space.bilibili.com/42424242/favlist?fid=9001001&ftype=create"
         )
-    assert preview.folder_title == "2026找工作学习"
-    assert preview.media_count == 128
-    bridge.assert_called_once_with(["favorite-preview", "3876418799"])
+    assert preview.folder_title == "示例收藏夹"
+    assert preview.media_count == 42
+    bridge.assert_called_once_with(["favorite-preview", "9001001"])
 
 
 class BundleAdapter:
@@ -288,20 +288,20 @@ def test_fast_result_is_refined_atomically_and_keep_preserves_summary(app_paths)
 def test_source_preview_endpoint_has_no_database_side_effect(app_paths) -> None:
     application = Application(app_paths)
     application.adapter.preview_favorite_url = lambda url: FavoriteSourcePreview(
-        account_id=32958899,
-        account_name="零分姐姐",
-        folder_id=3876418799,
-        folder_title="2026找工作学习",
-        media_count=128,
+        account_id=42424242,
+        account_name="示例账号",
+        folder_id=9001001,
+        folder_title="示例收藏夹",
+        media_count=42,
         original_url=url,
     )
     client = TestClient(create_web_app(application))
     response = client.post(
         "/api/sources/preview",
-        json={"url": "https://space.bilibili.com/32958899/favlist?fid=3876418799"},
+        json={"url": "https://space.bilibili.com/42424242/favlist?fid=9001001"},
     )
     assert response.status_code == 200
-    assert response.json()["preview"]["media_count"] == 128
+    assert response.json()["preview"]["media_count"] == 42
     assert application.db.list_sources() == []
     assert application.db.list_videos() == []
 

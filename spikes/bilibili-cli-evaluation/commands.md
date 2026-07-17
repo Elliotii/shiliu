@@ -1,6 +1,6 @@
 # 可复现命令与结果
 
-以下命令均在 `/Users/elliot/new-systems/agent-job-prep/Shiliu` 下执行。真实凭证参数和 Cookie 从未出现在命令行中。
+以下命令均在 `$REPO_ROOT` 下执行。真实凭证参数和 Cookie 从未出现在命令行中。
 
 ## 上游快照
 
