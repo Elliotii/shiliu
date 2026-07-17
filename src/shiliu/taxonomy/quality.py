@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from shiliu.taxonomy.discovery import ConsolidatedDraft, LocalDiscoveryOutput
+from shiliu.taxonomy.candidates import (
+    CompactCandidateTable,
+    TopLevelDomainDraft,
+    normalized_name,
+)
 
 
 class QualityIssue(BaseModel):
@@ -333,3 +338,254 @@ def build_hierarchy_validation_prompt(
 
 精简输出结构：{HIERARCHY_VALIDATION_SCHEMA_HINT}
 输入：{json.dumps(payload, ensure_ascii=False, separators=(',', ':'))}"""
+
+
+class LocalValidationUnit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    unit_id: str = Field(pattern=r"^sibling_[0-9]{3}$")
+    check: Literal["sibling_overlap"]
+    node_ids: list[str] = Field(min_length=2, max_length=2)
+    reason: str = Field(min_length=1, max_length=240)
+    representative_ids: list[str] = Field(min_length=1, max_length=6)
+
+
+class TopLevelRuleResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    blocking_issues: list[QualityIssue]
+    warnings: list[QualityIssue]
+    validation_units: list[LocalValidationUnit]
+    metrics: dict[str, int | float]
+
+
+class LocalValidationReport(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    unit_id: str
+    findings: list[HierarchyFinding]
+    inspected_node_ids: list[str]
+    summary: str = Field(max_length=240)
+
+
+class TopLevelQualityResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    passed: bool
+    blocking_issues: list[QualityIssue]
+    warnings: list[QualityIssue]
+    retry_stage: Literal["consolidation", "local_validation"] | None
+    metrics: dict[str, int | float]
+
+
+LOCAL_VALIDATION_PROMPT_VERSION = "local-top-level-validation-v1"
+LOCAL_VALIDATION_SCHEMA_HINT = (
+    '{"unit_id":"sibling_001","findings":[{"code":"",'
+    '"message":"","node_ids":["d_01","d_02"],'
+    '"severity":"blocking|warning","check":"sibling_overlap|granularity_consistency|'
+    'entity_leakage|content_type_leakage|node_support|overbroad_domain"}],'
+    '"inspected_node_ids":["d_01","d_02"],"summary":""}'
+)
+
+
+def evaluate_top_level_rules(
+    *,
+    draft: TopLevelDomainDraft,
+    candidate_table: CompactCandidateTable,
+    allowed_ids: set[str],
+    known_entity_names: set[str],
+    content_type_names: set[str] | None = None,
+) -> TopLevelRuleResult:
+    blocking: list[QualityIssue] = []
+    warnings: list[QualityIssue] = []
+    units: list[LocalValidationUnit] = []
+    content_types = {normalized_name(value) for value in (content_type_names or set())}
+    known_entities = {normalized_name(value) for value in known_entity_names}
+    candidate_names = {normalized_name(item.name) for item in candidate_table.domains}
+
+    ids = [node.id for node in draft.domains]
+    names = [normalized_name(node.name) for node in draft.domains]
+    if len(ids) != len(set(ids)):
+        blocking.append(QualityIssue(code="duplicate_node_ids", message="一级 Domain ID 不唯一。"))
+    if len(names) != len(set(names)):
+        blocking.append(QualityIssue(code="duplicate_node_names", message="一级 Domain 名称重复。"))
+    if not draft.domains:
+        blocking.append(QualityIssue(code="domains_missing", message="一级 Domain Draft 为空。"))
+    if len(draft.domains) > 12:
+        blocking.append(QualityIssue(code="domain_limit_exceeded", message="一级 Domain 超过 12 个。"))
+
+    invalid_support: set[str] = set()
+    bad_representatives: list[str] = []
+    entity_leaks: list[str] = []
+    type_leaks: list[str] = []
+    unsupported_names: list[str] = []
+    for node in draft.domains:
+        invalid_support.update(set(node.supporting_ids) - allowed_ids)
+        if not set(node.representative_ids) <= set(node.supporting_ids):
+            bad_representatives.append(node.id)
+        key = normalized_name(node.name)
+        if key in known_entities:
+            entity_leaks.append(node.id)
+        if key in content_types:
+            type_leaks.append(node.id)
+        if key not in candidate_names:
+            unsupported_names.append(node.id)
+    if invalid_support:
+        blocking.append(
+            QualityIssue(
+                code="invalid_supporting_ids",
+                message="一级 Domain 引用了未知短 ID。",
+                node_ids=sorted(invalid_support),
+            )
+        )
+    if bad_representatives:
+        blocking.append(
+            QualityIssue(
+                code="representative_not_supported",
+                message="代表内容必须属于节点 supporting IDs。",
+                node_ids=bad_representatives,
+            )
+        )
+    if entity_leaks:
+        blocking.append(
+            QualityIssue(
+                code="entity_leakage",
+                message="已知 Entity 被用作一级 Domain。",
+                node_ids=entity_leaks,
+            )
+        )
+    if type_leaks:
+        blocking.append(
+            QualityIssue(
+                code="content_type_leakage",
+                message="Content Type 被用作一级 Domain。",
+                node_ids=type_leaks,
+            )
+        )
+    if unsupported_names:
+        warnings.append(
+            QualityIssue(
+                code="renamed_domain_without_lexical_match",
+                message="部分归并节点使用了新名称，需要依靠语义归并审计确认。",
+                node_ids=unsupported_names,
+            )
+        )
+
+    for left_index, left in enumerate(draft.domains):
+        for right in draft.domains[left_index + 1:]:
+            left_ids = set(left.supporting_ids)
+            right_ids = set(right.supporting_ids)
+            intersection = left_ids & right_ids
+            union = left_ids | right_ids
+            overlap = len(intersection) / len(union) if union else 0.0
+            if len(intersection) < 2 or overlap < 0.5:
+                continue
+            representatives = list(
+                dict.fromkeys([*left.representative_ids, *right.representative_ids])
+            )[:6]
+            units.append(
+                LocalValidationUnit(
+                    unit_id=f"sibling_{len(units) + 1:03d}",
+                    check="sibling_overlap",
+                    node_ids=[left.id, right.id],
+                    reason=f"supporting ID Jaccard={overlap:.2f}，共同支持 {len(intersection)} 条",
+                    representative_ids=representatives,
+                )
+            )
+
+    return TopLevelRuleResult(
+        blocking_issues=blocking,
+        warnings=warnings,
+        validation_units=units,
+        metrics={
+            "primary_domain_count": len(draft.domains),
+            "invalid_supporting_id_count": len(invalid_support),
+            "entity_leakage_count": len(entity_leaks),
+            "content_type_leakage_count": len(type_leaks),
+            "local_validation_unit_count": len(units),
+        },
+    )
+
+
+def build_local_validation_prompt(
+    *,
+    unit: LocalValidationUnit,
+    draft: TopLevelDomainDraft,
+    rows_by_id: dict[str, list[Any]],
+) -> str:
+    nodes_by_id = {node.id: node for node in draft.domains}
+    nodes = [nodes_by_id[node_id].model_dump(mode="json") for node_id in unit.node_ids]
+    profiles = [rows_by_id[value] for value in unit.representative_ids if value in rows_by_id][:6]
+    payload = {
+        "unit": unit.model_dump(mode="json"),
+        "nodes": nodes,
+        "representative_profiles": profiles,
+    }
+    return f"""你是局部一级 Taxonomy Validator，只审核本次给出的可疑兄弟节点。
+判断两个节点是否语义重叠、粒度明显不一致、发生 Entity/Content Type 泄漏或缺乏代表内容支持。
+不得读取或要求完整 Taxonomy、Local Discovery 历史或其他卡片；不得修改节点。只输出问题报告 JSON。
+inspected_node_ids 必须与输入 unit.node_ids 完全一致。
+
+精简输出结构：{LOCAL_VALIDATION_SCHEMA_HINT}
+局部输入：{json.dumps(payload, ensure_ascii=False, separators=(',', ':'))}"""
+
+
+def validate_local_report(
+    report: LocalValidationReport, unit: LocalValidationUnit
+) -> None:
+    if report.unit_id != unit.unit_id or report.inspected_node_ids != unit.node_ids:
+        from shiliu.domain import PipelineError
+
+        raise PipelineError(
+            "局部 Validator 没有严格覆盖指定 Validation Unit",
+            code="local_validation_scope_mismatch",
+            retryable=False,
+        )
+
+
+def combine_top_level_quality(
+    *,
+    rules: TopLevelRuleResult,
+    reports: list[LocalValidationReport],
+) -> TopLevelQualityResult:
+    blocking = list(rules.blocking_issues)
+    warnings = list(rules.warnings)
+    expected = {unit.unit_id for unit in rules.validation_units}
+    actual = {report.unit_id for report in reports}
+    if expected != actual:
+        blocking.append(
+            QualityIssue(
+                code="local_validation_incomplete",
+                message="局部 Validator 未完整覆盖确定性规则生成的 Validation Units。",
+                node_ids=sorted(expected - actual),
+            )
+        )
+    for report in reports:
+        for finding in report.findings:
+            target = blocking if finding.severity == "blocking" else warnings
+            target.append(
+                QualityIssue(
+                    code=finding.code,
+                    message=finding.message,
+                    node_ids=finding.node_ids,
+                )
+            )
+    retry_stage: Literal["consolidation", "local_validation"] | None = None
+    if blocking:
+        retry_stage = (
+            "local_validation"
+            if {item.code for item in blocking} == {"local_validation_incomplete"}
+            else "consolidation"
+        )
+    return TopLevelQualityResult(
+        passed=not blocking,
+        blocking_issues=blocking,
+        warnings=warnings,
+        retry_stage=retry_stage,
+        metrics={
+            **rules.metrics,
+            "local_validation_report_count": len(reports),
+            "blocking_issue_count": len(blocking),
+            "warning_count": len(warnings),
+        },
+    )

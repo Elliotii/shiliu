@@ -11,42 +11,41 @@ from pydantic import BaseModel
 from shiliu.domain import PipelineError
 from shiliu.llm import OpenAICompatibleProvider
 from shiliu.taxonomy.discovery import (
-    ASSIGNMENT_PROMPT_VERSION,
-    ASSIGNMENT_SCHEMA_HINT,
-    CONSOLIDATION_PROMPT_VERSION,
-    CONSOLIDATION_SCHEMA_HINT,
-    CONTENT_TYPE_RECOVERY_PROMPT_VERSION,
-    CONTENT_TYPE_RECOVERY_SCHEMA_HINT,
-    LOCAL_DISCOVERY_PROMPT_VERSION,
-    LOCAL_SCHEMA_HINT,
-    ConsolidatedDraft,
-    ContentTypeRecoveryOutput,
-    LocalDiscoveryOutput,
-    TrialAssignment,
-    TrialAssignmentOutput,
-    _validate_assignments,
-    _validate_draft,
-    _validate_local_output,
-    build_assignment_prompt,
     build_compact_corpus,
-    build_consolidation_prompt,
-    build_content_type_recovery_prompt,
-    build_local_discovery_prompt,
+)
+from shiliu.taxonomy.candidates import (
+    CANDIDATE_NORMALIZATION_VERSION,
+    LOCAL_TOP_LEVEL_PROMPT_VERSION,
+    LOCAL_TOP_LEVEL_SCHEMA_HINT,
+    TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
+    TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT,
+    CompactCandidateTable,
+    LocalTopLevelDiscoveryOutput,
+    TopLevelDomainDraft,
+    build_top_level_consolidation_prompt,
+    build_top_level_local_prompt,
+    normalize_candidates,
+    validate_local_top_level,
+    validate_top_level_draft,
 )
 from shiliu.taxonomy.model_calls import AuditedJsonCaller
 from shiliu.taxonomy.quality import (
-    HIERARCHY_VALIDATION_PROMPT_VERSION,
-    HIERARCHY_VALIDATION_SCHEMA_HINT,
-    HierarchyValidationReport,
-    TaxonomyQualityGate,
-    build_hierarchy_validation_prompt,
+    LOCAL_VALIDATION_PROMPT_VERSION,
+    LOCAL_VALIDATION_SCHEMA_HINT,
+    LocalValidationReport,
+    TopLevelQualityResult,
+    TopLevelRuleResult,
+    build_local_validation_prompt,
+    combine_top_level_quality,
+    evaluate_top_level_rules,
+    validate_local_report,
 )
 from shiliu.taxonomy.repository import TaxonomyRepository
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "batched-taxonomy-workflow-v1"
+WORKFLOW_ENGINE_VERSION = "top-level-cost-bounded-workflow-v2"
 
 
 class TaxonomyWorkflow:
@@ -64,7 +63,6 @@ class TaxonomyWorkflow:
         self.run_repository = run_repository
         self.provider_factory = provider_factory
         self.output_dir = output_dir
-        self.quality_gate = TaxonomyQualityGate()
 
     def create_run(
         self,
@@ -74,10 +72,12 @@ class TaxonomyWorkflow:
         seed: int = 73,
         batch_size: int = 24,
         limit: int | None = 48,
-        include_assignment: bool = True,
+        include_assignment: bool = False,
     ) -> int:
         if not 20 <= batch_size <= 32:
             raise ValueError("Taxonomy batch_size must be between 20 and 32")
+        if include_assignment:
+            raise ValueError("Checkpoint 3.5 尚未开放一级 Trial Assignment")
         snapshot = self.snapshot_repository.get_snapshot(snapshot_id)
         if snapshot is None:
             raise LookupError("快照不存在")
@@ -108,6 +108,12 @@ class TaxonomyWorkflow:
             raise LookupError("Taxonomy Run 不存在")
         if run["status"] == "completed":
             return self.status(run_id)
+        if run.get("engine_version") != WORKFLOW_ENGINE_VERSION:
+            raise PipelineError(
+                "未完成的旧 Taxonomy Run 不能跨 Engine 版本恢复；历史产物仍可直接查看",
+                code="taxonomy_engine_version_mismatch",
+                retryable=False,
+            )
         quality_feedback: dict[str, Any] | None = None
         if run["status"] == "quality_failed":
             if not resume:
@@ -153,9 +159,9 @@ class TaxonomyWorkflow:
             },
         )
 
-        local_outputs: list[LocalDiscoveryOutput] = []
+        local_outputs: list[LocalTopLevelDiscoveryOutput] = []
         for index, batch in enumerate(batches, start=1):
-            prompt = build_local_discovery_prompt(batch)
+            prompt = build_top_level_local_prompt(batch)
             result = self._model_stage(
                 run_id=run_id,
                 run_dir=run_dir,
@@ -163,47 +169,27 @@ class TaxonomyWorkflow:
                 unit_key=f"batch-{index:03d}",
                 role="taxonomy_local",
                 prompt=prompt,
-                prompt_version=LOCAL_DISCOVERY_PROMPT_VERSION,
-                schema=LocalDiscoveryOutput,
-                schema_hint=LOCAL_SCHEMA_HINT,
-                max_tokens=8192,
+                prompt_version=LOCAL_TOP_LEVEL_PROMPT_VERSION,
+                schema=LocalTopLevelDiscoveryOutput,
+                schema_hint=LOCAL_TOP_LEVEL_SCHEMA_HINT,
+                max_tokens=4096,
                 input_ids=[row[0] for row in batch],
                 validator=lambda value, allowed={row[0] for row in batch}: (
-                    _validate_local_output(value, allowed)
+                    validate_local_top_level(value, allowed)
                 ),
             )
             local_outputs.append(result)
 
-        for index, (batch, local) in enumerate(zip(batches, local_outputs), start=1):
-            if local.content_types:
-                continue
-            prompt = build_content_type_recovery_prompt(batch)
-            recovery = self._model_stage(
-                run_id=run_id,
-                run_dir=run_dir,
-                stage_name="content_type_recovery",
-                unit_key=f"batch-{index:03d}",
-                role="taxonomy_local",
-                prompt=prompt,
-                prompt_version=CONTENT_TYPE_RECOVERY_PROMPT_VERSION,
-                schema=ContentTypeRecoveryOutput,
-                schema_hint=CONTENT_TYPE_RECOVERY_SCHEMA_HINT,
-                max_tokens=4096,
-                input_ids=[row[0] for row in batch],
-                validator=lambda value, allowed={row[0] for row in batch}: (
-                    _validate_candidate_ids(value.content_types, allowed)
-                ),
-            )
-            local_outputs[index - 1] = local.model_copy(
-                update={"content_types": recovery.content_types}
-            )
-
         local_payload = [value.model_dump(mode="json") for value in local_outputs]
         _write_json(run_dir / "local-candidates.json", local_payload)
-        consolidation_prompt = build_consolidation_prompt(local_payload)
-        if quality_feedback and quality_feedback.get("retry_stage") in {
-            "content_type_recovery", "consolidation"
-        }:
+        candidate_table = self._candidate_normalization_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            local_outputs=local_outputs,
+            allowed_ids=set(compact["id_map"]),
+        )
+        consolidation_prompt = build_top_level_consolidation_prompt(candidate_table)
+        if quality_feedback and quality_feedback.get("retry_stage") == "consolidation":
             consolidation_prompt += (
                 "\n\n上次质量门禁反馈。只修正这些问题，不改变已验证的其他结构："
                 + json.dumps(quality_feedback, ensure_ascii=False, separators=(",", ":"))
@@ -215,51 +201,59 @@ class TaxonomyWorkflow:
             unit_key="main",
             role="taxonomy_global",
             prompt=consolidation_prompt,
-            prompt_version=CONSOLIDATION_PROMPT_VERSION,
-            schema=ConsolidatedDraft,
-            schema_hint=CONSOLIDATION_SCHEMA_HINT,
-            max_tokens=16384,
+            prompt_version=TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
+            schema=TopLevelDomainDraft,
+            schema_hint=TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT,
+            max_tokens=8192,
             input_ids=sorted(
                 {
                     short_id
-                    for output in local_outputs
-                    for group in (
-                        output.content_types,
-                        output.domains,
-                        output.topics,
-                        output.entities,
-                    )
-                    for item in group
+                    for item in candidate_table.domains
                     for short_id in item.supporting_ids
                 }
             ),
-            validator=lambda value: _validate_draft(value, set(compact["id_map"])),
+            validator=lambda value: validate_top_level_draft(
+                value, allowed_ids=set(compact["id_map"])
+            ),
         )
         _write_json(run_dir / "taxonomy-draft.json", draft.model_dump(mode="json"))
 
-        hierarchy_prompt = build_hierarchy_validation_prompt(draft, local_outputs)
-        hierarchy_report = self._model_stage(
-            run_id=run_id,
-            run_dir=run_dir,
-            stage_name="hierarchy_validation",
-            unit_key="main",
-            role="taxonomy_global",
-            prompt=hierarchy_prompt,
-            prompt_version=HIERARCHY_VALIDATION_PROMPT_VERSION,
-            schema=HierarchyValidationReport,
-            schema_hint=HIERARCHY_VALIDATION_SCHEMA_HINT,
-            max_tokens=8192,
-            input_ids=[node.id for node in draft.domains],
-            validator=None,
-        )
-
-        quality = self._quality_stage(
+        known_entities = _known_entities(compact["rows"])
+        rules = self._structural_validation_stage(
             run_id=run_id,
             run_dir=run_dir,
             draft=draft,
-            local_outputs=local_outputs,
+            candidate_table=candidate_table,
             allowed_ids=set(compact["id_map"]),
-            hierarchy_report=hierarchy_report,
+            known_entity_names=known_entities,
+        )
+        rows_by_id = {str(row[0]): row for row in compact["rows"]}
+        validation_reports: list[LocalValidationReport] = []
+        for unit in rules.validation_units:
+            prompt = build_local_validation_prompt(
+                unit=unit, draft=draft, rows_by_id=rows_by_id
+            )
+            report = self._model_stage(
+                run_id=run_id,
+                run_dir=run_dir,
+                stage_name="local_validation",
+                unit_key=unit.unit_id,
+                role="taxonomy_validator",
+                prompt=prompt,
+                prompt_version=LOCAL_VALIDATION_PROMPT_VERSION,
+                schema=LocalValidationReport,
+                schema_hint=LOCAL_VALIDATION_SCHEMA_HINT,
+                max_tokens=2048,
+                input_ids=unit.representative_ids,
+                validator=lambda value, expected=unit: validate_local_report(value, expected),
+            )
+            validation_reports.append(report)
+
+        quality = self._top_level_quality_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            rules=rules,
+            reports=validation_reports,
         )
         if not quality.passed:
             self.run_repository.set_run_status(
@@ -275,52 +269,6 @@ class TaxonomyWorkflow:
             )
             return self.status(run_id)
 
-        assignments: list[TrialAssignment] = []
-        if bool(parameters.get("include_assignment")):
-            selected_ids = {row[0] for row in eligible}
-            assignment_rows = [
-                row
-                for row in compact["rows"]
-                if limit is None or row[0] in selected_ids or row[1] == "D"
-            ]
-            assignment_batches = [
-                assignment_rows[index:index + batch_size]
-                for index in range(0, len(assignment_rows), batch_size)
-            ]
-            for index, batch in enumerate(assignment_batches, start=1):
-                prompt = build_assignment_prompt(draft.model_dump(mode="json"), batch)
-                result = self._model_stage(
-                    run_id=run_id,
-                    run_dir=run_dir,
-                    stage_name="trial_assignment",
-                    unit_key=f"batch-{index:03d}",
-                    role="taxonomy_assignment",
-                    prompt=prompt,
-                    prompt_version=ASSIGNMENT_PROMPT_VERSION,
-                    schema=TrialAssignmentOutput,
-                    schema_hint=ASSIGNMENT_SCHEMA_HINT,
-                    max_tokens=12288,
-                    input_ids=[row[0] for row in batch],
-                    validator=lambda value, expected={row[0] for row in batch}: (
-                        _validate_assignments(value, expected, draft)
-                    ),
-                )
-                assignments.extend(result.assignments)
-        assignment_payload = [
-            {
-                **item.model_dump(mode="json"),
-                "content_key": compact["id_map"][item.content_id],
-            }
-            for item in assignments
-        ]
-        _write_json(run_dir / "trial-assignments.json", assignment_payload)
-        _write_json(
-            run_dir / "novelty-pool.json",
-            [
-                item for item in assignment_payload
-                if item["certainty"] == "low" or item["rejection_reason"] is not None
-            ],
-        )
         self.run_repository.set_run_status(run_id, "completed", current_stage=None)
         return self.status(run_id)
 
@@ -404,48 +352,121 @@ class TaxonomyWorkflow:
         )
         return result
 
-    def _quality_stage(
+    def _candidate_normalization_stage(
         self,
         *,
         run_id: int,
         run_dir: Path,
-        draft: ConsolidatedDraft,
-        local_outputs: list[LocalDiscoveryOutput],
+        local_outputs: list[LocalTopLevelDiscoveryOutput],
         allowed_ids: set[str],
-        hierarchy_report: HierarchyValidationReport,
-    ):
+    ) -> CompactCandidateTable:
+        input_value = [item.model_dump(mode="json") for item in local_outputs]
+        input_hash = _stable_hash(input_value)
+        stage = self.run_repository.ensure_stage(
+            run_id, "candidate_normalization", "main", input_hash=input_hash
+        )
+        if stage["status"] == "completed":
+            return _load_completed(stage, CompactCandidateTable, None)
+        self.run_repository.start_stage(
+            run_id,
+            "candidate_normalization",
+            "main",
+            input_hash=input_hash,
+            model=None,
+            prompt_version=CANDIDATE_NORMALIZATION_VERSION,
+            thinking_enabled=None,
+            reasoning_effort=None,
+        )
+        result = normalize_candidates(local_outputs, allowed_ids=allowed_ids)
+        output_path = run_dir / "candidate-normalization" / "compact-candidates.json"
+        _write_json(output_path, result.model_dump(mode="json"))
+        self.run_repository.complete_stage(
+            run_id,
+            "candidate_normalization",
+            "main",
+            output_path=str(output_path),
+            output_hash=_stable_hash(result.model_dump(mode="json")),
+        )
+        return result
+
+    def _structural_validation_stage(
+        self,
+        *,
+        run_id: int,
+        run_dir: Path,
+        draft: TopLevelDomainDraft,
+        candidate_table: CompactCandidateTable,
+        allowed_ids: set[str],
+        known_entity_names: set[str],
+    ) -> TopLevelRuleResult:
         input_value = {
             "draft": draft.model_dump(mode="json"),
-            "local": [item.model_dump(mode="json") for item in local_outputs],
-            "hierarchy": hierarchy_report.model_dump(mode="json"),
+            "candidates": candidate_table.model_dump(mode="json"),
+            "known_entities": sorted(known_entity_names),
+        }
+        input_hash = _stable_hash(input_value)
+        stage = self.run_repository.ensure_stage(
+            run_id, "structural_validation", "main", input_hash=input_hash
+        )
+        if stage["status"] == "completed":
+            return _load_completed(stage, TopLevelRuleResult, None)
+        self.run_repository.start_stage(
+            run_id,
+            "structural_validation",
+            "main",
+            input_hash=input_hash,
+            model=None,
+            prompt_version="deterministic-top-level-validation-v1",
+            thinking_enabled=None,
+            reasoning_effort=None,
+        )
+        result = evaluate_top_level_rules(
+            draft=draft,
+            candidate_table=candidate_table,
+            allowed_ids=allowed_ids,
+            known_entity_names=known_entity_names,
+        )
+        output_path = run_dir / "structural-validation" / "validation-plan.json"
+        _write_json(output_path, result.model_dump(mode="json"))
+        self.run_repository.complete_stage(
+            run_id,
+            "structural_validation",
+            "main",
+            output_path=str(output_path),
+            output_hash=_stable_hash(result.model_dump(mode="json")),
+        )
+        return result
+
+    def _top_level_quality_stage(
+        self,
+        *,
+        run_id: int,
+        run_dir: Path,
+        rules: TopLevelRuleResult,
+        reports: list[LocalValidationReport],
+    ) -> TopLevelQualityResult:
+        input_value = {
+            "rules": rules.model_dump(mode="json"),
+            "reports": [item.model_dump(mode="json") for item in reports],
         }
         input_hash = _stable_hash(input_value)
         stage = self.run_repository.ensure_stage(
             run_id, "quality_gate", "main", input_hash=input_hash
         )
         if stage["status"] == "completed":
-            path = Path(str(stage["output_path"]))
-            from shiliu.taxonomy.quality import TaxonomyQualityResult
-
-            return TaxonomyQualityResult.model_validate_json(path.read_text(encoding="utf-8"))
+            return _load_completed(stage, TopLevelQualityResult, None)
         self.run_repository.start_stage(
             run_id,
             "quality_gate",
             "main",
             input_hash=input_hash,
             model=None,
-            prompt_version="deterministic-quality-gate-v1",
+            prompt_version="top-level-quality-gate-v1",
             thinking_enabled=None,
             reasoning_effort=None,
         )
-        result = self.quality_gate.evaluate(
-            draft=draft,
-            local_outputs=local_outputs,
-            allowed_ids=allowed_ids,
-            hierarchy_report=hierarchy_report,
-        )
+        result = combine_top_level_quality(rules=rules, reports=reports)
         output_path = run_dir / "quality-gate" / "quality-result.json"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
         _write_json(output_path, result.model_dump(mode="json"))
         self.run_repository.complete_stage(
             run_id,
@@ -472,15 +493,12 @@ class TaxonomyWorkflow:
         )
         retry_stage = feedback.get("retry_stage")
         reset = {
-            "content_type_recovery": [
-                "content_type_recovery", "consolidation", "hierarchy_validation",
-                "quality_gate", "trial_assignment",
-            ],
             "consolidation": [
-                "consolidation", "hierarchy_validation", "quality_gate", "trial_assignment",
+                "consolidation", "structural_validation", "local_validation",
+                "quality_gate",
             ],
-            "hierarchy_validation": [
-                "hierarchy_validation", "quality_gate", "trial_assignment",
+            "local_validation": [
+                "local_validation", "quality_gate",
             ],
         }.get(retry_stage)
         if reset is None:
@@ -525,14 +543,12 @@ def _load_completed(stage: dict[str, Any], schema: type[SchemaT], validator) -> 
     return result
 
 
-def _validate_candidate_ids(items, allowed: set[str]) -> None:
-    used = {value for item in items for value in item.supporting_ids}
-    if not used <= allowed:
-        raise PipelineError(
-            "Content Type Recovery 引用了本批之外的短 ID",
-            code="content_type_recovery_id_mismatch",
-            retryable=False,
-        )
+def _known_entities(rows: list[list[Any]]) -> set[str]:
+    result: set[str] = set()
+    for row in rows:
+        if len(row) >= 6 and row[1] in {"A", "B"}:
+            result.update(str(value) for value in row[5] if str(value).strip())
+    return result
 
 
 def _combined_audit(audit: dict[str, Any]) -> dict[str, Any]:

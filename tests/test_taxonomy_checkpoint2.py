@@ -9,6 +9,10 @@ from pydantic import BaseModel
 from shiliu.db import Database, utc_now
 from shiliu.domain import PipelineError
 from shiliu.llm import CompletionResponse
+from shiliu.taxonomy.candidates import (
+    LocalTopLevelDiscoveryOutput,
+    TopLevelDomainDraft,
+)
 from shiliu.taxonomy.discovery import (
     ConsolidatedDraft,
     LocalDiscoveryOutput,
@@ -250,42 +254,63 @@ class WorkflowProvider:
         *,
         fail_second_local_once: bool = False,
         bad_first_consolidation: bool = False,
-        omit_local_content_types: bool = False,
     ) -> None:
         self.fail_second_local_once = fail_second_local_once
         self.bad_first_consolidation = bad_first_consolidation
-        self.omit_local_content_types = omit_local_content_types
         self.local_calls = 0
         self.consolidation_calls = 0
-        self.content_type_recovery_calls = 0
         self.calls: list[str] = []
 
     def complete_raw(self, prompt: str, *, max_tokens: int | None = None):
-        if "局部候选发现器" in prompt:
+        if "局部一级知识领域候选发现器" in prompt:
             self.local_calls += 1
             self.calls.append("local")
             if self.fail_second_local_once and self.local_calls == 2:
                 raise PipelineError("模拟中断", code="simulated_interrupt", retryable=True)
             ids = _ids_after(prompt, "本批卡片：")
-            output = local_output(
-                ids, content_types=not self.omit_local_content_types
+            output = LocalTopLevelDiscoveryOutput.model_validate(
+                {
+                    "domains": [
+                        {
+                            "provisional_id": "ld_software",
+                            "name": "软件工程",
+                            "definition": "软件系统设计、实现与验证的长期知识领域",
+                            "supporting_ids": ids[:5],
+                            "evidence_codes": ["durable_domain", "multi_item_support"],
+                        }
+                    ],
+                    "topic_hints": [],
+                    "ambiguous_ids": [],
+                }
             ).model_dump(mode="json")
-        elif "只恢复局部 Discovery 缺失的 Content Type" in prompt:
-            self.content_type_recovery_calls += 1
-            self.calls.append("content_type_recovery")
-            ids = _ids_after(prompt, "本批卡片：")
-            output = {"content_types": [_content_type("教程形式", ids[:3])]}
-        elif "全局候选归并器" in prompt:
+        elif "全局一级 Domain 归并器" in prompt:
             self.calls.append("consolidation")
             self.consolidation_calls += 1
             ids = list(dict.fromkeys(re.findall(r'"(C\d{3})"', prompt)))
-            draft = valid_draft(ids)
-            if self.bad_first_consolidation and self.consolidation_calls == 1:
-                draft = draft.model_copy(update={"content_types": []})
+            name = (
+                "ToolX"
+                if self.bad_first_consolidation and self.consolidation_calls == 1
+                else "软件工程"
+            )
+            draft = TopLevelDomainDraft.model_validate(
+                {
+                    "domains": [
+                        {
+                            "id": "d_01",
+                            "name": name,
+                            "definition": "软件系统设计、实现与验证的长期知识领域",
+                            "includes": ["软件设计", "工程验证"],
+                            "excludes": ["单一工具新闻"],
+                            "supporting_ids": ids[:5],
+                            "representative_ids": ids[:3],
+                        }
+                    ],
+                    "consolidation_notes": ["合并同名候选"],
+                }
+            )
             output = draft.model_dump(mode="json")
-        elif "独立 Taxonomy Hierarchy Validator" in prompt:
-            self.calls.append("hierarchy")
-            output = clean_hierarchy_report().model_dump(mode="json")
+        elif "局部一级 Taxonomy Validator" in prompt:
+            raise AssertionError("本测试的单节点 Draft 不应触发局部模型校验")
         elif "JSON Repair" in prompt:
             raise AssertionError("本测试不应触发 Repair")
         else:
@@ -391,12 +416,12 @@ def test_quality_retry_reruns_consolidation_but_not_local_batches(app_paths) -> 
     assert consolidation["attempt_count"] == 2
 
 
-def test_missing_local_content_types_runs_targeted_recovery_only(app_paths) -> None:
+def test_clean_top_level_workflow_uses_no_content_type_recovery_or_validator(app_paths) -> None:
     db = Database(app_paths.database)
     db.initialize()
     snapshot_id = _insert_snapshot_row(db)
     cards = [card(index) for index in range(1, 41)] + [card(41, "D")]
-    provider = WorkflowProvider(omit_local_content_types=True)
+    provider = WorkflowProvider()
     workflow = TaxonomyWorkflow(
         snapshot_repository=SnapshotRepository(cards),  # type: ignore[arg-type]
         run_repository=TaxonomyRunRepository(db),
@@ -409,8 +434,12 @@ def test_missing_local_content_types_runs_targeted_recovery_only(app_paths) -> N
     result = workflow.execute(run_id)
     assert result["run"]["status"] == "completed"
     assert provider.local_calls == 2
-    assert provider.content_type_recovery_calls == 2
     assert provider.consolidation_calls == 1
+    assert provider.calls == ["local", "local", "consolidation"]
+    stages = {(item["stage_name"], item["unit_key"]) for item in result["stages"]}
+    assert ("candidate_normalization", "main") in stages
+    assert ("structural_validation", "main") in stages
+    assert not any(name == "local_validation" for name, _ in stages)
 
 
 class InvalidOnceProvider:

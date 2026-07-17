@@ -50,7 +50,9 @@ def build_parser() -> argparse.ArgumentParser:
     create_taxonomy_run.add_argument("--seed", type=int, default=73)
     create_taxonomy_run.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
     create_taxonomy_run.add_argument("--limit", type=int, default=48)
-    create_taxonomy_run.add_argument("--discovery-only", action="store_true")
+    create_taxonomy_run.add_argument(
+        "--discovery-only", action="store_true", help=argparse.SUPPRESS
+    )
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -111,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
             seed=arguments.seed,
             batch_size=arguments.batch_size,
             limit=arguments.limit,
-            include_assignment=not arguments.discovery_only,
+            include_assignment=False,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0

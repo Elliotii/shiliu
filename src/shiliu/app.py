@@ -77,7 +77,8 @@ class Application:
             raise PipelineError(str(exc), code="api_key_missing", retryable=False) from exc
         is_transcript = role in {"fast_transcript", "formal_transcript"}
         is_taxonomy_light = role in {
-            "taxonomy_local", "taxonomy_assignment", "taxonomy_repair"
+            "taxonomy_local", "taxonomy_content_type", "taxonomy_validator",
+            "taxonomy_assignment", "taxonomy_repair",
         }
         model_role = "formal_summary" if role.startswith("taxonomy_") else role
         return OpenAICompatibleProvider(
@@ -88,7 +89,8 @@ class Application:
             thinking_enabled=(
                 False
                 if is_transcript or role in {
-                    "taxonomy_local", "taxonomy_assignment", "taxonomy_repair"
+                    "taxonomy_local", "taxonomy_content_type", "taxonomy_validator",
+                    "taxonomy_assignment", "taxonomy_repair",
                 }
                 else True
             ),
