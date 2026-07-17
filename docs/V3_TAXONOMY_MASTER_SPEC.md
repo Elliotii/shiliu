@@ -534,7 +534,7 @@ feat: establish dual-view taxonomy discovery
 
 ### Checkpoint 3.9 — Full Discovery Run A protocol
 
-Status: **Protocol implemented; execution pending**
+Status: **Protocol frozen; Run #10 failed at deterministic normalization**
 
 Formal Run A keeps the Checkpoint 3.8 dual-view boundary and adds no new
 classification path:
@@ -578,6 +578,13 @@ checkpoint stops after reporting Run A and does not start Run B.
 No Provider call is authorized merely by this protocol implementation. The
 private 80-row Profile materialization and the later 128-row Run A each require
 an explicit execution confirmation.
+
+Actual Run #10 completed all twelve local model batches with zero Repair and
+zero retry, then stopped before either Consolidation because 45 normalized
+Content Type candidates exceeded the table's regression-era limit of 24. The
+formal verdict is `FAIL`; details and the minimal correction are recorded in
+`reports/V3_FULL_DISCOVERY_RUN_A.md`. Run B/C and every downstream stage remain
+blocked.
 
 ### Checkpoint 4 — Formal top-level Taxonomy Discovery
 
