@@ -198,20 +198,29 @@ def test_pair_metrics_apply_directional_coverage_and_ambiguity_deltas() -> None:
     assert metrics["compact_domain_count"] != metrics["profile_domain_count"]
 
 
-def test_profile_comparison_cli_defaults_are_two_deterministic_pairs() -> None:
+def test_new_unified_profile_comparison_is_retired_but_audit_resume_remains() -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(
+            [
+                "taxonomy",
+                "profile-compare",
+                "--snapshot-id",
+                "2",
+                "--profile-run-id",
+                "profile-run",
+            ]
+        )
     arguments = build_parser().parse_args(
-        [
-            "taxonomy",
-            "profile-compare",
-            "--snapshot-id",
-            "2",
-            "--profile-run-id",
-            "profile-run",
-        ]
+        ["taxonomy", "profile-compare-resume", "existing-comparison"]
     )
+    assert arguments.comparison_id == "existing-comparison"
 
-    assert tuple(arguments.pair_seeds) == (73, 137)
-    assert arguments.batch_size == 24
+    service = ProfileDiscoveryComparisonService.__new__(
+        ProfileDiscoveryComparisonService
+    )
+    with pytest.raises(PipelineError) as error:
+        service.run(snapshot_id=2, profile_run_id="profile-run")
+    assert error.value.code == "unified_profile_experiment_retired"
 
 
 def test_workflow_executes_profile_representation_without_compact_card_payload(
@@ -290,3 +299,24 @@ def test_workflow_executes_profile_representation_without_compact_card_payload(
     assert "main_subject" in prompt
     assert "Profile主题" in prompt
     assert '"标题 ' not in prompt
+    content_type_prompt = (
+        workflow.output_dir
+        / f"run-{run_id:06d}"
+        / "content_type_discovery"
+        / "batch-001"
+        / "attempt-01"
+        / "prompt.txt"
+    ).read_text(encoding="utf-8")
+    assert '"标题 ' in content_type_prompt
+    assert "Profile主题" not in content_type_prompt
+    integrated = json.loads(
+        (
+            workflow.output_dir
+            / f"run-{run_id:06d}"
+            / "dual-view-discovery-output.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert integrated["domain_input_view"] == "classification_profile_v1"
+    assert integrated["content_type_input_view"] == "compact_form_view_v1"
+    assert "content_types" not in integrated["domain_draft"]
+    assert "domains" not in integrated["content_type_draft"]

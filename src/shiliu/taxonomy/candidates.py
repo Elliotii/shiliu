@@ -5,7 +5,7 @@ import json
 import re
 import unicodedata
 from collections import defaultdict
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -16,6 +16,8 @@ CANDIDATE_TABLE_VERSION = "compact-domain-candidates-v1"
 LOCAL_TOP_LEVEL_PROMPT_VERSION = "top-level-local-discovery-v1"
 TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION = "top-level-consolidation-v1"
 CONTENT_TYPE_PROMPT_VERSION = "content-type-discovery-v1"
+CONTENT_TYPE_NORMALIZATION_VERSION = "content-type-candidate-normalization-v1"
+CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v1"
 CANDIDATE_NORMALIZATION_VERSION = "candidate-normalization-v1"
 
 
@@ -96,6 +98,67 @@ class ContentTypeDiscoveryOutputV1(BaseModel):
         return _cap_fields(value, lists={"content_types": 8, "ambiguous_ids": 32})
 
 
+class CompactContentTypeCandidate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    candidate_id: str = Field(pattern=r"^nct_[0-9]{3}$")
+    name: str = Field(min_length=1, max_length=60)
+    definition: str = Field(min_length=1, max_length=140)
+    support_count: int = Field(ge=1)
+    batch_count: int = Field(ge=1)
+    supporting_ids: list[str] = Field(min_length=1, max_length=5)
+    representative_ids: list[str] = Field(min_length=1, max_length=3)
+
+
+class CompactContentTypeTable(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    version: str = "compact-content-type-candidates-v1"
+    content_types: list[CompactContentTypeCandidate] = Field(
+        default_factory=list, max_length=24
+    )
+    source_batch_count: int = Field(ge=1)
+
+
+class ContentTypeNodeV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^ct_[a-z0-9_]+$")
+    name: str = Field(min_length=1, max_length=60)
+    definition: str = Field(min_length=1, max_length=180)
+    includes: list[str] = Field(min_length=1, max_length=5)
+    excludes: list[str] = Field(min_length=1, max_length=5)
+    supporting_ids: list[str] = Field(min_length=1, max_length=32)
+    representative_ids: list[str] = Field(min_length=1, max_length=3)
+    node_type: Literal["content_type"] = "content_type"
+
+    @model_validator(mode="before")
+    @classmethod
+    def cap_bounded_fields(cls, value):
+        return _cap_fields(
+            value,
+            text={"name": 60, "definition": 180},
+            lists={
+                "includes": 5,
+                "excludes": 5,
+                "supporting_ids": 32,
+                "representative_ids": 3,
+            },
+        )
+
+
+class ContentTypeDraftV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    content_types: list[ContentTypeNodeV1] = Field(min_length=1, max_length=8)
+    consolidation_notes: list[str] = Field(default_factory=list, max_length=5)
+
+    @model_validator(mode="before")
+    @classmethod
+    def cap_notes(cls, value):
+        return _cap_fields(value, lists={"consolidation_notes": 5})
+
+
 class CompactDomainCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -170,6 +233,16 @@ class TopLevelDomainDraft(BaseModel):
         return normalized
 
 
+class DualViewDiscoveryOutputV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    version: Literal["dual-view-discovery-output-v1"] = "dual-view-discovery-output-v1"
+    domain_input_view: Literal["classification_profile_v1", "compact"]
+    content_type_input_view: Literal["compact_form_view_v1"] = "compact_form_view_v1"
+    domain_draft: TopLevelDomainDraft
+    content_type_draft: ContentTypeDraftV1
+
+
 LOCAL_TOP_LEVEL_SCHEMA_HINT = (
     '{"domains":[{"provisional_id":"ld_x","name":"短名称",'
     '"definition":"一句话定义","supporting_ids":["C001"],'
@@ -181,6 +254,12 @@ CONTENT_TYPE_SCHEMA_HINT = (
     '{"content_types":[{"provisional_id":"lct_x","name":"短名称",'
     '"definition":"一句话定义","supporting_ids":["C001"]}],'
     '"ambiguous_ids":["C002"]}'
+)
+CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT = (
+    '{"content_types":[{"id":"ct_01","name":"",'
+    '"definition":"","includes":[""],"excludes":[""],'
+    '"supporting_ids":["C001"],"representative_ids":["C001"],'
+    '"node_type":"content_type"}],"consolidation_notes":[]}'
 )
 TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT = (
     '{"domains":[{"id":"d_01","name":"","definition":"",'
@@ -226,8 +305,22 @@ Content Type 只回答内容采用什么表达形式或使用形式，不回答�
 名称和定义使用中文，专有名词保留英文；定义最多 140 个字符。
 
 精简输出结构：{CONTENT_TYPE_SCHEMA_HINT}
+输入行协议：A/B=[id,等级,标题,一句话结论,最多3条观点,最多5个已有实体]；C=[id,C,标题,最多300字简介]。
 本批卡片：
 {_rows_text(rows)}"""
+
+
+def build_content_type_consolidation_prompt(
+    table: CompactContentTypeTable,
+) -> str:
+    return f"""你是全局 Content Type 归并器，只处理内容表达形式，不处理知识领域。
+输入只有分批 Content Type 候选表，不包含 Domain、Topic、Entity、Profile 或完整卡片。
+合并语义相同但名称不同的候选，生成 2 至 8 个稳定 Content Type；不得输出或暗示 Domain Tree。
+每个节点保留短名称、定义、includes/excludes、supporting IDs 和最多 3 个 representative IDs。
+supporting_ids 只能来自输入；representative_ids 必须属于 supporting_ids。名称和定义使用中文，专有名词保留英文。只输出 JSON。
+
+精简输出结构：{CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT}
+Compact Content Type Table：{_compact_json(table.model_dump(mode="json"))}"""
 
 
 def build_top_level_consolidation_prompt(table: CompactCandidateTable) -> str:
@@ -278,6 +371,78 @@ def validate_content_types(
         raise PipelineError(
             "Content Type 候选引用了本批之外的短 ID",
             code="content_type_support_mismatch",
+            retryable=False,
+        )
+
+
+def normalize_content_types(
+    outputs: list[ContentTypeDiscoveryOutputV1], *, allowed_ids: set[str]
+) -> CompactContentTypeTable:
+    if not outputs:
+        raise ValueError("Content Type normalization requires at least one batch")
+    grouped: dict[str, list[tuple[int, ContentTypeCandidateV1]]] = defaultdict(list)
+    for batch_index, output in enumerate(outputs, start=1):
+        validate_content_types(output, allowed_ids)
+        for candidate in output.content_types:
+            grouped[normalized_name(candidate.name)].append((batch_index, candidate))
+    content_types: list[CompactContentTypeCandidate] = []
+    for ordinal, key in enumerate(sorted(grouped), start=1):
+        values = grouped[key]
+        names = sorted(
+            {item.name.strip() for _, item in values}, key=lambda item: (len(item), item)
+        )
+        definitions = sorted(
+            {item.definition.strip()[:140] for _, item in values},
+            key=lambda item: (len(item), item),
+        )
+        support = sorted(
+            {short_id for _, item in values for short_id in item.supporting_ids},
+            key=_short_id_order,
+        )
+        content_types.append(
+            CompactContentTypeCandidate(
+                candidate_id=f"nct_{ordinal:03d}",
+                name=names[0],
+                definition=definitions[0],
+                support_count=len(support),
+                batch_count=len({batch_index for batch_index, _ in values}),
+                supporting_ids=support[:5],
+                representative_ids=support[:3],
+            )
+        )
+    return CompactContentTypeTable(
+        content_types=content_types,
+        source_batch_count=len(outputs),
+    )
+
+
+def validate_content_type_draft(
+    value: ContentTypeDraftV1, *, allowed_ids: set[str]
+) -> None:
+    ids = [item.id for item in value.content_types]
+    names = [normalized_name(item.name) for item in value.content_types]
+    if len(ids) != len(set(ids)) or len(names) != len(set(names)):
+        raise PipelineError(
+            "Content Type Draft ID 或名称重复",
+            code="content_type_draft_collision",
+            retryable=False,
+        )
+    used = {
+        short_id for item in value.content_types for short_id in item.supporting_ids
+    }
+    if not used <= allowed_ids:
+        raise PipelineError(
+            "Content Type Draft 引用了未知短 ID",
+            code="content_type_draft_support_mismatch",
+            retryable=False,
+        )
+    if any(
+        not set(item.representative_ids) <= set(item.supporting_ids)
+        for item in value.content_types
+    ):
+        raise PipelineError(
+            "Content Type representative_ids 不属于 supporting_ids",
+            code="content_type_draft_representative_mismatch",
             retryable=False,
         )
 

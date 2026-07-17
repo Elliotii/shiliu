@@ -15,6 +15,9 @@ from shiliu.taxonomy.discovery import (
 )
 from shiliu.taxonomy.candidates import (
     CANDIDATE_NORMALIZATION_VERSION,
+    CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
+    CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
+    CONTENT_TYPE_NORMALIZATION_VERSION,
     CONTENT_TYPE_PROMPT_VERSION,
     CONTENT_TYPE_SCHEMA_HINT,
     LOCAL_TOP_LEVEL_PROMPT_VERSION,
@@ -22,13 +25,19 @@ from shiliu.taxonomy.candidates import (
     TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
     TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT,
     CompactCandidateTable,
+    CompactContentTypeTable,
+    ContentTypeDraftV1,
     ContentTypeDiscoveryOutputV1,
+    DualViewDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
+    build_content_type_consolidation_prompt,
     build_content_type_prompt,
     build_top_level_consolidation_prompt,
     build_top_level_local_prompt,
     normalize_candidates,
+    normalize_content_types,
+    validate_content_type_draft,
     validate_content_types,
     validate_local_top_level,
     validate_top_level_draft,
@@ -50,7 +59,7 @@ from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "top-level-cost-bounded-workflow-v6"
+WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v7"
 SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
 
 
@@ -121,6 +130,40 @@ class TaxonomyWorkflow:
         if run is None:
             raise LookupError("Taxonomy Run 不存在")
         return {"run": run, "stages": self.run_repository.list_stages(run_id)}
+
+    def create_dual_view_regression(
+        self,
+        *,
+        snapshot_id: int,
+        profile_run_id: str,
+        seed: int = 73,
+        batch_size: int = 24,
+    ) -> int:
+        snapshot = self.snapshot_repository.get_snapshot(snapshot_id)
+        if snapshot is None:
+            raise LookupError("快照不存在")
+        manifest = self._accepted_profile_manifest(
+            profile_run_id=profile_run_id,
+            snapshot_hash=str(snapshot["snapshot_hash"]),
+        )
+        selected_ids = [str(value) for value in manifest.get("selected_ids") or []]
+        if len(selected_ids) != 48 or len(set(selected_ids)) != 48:
+            raise PipelineError(
+                "双视图回归要求已验收的 48 条 Profile 固定输入",
+                code="dual_view_profile_selection_mismatch",
+                retryable=False,
+            )
+        return self.create_run(
+            snapshot_id=snapshot_id,
+            run_kind="dual_view_integration_regression",
+            seed=seed,
+            batch_size=batch_size,
+            limit=None,
+            include_assignment=False,
+            representation="classification_profile_v1",
+            profile_run_id=profile_run_id,
+            selected_ids=selected_ids,
+        )
 
     def execute(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
         run = self.run_repository.get_run(run_id)
@@ -194,6 +237,10 @@ class TaxonomyWorkflow:
             eligible[index:index + batch_size]
             for index in range(0, len(eligible), batch_size)
         ]
+        compact_batches = [
+            selected_compact_rows[index:index + batch_size]
+            for index in range(0, len(selected_compact_rows), batch_size)
+        ]
         run_dir = self.output_dir / f"run-{run_id:06d}"
         run_dir.mkdir(parents=True, exist_ok=True)
         _write_json_once(run_dir / "compact-corpus.json", compact)
@@ -232,20 +279,55 @@ class TaxonomyWorkflow:
 
         local_payload = [value.model_dump(mode="json") for value in local_outputs]
         _write_json(run_dir / "local-candidates.json", local_payload)
+        local_content_types: list[ContentTypeDiscoveryOutputV1] = []
+        for index, batch in enumerate(compact_batches, start=1):
+            result = self._model_stage(
+                run_id=run_id,
+                run_dir=run_dir,
+                stage_name="content_type_discovery",
+                unit_key=f"batch-{index:03d}",
+                role="taxonomy_content_type",
+                prompt=build_content_type_prompt(batch),
+                prompt_version=CONTENT_TYPE_PROMPT_VERSION,
+                schema=ContentTypeDiscoveryOutputV1,
+                schema_hint=CONTENT_TYPE_SCHEMA_HINT,
+                max_tokens=4096,
+                input_ids=[row[0] for row in batch],
+                validator=lambda value, allowed={row[0] for row in batch}: (
+                    validate_content_types(value, allowed)
+                ),
+            )
+            local_content_types.append(result)
+        _write_json(
+            run_dir / "content-type-local-candidates.json",
+            [item.model_dump(mode="json") for item in local_content_types],
+        )
+        content_type_table = self._content_type_normalization_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            local_outputs=local_content_types,
+            allowed_ids=allowed_ids,
+        )
         content_types = self._model_stage(
             run_id=run_id,
             run_dir=run_dir,
-            stage_name="content_type_discovery",
+            stage_name="content_type_consolidation",
             unit_key="main",
-            role="taxonomy_content_type",
-            prompt=build_content_type_prompt(eligible),
-            prompt_version=CONTENT_TYPE_PROMPT_VERSION,
-            schema=ContentTypeDiscoveryOutputV1,
-            schema_hint=CONTENT_TYPE_SCHEMA_HINT,
+            role="taxonomy_content_type_global",
+            prompt=build_content_type_consolidation_prompt(content_type_table),
+            prompt_version=CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
+            schema=ContentTypeDraftV1,
+            schema_hint=CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
             max_tokens=4096,
-            input_ids=[row[0] for row in eligible],
-            validator=lambda value: validate_content_types(
-                value, {row[0] for row in eligible}
+            input_ids=sorted(
+                {
+                    short_id
+                    for item in content_type_table.content_types
+                    for short_id in item.supporting_ids
+                }
+            ),
+            validator=lambda value: validate_content_type_draft(
+                value, allowed_ids=allowed_ids
             ),
         )
         _write_json(run_dir / "content-types.json", content_types.model_dump(mode="json"))
@@ -337,6 +419,16 @@ class TaxonomyWorkflow:
             )
             return self.status(run_id)
 
+        integrated = DualViewDiscoveryOutputV1(
+            domain_input_view=representation,
+            domain_draft=draft,
+            content_type_draft=content_types,
+        )
+        _write_json(
+            run_dir / "dual-view-discovery-output.json",
+            integrated.model_dump(mode="json"),
+        )
+
         self.run_repository.set_run_status(run_id, "completed", current_stage=None)
         return self.status(run_id)
 
@@ -354,25 +446,15 @@ class TaxonomyWorkflow:
                 retryable=False,
             )
         run_dir = self.profile_output_dir / profile_run_id
-        manifest_path = run_dir / "manifest.json"
+        self._accepted_profile_manifest(
+            profile_run_id=profile_run_id,
+            snapshot_hash=snapshot_hash,
+        )
         rows_path = run_dir / "profile-discovery-view.jsonl"
-        if not manifest_path.is_file() or not rows_path.is_file():
+        if not rows_path.is_file():
             raise PipelineError(
                 "Classification Profile Run 不存在或产物不完整",
                 code="taxonomy_profile_run_missing",
-                retryable=False,
-            )
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if (
-            manifest.get("status") != "completed"
-            or manifest.get("snapshot_hash") != snapshot_hash
-            or manifest.get("profile_version") != "classification_profile_v1"
-            or not manifest.get("gates")
-            or not all(manifest["gates"].values())
-        ):
-            raise PipelineError(
-                "Classification Profile Run 未通过 3.7A 或 Snapshot 不匹配",
-                code="taxonomy_profile_run_unaccepted",
                 retryable=False,
             )
         rows = [
@@ -388,6 +470,38 @@ class TaxonomyWorkflow:
                 retryable=False,
             )
         return by_id
+
+    def _accepted_profile_manifest(
+        self, *, profile_run_id: str, snapshot_hash: str
+    ) -> dict[str, Any]:
+        if self.profile_output_dir is None:
+            raise PipelineError(
+                "Taxonomy Workflow 未配置 Profile 私有目录",
+                code="taxonomy_profile_dir_missing",
+                retryable=False,
+            )
+        manifest_path = self.profile_output_dir / profile_run_id / "manifest.json"
+        if not manifest_path.is_file():
+            raise PipelineError(
+                "Classification Profile Run 不存在或产物不完整",
+                code="taxonomy_profile_run_missing",
+                retryable=False,
+            )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if (
+            manifest.get("status") != "completed"
+            or manifest.get("snapshot_hash") != snapshot_hash
+            or manifest.get("profile_version") != "classification_profile_v1"
+            or manifest.get("prompt_version") != "classification-profile-generation-v2"
+            or not manifest.get("gates")
+            or not all(manifest["gates"].values())
+        ):
+            raise PipelineError(
+                "Classification Profile Run 未通过 3.7A 或 Snapshot 不匹配",
+                code="taxonomy_profile_run_unaccepted",
+                retryable=False,
+            )
+        return manifest
 
     def _model_stage(
         self,
@@ -500,6 +614,45 @@ class TaxonomyWorkflow:
         self.run_repository.complete_stage(
             run_id,
             "candidate_normalization",
+            "main",
+            output_path=str(output_path),
+            output_hash=_stable_hash(result.model_dump(mode="json")),
+        )
+        return result
+
+    def _content_type_normalization_stage(
+        self,
+        *,
+        run_id: int,
+        run_dir: Path,
+        local_outputs: list[ContentTypeDiscoveryOutputV1],
+        allowed_ids: set[str],
+    ) -> CompactContentTypeTable:
+        input_value = [item.model_dump(mode="json") for item in local_outputs]
+        input_hash = _stable_hash(input_value)
+        stage = self.run_repository.ensure_stage(
+            run_id, "content_type_normalization", "main", input_hash=input_hash
+        )
+        if stage["status"] == "completed":
+            return _load_completed(stage, CompactContentTypeTable, None)
+        self.run_repository.start_stage(
+            run_id,
+            "content_type_normalization",
+            "main",
+            input_hash=input_hash,
+            model=None,
+            prompt_version=CONTENT_TYPE_NORMALIZATION_VERSION,
+            thinking_enabled=None,
+            reasoning_effort=None,
+        )
+        result = normalize_content_types(local_outputs, allowed_ids=allowed_ids)
+        output_path = (
+            run_dir / "content-type-normalization" / "compact-content-types.json"
+        )
+        _write_json(output_path, result.model_dump(mode="json"))
+        self.run_repository.complete_stage(
+            run_id,
+            "content_type_normalization",
             "main",
             output_path=str(output_path),
             output_hash=_stable_hash(result.model_dump(mode="json")),

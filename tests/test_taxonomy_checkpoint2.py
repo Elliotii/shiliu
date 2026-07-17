@@ -10,6 +10,7 @@ from shiliu.db import Database, utc_now
 from shiliu.domain import PipelineError
 from shiliu.llm import CompletionResponse
 from shiliu.taxonomy.candidates import (
+    ContentTypeDraftV1,
     ContentTypeDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
@@ -254,12 +255,15 @@ class WorkflowProvider:
         self,
         *,
         fail_second_local_once: bool = False,
+        fail_second_content_type_once: bool = False,
         bad_first_consolidation: bool = False,
     ) -> None:
         self.fail_second_local_once = fail_second_local_once
+        self.fail_second_content_type_once = fail_second_content_type_once
         self.bad_first_consolidation = bad_first_consolidation
         self.local_calls = 0
         self.content_type_calls = 0
+        self.content_type_consolidation_calls = 0
         self.consolidation_calls = 0
         self.calls: list[str] = []
 
@@ -288,6 +292,12 @@ class WorkflowProvider:
         elif "独立 Content Type 候选发现器" in prompt:
             self.content_type_calls += 1
             self.calls.append("content_type")
+            if self.fail_second_content_type_once and self.content_type_calls == 2:
+                raise PipelineError(
+                    "模拟 Content Type 中断",
+                    code="simulated_content_type_interrupt",
+                    retryable=True,
+                )
             ids = _ids_after(prompt, "本批卡片：")
             output = ContentTypeDiscoveryOutputV1.model_validate(
                 {
@@ -300,6 +310,27 @@ class WorkflowProvider:
                         }
                     ],
                     "ambiguous_ids": [],
+                }
+            ).model_dump(mode="json")
+        elif "全局 Content Type 归并器" in prompt:
+            self.content_type_consolidation_calls += 1
+            self.calls.append("content_type_consolidation")
+            ids = list(dict.fromkeys(re.findall(r'"(C\d{3})"', prompt)))
+            output = ContentTypeDraftV1.model_validate(
+                {
+                    "content_types": [
+                        {
+                            "id": "ct_01",
+                            "name": "教程与实操",
+                            "definition": "通过讲解和操作帮助完成任务",
+                            "includes": ["步骤讲解"],
+                            "excludes": ["纯观点评论"],
+                            "supporting_ids": ids[:5],
+                            "representative_ids": ids[:3],
+                            "node_type": "content_type",
+                        }
+                    ],
+                    "consolidation_notes": [],
                 }
             ).model_dump(mode="json")
         elif "全局一级 Domain 归并器" in prompt:
@@ -396,7 +427,8 @@ def test_workflow_resume_skips_completed_batch_after_interruption(app_paths) -> 
     result = workflow.execute(run_id, resume=True)
     assert result["run"]["status"] == "completed"
     assert provider.local_calls == 3
-    assert provider.content_type_calls == 1
+    assert provider.content_type_calls == 2
+    assert provider.content_type_consolidation_calls == 1
     stages = {
         (item["stage_name"], item["unit_key"]): item for item in result["stages"]
     }
@@ -424,13 +456,15 @@ def test_quality_retry_reruns_consolidation_but_not_local_batches(app_paths) -> 
     first = workflow.execute(run_id)
     assert first["run"]["status"] == "quality_failed"
     assert provider.local_calls == 2
-    assert provider.content_type_calls == 1
+    assert provider.content_type_calls == 2
+    assert provider.content_type_consolidation_calls == 1
     assert provider.consolidation_calls == 1
 
     second = workflow.execute(run_id, resume=True)
     assert second["run"]["status"] == "completed"
     assert provider.local_calls == 2
-    assert provider.content_type_calls == 1
+    assert provider.content_type_calls == 2
+    assert provider.content_type_consolidation_calls == 1
     assert provider.consolidation_calls == 2
     consolidation = [
         item for item in second["stages"] if item["stage_name"] == "consolidation"
@@ -456,9 +490,13 @@ def test_clean_top_level_workflow_uses_no_content_type_recovery_or_validator(app
     result = workflow.execute(run_id)
     assert result["run"]["status"] == "completed"
     assert provider.local_calls == 2
-    assert provider.content_type_calls == 1
+    assert provider.content_type_calls == 2
+    assert provider.content_type_consolidation_calls == 1
     assert provider.consolidation_calls == 1
-    assert provider.calls == ["local", "local", "content_type", "consolidation"]
+    assert provider.calls == [
+        "local", "local", "content_type", "content_type",
+        "content_type_consolidation", "consolidation",
+    ]
     stages = {(item["stage_name"], item["unit_key"]) for item in result["stages"]}
     assert ("candidate_normalization", "main") in stages
     assert ("structural_validation", "main") in stages

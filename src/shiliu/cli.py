@@ -45,15 +45,8 @@ def build_parser() -> argparse.ArgumentParser:
         "profile-resume", help="恢复指定 Classification Profile Spike"
     )
     profile_resume.add_argument("run_id")
-    profile_compare = taxonomy_commands.add_parser(
-        "profile-compare", help="运行 Checkpoint 3.7B Compact/Profile 配对实验"
-    )
-    profile_compare.add_argument("--snapshot-id", type=int, required=True)
-    profile_compare.add_argument("--profile-run-id", required=True)
-    profile_compare.add_argument("--pair-seeds", type=int, nargs=2, default=(73, 137))
-    profile_compare.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
     profile_compare_resume = taxonomy_commands.add_parser(
-        "profile-compare-resume", help="恢复 Checkpoint 3.7B 配对实验"
+        "profile-compare-resume", help="只读恢复或重算已冻结的 Checkpoint 3.7B 审计"
     )
     profile_compare_resume.add_argument("comparison_id")
     discovery_spike = taxonomy_commands.add_parser(
@@ -74,6 +67,16 @@ def build_parser() -> argparse.ArgumentParser:
     create_taxonomy_run.add_argument("--limit", type=int, default=48)
     create_taxonomy_run.add_argument(
         "--discovery-only", action="store_true", help=argparse.SUPPRESS
+    )
+    dual_view_regression = taxonomy_commands.add_parser(
+        "create-dual-view-regression",
+        help="创建冻结 48 条输入的双视图集成回归 Run",
+    )
+    dual_view_regression.add_argument("--snapshot-id", type=int, required=True)
+    dual_view_regression.add_argument("--profile-run-id", required=True)
+    dual_view_regression.add_argument("--seed", type=int, default=73)
+    dual_view_regression.add_argument(
+        "--batch-size", type=int, default=24, choices=range(20, 33)
     )
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
@@ -131,16 +134,6 @@ def main(argv: list[str] | None = None) -> int:
         result = app.taxonomy_profiles.resume_spike(arguments.run_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
-    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-compare":
-        app = Application()
-        result = app.taxonomy_profile_comparison.run(
-            snapshot_id=arguments.snapshot_id,
-            profile_run_id=arguments.profile_run_id,
-            pair_seeds=tuple(arguments.pair_seeds),
-            batch_size=arguments.batch_size,
-        )
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
     if (
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "profile-compare-resume"
@@ -169,6 +162,19 @@ def main(argv: list[str] | None = None) -> int:
             batch_size=arguments.batch_size,
             limit=arguments.limit,
             include_assignment=False,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-dual-view-regression"
+    ):
+        app = Application()
+        run_id = app.taxonomy_workflow.create_dual_view_regression(
+            snapshot_id=arguments.snapshot_id,
+            profile_run_id=arguments.profile_run_id,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0

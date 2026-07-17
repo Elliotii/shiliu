@@ -117,6 +117,21 @@ class ProfileDiscoveryComparisonService:
         pair_seeds: tuple[int, int] = (73, 137),
         batch_size: int = 24,
     ) -> dict[str, Any]:
+        raise PipelineError(
+            "Checkpoint 3.7B 已冻结；禁止继续创建统一 Profile 对比实验",
+            code="unified_profile_experiment_retired",
+            retryable=False,
+        )
+
+    def _run_frozen_37b_experiment(
+        self,
+        *,
+        snapshot_id: int,
+        profile_run_id: str,
+        pair_seeds: tuple[int, int] = (73, 137),
+        batch_size: int = 24,
+    ) -> dict[str, Any]:
+        """Retained only to make the completed private 3.7B run reproducible."""
         profile_manifest = self._accepted_profile_manifest(profile_run_id)
         if int(profile_manifest.get("snapshot_id") or 0) != snapshot_id:
             raise ValueError("Profile Run and Comparison Snapshot must match")

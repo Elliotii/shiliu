@@ -150,6 +150,7 @@ The current OpenAI-compatible integration reliably expresses two practical
 Taxonomy modes:
 
 - thinking disabled for `taxonomy_local`, `taxonomy_assignment`, and
+  `taxonomy_content_type`, `taxonomy_content_type_global`, and
   `taxonomy_repair`;
 - thinking enabled with `reasoning_effort=high` for `taxonomy_global`.
 
@@ -178,8 +179,19 @@ shorten or overwrite the user summary.
 
 - Content Type answers how content is expressed or intended to be used.
 - Domain answers which durable knowledge area the content belongs to.
+- Domain Discovery reads `classification_profile_v1`, a semantic derivative of
+  the frozen Classification Card.
+- Content Type Discovery reads `compact_form_view_v1`, retaining title,
+  description when available, and other bounded form signals from the same
+  frozen Card.
+- The two views are siblings derived from the Card. Neither replaces or derives
+  from the other.
 
-Content Type cannot be inserted into the Domain tree.
+Both paths have independent batched outputs, deterministic candidate tables,
+global Consolidation Schemas, hashes, and recovery boundaries. A downstream
+integration artifact may reference both final Drafts, but Content Type cannot
+be inserted into the Domain tree and Domain Consolidation cannot read Content
+Type candidates.
 
 ### 5.3 Domain construction is top-down
 
@@ -472,14 +484,65 @@ Commit:
 test: compare compact and profile taxonomy discovery
 ```
 
+### Checkpoint 3.8 — Dual-view integration regression
+
+Status: **Completed and passed**
+
+The production-facing discovery contract is now permanently dual-view:
+
+```text
+Frozen Classification Card
+├── classification_profile_v1 -> batched Domain Discovery
+└── compact_form_view_v1       -> batched Content Type Discovery
+```
+
+Each path uses two 24-card local batches for the frozen 48-card regression,
+then deterministic candidate normalization and its own global Consolidation.
+The final `dual-view-discovery-output-v1` contains separate `domain_draft` and
+`content_type_draft` fields plus their input-view versions. Neither Draft can
+contain the other facet under its strict Schema.
+
+Run #9 result:
+
+- engine `dual-view-discovery-workflow-v7`;
+- 8 final Domains and 8 final Content Types;
+- 16 local Domain and 16 local Content Type candidates;
+- C-level Domain/Topic signal: 8 of 17 cards;
+- C-level Content Type support: 15 of 17, with 3 ambiguous;
+- 14,627 prompt Tokens, 8,923 completion Tokens, 23,550 total;
+- 3,265 reasoning Tokens, contained in Domain Consolidation completion;
+- 127.151 seconds of Provider-reported model time and about 128 seconds wall
+  time;
+- zero Repair, retry, invalid supporting IDs, Entity Leakage, Content Type
+  Leakage, and blocking Quality issues;
+- completed-Run resume preserved all ten stage attempt counts at one.
+
+One non-blocking `renamed_domain_without_lexical_match` warning records semantic
+renaming by Domain Consolidation. No local Validator unit was required.
+
+New unified-Profile comparison Runs are disabled. Historical Checkpoint 3.7B
+artifacts remain resumable for audit only.
+
+This checkpoint does not backfill 128 Profiles, run formal Discovery A/B/C, or
+start Trial Assignment.
+
+Commit:
+
+```text
+feat: establish dual-view taxonomy discovery
+```
+
 ### Checkpoint 4 — Formal top-level Taxonomy Discovery
 
 Status: **Planned**
 
-Input: all 128 eligible profiles from the frozen Snapshot.
+Input: all 128 eligible frozen Cards projected into two sibling views: Profile
+for Domain and Compact Form View for Content Type.
 
-Output: independent Content Type result plus top-level Discovery A and B;
-Discovery C runs only if A/B are structurally unstable.
+Output: independent Content Type Draft plus top-level Domain Discovery A and B;
+Domain Discovery C runs only if A/B are structurally unstable. Every formal Run
+persists both input-view versions and keeps the two Consolidation inputs
+separate.
 
 Each Domain Run contains only:
 
