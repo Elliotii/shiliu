@@ -14,6 +14,7 @@ from shiliu.logging_config import configure_logging
 from shiliu.pipeline import PipelineService
 from shiliu.sync import SyncService
 from shiliu.taxonomy import TaxonomyCorpusService
+from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
 from shiliu.taxonomy.discovery import BatchedDiscoverySpikeService
 from shiliu.taxonomy.facets import FacetExtractionService
 from shiliu.taxonomy.profiles import ClassificationProfileService
@@ -60,6 +61,23 @@ class Application:
             run_repository=self.taxonomy_run_repository,
             provider_factory=self.provider,
             output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "runs",
+            profile_output_dir=(
+                self.paths.content_dir / "taxonomy" / "runtime" / "profile_spikes"
+            ),
+        )
+        self.taxonomy_profile_comparison = ProfileDiscoveryComparisonService(
+            workflow=self.taxonomy_workflow,
+            run_repository=self.taxonomy_run_repository,
+            provider_factory=self.provider,
+            output_dir=(
+                self.paths.content_dir
+                / "taxonomy"
+                / "runtime"
+                / "profile_comparisons"
+            ),
+            profile_output_dir=(
+                self.paths.content_dir / "taxonomy" / "runtime" / "profile_spikes"
+            ),
         )
         self.pipeline = PipelineService(
             db=self.db,

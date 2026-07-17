@@ -50,7 +50,8 @@ from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "top-level-cost-bounded-workflow-v5"
+WORKFLOW_ENGINE_VERSION = "top-level-cost-bounded-workflow-v6"
+SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
 
 
 class TaxonomyWorkflow:
@@ -63,11 +64,13 @@ class TaxonomyWorkflow:
         run_repository: TaxonomyRunRepository,
         provider_factory: Callable[[str], OpenAICompatibleProvider],
         output_dir: Path,
+        profile_output_dir: Path | None = None,
     ) -> None:
         self.snapshot_repository = snapshot_repository
         self.run_repository = run_repository
         self.provider_factory = provider_factory
         self.output_dir = output_dir
+        self.profile_output_dir = profile_output_dir
 
     def create_run(
         self,
@@ -78,11 +81,20 @@ class TaxonomyWorkflow:
         batch_size: int = 24,
         limit: int | None = 48,
         include_assignment: bool = False,
+        representation: str = "compact",
+        profile_run_id: str | None = None,
+        selected_ids: list[str] | None = None,
     ) -> int:
         if not 20 <= batch_size <= 32:
             raise ValueError("Taxonomy batch_size must be between 20 and 32")
         if include_assignment:
             raise ValueError("Checkpoint 3.5 尚未开放一级 Trial Assignment")
+        if representation not in SUPPORTED_REPRESENTATIONS:
+            raise ValueError("Unsupported taxonomy discovery representation")
+        if representation == "classification_profile_v1" and not profile_run_id:
+            raise ValueError("Profile representation requires profile_run_id")
+        if representation == "compact" and profile_run_id:
+            raise ValueError("Compact representation cannot use profile_run_id")
         snapshot = self.snapshot_repository.get_snapshot(snapshot_id)
         if snapshot is None:
             raise LookupError("快照不存在")
@@ -92,6 +104,9 @@ class TaxonomyWorkflow:
             "batch_size": batch_size,
             "limit": limit,
             "include_assignment": include_assignment,
+            "representation": representation,
+            "profile_run_id": profile_run_id,
+            "selected_ids": selected_ids,
         }
         return self.run_repository.create_run(
             snapshot_id=snapshot_id,
@@ -141,11 +156,39 @@ class TaxonomyWorkflow:
                 retryable=False,
             )
         compact = build_compact_corpus(snapshot["cards"])
-        eligible = [row for row in compact["rows"] if row[1] != "D"]
+        compact_by_id = {str(row[0]): row for row in compact["rows"]}
+        selected_ids = parameters.get("selected_ids")
+        if selected_ids:
+            unknown = set(selected_ids) - set(compact_by_id)
+            if unknown:
+                raise PipelineError(
+                    "Taxonomy Run 的固定短 ID 不属于 Snapshot",
+                    code="taxonomy_selected_ids_mismatch",
+                    retryable=False,
+                )
+            eligible = [compact_by_id[str(short_id)] for short_id in selected_ids]
+            if any(row[1] == "D" for row in eligible):
+                raise PipelineError(
+                    "Discovery 固定输入包含 D 级卡片",
+                    code="taxonomy_selected_ids_ineligible",
+                    retryable=False,
+                )
+        else:
+            eligible = [row for row in compact["rows"] if row[1] != "D"]
         random.Random(int(parameters["seed"])).shuffle(eligible)
         limit = parameters.get("limit")
         if limit is not None:
             eligible = eligible[:int(limit)]
+        selected_compact_rows = list(eligible)
+        allowed_ids = {str(row[0]) for row in selected_compact_rows}
+        representation = str(parameters.get("representation") or "compact")
+        if representation == "classification_profile_v1":
+            profile_rows = self._load_profile_rows(
+                profile_run_id=str(parameters.get("profile_run_id") or ""),
+                snapshot_hash=str(parameters["snapshot_hash"]),
+                expected_ids=allowed_ids,
+            )
+            eligible = [profile_rows[str(row[0])] for row in eligible]
         batch_size = int(parameters["batch_size"])
         batches = [
             eligible[index:index + batch_size]
@@ -166,7 +209,9 @@ class TaxonomyWorkflow:
 
         local_outputs: list[LocalTopLevelDiscoveryOutput] = []
         for index, batch in enumerate(batches, start=1):
-            prompt = build_top_level_local_prompt(batch)
+            prompt = build_top_level_local_prompt(
+                batch, representation=representation
+            )
             result = self._model_stage(
                 run_id=run_id,
                 run_dir=run_dir,
@@ -208,7 +253,7 @@ class TaxonomyWorkflow:
             run_id=run_id,
             run_dir=run_dir,
             local_outputs=local_outputs,
-            allowed_ids=set(compact["id_map"]),
+            allowed_ids=allowed_ids,
         )
         consolidation_prompt = build_top_level_consolidation_prompt(candidate_table)
         if quality_feedback and quality_feedback.get("retry_stage") == "consolidation":
@@ -235,22 +280,22 @@ class TaxonomyWorkflow:
                 }
             ),
             validator=lambda value: validate_top_level_draft(
-                value, allowed_ids=set(compact["id_map"])
+                value, allowed_ids=allowed_ids
             ),
         )
         _write_json(run_dir / "taxonomy-draft.json", draft.model_dump(mode="json"))
 
-        known_entities = _known_entities(compact["rows"])
+        known_entities = _known_entities(selected_compact_rows)
         rules = self._structural_validation_stage(
             run_id=run_id,
             run_dir=run_dir,
             draft=draft,
             candidate_table=candidate_table,
-            allowed_ids=set(compact["id_map"]),
+            allowed_ids=allowed_ids,
             known_entity_names=known_entities,
             content_type_names={item.name for item in content_types.content_types},
         )
-        rows_by_id = {str(row[0]): row for row in compact["rows"]}
+        rows_by_id = {str(row[0]): row for row in eligible}
         validation_reports: list[LocalValidationReport] = []
         for unit in rules.validation_units:
             prompt = build_local_validation_prompt(
@@ -294,6 +339,55 @@ class TaxonomyWorkflow:
 
         self.run_repository.set_run_status(run_id, "completed", current_stage=None)
         return self.status(run_id)
+
+    def _load_profile_rows(
+        self,
+        *,
+        profile_run_id: str,
+        snapshot_hash: str,
+        expected_ids: set[str],
+    ) -> dict[str, list[Any]]:
+        if self.profile_output_dir is None:
+            raise PipelineError(
+                "Taxonomy Workflow 未配置 Profile 私有目录",
+                code="taxonomy_profile_dir_missing",
+                retryable=False,
+            )
+        run_dir = self.profile_output_dir / profile_run_id
+        manifest_path = run_dir / "manifest.json"
+        rows_path = run_dir / "profile-discovery-view.jsonl"
+        if not manifest_path.is_file() or not rows_path.is_file():
+            raise PipelineError(
+                "Classification Profile Run 不存在或产物不完整",
+                code="taxonomy_profile_run_missing",
+                retryable=False,
+            )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if (
+            manifest.get("status") != "completed"
+            or manifest.get("snapshot_hash") != snapshot_hash
+            or manifest.get("profile_version") != "classification_profile_v1"
+            or not manifest.get("gates")
+            or not all(manifest["gates"].values())
+        ):
+            raise PipelineError(
+                "Classification Profile Run 未通过 3.7A 或 Snapshot 不匹配",
+                code="taxonomy_profile_run_unaccepted",
+                retryable=False,
+            )
+        rows = [
+            json.loads(line)
+            for line in rows_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        by_id = {str(row[0]): row for row in rows}
+        if len(by_id) != len(rows) or set(by_id) != expected_ids:
+            raise PipelineError(
+                "Classification Profile IDs 与配对输入不一致",
+                code="taxonomy_profile_ids_mismatch",
+                retryable=False,
+            )
+        return by_id
 
     def _model_stage(
         self,

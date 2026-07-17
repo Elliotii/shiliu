@@ -428,7 +428,7 @@ feat: add classification profile projection
 
 ### Checkpoint 3.7B — Paired Compact/Profile Discovery comparison
 
-Status: **Planned; forbidden until Checkpoint 3.7A passes and the user approves**
+Status: **Completed; unified-Profile gate failed**
 
 Runs two paired groups over identical IDs, task prompts, output Schemas, model,
 thinking configuration, batch membership, and within-pair input order. The only
@@ -439,6 +439,32 @@ It compares one-time Profile cost, repeated Discovery savings, Token
 break-even, semantic Domain recovery, discovery-support coverage, C-level
 support coverage, ambiguity, leakage, Repair, and within-representation
 stability. It does not run Trial Assignment or claim classification accuracy.
+
+Measured result from two fresh paired Runs:
+
+- direct Local/Content-Type prompt input fell from 15,066 to 7,634 Tokens per
+  Run, saving 7,432 Tokens (49.33%);
+- the one-time 15,263-Token Profile generation cost breaks even after three
+  comparable uses;
+- weighted top-level Domain recovery was 91.18% and 100%;
+- Compact and Profile cross-order stability were 97.06% and 100%;
+- C-level Domain/Topic signal did not decline: +5.88 and 0 percentage points;
+- all four Runs passed structural quality with zero Repair, retry, invalid
+  supporting IDs, Entity Leakage, or Content Type Leakage;
+- C-level Content Type ambiguity increased by 82.35 and 11.76 percentage
+  points, failing the maximum-five-point gate.
+
+The original final-Draft `supporting_ids` metric was renamed to
+`c_representative_support_rate`: those IDs are bounded representative evidence,
+not Trial Assignment coverage. The corrected C-level gate separately measures
+Domain/Topic signal and Content Type ambiguity.
+
+Decision: `classification_profile_v1` retains sufficient top-level Domain
+signal and is economically reusable, but it is not accepted as one unified
+representation for both Domain and Content Type discovery. Content Type needs
+title/form evidence that the semantic Profile intentionally omits. No 128-item
+backfill, formal Discovery A/B/C, Trial Assignment, or production integration
+is authorized by this result.
 
 Commit:
 

@@ -189,7 +189,21 @@ TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT = (
 )
 
 
-def build_top_level_local_prompt(rows: list[list[Any]]) -> str:
+def build_top_level_local_prompt(
+    rows: list[list[Any]], *, representation: str = "compact"
+) -> str:
+    if representation == "compact":
+        row_protocol = (
+            "A/B=[id,等级,标题,一句话结论,最多3条观点,最多5个已有实体]；"
+            "C=[id,C,标题,最多300字简介]。"
+        )
+    elif representation == "classification_profile_v1":
+        row_protocol = (
+            "Profile=[id,等级,main_subject,content_goal,最多5个key_concepts,"
+            "最多3个usage_contexts,最多5个entities,最多3个unknown_terms]。"
+        )
+    else:
+        raise ValueError("Unsupported taxonomy discovery representation")
     return f"""你是局部一级知识领域候选发现器，不生成最终 Taxonomy。
 只发现长期稳定、适合浏览的一级 Domain。不得输出 Content Type、二级领域、Entity 或完整 Topic。
 项目、工具、模型、论文、人物、公司和短期术语不得成为 Domain。
@@ -199,7 +213,7 @@ def build_top_level_local_prompt(rows: list[list[Any]]) -> str:
 名称和定义使用中文，专有名词保留英文；定义最多 140 个字符。
 
 精简输出结构：{LOCAL_TOP_LEVEL_SCHEMA_HINT}
-输入行协议：A/B=[id,等级,标题,一句话结论,最多3条观点,最多5个已有实体]；C=[id,C,标题,最多300字简介]。
+输入行协议：{row_protocol}
 本批卡片：
 {_rows_text(rows)}"""
 

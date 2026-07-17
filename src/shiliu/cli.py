@@ -45,6 +45,17 @@ def build_parser() -> argparse.ArgumentParser:
         "profile-resume", help="恢复指定 Classification Profile Spike"
     )
     profile_resume.add_argument("run_id")
+    profile_compare = taxonomy_commands.add_parser(
+        "profile-compare", help="运行 Checkpoint 3.7B Compact/Profile 配对实验"
+    )
+    profile_compare.add_argument("--snapshot-id", type=int, required=True)
+    profile_compare.add_argument("--profile-run-id", required=True)
+    profile_compare.add_argument("--pair-seeds", type=int, nargs=2, default=(73, 137))
+    profile_compare.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    profile_compare_resume = taxonomy_commands.add_parser(
+        "profile-compare-resume", help="恢复 Checkpoint 3.7B 配对实验"
+    )
+    profile_compare_resume.add_argument("comparison_id")
     discovery_spike = taxonomy_commands.add_parser(
         "discovery-spike", help="运行紧凑视图、分批候选发现和试分类 Spike"
     )
@@ -118,6 +129,24 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-resume":
         app = Application()
         result = app.taxonomy_profiles.resume_spike(arguments.run_id)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-compare":
+        app = Application()
+        result = app.taxonomy_profile_comparison.run(
+            snapshot_id=arguments.snapshot_id,
+            profile_run_id=arguments.profile_run_id,
+            pair_seeds=tuple(arguments.pair_seeds),
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "profile-compare-resume"
+    ):
+        app = Application()
+        result = app.taxonomy_profile_comparison.resume(arguments.comparison_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "discovery-spike":
