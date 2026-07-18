@@ -67,8 +67,17 @@ from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v9"
+WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v10"
 SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
+CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS = 8192
+DOMAIN_CONSOLIDATION_TOKEN_POLICY = {
+    "version": "candidate-scaled-v1",
+    "base_tokens": 8192,
+    "tokens_per_candidate": 256,
+    "minimum_tokens": 16384,
+    "maximum_tokens": 24576,
+    "round_to_tokens": 1024,
+}
 
 
 class TaxonomyWorkflow:
@@ -183,6 +192,7 @@ class TaxonomyWorkflow:
         seed: int = 101,
         batch_size: int = 24,
         reuse_from_run_id: int | None = None,
+        reuse_content_type_consolidation_from_run_id: int | None = None,
     ) -> int:
         snapshot = self.snapshot_repository.get_snapshot(snapshot_id)
         if snapshot is None:
@@ -239,8 +249,18 @@ class TaxonomyWorkflow:
                     code="run_a_reuse_source_invalid",
                     retryable=False,
                 )
+        if reuse_content_type_consolidation_from_run_id is not None:
+            source_run = self.run_repository.get_run(
+                reuse_content_type_consolidation_from_run_id
+            )
+            if source_run is None or source_run.get("run_kind") != "full_discovery_run_a":
+                raise PipelineError(
+                    "Content Type Consolidation 复用来源不是 Full Discovery Run A",
+                    code="run_a_consolidation_reuse_source_invalid",
+                    retryable=False,
+                )
         protocol = {
-            "protocol_version": "full-discovery-run-a-v2",
+            "protocol_version": "full-discovery-run-a-v3",
             "snapshot_id": snapshot_id,
             "snapshot_hash": snapshot["snapshot_hash"],
             "snapshot_card_count": snapshot["content_count"],
@@ -262,6 +282,10 @@ class TaxonomyWorkflow:
             "domain_consolidation_prompt_version": TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
             "content_type_consolidation_prompt_version": CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
             "quality_gate_version": TOP_LEVEL_QUALITY_GATE_VERSION,
+            "content_type_consolidation_max_tokens": (
+                CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS
+            ),
+            "domain_consolidation_token_policy": DOMAIN_CONSOLIDATION_TOKEN_POLICY,
             "providers": providers,
             "temperature": None,
             "batch_size": batch_size,
@@ -270,6 +294,9 @@ class TaxonomyWorkflow:
             "git_commit": git_commit,
             "git_worktree_clean": True,
             "reuse_from_run_id": reuse_from_run_id,
+            "reuse_content_type_consolidation_from_run_id": (
+                reuse_content_type_consolidation_from_run_id
+            ),
         }
         run_id = self.create_run(
             snapshot_id=snapshot_id,
@@ -484,6 +511,19 @@ class TaxonomyWorkflow:
                     quality_feedback, ensure_ascii=False, separators=(",", ":")
                 )
             )
+        protocol = parameters.get("protocol_manifest") or {}
+        content_type_reuse_run_id = protocol.get(
+            "reuse_content_type_consolidation_from_run_id"
+        )
+        if content_type_reuse_run_id is not None:
+            self._reuse_content_type_consolidation_stage(
+                run_id=run_id,
+                source_run_id=int(content_type_reuse_run_id),
+                run_dir=run_dir,
+                prompt=content_type_prompt,
+                table=content_type_table,
+                allowed_ids=allowed_ids,
+            )
         content_types = self._model_stage(
             run_id=run_id,
             run_dir=run_dir,
@@ -494,7 +534,12 @@ class TaxonomyWorkflow:
             prompt_version=CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
             schema=ContentTypeDraftV1,
             schema_hint=CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
-            max_tokens=8192,
+            max_tokens=int(
+                protocol.get(
+                    "content_type_consolidation_max_tokens",
+                    CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS,
+                )
+            ),
             input_ids=sorted(
                 {
                     short_id
@@ -533,7 +578,10 @@ class TaxonomyWorkflow:
             prompt_version=TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
             schema=TopLevelDomainDraft,
             schema_hint=TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT,
-            max_tokens=8192,
+            max_tokens=_domain_consolidation_max_tokens(
+                protocol.get("domain_consolidation_token_policy"),
+                candidate_count=len(candidate_table.domains),
+            ),
             input_ids=sorted(
                 {
                     short_id
@@ -879,6 +927,208 @@ class TaxonomyWorkflow:
                 "reused_stage_count": len(lineage),
                 "stages": lineage,
             },
+        )
+
+    def _reuse_content_type_consolidation_stage(
+        self,
+        *,
+        run_id: int,
+        source_run_id: int,
+        run_dir: Path,
+        prompt: str,
+        table: CompactContentTypeTable,
+        allowed_ids: set[str],
+    ) -> None:
+        """Reuse one verified Reduce result without replaying its model request."""
+
+        source_run = self.run_repository.get_run(source_run_id)
+        target_run = self.run_repository.get_run(run_id)
+        if source_run is None or target_run is None or source_run_id == run_id:
+            raise PipelineError(
+                "Content Type Consolidation 复用来源不存在或自引用",
+                code="run_a_consolidation_reuse_source_invalid",
+                retryable=False,
+            )
+        source_protocol = source_run["parameters"].get("protocol_manifest") or {}
+        target_protocol = target_run["parameters"].get("protocol_manifest") or {}
+        comparable_fields = (
+            "snapshot_id",
+            "snapshot_hash",
+            "discovery_eligible_count",
+            "profile_run_id",
+            "profile_hash",
+            "content_type_draft_schema_version",
+            "content_type_normalization_version",
+            "content_type_consolidation_prompt_version",
+            "content_type_consolidation_max_tokens",
+        )
+        mismatched = [
+            field
+            for field in comparable_fields
+            if source_protocol.get(field) != target_protocol.get(field)
+        ]
+        role = "taxonomy_content_type_global"
+        if (source_protocol.get("providers") or {}).get(role) != (
+            target_protocol.get("providers") or {}
+        ).get(role):
+            mismatched.append(f"providers.{role}")
+        if source_run["parameters"].get("selected_ids") != target_run[
+            "parameters"
+        ].get("selected_ids"):
+            mismatched.append("selected_ids")
+        if mismatched:
+            raise PipelineError(
+                "Content Type Consolidation 复用协议不一致：" + ", ".join(mismatched),
+                code="run_a_consolidation_reuse_protocol_mismatch",
+                retryable=False,
+            )
+
+        source_stage = next(
+            (
+                item
+                for item in self.run_repository.list_stages(source_run_id)
+                if item["stage_name"] == "content_type_consolidation"
+                and item["unit_key"] == "main"
+            ),
+            None,
+        )
+        provider = self.provider_factory(role)
+        input_hash = _hash_text(prompt)
+        expected_max_tokens = int(
+            target_protocol.get(
+                "content_type_consolidation_max_tokens",
+                CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS,
+            )
+        )
+        if (
+            source_stage is None
+            or source_stage.get("status") != "completed"
+            or source_stage.get("attempt_count") != 1
+            or source_stage.get("input_hash") != input_hash
+            or source_stage.get("prompt_version")
+            != CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION
+            or source_stage.get("model") != provider.model
+            or bool(source_stage.get("thinking_enabled"))
+            != bool(provider.thinking_enabled)
+            or source_stage.get("reasoning_effort") != provider.reasoning_effort
+        ):
+            raise PipelineError(
+                "Content Type Consolidation Stage 不符合复用条件",
+                code="run_a_consolidation_reuse_stage_mismatch",
+                retryable=False,
+            )
+        source_output = Path(str(source_stage.get("output_path") or ""))
+        source_call_dir = source_output.parent
+        source_prompt = source_call_dir / "prompt.txt"
+        source_raw = source_call_dir / "raw-response.txt"
+        source_audit = source_call_dir / "audit.json"
+        if not all(
+            path.is_file()
+            for path in (source_output, source_prompt, source_raw, source_audit)
+        ) or source_prompt.read_text(encoding="utf-8") != prompt:
+            raise PipelineError(
+                "Content Type Consolidation 复用产物不完整",
+                code="run_a_consolidation_reuse_artifact_invalid",
+                retryable=False,
+            )
+        audit = json.loads(source_audit.read_text(encoding="utf-8"))
+        input_ids = sorted(
+            {
+                short_id
+                for item in table.content_types
+                for short_id in item.supporting_ids
+            }
+        )
+        if (
+            audit.get("status") != "completed"
+            or audit.get("prompt_version")
+            != CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION
+            or audit.get("model") != provider.model
+            or audit.get("input_ids") != input_ids
+            or audit.get("request_attempt_count") != 1
+            or audit.get("repair") is not None
+            or (audit.get("parameters") or {}).get("max_tokens")
+            != expected_max_tokens
+            or (audit.get("parameters") or {}).get("thinking_enabled")
+            != provider.thinking_enabled
+            or (audit.get("parameters") or {}).get("reasoning_effort")
+            != provider.reasoning_effort
+        ):
+            raise PipelineError(
+                "Content Type Consolidation Audit 不符合复用条件",
+                code="run_a_consolidation_reuse_audit_mismatch",
+                retryable=False,
+            )
+        parsed = ContentTypeDraftV1.model_validate_json(
+            source_output.read_text(encoding="utf-8")
+        )
+        validate_content_type_draft(
+            parsed,
+            allowed_ids=allowed_ids,
+            candidate_ids={item.candidate_id for item in table.content_types},
+        )
+        output_hash = _stable_hash(parsed.model_dump(mode="json"))
+        if output_hash != source_stage.get("output_hash"):
+            raise PipelineError(
+                "Content Type Consolidation 输出 Hash 不匹配",
+                code="run_a_consolidation_reuse_output_hash_mismatch",
+                retryable=False,
+            )
+
+        target_call_dir = (
+            run_dir / "content_type_consolidation" / "main" / "reused-attempt-00"
+        )
+        if not target_call_dir.exists():
+            target_call_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(source_call_dir, target_call_dir)
+        target_output = target_call_dir / "parsed-output.json"
+        if _hash_file(target_output) != _hash_file(source_output):
+            raise PipelineError(
+                "复制后的 Content Type Consolidation Hash 改变",
+                code="run_a_reuse_copy_hash_mismatch",
+                retryable=False,
+            )
+        lineage_path = run_dir / "reused-consolidation-lineage.json"
+        existing = (
+            json.loads(lineage_path.read_text(encoding="utf-8"))
+            if lineage_path.is_file()
+            else None
+        )
+        lineage = {
+            "stage_name": "content_type_consolidation",
+            "unit_key": "main",
+            "reused_from_run_id": source_run_id,
+            "reused_from_stage_id": int(source_stage["id"]),
+            "source_input_hash": input_hash,
+            "source_output_hash": output_hash,
+            "source_raw_hash": _hash_file(source_raw),
+            "source_parsed_file_hash": _hash_file(source_output),
+            "source_prompt_file_hash": _hash_file(source_prompt),
+            "source_audit_hash": _hash_file(source_audit),
+            "prompt_version": CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
+            "provider_contract": (target_protocol.get("providers") or {}).get(role),
+            "max_tokens": expected_max_tokens,
+            "reuse_reason": "输入与协议未改变；避免重复执行已成功的 Content Type Reduce",
+            "verified_at": existing.get("verified_at") if existing else _utc_now(),
+        }
+        if existing is not None and existing != lineage:
+            raise PipelineError(
+                "Content Type Consolidation 复用血缘在 Resume 时改变",
+                code="run_a_reuse_lineage_changed",
+                retryable=False,
+            )
+        _write_json_once(lineage_path, lineage)
+        self.run_repository.record_reused_stage(
+            run_id,
+            "content_type_consolidation",
+            "main",
+            input_hash=input_hash,
+            output_path=str(target_output),
+            output_hash=output_hash,
+            model=provider.model,
+            prompt_version=CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
+            thinking_enabled=provider.thinking_enabled,
+            reasoning_effort=provider.reasoning_effort,
         )
 
     def _record_workflow_failure(self, run_id: int, exc: Exception) -> None:
@@ -1410,6 +1660,36 @@ def _combined_audit(audit: dict[str, Any]) -> dict[str, Any]:
 
 def _hash_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _domain_consolidation_max_tokens(
+    policy: dict[str, Any] | None,
+    *,
+    candidate_count: int,
+) -> int:
+    """Derive Reduce output capacity from the frozen candidate-count policy."""
+
+    if not policy:
+        return 8192
+    if policy.get("version") != "candidate-scaled-v1":
+        raise PipelineError(
+            "未知的 Domain Consolidation Token 策略",
+            code="run_a_token_policy_invalid",
+            retryable=False,
+        )
+    base = int(policy["base_tokens"])
+    per_candidate = int(policy["tokens_per_candidate"])
+    minimum = int(policy["minimum_tokens"])
+    maximum = int(policy["maximum_tokens"])
+    round_to = int(policy["round_to_tokens"])
+    if not (base > 0 and per_candidate >= 0 and 0 < minimum <= maximum and round_to > 0):
+        raise PipelineError(
+            "Domain Consolidation Token 策略参数无效",
+            code="run_a_token_policy_invalid",
+            retryable=False,
+        )
+    unrounded = max(minimum, min(maximum, base + candidate_count * per_candidate))
+    return min(maximum, ((unrounded + round_to - 1) // round_to) * round_to)
 
 
 def _hash_file(path: Path) -> str:

@@ -19,7 +19,12 @@ from shiliu.taxonomy.candidates import (
 )
 from shiliu.taxonomy.quality import evaluate_top_level_rules
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
-from shiliu.taxonomy.workflow import TaxonomyWorkflow, _write_json_once
+from shiliu.taxonomy.workflow import (
+    DOMAIN_CONSOLIDATION_TOKEN_POLICY,
+    TaxonomyWorkflow,
+    _domain_consolidation_max_tokens,
+    _write_json_once,
+)
 from tests.test_taxonomy_checkpoint2 import (
     SnapshotRepository as WorkflowSnapshotRepository,
     WorkflowProvider,
@@ -122,6 +127,11 @@ def test_full_run_a_freezes_exact_manifest(monkeypatch, tmp_path) -> None:
     assert protocol["evidence_counts"] == {"A": 76, "B": 17, "C": 35, "D": 3}
     assert protocol["domain_schema_version"] == "local-top-level-domain-schema-v2"
     assert protocol["content_type_schema_version"] == "content-type-local-schema-v2"
+    assert protocol["protocol_version"] == "full-discovery-run-a-v3"
+    assert protocol["content_type_consolidation_max_tokens"] == 8192
+    assert protocol["domain_consolidation_token_policy"] == (
+        DOMAIN_CONSOLIDATION_TOKEN_POLICY
+    )
     assert protocol["git_commit"] == "commit-hash"
     assert json.loads(
         (tmp_path / "runs" / "run-000042" / "run-manifest.json").read_text()
@@ -162,10 +172,25 @@ def test_full_run_a_cli_accepts_explicit_reuse_source() -> None:
             "profile-corpus",
             "--reuse-from-run-id",
             "10",
+            "--reuse-content-type-consolidation-from-run-id",
+            "11",
         ]
     )
 
     assert arguments.reuse_from_run_id == 10
+    assert arguments.reuse_content_type_consolidation_from_run_id == 11
+
+
+def test_domain_consolidation_budget_is_candidate_scaled_and_bounded() -> None:
+    assert _domain_consolidation_max_tokens(
+        DOMAIN_CONSOLIDATION_TOKEN_POLICY, candidate_count=0
+    ) == 16384
+    assert _domain_consolidation_max_tokens(
+        DOMAIN_CONSOLIDATION_TOKEN_POLICY, candidate_count=42
+    ) == 19456
+    assert _domain_consolidation_max_tokens(
+        DOMAIN_CONSOLIDATION_TOKEN_POLICY, candidate_count=1000
+    ) == 24576
 
 
 def _local(name: str, parent: str, ids: list[str], ordinal: int):
@@ -498,7 +523,9 @@ def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
         "providers": {
             "taxonomy_local": provider_contract,
             "taxonomy_content_type": provider_contract,
+            "taxonomy_content_type_global": provider_contract,
         },
+        "content_type_consolidation_max_tokens": 8192,
     }
     selected = [f"C{index:03d}" for index in range(1, 41)]
     source_run_id = workflow.create_run(
@@ -511,9 +538,17 @@ def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
     )
     assert workflow.execute(source_run_id)["run"]["status"] == "completed"
     source_stages_before = repository.list_stages(source_run_id)
-    calls_before = (provider.local_calls, provider.content_type_calls)
+    calls_before = (
+        provider.local_calls,
+        provider.content_type_calls,
+        provider.content_type_consolidation_calls,
+    )
 
-    target_protocol = {**protocol, "reuse_from_run_id": source_run_id}
+    target_protocol = {
+        **protocol,
+        "reuse_from_run_id": source_run_id,
+        "reuse_content_type_consolidation_from_run_id": source_run_id,
+    }
     target_run_id = workflow.create_run(
         snapshot_id=snapshot_id,
         seed=73,
@@ -525,7 +560,11 @@ def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
     result = workflow.execute(target_run_id)
 
     assert result["run"]["status"] == "completed"
-    assert (provider.local_calls, provider.content_type_calls) == calls_before
+    assert (
+        provider.local_calls,
+        provider.content_type_calls,
+        provider.content_type_consolidation_calls,
+    ) == calls_before
     reused = [
         item
         for item in result["stages"]
@@ -546,3 +585,17 @@ def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
     assert all(item["source_input_hash"] for item in lineage["stages"])
     assert all(item["source_output_hash"] for item in lineage["stages"])
     assert repository.list_stages(source_run_id) == source_stages_before
+    consolidation = next(
+        item
+        for item in result["stages"]
+        if item["stage_name"] == "content_type_consolidation"
+    )
+    assert consolidation["attempt_count"] == 0
+    consolidation_lineage = json.loads(
+        (
+            workflow.output_dir
+            / f"run-{target_run_id:06d}"
+            / "reused-consolidation-lineage.json"
+        ).read_text()
+    )
+    assert consolidation_lineage["reused_from_run_id"] == source_run_id
