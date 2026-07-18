@@ -13,6 +13,7 @@ from shiliu.llm import OpenAICompatibleProvider, parse_json_content
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
+JSON_REPAIR_PROMPT_VERSION = "json-repair-v2-audited-semantic-selection"
 
 
 class AuditedJsonCaller(Generic[SchemaT]):
@@ -336,7 +337,9 @@ class AuditedJsonCaller(Generic[SchemaT]):
     ) -> tuple[SchemaT, dict[str, Any]]:
         prompt = (
             "你是 JSON Repair 工具。只修正下面原始响应的 JSON 语法和结构，不补充原始语料中"
-            "不存在的事实。只输出修复后的 JSON。\n\n"
+            "不存在的事实。必须逐项遵守校验错误中的数值上限。若列表超过预算，不得按输出顺序"
+            "静默截断；应按内容中心性、置信度和证据强度保留允许数量，其余视为可审计的"
+            "semantic_selection。不得重新执行原任务。只输出修复后的 JSON。\n\n"
             f"精简 Schema：\n{schema_hint}\n\n"
             f"校验错误（已截断为修复所需摘要）：\n{validation_error[:3500]}\n\n"
             f"原始响应：\n{raw}"
@@ -366,6 +369,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
         repair_prompt_path.write_text(prompt, encoding="utf-8")
         repair_audit: dict[str, Any] = {
             "status": "requesting",
+            "prompt_version": JSON_REPAIR_PROMPT_VERSION,
             "model": self.repair_provider.model,
             "input_chars": len(prompt),
             "prompt_path": repair_prompt_path.name,
