@@ -212,3 +212,43 @@ def test_replication_plan_locks_contract_and_only_allows_frozen_differences():
     assert set(plan["allowed_differences"]) == {"seed", "card_order", "local_batch_members", "candidate_order", "routing_batch_members", "run_id", "timestamps"}
     gate["status"] = "FAIL"
     assert service._replication_plan(protocol, gate)["replication_eligible"] is False
+
+
+def test_gate_audits_local_repair_budget_and_length(tmp_path: Path):
+    service = object.__new__(DomainConsolidationV2Service)
+    audit_dir = tmp_path / "domain_local_discovery" / "batch-001" / "attempt-01"
+    audit_dir.mkdir(parents=True)
+    (audit_dir / "audit.json").write_text(json.dumps({"repair": {"status": "completed"}}))
+    (audit_dir / "repair-semantic-diff.json").write_text(json.dumps({"events": [{"kind": "selection"}]}))
+    candidates = _candidates(2)
+    decisions = _routing(["nc_001", "nc_002"]).model_dump(mode="json")["candidate_decisions"]
+    contract = {
+        "version": "domain-evidence-contract-v2",
+        "adapter_version": "domain-evidence-contract-v2-adapter-v1",
+        "nodes": [{"node_id": "c1_d_01", "evidence_pool_ids": ["C001"]}],
+    }
+    gate = service._gate(
+        protocol={"semantic_contract_hash": semantic_contract_hash()},
+        candidates=candidates,
+        decisions=decisions,
+        tree=_tree(),
+        contract=contract,
+        hierarchy={"blocking": [], "warnings": []},
+        unresolved={"count": 0, "rate": 0.0, "multi_evidence_count": 0, "high_confidence_count": 0,
+                    "supporting_id_count": 0, "proposals": []},
+        run_dir=tmp_path,
+        node_audit={
+            "finish_reason": "length",
+            "repair": None,
+            "parameters": {"max_tokens": 100},
+            "usage": {"completion_tokens": 90, "completion_tokens_details": {"reasoning_tokens": 9000}},
+        },
+    )
+    assert gate["status"] == "FAIL"
+    assert {item["code"] for item in gate["blocking"]} == {"node_synthesis_length"}
+    assert {
+        "local_discovery_repair_used", "local_repair_semantic_selection",
+        "node_output_budget_margin_low", "node_reasoning_tokens_high", "low_support_nodes",
+    } <= {item["code"] for item in gate["warnings"]}
+    assert gate["metrics"]["local_repair_count"] == 1
+    assert gate["metrics"]["node_completion_budget_ratio"] == 0.9

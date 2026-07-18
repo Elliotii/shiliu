@@ -603,6 +603,14 @@ class DomainConsolidationV2Service:
             blocking.append({"code": "systematic_unresolved_gap", "details": [unresolved["multi_evidence_count"]]})
         repair_count = 0
         semantic_changes = 0
+        local_repair_count = 0
+        local_semantic_changes = 0
+        for audit_path in run_dir.glob("domain_local_discovery/*/attempt-01/audit.json"):
+            audit = json.loads(audit_path.read_text())
+            local_repair_count += int(audit.get("repair") is not None)
+            diff_path = audit_path.parent / "repair-semantic-diff.json"
+            if diff_path.is_file():
+                local_semantic_changes += len(json.loads(diff_path.read_text()).get("events") or [])
         for audit_path in run_dir.glob("candidate_routing/*/attempt-01/audit.json"):
             audit = json.loads(audit_path.read_text())
             repair_count += int(audit.get("repair") is not None)
@@ -611,12 +619,31 @@ class DomainConsolidationV2Service:
                 semantic_changes += int(json.loads(diff_path.read_text()).get("semantic_change_count") or 0)
         if node_audit.get("repair") is not None:
             warnings.append({"code": "node_synthesis_repair_used", "details": [1]})
+        if local_repair_count:
+            warnings.append({"code": "local_discovery_repair_used", "details": [local_repair_count]})
+        if local_semantic_changes:
+            warnings.append({"code": "local_repair_semantic_selection", "details": [local_semantic_changes]})
         if repair_count:
             warnings.append({"code": "routing_repair_used", "details": [repair_count]})
         if semantic_changes:
             warnings.append({"code": "repair_semantic_changes", "details": [semantic_changes]})
         if unresolved["count"]:
             warnings.append({"code": "unresolved_candidates", "details": [unresolved["count"]]})
+        node_usage = node_audit.get("usage") or {}
+        node_completion = int(node_usage.get("completion_tokens") or 0)
+        node_budget = int((node_audit.get("parameters") or {}).get("max_tokens") or 0)
+        node_ratio = node_completion / node_budget if node_budget else 0
+        if node_ratio >= 0.80:
+            warnings.append({"code": "node_output_budget_margin_low", "details": [round(node_ratio, 4)]})
+        node_reasoning = int(((node_usage.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0))
+        if node_reasoning >= 8000:
+            warnings.append({"code": "node_reasoning_tokens_high", "details": [node_reasoning]})
+        low_support = [item["node_id"] for item in contract["nodes"] if len(item["evidence_pool_ids"]) <= 2]
+        if low_support:
+            warnings.append({"code": "low_support_nodes", "details": low_support})
+        large_pools = [item["node_id"] for item in contract["nodes"] if len(item["evidence_pool_ids"]) > 32]
+        if large_pools:
+            warnings.append({"code": "large_evidence_pools", "details": large_pools})
         status = "FAIL" if blocking else ("PASS_WITH_CHANGES" if warnings else "PASS")
         return {
             "version": RUN_C1_GATE_VERSION, "status": status,
@@ -629,6 +656,10 @@ class DomainConsolidationV2Service:
                 "routing_batch_count": len(deterministic_routing_batches(candidates)),
                 "routing_repair_count": repair_count,
                 "repair_semantic_change_count": semantic_changes,
+                "local_repair_count": local_repair_count,
+                "local_repair_semantic_change_count": local_semantic_changes,
+                "node_completion_budget_ratio": round(node_ratio, 6),
+                "node_reasoning_tokens": node_reasoning,
                 **{f"unresolved_{key}": value for key, value in unresolved.items() if key != "proposals"},
             },
         }
