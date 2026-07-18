@@ -2,7 +2,7 @@
 
 ```yaml
 mission: V3 Domain Taxonomy Completion
-current_milestone: M5_domain_draft_a_frozen_before_trial_assignment
+current_milestone: M5_domain_draft_a_semantic_frozen_engineering_hold
 run_id: 24
 completed_milestones:
   - M0_mission_bootstrap
@@ -82,6 +82,16 @@ current_metrics:
   draft_a_hierarchy_blocking: 0
   draft_a_dimension_leakage: 0
   draft_a_hierarchy_revision: not_required
+  draft_a_semantic_freeze: FROZEN
+  draft_a_engineering_gate: BLOCKED_BEFORE_TRIAL_ASSIGNMENT
+  draft_a_provider_responses: 4
+  draft_a_primary_responses: 2
+  draft_a_repair_responses: 2
+  draft_a_unknown_usage_responses: 1
+  draft_a_repair_semantic_changes: 0
+  draft_a_direct_source_clusters: 26
+  draft_a_direct_source_duplicates: 0
+  trial_assignment_eligible: false
 last_provider_call: domain_draft_a_json_repair_concurrent_recovery
 provider_cost:
   scope: M1_through_M5_known_minimum_including_failures_and_repairs
@@ -90,15 +100,16 @@ provider_cost:
   reasoning_tokens: 104981
   elapsed_seconds: 2622.666
   unknown_usage_responses: 1
-last_validation: full_suite_273_passed
+last_validation: full_suite_276_passed
 last_git_commit_before_checkpoint: 287554a_feat_review_and_freeze_M3_domain_alignment
 open_blockers: []
-next_action: M6_trial_assignment_allowed_but_not_started
+next_action: implement_and_test_single_flight_attempt_lease_before_M6
 ```
 
 ## Runtime discipline
 
-- Domain Completion Run #24 已完成 M1–M5，当前停在 `waiting_for_review / domain_draft_a_frozen_before_trial_assignment`。
+- Domain Completion Run #24 已完成 M1–M5 的语义冻结，当前停在 `waiting_for_review / domain_draft_a_frozen_engineering_hold_before_trial_assignment`。
+- Draft A 语义 Gate 已通过，但工程 Gate 因缺少 single-flight / attempt lease 而阻塞；M6 当前不可启动。
 - 历史 Run A/B/C1 及 Snapshot #2 保持只读。
 - C2 明确禁用。
 - Silver Reference 不得读取。
@@ -145,6 +156,9 @@ next_action: M6_trial_assignment_allowed_but_not_started
 - Draft A：25 个节点；20 个顶层、5 个二级；19 probable、1 weak、5 uncertain、0 stable。
 - 确定性 Gate：0 Blocking；Complexity 为 `CONCERN`，主要因 `root_share=0.8` 与 `node/eligible-cluster ratio=0.806452`。
 - 独立 Hierarchy Reviewer：`PASS_WITH_CONCERNS`、0 Blocking、0 Dimension Leakage；没有要求 Revision，因此按边界不执行 Hierarchy Revision。
-- Run #24 已冻结在 `waiting_for_review / domain_draft_a_frozen_before_trial_assignment`；Trial Assignment 没有启动。
-- Draft Hash：`be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`；Tree Hash：`a19ffd72ebf4c9f83a7e203130b0c192058523085bf29d12e090eaf4549cfbff`。
-- 并发恢复异常导致实际 Provider 调用超过计划：已知至少 2 Primary + 2 Repair Response；最小 usage 46,800 input、42,128 output、14,481 reasoning、560.049 秒，另有 1 个 Repair usage unknown。冻结后禁止追加调用。
+- Run #24 已冻结在 `waiting_for_review / domain_draft_a_frozen_engineering_hold_before_trial_assignment`；Trial Assignment 没有启动且当前不具备启动资格。
+- Canonical Draft v3 Hash：`42f6a9f0e08cd756951da4a1854c2ada6a362a8b6d4646b945379e6019c3c937`；Tree Hash：`c54054e04f1ebbd9eec1307d369525f3f34427c6e82a2205a2ffc730b687a281`。
+- 并发事故正式记录为 Blocking Engineering Finding：2 Primary + 2 Repair Response；最小 usage 46,800 input、42,128 output、14,481 reasoning、560.049 秒，另有 1 个 Repair usage unknown。四份 raw、response ID、usage 与 hash 均进入 Response Ledger。
+- Primary→最终 Repair 逐字段 Diff 经同一独立 Reviewer 确认：25 个 ID 规范化、5 个父引用同步、2 个有序超限截断，语义变化 0。
+- Frozen v3 已将来源拆为 26 个唯一 `direct_source_cluster_ids` 与确定性派生的 `scope_source_cluster_ids`；父子共享只通过 scope 聚合表达。
+- `ENG-DRAFT-A-002` single-flight / attempt lease 仍为 Trial Assignment 前 Blocking Engineering Debt。

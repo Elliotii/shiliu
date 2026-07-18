@@ -240,3 +240,42 @@ review_status
 - `risk`: 当前树可能对浏览偏细；若 Assignment 显示持续混淆或空节点，再在后续 Diagnosis 中提出受限 Revision。
 - `provider_source`: independent read-only hierarchy review, provider_call_count=0
 - `review_status`: accepted_PASS_WITH_CONCERNS
+
+### D017 — Record the Draft A concurrent calls as a Blocking Engineering Finding
+
+- `stage`: domain_draft_a_engineering_audit
+- `affected_nodes`: Draft A Synthesis attempt lifecycle，不改变任何 Taxonomy 节点。
+- `before`: 并发恢复曾被概括为一次主调用和 Repair，且第一份 Repair 被误记为覆盖丢失。
+- `after`: 正式 Response Ledger 记录 2 个 Primary、2 个 Repair、1 个 unknown usage；四份 Raw 均保存 response ID、真实路径、usage、SHA256 与是否最终采用。
+- `evidence`: `domain-draft-a-response-ledger.json`；最终选择 `b928a44f…`，对应 25 节点 Primary 链；33 节点链仍为 validation failed。
+- `reason`: 不能把重复请求造成的成本和恢复风险包装成正常单次调用。
+- `alternatives_considered`: 只采用数据库 Stage Row；拒绝，该 Row 低估真实调用。继续把第一份 Repair 写成 overwritten；拒绝，`repair-raw-response-02.txt` 实际仍在。
+- `risk`: 没有原子 single-flight / attempt lease 时，后续批量 Assignment 可再次重复扣费和覆盖审计路径。
+- `provider_source`: audit only, provider_call_count=0
+- `review_status`: blocking_engineering_finding_recorded
+
+### D018 — Split direct provenance from derived scope provenance
+
+- `stage`: domain_draft_a_freeze_v3
+- `affected_nodes`: 全部 25 个 Draft A 节点。
+- `before`: `source_cluster_ids` 同时表示节点直接消费和父节点聚合范围；父子共享曾通过放宽唯一性表达。
+- `after`: Canonical v3 使用 `direct_source_cluster_ids` 与 `scope_source_cluster_ids`；26 个 Direct Cluster 全局唯一，父级 Scope 只能由自身 Direct 与子孙 Scope 确定性并集得到。
+- `evidence`: Direct count 26、unique count 26；只有 `draft_001` 与 `draft_006` 存在父级 scope 聚合；结构 Gate 重算为 PASS。
+- `reason`: 唯一消费约束应落在直接语义来源，父级浏览范围不能伪装成重复直接消费。
+- `alternatives_considered`: 继续允许父子重复 `source_cluster_ids`；拒绝。延后到 Assignment 前；可行但本轮可确定性迁移，无需留下该债务。
+- `risk`: 未来任何层级修改都必须重新派生 Scope，禁止手写 Scope 绕过 Direct 唯一性。
+- `provider_source`: deterministic local migration, provider_call_count=0
+- `review_status`: accepted_gate_recomputed
+
+### D019 — Freeze semantics while blocking Trial Assignment on single-flight debt
+
+- `stage`: domain_draft_a_final_freeze
+- `affected_nodes`: Run #24 状态机与下一阶段入口。
+- `before`: Draft A 语义与 Hierarchy Gate 已通过，但并发事故根因尚无代码级防护。
+- `after`: `semantic_freeze_status=FROZEN`；`engineering_gate=BLOCKED_BEFORE_TRIAL_ASSIGNMENT`；`trial_assignment_eligible=false`；下一阶段改为 `single_flight_attempt_lease_remediation`。
+- `evidence`: Reviewer 原始输入 SHA256 `7569a69c…`、原始输出 SHA256 `38e6b626…`、usage unknown/provider call 0 均落盘；Freeze 独立重算 Gate，不读取手写布尔值。
+- `reason`: 语义产物可冻结，但不得在已知重复调用风险未修复时启动 131 条批量 Assignment。
+- `alternatives_considered`: 直接进入 M6；拒绝。撤销全部语义结果；拒绝，工程事故不否定已独立复核的语义树。
+- `risk`: single-flight / lease 未完成前 Run 只能停在工程 Hold。
+- `provider_source`: local freeze audit + independent reviewer evidence, provider_call_count=0
+- `review_status`: semantic_PASS_engineering_BLOCKED

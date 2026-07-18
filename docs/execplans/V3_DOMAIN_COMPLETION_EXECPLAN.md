@@ -164,7 +164,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [ ] M8 Revision。
 - [ ] M9 Draft B / Final Review。
 
-当前停止点：Run #24 为 `waiting_for_review / domain_draft_a_frozen_before_trial_assignment`。Draft A 已冻结，允许的下一阶段是 M6 Trial Assignment，但本轮按任务边界尚未启动。
+当前停止点：Run #24 为 `waiting_for_review / domain_draft_a_frozen_engineering_hold_before_trial_assignment`。Draft A 已完成语义冻结，但 M6 仍被 single-flight / attempt lease 工程债务阻塞；下一动作必须先完成该工程修复与并发测试，不得直接启动 Trial Assignment。
 
 ## M1 completion note
 
@@ -211,4 +211,9 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - 独立 Hierarchy Reviewer：`PASS_WITH_CONCERNS`、0 Blocking、0 Dimension Leakage；强制压缩会引入无来源父域，因此不执行 Hierarchy Revision，把复杂度验证留给 Trial Assignment。
 - Draft A Frozen Hash：`be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`；Tree Hash：`a19ffd72ebf4c9f83a7e203130b0c192058523085bf29d12e090eaf4549cfbff`。
 - 调用恢复出现并发异常：已确认至少 2 次 Primary + 2 次 Repair Response；已知最小 usage 为 46,800 input、42,128 output、14,481 reasoning、560.049 秒，另有 1 个 Repair Response 的 usage 无法恢复。没有再发起 Provider 调用。
+- 并发事故已升级为正式 Blocking Engineering Finding，而不是正常一次调用；四份 Raw Response 均保存 response ID、路径、usage 和 SHA256。
+- Primary→最终 Repair 逐字段 Diff 经同一独立 Reviewer 复核，32 处变化仅为 25 个 ID 规范化、5 个父引用同步和 2 个有序超限截断；语义变化为 0。
+- Frozen Schema v3 不再混用 `source_cluster_ids`：26 个 Cluster 由 `direct_source_cluster_ids` 唯一消费，父节点只通过确定性 `scope_source_cluster_ids` 聚合子域来源。
+- Freeze 每次独立重算 provenance、direct/scope、结构 Gate 和 Reviewer 原始输入/输出 Hash，不信任手写 `freeze_eligible`。
+- `ENG-DRAFT-A-002`：Trial Assignment 前必须实现原子 single-flight / attempt lease；第二个进程看到未过期的 `requesting` lease 时不得重发。该项未完成前 `trial_assignment_eligible=false`。
 - 正式报告：`reports/V3_M3_REVIEW_AND_DOMAIN_DRAFT_A_2026-07-19.md`。

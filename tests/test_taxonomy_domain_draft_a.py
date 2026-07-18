@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 import pytest
 
 from shiliu.domain import PipelineError
@@ -7,10 +10,14 @@ from shiliu.taxonomy.domain_draft_a import (
     DomainDraftA,
     build_domain_draft_a_budget_preflight,
     build_domain_draft_a_prompt,
+    build_domain_draft_a_semantic_diff,
+    derive_frozen_domain_draft_a,
     evaluate_domain_draft_a,
     freeze_domain_draft_a,
     record_domain_draft_a_hierarchy_review,
     validate_domain_draft_a,
+    validate_frozen_domain_draft_a,
+    validate_hierarchy_review_evidence,
 )
 
 
@@ -160,9 +167,78 @@ def test_domain_draft_a_allows_parent_child_provenance_aggregation_only():
     assert error.value.code == "domain_draft_a_cluster_cross_branch_reused"
 
 
-def test_domain_draft_a_records_review_and_freezes_without_revision(tmp_path):
-    import json
+def test_frozen_domain_draft_a_uses_unique_direct_and_derived_scope_sources():
+    clusters = {"clusters": [_cluster("xc_001"), _cluster("xc_002")]}
+    frozen = derive_frozen_domain_draft_a(_draft())
 
+    validate_frozen_domain_draft_a(frozen, final_clusters=clusters)
+
+    root, child = frozen.nodes
+    assert root.direct_source_cluster_ids == ["xc_001"]
+    assert set(root.scope_source_cluster_ids) == {"xc_001", "xc_002"}
+    assert child.direct_source_cluster_ids == ["xc_002"]
+    child.direct_source_cluster_ids = ["xc_001", "xc_002"]
+    with pytest.raises(PipelineError) as error:
+        validate_frozen_domain_draft_a(frozen, final_clusters=clusters)
+    assert error.value.code == "domain_draft_a_direct_cluster_reused"
+
+
+def test_domain_draft_a_semantic_diff_distinguishes_structural_repair():
+    primary = _draft().model_dump(mode="json")
+    primary["nodes"][0]["draft_node_id"] = "d01"
+    primary["nodes"][1]["parent_id"] = "d01"
+    primary["nodes"][0]["representative_ids"] = ["C001", "C101", "C999"]
+    final = _draft().model_dump(mode="json")
+
+    diff = build_domain_draft_a_semantic_diff(
+        primary=primary, final_repair=final,
+        primary_sha256="primary", final_repair_sha256="repair",
+    )
+
+    assert diff["semantic_change_count"] == 0
+    assert diff["allowed_change_counts"] == {
+        "id_normalization": 1,
+        "ordered_overflow_truncation": 1,
+        "reference_sync": 1,
+    }
+    final["nodes"][0]["definition"] = "changed semantics"
+    changed = build_domain_draft_a_semantic_diff(
+        primary=primary, final_repair=final,
+        primary_sha256="primary", final_repair_sha256="repair",
+    )
+    assert changed["semantic_change_count"] == 1
+    assert changed["semantic_changes_requiring_reviewer"][0]["field"] == (
+        "definition"
+    )
+
+
+def test_hierarchy_freeze_gate_recomputes_raw_reviewer_verdict(tmp_path):
+    bundle = tmp_path / "domain-draft-a-hierarchy-review-bundle.json"
+    output = tmp_path / "domain-draft-a-hierarchy-review-raw-output.json"
+    bundle.write_text("{}", encoding="utf-8")
+    output.write_text(json.dumps({
+        "verdict": "FAIL",
+        "blocking_findings": [{"id": "blocking"}],
+        "dimension_leakage_count": 0,
+        "freeze_eligible": True,
+    }), encoding="utf-8")
+    file_hash = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    (tmp_path / "domain-draft-a-hierarchy-review-provenance.json").write_text(
+        json.dumps({
+            "input_sha256": file_hash(bundle),
+            "output_sha256": file_hash(output),
+            "provider_call_count": 0,
+            "usage": None,
+        }),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(PipelineError) as error:
+        validate_hierarchy_review_evidence(tmp_path)
+    assert error.value.code == "domain_draft_a_reviewer_gate_failed"
+
+
+def test_domain_draft_a_records_review_and_freezes_without_revision(tmp_path):
     draft = _draft()
     clusters = {"clusters": [_cluster("xc_001"), _cluster("xc_002")]}
     (tmp_path / "domain-draft-a.provider-draft.json").write_text(
@@ -174,8 +250,7 @@ def test_domain_draft_a_records_review_and_freezes_without_revision(tmp_path):
     (tmp_path / "domain-draft-a-hierarchy-review-bundle.json").write_text(
         json.dumps({"draft": draft.model_dump(mode="json")}), encoding="utf-8",
     )
-    (tmp_path / "domain-draft-a-concurrency-audit.json").write_text(
-        json.dumps({
+    concurrency = {
             "known_minimum_usage": {
                 "prompt_tokens": 100,
                 "completion_tokens": 50,
@@ -183,24 +258,73 @@ def test_domain_draft_a_records_review_and_freezes_without_revision(tmp_path):
                 "elapsed_seconds": 10.0,
             },
             "unknown_usage_response_count": 1,
-        }),
+            "cause": "test concurrent recovery",
+            "responses": [
+                {"response_id": "565fc77e-8e36-4135-a2f7-f11f3b51c167", "kind": "primary", "usage": {"prompt_tokens": 25}},
+                {"response_id": "16cfca4b-8de1-4fc7-9e59-0b5645dad2aa", "kind": "primary", "usage": {"prompt_tokens": 25}},
+                {"response_id": "77dca950-2877-4dcc-a54b-726e869bad4a", "kind": "json_repair", "usage": {"prompt_tokens": 10}},
+                {"response_id": "b928a44f-fef2-4143-9e3d-c67f7f362834", "kind": "json_repair", "usage": None},
+            ],
+        }
+    (tmp_path / "domain-draft-a-concurrency-audit.json").write_text(
+        json.dumps(concurrency),
         encoding="utf-8",
     )
-    review = record_domain_draft_a_hierarchy_review(tmp_path, {
+    raw_review = {
         "verdict": "PASS_WITH_CONCERNS",
         "blocking_findings": [],
         "non_blocking_concerns": ["树较扁平，留待 Trial Assignment 验证。"],
         "required_revisions": [],
         "dimension_leakage_count": 0,
-    })
+    }
+    review = record_domain_draft_a_hierarchy_review(tmp_path, raw_review)
+    raw_review_path = tmp_path / "domain-draft-a-hierarchy-review-raw-output.json"
+    raw_review_path.write_text(json.dumps(raw_review), encoding="utf-8")
+    bundle_path = tmp_path / "domain-draft-a-hierarchy-review-bundle.json"
+    file_hash = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    (tmp_path / "domain-draft-a-hierarchy-review-provenance.json").write_text(
+        json.dumps({
+            "input_sha256": file_hash(bundle_path),
+            "output_sha256": file_hash(raw_review_path),
+            "provider_call_count": 0,
+            "usage": None,
+        }),
+        encoding="utf-8",
+    )
+    diff_path = tmp_path / "domain-draft-a-primary-to-final-repair-diff.json"
+    diff_path.write_text(
+        json.dumps({"semantic_change_count": 0}), encoding="utf-8",
+    )
+    (tmp_path / "domain-draft-a-repair-diff-review.json").write_text(
+        json.dumps({
+            "verdict": "CONFIRMED_NO_SEMANTIC_CHANGE",
+            "diff_sha256": file_hash(diff_path),
+        }),
+        encoding="utf-8",
+    )
+    call_dir = tmp_path / "domain_draft_a_synthesis" / "main" / "attempt-01"
+    call_dir.mkdir(parents=True)
+    for name in (
+        "raw-response.txt", "raw-response-02.txt",
+        "repair-raw-response-02.txt", "repair-raw-response.txt",
+    ):
+        (call_dir / name).write_text("{}", encoding="utf-8")
 
     manifest = freeze_domain_draft_a(tmp_path)
 
     assert review["freeze_eligible"] is True
     assert manifest["hierarchy_revision"] == "not_required"
     assert manifest["trial_assignment_started"] is False
+    assert manifest["trial_assignment_eligible"] is False
+    assert manifest["engineering_gate"] == "BLOCKED_BEFORE_TRIAL_ASSIGNMENT"
     assert manifest["provider_usage_unknown_response_count"] == 1
     assert (tmp_path / "domain-draft-a.json").is_file()
+    frozen = json.loads((tmp_path / "domain-draft-a.json").read_text())
+    assert frozen["nodes"][0]["direct_source_cluster_ids"] == ["xc_001"]
+    assert set(frozen["nodes"][0]["scope_source_cluster_ids"]) == {
+        "xc_001", "xc_002",
+    }
+    assert "source_cluster_ids" not in frozen["nodes"][0]
     assert (tmp_path / "domain-draft-a-tree.md").is_file()
     assert json.loads(
         (tmp_path / "domain-draft-a-hierarchy-revision.json").read_text()

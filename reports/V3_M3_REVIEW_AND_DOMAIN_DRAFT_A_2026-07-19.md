@@ -10,7 +10,7 @@
 
 本轮按恢复任务完成 M3 独立语义复核、一次 Reviewer-bounded Alignment Revision、M3 Freeze、Domain Draft A Synthesis、Complexity Gate、独立 Hierarchy Review 和 Draft A Freeze。
 
-最终判定为 `PASS_WITH_CONCERNS`：M3 与 Draft A 均无 Blocking，允许下一阶段进入 Trial Assignment；本轮没有启动 Trial Assignment、Eval、Draft B、C2，也没有重跑 A/B/C1 或 M3 八个批次。
+语义判定为 `PASS_WITH_CONCERNS`：M3 与 Draft A 均无语义 Blocking。工程判定为 `BLOCKED_BEFORE_TRIAL_ASSIGNMENT`：并发事故已正式记录，single-flight / attempt lease 尚未实现，因此当前不允许进入 Trial Assignment。本轮没有启动 Trial Assignment、Eval、Draft B、C2，也没有重跑 A/B/C1 或 M3 八个批次。
 
 ## Run #24 恢复与输入边界
 
@@ -78,8 +78,10 @@ M3 Engineering Gate、Revision Gate 与第二次独立复核全部满足冻结�
 - 25 节点：20 顶层、5 二级；最大深度 2。
 - 19 probable、1 weak、5 uncertain、0 stable。
 - 26 个 Cluster 进入节点；5 个 uncertain Cluster 以 `excluded pending evidence` 保留。
-- Draft Hash：`be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`。
-- Tree Hash：`a19ffd72ebf4c9f83a7e203130b0c192058523085bf29d12e090eaf4549cfbff`。
+- Provider Draft v2 Hash：`be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`。
+- Canonical Frozen Draft v3 Hash：`42f6a9f0e08cd756951da4a1854c2ada6a362a8b6d4646b945379e6019c3c937`。
+- Frozen Tree Hash：`c54054e04f1ebbd9eec1307d369525f3f34427c6e82a2205a2ffc730b687a281`。
+- Frozen v3 将来源拆为 26 个全局唯一的 `direct_source_cluster_ids` 与确定性派生的 `scope_source_cluster_ids`；`draft_001` 和 `draft_006` 的父级来源聚合只存在于 Scope，不再重复直接消费。
 
 ### Draft A Tree
 
@@ -135,7 +137,7 @@ Reviewer 没有要求 Revision。任务规则只允许为 Blocking 做一次层�
 
 ## Provider usage 与并发恢复异常
 
-Draft A 原计划为 1 次 Primary + 最多 1 次 JSON Repair。长请求恢复期间，两个恢复进程在较早请求尚未落盘时进入同一 attempt，最终收到 2 个 Primary 与 2 个 Repair Response。原始响应均有审计记录，但通用单文件 Repair 路径使较晚 Repair 覆盖了第一份 Repair raw。
+Draft A 原计划为 1 次 Primary + 最多 1 次 JSON Repair。长请求恢复期间，两个恢复进程在较早请求尚未落盘时进入同一 attempt，最终收到 2 个 Primary 与 2 个 Repair Response。这不是一次正常调用，而是正式的 Blocking Engineering Finding。后续审计确认四份 Raw 均仍存在；此前“第一份 Repair 被覆盖”的说法不准确，第一份 Repair 实际保存为 `repair-raw-response-02.txt`。
 
 | Response | 类型 | Prompt | Completion | Reasoning | Cached Prompt | 耗时 |
 |---|---|---:|---:|---:|---:|---:|
@@ -146,22 +148,57 @@ Draft A 原计划为 1 次 Primary + 最多 1 次 JSON Repair。长请求恢复�
 
 可确认的最小合计：46,800 prompt、42,128 completion、14,481 reasoning tokens、560.049 秒；另有一个 Repair Response 的 usage 无法恢复，因此这不是完整上限。数据库 Stage Row 只覆盖其中部分调用，正式报告以 concurrency audit 的“已知最小值 + 1 个 unknown response”为准。
 
-最终接受的是第二个 Repair Response。它在修正本地 Validator 的一条过严规则后直接通过：父子节点可以共享来源 Cluster 作为聚合 provenance，但无关分支不能重复消费同一 Cluster。该恢复没有新增 Provider 调用，也没有修改 Draft 语义。
+最终接受的是第二个 Repair Response。该恢复没有新增 Provider 调用，也没有修改 Draft 语义。此前临时 Validator 通过“允许父子共享 `source_cluster_ids`”解决聚合来源问题；最终冻结不保留这一放宽，而是迁移为唯一 Direct 来源与确定性 Scope 聚合。
+
+### Response Ledger
+
+| Response ID | 类型 | Raw path | Raw SHA256 | 采用 |
+|---|---|---|---|---|
+| `565fc77e…` | Primary | `raw-response.txt` | `5765791e522f0e994ed17147488484cbb8956b2ba7cea0d37fa9edb13c524a47` | 否 |
+| `16cfca4b…` | Primary | `raw-response-02.txt` | `7c50ce518b4085fe03fb3dcedfb4e2f917c2539c77059ce69ef67cad715b928c` | 否 |
+| `77dca950…` | Repair | `repair-raw-response-02.txt` | `1d6ea3bfe50d76c11ef293c366c9db78d35bbab34e90412815ac811a55f30e9d` | 否 |
+| `b928a44f…` | Repair | `repair-raw-response.txt` | `bf640e64804486cef55911a02dde08b3701058f10801c0ede51d5f7122d8ba4c` | 是 |
+
+最终选择理由：`b928a44f…` 属于 25 节点 Primary 链，修复后保持原语义并通过 Schema；另一条 33 节点链在 Repair 后仍校验失败。
+
+### Primary → Final Repair Semantic Diff
+
+机器 Diff SHA256：`d4b0f47f7654707b1b209986d1422774b71e6902e3f5aa524b868db09d08a9f1`。
+
+- 25 个 `draft_node_id` 规范化；
+- 5 个 `parent_id` 引用同步；
+- 2 个有序超限截断：一处 representative IDs 9→8，一处 includes 10→8；
+- 节点数、名称、definition、status、Cluster 成员、Candidate、Evidence、excluded Cluster 均未变化；
+- `semantic_change_count=0`。
+
+同一位独立 Hierarchy Reviewer 对照两份 Raw 与 Diff 后给出 `CONFIRMED_NO_SEMANTIC_CHANGE`；Review SHA256 `c76ed62fb1d8dcf55853ed9062c8a3f902a3da566693fae1aafc5d4c9cb9301f`，Provider 调用 0，usage unknown。
+
+## Reviewer 原始证据与 Freeze 重算
+
+- Reviewer 原始输入：`domain-draft-a-hierarchy-review-bundle.json`，SHA256 `7569a69c44d3c8d733ab1705f02a5159800c2f655a2167e85d5113d09e454f94`。
+- Reviewer 原始输出：`domain-draft-a-hierarchy-review-raw-output.json`，SHA256 `38e6b626977e4e19190f330c1cf54a6d4a765107bb5be1b3990ed584e4649bd5`。
+- Reviewer 类型：独立只读 Codex subagent；项目 Provider 调用 0；usage 未暴露，记录为 unknown。
+- Freeze 不信任手写 `freeze_eligible`，而是重新读取并校验原始输入/输出 Hash、原始 verdict、Blocking、Dimension Leakage、Direct 唯一性、Scope 派生、Schema 与结构 Gate。
+
+## Blocking Engineering Debt
+
+`ENG-DRAFT-A-002` 必须在 Trial Assignment 前完成：为同一 `run/stage/unit` 增加原子 single-flight / attempt lease。第二个进程看到状态为 `requesting` 且 lease 未过期时不得重发；过期接管必须保留 attempt history 并使用新的 attempt 目录；并发测试必须证明每个 lease attempt 只有一次 Provider 调用。
 
 ## 验证与提交
 
-- Draft A 定向测试：6 passed。
-- 全量测试：273 passed；仅保留既有 Starlette/httpx deprecation warning。
+- Draft A 定向测试：9 passed。
+- 全量测试：276 passed；仅保留既有 Starlette/httpx deprecation warning。
 - `git diff --check`：通过。
 - M3 Freeze commit：`287554a feat: review and freeze M3 domain alignment`，已推送。
-- Draft A commit：测试通过后在本轮创建并推送（Commit ID 以 Git 历史为准）。
+- Draft A 初始冻结 commit：`1149ba6 feat: synthesize and freeze Domain Draft A`，已推送。
+- 本轮工程审计与 Canonical v3 Freeze：测试通过后创建后续 commit 并推送（Commit ID 以 Git 历史为准）。
 
 ## 停止边界与下一阶段
 
-Run #24 已冻结为：
+Run #24 已完成语义冻结并进入工程 Hold：
 
 ```text
-waiting_for_review / domain_draft_a_frozen_before_trial_assignment
+waiting_for_review / domain_draft_a_frozen_engineering_hold_before_trial_assignment
 ```
 
-下一阶段允许执行 M6 Trial Assignment，但本轮没有启动。需要重点验证：树偏平是否真的妨碍浏览、相邻领域是否产生持续混淆、低支持节点是否获得有效赋值，以及 5 个 excluded Cluster 是否继续保持信息不足。
+下一动作只能是实现并测试 single-flight / attempt lease。完成工程 Gate 前 `trial_assignment_eligible=false`，不得启动 M6。工程 Gate 解除后，Trial Assignment 仍需重点验证：树偏平是否真的妨碍浏览、相邻领域是否产生持续混淆、低支持节点是否获得有效赋值，以及 5 个 excluded Cluster 是否继续保持信息不足。
