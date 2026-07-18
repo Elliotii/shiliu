@@ -188,3 +188,29 @@ review_status
 - `risk`: M3 尚未冻结；后续必须做最小跨 Component Alignment Revision，不能重跑 A/B/C1 或无界重跑全部 M3。
 - `provider_source`: local audit; independent reviewer verdict not_evaluated
 - `review_status`: stopped_for_review
+
+### D013 — Apply one reviewer-bounded M3 Alignment Revision
+
+- `stage`: cross_run_alignment_revision_01
+- `affected_nodes`: 30 个首轮 Reviewer 明确点名的 Cluster。
+- `before`: 65 个 provisional Cluster；首轮独立 Reviewer 为 `FAIL`，7 组 Blocking，包含跨 Component 重复、粒度冲突、维度泄漏和 M2 Topic 的语义旁路复晋升。
+- `after`: 55 个 Cluster；26 Domain Candidate、17 Topic、1 Entity、2 Object、4 Use Context、5 Uncertain；126 / 126 Candidate 唯一覆盖。
+- `evidence`: `m3-independent-semantic-review.json`、`m3-alignment-revision-01.json`、`m3-revision-gate.json`。
+- `reason`: M3 工程完整性不能消除跨 Component 语义重复；用户允许最多一次只针对 Reviewer Blocking 的局部修订。
+- `alternatives_considered`: 重跑八个 Alignment Batch、在 Draft A 中顺便吸收、无界继续修订；均拒绝。
+- `risk`: Agent 核心架构、记忆专项和生产工程仍共享部分术语；Draft A 必须保持语义边界。
+- `provider_source`: deterministic reviewer-directed revision, provider_call_count=0
+- `review_status`: second_reviewer_PASS_WITH_CONCERNS
+
+### D014 — Freeze M3 after the conditional second review
+
+- `stage`: m3_freeze
+- `affected_nodes`: 全部 55 个 Final Cluster 与 126 个 Candidate provenance。
+- `before`: Revision Gate 已通过，但尚未确认首轮 7 个 Blocking 是否逐项消除。
+- `after`: 第二次独立 Reviewer 逐项确认 BF-01…BF-07 已解决，0 Blocking；M3 Frozen。
+- `evidence`: `m3-second-semantic-review.json`、`m3-final-gate.json`、`m3-final-manifest.json`。
+- `reason`: 满足独立复核、126/126 Coverage、M2 repromotion=0、stable=0 和 Engineering Gate=PASS 的全部冻结条件。
+- `alternatives_considered`: 继续清理所有 Concern；拒绝，Concern 应留给 Draft A 与 Trial Assignment 验证。
+- `risk`: 仍保留 weak/uncertain 与非阻断边界问题，不得在 Draft A 提前标记 stable。
+- `provider_source`: independent read-only review, provider_call_count=0
+- `review_status`: accepted_PASS_WITH_CONCERNS

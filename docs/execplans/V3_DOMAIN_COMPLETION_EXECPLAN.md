@@ -156,7 +156,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [x] M0 文档和恢复纪律提交。
 - [x] M1 Contract v2：Run #24，Revision 01，独立复核 `PASS_WITH_CONCERNS`，无 Blocking。
 - [x] M2 unresolved adjudication：13 个来源项去重为 12 组，Revision 01 后独立复核 `PASS_WITH_CONCERNS`，0 Blocking。
-- [~] M3 cross-run alignment：8 / 8 批次和 126 / 126 工程门禁完成；停在独立语义复核前，尚未冻结。
+- [x] M3 cross-run alignment：8 / 8 批次、独立语义复核、单次 Revision 01、第二次复核和 Freeze 已完成。
 - [ ] M4 Draft A。
 - [ ] M5 hierarchy validation。
 - [ ] M6 131 Assignment。
@@ -164,7 +164,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [ ] M8 Revision。
 - [ ] M9 Draft B / Final Review。
 
-当前停止点：Run #24 为 `waiting_for_review / cross_run_alignment_review`。不得直接进入 Draft A；下一次恢复应先完成 M3 独立反例复核，并处理已发现的跨 Component 近重复 Scope 与 Use Context 泄漏风险。
+当前停止点：Run #24 为 `waiting_for_review / m3_frozen`。M3 已满足进入 Draft A 的前置条件；下一动作是只读取 M3 Frozen 产物执行一次 high-thinking Draft A Synthesis。
 
 ## M1 completion note
 
@@ -186,7 +186,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - 第二轮复核：`PASS_WITH_CONCERNS`，0 Blocking。最终 6 个 `merge_into_existing`、6 个 `downgrade_to_topic`、0 个 `create_domain_proposal`。
 - Final payload hash：`c472c4c3c73ef566a7a1afc9b43283b0d617ef4c664afa860eb1d963b7a936e5`。
 
-## M3 execution note — stopped before semantic freeze
+## M3 execution note — frozen after bounded semantic revision
 
 - 输入仍是 A/B/C1 三份带协议 provenance 的独立证据，不是等价随机运行；没有重跑 A/B/C1/C1，也没有读取 Silver。
 - 本地先生成 105 个高召回候选 Pair、42 个 source component；pair score 明确不是语义结论。
@@ -195,7 +195,9 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - 分布：47 `domain_candidate`、16 `non_domain_topic`、1 `non_domain_entity`、1 `uncertain`；40 probable、6 weak、2 uncertain、17 not_applicable。
 - M3 全审计 usage（含失败 attempt 与 JSON Repair）：102,876 input、105,375 output、71,652 reasoning tokens、1,535.258 秒。
 - 失败与恢复：Batch 002 首次 high-thinking 在 8,191 reasoning token 后 length 截断；Batch 005 首次 TLS 失败且无 usage；7 个 Batch 使用 JSON Repair；5 个 Batch 使用零 Provider 的受限本地恢复。所有 attempt history 均保留。
-- Gate 仅为 `READY_FOR_INDEPENDENT_REVIEW`，不是语义 PASS。Clusters payload hash `71b240220dc51a0ca4d2c3241b967090acf2d4441963d0e9f103755586032693`；Decisions payload hash `c43b319e421ab86770292d14c208f2790def9e8960cf96b6befc0dd469c718c0`。
-- 本地反例扫描发现跨 Component 漏对齐：Agent 架构、RAG、AI 辅助开发存在近重复 Scope；求职/面试 Cluster 可能违反 Use Context 排除规则。因此 M3 尚未满足“可冻结进入 Draft A”的验收条件。
-- 第一个独立 Reviewer 因子任务额度耗尽未产生 verdict；第二个 Reviewer 在用户要求本轮停止后被中止。不得把两者记录为 PASS/FAIL。
+- 首轮独立 Reviewer 全局检查 48 个 `domain_candidate / uncertain` Cluster 和 23 个风险 Component，判定 `FAIL`，指出 7 组 Blocking：Agent 三类重复、RAG 重复、AI 辅助开发重复与粒度冲突、Use Context/Object/Topic 泄漏、M2 Topic 语义旁路复晋升、混合 Scope、跨 Run disposition 分裂。
+- Revision 01 只修改 Reviewer 点名的 30 个 Cluster，Provider 调用为 0；65 个 Cluster 收敛为 55 个，同时保留 126 / 126 Candidate。最终分布：26 `domain_candidate`、17 `non_domain_topic`、1 `non_domain_entity`、2 `non_domain_object`、4 `non_domain_use_context`、5 `uncertain`。
+- Revision Gate：PASS；`stable=0`、M2 exact repromotion=0、M2 semantic parallel repromotion 已解决。
+- 第二次独立 Reviewer 只检查首轮 Blocking 与 Revision 影响，结论 `PASS_WITH_CONCERNS`、0 Blocking；保留 Agent 三类边界、Object 重叠与未受影响项 Hash 审计粒度三个 Concern。
+- M3 Frozen 文件 SHA256：Clusters `de67704a5d6f68c807ee2fd93d8f42e25a08d7cc1c81e60e1019daf8a6b5edd3`；Decisions `aa21cac07730a335503d99d7f672e89a7d3f420ef09b5a5c8198e45efe3a13ee`；Semantic Review `ce6a2834ee36d00c6b2fa256b0a9c7483d3022502ed43cd95b47d252c27af30d`；Gate `69b31d88c0edf36ac4720bb1c7ab164932b53a48cac849ee73301704028b1993`；Manifest `7cf8f7cd0add7068c80334baabad43b6d8486cdbb2ce520483eb7c6547c4ac1e`。
 - 完整本轮报告：`reports/V3_DOMAIN_COMPLETION_RUN_REPORT_2026-07-19.md`。
