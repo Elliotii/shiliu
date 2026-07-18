@@ -25,6 +25,7 @@ from shiliu.taxonomy.candidates import (
     CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT,
     CONTENT_TYPE_PURITY_DRAFT_SCHEMA_VERSION,
     CONTENT_TYPE_NORMALIZATION_VERSION,
+    CONTENT_TYPE_PURITY_LOCAL_PROMPT_VERSION,
     CONTENT_TYPE_PROMPT_VERSION,
     CONTENT_TYPE_SCHEMA_VERSION,
     CONTENT_TYPE_SCHEMA_HINT,
@@ -44,6 +45,7 @@ from shiliu.taxonomy.candidates import (
     TopLevelDomainDraft,
     build_content_type_consolidation_prompt,
     build_content_type_purity_consolidation_prompt,
+    build_content_type_purity_local_prompt,
     build_content_type_prompt,
     build_top_level_consolidation_prompt,
     build_top_level_local_prompt,
@@ -88,7 +90,7 @@ from shiliu.taxonomy.semantic_purity import (
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v11"
+WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v12"
 SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
 CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS = 8192
 DOMAIN_CONSOLIDATION_TOKEN_POLICY = {
@@ -468,6 +470,176 @@ class TaxonomyWorkflow:
             "git_worktree_clean": True,
             "local_content_type_prompt_changed": False,
             "second_layer_repair": False,
+        }
+        run_id = self.create_run(
+            snapshot_id=int(source_run["corpus_snapshot_id"]),
+            run_kind="content_type_semantic_purification",
+            seed=int(source_run["parameters"]["seed"]),
+            batch_size=int(source_run["parameters"]["batch_size"]),
+            limit=None,
+            representation="classification_profile_v1",
+            profile_run_id=str(source_run["parameters"]["profile_run_id"]),
+            selected_ids=list(source_run["parameters"].get("selected_ids") or []),
+            protocol_manifest=protocol,
+        )
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        _write_json_once(run_dir / "run-manifest.json", protocol)
+        return run_id
+
+    def create_content_type_second_layer_run(
+        self,
+        *,
+        source_run_id: int = 12,
+        first_layer_run_id: int = 13,
+    ) -> int:
+        source_run = self.run_repository.get_run(source_run_id)
+        first_layer = self.run_repository.get_run(first_layer_run_id)
+        if (
+            source_run is None
+            or source_run.get("run_kind") != "full_discovery_run_a"
+            or source_run.get("status") != "completed"
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 第二层要求 completed Full Discovery Run A 来源",
+                code="checkpoint39_second_layer_source_invalid",
+                retryable=False,
+            )
+        first_protocol = (first_layer or {}).get("parameters", {}).get(
+            "protocol_manifest"
+        ) or {}
+        if (
+            first_layer is None
+            or first_layer.get("run_kind") != "content_type_semantic_purification"
+            or first_layer.get("status") != "completed"
+            or int(first_protocol.get("source_run_id") or 0) != source_run_id
+            or first_protocol.get("second_layer_repair") is not False
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 第二层要求 completed 的第一次 Purity Run",
+                code="checkpoint39_first_layer_invalid",
+                retryable=False,
+            )
+        source_dir = self.output_dir / f"run-{source_run_id:06d}"
+        first_dir = self.output_dir / f"run-{first_layer_run_id:06d}"
+        required_source_paths = {
+            "manifest": source_dir / "run-manifest.json",
+            "domain_table": source_dir / "candidate-normalization" / "compact-candidates.json",
+            "domain_draft": source_dir / "taxonomy-draft.json",
+            "compact_corpus": source_dir / "compact-corpus.json",
+        }
+        required_first_paths = {
+            "manifest": first_dir / "run-manifest.json",
+            "purified_draft": first_dir / "content-types-purified.json",
+            "purity_report": first_dir / "content-type-semantic-purity-report.json",
+            "quality_result": (
+                first_dir / "checkpoint39-quality-gate" / "quality-result.json"
+            ),
+        }
+        missing = [
+            f"source.{name}"
+            for name, path in required_source_paths.items()
+            if not path.is_file()
+        ] + [
+            f"first_layer.{name}"
+            for name, path in required_first_paths.items()
+            if not path.is_file()
+        ]
+        if missing:
+            raise PipelineError(
+                "Checkpoint 3.9 第二层来源缺少产物：" + ", ".join(missing),
+                code="checkpoint39_second_layer_artifact_missing",
+                retryable=False,
+            )
+        first_quality = json.loads(
+            required_first_paths["quality_result"].read_text(encoding="utf-8")
+        )
+        if not first_quality.get("passed"):
+            raise PipelineError(
+                "第一次 Purity Run 的自动 Gate 未完成，不能隔离执行第二层",
+                code="checkpoint39_first_layer_gate_incomplete",
+                retryable=False,
+            )
+        first_call_audit = json.loads(
+            (
+                first_dir
+                / "content_type_consolidation"
+                / "semantic-purity-v1"
+                / "attempt-01"
+                / "audit.json"
+            ).read_text(encoding="utf-8")
+        )
+        historical_completion = int(
+            (first_call_audit.get("usage") or {}).get("completion_tokens") or 0
+        ) or None
+        git_commit, git_clean = _git_state()
+        if not git_clean:
+            raise PipelineError(
+                "冻结 Checkpoint 3.9 第二层前 Git 工作区必须干净",
+                code="checkpoint39_git_dirty",
+                retryable=False,
+            )
+        providers = {
+            role: _provider_manifest(self.provider_factory(role))
+            for role in (
+                "taxonomy_content_type",
+                "taxonomy_content_type_global",
+                "taxonomy_content_type_purity",
+                "taxonomy_repair",
+            )
+        }
+        protocol = {
+            "protocol_version": "checkpoint39-content-type-second-layer-v1",
+            "source_run_id": source_run_id,
+            "first_layer_run_id": first_layer_run_id,
+            "snapshot_id": int(source_run["corpus_snapshot_id"]),
+            "snapshot_hash": source_run["parameters"]["snapshot_hash"],
+            "selected_ids": source_run["parameters"].get("selected_ids"),
+            "source_artifact_hashes": {
+                name: _hash_file(path) for name, path in required_source_paths.items()
+            },
+            "first_layer_artifact_hashes": {
+                name: _hash_file(path) for name, path in required_first_paths.items()
+            },
+            "content_type_local_prompt_version": (
+                CONTENT_TYPE_PURITY_LOCAL_PROMPT_VERSION
+            ),
+            "content_type_schema_version": CONTENT_TYPE_SCHEMA_VERSION,
+            "content_type_normalization_version": CONTENT_TYPE_NORMALIZATION_VERSION,
+            "content_type_draft_schema_version": CONTENT_TYPE_PURITY_DRAFT_SCHEMA_VERSION,
+            "content_type_consolidation_prompt_version": (
+                CONTENT_TYPE_PURITY_CONSOLIDATION_PROMPT_VERSION
+            ),
+            "purity_judge_prompt_version": CONTENT_TYPE_PURITY_JUDGE_PROMPT_VERSION,
+            "purity_judge_schema_version": CONTENT_TYPE_PURITY_JUDGE_SCHEMA_VERSION,
+            "quality_gate_version": CHECKPOINT39_QUALITY_GATE_VERSION,
+            "budget_preflight_version": OUTPUT_BUDGET_PREFLIGHT_VERSION,
+            "historical_content_type_completion_tokens": historical_completion,
+            "domain_future_budget_preflight": first_protocol[
+                "domain_future_budget_preflight"
+            ],
+            "providers": providers,
+            "git_commit": git_commit,
+            "git_worktree_clean": True,
+            "local_content_type_prompt_changed": True,
+            "second_layer_repair": True,
+            "second_layer_trigger": "independent_reviewer_semantic_leakage",
+            "invalidated_stages": [
+                "content_type_discovery",
+                "content_type_normalization",
+                "content_type_consolidation",
+                "content_type_semantic_purity_judge",
+                "structural_validation",
+                "quality_gate",
+                "checkpoint39_quality_gate",
+            ],
+            "preserved_paths": [
+                "snapshot",
+                "classification_profile",
+                "compact_form_view",
+                "domain_local_discovery",
+                "domain_candidate_normalization",
+                "domain_consolidation",
+            ],
         }
         run_id = self.create_run(
             snapshot_id=int(source_run["corpus_snapshot_id"]),
@@ -867,29 +1039,27 @@ class TaxonomyWorkflow:
             )
         source_run_id = int(protocol["source_run_id"])
         source_dir = self.output_dir / f"run-{source_run_id:06d}"
-        artifact_dir = self._reuse_checkpoint39_source(
-            run_id=run_id,
-            source_run_id=source_run_id,
-            run_dir=run_dir,
-            protocol=protocol,
-        )
-        table = CompactContentTypeTable.model_validate_json(
-            (artifact_dir / "compact-content-types.json").read_text(encoding="utf-8")
-        )
+        second_layer = bool(protocol.get("second_layer_repair"))
+        if second_layer:
+            artifact_dir = self._reuse_checkpoint39_domain_source(
+                run_id=run_id,
+                source_run_id=source_run_id,
+                run_dir=run_dir,
+                protocol=protocol,
+            )
+        else:
+            artifact_dir = self._reuse_checkpoint39_source(
+                run_id=run_id,
+                source_run_id=source_run_id,
+                run_dir=run_dir,
+                protocol=protocol,
+            )
         domain_table = CompactCandidateTable.model_validate_json(
             (artifact_dir / "compact-candidates.json").read_text(encoding="utf-8")
         )
         domain_draft = TopLevelDomainDraft.model_validate_json(
             (artifact_dir / "taxonomy-draft.json").read_text(encoding="utf-8")
         )
-        local_content_types = [
-            ContentTypeDiscoveryOutputV1.model_validate(item)
-            for item in json.loads(
-                (artifact_dir / "content-type-local-candidates.json").read_text(
-                    encoding="utf-8"
-                )
-            )
-        ]
         compact = json.loads((artifact_dir / "compact-corpus.json").read_text(encoding="utf-8"))
         compact_rows_by_id = {str(row[0]): row for row in compact["rows"]}
         allowed_ids = set(parameters.get("selected_ids") or [])
@@ -902,9 +1072,87 @@ class TaxonomyWorkflow:
                 retryable=False,
             )
 
-        content_preflight = OutputBudgetPreflight.model_validate(
-            protocol["content_type_budget_preflight"]
-        )
+        if second_layer:
+            ordered_rows = [
+                compact_rows_by_id[short_id] for short_id in parameters["selected_ids"]
+            ]
+            batches = [
+                ordered_rows[index:index + int(parameters["batch_size"])]
+                for index in range(0, len(ordered_rows), int(parameters["batch_size"]))
+            ]
+            _write_json_once(
+                run_dir / "content-type-batch-plan.json",
+                {
+                    "source_run_id": source_run_id,
+                    "first_layer_run_id": protocol["first_layer_run_id"],
+                    "prompt_version": CONTENT_TYPE_PURITY_LOCAL_PROMPT_VERSION,
+                    "batches": [[row[0] for row in batch] for batch in batches],
+                },
+            )
+            local_content_types = []
+            for index, batch in enumerate(batches, start=1):
+                result = self._model_stage(
+                    run_id=run_id,
+                    run_dir=run_dir,
+                    stage_name="content_type_discovery",
+                    unit_key=f"batch-{index:03d}",
+                    role="taxonomy_content_type",
+                    prompt=build_content_type_purity_local_prompt(batch),
+                    prompt_version=CONTENT_TYPE_PURITY_LOCAL_PROMPT_VERSION,
+                    schema=ContentTypeDiscoveryOutputV1,
+                    schema_hint=CONTENT_TYPE_SCHEMA_HINT,
+                    max_tokens=4096,
+                    input_ids=[str(row[0]) for row in batch],
+                    validator=lambda value, allowed={
+                        str(row[0]) for row in batch
+                    }: validate_content_types(value, allowed),
+                )
+                local_content_types.append(result)
+            _write_json(
+                run_dir / "content-type-local-candidates.json",
+                [item.model_dump(mode="json") for item in local_content_types],
+            )
+            table = self._content_type_normalization_stage(
+                run_id=run_id,
+                run_dir=run_dir,
+                local_outputs=local_content_types,
+                allowed_ids=allowed_ids,
+            )
+        else:
+            table = CompactContentTypeTable.model_validate_json(
+                (artifact_dir / "compact-content-types.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            local_content_types = [
+                ContentTypeDiscoveryOutputV1.model_validate(item)
+                for item in json.loads(
+                    (artifact_dir / "content-type-local-candidates.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+            ]
+
+        if second_layer:
+            content_preflight = build_budget_preflight(
+                stage_name="content_type_consolidation",
+                complexity_count=len(table.content_types),
+                schema_hint_characters=len(
+                    CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT
+                ),
+                historical_completion_tokens=protocol.get(
+                    "historical_content_type_completion_tokens"
+                ),
+                technical_max_tokens=16384,
+                safety_margin_ratio=0.25,
+                base_tokens=4096,
+                tokens_per_item=128,
+                historical_growth_factor=1.20,
+            )
+        else:
+            content_preflight = OutputBudgetPreflight.model_validate(
+                protocol["content_type_budget_preflight"]
+            )
         require_safe_budget(content_preflight)
         _write_json_once(
             run_dir / "budget-preflight" / "content-type-consolidation.json",
@@ -1274,6 +1522,183 @@ class TaxonomyWorkflow:
             for current, previous in zip(lineage_payload["stages"], existing["stages"]):
                 current["verified_at"] = previous["verified_at"]
         _write_json_once(existing_lineage_path, lineage_payload)
+        return artifact_dir
+
+    def _reuse_checkpoint39_domain_source(
+        self,
+        *,
+        run_id: int,
+        source_run_id: int,
+        run_dir: Path,
+        protocol: dict[str, Any],
+    ) -> Path:
+        source_run = self.run_repository.get_run(source_run_id)
+        if source_run is None or source_run.get("status") != "completed":
+            raise PipelineError(
+                "Checkpoint 3.9 第二层 Domain 来源不可用",
+                code="checkpoint39_second_layer_source_invalid",
+                retryable=False,
+            )
+        source_dir = self.output_dir / f"run-{source_run_id:06d}"
+        source_paths = {
+            "manifest": source_dir / "run-manifest.json",
+            "domain_table": source_dir / "candidate-normalization" / "compact-candidates.json",
+            "domain_draft": source_dir / "taxonomy-draft.json",
+            "compact_corpus": source_dir / "compact-corpus.json",
+        }
+        expected_hashes = protocol.get("source_artifact_hashes") or {}
+        if any(
+            not path.is_file() or _hash_file(path) != expected_hashes.get(name)
+            for name, path in source_paths.items()
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 第二层 Domain 来源 Hash 改变",
+                code="checkpoint39_source_artifact_changed",
+                retryable=False,
+            )
+        first_run_id = int(protocol["first_layer_run_id"])
+        first_dir = self.output_dir / f"run-{first_run_id:06d}"
+        first_paths = {
+            "manifest": first_dir / "run-manifest.json",
+            "purified_draft": first_dir / "content-types-purified.json",
+            "purity_report": first_dir / "content-type-semantic-purity-report.json",
+            "quality_result": (
+                first_dir / "checkpoint39-quality-gate" / "quality-result.json"
+            ),
+        }
+        first_hashes = protocol.get("first_layer_artifact_hashes") or {}
+        if any(
+            not path.is_file() or _hash_file(path) != first_hashes.get(name)
+            for name, path in first_paths.items()
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 第一次 Purity 产物 Hash 改变",
+                code="checkpoint39_first_layer_artifact_changed",
+                retryable=False,
+            )
+        artifact_dir = run_dir / "reused-source-artifacts"
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        for key, target_name in {
+            "domain_table": "compact-candidates.json",
+            "domain_draft": "taxonomy-draft.json",
+            "compact_corpus": "compact-corpus.json",
+        }.items():
+            target = artifact_dir / target_name
+            if not target.exists():
+                shutil.copy2(source_paths[key], target)
+            if _hash_file(target) != expected_hashes[key]:
+                raise PipelineError(
+                    "Checkpoint 3.9 第二层复制 Domain 产物 Hash 改变",
+                    code="checkpoint39_reuse_copy_hash_mismatch",
+                    retryable=False,
+                )
+
+        source_stages = [
+            item
+            for item in self.run_repository.list_stages(source_run_id)
+            if item["stage_name"] in {
+                "local_discovery",
+                "candidate_normalization",
+                "consolidation",
+            }
+        ]
+        expected_counts = {
+            "local_discovery": 6,
+            "candidate_normalization": 1,
+            "consolidation": 1,
+        }
+        actual_counts = {
+            name: sum(item["stage_name"] == name for item in source_stages)
+            for name in expected_counts
+        }
+        if actual_counts != expected_counts or any(
+            item["status"] != "completed" for item in source_stages
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 第二层 Domain Stage 不完整",
+                code="checkpoint39_source_stage_incomplete",
+                retryable=False,
+            )
+        lineage: list[dict[str, Any]] = []
+        for source_stage in source_stages:
+            source_output = Path(str(source_stage.get("output_path") or ""))
+            if not source_output.is_file():
+                raise PipelineError(
+                    "Checkpoint 3.9 第二层 Domain Stage 输出缺失",
+                    code="checkpoint39_source_stage_incomplete",
+                    retryable=False,
+                )
+            payload = json.loads(source_output.read_text(encoding="utf-8"))
+            if _stable_hash(payload) != source_stage.get("output_hash"):
+                raise PipelineError(
+                    "Checkpoint 3.9 第二层 Domain Stage Hash 不匹配",
+                    code="checkpoint39_source_stage_hash_mismatch",
+                    retryable=False,
+                )
+            target = (
+                run_dir
+                / "reused-source-stages"
+                / str(source_stage["stage_name"])
+                / str(source_stage["unit_key"])
+                / "parsed-output.json"
+            )
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if not target.exists():
+                shutil.copy2(source_output, target)
+            if _hash_file(target) != _hash_file(source_output):
+                raise PipelineError(
+                    "Checkpoint 3.9 第二层 Stage 复制 Hash 改变",
+                    code="checkpoint39_reuse_copy_hash_mismatch",
+                    retryable=False,
+                )
+            self.run_repository.record_reused_stage(
+                run_id,
+                str(source_stage["stage_name"]),
+                str(source_stage["unit_key"]),
+                input_hash=str(source_stage["input_hash"]),
+                output_path=str(target),
+                output_hash=str(source_stage["output_hash"]),
+                model=source_stage.get("model"),
+                prompt_version=str(source_stage.get("prompt_version") or "reused"),
+                thinking_enabled=(
+                    bool(source_stage["thinking_enabled"])
+                    if source_stage.get("thinking_enabled") is not None
+                    else None
+                ),
+                reasoning_effort=source_stage.get("reasoning_effort"),
+            )
+            lineage.append(
+                {
+                    "stage_name": source_stage["stage_name"],
+                    "unit_key": source_stage["unit_key"],
+                    "reused_from_run_id": source_run_id,
+                    "reused_from_stage_id": source_stage["id"],
+                    "source_input_hash": source_stage["input_hash"],
+                    "source_output_hash": source_stage["output_hash"],
+                    "source_file_hash": _hash_file(source_output),
+                    "target_file_hash": _hash_file(target),
+                    "verified_at": _utc_now(),
+                }
+            )
+        lineage_path = run_dir / "checkpoint39-reuse-lineage.json"
+        existing = (
+            json.loads(lineage_path.read_text(encoding="utf-8"))
+            if lineage_path.is_file()
+            else None
+        )
+        payload = {
+            "source_run_id": source_run_id,
+            "first_layer_run_id": first_run_id,
+            "target_run_id": run_id,
+            "reused_stage_count": len(lineage),
+            "source_artifact_hashes": expected_hashes,
+            "first_layer_artifact_hashes": first_hashes,
+            "stages": lineage,
+        }
+        if existing is not None:
+            for current, previous in zip(payload["stages"], existing["stages"]):
+                current["verified_at"] = previous["verified_at"]
+        _write_json_once(lineage_path, payload)
         return artifact_dir
 
     def _reuse_discovery_stages(

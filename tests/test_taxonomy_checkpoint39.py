@@ -20,6 +20,7 @@ from shiliu.taxonomy.candidates import (
     ContentTypeNodeV1,
     TopLevelDomainNode,
     build_content_type_purity_consolidation_prompt,
+    build_content_type_purity_local_prompt,
     validate_content_type_draft_v2,
 )
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
@@ -207,6 +208,17 @@ def test_purity_prompt_uses_generic_counterfactual_not_run_a_answer_names() -> N
     assert "不得因为有 supporting IDs 就强制并入" in prompt
 
 
+def test_second_layer_local_prompt_treats_cross_topic_as_necessary_not_sufficient() -> None:
+    prompt = build_content_type_purity_local_prompt(
+        [["C001", "A", "标题", "结论", ["观点"], ["Entity"]]]
+    )
+    assert "跨主题成立只是必要条件，不是充分条件" in prompt
+    assert "内容如何表达、组织或呈现" in prompt
+    assert "数据库自动化" in prompt
+    assert "通常输出 3～6 个候选" in prompt
+    assert "8 个只是技术绝对上限，不是目标数量" in prompt
+
+
 def test_purity_judge_is_separate_and_requires_every_final_node() -> None:
     domain = type("DomainDraft", (), {})
     from shiliu.taxonomy.candidates import TopLevelDomainDraft
@@ -295,6 +307,18 @@ def test_cli_exposes_narrow_checkpoint39_run_creation() -> None:
         ["taxonomy", "create-content-type-purity-run", "--source-run-id", "12"]
     )
     assert arguments.source_run_id == 12
+    second = build_parser().parse_args(
+        [
+            "taxonomy",
+            "create-content-type-second-layer-run",
+            "--source-run-id",
+            "12",
+            "--first-layer-run-id",
+            "13",
+        ]
+    )
+    assert second.source_run_id == 12
+    assert second.first_layer_run_id == 13
 
 
 class PurityProvider(WorkflowProvider):
@@ -480,3 +504,29 @@ def test_checkpoint39_derived_run_reuses_source_and_calls_only_two_models(
             ).encode()
         ).hexdigest()
         assert stage["output_hash"] == persisted_hash
+
+    domain_calls_before = provider.local_calls
+    content_calls_before = provider.content_type_calls
+    second_run_id = workflow.create_content_type_second_layer_run(
+        source_run_id=source_run_id,
+        first_layer_run_id=run_id,
+    )
+    second_result = workflow.execute(second_run_id)
+
+    assert second_result["run"]["status"] == "completed"
+    assert provider.local_calls == domain_calls_before
+    assert provider.content_type_calls == content_calls_before + 6
+    assert provider.content_type_consolidation_calls == 3
+    assert provider.purity_calls == 2
+    second_protocol = second_result["run"]["parameters"]["protocol_manifest"]
+    assert second_protocol["local_content_type_prompt_changed"] is True
+    assert second_protocol["second_layer_repair"] is True
+    second_reused = [
+        item for item in second_result["stages"] if item["attempt_count"] == 0
+    ]
+    assert len(second_reused) == 8
+    assert {item["stage_name"] for item in second_reused} == {
+        "local_discovery",
+        "candidate_normalization",
+        "consolidation",
+    }

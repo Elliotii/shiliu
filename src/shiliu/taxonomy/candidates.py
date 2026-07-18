@@ -22,6 +22,7 @@ CONTENT_TYPE_PURITY_DRAFT_SCHEMA_VERSION = "content-type-purity-draft-schema-v1"
 LOCAL_TOP_LEVEL_PROMPT_VERSION = "top-level-local-discovery-v2"
 TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION = "two-level-domain-consolidation-v3"
 CONTENT_TYPE_PROMPT_VERSION = "content-type-discovery-v2"
+CONTENT_TYPE_PURITY_LOCAL_PROMPT_VERSION = "content-type-discovery-purity-v3"
 CONTENT_TYPE_NORMALIZATION_VERSION = "content-type-candidate-normalization-v3"
 CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v3"
 CONTENT_TYPE_PURITY_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v4"
@@ -412,6 +413,28 @@ def build_content_type_prompt(rows: list[list[Any]]) -> str:
 Content Type 只回答内容采用什么表达形式或使用形式，不回答知识领域。
 不得输出 Domain、Topic 或 Entity。最多输出 8 个候选，每个候选只保留短名称、一句话定义、includes/excludes、最多 5 个 supporting IDs 和最多 3 个 representative IDs。
 证据不足内容放入 ambiguous_ids。所有 ID 必须来自本批。只输出 JSON。
+名称和定义使用中文，专有名词保留英文；定义最多 140 个字符。
+
+精简输出结构：{CONTENT_TYPE_SCHEMA_HINT}
+输入行协议：A/B=[id,等级,标题,一句话结论,最多3条观点,最多5个已有实体]；C=[id,C,标题,最多300字简介]。
+本批卡片：
+{_rows_text(rows)}"""
+
+
+def build_content_type_purity_local_prompt(rows: list[list[Any]]) -> str:
+    return f"""你是独立 Content Type 候选发现器。本轮只生成覆盖本批内容所需的最小充分候选集合。
+Content Type 只回答“内容如何表达、组织或呈现”，不回答“讲什么知识”“解决什么任务”或“用于什么情境”。跨主题成立只是必要条件，不是充分条件；标签还必须能与主题、目标和使用场景分离，并描述一种可识别的内容形式。
+
+通常输出 3～6 个候选；内容形式集中时可以更少；8 个只是技术绝对上限，不是目标数量。不要为了接近上限拆分近义形式，不要为信息不足内容强行创建候选。
+不得输出 Domain、Topic 或 Entity，也不得把领域限定词删掉后，将原主题、任务目标或使用情境重新包装成 Content Type。
+
+通用反例：
+- “数据库自动化”或“烹饪职业规划”即使能替换主题，仍回答任务/情境，不是内容形式。
+- “数据库索引原理”、PostgreSQL、某次版本争议分别是 Domain、Entity、Topic。
+通用正例：
+- “步骤教程”“项目复盘”“观点评论”分别描述呈现方式，在数据库、烹饪、摄影等主题下都成立。
+
+每个候选只保留短名称、一句话定义、includes/excludes、最多 5 个 supporting IDs 和最多 3 个 representative IDs。定义必须明确说明这种内容“如何呈现”。证据不足内容放入 ambiguous_ids。所有 ID 必须来自本批。只输出 JSON。
 名称和定义使用中文，专有名词保留英文；定义最多 140 个字符。
 
 精简输出结构：{CONTENT_TYPE_SCHEMA_HINT}

@@ -101,6 +101,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="创建 Checkpoint 3.9 Content Type 语义净化派生 Run",
     )
     content_type_purity.add_argument("--source-run-id", type=int, default=12)
+    content_type_second_layer = taxonomy_commands.add_parser(
+        "create-content-type-second-layer-run",
+        help="创建 Checkpoint 3.9 唯一一次 Local Content Type 第二层修复 Run",
+    )
+    content_type_second_layer.add_argument("--source-run-id", type=int, default=12)
+    content_type_second_layer.add_argument(
+        "--first-layer-run-id", type=int, default=13
+    )
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -232,6 +240,17 @@ def main(argv: list[str] | None = None) -> int:
         app = Application()
         run_id = app.taxonomy_workflow.create_content_type_purity_run(
             source_run_id=arguments.source_run_id
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-content-type-second-layer-run"
+    ):
+        app = Application()
+        run_id = app.taxonomy_workflow.create_content_type_second_layer_run(
+            source_run_id=arguments.source_run_id,
+            first_layer_run_id=arguments.first_layer_run_id,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
