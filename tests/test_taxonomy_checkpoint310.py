@@ -27,6 +27,7 @@ from shiliu.taxonomy.faceted_metadata import (
     PresentationFormAssignment,
     build_quality_gate,
     build_reviewer_bundle,
+    apply_vocabulary_support_policy,
     simulate_filters,
     validate_decomposition,
     validate_vocabulary,
@@ -230,18 +231,49 @@ def test_vocabulary_requires_rejection_reason_only_for_rejected() -> None:
         )
 
 
-def test_single_content_cannot_be_promoted_to_stable() -> None:
+def test_vocabulary_capacity_is_derived_from_source_not_hidden_top_k() -> None:
+    forms = [
+        node(f"pf_{index:02d}", "presentation_form", f"形式{index}")
+        for index in range(1, 29)
+    ]
+    value = FacetedVocabularyOutput(
+        presentation_forms=forms,
+        focus_object_types=[node("fo_01", "focus_object_type", "对象")],
+        use_contexts=[node("uc_01", "use_context", "场景")],
+    )
+    assert len(value.presentation_forms) == 28
+    payload = value.model_dump(mode="json")
+    payload["presentation_forms"] += [
+        node(f"pf_{index:02d}", "presentation_form", f"形式{index}").model_dump(mode="json")
+        for index in range(29, 33)
+    ]
+    with pytest.raises(ValidationError):
+        FacetedVocabularyOutput.model_validate(payload)
+
+
+def test_single_content_stable_is_audited_and_downgraded_to_draft() -> None:
     output = vocabulary()
     output.presentation_forms[0] = node(
         "pf_01", "presentation_form", "步骤演示", supporting=["C001"]
     )
     decomp = CandidateDecompositionOutput(decisions=[decomposition()], discarded_parts=[])
-    with pytest.raises(Exception, match="单条内容"):
-        validate_vocabulary(
-            output,
-            decomposition=decomp,
-            valid_content_ids={"C001", "C002"},
-        )
+    validate_vocabulary(
+        output,
+        decomposition=decomp,
+        valid_content_ids={"C001", "C002"},
+    )
+    normalized, events = apply_vocabulary_support_policy(output)
+    assert normalized.presentation_forms[0].status == "draft"
+    assert events == [
+        {
+            "field_path": "presentation_forms[0].status",
+            "node_id": "pf_01",
+            "original_value": "stable",
+            "normalized_value": "draft",
+            "reason": "stable requires at least two supporting content IDs",
+            "support_count": 1,
+        }
+    ]
 
 
 def test_specific_entity_in_object_type_blocks_gate() -> None:

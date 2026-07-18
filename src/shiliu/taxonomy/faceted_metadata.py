@@ -11,7 +11,7 @@ from typing import Any, Callable, Literal, TypeVar
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from shiliu.domain import PipelineError
-from shiliu.llm import OpenAICompatibleProvider
+from shiliu.llm import OpenAICompatibleProvider, parse_json_content
 from shiliu.taxonomy.candidates import CompactContentTypeTable, TopLevelDomainDraft
 from shiliu.taxonomy.discovery import build_compact_corpus
 from shiliu.taxonomy.model_calls import AuditedJsonCaller
@@ -34,6 +34,8 @@ ASSIGNMENT_SCHEMA_VERSION = "faceted-assignment-v1"
 ASSIGNMENT_PROMPT_VERSION = "faceted-assignment-v1"
 FILTER_PROTOCOL_VERSION = "faceted-filter-or-and-v1"
 QUALITY_GATE_VERSION = "checkpoint310-faceted-quality-gate-v1"
+MAX_SOURCE_CANDIDATES = 31
+MAX_COMPONENTS_PER_MULTI_FACET = MAX_SOURCE_CANDIDATES * 2
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
@@ -117,9 +119,18 @@ class FacetedVocabularyOutput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     version: Literal[VOCABULARY_SCHEMA_VERSION] = VOCABULARY_SCHEMA_VERSION
-    presentation_forms: list[FacetVocabularyNode] = Field(min_length=1, max_length=20)
-    focus_object_types: list[FacetVocabularyNode] = Field(min_length=1, max_length=20)
-    use_contexts: list[FacetVocabularyNode] = Field(min_length=1, max_length=20)
+    # These are structural capacities derived from the frozen 31 source
+    # candidates, not product Top-K targets. Every candidate can contribute at
+    # most one Form and at most two Object/Context components.
+    presentation_forms: list[FacetVocabularyNode] = Field(
+        min_length=1, max_length=MAX_SOURCE_CANDIDATES
+    )
+    focus_object_types: list[FacetVocabularyNode] = Field(
+        min_length=1, max_length=MAX_COMPONENTS_PER_MULTI_FACET
+    )
+    use_contexts: list[FacetVocabularyNode] = Field(
+        min_length=1, max_length=MAX_COMPONENTS_PER_MULTI_FACET
+    )
 
     @model_validator(mode="after")
     def validate_unique_vocabularies(self):
@@ -401,11 +412,30 @@ def validate_vocabulary(
                 "词表引用未知内容", code="facet_vocabulary_unknown_content",
                 retryable=False,
             )
-        if node.status == "stable" and len(set(node.supporting_content_ids)) < 2:
-            raise PipelineError(
-                "单条内容来源不得提升为 stable",
-                code="facet_vocabulary_unsupported_stable", retryable=False,
-            )
+
+
+def apply_vocabulary_support_policy(
+    output: FacetedVocabularyOutput,
+) -> tuple[FacetedVocabularyOutput, list[dict[str, Any]]]:
+    """Downgrade unsupported stability with an explicit, reproducible audit."""
+    payload = output.model_dump(mode="json")
+    events: list[dict[str, Any]] = []
+    for field in ("presentation_forms", "focus_object_types", "use_contexts"):
+        for index, node in enumerate(payload[field]):
+            support_count = len(set(node["supporting_content_ids"]))
+            if node["status"] == "stable" and support_count < 2:
+                events.append(
+                    {
+                        "field_path": f"{field}[{index}].status",
+                        "node_id": node["temporary_id"],
+                        "original_value": "stable",
+                        "normalized_value": "draft",
+                        "reason": "stable requires at least two supporting content IDs",
+                        "support_count": support_count,
+                    }
+                )
+                node["status"] = "draft"
+    return FacetedVocabularyOutput.model_validate(payload), events
 
 
 def validate_assignments(
@@ -722,7 +752,8 @@ class FacetedMetadataService:
         self.profile_output_dir = profile_output_dir
 
     def create_spike(self, *, snapshot_id: int = 2, domain_run_id: int = 12,
-                     candidate_run_id: int = 14, sample_profile_run_id: str) -> int:
+                     candidate_run_id: int = 14, sample_profile_run_id: str,
+                     recovery_source_run_id: int | None = None) -> int:
         snapshot = self.repository.get_snapshot(snapshot_id)
         if snapshot is None:
             raise LookupError("快照不存在")
@@ -753,6 +784,47 @@ class FacetedMetadataService:
         if not clean:
             raise PipelineError("创建 Faceted Spike 前 Git 工作区必须干净", code="faceted_git_dirty", retryable=False)
         providers = {role: _provider_manifest(self.provider_factory(role)) for role in ("taxonomy_content_type_global", "taxonomy_assignment", "taxonomy_repair")}
+        recovery: dict[str, Any] | None = None
+        if recovery_source_run_id is not None:
+            recovery_run = self.run_repository.get_run(recovery_source_run_id)
+            recovery_dir = self.output_dir / f"run-{recovery_source_run_id:06d}"
+            recovery_paths = {
+                "decomposition": recovery_dir / "faceted-candidate-decomposition.json",
+                "vocabulary_raw": recovery_dir / "faceted_vocabulary_consolidation" / "all" / "attempt-01" / "raw-response.txt",
+            }
+            if (
+                not recovery_run
+                or recovery_run.get("run_kind") != "faceted_metadata_spike"
+                or not all(path.is_file() for path in recovery_paths.values())
+            ):
+                raise PipelineError(
+                    "窄修复来源 Run 或原始产物无效",
+                    code="faceted_recovery_source_invalid",
+                    retryable=False,
+                )
+            recovery_protocol = recovery_run["parameters"].get("protocol_manifest") or {}
+            if (
+                recovery_protocol.get("snapshot_hash") != snapshot["snapshot_hash"]
+                or recovery_protocol.get("domain_run_id") != domain_run_id
+                or recovery_protocol.get("candidate_run_id") != candidate_run_id
+                or recovery_protocol.get("selected_ids") != selected_ids
+            ):
+                raise PipelineError(
+                    "窄修复来源与当前冻结输入不一致",
+                    code="faceted_recovery_lineage_mismatch",
+                    retryable=False,
+                )
+            recovery = {
+                "source_run_id": recovery_source_run_id,
+                "reason": "remove_hidden_top_k_without_semantic_replay",
+                "artifact_hashes": {
+                    name: _hash_file(path) for name, path in recovery_paths.items()
+                },
+                "reused_stages": [
+                    "faceted_candidate_decomposition",
+                    "faceted_vocabulary_consolidation_raw_response",
+                ],
+            }
         protocol = {
             "protocol_version": FACETED_PROTOCOL_VERSION,
             "snapshot_id": snapshot_id,
@@ -778,6 +850,7 @@ class FacetedMetadataService:
             "git_worktree_clean": True,
             "runtime_inputs": ["Snapshot #2", "Run #12 Domain Draft", "Run #14 normalized candidates", "compact_form_view_v1", "48-item accepted profile manifest"],
             "forbidden_inputs": ["Silver Reference", "full transcript", "full summary"],
+            "recovery": recovery,
         }
         run_id = self.run_repository.create_run(snapshot_id=snapshot_id, run_kind="faceted_metadata_spike", engine="faceted_llm_native", engine_version=FACETED_ENGINE_VERSION, parameters={"snapshot_hash": snapshot["snapshot_hash"], "protocol_manifest": protocol})
         _write_json_once(self.output_dir / f"run-{run_id:06d}" / "run-manifest.json", protocol)
@@ -837,7 +910,32 @@ class FacetedMetadataService:
             technical_max_tokens=16384,
         )
         _write_json(run_dir / "budget-preflight" / "candidate-decomposition.json", decomposition_budget.model_dump(mode="json"))
-        decomposition = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="faceted_candidate_decomposition", unit_key="all-31", role="taxonomy_content_type_global", prompt=decomposition_prompt, prompt_version=DECOMPOSITION_PROMPT_VERSION, schema=CandidateDecompositionOutput, schema_hint=DECOMPOSITION_SCHEMA_HINT, max_tokens=decomposition_budget.allocated_max_tokens, input_ids=[item.candidate_id for item in table.content_types], validator=lambda value: validate_decomposition(value, candidates=table))
+        recovery = protocol.get("recovery")
+        if recovery:
+            recovery_dir = self.output_dir / f"run-{int(recovery['source_run_id']):06d}"
+            source_path = recovery_dir / "faceted-candidate-decomposition.json"
+            if _hash_file(source_path) != recovery["artifact_hashes"]["decomposition"]:
+                raise PipelineError("窄修复拆解产物 Hash 改变", code="faceted_recovery_artifact_changed", retryable=False)
+            decomposition = CandidateDecompositionOutput.model_validate_json(
+                source_path.read_text(encoding="utf-8")
+            )
+            validate_decomposition(decomposition, candidates=table)
+            target_path = run_dir / "faceted-candidate-decomposition.json"
+            _write_json(target_path, decomposition.model_dump(mode="json"))
+            self.run_repository.record_reused_stage(
+                run_id,
+                "faceted_candidate_decomposition",
+                "all-31",
+                input_hash=_hash_text(decomposition_prompt),
+                output_path=str(target_path),
+                output_hash=_stable_hash(decomposition.model_dump(mode="json")),
+                model=None,
+                prompt_version=DECOMPOSITION_PROMPT_VERSION,
+                thinking_enabled=False,
+                reasoning_effort=None,
+            )
+        else:
+            decomposition = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="faceted_candidate_decomposition", unit_key="all-31", role="taxonomy_content_type_global", prompt=decomposition_prompt, prompt_version=DECOMPOSITION_PROMPT_VERSION, schema=CandidateDecompositionOutput, schema_hint=DECOMPOSITION_SCHEMA_HINT, max_tokens=decomposition_budget.allocated_max_tokens, input_ids=[item.candidate_id for item in table.content_types], validator=lambda value: validate_decomposition(value, candidates=table))
         _write_json(run_dir / "faceted-candidate-decomposition.json", decomposition.model_dump(mode="json"))
 
         vocabulary_prompt = build_vocabulary_prompt(decomposition)
@@ -850,7 +948,45 @@ class FacetedMetadataService:
             technical_max_tokens=16384,
         )
         _write_json(run_dir / "budget-preflight" / "vocabulary-consolidation.json", vocabulary_budget.model_dump(mode="json"))
-        vocabulary = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="faceted_vocabulary_consolidation", unit_key="all", role="taxonomy_content_type_global", prompt=vocabulary_prompt, prompt_version=VOCABULARY_PROMPT_VERSION, schema=FacetedVocabularyOutput, schema_hint=VOCABULARY_SCHEMA_HINT, max_tokens=vocabulary_budget.allocated_max_tokens, input_ids=[item.source_candidate_id for item in decomposition.decisions], validator=lambda value: validate_vocabulary(value, decomposition=decomposition, valid_content_ids=set(rows_by_id)))
+        if recovery:
+            recovery_dir = self.output_dir / f"run-{int(recovery['source_run_id']):06d}"
+            raw_path = recovery_dir / "faceted_vocabulary_consolidation" / "all" / "attempt-01" / "raw-response.txt"
+            if _hash_file(raw_path) != recovery["artifact_hashes"]["vocabulary_raw"]:
+                raise PipelineError("窄修复词表原响应 Hash 改变", code="faceted_recovery_artifact_changed", retryable=False)
+            vocabulary = parse_json_content(
+                raw_path.read_text(encoding="utf-8"), FacetedVocabularyOutput
+            )
+            validate_vocabulary(
+                vocabulary,
+                decomposition=decomposition,
+                valid_content_ids=set(rows_by_id),
+            )
+            target_path = run_dir / "faceted-vocabularies.json"
+            _write_json(target_path, vocabulary.model_dump(mode="json"))
+            self.run_repository.record_reused_stage(
+                run_id,
+                "faceted_vocabulary_consolidation",
+                "all",
+                input_hash=_hash_text(vocabulary_prompt),
+                output_path=str(target_path),
+                output_hash=_stable_hash(vocabulary.model_dump(mode="json")),
+                model=None,
+                prompt_version=VOCABULARY_PROMPT_VERSION,
+                thinking_enabled=False,
+                reasoning_effort=None,
+            )
+        else:
+            vocabulary = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="faceted_vocabulary_consolidation", unit_key="all", role="taxonomy_content_type_global", prompt=vocabulary_prompt, prompt_version=VOCABULARY_PROMPT_VERSION, schema=FacetedVocabularyOutput, schema_hint=VOCABULARY_SCHEMA_HINT, max_tokens=vocabulary_budget.allocated_max_tokens, input_ids=[item.source_candidate_id for item in decomposition.decisions], validator=lambda value: validate_vocabulary(value, decomposition=decomposition, valid_content_ids=set(rows_by_id)))
+        vocabulary, vocabulary_policy_events = apply_vocabulary_support_policy(vocabulary)
+        _write_json(
+            run_dir / "vocabulary-support-policy-audit.json",
+            {
+                "policy": "single-support stable nodes become draft",
+                "semantic_fields_changed": [],
+                "status_event_count": len(vocabulary_policy_events),
+                "events": vocabulary_policy_events,
+            },
+        )
         _write_json(run_dir / "faceted-vocabularies.json", vocabulary.model_dump(mode="json"))
 
         assignments: list[FacetedAssignment] = []

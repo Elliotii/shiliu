@@ -117,6 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
     faceted_spike.add_argument("--domain-run-id", type=int, default=12)
     faceted_spike.add_argument("--candidate-run-id", type=int, default=14)
     faceted_spike.add_argument("--sample-profile-run-id", required=True)
+    faceted_spike.add_argument("--recovery-source-run-id", type=int)
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -272,6 +273,7 @@ def main(argv: list[str] | None = None) -> int:
             domain_run_id=arguments.domain_run_id,
             candidate_run_id=arguments.candidate_run_id,
             sample_profile_run_id=arguments.sample_profile_run_id,
+            recovery_source_run_id=arguments.recovery_source_run_id,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
