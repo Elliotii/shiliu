@@ -219,6 +219,16 @@ def test_assigned_facets_require_evidence() -> None:
         FacetedAssignment.model_validate(payload)
 
 
+def test_long_source_evidence_is_preserved_not_silently_truncated() -> None:
+    payload = assignment("C001").model_dump(mode="json")
+    payload["focus_object_types"][0]["evidence"] = "证" * 400
+    value = FacetedAssignment.model_validate(payload)
+    assert len(value.focus_object_types[0].evidence) == 400
+    payload["focus_object_types"][0]["evidence"] = "证" * 501
+    with pytest.raises(ValidationError):
+        FacetedAssignment.model_validate(payload)
+
+
 def test_vocabulary_requires_rejection_reason_only_for_rejected() -> None:
     with pytest.raises(ValidationError):
         node("pf_01", "presentation_form", "步骤演示").model_copy(

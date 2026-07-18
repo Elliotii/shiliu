@@ -186,7 +186,7 @@ class FacetLabelAssignment(BaseModel):
 
     node_id: str = Field(pattern=r"^(fo|uc)_[0-9]{2}$")
     confidence: Literal["high", "medium", "low"]
-    evidence: str = Field(min_length=1, max_length=180)
+    evidence: str = Field(min_length=1, max_length=500)
 
 
 class AssignmentEvidence(BaseModel):
@@ -790,7 +790,7 @@ class FacetedMetadataService:
             recovery_dir = self.output_dir / f"run-{recovery_source_run_id:06d}"
             recovery_paths = {
                 "decomposition": recovery_dir / "faceted-candidate-decomposition.json",
-                "vocabulary_raw": recovery_dir / "faceted_vocabulary_consolidation" / "all" / "attempt-01" / "raw-response.txt",
+                "vocabulary": recovery_dir / "faceted-vocabularies.json",
             }
             if (
                 not recovery_run
@@ -814,15 +814,34 @@ class FacetedMetadataService:
                     code="faceted_recovery_lineage_mismatch",
                     retryable=False,
                 )
+            assignment_raw: dict[str, dict[str, str]] = {}
+            for batch_index in range(1, 5):
+                call_dir = (
+                    recovery_dir
+                    / "faceted_assignment"
+                    / f"batch-{batch_index:03d}"
+                    / "attempt-01"
+                )
+                candidates = [
+                    call_dir / "repair-raw-response.txt",
+                    call_dir / "raw-response.txt",
+                ]
+                raw = next((path for path in candidates if path.is_file()), None)
+                if raw is not None:
+                    assignment_raw[f"batch-{batch_index:03d}"] = {
+                        "relative_path": str(raw.relative_to(recovery_dir)),
+                        "hash": _hash_file(raw),
+                    }
             recovery = {
                 "source_run_id": recovery_source_run_id,
-                "reason": "remove_hidden_top_k_without_semantic_replay",
+                "reason": "narrow_recovery_without_semantic_replay",
                 "artifact_hashes": {
                     name: _hash_file(path) for name, path in recovery_paths.items()
                 },
+                "assignment_raw": assignment_raw,
                 "reused_stages": [
                     "faceted_candidate_decomposition",
-                    "faceted_vocabulary_consolidation_raw_response",
+                    "faceted_vocabulary_consolidation",
                 ],
             }
         protocol = {
@@ -950,11 +969,11 @@ class FacetedMetadataService:
         _write_json(run_dir / "budget-preflight" / "vocabulary-consolidation.json", vocabulary_budget.model_dump(mode="json"))
         if recovery:
             recovery_dir = self.output_dir / f"run-{int(recovery['source_run_id']):06d}"
-            raw_path = recovery_dir / "faceted_vocabulary_consolidation" / "all" / "attempt-01" / "raw-response.txt"
-            if _hash_file(raw_path) != recovery["artifact_hashes"]["vocabulary_raw"]:
-                raise PipelineError("窄修复词表原响应 Hash 改变", code="faceted_recovery_artifact_changed", retryable=False)
-            vocabulary = parse_json_content(
-                raw_path.read_text(encoding="utf-8"), FacetedVocabularyOutput
+            vocabulary_path = recovery_dir / "faceted-vocabularies.json"
+            if _hash_file(vocabulary_path) != recovery["artifact_hashes"]["vocabulary"]:
+                raise PipelineError("窄修复词表产物 Hash 改变", code="faceted_recovery_artifact_changed", retryable=False)
+            vocabulary = FacetedVocabularyOutput.model_validate_json(
+                vocabulary_path.read_text(encoding="utf-8")
             )
             validate_vocabulary(
                 vocabulary,
@@ -1004,7 +1023,38 @@ class FacetedMetadataService:
                 technical_max_tokens=8192,
             )
             _write_json(run_dir / "budget-preflight" / f"assignment-{index // 12 + 1:03d}.json", assignment_budget.model_dump(mode="json"))
-            output = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="faceted_assignment", unit_key=f"batch-{index // 12 + 1:03d}", role="taxonomy_assignment", prompt=prompt, prompt_version=ASSIGNMENT_PROMPT_VERSION, schema=FacetedAssignmentOutput, schema_hint=ASSIGNMENT_SCHEMA_HINT, max_tokens=assignment_budget.allocated_max_tokens, input_ids=batch_ids, validator=lambda value, expected=set(batch_ids): validate_assignments(value, expected_ids=expected, domain_draft=domain, vocabulary=vocabulary))
+            unit_key = f"batch-{index // 12 + 1:03d}"
+            recovered_raw = (recovery or {}).get("assignment_raw", {}).get(unit_key)
+            if recovered_raw:
+                recovery_dir = self.output_dir / f"run-{int(recovery['source_run_id']):06d}"
+                raw_path = recovery_dir / recovered_raw["relative_path"]
+                if _hash_file(raw_path) != recovered_raw["hash"]:
+                    raise PipelineError("窄修复赋值原响应 Hash 改变", code="faceted_recovery_artifact_changed", retryable=False)
+                output = parse_json_content(
+                    raw_path.read_text(encoding="utf-8"), FacetedAssignmentOutput
+                )
+                validate_assignments(
+                    output,
+                    expected_ids=set(batch_ids),
+                    domain_draft=domain,
+                    vocabulary=vocabulary,
+                )
+                target_path = run_dir / "reused-source-artifacts" / f"{unit_key}.json"
+                _write_json(target_path, output.model_dump(mode="json"))
+                self.run_repository.record_reused_stage(
+                    run_id,
+                    "faceted_assignment",
+                    unit_key,
+                    input_hash=_hash_text(prompt),
+                    output_path=str(target_path),
+                    output_hash=_stable_hash(output.model_dump(mode="json")),
+                    model=None,
+                    prompt_version=ASSIGNMENT_PROMPT_VERSION,
+                    thinking_enabled=False,
+                    reasoning_effort=None,
+                )
+            else:
+                output = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="faceted_assignment", unit_key=unit_key, role="taxonomy_assignment", prompt=prompt, prompt_version=ASSIGNMENT_PROMPT_VERSION, schema=FacetedAssignmentOutput, schema_hint=ASSIGNMENT_SCHEMA_HINT, max_tokens=assignment_budget.allocated_max_tokens, input_ids=batch_ids, validator=lambda value, expected=set(batch_ids): validate_assignments(value, expected_ids=expected, domain_draft=domain, vocabulary=vocabulary))
             assignments.extend(output.assignments)
             novelties.extend(output.facet_novelty_pool)
         assignments.sort(key=lambda item: selected_ids.index(item.content_id))
