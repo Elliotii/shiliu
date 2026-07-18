@@ -279,3 +279,16 @@ review_status
 - `risk`: single-flight / lease 未完成前 Run 只能停在工程 Hold。
 - `provider_source`: local freeze audit + independent reviewer evidence, provider_call_count=0
 - `review_status`: semantic_PASS_engineering_BLOCKED
+
+### D020 — Lift the engineering hold with atomic Provider single-flight
+
+- `stage`: ENG-DRAFT-A-002
+- `affected_nodes`: none；只改变 Provider 调用互斥、Attempt 恢复与 Run #24 下一阶段资格。
+- `before`: 同一 `run/stage/unit/attempt` 可被两个恢复进程并发进入，Draft A 实际产生 2 个 Primary 与 2 个 Repair Response；Run #24 停在工程 Hold。
+- `after`: Single-flight key 增加 `request_kind`，Primary 与 JSON Repair 分别使用原子文件 Lease、heartbeat、稳定 idempotency key 和不可变 Response Ledger；Run #24 更新为 `waiting_for_review / trial_assignment_ready`。
+- `evidence`: 10 类 Mock 并发/恢复场景、Attempt 计数事务测试与 288 项全量测试通过；修复前后 9 个冻结语义资产 SHA256 完全一致；独立 `trial-assignment-engineering-gate.json` 为 PASS。
+- `reason`: 在不修改 Draft A 或分类语义的前提下，消除批量 Assignment 重复调用、覆盖 Raw 和错误复用同一 Attempt 的风险。
+- `alternatives_considered`: 仅依赖 `audit.json.status`；拒绝，其不具备原子互斥。引入 Redis/Celery；拒绝，local-first 单体不需要外部锁服务。
+- `risk`: 跨主机且无法确认 Owner 存活的过期 Lease 仍采用保守停机策略，需要人工审计而不是自动重发。
+- `provider_source`: none, provider_call_count=0
+- `review_status`: engineering_PASS_trial_assignment_not_started

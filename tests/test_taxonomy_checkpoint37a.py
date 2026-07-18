@@ -223,7 +223,9 @@ def test_profile_spike_is_private_batched_audited_and_resumable(tmp_path) -> Non
     run_dir = tmp_path / "profile_spikes" / result["run_id"]
     assert (run_dir / "profiles.jsonl").is_file()
     assert (run_dir / "profile-discovery-view.jsonl").is_file()
-    assert (run_dir / "batch-001" / "raw-response.txt").is_file()
+    assert len(list((run_dir / "batch-001" / "responses" / "primary").glob(
+        "response-*.txt"
+    ))) == 1
     calls_before = provider.calls
 
     resumed = service.resume_spike(result["run_id"])

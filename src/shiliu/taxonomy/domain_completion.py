@@ -2022,6 +2022,22 @@ class DomainCompletionService:
         run = self.run_repository.get_run(run_id)
         if run is None:
             raise LookupError(run_id)
+        engineering_gate_path = (
+            self.output_dir
+            / f"run-{run_id:06d}"
+            / "trial-assignment-engineering-gate.json"
+        )
+        if engineering_gate_path.is_file():
+            engineering_gate = json.loads(
+                engineering_gate_path.read_text(encoding="utf-8")
+            )
+            if int(engineering_gate.get("run_id") or 0) == run_id:
+                run["trial_assignment_eligible"] = bool(
+                    engineering_gate.get("trial_assignment_eligible")
+                )
+                run["trial_assignment_started"] = bool(
+                    engineering_gate.get("trial_assignment_started")
+                )
         return {"run": run, "stages": self.run_repository.list_stages(run_id)}
 
     def revise_semantic_contract(self, run_id: int) -> dict[str, Any]:

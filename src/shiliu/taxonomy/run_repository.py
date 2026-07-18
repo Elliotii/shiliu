@@ -108,16 +108,38 @@ class TaxonomyRunRepository:
         prompt_version: str | None,
         thinking_enabled: bool | None,
         reasoning_effort: str | None,
+        force_new_attempt: bool = False,
+        expected_attempt_count: int | None = None,
     ) -> dict[str, Any]:
         stage = self.ensure_stage(
             run_id, stage_name, unit_key, input_hash=input_hash
         )
         now = utc_now()
         with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            current = connection.execute(
+                "SELECT * FROM taxonomy_stage_runs WHERE id=?", (stage["id"],)
+            ).fetchone()
+            assert current is not None
+            if current["status"] == "completed":
+                return dict(current)
+            recovery_already_advanced = (
+                force_new_attempt
+                and expected_attempt_count is not None
+                and int(current["attempt_count"] or 0) > expected_attempt_count
+            )
+            resume_existing = (
+                not force_new_attempt
+                and current["status"] in {"processing", "retry_wait"}
+                and int(current["attempt_count"] or 0) > 0
+            )
+            attempt_increment = (
+                0 if resume_existing or recovery_already_advanced else 1
+            )
             connection.execute(
                 """
                 UPDATE taxonomy_stage_runs
-                SET status='processing', attempt_count=attempt_count+1,
+                SET status='processing', attempt_count=attempt_count+?,
                     input_hash=?, model=?, prompt_version=?,
                     thinking_enabled=?, reasoning_effort=?, started_at=?,
                     completed_at=NULL, last_error_code=NULL,
@@ -125,6 +147,7 @@ class TaxonomyRunRepository:
                 WHERE id=?
                 """,
                 (
+                    attempt_increment,
                     input_hash,
                     model,
                     prompt_version,

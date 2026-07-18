@@ -10,6 +10,7 @@ from shiliu.cli import build_parser
 from shiliu.taxonomy.domain_completion import (
     REQUIRED_EXCLUDED_DIMENSIONS,
     DomainSemanticContractV2,
+    DomainCompletionService,
     SemanticAdjudicationOutput,
     UnresolvedBatchOutput,
     AlignmentBatchOutput,
@@ -29,6 +30,34 @@ from shiliu.taxonomy.domain_completion import (
     validate_alignment_batch,
     validate_semantic_output,
 )
+
+
+def test_domain_completion_status_exposes_trial_assignment_gate(tmp_path) -> None:
+    class Repository:
+        def get_run(self, run_id: int):
+            return {"id": run_id, "status": "waiting_for_review"}
+
+        def list_stages(self, run_id: int):
+            return []
+
+    run_dir = tmp_path / "run-000024"
+    run_dir.mkdir()
+    (run_dir / "trial-assignment-engineering-gate.json").write_text(
+        json.dumps({
+            "run_id": 24,
+            "trial_assignment_eligible": True,
+            "trial_assignment_started": False,
+        }),
+        encoding="utf-8",
+    )
+    service = object.__new__(DomainCompletionService)
+    service.run_repository = Repository()
+    service.output_dir = tmp_path
+
+    result = service.status(24)
+
+    assert result["run"]["trial_assignment_eligible"] is True
+    assert result["run"]["trial_assignment_started"] is False
 
 
 def _contract(node_id: str) -> dict:

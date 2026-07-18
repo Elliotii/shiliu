@@ -216,7 +216,9 @@ def test_batched_spike_keeps_calls_small_and_assigns_d_level(tmp_path) -> None:
     assert result["novelty_pool_count"] == 1
     assert result["totals"]["usage"]["prompt_tokens"] > 0
     run_dir = tmp_path / result["run_id"]
-    assert (run_dir / "local-01" / "raw-response.txt").is_file()
+    assert len(list((run_dir / "local-01" / "responses" / "primary").glob(
+        "response-*.txt"
+    ))) == 1
     assert (run_dir / "taxonomy-draft.json").is_file()
     assert json.loads((run_dir / "novelty-pool.json").read_text())[0][
         "content_id"
@@ -263,7 +265,8 @@ def test_validation_failure_repairs_raw_response_without_replaying_prompt(tmp_pa
         input_ids=["C001"],
     )
     assert result.value == "fixed"
-    assert (tmp_path / "call" / "raw-response.txt").read_text() == '{"wrong":1}'
+    primary_raw = tmp_path / "call" / audit["raw_response_path"]
+    assert primary_raw.read_text() == '{"wrong":1}'
     assert audit["repair"]["original_prompt_replayed"] is False
     assert "SECRET_ORIGINAL_CORPUS" not in (
         tmp_path / "call" / "repair-prompt.txt"

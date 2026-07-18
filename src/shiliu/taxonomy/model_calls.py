@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import time
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Generic, TypeVar
@@ -10,10 +10,19 @@ from pydantic import BaseModel
 
 from shiliu.domain import PipelineError
 from shiliu.llm import OpenAICompatibleProvider, parse_json_content
+from shiliu.taxonomy.provider_single_flight import (
+    ProviderAttemptScope,
+    ProviderLeaseConfig,
+    ProviderSingleFlight,
+)
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 JSON_REPAIR_PROMPT_VERSION = "json-repair-v2-audited-semantic-selection"
+
+
+def _hash_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 class AuditedJsonCaller(Generic[SchemaT]):
@@ -24,9 +33,11 @@ class AuditedJsonCaller(Generic[SchemaT]):
         *,
         provider: OpenAICompatibleProvider,
         repair_provider: OpenAICompatibleProvider,
+        lease_config: ProviderLeaseConfig | None = None,
     ) -> None:
         self.provider = provider
         self.repair_provider = repair_provider
+        self.lease_config = lease_config
 
     def call(
         self,
@@ -40,6 +51,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
         input_ids: list[str],
         validator: Callable[[SchemaT], None] | None = None,
         resume: bool = False,
+        lease_scope: ProviderAttemptScope | None = None,
     ) -> tuple[SchemaT, dict[str, Any]]:
         if call_dir.exists():
             if not resume:
@@ -53,12 +65,28 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 max_tokens=max_tokens,
                 input_ids=input_ids,
                 validator=validator,
+                lease_scope=lease_scope,
             )
-        call_dir.mkdir(parents=True, exist_ok=False)
+        try:
+            call_dir.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            if not resume:
+                raise
+            return self._resume(
+                call_dir=call_dir,
+                prompt=prompt,
+                prompt_version=prompt_version,
+                schema=schema,
+                schema_hint=schema_hint,
+                max_tokens=max_tokens,
+                input_ids=input_ids,
+                validator=validator,
+                lease_scope=lease_scope,
+            )
         prompt_path = call_dir / "prompt.txt"
         prompt_path.write_text(prompt, encoding="utf-8")
         audit: dict[str, Any] = {
-            "status": "requesting",
+            "status": "prepared",
             "prompt_version": prompt_version,
             "model": self.provider.model,
             "parameters": {
@@ -78,35 +106,47 @@ class AuditedJsonCaller(Generic[SchemaT]):
         }
         audit_path = call_dir / "audit.json"
         _write_json(audit_path, audit)
-        started = time.monotonic()
+        single_flight = ProviderSingleFlight(
+            call_dir=call_dir,
+            scope=lease_scope,
+            config=self.lease_config,
+        )
         try:
-            response = self.provider.complete_raw(prompt, max_tokens=max_tokens)
+            invocation = single_flight.invoke(
+                provider_call=lambda: self.provider.complete_raw(
+                    prompt, max_tokens=max_tokens
+                ),
+                request_kind="primary",
+                prompt_hash=_hash_text(prompt),
+                schema_hash=_hash_text(schema_hint),
+            )
         except PipelineError as exc:
+            if exc.code in {
+                "provider_already_in_progress",
+                "provider_lease_owner_unconfirmed",
+            }:
+                raise
             audit.update(
                 status="request_failed",
                 error_code=exc.code,
                 error_message=str(exc),
-                elapsed_seconds=round(time.monotonic() - started, 3),
                 finished_at=_utc_now(),
             )
             _write_json(audit_path, audit)
             raise
-
-        raw_path = call_dir / "raw-response.txt"
-        raw_path.write_text(response.content, encoding="utf-8")
-        reasoning_path: Path | None = None
-        if response.reasoning_content:
-            reasoning_path = call_dir / "reasoning-response.txt"
-            reasoning_path.write_text(response.reasoning_content, encoding="utf-8")
+        response = invocation.response
+        raw_path = invocation.raw_path
         audit.update(
             status="raw_received",
-            raw_response_path=raw_path.name,
+            raw_response_path=str(raw_path.relative_to(call_dir)),
+            raw_response_sha256=invocation.raw_sha256,
             raw_response_chars=len(response.content),
             finish_reason=response.finish_reason,
             response_id=response.response_id,
-            reasoning_response_path=reasoning_path.name if reasoning_path else None,
             usage=response.usage,
-            elapsed_seconds=round(time.monotonic() - started, 3),
+            elapsed_seconds=invocation.elapsed_seconds,
+            request_idempotency_key=invocation.idempotency_key,
+            resumed_from_response_ledger=invocation.resumed_from_ledger,
             raw_received_at=_utc_now(),
         )
         _write_json(audit_path, audit)
@@ -126,6 +166,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
             if validator:
                 validator(result)
         except PipelineError as exc:
+            single_flight.mark_validation_failed(invocation)
             validation_path = call_dir / "validation-error.txt"
             validation_path.write_text(str(exc), encoding="utf-8")
             result, repair_audit = self._repair(
@@ -136,6 +177,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 schema_hint=schema_hint,
                 max_tokens=max_tokens,
                 validator=validator,
+                lease_scope=lease_scope,
             )
             audit["repair"] = repair_audit
             _write_repair_semantic_diff(
@@ -146,6 +188,8 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 stage_id=prompt_version,
                 attempt_id=str(repair_audit.get("attempt_count") or 1),
             )
+        else:
+            single_flight.accept(invocation)
 
         output = result.model_dump(mode="json")
         _write_json(call_dir / "parsed-output.json", output)
@@ -164,15 +208,21 @@ class AuditedJsonCaller(Generic[SchemaT]):
         max_tokens: int,
         input_ids: list[str],
         validator: Callable[[SchemaT], None] | None,
+        lease_scope: ProviderAttemptScope | None,
     ) -> tuple[SchemaT, dict[str, Any]]:
         audit_path = call_dir / "audit.json"
         if not audit_path.is_file():
             raise PipelineError(
-                "调用目录缺少 audit.json，不能安全恢复",
-                code="taxonomy_resume_corrupt",
-                retryable=False,
+                "调用目录已由另一进程创建但 audit 尚未可见，保守拒绝重发",
+                code="provider_already_in_progress",
+                retryable=True,
             )
         audit = json.loads(audit_path.read_text(encoding="utf-8"))
+        single_flight = ProviderSingleFlight(
+            call_dir=call_dir,
+            scope=lease_scope,
+            config=self.lease_config,
+        )
         prompt_path = call_dir / str(audit.get("prompt_path") or "prompt.txt")
         if (
             audit.get("prompt_version") != prompt_version
@@ -199,6 +249,18 @@ class AuditedJsonCaller(Generic[SchemaT]):
             return result, audit
 
         raw_name = audit.get("raw_response_path")
+        ledger_invocation = single_flight.ledger.find_response(
+            request_kind="primary",
+            attempt_id=single_flight.scope.attempt_id,
+        )
+        if ledger_invocation is not None:
+            raw_name = str(ledger_invocation.raw_path.relative_to(call_dir))
+            if not ledger_invocation.response.content.strip():
+                raise PipelineError(
+                    "Primary 已返回空响应；必须创建新 Attempt",
+                    code="provider_attempt_failed_new_attempt_required",
+                    retryable=True,
+                )
         if not raw_name:
             request_attempt = int(audit.get("request_attempt_count") or 1)
             expected_raw = (
@@ -217,8 +279,12 @@ class AuditedJsonCaller(Generic[SchemaT]):
                     if validator:
                         validator(result)
                 except PipelineError as exc:
+                    if ledger_invocation is not None:
+                        single_flight.mark_validation_failed(ledger_invocation)
                     validation_path.write_text(str(exc), encoding="utf-8")
                 else:
+                    if ledger_invocation is not None:
+                        single_flight.accept(ledger_invocation)
                     _write_json(call_dir / "parsed-output.json", result.model_dump(mode="json"))
                     audit.update(status="completed", finished_at=_utc_now())
                     _write_json(audit_path, audit)
@@ -233,6 +299,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
                     max_tokens=max_tokens,
                     validator=validator,
                     resume=True,
+                    lease_scope=lease_scope,
                 )
                 output = result.model_dump(mode="json")
                 _write_repair_semantic_diff(
@@ -247,40 +314,41 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 audit.update(status="completed", repair=repair_audit, finished_at=_utc_now())
                 _write_json(audit_path, audit)
                 return result, audit
-
-        _preserve_attempt(audit, count_key="request_attempt_count")
-        attempt = int(audit.get("request_attempt_count") or 1) + 1
-        audit.update(
-            status="requesting",
-            request_attempt_count=attempt,
-            started_at=_utc_now(),
-            error_code=None,
-            error_message=None,
-        )
-        _write_json(audit_path, audit)
-        started = time.monotonic()
-        try:
-            response = self.provider.complete_raw(prompt, max_tokens=max_tokens)
-        except PipelineError as exc:
-            audit.update(
-                status="request_failed",
-                error_code=exc.code,
-                error_message=str(exc),
-                elapsed_seconds=round(time.monotonic() - started, 3),
-                finished_at=_utc_now(),
+        lease_path = call_dir / "leases" / "primary.json"
+        if lease_path.is_file():
+            lease_state = json.loads(lease_path.read_text(encoding="utf-8")).get(
+                "state"
             )
-            _write_json(audit_path, audit)
+            if lease_state == "failed":
+                raise PipelineError(
+                    "Provider Attempt 已失败；恢复必须创建新 Attempt",
+                    code="provider_attempt_failed_new_attempt_required",
+                    retryable=True,
+                )
+        try:
+            invocation = single_flight.invoke(
+                provider_call=lambda: self.provider.complete_raw(
+                    prompt, max_tokens=max_tokens
+                ),
+                request_kind="primary",
+                prompt_hash=_hash_text(prompt),
+                schema_hash=_hash_text(schema_hint),
+            )
+        except PipelineError as exc:
             raise
-        raw_path = call_dir / f"raw-response-{attempt:02d}.txt"
-        raw_path.write_text(response.content, encoding="utf-8")
+        response = invocation.response
+        raw_path = invocation.raw_path
         audit.update(
             status="raw_received",
-            raw_response_path=raw_path.name,
+            raw_response_path=str(raw_path.relative_to(call_dir)),
+            raw_response_sha256=invocation.raw_sha256,
             raw_response_chars=len(response.content),
             finish_reason=response.finish_reason,
             response_id=response.response_id,
             usage=response.usage,
-            elapsed_seconds=round(time.monotonic() - started, 3),
+            elapsed_seconds=invocation.elapsed_seconds,
+            request_idempotency_key=invocation.idempotency_key,
+            resumed_from_response_ledger=invocation.resumed_from_ledger,
             raw_received_at=_utc_now(),
         )
         _write_json(audit_path, audit)
@@ -298,6 +366,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
             if validator:
                 validator(result)
         except PipelineError as exc:
+            single_flight.mark_validation_failed(invocation)
             validation_path.write_text(str(exc), encoding="utf-8")
             result, repair_audit = self._repair(
                 call_dir=call_dir,
@@ -308,6 +377,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 max_tokens=max_tokens,
                 validator=validator,
                 resume=True,
+                lease_scope=lease_scope,
             )
             audit["repair"] = repair_audit
             _write_repair_semantic_diff(
@@ -318,6 +388,8 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 stage_id=prompt_version,
                 attempt_id=str(repair_audit.get("attempt_count") or 1),
             )
+        else:
+            single_flight.accept(invocation)
         _write_json(call_dir / "parsed-output.json", result.model_dump(mode="json"))
         audit.update(status="completed", finished_at=_utc_now())
         _write_json(audit_path, audit)
@@ -334,6 +406,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
         max_tokens: int,
         validator: Callable[[SchemaT], None] | None,
         resume: bool = False,
+        lease_scope: ProviderAttemptScope | None = None,
     ) -> tuple[SchemaT, dict[str, Any]]:
         prompt = (
             "你是 JSON Repair 工具。只修正下面原始响应的 JSON 语法和结构，不补充原始语料中"
@@ -345,8 +418,8 @@ class AuditedJsonCaller(Generic[SchemaT]):
             f"原始响应：\n{raw}"
         )
         existing_audit_path = call_dir / "repair-audit.json"
-        repair_attempt = 1
         attempt_history: list[dict[str, Any]] = []
+        existing_repair_response_invalid = False
         if resume and existing_audit_path.is_file():
             existing = json.loads(existing_audit_path.read_text(encoding="utf-8"))
             existing_raw = call_dir / str(existing.get("raw_response_path") or "")
@@ -356,19 +429,72 @@ class AuditedJsonCaller(Generic[SchemaT]):
                     if validator:
                         validator(result)
                 except PipelineError:
-                    pass
+                    existing_repair_response_invalid = True
                 else:
                     if existing.get("status") != "completed":
                         existing.update(status="completed", finished_at=_utc_now())
                         _write_json(existing_audit_path, existing)
                     return result, existing
-            _preserve_attempt(existing, count_key="attempt_count")
             attempt_history = list(existing.get("attempt_history") or [])
-            repair_attempt = int(existing.get("attempt_count") or 1) + 1
+        if existing_repair_response_invalid:
+            raise PipelineError(
+                "历史 Repair Response 已校验失败；必须创建新 Attempt",
+                code="provider_attempt_failed_new_attempt_required",
+                retryable=True,
+            )
+        single_flight = ProviderSingleFlight(
+            call_dir=call_dir,
+            scope=lease_scope,
+            config=self.lease_config,
+        )
+        ledger_invocation = single_flight.ledger.find_response(
+            request_kind="json_repair",
+            attempt_id=single_flight.scope.attempt_id,
+        )
+        if ledger_invocation is not None:
+            try:
+                result = parse_json_content(ledger_invocation.response.content, schema)
+                if validator:
+                    validator(result)
+            except PipelineError:
+                single_flight.mark_validation_failed(ledger_invocation)
+                raise PipelineError(
+                    "Repair Response 已校验失败；必须创建新 Attempt",
+                    code="provider_attempt_failed_new_attempt_required",
+                    retryable=True,
+                )
+            single_flight.accept(ledger_invocation)
+            existing = (
+                json.loads(existing_audit_path.read_text(encoding="utf-8"))
+                if existing_audit_path.is_file() else {}
+            )
+            existing.update(
+                status="completed",
+                raw_response_path=str(
+                    ledger_invocation.raw_path.relative_to(call_dir)
+                ),
+                response_id=ledger_invocation.response.response_id,
+                usage=ledger_invocation.response.usage,
+                resumed_from_response_ledger=True,
+                finished_at=_utc_now(),
+            )
+            _write_json(existing_audit_path, existing)
+            return result, existing
+        repair_lease_path = call_dir / "leases" / "json_repair.json"
+        if repair_lease_path.is_file():
+            lease_state = json.loads(
+                repair_lease_path.read_text(encoding="utf-8")
+            ).get("state")
+            if lease_state in {"failed", "validation_failed"}:
+                raise PipelineError(
+                    "Repair Attempt 已失败；必须创建新 Attempt",
+                    code="provider_attempt_failed_new_attempt_required",
+                    retryable=True,
+                )
         repair_prompt_path = call_dir / "repair-prompt.txt"
         repair_prompt_path.write_text(prompt, encoding="utf-8")
         repair_audit: dict[str, Any] = {
-            "status": "requesting",
+            "status": "prepared",
             "prompt_version": JSON_REPAIR_PROMPT_VERSION,
             "model": self.repair_provider.model,
             "input_chars": len(prompt),
@@ -376,38 +502,46 @@ class AuditedJsonCaller(Generic[SchemaT]):
             "original_prompt_replayed": False,
             "started_at": _utc_now(),
             "usage": None,
-            "attempt_count": repair_attempt,
+            "attempt_count": 1,
             "attempt_history": attempt_history,
         }
         repair_audit_path = call_dir / "repair-audit.json"
-        _write_json(repair_audit_path, repair_audit)
-        started = time.monotonic()
         try:
-            response = self.repair_provider.complete_raw(prompt, max_tokens=max_tokens)
+            invocation = single_flight.invoke(
+                provider_call=lambda: self.repair_provider.complete_raw(
+                    prompt, max_tokens=max_tokens
+                ),
+                request_kind="json_repair",
+                prompt_hash=_hash_text(prompt),
+                schema_hash=_hash_text(schema_hint),
+            )
         except PipelineError as exc:
+            if exc.code in {
+                "provider_already_in_progress",
+                "provider_lease_owner_unconfirmed",
+            }:
+                raise
             repair_audit.update(
                 status="request_failed",
                 error_code=exc.code,
                 error_message=str(exc),
-                elapsed_seconds=round(time.monotonic() - started, 3),
                 finished_at=_utc_now(),
             )
             _write_json(repair_audit_path, repair_audit)
             raise
-        repair_raw_path = call_dir / (
-            "repair-raw-response.txt"
-            if repair_attempt == 1
-            else f"repair-raw-response-{repair_attempt:02d}.txt"
-        )
-        repair_raw_path.write_text(response.content, encoding="utf-8")
+        response = invocation.response
+        repair_raw_path = invocation.raw_path
         repair_audit.update(
             status="raw_received",
-            raw_response_path=repair_raw_path.name,
+            raw_response_path=str(repair_raw_path.relative_to(call_dir)),
+            raw_response_sha256=invocation.raw_sha256,
             raw_response_chars=len(response.content),
             usage=response.usage,
             finish_reason=response.finish_reason,
             response_id=response.response_id,
-            elapsed_seconds=round(time.monotonic() - started, 3),
+            elapsed_seconds=invocation.elapsed_seconds,
+            request_idempotency_key=invocation.idempotency_key,
+            resumed_from_response_ledger=invocation.resumed_from_ledger,
             raw_received_at=_utc_now(),
         )
         _write_json(repair_audit_path, repair_audit)
@@ -416,6 +550,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
             if validator:
                 validator(result)
         except PipelineError as exc:
+            single_flight.mark_validation_failed(invocation)
             repair_audit.update(
                 status="validation_failed",
                 error_code=exc.code,
@@ -424,6 +559,7 @@ class AuditedJsonCaller(Generic[SchemaT]):
             )
             _write_json(repair_audit_path, repair_audit)
             raise
+        single_flight.accept(invocation)
         repair_audit.update(status="completed", finished_at=_utc_now())
         _write_json(repair_audit_path, repair_audit)
         return result, repair_audit

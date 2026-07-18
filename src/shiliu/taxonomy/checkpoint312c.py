@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import time
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Literal
@@ -13,6 +12,7 @@ from shiliu.domain import PipelineError
 from shiliu.llm import OpenAICompatibleProvider, parse_json_content
 from shiliu.taxonomy.controlled_facets_completion import _tree_hash
 from shiliu.taxonomy.controlled_facets import _hash_file, _stable_hash, _utc_now, _write_json
+from shiliu.taxonomy.provider_single_flight import ProviderSingleFlight
 
 
 TAIL_PROMPT_VERSION = "checkpoint312c-tail-completion-v1"
@@ -508,22 +508,53 @@ class Checkpoint312CService:
     def call(self, *, provider: OpenAICompatibleProvider, repair_provider: OpenAICompatibleProvider) -> dict[str, Any]:
         prepared = self.prepare()
         call_dir = self.output_dir / "tail-completion"
-        resumed_without_response = False
         if call_dir.exists():
             audit_path = call_dir / "audit.json"
             existing = json.loads(audit_path.read_text()) if audit_path.is_file() else {}
-            if existing.get("status") != "requesting" or (call_dir / "raw-response.txt").exists():
+            if existing.get("status") == "completed" or (call_dir / "raw-response.txt").exists():
                 raise FileExistsError(call_dir)
-            resumed_without_response = True
         else:
             call_dir.mkdir(parents=True)
         prompt = prepared["prompt"]
-        audit: dict[str, Any] = {"status": "requesting", "prompt_version": TAIL_PROMPT_VERSION, "model": provider.model, "parameters": {"thinking_enabled": provider.thinking_enabled, "reasoning_effort": provider.reasoning_effort, "max_tokens": 5000}, "prompt_hash": _hash_text(prompt), "started_at": _utc_now(), "repair_count": 0, "transport_request_attempt_count": 2 if resumed_without_response else 1, "resumed_after_process_exit_without_response": resumed_without_response}
-        _write_json(call_dir / "audit.json", audit)
-        started = time.monotonic()
-        response = provider.complete_raw(prompt, max_tokens=5000)
-        (call_dir / "raw-response.txt").write_text(response.content, encoding="utf-8")
-        audit.update(status="raw_received", finish_reason=response.finish_reason, usage=response.usage, elapsed_seconds=round(time.monotonic()-started,3), raw_response_chars=len(response.content), response_id=response.response_id)
+        audit_path = call_dir / "audit.json"
+        audit: dict[str, Any] = (
+            json.loads(audit_path.read_text())
+            if audit_path.is_file()
+            else {
+                "status": "prepared",
+                "prompt_version": TAIL_PROMPT_VERSION,
+                "model": provider.model,
+                "parameters": {
+                    "thinking_enabled": provider.thinking_enabled,
+                    "reasoning_effort": provider.reasoning_effort,
+                    "max_tokens": 5000,
+                },
+                "prompt_hash": _hash_text(prompt),
+                "started_at": _utc_now(),
+                "repair_count": 0,
+                "transport_request_attempt_count": 1,
+            }
+        )
+        if not audit_path.is_file():
+            _write_json(audit_path, audit)
+        single_flight = ProviderSingleFlight(call_dir=call_dir)
+        primary = single_flight.invoke(
+            provider_call=lambda: provider.complete_raw(prompt, max_tokens=5000),
+            request_kind="primary",
+            prompt_hash=_hash_text(prompt),
+            schema_hash=_hash_text(TAIL_SCHEMA_HINT),
+        )
+        response = primary.response
+        audit.update(
+            status="raw_received",
+            finish_reason=response.finish_reason,
+            usage=response.usage,
+            elapsed_seconds=primary.elapsed_seconds,
+            raw_response_chars=len(response.content),
+            raw_response_path=str(primary.raw_path.relative_to(call_dir)),
+            raw_response_sha256=primary.raw_sha256,
+            response_id=response.response_id,
+        )
         _write_json(call_dir / "audit.json", audit)
         precheck_finish_reason(response.finish_reason, stage="Tail Completion")
         repaired = False
@@ -533,19 +564,47 @@ class Checkpoint312CService:
             validate_tail_output(output, {x["id"] for x in flatten_domains(prepared["domains"])})
         except PipelineError as exc:
             repaired = True
+            single_flight.mark_validation_failed(primary)
             repair_prompt = "你是结构化 JSON Repair。只修正语法、字段、顺序和覆盖；不得改变已合法语义，不读取原任务证据。只输出 JSON。\n" + f"Schema:{TAIL_SCHEMA_HINT}\nExpected:{list(TAIL_IDS)}\nDomain IDs:{[x['id'] for x in flatten_domains(prepared['domains'])]}\nValidation:{str(exc)[:2500]}\nRaw:{response.content}"
             (call_dir / "repair-prompt.txt").write_text(repair_prompt, encoding="utf-8")
-            repair_response = repair_provider.complete_raw(repair_prompt, max_tokens=5000)
-            (call_dir / "repair-raw-response.txt").write_text(repair_response.content, encoding="utf-8")
-            precheck_finish_reason(repair_response.finish_reason, stage="Tail Repair")
-            output = parse_json_content(repair_response.content, TailCompletionOutput)
-            validate_tail_output(output, {x["id"] for x in flatten_domains(prepared["domains"])})
+            repair_invocation = single_flight.invoke(
+                provider_call=lambda: repair_provider.complete_raw(
+                    repair_prompt, max_tokens=5000
+                ),
+                request_kind="json_repair",
+                prompt_hash=_hash_text(repair_prompt),
+                schema_hash=_hash_text(TAIL_SCHEMA_HINT),
+            )
+            repair_response = repair_invocation.response
+            try:
+                precheck_finish_reason(
+                    repair_response.finish_reason, stage="Tail Repair"
+                )
+                output = parse_json_content(
+                    repair_response.content, TailCompletionOutput
+                )
+                validate_tail_output(
+                    output, {x["id"] for x in flatten_domains(prepared["domains"])}
+                )
+            except PipelineError:
+                single_flight.mark_validation_failed(repair_invocation)
+                raise
+            single_flight.accept(repair_invocation)
             before = _partial_decisions(response.content)
             after = {x.candidate_id: x.model_dump(mode="json") for x in output.candidate_decisions}
             semantic_changes = [key for key in TAIL_IDS if key not in before or before[key] != after[key]]
-            audit.update(repair_count=1, repair_usage=repair_response.usage, repair_finish_reason=repair_response.finish_reason)
+            audit.update(
+                repair_count=1,
+                repair_usage=repair_response.usage,
+                repair_finish_reason=repair_response.finish_reason,
+                repair_raw_response_path=str(
+                    repair_invocation.raw_path.relative_to(call_dir)
+                ),
+                repair_raw_response_sha256=repair_invocation.raw_sha256,
+            )
             response_hash = _hash_text(repair_response.content)
         else:
+            single_flight.accept(primary)
             response_hash = _hash_text(response.content)
         _write_json(call_dir / "parsed-output.json", output.model_dump(mode="json"))
         tail_audit = {"provider_request_hash": _hash_text(prompt), "provider_response_hash": _hash_text(response.content), "finish_reason": response.finish_reason, "candidate_ids": [x.candidate_id for x in output.candidate_decisions], "decision_hashes": {x.candidate_id: _stable_hash(x.model_dump(mode="json")) for x in output.candidate_decisions}, "repair_count": int(repaired), "repair_semantic_changes": semantic_changes, "frozen_domain_hash": _stable_hash(prepared["domains"]), "candidate_table_hash": _stable_hash(prepared["candidates"])}

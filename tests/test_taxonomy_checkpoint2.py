@@ -572,7 +572,7 @@ class EmptyThenValidProvider:
         )
 
 
-def test_request_retry_preserves_each_attempt_usage(tmp_path) -> None:
+def test_failed_primary_requires_new_immutable_attempt(tmp_path) -> None:
     provider = EmptyThenValidProvider()
     caller = AuditedJsonCaller(
         provider=provider,  # type: ignore[arg-type]
@@ -590,13 +590,25 @@ def test_request_retry_preserves_each_attempt_usage(tmp_path) -> None:
     with pytest.raises(PipelineError, match="模型返回为空"):
         caller.call(**kwargs)
 
-    result, audit = caller.call(**kwargs, resume=True)
-    combined = _combined_audit(audit)
+    with pytest.raises(PipelineError) as resume_error:
+        caller.call(**kwargs, resume=True)
+    assert resume_error.value.code == "provider_attempt_failed_new_attempt_required"
+
+    second_kwargs = {**kwargs, "call_dir": tmp_path / "attempt-02"}
+    result, audit = caller.call(**second_kwargs)
 
     assert result.value == "ok"
-    assert audit["request_attempt_count"] == 2
-    assert audit["attempt_history"][0]["response_id"] == "empty-1"
-    assert combined["usage"] == {"prompt_tokens": 21, "completion_tokens": 2}
+    assert provider.calls == 2
+    first_events = [
+        json.loads(line)
+        for line in (tmp_path / "call" / "provider-response-ledger.jsonl")
+        .read_text().splitlines()
+    ]
+    assert first_events[0]["response_id"] == "empty-1"
+    assert first_events[0]["usage"] == {
+        "prompt_tokens": 10, "completion_tokens": 0,
+    }
+    assert audit["usage"] == {"prompt_tokens": 11, "completion_tokens": 2}
 
 
 def test_combined_audit_preserves_reasoning_and_cached_token_details() -> None:
@@ -627,7 +639,7 @@ def test_combined_audit_preserves_reasoning_and_cached_token_details() -> None:
     assert combined["elapsed_seconds"] == 5
 
 
-def test_resume_retries_only_repair_not_original_request(tmp_path) -> None:
+def test_failed_repair_requires_new_attempt_without_reusing_failed_lease(tmp_path) -> None:
     original = InvalidOnceProvider()
     repair = RepairFailsOnceProvider()
     caller = AuditedJsonCaller(
@@ -645,12 +657,16 @@ def test_resume_retries_only_repair_not_original_request(tmp_path) -> None:
     }
     with pytest.raises(PipelineError, match="Repair 暂时失败"):
         caller.call(**kwargs)
-    result, audit = caller.call(**kwargs, resume=True)
+    with pytest.raises(PipelineError) as resume_error:
+        caller.call(**kwargs, resume=True)
+    assert resume_error.value.code == "provider_attempt_failed_new_attempt_required"
+
+    result, audit = caller.call(**{**kwargs, "call_dir": tmp_path / "attempt-02"})
     assert result.value == "fixed"
-    assert original.calls == 1
+    assert original.calls == 2
     assert repair.calls == 2
     assert audit["status"] == "completed"
-    assert audit["repair"]["attempt_count"] == 2
+    assert audit["repair"]["attempt_count"] == 1
 
 
 class MustNotCallProvider(InvalidOnceProvider):

@@ -58,6 +58,7 @@ from shiliu.taxonomy.candidates import (
     validate_top_level_draft,
 )
 from shiliu.taxonomy.model_calls import AuditedJsonCaller
+from shiliu.taxonomy.provider_single_flight import ProviderAttemptScope
 from shiliu.taxonomy.quality import (
     LOCAL_VALIDATION_PROMPT_VERSION,
     LOCAL_VALIDATION_SCHEMA_HINT,
@@ -1872,11 +1873,10 @@ class TaxonomyWorkflow:
                 source_output = Path(str(source_stage.get("output_path") or ""))
                 source_call_dir = source_output.parent
                 source_prompt = source_call_dir / "prompt.txt"
-                source_raw = source_call_dir / "raw-response.txt"
                 source_audit = source_call_dir / "audit.json"
                 if not all(
                     path.is_file()
-                    for path in (source_output, source_prompt, source_raw, source_audit)
+                    for path in (source_output, source_prompt, source_audit)
                 ) or source_prompt.read_text(encoding="utf-8") != prompt:
                     raise PipelineError(
                         f"Run A 复用来源产物不完整：{stage_name}/{unit_key}",
@@ -1884,6 +1884,16 @@ class TaxonomyWorkflow:
                         retryable=False,
                     )
                 audit = json.loads(source_audit.read_text(encoding="utf-8"))
+                raw_relative = str(
+                    audit.get("raw_response_path") or "raw-response.txt"
+                )
+                source_raw = source_call_dir / raw_relative
+                if not source_raw.is_file():
+                    raise PipelineError(
+                        f"Run A 复用来源 Raw 不完整：{stage_name}/{unit_key}",
+                        code="run_a_reuse_artifact_invalid",
+                        retryable=False,
+                    )
                 expected_ids = [str(row[0]) for row in batch]
                 expected_provider = (target_protocol.get("providers") or {}).get(role)
                 if (
@@ -2080,11 +2090,10 @@ class TaxonomyWorkflow:
         source_output = Path(str(source_stage.get("output_path") or ""))
         source_call_dir = source_output.parent
         source_prompt = source_call_dir / "prompt.txt"
-        source_raw = source_call_dir / "raw-response.txt"
         source_audit = source_call_dir / "audit.json"
         if not all(
             path.is_file()
-            for path in (source_output, source_prompt, source_raw, source_audit)
+            for path in (source_output, source_prompt, source_audit)
         ) or source_prompt.read_text(encoding="utf-8") != prompt:
             raise PipelineError(
                 "Content Type Consolidation 复用产物不完整",
@@ -2092,6 +2101,15 @@ class TaxonomyWorkflow:
                 retryable=False,
             )
         audit = json.loads(source_audit.read_text(encoding="utf-8"))
+        source_raw = source_call_dir / str(
+            audit.get("raw_response_path") or "raw-response.txt"
+        )
+        if not source_raw.is_file():
+            raise PipelineError(
+                "Content Type Consolidation 复用 Raw 不完整",
+                code="run_a_consolidation_reuse_artifact_invalid",
+                retryable=False,
+            )
         input_ids = sorted(
             {
                 short_id
@@ -2373,6 +2391,8 @@ class TaxonomyWorkflow:
             thinking_enabled=provider.thinking_enabled,
             reasoning_effort=provider.reasoning_effort,
         )
+        if started["status"] == "completed":
+            return _load_completed(started, schema, validator)
         attempt_number = previous_attempt if resume_existing else int(started["attempt_count"])
         call_dir = _model_call_dir(
             run_dir=run_dir,
@@ -2382,9 +2402,9 @@ class TaxonomyWorkflow:
             resume_existing=resume_existing,
         )
         caller = AuditedJsonCaller(provider=provider, repair_provider=repair_provider)
-        try:
-            result, audit = caller.call(
-                call_dir=call_dir,
+        def invoke(target_dir: Path, *, resume: bool):
+            return caller.call(
+                call_dir=target_dir,
                 prompt=prompt,
                 prompt_version=prompt_version,
                 schema=schema,
@@ -2392,18 +2412,73 @@ class TaxonomyWorkflow:
                 max_tokens=max_tokens,
                 input_ids=input_ids,
                 validator=validator,
-                resume=call_dir.exists(),
+                resume=resume,
+                lease_scope=ProviderAttemptScope(
+                    run_id=run_id,
+                    stage_name=stage_name,
+                    unit_key=unit_key,
+                    attempt_id=target_dir.name,
+                ),
             )
+        try:
+            result, audit = invoke(call_dir, resume=True)
         except PipelineError as exc:
-            self.run_repository.fail_stage(
-                run_id,
-                stage_name,
-                unit_key,
-                error_code=exc.code,
-                error_message=str(exc),
-                retryable=exc.retryable,
-            )
-            raise
+            if exc.code in {
+                "provider_already_in_progress",
+                "provider_lease_owner_unconfirmed",
+            }:
+                raise
+            if exc.code in {
+                "provider_attempt_abandoned_new_attempt_required",
+                "provider_attempt_failed_new_attempt_required",
+            }:
+                restarted = self.run_repository.start_stage(
+                    run_id,
+                    stage_name,
+                    unit_key,
+                    input_hash=input_hash,
+                    model=provider.model,
+                    prompt_version=prompt_version,
+                    thinking_enabled=provider.thinking_enabled,
+                    reasoning_effort=provider.reasoning_effort,
+                    force_new_attempt=True,
+                    expected_attempt_count=attempt_number,
+                )
+                new_call_dir = _model_call_dir(
+                    run_dir=run_dir,
+                    stage_name=stage_name,
+                    unit_key=unit_key,
+                    attempt_number=int(restarted["attempt_count"]),
+                    resume_existing=False,
+                )
+                try:
+                    result, audit = invoke(new_call_dir, resume=True)
+                except PipelineError as retry_exc:
+                    if retry_exc.code in {
+                        "provider_already_in_progress",
+                        "provider_lease_owner_unconfirmed",
+                    }:
+                        raise
+                    self.run_repository.fail_stage(
+                        run_id,
+                        stage_name,
+                        unit_key,
+                        error_code=retry_exc.code,
+                        error_message=str(retry_exc),
+                        retryable=retry_exc.retryable,
+                    )
+                    raise
+                call_dir = new_call_dir
+            else:
+                self.run_repository.fail_stage(
+                    run_id,
+                    stage_name,
+                    unit_key,
+                    error_code=exc.code,
+                    error_message=str(exc),
+                    retryable=exc.retryable,
+                )
+                raise
         output = result.model_dump(mode="json")
         output_path = call_dir / "parsed-output.json"
         stage_audit = _combined_audit(audit)
