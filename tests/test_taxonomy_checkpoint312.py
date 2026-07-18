@@ -19,6 +19,7 @@ from shiliu.taxonomy.domain_stability import (
     merge_aligned_nodes,
     validate_alignment,
     validate_hierarchy_output,
+    _domain_provider_manifest,
 )
 from shiliu.taxonomy.model_calls import _write_repair_semantic_diff
 
@@ -273,3 +274,19 @@ def test_draft_gate_rejects_unsourced_node() -> None:
     )
     assert not gate.passed
     assert any(item["code"] == "draft_source_missing" for item in gate.blocking_issues)
+
+
+def test_domain_provider_manifest_matches_full_run_a_field_set() -> None:
+    class Provider:
+        model = "deepseek-v4-pro"
+        thinking_enabled = True
+        reasoning_effort = "high"
+        temperature = None
+
+    assert _domain_provider_manifest(Provider()) == {
+        "provider": "openai-compatible",
+        "model": "deepseek-v4-pro",
+        "thinking_enabled": True,
+        "reasoning_effort": "high",
+        "temperature": None,
+    }

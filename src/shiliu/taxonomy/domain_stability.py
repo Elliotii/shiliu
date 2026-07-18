@@ -32,7 +32,6 @@ from shiliu.taxonomy.candidates import (
 from shiliu.taxonomy.controlled_facets import (
     _git_state,
     _hash_file,
-    _provider_manifest,
     _stable_hash,
     _utc_now,
     _write_json,
@@ -236,7 +235,7 @@ class DomainStabilityService:
             )
         provider_roles = ("taxonomy_local", "taxonomy_global", "taxonomy_repair")
         providers = {
-            role: _provider_manifest(self.workflow.provider_factory(role))
+            role: _domain_provider_manifest(self.workflow.provider_factory(role))
             for role in provider_roles
         }
         expected_providers = {
@@ -1246,3 +1245,15 @@ def _hash_text(value: str) -> str:
 
 def _compact_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def _domain_provider_manifest(provider: Any) -> dict[str, Any]:
+    """Use the exact field set frozen by Full Run A, not a facet shorthand."""
+
+    return {
+        "provider": "openai-compatible",
+        "model": provider.model,
+        "thinking_enabled": provider.thinking_enabled,
+        "reasoning_effort": provider.reasoning_effort,
+        "temperature": getattr(provider, "temperature", None),
+    }
