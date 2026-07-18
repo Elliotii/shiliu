@@ -130,6 +130,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="创建 Checkpoint 3.11B 受控分面补全派生 Run",
     )
     completion.add_argument("--source-run-id", type=int, default=20)
+    domain_stability = taxonomy_commands.add_parser(
+        "create-domain-stability-run",
+        help="创建 Checkpoint 3.12 可比较的 Domain Run B/C",
+    )
+    domain_stability.add_argument("--source-run-id", type=int, default=12)
+    domain_stability.add_argument("--label", choices=("B", "C"), required=True)
+    domain_stability.add_argument("--seed", type=int, required=True)
+    domain_merge = taxonomy_commands.add_parser(
+        "create-domain-cross-run-merge",
+        help="创建 Checkpoint 3.12 Cross-run Merge 与 Draft A Run",
+    )
+    domain_merge.add_argument("--run-a-id", type=int, default=12)
+    domain_merge.add_argument("--run-b-id", type=int, required=True)
+    domain_merge.add_argument("--run-c-id", type=int, required=True)
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -203,6 +217,30 @@ def main(argv: list[str] | None = None) -> int:
         app = Application()
         result = app.taxonomy_profile_comparison.resume(arguments.comparison_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-domain-stability-run"
+    ):
+        app = Application()
+        run_id = app.taxonomy_domain_stability.create_domain_run(
+            source_run_id=arguments.source_run_id,
+            run_label=arguments.label,
+            seed=arguments.seed,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-domain-cross-run-merge"
+    ):
+        app = Application()
+        run_id = app.taxonomy_domain_stability.create_merge_run(
+            run_a_id=arguments.run_a_id,
+            run_b_id=arguments.run_b_id,
+            run_c_id=arguments.run_c_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "discovery-spike":
         app = Application()
@@ -323,8 +361,17 @@ def main(argv: list[str] | None = None) -> int:
         is_completion = bool(
             run and run.get("run_kind") == "hybrid_controlled_facets_completion"
         )
+        is_domain_stability = bool(
+            run
+            and run.get("run_kind") in {
+                "domain_stability_discovery",
+                "domain_cross_run_merge",
+            }
+        )
         service = (
-            app.taxonomy_controlled_facet_completion
+            app.taxonomy_domain_stability
+            if is_domain_stability
+            else app.taxonomy_controlled_facet_completion
             if is_completion
             else app.taxonomy_controlled_facets
             if is_controlled
@@ -335,10 +382,16 @@ def main(argv: list[str] | None = None) -> int:
         if arguments.taxonomy_command == "status":
             result = service.status(arguments.run_id)
         else:
-            result = service.execute(
-                arguments.run_id,
-                resume=arguments.taxonomy_command == "resume",
-            )
+            if run and run.get("run_kind") == "domain_cross_run_merge":
+                result = app.taxonomy_domain_stability.execute_merge(
+                    arguments.run_id,
+                    resume=arguments.taxonomy_command == "resume",
+                )
+            else:
+                result = service.execute(
+                    arguments.run_id,
+                    resume=arguments.taxonomy_command == "resume",
+                )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     return 2

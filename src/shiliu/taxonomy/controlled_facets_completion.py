@@ -59,6 +59,7 @@ MODEL_SCHEMA_VERSION = "controlled-facet-model-output-v1"
 MODEL_PROMPT_VERSION = "controlled-facet-completion-v1"
 HISTORICAL_ADAPTER_VERSION = "controlled-facet-history-adapter-v1"
 OBJECT_NORMALIZATION_VERSION = "merge-duplicate-object-type-v1"
+OBJECT_OVERFLOW_PROTOCOL_VERSION = "object-overflow-selection-v1"
 DOMAIN_COMBINATION_VERSION = "frozen-domain-combination-v1"
 DERIVED_FILTER_VERSION = "controlled-derived-filters-v2"
 COMPLETION_GATE_VERSION = "checkpoint311b-quality-gate-v1"
@@ -103,6 +104,18 @@ class ModelFacetOutput(BaseModel):
 
     version: Literal[MODEL_SCHEMA_VERSION] = MODEL_SCHEMA_VERSION
     assignments: list[ModelFacetAssignment] = Field(min_length=1, max_length=12)
+
+
+class OverflowObjectTypeCandidate(BaseModel):
+    """An auditable candidate preserved when the two-label OT budget is exceeded."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    object_type_id: str = Field(pattern=r"^OT[0-9]{2}$")
+    source_entities: list[str]
+    evidence: list[str]
+    confidence: Literal["high", "medium", "low"]
+    not_selected_reason: str
 
 
 MODEL_SCHEMA_HINT = (
@@ -204,8 +217,9 @@ def normalize_model_assignment(
     *,
     allowed_entities: set[str],
     timestamp: str,
+    central_object_type_ids: set[str] | None = None,
 ) -> tuple[ModelFacetAssignment, list[dict[str, Any]]]:
-    """Merge only duplicate OT IDs and emit complete field-level audit events."""
+    """Merge duplicate IDs, then select at most two OT labels without truncation."""
 
     groups: dict[str, list[ModelObjectAssignment]] = {}
     order: list[str] = []
@@ -269,13 +283,56 @@ def normalize_model_assignment(
                 }
             )
 
-    normalized = assignment.model_copy(update={"object_types": merged_objects})
-    if len(normalized.object_types) > 2:
-        raise PipelineError(
-            "聚合后 Object Type 标签预算仍超限",
-            code="object_label_budget_exceeded",
-            retryable=False,
+    central = central_object_type_ids or set()
+    ranked = (
+        sorted(
+            merged_objects,
+            key=lambda item: (
+                -(item.id in central),
+                -CONFIDENCE_RANK[item.confidence],
+                -len(item.evidence),
+                -len(item.source_entities),
+                item.id,
+            ),
         )
+        if len(merged_objects) > 2
+        else merged_objects
+    )
+    selected = ranked[:2]
+    overflow = ranked[2:]
+    if overflow:
+        overflow_candidates = [
+            OverflowObjectTypeCandidate(
+                object_type_id=item.id,
+                source_entities=list(item.source_entities),
+                evidence=list(item.evidence),
+                confidence=item.confidence,
+                not_selected_reason=(
+                    "根据内容中心性、置信度和证据强度排序后未进入最多两个标签。"
+                ),
+            ).model_dump(mode="json")
+            for item in overflow
+        ]
+        events.append(
+            {
+                "operation": OBJECT_OVERFLOW_PROTOCOL_VERSION,
+                "content_id": assignment.content_id,
+                "selected_object_types": [item.id for item in selected],
+                "overflow_object_type_candidates": overflow_candidates,
+                "ranking": [
+                    {
+                        "object_type_id": item.id,
+                        "central": item.id in central,
+                        "confidence": item.confidence,
+                        "evidence_count": len(item.evidence),
+                        "source_entity_count": len(item.source_entities),
+                    }
+                    for item in ranked
+                ],
+                "timestamp": timestamp,
+            }
+        )
+    normalized = assignment.model_copy(update={"object_types": selected})
     return normalized, events
 
 
@@ -783,6 +840,11 @@ def build_completion_metrics(
                 event.get("operation") == "merge_duplicate_object_type_v1"
                 for event in normalization_events
             ),
+            "overflow_candidate_count": sum(
+                len(event.get("overflow_object_type_candidates") or [])
+                for event in normalization_events
+                if event.get("operation") == OBJECT_OVERFLOW_PROTOCOL_VERSION
+            ),
         },
         "dynamic": dynamic["metrics"],
     }
@@ -801,6 +863,7 @@ def build_completion_quality_gate(
     historical_tree_hashes: dict[str, str],
     current_historical_tree_hashes: dict[str, str],
     model_output_forbidden_field_count: int,
+    audit_metrics: dict[str, int | float] | None = None,
 ) -> ControlledQualityResult:
     base = build_quality_gate(
         assignments=assignments,
@@ -829,6 +892,18 @@ def build_completion_quality_gate(
         )
     if assignments and all(item.suggested_use_contexts for item in assignments):
         blocking.append({"code": "suggested_context_forced_filled", "details": [48]})
+    audit_metrics = dict(audit_metrics or {})
+    warning_fields = {
+        "repair_call_count": "模型阶段发生 JSON Repair",
+        "repair_semantic_change_count": "Repair 含语义选择或增删",
+        "untyped_entity_count": "仍有未类型化 Entity",
+        "model_assisted_object_assignment_count": "Object Type 依赖模型辅助赋值",
+        "overflow_candidate_count": "Object Type 存在预算外候选",
+    }
+    for field, message in warning_fields.items():
+        value = audit_metrics.get(field, 0)
+        if isinstance(value, (int, float)) and value > 0:
+            warnings.append({"code": field, "details": [value, message]})
     return ControlledQualityResult(
         passed=not blocking,
         blocking_issues=blocking,
@@ -837,6 +912,24 @@ def build_completion_quality_gate(
             **base.metrics,
             "completion_gate_version": COMPLETION_GATE_VERSION,
             "model_output_forbidden_field_count": model_output_forbidden_field_count,
+            "repair_call_count": audit_metrics.get("repair_call_count", 0),
+            "repair_rate": audit_metrics.get("repair_rate", 0),
+            "repair_semantic_change_count": audit_metrics.get(
+                "repair_semantic_change_count", 0
+            ),
+            "repair_syntax_only_count": audit_metrics.get(
+                "repair_syntax_only_count", 0
+            ),
+            "untyped_entity_count": audit_metrics.get("untyped_entity_count", 0),
+            "deterministic_entity_mapping_count": audit_metrics.get(
+                "deterministic_entity_mapping_count", 0
+            ),
+            "model_assisted_object_assignment_count": audit_metrics.get(
+                "model_assisted_object_assignment_count", 0
+            ),
+            "overflow_candidate_count": audit_metrics.get(
+                "overflow_candidate_count", 0
+            ),
         },
     )
 

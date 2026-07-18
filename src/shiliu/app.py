@@ -20,6 +20,7 @@ from shiliu.taxonomy.controlled_facets_completion import (
     ControlledFacetCompletionService,
 )
 from shiliu.taxonomy.discovery import BatchedDiscoverySpikeService
+from shiliu.taxonomy.domain_stability import DomainStabilityService
 from shiliu.taxonomy.facets import FacetExtractionService
 from shiliu.taxonomy.faceted_metadata import FacetedMetadataService
 from shiliu.taxonomy.profiles import ClassificationProfileService
@@ -65,6 +66,15 @@ class Application:
             snapshot_repository=self.taxonomy_corpus.repository,
             run_repository=self.taxonomy_run_repository,
             provider_factory=self.provider,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "runs",
+            profile_output_dir=(
+                self.paths.content_dir / "taxonomy" / "runtime" / "profile_spikes"
+            ),
+        )
+        self.taxonomy_domain_stability = DomainStabilityService(
+            repository=self.taxonomy_corpus.repository,
+            run_repository=self.taxonomy_run_repository,
+            workflow=self.taxonomy_workflow,
             output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "runs",
             profile_output_dir=(
                 self.paths.content_dir / "taxonomy" / "runtime" / "profile_spikes"

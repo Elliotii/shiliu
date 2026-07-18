@@ -137,6 +137,14 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 validator=validator,
             )
             audit["repair"] = repair_audit
+            _write_repair_semantic_diff(
+                call_dir=call_dir,
+                original_raw=response.content,
+                repaired_value=result.model_dump(mode="json"),
+                validation_error=str(exc),
+                stage_id=prompt_version,
+                attempt_id=str(repair_audit.get("attempt_count") or 1),
+            )
 
         output = result.model_dump(mode="json")
         _write_json(call_dir / "parsed-output.json", output)
@@ -226,6 +234,14 @@ class AuditedJsonCaller(Generic[SchemaT]):
                     resume=True,
                 )
                 output = result.model_dump(mode="json")
+                _write_repair_semantic_diff(
+                    call_dir=call_dir,
+                    original_raw=raw,
+                    repaired_value=output,
+                    validation_error=validation_path.read_text(encoding="utf-8"),
+                    stage_id=prompt_version,
+                    attempt_id=str(repair_audit.get("attempt_count") or 1),
+                )
                 _write_json(call_dir / "parsed-output.json", output)
                 audit.update(status="completed", repair=repair_audit, finished_at=_utc_now())
                 _write_json(audit_path, audit)
@@ -293,6 +309,14 @@ class AuditedJsonCaller(Generic[SchemaT]):
                 resume=True,
             )
             audit["repair"] = repair_audit
+            _write_repair_semantic_diff(
+                call_dir=call_dir,
+                original_raw=response.content,
+                repaired_value=result.model_dump(mode="json"),
+                validation_error=str(exc),
+                stage_id=prompt_version,
+                attempt_id=str(repair_audit.get("attempt_count") or 1),
+            )
         _write_json(call_dir / "parsed-output.json", result.model_dump(mode="json"))
         audit.update(status="completed", finished_at=_utc_now())
         _write_json(audit_path, audit)
@@ -407,6 +431,188 @@ def _write_json(path: Path, value: Any) -> None:
         json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     temporary.replace(path)
+
+
+def _write_repair_semantic_diff(
+    *,
+    call_dir: Path,
+    original_raw: str,
+    repaired_value: Any,
+    validation_error: str,
+    stage_id: str,
+    attempt_id: str,
+) -> None:
+    """Persist an explicit field-level account of every Repair transformation."""
+
+    try:
+        original = _extract_json_value(original_raw)
+    except (ValueError, json.JSONDecodeError):
+        events = [
+            {
+                "stage_id": stage_id,
+                "attempt_id": attempt_id,
+                "content_id": None,
+                "candidate_id": None,
+                "field_path": "$",
+                "original_value": original_raw,
+                "repaired_value": repaired_value,
+                "change_type": "syntax_only",
+                "reason": "原始响应不是可解析 JSON；Repair 形成可校验 JSON。",
+                "validation_error": validation_error,
+                "evidence": "json_parse_failed",
+                "timestamp": _utc_now(),
+            }
+        ]
+    else:
+        events = _semantic_diff_events(
+            original,
+            repaired_value,
+            stage_id=stage_id,
+            attempt_id=attempt_id,
+            validation_error=validation_error,
+        )
+        if not events:
+            events = [
+                {
+                    "stage_id": stage_id,
+                    "attempt_id": attempt_id,
+                    "content_id": None,
+                    "candidate_id": None,
+                    "field_path": "$",
+                    "original_value": original,
+                    "repaired_value": repaired_value,
+                    "change_type": "schema_only",
+                    "reason": "值未改变；Repair 仅使响应满足严格 Schema。",
+                    "validation_error": validation_error,
+                    "evidence": "no_value_difference",
+                    "timestamp": _utc_now(),
+                }
+            ]
+    _write_json(
+        call_dir / "repair-semantic-diff.json",
+        {
+            "version": "repair-semantic-diff-v1",
+            "events": events,
+            "semantic_change_count": sum(
+                item["change_type"]
+                in {"semantic_selection", "semantic_addition", "semantic_removal"}
+                for item in events
+            ),
+            "syntax_only_count": sum(
+                item["change_type"] == "syntax_only" for item in events
+            ),
+        },
+    )
+
+
+def _extract_json_value(raw: str) -> Any:
+    text = raw.strip()
+    if text.startswith("```") and text.endswith("```"):
+        first_newline = text.find("\n")
+        text = text[first_newline + 1 : -3].strip()
+    start_candidates = [value for value in (text.find("{"), text.find("[")) if value >= 0]
+    if not start_candidates:
+        raise ValueError("no JSON value")
+    start = min(start_candidates)
+    end = max(text.rfind("}"), text.rfind("]"))
+    if end < start:
+        raise ValueError("incomplete JSON value")
+    return json.loads(text[start : end + 1])
+
+
+def _semantic_diff_events(
+    original: Any,
+    repaired: Any,
+    *,
+    stage_id: str,
+    attempt_id: str,
+    validation_error: str,
+    path: str = "$",
+    context: dict[str, str | None] | None = None,
+) -> list[dict[str, Any]]:
+    context = dict(context or {"content_id": None, "candidate_id": None})
+    if isinstance(original, dict):
+        for key in ("content_id", "candidate_id"):
+            if isinstance(original.get(key), str):
+                context[key] = original[key]
+    if isinstance(repaired, dict):
+        for key in ("content_id", "candidate_id"):
+            if isinstance(repaired.get(key), str):
+                context[key] = repaired[key]
+    if type(original) is type(repaired):
+        if isinstance(original, dict):
+            events: list[dict[str, Any]] = []
+            for key in sorted(set(original) | set(repaired)):
+                child = f"{path}.{key}"
+                if key not in original:
+                    events.append(_diff_event(
+                        stage_id, attempt_id, context, child, None, repaired[key],
+                        "semantic_addition", validation_error,
+                    ))
+                elif key not in repaired:
+                    events.append(_diff_event(
+                        stage_id, attempt_id, context, child, original[key], None,
+                        "semantic_removal", validation_error,
+                    ))
+                else:
+                    events.extend(_semantic_diff_events(
+                        original[key], repaired[key], stage_id=stage_id,
+                        attempt_id=attempt_id, validation_error=validation_error,
+                        path=child, context=context,
+                    ))
+            return events
+        if isinstance(original, list):
+            if original == repaired:
+                return []
+            change_type = "normalization"
+            if len(repaired) < len(original):
+                change_type = (
+                    "semantic_selection"
+                    if "max_length" in validation_error or "最多" in validation_error
+                    else "semantic_removal"
+                )
+            elif len(repaired) > len(original):
+                change_type = "semantic_addition"
+            return [_diff_event(
+                stage_id, attempt_id, context, path, original, repaired,
+                change_type, validation_error,
+            )]
+        if original == repaired:
+            return []
+        return [_diff_event(
+            stage_id, attempt_id, context, path, original, repaired,
+            "normalization", validation_error,
+        )]
+    return [_diff_event(
+        stage_id, attempt_id, context, path, original, repaired,
+        "schema_only", validation_error,
+    )]
+
+
+def _diff_event(
+    stage_id: str,
+    attempt_id: str,
+    context: dict[str, str | None],
+    field_path: str,
+    original_value: Any,
+    repaired_value: Any,
+    change_type: str,
+    validation_error: str,
+) -> dict[str, Any]:
+    return {
+        "stage_id": stage_id,
+        "attempt_id": attempt_id,
+        "content_id": context.get("content_id"),
+        "candidate_id": context.get("candidate_id"),
+        "field_path": field_path,
+        "original_value": original_value,
+        "repaired_value": repaired_value,
+        "change_type": change_type,
+        "reason": "Repair 后字段值发生可审计变化。",
+        "validation_error": validation_error,
+        "evidence": "raw_response_vs_validated_repair",
+        "timestamp": _utc_now(),
+    }
 
 
 def _preserve_attempt(audit: dict[str, Any], *, count_key: str) -> None:
