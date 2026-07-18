@@ -149,6 +149,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     domain_c1.add_argument("--source-run-id", type=int, default=12)
     domain_c1.add_argument("--seed", type=int, default=303, choices=(303,))
+    domain_completion = taxonomy_commands.add_parser(
+        "create-domain-completion", help="创建 V3 Domain Completion Mission Run",
+    )
+    domain_completion.add_argument("--run-a-id", type=int, default=12)
+    domain_completion.add_argument("--run-b-id", type=int, default=22)
+    domain_completion.add_argument("--run-c1-id", type=int, default=23)
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -251,6 +257,18 @@ def main(argv: list[str] | None = None) -> int:
         app = Application()
         run_id = app.taxonomy_domain_consolidation_v2.create_run_c1(
             source_run_id=arguments.source_run_id, seed=arguments.seed,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-domain-completion"
+    ):
+        app = Application()
+        run_id = app.taxonomy_domain_completion.create(
+            run_a_id=arguments.run_a_id,
+            run_b_id=arguments.run_b_id,
+            run_c1_id=arguments.run_c1_id,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
@@ -381,8 +399,11 @@ def main(argv: list[str] | None = None) -> int:
             }
         )
         is_domain_c1 = bool(run and run.get("run_kind") == "domain_consolidation_v2")
+        is_domain_completion = bool(run and run.get("run_kind") == "domain_completion")
         service = (
-            app.taxonomy_domain_consolidation_v2
+            app.taxonomy_domain_completion
+            if is_domain_completion
+            else app.taxonomy_domain_consolidation_v2
             if is_domain_c1
             else app.taxonomy_domain_stability
             if is_domain_stability

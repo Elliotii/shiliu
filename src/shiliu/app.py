@@ -22,6 +22,7 @@ from shiliu.taxonomy.controlled_facets_completion import (
 from shiliu.taxonomy.discovery import BatchedDiscoverySpikeService
 from shiliu.taxonomy.domain_stability import DomainStabilityService
 from shiliu.taxonomy.domain_consolidation_v2 import DomainConsolidationV2Service
+from shiliu.taxonomy.domain_completion import DomainCompletionService
 from shiliu.taxonomy.facets import FacetExtractionService
 from shiliu.taxonomy.faceted_metadata import FacetedMetadataService
 from shiliu.taxonomy.profiles import ClassificationProfileService
@@ -82,6 +83,12 @@ class Application:
             ),
         )
         self.taxonomy_domain_consolidation_v2 = DomainConsolidationV2Service(
+            repository=self.taxonomy_corpus.repository,
+            run_repository=self.taxonomy_run_repository,
+            workflow=self.taxonomy_workflow,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "runs",
+        )
+        self.taxonomy_domain_completion = DomainCompletionService(
             repository=self.taxonomy_corpus.repository,
             run_repository=self.taxonomy_run_repository,
             workflow=self.taxonomy_workflow,
