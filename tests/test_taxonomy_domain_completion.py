@@ -11,11 +11,16 @@ from shiliu.taxonomy.domain_completion import (
     REQUIRED_EXCLUDED_DIMENSIONS,
     DomainSemanticContractV2,
     SemanticAdjudicationOutput,
+    UnresolvedBatchOutput,
+    _unresolved_groups,
+    apply_unresolved_review,
     build_semantic_review_record,
     build_semantic_adjudication_prompt,
     build_semantic_audit_bundle,
+    recover_unresolved_batch,
     recover_semantic_output,
     revise_semantic_contract_once,
+    validate_unresolved_batch,
     validate_semantic_output,
 )
 
@@ -272,3 +277,159 @@ def test_semantic_revision_separates_domain_type_from_evidence_maturity(tmp_path
 def test_domain_completion_cli_defaults_to_frozen_sources():
     args = build_parser().parse_args(["taxonomy", "create-domain-completion"])
     assert (args.run_a_id, args.run_b_id, args.run_c1_id) == (12, 22, 23)
+
+
+def test_unresolved_grouping_deduplicates_only_cross_run_semantic_evidence():
+    rows = [
+        {
+            "source_run": "B",
+            "candidate_id": "nc_037",
+            "candidate": {
+                "name": "算法与数据结构",
+                "definition": "经典算法与数据结构",
+                "supporting_ids": ["C131"],
+            },
+        },
+        {
+            "source_run": "C1",
+            "candidate_id": "nc_039",
+            "candidate": {
+                "name": "算法优化与双指针技巧",
+                "definition": "使用双指针优化经典数组算法",
+                "supporting_ids": ["C131"],
+            },
+        },
+        {
+            "source_run": "C1",
+            "candidate_id": "nc_040",
+            "candidate": {
+                "name": "终端与命令行",
+                "definition": "文本计算机交互界面",
+                "supporting_ids": ["C080", "C106"],
+            },
+        },
+    ]
+    groups = _unresolved_groups(rows)
+    assert len(groups) == 2
+    assert {(item["source_run"], item["candidate_id"]) for item in groups[0]} == {
+        ("B", "nc_037"), ("C1", "nc_039"),
+    }
+
+
+def test_unresolved_batch_requires_exact_ids_targets_and_evidence():
+    groups = [{
+        "adjudication_id": "ua_001",
+        "representative_profiles": [{"content_id": "C131"}],
+        "nearest_existing_nodes": [{"ref": "A:d_07"}],
+    }]
+    output = UnresolvedBatchOutput.model_validate({
+        "decisions": [{
+            "adjudication_id": "ua_001",
+            "adjudication": "candidate_too_narrow",
+            "recommended_operation": "downgrade_to_topic",
+            "closest_existing_nodes": ["A:d_07"],
+            "evidence": ["C131"],
+            "reason": "候选只描述单一算法技巧，不能形成可长期浏览的稳定领域边界。",
+            "counterarguments": ["它可以作为更宽算法领域的局部证据。"],
+            "confidence": "high",
+        }],
+    })
+    validate_unresolved_batch(output, groups)
+    output.decisions[0].evidence = ["C999"]
+    with pytest.raises(Exception):
+        validate_unresolved_batch(output, groups)
+
+    with pytest.raises(ValidationError):
+        UnresolvedBatchOutput.model_validate({
+            "decisions": [{
+                "adjudication_id": "ua_001",
+                "adjudication": "candidate_is_topic",
+                "recommended_operation": "create_domain_proposal",
+                "closest_existing_nodes": [],
+                "evidence": ["C131"],
+                "reason": "候选属于 Topic，却错误请求创建正式 Domain Proposal。",
+                "counterarguments": ["无。"],
+                "confidence": "high",
+            }],
+        })
+
+
+def test_unresolved_local_recovery_only_removes_out_of_group_node_ref(tmp_path: Path):
+    groups = [{
+        "adjudication_id": "ua_001",
+        "representative_profiles": [{"content_id": "C126"}],
+        "nearest_existing_nodes": [{"ref": "C1:c1_d_03_04"}],
+    }]
+    payload = {
+        "decisions": [{
+            "adjudication_id": "ua_001",
+            "adjudication": "true_tree_gap",
+            "recommended_operation": "create_domain_proposal",
+            "closest_existing_nodes": ["C1:c1_d_03_04", "A:d_07"],
+            "evidence": ["C126"],
+            "reason": "间隔重复属于稳定实践问题空间，当前冻结树中的相邻节点都无法安全承载。",
+            "counterarguments": ["当前只有一个内容证据，应保持 weak。"],
+            "confidence": "low",
+        }],
+    }
+    (tmp_path / "repair-raw-response.txt").write_text(json.dumps(payload, ensure_ascii=False))
+    (tmp_path / "audit.json").write_text(json.dumps({"usage": {}, "status": "raw_received"}))
+    (tmp_path / "repair-audit.json").write_text(json.dumps({"usage": {}, "status": "validation_failed"}))
+    value, audit = recover_unresolved_batch(tmp_path, groups)
+    assert value.decisions[0].closest_existing_nodes == ["C1:c1_d_03_04"]
+    assert audit["local_recovery"]["provider_call_count"] == 0
+    assert audit["local_recovery"]["transformations"][0]["before"] == [
+        "C1:c1_d_03_04", "A:d_07",
+    ]
+
+
+def test_unresolved_review_requires_override_for_reject_and_revalidates():
+    bundle = {"groups": [{
+        "adjudication_id": "ua_001",
+        "representative_profiles": [{"content_id": "C126"}],
+        "nearest_existing_nodes": [{"ref": "C1:c1_d_03_04"}],
+    }]}
+    draft = {
+        "snapshot_id": 2,
+        "snapshot_hash": "snapshot",
+        "semantic_contract_hash": "contract",
+        "source_item_count": 1,
+        "source_counts": {"B": 1},
+        "deduplicated_group_count": 1,
+        "decisions": [{
+            "sources": [{"source_run": "B", "candidate_id": "nc_040", "candidate_name": "间隔重复系统"}],
+            "adjudication_id": "ua_001",
+            "adjudication": "true_tree_gap",
+            "recommended_operation": "create_domain_proposal",
+            "closest_existing_nodes": ["C1:c1_d_03_04"],
+            "evidence": ["C126"],
+            "reason": "间隔重复属于稳定实践问题空间，当前冻结树中的相邻节点都无法安全承载。",
+            "counterarguments": ["当前只有一个项目证据。"],
+            "confidence": "low",
+            "reviewer_verdict": "pending",
+            "review_notes": [],
+        }],
+    }
+    reviews = [{
+        "adjudication_id": "ua_001",
+        "reviewer_verdict": "reject",
+        "review_notes": ["单一 SRS 方法被过度扩张为 Domain。"],
+    }]
+    with pytest.raises(ValueError):
+        apply_unresolved_review(
+            draft=draft, bundle=bundle, review_results=reviews, overrides={},
+        )
+    final, revision = apply_unresolved_review(
+        draft=draft,
+        bundle=bundle,
+        review_results=reviews,
+        overrides={"ua_001": {
+            "adjudication": "candidate_is_topic",
+            "recommended_operation": "downgrade_to_topic",
+            "reason": "当前证据只支持单一 SRS 方法与具体系统，应保留为 Topic，不能扩张为稳定 Domain。",
+        }},
+    )
+    assert final["decisions"][0]["adjudication"] == "candidate_is_topic"
+    assert final["decisions"][0]["recommended_operation"] == "downgrade_to_topic"
+    assert revision["provider_call_count"] == 0
+    assert revision["changed_ids"] == ["ua_001"]

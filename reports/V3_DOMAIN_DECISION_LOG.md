@@ -110,3 +110,29 @@ review_status
 - `risk`: Draft A 中 stable 状态只能保守使用，需 M6 后复核。
 - `provider_source`: independent read-only reviewer
 - `review_status`: accepted_with_follow_up
+
+### D007 — Adjudicate all historical unresolved without auto-creating Domains
+
+- `stage`: unresolved_adjudication
+- `affected_nodes`: `ua_001` … `ua_012`
+- `before`: Run B 3 项、Run C1 10 项均使用 `unresolved_requires_new_domain`，其中一个跨 Run 语义重复。
+- `after`: 13 个来源项去重为 12 组；6 组 `merge_into_existing`，6 组 `downgrade_to_topic`，0 组 `create_domain_proposal`。
+- `evidence`: 每组受限 Candidate 边界、1–2 个代表 Profile、邻近节点、跨 Run 候选和 provenance；第二次独立复核无 Blocking。
+- `reason`: unresolved 只表示历史冻结树无法安全路由，不是新建 Domain 的充分证据。
+- `alternatives_considered`: 将历史 unresolved 全部变为 weak Domain；拒绝。把同名或同 ID 候选直接合并；拒绝，仅合并共享 Evidence 且语义相近的跨 Run 组。
+- `risk`: 当前没有新 Gap Proposal；若 Trial Assignment 出现 multi-evidence systematic gap，必须作为后续 Diagnosis 新证据处理。
+- `provider_source`: 3 high-thinking adjudication batches + independent counterexample review
+- `review_status`: accepted_PASS_WITH_CONCERNS
+
+### D008 — Reject four M2 overreach or boundary-conflict decisions
+
+- `stage`: unresolved_adjudication_revision_01
+- `affected_nodes`: `ua_003`, `ua_007`, `ua_008`, `ua_012`
+- `before`: 2 个单样本/使用情境候选被创建 Gap Proposal；1 个类型与操作冲突；1 个 merge target 违反自身 excludes。
+- `after`: 前两项降为 Topic；类型/操作统一为 Topic + downgrade；merge 改到可容纳全部 Evidence 的更宽父节点。
+- `evidence`: 首轮独立 Reviewer 4 个 Blocking；逐项 Revision 后第二轮 Reviewer 确认全部消除。
+- `reason`: 防止单一方法、个人工作流、具体工具或不完整子节点被错误提升为 Domain。
+- `alternatives_considered`: 保留 weak true-tree-gap；拒绝，语义边界本身未被证据支持，而不只是成熟度不足。
+- `risk`: 未来更多异质内容可能支持重新提出轴纯 Domain；必须用新 Evidence 审议，不能静默恢复旧结论。
+- `provider_source`: local revision 01, provider_call_count=0
+- `review_status`: accepted_PASS_WITH_CONCERNS

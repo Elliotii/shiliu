@@ -155,7 +155,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [x] Mission Goal 与分阶段计划已建立。
 - [x] M0 文档和恢复纪律提交。
 - [x] M1 Contract v2：Run #24，Revision 01，独立复核 `PASS_WITH_CONCERNS`，无 Blocking。
-- [ ] M2 unresolved adjudication。
+- [x] M2 unresolved adjudication：13 个来源项去重为 12 组，Revision 01 后独立复核 `PASS_WITH_CONCERNS`，0 Blocking。
 - [ ] M3 cross-run alignment。
 - [ ] M4 Draft A。
 - [ ] M5 hierarchy validation。
@@ -164,7 +164,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [ ] M8 Revision。
 - [ ] M9 Draft B / Final Review。
 
-当前下一动作：按 Run 来源去重并组装 B 3 项、C1 10 项 unresolved 的受限证据 Bundle；分批执行 M2 adjudication，随后做独立只读反例复核。
+当前下一动作：为 A/B/C1 的 Final Nodes、Normalized Candidates、Decisions 与 Evidence Pools 生成确定性候选配对；按 Cluster 执行 M3 语义关系裁决。
 
 ## M1 completion note
 
@@ -175,3 +175,13 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - Revision 01 保留 Provider Draft，进行一次零调用最小修订；第二轮独立复核为 `PASS_WITH_CONCERNS`，无 Blocking。
 - 冻结的 payload hash：Contract `21c17219474615b9e828431c2135fe039c81fb0cf823700a5078c07c618d0b6f`；Diff `0f9b7e4140e5ad2735ecfb6a4e02c6864979729a193434fc9f6fbbee66fc26a5`。
 - 延后门槛：`stable` 的可计算 Assignment 产品门槛必须在 M6 Assignment Protocol 中冻结；此前不得自动晋升 stable。
+
+## M2 completion note
+
+- Run B 3 项、Run C1 10 项 unresolved 按来源保留，去重后为 12 个裁决组；只合并了一个共享同一 Evidence 且语义相近的跨 Run 组。
+- 每组只读取 Candidate 边界、1–2 个代表 Profile、4 个邻近节点、4 个可能对应 Candidate 与 protocol provenance；未读取完整 128 卡片。
+- 3 个 high-thinking 批次；2 次 JSON Repair 后出现越组节点引用，均只删除非法 ref 做零调用本地恢复，未修改裁决、操作、证据或理由。
+- M2 合计：24,679 input、20,409 output、13,323 reasoning tokens，346.233 秒。
+- 首轮独立反例 Reviewer 判定 FAIL，4 个 Blocking；Revision 01 将两个过度晋升的 Gap 撤回为 Topic、修正一个类型/操作冲突、修正一个违反 excludes 的 merge target。
+- 第二轮复核：`PASS_WITH_CONCERNS`，0 Blocking。最终 6 个 `merge_into_existing`、6 个 `downgrade_to_topic`、0 个 `create_domain_proposal`。
+- Final payload hash：`c472c4c3c73ef566a7a1afc9b43283b0d617ef4c664afa860eb1d963b7a936e5`。
