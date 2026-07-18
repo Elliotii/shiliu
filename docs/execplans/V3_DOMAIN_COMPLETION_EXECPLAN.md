@@ -1,5 +1,7 @@
 # V3 Domain Taxonomy Completion ExecPlan
 
+> **Mission closeout — 2026-07-19:** Taxonomy Research Phase is complete. Domain Draft A remains frozen and Run #24 remains technically recoverable at `trial_assignment_ready`, but M6 is no longer automatically authorized. M6–M9 are retained below as historical research plans, not as the active product roadmap. V3 产品形态与后续路线尚未决定；事实性交接见 `reports/V3_TAXONOMY_CLOSEOUT_AND_PRODUCT_REFRAME_HANDOFF_2026-07-19.md`。
+
 ## Mission
 
 基于冻结的 Run A、Run B、Run C1，将三份带明确协议来源的独立 Discovery Evidence 收敛为可进入产品实现阶段的 Domain Draft B，并完成 131 / 131 Trial Assignment、可复现 Eval、有限 Revision、完整 Decision Log 和独立只读复核。
@@ -159,12 +161,12 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [x] M3 cross-run alignment：8 / 8 批次、独立语义复核、单次 Revision 01、第二次复核和 Freeze 已完成。
 - [x] M4 Draft A：冻结 M3 的 31 个可用 Cluster 经单次 high-thinking Synthesis 形成 25 个节点，5 个 Cluster 显式排除待补证据。
 - [x] M5 hierarchy validation：确定性 Gate 通过；独立 Reviewer `PASS_WITH_CONCERNS`、0 Blocking；无需 Hierarchy Revision；Draft A 已冻结。
-- [ ] M6 131 Assignment。
+- [ ] M6 131 Assignment（paused / not product-authorized）。
 - [ ] M7 Eval / Diagnosis。
 - [ ] M8 Revision。
 - [ ] M9 Draft B / Final Review。
 
-当前停止点：Run #24 为 `waiting_for_review / domain_draft_a_frozen_engineering_hold_before_trial_assignment`。Draft A 已完成语义冻结，但 M6 仍被 single-flight / attempt lease 工程债务阻塞；下一动作必须先完成该工程修复与并发测试，不得直接启动 Trial Assignment。
+当前停止点：Run #24 的可恢复运行状态为 `waiting_for_review / trial_assignment_ready`，且 `trial_assignment_started=false`。Single-flight / attempt lease 工程门禁已经通过；当前暂停原因不是工程阻塞，而是产品授权已撤回。完整层级 Taxonomy 的产品角色、Assignment 范围与 Eval 目标需要在 V3 产品形态确定后重新设计。除非形成新的明确产品决策，不得启动 M6。
 
 ## M1 completion note
 

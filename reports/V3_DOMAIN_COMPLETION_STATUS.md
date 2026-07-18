@@ -2,7 +2,8 @@
 
 ```yaml
 mission: V3 Domain Taxonomy Completion
-current_milestone: ENG_DRAFT_A_002_single_flight_passed
+mission_status: research_phase_completed
+current_milestone: PRODUCT_REFRAME_PENDING
 run_id: 24
 completed_milestones:
   - M0_mission_bootstrap
@@ -103,8 +104,21 @@ provider_cost:
 last_validation: full_suite_288_passed
 last_git_commit_before_checkpoint: 287554a_feat_review_and_freeze_M3_domain_alignment
 open_blockers: []
-next_action: await_explicit_authorization_before_M6_trial_assignment
+product_decision_status: pending_user_decision
+m6_product_authorization: revoked_pending_product_reframe
+next_action: await_user_and_planning_ai_product_discussion
 ```
+
+## Research closeout — 2026-07-19
+
+```text
+Taxonomy research phase: completed
+Draft A: frozen
+M6: paused / not authorized
+Product reframe: pending user decision
+```
+
+Run #24 的运行时状态与产品授权是两个不同维度：数据库继续保存 `waiting_for_review / trial_assignment_ready`，以维持实验可复现和可恢复；但 `trial_assignment_started=false`，且产品层已明确撤回 M6 自动执行授权。工程上“可以恢复”不等于产品上“应该继续”。当前完整树未经 131 条 Assignment 验证，也不是正式产品 Taxonomy。
 
 ## Runtime discipline
 

@@ -292,3 +292,16 @@ review_status
 - `risk`: 跨主机且无法确认 Owner 存活的过期 Lease 仍采用保守停机策略，需要人工审计而不是自动重发。
 - `provider_source`: none, provider_call_count=0
 - `review_status`: engineering_PASS_trial_assignment_not_started
+
+### D021 — Close Taxonomy Research and remove automatic M6 authorization
+
+- `stage`: taxonomy_research_closeout
+- `affected_nodes`: none；不修改 Draft A、M1、M2、M3 或 Run #24 数据。
+- `before`: Run #24 已通过工程门禁并停在 `trial_assignment_ready`，旧 ExecPlan 将 M6 视为获得用户授权后的自然下一阶段。
+- `after`: Taxonomy Research Phase 正式封存；Run #24 保持可恢复，但 M6 不再自动获得产品授权。Assignment 范围与 Eval 目标必须在 V3 产品形态确定后重新设计。
+- `evidence`: Draft A 为 25 节点、20 个顶层、0 stable，尚未经过 131 条 Assignment；完整树是否适合作为主要产品入口没有用户任务证据。
+- `reason`: 完整层级 Taxonomy 的产品角色正在重新评估，继续 M6 会把尚未决定的产品假设固化为成本较高的数据与界面结构。
+- `alternatives_considered`: 直接执行 M6–M9；拒绝。删除 Run #24 或解冻 Draft A；拒绝，保留研究复现价值。
+- `risk`: 暂停会延后完整树覆盖率数据；但避免在目标未定时继续 Provider 消耗和产品过度设计。
+- `provider_source`: none；closeout provider_call_count=0
+- `review_status`: accepted_product_hold
