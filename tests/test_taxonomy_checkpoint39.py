@@ -32,7 +32,11 @@ from shiliu.taxonomy.semantic_purity import (
     require_safe_budget,
     validate_purity_report,
 )
-from shiliu.taxonomy.workflow import TaxonomyWorkflow
+from shiliu.taxonomy.workflow import (
+    TaxonomyWorkflow,
+    _checkpoint39_normalization_audit,
+    _model_call_dir,
+)
 from tests.test_taxonomy_checkpoint2 import SnapshotRepository, WorkflowProvider, card
 
 
@@ -300,6 +304,129 @@ def test_budget_preflight_records_margin_and_fails_before_call() -> None:
     assert unsafe.safe_to_call is False
     with pytest.raises(Exception):
         require_safe_budget(unsafe)
+
+
+def test_repair_resume_keeps_latest_existing_call_directory(tmp_path) -> None:
+    existing = tmp_path / "stage" / "main" / "attempt-01"
+    existing.mkdir(parents=True)
+    selected = _model_call_dir(
+        run_dir=tmp_path,
+        stage_name="stage",
+        unit_key="main",
+        attempt_number=2,
+        resume_existing=True,
+    )
+    assert selected == existing
+    assert not (tmp_path / "stage" / "main" / "attempt-02").exists()
+
+
+def test_normalization_audit_exposes_explicit_field_events(tmp_path) -> None:
+    for stage_name, unit_key in (
+        ("content_type_consolidation", "semantic-purity-v1"),
+        ("content_type_semantic_purity_judge", "main"),
+    ):
+        call_dir = tmp_path / stage_name / unit_key / "attempt-01"
+        call_dir.mkdir(parents=True)
+        (call_dir / "raw-response.txt").write_text('{"value":1}', encoding="utf-8")
+        (call_dir / "parsed-output.json").write_text(
+            '{"value":1}', encoding="utf-8"
+        )
+        (call_dir / "audit.json").write_text(
+            json.dumps({"raw_response_path": "raw-response.txt", "repair": None}),
+            encoding="utf-8",
+        )
+    normalization_path = (
+        tmp_path
+        / "content_type_consolidation"
+        / "semantic-purity-v1"
+        / "attempt-01"
+        / "audited-normalization.json"
+    )
+    normalization_path.write_text(
+        json.dumps(
+            {
+                "events": [
+                    {
+                        "field_path": "content_types[0].supporting_ids",
+                        "original_value": ["nct_001"],
+                        "normalized_value": ["C001"],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    audit = _checkpoint39_normalization_audit(tmp_path)
+    explicit = [
+        item for item in audit["events"] if item["event_type"] == "audited_normalization"
+    ]
+    assert explicit[0]["field_paths"] == ["content_types[0].supporting_ids"]
+    assert audit["silent_normalization_event_count"] == 0
+
+
+def test_completed_stage_clears_previous_error_fields(app_paths) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    snapshot_id = _insert_snapshot(db)
+    repository = TaxonomyRunRepository(db)
+    run_id = repository.create_run(
+        snapshot_id=snapshot_id,
+        run_kind="test",
+        engine="test",
+        engine_version="test",
+        parameters={},
+    )
+    repository.start_stage(
+        run_id,
+        "stage",
+        "main",
+        input_hash="input",
+        model="fake",
+        prompt_version="v1",
+        thinking_enabled=False,
+        reasoning_effort=None,
+    )
+    repository.fail_stage(
+        run_id,
+        "stage",
+        "main",
+        error_code="temporary",
+        error_message="temporary failure",
+        retryable=True,
+    )
+    repository.complete_stage(
+        run_id,
+        "stage",
+        "main",
+        output_path="/tmp/output.json",
+        output_hash="output",
+    )
+    stage = repository.list_stages(run_id)[0]
+    assert stage["status"] == "completed"
+    assert stage["last_error_code"] is None
+    assert stage["last_error_message"] is None
+
+
+def test_recovered_run_failure_is_archived_as_history(app_paths) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    workflow = TaxonomyWorkflow(
+        snapshot_repository=SnapshotRepository([]),  # type: ignore[arg-type]
+        run_repository=TaxonomyRunRepository(db),
+        provider_factory=lambda role: None,  # type: ignore[arg-type]
+        output_dir=app_paths.content_dir / "taxonomy" / "runtime" / "runs",
+    )
+    run_dir = workflow.output_dir / "run-000014"
+    run_dir.mkdir(parents=True)
+    (run_dir / "run-failure.json").write_text(
+        json.dumps({"failed_stage": "content_type_consolidation"}),
+        encoding="utf-8",
+    )
+    workflow._archive_recovered_failure(14)
+    assert not (run_dir / "run-failure.json").exists()
+    history = json.loads((run_dir / "run-failure-history.json").read_text())
+    assert history["historical"] is True
+    assert history["recovered_run_status"] == "completed"
 
 
 def test_cli_exposes_narrow_checkpoint39_run_creation() -> None:

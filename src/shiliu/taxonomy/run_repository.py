@@ -170,7 +170,8 @@ class TaxonomyRunRepository:
                 UPDATE taxonomy_stage_runs
                 SET status='completed', output_path=?, output_hash=?,
                     input_tokens=?, output_tokens=?, reasoning_tokens=?,
-                    elapsed_seconds=?, completed_at=?, updated_at=?
+                    elapsed_seconds=?, completed_at=?, next_retry_at=NULL,
+                    last_error_code=NULL, last_error_message=NULL, updated_at=?
                 WHERE run_id=? AND stage_name=? AND unit_key=?
                 """,
                 (

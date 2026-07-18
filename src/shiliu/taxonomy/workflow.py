@@ -658,10 +658,27 @@ class TaxonomyWorkflow:
 
     def execute(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
         try:
-            return self._execute_impl(run_id, resume=resume)
+            result = self._execute_impl(run_id, resume=resume)
+            if result["run"]["status"] == "completed":
+                self._archive_recovered_failure(run_id)
+            return result
         except Exception as exc:
             self._record_workflow_failure(run_id, exc)
             raise
+
+    def _archive_recovered_failure(self, run_id: int) -> None:
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        failure_path = run_dir / "run-failure.json"
+        if not failure_path.is_file():
+            return
+        payload = json.loads(failure_path.read_text(encoding="utf-8"))
+        payload.update(
+            historical=True,
+            recovered_run_status="completed",
+            recovered_at=_utc_now(),
+        )
+        _write_json(run_dir / "run-failure-history.json", payload)
+        failure_path.unlink()
 
     def _execute_impl(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
         run = self.run_repository.get_run(run_id)
@@ -2357,7 +2374,13 @@ class TaxonomyWorkflow:
             reasoning_effort=provider.reasoning_effort,
         )
         attempt_number = previous_attempt if resume_existing else int(started["attempt_count"])
-        call_dir = run_dir / stage_name / unit_key / f"attempt-{attempt_number:02d}"
+        call_dir = _model_call_dir(
+            run_dir=run_dir,
+            stage_name=stage_name,
+            unit_key=unit_key,
+            attempt_number=attempt_number,
+            resume_existing=resume_existing,
+        )
         caller = AuditedJsonCaller(provider=provider, repair_provider=repair_provider)
         try:
             result, audit = caller.call(
@@ -2723,6 +2746,27 @@ def _checkpoint39_normalization_audit(run_dir: Path) -> dict[str, Any]:
         call_dir = call_dirs[-1]
         audit = json.loads((call_dir / "audit.json").read_text(encoding="utf-8"))
         parsed = json.loads((call_dir / "parsed-output.json").read_text(encoding="utf-8"))
+        audited_normalization_path = call_dir / "audited-normalization.json"
+        if audited_normalization_path.is_file():
+            audited = json.loads(
+                audited_normalization_path.read_text(encoding="utf-8")
+            )
+            normalization_events = list(audited.get("events") or [])
+            events.append(
+                {
+                    "stage_name": stage_name,
+                    "event_type": "audited_normalization",
+                    "field_paths": [
+                        str(item.get("field_path")) for item in normalization_events
+                    ],
+                    "normalization_reason": (
+                        "explicit deterministic transformation with original and "
+                        "normalized values"
+                    ),
+                    "normalization_event_count": len(normalization_events),
+                    "normalization_audit_path": str(audited_normalization_path),
+                }
+            )
         repair = audit.get("repair")
         if repair is not None:
             raw_path = call_dir / str(
@@ -2769,6 +2813,22 @@ def _checkpoint39_normalization_audit(run_dir: Path) -> dict[str, Any]:
         "output_hash_basis": "persisted parsed-output.json",
         "generated_at": _utc_now(),
     }
+
+
+def _model_call_dir(
+    *,
+    run_dir: Path,
+    stage_name: str,
+    unit_key: str,
+    attempt_number: int,
+    resume_existing: bool,
+) -> Path:
+    stage_dir = run_dir / stage_name / unit_key
+    if resume_existing:
+        existing = sorted(stage_dir.glob("attempt-*"))
+        if existing:
+            return existing[-1]
+    return stage_dir / f"attempt-{attempt_number:02d}"
 
 
 def _extract_json_object(content: str) -> Any:
