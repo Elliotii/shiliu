@@ -118,6 +118,13 @@ def build_parser() -> argparse.ArgumentParser:
     faceted_spike.add_argument("--candidate-run-id", type=int, default=14)
     faceted_spike.add_argument("--sample-profile-run-id", required=True)
     faceted_spike.add_argument("--recovery-source-run-id", type=int)
+    hybrid_facets = taxonomy_commands.add_parser(
+        "create-hybrid-facets-spike",
+        help="创建 Checkpoint 3.11 混合受控分面 48 条验证 Run",
+    )
+    hybrid_facets.add_argument("--snapshot-id", type=int, default=2)
+    hybrid_facets.add_argument("--domain-run-id", type=int, default=12)
+    hybrid_facets.add_argument("--sample-profile-run-id", required=True)
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -277,13 +284,34 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-hybrid-facets-spike"
+    ):
+        app = Application()
+        run_id = app.taxonomy_controlled_facets.create_spike(
+            snapshot_id=arguments.snapshot_id,
+            domain_run_id=arguments.domain_run_id,
+            sample_profile_run_id=arguments.sample_profile_run_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command in {
         "run", "resume", "status"
     }:
         app = Application()
         run = app.taxonomy_run_repository.get_run(arguments.run_id)
         is_faceted = bool(run and run.get("run_kind") == "faceted_metadata_spike")
-        service = app.taxonomy_faceted_metadata if is_faceted else app.taxonomy_workflow
+        is_controlled = bool(
+            run and run.get("run_kind") == "hybrid_controlled_facets_spike"
+        )
+        service = (
+            app.taxonomy_controlled_facets
+            if is_controlled
+            else app.taxonomy_faceted_metadata
+            if is_faceted
+            else app.taxonomy_workflow
+        )
         if arguments.taxonomy_command == "status":
             result = service.status(arguments.run_id)
         else:

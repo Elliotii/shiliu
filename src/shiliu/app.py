@@ -15,6 +15,7 @@ from shiliu.pipeline import PipelineService
 from shiliu.sync import SyncService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
+from shiliu.taxonomy.controlled_facets import HybridControlledFacetsService
 from shiliu.taxonomy.discovery import BatchedDiscoverySpikeService
 from shiliu.taxonomy.facets import FacetExtractionService
 from shiliu.taxonomy.faceted_metadata import FacetedMetadataService
@@ -67,6 +68,15 @@ class Application:
             ),
         )
         self.taxonomy_faceted_metadata = FacetedMetadataService(
+            repository=self.taxonomy_corpus.repository,
+            run_repository=self.taxonomy_run_repository,
+            provider_factory=self.provider,
+            output_dir=self.paths.content_dir / "taxonomy" / "runtime" / "runs",
+            profile_output_dir=(
+                self.paths.content_dir / "taxonomy" / "runtime" / "profile_spikes"
+            ),
+        )
+        self.taxonomy_controlled_facets = HybridControlledFacetsService(
             repository=self.taxonomy_corpus.repository,
             run_repository=self.taxonomy_run_repository,
             provider_factory=self.provider,

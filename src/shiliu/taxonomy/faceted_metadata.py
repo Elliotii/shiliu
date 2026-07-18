@@ -36,6 +36,7 @@ FILTER_PROTOCOL_VERSION = "faceted-filter-or-and-v1"
 QUALITY_GATE_VERSION = "checkpoint310-faceted-quality-gate-v1"
 MAX_SOURCE_CANDIDATES = 31
 MAX_COMPONENTS_PER_MULTI_FACET = MAX_SOURCE_CANDIDATES * 2
+OPEN_VOCABULARY_RUN_CREATION_ENABLED = False
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
@@ -753,7 +754,14 @@ class FacetedMetadataService:
 
     def create_spike(self, *, snapshot_id: int = 2, domain_run_id: int = 12,
                      candidate_run_id: int = 14, sample_profile_run_id: str,
-                     recovery_source_run_id: int | None = None) -> int:
+                     recovery_source_run_id: int | None = None,
+                     allow_historical_experiment: bool = False) -> int:
+        if not allow_historical_experiment or not OPEN_VOCABULARY_RUN_CREATION_ENABLED:
+            raise PipelineError(
+                "Checkpoint 3.10 开放分面词表生成已冻结，只允许读取历史产物",
+                code="open_facet_vocabulary_builder_disabled",
+                retryable=False,
+            )
         snapshot = self.repository.get_snapshot(snapshot_id)
         if snapshot is None:
             raise LookupError("快照不存在")
@@ -887,6 +895,12 @@ class FacetedMetadataService:
             raise PipelineError("不是可执行的 Faceted Metadata Spike", code="faceted_run_invalid", retryable=False)
         if run["status"] == "completed":
             return self.status(run_id)
+        if not OPEN_VOCABULARY_RUN_CREATION_ENABLED:
+            raise PipelineError(
+                "Checkpoint 3.10 未完成 Run 已冻结为只读历史，禁止继续执行",
+                code="open_facet_historical_run_read_only",
+                retryable=False,
+            )
         protocol = run["parameters"]["protocol_manifest"]
         run_dir = self.output_dir / f"run-{run_id:06d}"
         frozen = json.loads((run_dir / "run-manifest.json").read_text(encoding="utf-8"))
