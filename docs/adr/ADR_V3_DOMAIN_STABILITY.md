@@ -22,3 +22,36 @@ Domain Run B/C 不依赖 Entity Type。此时引入 Entity Typing 会扩大变�
 2. 未类型化、确定性映射和模型辅助映射的 Gate Warning；
 3. 小样本准确性与溢出协议回归；
 4. 不修改已冻结 Run #21。
+
+# Checkpoint 3.12C addendum: split synthesis from routing
+
+Run B demonstrated that a single high-thinking response containing both the
+complete Domain tree and every Candidate Decision is too large: the Domain
+tree was complete, while the response stopped during candidate `nc_037`.
+
+Run C must therefore use two separately recoverable provider stages:
+
+1. **Domain Node Synthesis** produces only the frozen, at-most-two-level Domain
+   tree and its canonical semantic fields.
+2. **Batched Candidate Routing** routes 10--15 candidates per batch to the
+   frozen tree, or downgrades/removes/marks them unresolved. Each batch performs
+   `expected_candidate_ids == actual_candidate_ids` before it can complete.
+
+Only a missing routing batch may be retried. A routing retry must not replay
+Domain Node Synthesis or another completed routing batch. This is a design
+record only; Checkpoint 3.12C does not implement or invoke Run C.
+
+Minimal routing output:
+
+```json
+{
+  "candidate_decisions": [
+    {
+      "candidate_id": "nc_001",
+      "action": "merge_into_existing_domain",
+      "target_id": "d_01",
+      "reason": "..."
+    }
+  ]
+}
+```
