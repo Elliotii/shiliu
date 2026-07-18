@@ -18,7 +18,7 @@ from shiliu.taxonomy.controlled_facets import (
 )
 from shiliu.taxonomy.repository import TaxonomyRepository
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
-from shiliu.taxonomy.workflow import TaxonomyWorkflow
+from shiliu.taxonomy.workflow import TaxonomyWorkflow, _combined_audit
 
 
 DOMAIN_COMPLETION_ENGINE_VERSION = "domain-completion-mission-v1"
@@ -158,6 +158,42 @@ class DomainSemanticContractV2(BaseModel):
         ]:
             raise ValueError("classification tests must preserve executable order")
         return self
+
+
+class FinalSupportPolicy(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    discovery_support_is_provisional: Literal[True] = True
+    assignment_support_is_product_evidence: Literal[True] = True
+    single_evidence_default_status: Literal["weak_or_uncertain"] = "weak_or_uncertain"
+    single_evidence_exception: Literal["none_without_explicit_adjudication"]
+    multi_evidence_is_stability_signal: Literal[True] = True
+    multi_evidence_is_sufficient: Literal[False] = False
+    multi_evidence_distinct_content_ids_min: Literal[2] = 2
+    cross_run_duplicate_counts_as_new_evidence: Literal[False] = False
+    evidence_affects_status_not_semantic_type: Literal[True] = True
+
+
+class NodeStatusDefinitions(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    stable: Literal[
+        "产品赋值证据要求已满足，语义边界清楚，且没有阻断性未决问题。"
+    ]
+    probable: Literal[
+        "语义边界成立并有至少两个不同内容支持，但产品赋值确认仍不完整。"
+    ]
+    weak: Literal[
+        "语义上可能属于 Domain，但当前只有单一内容证据或长期复用价值尚未验证。"
+    ]
+    uncertain: Literal[
+        "语义类型、边界、粒度或父级仍存在无法安全裁决的问题。"
+    ]
+
+
+class FinalDomainSemanticContractV2(DomainSemanticContractV2):
+    support_policy: FinalSupportPolicy
+    status_definitions: NodeStatusDefinitions
 
 
 class SourceSemanticDiff(BaseModel):
@@ -400,7 +436,7 @@ def validate_semantic_output(value: SemanticAdjudicationOutput, bundle: dict[str
     expected = {
         source: {
             "prompts": [
-                item["raw_sha256"]
+                item["preamble_sha256"]
                 for key, item in payload.items()
                 if key in {"prompt", "node_prompt", "routing_prompt"}
             ],
@@ -417,6 +453,211 @@ def validate_semantic_output(value: SemanticAdjudicationOutput, bundle: dict[str
             raise PipelineError("Semantic Diff Schema Hash 不匹配", code="semantic_schema_hash_mismatch", retryable=False)
     if value.diff.blocking_contradictions:
         raise PipelineError("Semantic Contract 存在未解决矛盾", code="semantic_contract_blocked", retryable=False)
+
+
+def recover_semantic_output(call_dir: Path, bundle: dict[str, Any]) -> tuple[SemanticAdjudicationOutput, dict[str, Any]]:
+    """Recover a complete seven-rule response without another Provider call.
+
+    The original response contains all approved product fields but uses composite
+    provenance enum strings and groups axis policy into the other resolutions.
+    This local recovery normalizes those enums and factors the already-approved
+    axis rule into an eighth auditable resolution. It never reads corpus data.
+    """
+
+    source_path = call_dir / "repair-raw-response.txt"
+    if not source_path.is_file():
+        source_path = call_dir / "raw-response.txt"
+    payload = json.loads(source_path.read_text(encoding="utf-8"))
+    resolutions = payload.get("diff", {}).get("rule_resolutions") or []
+    if len(resolutions) != 7:
+        raise PipelineError(
+            "Semantic 本地恢复只接受完整七规则响应",
+            code="semantic_local_recovery_not_applicable",
+            retryable=False,
+        )
+    transformations: list[dict[str, Any]] = []
+    allowed = {"approved_product_definition", "A", "B", "C1", "synthesis"}
+    for item in resolutions:
+        before = str(item.get("adopted_from") or "")
+        if before in allowed:
+            continue
+        after = (
+            "synthesis"
+            if "+" in before
+            else "approved_product_definition"
+            if before.startswith("approved_product")
+            else "synthesis"
+        )
+        item["adopted_from"] = after
+        transformations.append({
+            "path": f"diff.rule_resolutions.{item.get('rule_id')}.adopted_from",
+            "before": before,
+            "after": after,
+            "kind": "enum_normalization",
+        })
+    resolutions.append({
+        "rule_id": "sr_08",
+        "a_rule": "A/B 混合接纳知识、实践、对象与使用情境，缺少统一 Axis Test。",
+        "b_rule": "B 与 A 同协议，职业、学习路径和工具对象可能进入 Domain。",
+        "c1_rule": "C1 禁止 Use Context 和具体工具，但实际节点仍存在轴边界不一致。",
+        "canonical_v2_rule": (
+            "稳定知识领域与稳定实践问题空间可以成为 Domain；学习路径、面试用途和"
+            "不含稳定问题空间的 Focus Object 必须路由到独立非 Domain 分面。"
+        ),
+        "resolution_reason": "该规则逐字段来自已批准的 domain_axis_policy，用于补全独立 Axis Resolution。",
+        "adopted_from": "approved_product_definition",
+        "known_risk": "稳定实践问题空间与使用情境的边界仍需在 unresolved adjudication 中逐项验证。",
+    })
+    transformations.append({
+        "path": "diff.rule_resolutions.sr_08",
+        "before": None,
+        "after": "factored_from_approved_domain_axis_policy",
+        "kind": "approved_rule_factorization",
+    })
+    value = SemanticAdjudicationOutput.model_validate(payload)
+    validate_semantic_output(value, bundle)
+    recovery = {
+        "version": "semantic-local-recovery-v1",
+        "provider_call_count": 0,
+        "source_path": source_path.name,
+        "source_hash": _hash_file(source_path),
+        "transformations": transformations,
+        "result_hash": _stable_hash(value.model_dump(mode="json")),
+        "created_at": _utc_now(),
+    }
+    _write_json(call_dir / "semantic-local-recovery-audit.json", recovery)
+    _write_json(call_dir / "parsed-output.json", value.model_dump(mode="json"))
+    audit_path = call_dir / "audit.json"
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+    repair_path = call_dir / "repair-audit.json"
+    audit["repair"] = json.loads(repair_path.read_text(encoding="utf-8")) if repair_path.is_file() else None
+    audit.update(status="completed", local_recovery=recovery, finished_at=_utc_now())
+    _write_json(audit_path, audit)
+    return value, audit
+
+
+def revise_semantic_contract_once(
+    provider_contract: DomainSemanticContractV2,
+    provider_diff: SemanticContractDiff,
+) -> tuple[FinalDomainSemanticContractV2, SemanticContractDiff, dict[str, Any]]:
+    before_contract = provider_contract.model_dump(mode="json")
+    after_contract = json.loads(json.dumps(before_contract, ensure_ascii=False))
+    after_contract["domain_definition"] = (
+        "相对稳定、可长期复用的知识领域或实践问题空间，具有明确边界和长期浏览价值；"
+        "其语义边界原则上可容纳多条独立内容，当前证据数量不决定其是否属于 Domain。"
+    )
+    after_contract["stable_domain_criteria"] = [
+        "描述稳定知识领域或稳定实践问题空间，而非表达形式、对象或使用情境",
+        "通过 instance、temporal、future collection 与 axis purity 测试",
+        "其语义边界原则上可容纳未来多条独立内容",
+        "具有长期分类和浏览价值",
+        "边界可通过 definition/includes/excludes 解释",
+        "成熟 stable 节点应获得多条独立内容支持；证据不足只影响 status，不改变语义类型",
+    ]
+    after_contract["support_policy"] = {
+        "discovery_support_is_provisional": True,
+        "assignment_support_is_product_evidence": True,
+        "single_evidence_default_status": "weak_or_uncertain",
+        "single_evidence_exception": "none_without_explicit_adjudication",
+        "multi_evidence_is_stability_signal": True,
+        "multi_evidence_is_sufficient": False,
+        "multi_evidence_distinct_content_ids_min": 2,
+        "cross_run_duplicate_counts_as_new_evidence": False,
+        "evidence_affects_status_not_semantic_type": True,
+    }
+    after_contract["status_definitions"] = {
+        "stable": "产品赋值证据要求已满足，语义边界清楚，且没有阻断性未决问题。",
+        "probable": "语义边界成立并有至少两个不同内容支持，但产品赋值确认仍不完整。",
+        "weak": "语义上可能属于 Domain，但当前只有单一内容证据或长期复用价值尚未验证。",
+        "uncertain": "语义类型、边界、粒度或父级仍存在无法安全裁决的问题。",
+    }
+    after_contract["assignment_rules"] = [
+        "顶层节点成为 stable/probable 时必须通过语义边界测试并满足对应 evidence/status 条件",
+        "子节点除满足 evidence/status 条件外，还必须通过 parent_entailment 并是父节点语义子集",
+        "单一内容证据的 Domain 候选只能保持 weak/uncertain，除非经过显式 adjudication",
+        "Topic、Entity、Form、Object、Context 不分配为 Domain 节点，而路由至对应非 Domain 类型",
+        "每条内容最多一个 primary Domain、最多两个 secondary Domains，允许诚实拒绝",
+        "Trial Assignment 不得创建、重命名、移动或修改 Domain",
+    ]
+    final_contract = FinalDomainSemanticContractV2.model_validate(after_contract)
+
+    before_diff = provider_diff.model_dump(mode="json")
+    after_diff = json.loads(json.dumps(before_diff, ensure_ascii=False))
+    replacements = {
+        "sr_01": (
+            "证据数量不决定候选是否属于 Domain；single Evidence 通过语义测试后可保留为 weak/uncertain；"
+            "至少两个不同 content_id 是成熟度信号，但仍不足以单独决定 status。"
+        ),
+        "sr_03": (
+            "Discovery support 是候选发现血缘；Assignment support 是产品赋值证据。两者分开记录，"
+            "且同一 content_id 跨 Run 重复出现不增加独立内容证据计数。"
+        ),
+        "sr_06": (
+            "单一内容证据的 Domain 候选默认 weak/uncertain，不得由模型以 foundational 为由自动晋升；"
+            "任何例外必须经过显式 adjudication。"
+        ),
+    }
+    for item in after_diff["rule_resolutions"]:
+        if item["rule_id"] in replacements:
+            item["canonical_v2_rule"] = replacements[item["rule_id"]]
+            item["adopted_from"] = "approved_product_definition"
+            item["known_risk"] = "状态成熟度仍需由 Trial Assignment 和后续 Eval 验证。"
+    final_diff = SemanticContractDiff.model_validate(after_diff)
+
+    changes = []
+    for field in (
+        "domain_definition", "stable_domain_criteria", "support_policy",
+        "status_definitions", "assignment_rules",
+    ):
+        changes.append({
+            "field": field,
+            "before": before_contract.get(field),
+            "after": final_contract.model_dump(mode="json").get(field),
+            "reason": "M1 Reviewer blocking fix: separate semantic type from evidence maturity.",
+        })
+    revision = {
+        "version": "domain-semantic-contract-revision-01",
+        "provider_call_count": 0,
+        "reviewer_verdict_before": "FAIL",
+        "changes": changes,
+        "diff_rule_changes": sorted(replacements),
+        "provider_contract_hash": _stable_hash(before_contract),
+        "final_contract_hash": _stable_hash(final_contract.model_dump(mode="json")),
+        "provider_diff_hash": _stable_hash(before_diff),
+        "final_diff_hash": _stable_hash(final_diff.model_dump(mode="json")),
+        "created_at": _utc_now(),
+    }
+    return final_contract, final_diff, revision
+
+
+def build_semantic_review_record(
+    *,
+    contract: FinalDomainSemanticContractV2,
+    diff: SemanticContractDiff,
+    revision: dict[str, Any],
+    verdict: Literal["PASS", "PASS_WITH_CONCERNS", "FAIL"],
+    blocking_findings: list[str],
+    non_blocking_concerns: list[str],
+) -> dict[str, Any]:
+    if verdict in {"PASS", "PASS_WITH_CONCERNS"} and blocking_findings:
+        raise ValueError("accepted semantic review cannot contain blocking findings")
+    if verdict == "FAIL" and not blocking_findings:
+        raise ValueError("failed semantic review must explain at least one blocking finding")
+    contract_payload = contract.model_dump(mode="json")
+    diff_payload = diff.model_dump(mode="json")
+    return {
+        "version": "domain-semantic-contract-independent-review-v2",
+        "reviewer_role": "independent_read_only_technical_reviewer",
+        "verdict": verdict,
+        "blocking_findings": blocking_findings,
+        "non_blocking_concerns": non_blocking_concerns,
+        "freeze_eligible": verdict in {"PASS", "PASS_WITH_CONCERNS"},
+        "contract_hash": _stable_hash(contract_payload),
+        "diff_hash": _stable_hash(diff_payload),
+        "revision_hash": _stable_hash(revision),
+        "provider_call_count": 0,
+        "reviewed_at": _utc_now(),
+    }
 
 
 class DomainCompletionService:
@@ -484,6 +725,22 @@ class DomainCompletionService:
         } != protocol["source_bundle_hashes"]:
             raise PipelineError("历史语义 Bundle 已改变", code="domain_completion_source_drift", retryable=False)
         prompt = build_semantic_adjudication_prompt(bundle)
+        stage = self.run_repository.ensure_stage(run_id, "semantic_contract_v2", "main")
+        call_dir = run_dir / "semantic_contract_v2" / "main" / "attempt-01"
+        if (
+            resume
+            and stage["status"] == "retry_wait"
+            and not (call_dir / "parsed-output.json").is_file()
+            and (call_dir / "repair-raw-response.txt").is_file()
+        ):
+            recovered, audit = recover_semantic_output(call_dir, bundle)
+            recovered_payload = recovered.model_dump(mode="json")
+            self.run_repository.complete_stage(
+                run_id, "semantic_contract_v2", "main",
+                output_path=str(call_dir / "parsed-output.json"),
+                output_hash=_stable_hash(recovered_payload),
+                audit=_combined_audit(audit),
+            )
         output = self.workflow._model_stage(
             run_id=run_id, run_dir=run_dir, stage_name="semantic_contract_v2", unit_key="main",
             role="taxonomy_global", prompt=prompt, prompt_version=SEMANTIC_STAGE_PROMPT_VERSION,
@@ -519,3 +776,102 @@ class DomainCompletionService:
         if run is None:
             raise LookupError(run_id)
         return {"run": run, "stages": self.run_repository.list_stages(run_id)}
+
+    def revise_semantic_contract(self, run_id: int) -> dict[str, Any]:
+        run = self.run_repository.get_run(run_id)
+        if run is None or run.get("run_kind") != "domain_completion":
+            raise PipelineError("不是 Domain Completion Run", code="domain_completion_run_invalid", retryable=False)
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        revision_path = run_dir / "m1-semantic-contract-revision-01.json"
+        if revision_path.exists():
+            return json.loads(revision_path.read_text(encoding="utf-8"))
+        contract_path = run_dir / "domain-semantic-contract-v2.json"
+        diff_path = run_dir / "semantic-contract-diff-a-b-c1.json"
+        provider_contract = DomainSemanticContractV2.model_validate_json(contract_path.read_text(encoding="utf-8"))
+        provider_diff = SemanticContractDiff.model_validate_json(diff_path.read_text(encoding="utf-8"))
+        final_contract, final_diff, revision = revise_semantic_contract_once(provider_contract, provider_diff)
+        _write_json_once(run_dir / "domain-semantic-contract-v2.provider-draft.json", provider_contract.model_dump(mode="json"))
+        _write_json_once(run_dir / "semantic-contract-diff-a-b-c1.provider-draft.json", provider_diff.model_dump(mode="json"))
+        _write_json(contract_path, final_contract.model_dump(mode="json"))
+        _write_json(diff_path, final_diff.model_dump(mode="json"))
+        _write_json_once(revision_path, revision)
+        gate = {
+            "version": SEMANTIC_GATE_VERSION,
+            "status": "READY_FOR_REVIEW_2",
+            "contract_hash": revision["final_contract_hash"],
+            "diff_hash": revision["final_diff_hash"],
+            "blocking": [],
+            "metrics": {
+                "rule_resolution_count": len(final_diff.rule_resolutions),
+                "source_count": len(final_diff.sources),
+                "excluded_dimension_count": len(final_contract.excluded_dimensions),
+                "revision_count": 1,
+            },
+        }
+        _write_json(run_dir / "m1-semantic-contract-gate.json", gate)
+        self.run_repository.set_run_status(
+            run_id, "waiting_for_review", current_stage="semantic_contract_v2_review_2",
+            error_code=None, error_message=None,
+        )
+        return revision
+
+    def record_semantic_review(
+        self,
+        run_id: int,
+        *,
+        verdict: Literal["PASS", "PASS_WITH_CONCERNS", "FAIL"],
+        blocking_findings: list[str],
+        non_blocking_concerns: list[str],
+    ) -> dict[str, Any]:
+        run = self.run_repository.get_run(run_id)
+        if run is None or run.get("run_kind") != "domain_completion":
+            raise PipelineError("不是 Domain Completion Run", code="domain_completion_run_invalid", retryable=False)
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        review_path = run_dir / "m1-semantic-contract-review.json"
+        if review_path.exists():
+            return json.loads(review_path.read_text(encoding="utf-8"))
+        contract = FinalDomainSemanticContractV2.model_validate_json(
+            (run_dir / "domain-semantic-contract-v2.json").read_text(encoding="utf-8")
+        )
+        diff = SemanticContractDiff.model_validate_json(
+            (run_dir / "semantic-contract-diff-a-b-c1.json").read_text(encoding="utf-8")
+        )
+        revision = json.loads(
+            (run_dir / "m1-semantic-contract-revision-01.json").read_text(encoding="utf-8")
+        )
+        review = build_semantic_review_record(
+            contract=contract,
+            diff=diff,
+            revision=revision,
+            verdict=verdict,
+            blocking_findings=blocking_findings,
+            non_blocking_concerns=non_blocking_concerns,
+        )
+        _write_json_once(review_path, review)
+        gate = {
+            "version": SEMANTIC_GATE_VERSION,
+            "status": verdict,
+            "contract_hash": review["contract_hash"],
+            "diff_hash": review["diff_hash"],
+            "blocking": blocking_findings,
+            "non_blocking_concerns": non_blocking_concerns,
+            "metrics": {
+                "rule_resolution_count": len(diff.rule_resolutions),
+                "source_count": len(diff.sources),
+                "excluded_dimension_count": len(contract.excluded_dimensions),
+                "revision_count": 1,
+            },
+        }
+        _write_json(run_dir / "m1-semantic-contract-gate.json", gate)
+        if review["freeze_eligible"]:
+            self.run_repository.set_run_status(
+                run_id, "running", current_stage="unresolved_adjudication",
+                error_code=None, error_message=None,
+            )
+        else:
+            self.run_repository.set_run_status(
+                run_id, "waiting_for_review", current_stage="semantic_contract_v2_blocked",
+                error_code="semantic_contract_review_failed",
+                error_message="; ".join(blocking_findings),
+            )
+        return review

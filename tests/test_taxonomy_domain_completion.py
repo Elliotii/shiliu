@@ -11,8 +11,11 @@ from shiliu.taxonomy.domain_completion import (
     REQUIRED_EXCLUDED_DIMENSIONS,
     DomainSemanticContractV2,
     SemanticAdjudicationOutput,
+    build_semantic_review_record,
     build_semantic_adjudication_prompt,
     build_semantic_audit_bundle,
+    recover_semantic_output,
+    revise_semantic_contract_once,
     validate_semantic_output,
 )
 
@@ -68,7 +71,7 @@ def _valid_payload(bundle: dict) -> dict:
     source_rows = []
     for label, payload in bundle["sources"].items():
         prompts = [
-            value["raw_sha256"]
+            value["preamble_sha256"]
             for key, value in payload.items()
             if key in {"prompt", "node_prompt", "routing_prompt"}
         ]
@@ -195,6 +198,75 @@ def test_semantic_prompt_rejects_voting_and_preserves_non_domain_routes(tmp_path
     assert "不得投票" in prompt
     assert "Form/Object/Context/Topic/Entity" in prompt
     assert "Silver" in prompt and "不得读取" in prompt
+
+
+def test_local_recovery_normalizes_enum_and_factors_approved_axis_rule(tmp_path: Path):
+    run_a, run_b, run_c1, checkpoint = _write_sources(tmp_path / "sources")
+    bundle = build_semantic_audit_bundle(
+        run_a_dir=run_a, run_b_dir=run_b, run_c1_dir=run_c1, checkpoint_312c_dir=checkpoint,
+    )
+    payload = _valid_payload(bundle)
+    payload["diff"]["rule_resolutions"].pop()
+    payload["diff"]["rule_resolutions"][0]["adopted_from"] = "approved_product_requirements + C1"
+    call_dir = tmp_path / "call"
+    call_dir.mkdir()
+    (call_dir / "repair-raw-response.txt").write_text(json.dumps(payload, ensure_ascii=False))
+    (call_dir / "audit.json").write_text(json.dumps({"usage": {}, "status": "raw_received"}))
+    (call_dir / "repair-audit.json").write_text(json.dumps({"status": "completed", "usage": {}}))
+    value, audit = recover_semantic_output(call_dir, bundle)
+    assert len(value.diff.rule_resolutions) == 8
+    assert value.diff.rule_resolutions[-1].rule_id == "sr_08"
+    assert value.diff.rule_resolutions[0].adopted_from == "synthesis"
+    assert audit["local_recovery"]["provider_call_count"] == 0
+
+
+def test_semantic_revision_separates_domain_type_from_evidence_maturity(tmp_path: Path):
+    run_a, run_b, run_c1, checkpoint = _write_sources(tmp_path)
+    bundle = build_semantic_audit_bundle(
+        run_a_dir=run_a, run_b_dir=run_b, run_c1_dir=run_c1, checkpoint_312c_dir=checkpoint,
+    )
+    payload = _valid_payload(bundle)
+    provider_contract = DomainSemanticContractV2.model_validate(payload["contract"])
+    provider_diff = SemanticAdjudicationOutput.model_validate(payload).diff
+
+    final_contract, final_diff, revision = revise_semantic_contract_once(
+        provider_contract, provider_diff,
+    )
+
+    assert "当前证据数量不决定其是否属于 Domain" in final_contract.domain_definition
+    assert final_contract.support_policy.multi_evidence_is_sufficient is False
+    assert final_contract.support_policy.cross_run_duplicate_counts_as_new_evidence is False
+    assert final_contract.support_policy.single_evidence_exception == "none_without_explicit_adjudication"
+    assert "产品赋值证据要求已满足" in final_contract.status_definitions.stable
+    assert "至少两个不同内容支持" in final_contract.status_definitions.probable
+    assert "父节点语义子集" in final_contract.assignment_rules[1]
+    assert "证据数量不决定候选是否属于 Domain" in next(
+        item.canonical_v2_rule for item in final_diff.rule_resolutions if item.rule_id == "sr_01"
+    )
+    assert revision["provider_call_count"] == 0
+    assert revision["diff_rule_changes"] == ["sr_01", "sr_03", "sr_06"]
+
+    review = build_semantic_review_record(
+        contract=final_contract,
+        diff=final_diff,
+        revision=revision,
+        verdict="PASS_WITH_CONCERNS",
+        blocking_findings=[],
+        non_blocking_concerns=["stable 的数值门槛在 Assignment Protocol 中冻结"],
+    )
+    assert review["freeze_eligible"] is True
+    assert review["provider_call_count"] == 0
+    assert review["contract_hash"] == revision["final_contract_hash"]
+
+    with pytest.raises(ValueError):
+        build_semantic_review_record(
+            contract=final_contract,
+            diff=final_diff,
+            revision=revision,
+            verdict="PASS",
+            blocking_findings=["contradiction"],
+            non_blocking_concerns=[],
+        )
 
 
 def test_domain_completion_cli_defaults_to_frozen_sources():

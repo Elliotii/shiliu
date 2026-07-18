@@ -154,7 +154,7 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [x] Checkpoint 3.12D 已冻结并推送。
 - [x] Mission Goal 与分阶段计划已建立。
 - [x] M0 文档和恢复纪律提交。
-- [ ] M1 Contract v2。
+- [x] M1 Contract v2：Run #24，Revision 01，独立复核 `PASS_WITH_CONCERNS`，无 Blocking。
 - [ ] M2 unresolved adjudication。
 - [ ] M3 cross-run alignment。
 - [ ] M4 Draft A。
@@ -164,4 +164,14 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [ ] M8 Revision。
 - [ ] M9 Draft B / Final Review。
 
-当前下一动作：审计 A/B/C1 的真实 Prompt、Schema 和结果，构建 M1 可恢复输入 Bundle。
+当前下一动作：按 Run 来源去重并组装 B 3 项、C1 10 项 unresolved 的受限证据 Bundle；分批执行 M2 adjudication，随后做独立只读反例复核。
+
+## M1 completion note
+
+- Provider 主调用：1 次 `deepseek-v4-pro / high`；因结构校验失败执行 1 次独立 JSON Repair。
+- 合计：13,610 input tokens；14,358 output tokens；5,525 reasoning tokens；181.126 秒。
+- Repair 仍少一条结构规则，随后只对已有批准规则做本地确定性因式分解与枚举归一化；额外 Provider 调用为 0。
+- 首轮独立复核发现证据数量与 Domain 语义类型混用、顶层误用 parent-subset 两项 Blocking。
+- Revision 01 保留 Provider Draft，进行一次零调用最小修订；第二轮独立复核为 `PASS_WITH_CONCERNS`，无 Blocking。
+- 冻结的 payload hash：Contract `21c17219474615b9e828431c2135fe039c81fb0cf823700a5078c07c618d0b6f`；Diff `0f9b7e4140e5ad2735ecfb6a4e02c6864979729a193434fc9f6fbbee66fc26a5`。
+- 延后门槛：`stable` 的可计算 Assignment 产品门槛必须在 M6 Assignment Protocol 中冻结；此前不得自动晋升 stable。
