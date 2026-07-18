@@ -125,6 +125,11 @@ def build_parser() -> argparse.ArgumentParser:
     hybrid_facets.add_argument("--snapshot-id", type=int, default=2)
     hybrid_facets.add_argument("--domain-run-id", type=int, default=12)
     hybrid_facets.add_argument("--sample-profile-run-id", required=True)
+    completion = taxonomy_commands.add_parser(
+        "create-controlled-facets-completion",
+        help="创建 Checkpoint 3.11B 受控分面补全派生 Run",
+    )
+    completion.add_argument("--source-run-id", type=int, default=20)
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -296,6 +301,16 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-controlled-facets-completion"
+    ):
+        app = Application()
+        run_id = app.taxonomy_controlled_facet_completion.create_completion(
+            source_run_id=arguments.source_run_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command in {
         "run", "resume", "status"
     }:
@@ -305,8 +320,13 @@ def main(argv: list[str] | None = None) -> int:
         is_controlled = bool(
             run and run.get("run_kind") == "hybrid_controlled_facets_spike"
         )
+        is_completion = bool(
+            run and run.get("run_kind") == "hybrid_controlled_facets_completion"
+        )
         service = (
-            app.taxonomy_controlled_facets
+            app.taxonomy_controlled_facet_completion
+            if is_completion
+            else app.taxonomy_controlled_facets
             if is_controlled
             else app.taxonomy_faceted_metadata
             if is_faceted

@@ -263,10 +263,12 @@ class ControlledObjectAssignment(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     id: str = Field(pattern=r"^OT[0-9]{2}$")
-    source_entities: list[str] = Field(min_length=1, max_length=5)
+    # A normalized item may merge two model items with the same stable OT ID.
+    # Keep every distinct source/evidence item; the OT label budget remains 2.
+    source_entities: list[str] = Field(min_length=1, max_length=10)
     mapping_source: Literal["deterministic", "model_assisted"]
     confidence: Literal["high", "medium", "low"]
-    evidence: list[str] = Field(min_length=1, max_length=3)
+    evidence: list[str] = Field(min_length=1, max_length=6)
 
 
 class SuggestedContextAssignment(BaseModel):
