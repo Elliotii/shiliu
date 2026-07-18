@@ -31,6 +31,10 @@ SEMANTIC_GATE_VERSION = "domain-semantic-contract-v2-gate-v1"
 UNRESOLVED_BUNDLE_VERSION = "unresolved-adjudication-bundle-v1"
 UNRESOLVED_PROMPT_VERSION = "unresolved-adjudication-v1"
 UNRESOLVED_SCHEMA_VERSION = "unresolved-adjudication-schema-v1"
+ALIGNMENT_BUNDLE_VERSION = "candidate-centric-alignment-bundle-v1"
+ALIGNMENT_PROMPT_VERSION = "candidate-centric-alignment-v1"
+ALIGNMENT_SCHEMA_VERSION = "candidate-centric-alignment-schema-v1"
+ALIGNMENT_MAX_TOKENS = 16384
 SNAPSHOT_2_HASH = "1143f0999c569db30b2184a0129e446d3301c0c84e53a34a2807ac9f39db02a2"
 
 
@@ -301,6 +305,63 @@ class UnresolvedBatchOutput(BaseModel):
     decisions: list[UnresolvedDecision] = Field(min_length=1, max_length=5)
 
 
+class AlignmentClusterDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    source_component_id: str = Field(pattern=r"^sc_[0-9]{3}$")
+    source_members: list[str] = Field(min_length=1, max_length=20)
+    alignment_relation: Literal[
+        "equivalent",
+        "parent_child_variant",
+        "granularity_variant",
+        "overlapping_but_distinct",
+        "protocol_specific",
+        "candidate_quality_difference",
+        "unrelated",
+        "uncertain",
+    ]
+    domain_disposition: Literal[
+        "domain_candidate", "non_domain_topic", "non_domain_entity", "unsupported", "uncertain"
+    ]
+    recommended_status: Literal["stable", "probable", "weak", "uncertain", "not_applicable"]
+    canonical_name: str = Field(min_length=2, max_length=80)
+    canonical_definition: str = Field(min_length=10, max_length=500)
+    canonical_includes: list[str] = Field(max_length=8)
+    canonical_excludes: list[str] = Field(max_length=8)
+    evidence_pool_ids: list[str] = Field(max_length=40)
+    representative_ids: list[str] = Field(max_length=8)
+    parent_scope_hint: str | None = Field(default=None, max_length=100)
+    confidence: Literal["high", "medium", "low"]
+    decision_reason: str = Field(min_length=20, max_length=1000)
+    protocol_risk_notes: list[str] = Field(max_length=4)
+
+    @model_validator(mode="after")
+    def validate_members(self):
+        if len(self.source_members) != len(set(self.source_members)):
+            raise ValueError("alignment source members must be unique")
+        if len(self.evidence_pool_ids) != len(set(self.evidence_pool_ids)):
+            raise ValueError("alignment evidence IDs must be unique")
+        if self.domain_disposition == "domain_candidate" and self.recommended_status == "not_applicable":
+            raise ValueError("Domain candidate requires a node status")
+        if self.domain_disposition == "domain_candidate" and (
+            not self.canonical_includes or not self.canonical_excludes
+        ):
+            raise ValueError("Domain candidate requires executable includes/excludes")
+        if self.domain_disposition == "uncertain" and self.recommended_status != "uncertain":
+            raise ValueError("uncertain disposition requires uncertain status")
+        if self.domain_disposition in {
+            "non_domain_topic", "non_domain_entity", "unsupported",
+        } and self.recommended_status != "not_applicable":
+            raise ValueError("non-Domain cluster status must be not_applicable")
+        return self
+
+
+class AlignmentBatchOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    clusters: list[AlignmentClusterDecision] = Field(min_length=1, max_length=30)
+
+
 UNRESOLVED_SCHEMA_HINT = (
     '{"decisions":[{"adjudication_id":"ua_001","adjudication":"true_tree_gap|candidate_mixed|'
     'candidate_too_narrow|candidate_is_topic|candidate_is_entity|granularity_mismatch|routing_error|'
@@ -308,6 +369,17 @@ UNRESOLVED_SCHEMA_HINT = (
     'split_candidate|downgrade_to_topic|downgrade_to_entity|exclude_as_unsupported|keep_uncertain",'
     '"closest_existing_nodes":["A:d_01"],"evidence":["C001"],"reason":"",'
     '"counterarguments":[""],"confidence":"high|medium|low"}]}'
+)
+
+ALIGNMENT_SCHEMA_HINT = (
+    '{"clusters":[{"source_component_id":"sc_001","source_members":["A:nc_001"],'
+    '"alignment_relation":"equivalent|parent_child_variant|granularity_variant|overlapping_but_distinct|'
+    'protocol_specific|candidate_quality_difference|unrelated|uncertain","domain_disposition":"domain_candidate|'
+    'non_domain_topic|non_domain_entity|unsupported|uncertain","recommended_status":"stable|probable|weak|uncertain|not_applicable",'
+    '"canonical_name":"",'
+    '"canonical_definition":"","canonical_includes":[],"canonical_excludes":[],'
+    '"evidence_pool_ids":["C001"],"representative_ids":["C001"],"parent_scope_hint":null,'
+    '"confidence":"high|medium|low","decision_reason":"","protocol_risk_notes":[]}]}'
 )
 
 
@@ -1188,6 +1260,638 @@ def apply_unresolved_review(
     return final, revision
 
 
+def _candidate_pair_features(left: dict[str, Any], right: dict[str, Any]) -> dict[str, float]:
+    left_evidence = set(left.get("supporting_ids") or [])
+    right_evidence = set(right.get("supporting_ids") or [])
+    evidence_overlap = len(left_evidence & right_evidence) / max(
+        1, len(left_evidence | right_evidence)
+    )
+    name_similarity = _character_similarity(str(left.get("name") or ""), str(right.get("name") or ""))
+    left_boundary = " ".join([
+        str(left.get("definition") or ""),
+        " ".join(left.get("includes") or []),
+        " ".join(left.get("excludes") or []),
+    ])
+    right_boundary = " ".join([
+        str(right.get("definition") or ""),
+        " ".join(right.get("includes") or []),
+        " ".join(right.get("excludes") or []),
+    ])
+    boundary_similarity = _character_similarity(left_boundary, right_boundary)
+    parent_similarity = _character_similarity(
+        " ".join(left.get("parent_hints") or []),
+        " ".join(right.get("parent_hints") or []),
+    )
+    score = (
+        5.0 * evidence_overlap
+        + 2.0 * name_similarity
+        + boundary_similarity
+        + 0.5 * parent_similarity
+    )
+    return {
+        "score": round(score, 6),
+        "evidence_overlap": round(evidence_overlap, 6),
+        "name_similarity": round(name_similarity, 6),
+        "boundary_similarity": round(boundary_similarity, 6),
+        "parent_similarity": round(parent_similarity, 6),
+    }
+
+
+def _candidate_decision_map(
+    *, source: str, candidates: list[dict[str, Any]], nodes: list[dict[str, Any]],
+    decisions_path: Path | None,
+) -> dict[str, dict[str, Any]]:
+    if decisions_path is not None:
+        payload = json.loads(decisions_path.read_text(encoding="utf-8"))
+        return {
+            str(item["candidate_id"]): {
+                key: item.get(key)
+                for key in ("action", "target_id", "confidence", "decision_source")
+            }
+            for item in payload["candidate_decisions"]
+        }
+    node_refs: dict[str, list[str]] = {}
+    for node in nodes:
+        for candidate_id in node.get("source_candidate_ids") or []:
+            node_refs.setdefault(str(candidate_id), []).append(f"{source}:{node['node_id']}")
+    return {
+        str(candidate["candidate_id"]): {
+            "action": "represented_in_final_node" if str(candidate["candidate_id"]) in node_refs else "not_selected",
+            "target_id": node_refs.get(str(candidate["candidate_id"]), []),
+            "confidence": candidate.get("confidence"),
+            "decision_source": "inferred_from_frozen_node_lineage",
+        }
+        for candidate in candidates
+    }
+
+
+def _connected_candidate_components(
+    candidate_records: dict[str, dict[str, Any]],
+    pair_rows: list[dict[str, Any]],
+) -> list[list[str]]:
+    parent = {candidate_ref: candidate_ref for candidate_ref in candidate_records}
+
+    def find(value: str) -> str:
+        while parent[value] != value:
+            parent[value] = parent[parent[value]]
+            value = parent[value]
+        return value
+
+    def union(left: str, right: str) -> None:
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            if left_root > right_root:
+                left_root, right_root = right_root, left_root
+            parent[right_root] = left_root
+
+    for pair in pair_rows:
+        union(pair["left_ref"], pair["right_ref"])
+    components: dict[str, list[str]] = {}
+    for candidate_ref in sorted(candidate_records):
+        components.setdefault(find(candidate_ref), []).append(candidate_ref)
+    return sorted(components.values(), key=lambda values: (values[0], len(values)))
+
+
+def build_cross_run_alignment_bundle(
+    *,
+    run_a_dir: Path,
+    run_b_dir: Path,
+    run_c1_dir: Path,
+    checkpoint_312c_dir: Path,
+    profile_path: Path,
+    semantic_contract_path: Path,
+    semantic_bundle_path: Path,
+    unresolved_final_path: Path,
+    pair_threshold: float = 2.0,
+) -> dict[str, Any]:
+    paths = {
+        "A_candidates": run_a_dir / "candidate-normalization/compact-candidates.json",
+        "B_candidates": run_b_dir / "candidate-normalization/compact-candidates.json",
+        "C1_candidates": run_c1_dir / "candidate-normalization/compact-candidates.json",
+        "A_contract": checkpoint_312c_dir / "run-a-domain-contract-v2.json",
+        "B_contract": checkpoint_312c_dir / "run-b-domain-contract-v2.json",
+        "C1_contract": run_c1_dir / "run-c1-domain-contract-v2.json",
+        "B_decisions": checkpoint_312c_dir / "candidate-decisions-complete-v1.json",
+        "C1_decisions": run_c1_dir / "run-c1-candidate-decisions-complete.json",
+        "profiles": profile_path,
+        "semantic_contract": semantic_contract_path,
+        "semantic_bundle": semantic_bundle_path,
+        "unresolved_final": unresolved_final_path,
+    }
+    missing = [str(path) for path in paths.values() if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(f"alignment bundle sources missing: {missing}")
+
+    candidates = {
+        source: _candidate_rows(paths[f"{source}_candidates"])
+        for source in ("A", "B", "C1")
+    }
+    nodes = {
+        source: json.loads(paths[f"{source}_contract"].read_text(encoding="utf-8"))["nodes"]
+        for source in ("A", "B", "C1")
+    }
+    decisions = {
+        "A": _candidate_decision_map(
+            source="A", candidates=candidates["A"], nodes=nodes["A"], decisions_path=None,
+        ),
+        "B": _candidate_decision_map(
+            source="B", candidates=candidates["B"], nodes=nodes["B"],
+            decisions_path=paths["B_decisions"],
+        ),
+        "C1": _candidate_decision_map(
+            source="C1", candidates=candidates["C1"], nodes=nodes["C1"],
+            decisions_path=paths["C1_decisions"],
+        ),
+    }
+    unresolved_payload = json.loads(paths["unresolved_final"].read_text(encoding="utf-8"))
+    unresolved_by_ref = {
+        f"{source['source_run']}:{source['candidate_id']}": {
+            "adjudication_id": item["adjudication_id"],
+            "adjudication": item["adjudication"],
+            "recommended_operation": item["recommended_operation"],
+            "closest_existing_nodes": item["closest_existing_nodes"],
+            "confidence": item["confidence"],
+        }
+        for item in unresolved_payload["decisions"]
+        for source in item["sources"]
+    }
+    semantic_bundle = json.loads(paths["semantic_bundle"].read_text(encoding="utf-8"))
+    protocol_risks = {
+        source: list(semantic_bundle["sources"][source]["protocol_risks"])
+        for source in ("A", "B", "C1")
+    }
+
+    node_refs_by_candidate: dict[str, list[str]] = {}
+    node_records: dict[str, dict[str, Any]] = {}
+    for source, source_nodes in nodes.items():
+        for node in source_nodes:
+            node_ref = f"{source}:{node['node_id']}"
+            node_records[node_ref] = {
+                "ref": node_ref,
+                "source_run": source,
+                "node_id": node["node_id"],
+                "name": node["name"],
+                "parent_id": node.get("parent_id"),
+                "definition": node["definition"],
+                "includes": node.get("canonical_includes") or [],
+                "excludes": node.get("canonical_excludes") or [],
+                "evidence_pool_ids": node.get("evidence_pool_ids") or [],
+            }
+            for candidate_id in node.get("source_candidate_ids") or []:
+                node_refs_by_candidate.setdefault(
+                    f"{source}:{candidate_id}", []
+                ).append(node_ref)
+
+    candidate_records: dict[str, dict[str, Any]] = {}
+    for source, source_candidates in candidates.items():
+        for candidate in source_candidates:
+            candidate_ref = f"{source}:{candidate['candidate_id']}"
+            candidate_records[candidate_ref] = {
+                "ref": candidate_ref,
+                "source_run": source,
+                "candidate_id": candidate["candidate_id"],
+                "name": candidate["name"],
+                "definition": candidate["definition"],
+                "includes": candidate.get("includes") or [],
+                "excludes": candidate.get("excludes") or [],
+                "parent_hints": candidate.get("parent_hints") or [],
+                "supporting_ids": candidate.get("supporting_ids") or [],
+                "representative_ids": candidate.get("representative_ids") or [],
+                "confidence": candidate.get("confidence"),
+                "historical_decision": decisions[source].get(str(candidate["candidate_id"])),
+                "final_node_refs": sorted(node_refs_by_candidate.get(candidate_ref, [])),
+                "unresolved_adjudication": unresolved_by_ref.get(candidate_ref),
+            }
+
+    pair_rows = []
+    sources = ("A", "B", "C1")
+    for left_index, left_source in enumerate(sources):
+        for right_source in sources[left_index + 1:]:
+            for left in candidates[left_source]:
+                for right in candidates[right_source]:
+                    features = _candidate_pair_features(left, right)
+                    if features["score"] < pair_threshold:
+                        continue
+                    pair_rows.append({
+                        "left_ref": f"{left_source}:{left['candidate_id']}",
+                        "right_ref": f"{right_source}:{right['candidate_id']}",
+                        **features,
+                    })
+    pair_rows.sort(key=lambda item: (-item["score"], item["left_ref"], item["right_ref"]))
+    raw_components = _connected_candidate_components(candidate_records, pair_rows)
+    profiles = _profile_rows(profile_path)
+    components = []
+    for index, member_refs in enumerate(raw_components, start=1):
+        member_set = set(member_refs)
+        component_pairs = [
+            pair for pair in pair_rows
+            if pair["left_ref"] in member_set and pair["right_ref"] in member_set
+        ]
+        evidence_counts: Counter[str] = Counter()
+        relevant_node_refs = set()
+        for candidate_ref in member_refs:
+            record = candidate_records[candidate_ref]
+            evidence_counts.update(record["representative_ids"] or record["supporting_ids"])
+            relevant_node_refs.update(record["final_node_refs"])
+            historical = record.get("historical_decision") or {}
+            target = historical.get("target_id")
+            if isinstance(target, str) and target:
+                target_ref = f"{record['source_run']}:{target}"
+                if target_ref in node_records:
+                    relevant_node_refs.add(target_ref)
+            elif isinstance(target, list):
+                relevant_node_refs.update(ref for ref in target if ref in node_records)
+        selected_profile_ids = [
+            content_id
+            for content_id, _ in sorted(
+                evidence_counts.items(), key=lambda item: (-item[1], item[0])
+            )[:8]
+        ]
+        profile_views = []
+        for content_id in selected_profile_ids:
+            profile = profiles.get(content_id)
+            if profile is None:
+                continue
+            profile_views.append({
+                "content_id": content_id,
+                "main_subject": profile.get("main_subject"),
+                "content_goal": profile.get("content_goal"),
+                "key_concepts": list(profile.get("key_concepts") or [])[:4],
+                "entities": list(profile.get("entities") or [])[:4],
+                "evidence_level": profile.get("source_evidence_level"),
+            })
+        components.append({
+            "source_component_id": f"sc_{index:03d}",
+            "candidate_count": len(member_refs),
+            "candidates": [candidate_records[ref] for ref in member_refs],
+            "local_candidate_pairs": component_pairs,
+            "relevant_final_nodes": [node_records[ref] for ref in sorted(relevant_node_refs)],
+            "representative_profiles": profile_views,
+            "protocol_risks": {
+                source: protocol_risks[source]
+                for source in sorted({candidate_records[ref]["source_run"] for ref in member_refs})
+            },
+        })
+    contract = FinalDomainSemanticContractV2.model_validate_json(
+        semantic_contract_path.read_text(encoding="utf-8")
+    )
+    return {
+        "version": ALIGNMENT_BUNDLE_VERSION,
+        "snapshot_id": 2,
+        "snapshot_hash": SNAPSHOT_2_HASH,
+        "semantic_contract": contract.model_dump(mode="json"),
+        "semantic_contract_hash": _stable_hash(contract.model_dump(mode="json")),
+        "pair_generation": {
+            "algorithm": "cross_source_character_boundary_evidence_graph_v1",
+            "threshold": pair_threshold,
+            "pair_count": len(pair_rows),
+            "component_count": len(components),
+            "candidate_count": len(candidate_records),
+            "local_scores_are_semantic_decisions": False,
+        },
+        "components": components,
+        "input_hashes": {name: _hash_file(path) for name, path in sorted(paths.items())},
+        "forbidden_inputs": [
+            "Silver Reference",
+            "Presentation Form results",
+            "Focus Object Type results",
+            "Suggested Use Context results",
+            "folder names",
+            "user notes",
+            "simple 2-of-3 voting",
+            "fixed run weights",
+        ],
+    }
+
+
+def pack_alignment_components(
+    components: list[dict[str, Any]], *, max_candidates: int = 20, max_components: int = 8,
+) -> list[list[dict[str, Any]]]:
+    batches: list[list[dict[str, Any]]] = []
+    current: list[dict[str, Any]] = []
+    current_count = 0
+    for component in components:
+        candidate_count = int(component["candidate_count"])
+        if current and (
+            current_count + candidate_count > max_candidates or len(current) >= max_components
+        ):
+            batches.append(current)
+            current = []
+            current_count = 0
+        current.append(component)
+        current_count += candidate_count
+    if current:
+        batches.append(current)
+    return batches
+
+
+def build_alignment_prompt(
+    *, contract: dict[str, Any], components: list[dict[str, Any]],
+) -> str:
+    contract_view = {
+        key: contract[key]
+        for key in (
+            "domain_definition", "topic_definition", "entity_definition", "excluded_dimensions",
+            "domain_axis_policy", "support_policy", "hierarchy_policy", "unresolved_policy",
+            "status_definitions", "anti_overfitting_rules",
+        )
+    }
+    return "\n".join([
+        "你是拾流 V3 candidate-centric cross-run alignment adjudicator。只对齐输入 Component，不生成最终 Taxonomy。",
+        "A/B/C1 是协议不同的独立 Discovery Evidence Source。不得投票、不得按出现次数判 stable、不得给 Run 固定权重。",
+        "本地 pair score 只负责高召回地把可能相关 Candidate 放在一起，不是语义结论。你必须读取定义、边界、Evidence、历史 Decision、Final Node lineage、Profiles、unresolved 裁决和 protocol risk。",
+        "可以把一个 source_component 拆成多个输出 Cluster，但不能跨 source_component 合并；每个输入 Candidate 必须且只能出现一次。",
+        "alignment_relation 必须从批准的八类中选择。Domain、Topic、Entity、Form/Object/Context 必须分离；M2 已冻结的 downgrade 不能被静默重新晋升。",
+        "domain_disposition=domain_candidate 时给 probable/weak/uncertain；disposition=uncertain 时 status 必须 uncertain；其他非 Domain disposition 必须 not_applicable。M3 没有 Assignment 证据，禁止 stable。",
+        "canonical scope 是供 Draft A 综合的建议，不是正式节点；Domain Candidate 的边界必须可执行且 includes/excludes 非空、不冲突；非 Domain Cluster 可为空。",
+        "source_members 只能使用本 Component 的 ref；evidence/representative IDs 只能来自这些成员的 Evidence Pool。允许保留 uncertain。",
+        "冻结 Contract 摘要：",
+        json.dumps(contract_view, ensure_ascii=False, separators=(",", ":"), sort_keys=True),
+        "本批 Components：",
+        json.dumps(components, ensure_ascii=False, separators=(",", ":"), sort_keys=True),
+        "严格输出 Schema 示例：",
+        ALIGNMENT_SCHEMA_HINT,
+        "只输出符合 Schema 的 JSON。",
+    ])
+
+
+def validate_alignment_batch(
+    value: AlignmentBatchOutput, components: list[dict[str, Any]],
+) -> None:
+    component_members = {
+        component["source_component_id"]: {
+            candidate["ref"] for candidate in component["candidates"]
+        }
+        for component in components
+    }
+    expected_members = set().union(*component_members.values())
+    actual_members = [member for cluster in value.clusters for member in cluster.source_members]
+    if set(actual_members) != expected_members or len(actual_members) != len(set(actual_members)):
+        raise PipelineError(
+            "Alignment Batch 未完整且唯一覆盖输入 Candidate",
+            code="alignment_member_coverage_invalid",
+            retryable=True,
+        )
+    records = {
+        candidate["ref"]: candidate
+        for component in components
+        for candidate in component["candidates"]
+    }
+    for cluster in value.clusters:
+        allowed_members = component_members.get(cluster.source_component_id)
+        if allowed_members is None or not set(cluster.source_members).issubset(allowed_members):
+            raise PipelineError(
+                f"{cluster.source_component_id} Cluster 跨越本地 Component",
+                code="alignment_component_boundary_invalid",
+                retryable=True,
+            )
+        allowed_evidence = {
+            content_id
+            for member in cluster.source_members
+            for content_id in records[member]["supporting_ids"]
+        }
+        if not set(cluster.evidence_pool_ids).issubset(allowed_evidence):
+            raise PipelineError(
+                "Alignment Cluster 包含未知 Evidence",
+                code="alignment_evidence_invalid",
+                retryable=True,
+            )
+        if not set(cluster.representative_ids).issubset(allowed_evidence):
+            raise PipelineError(
+                "Alignment Cluster 包含未知 Representative",
+                code="alignment_representative_invalid",
+                retryable=True,
+            )
+        if cluster.recommended_status == "stable":
+            raise PipelineError(
+                "M3 尚无产品 Assignment 证据，不能晋升 stable",
+                code="alignment_stable_before_assignment",
+                retryable=True,
+            )
+        if cluster.domain_disposition == "domain_candidate":
+            downgraded_members = [
+                member
+                for member in cluster.source_members
+                if (
+                    (records[member].get("unresolved_adjudication") or {}).get(
+                        "recommended_operation"
+                    )
+                    in {"downgrade_to_topic", "downgrade_to_entity", "exclude_as_unsupported"}
+                )
+            ]
+            if downgraded_members:
+                raise PipelineError(
+                    f"M2 已降级 Candidate 被静默晋升: {downgraded_members}",
+                    code="alignment_repromotes_m2_downgrade",
+                    retryable=True,
+                )
+
+
+def _alignment_canonical_member_ref(
+    member_refs: list[str], records: dict[str, dict[str, Any]],
+) -> str:
+    """Choose the most central source Candidate without inventing semantics."""
+
+    ranked: list[tuple[float, int, str, str]] = []
+    for member_ref in member_refs:
+        name = str(records[member_ref]["name"]).strip()
+        score = sum(
+            _character_similarity(name, str(records[other_ref]["name"]))
+            for other_ref in member_refs
+            if other_ref != member_ref
+        )
+        ranked.append((-score, len(_normalized_text(name)), member_ref, name))
+    ranked.sort()
+    return ranked[0][2]
+
+
+def _alignment_canonical_name(
+    member_refs: list[str], records: dict[str, dict[str, Any]],
+) -> str:
+    member_ref = _alignment_canonical_member_ref(member_refs, records)
+    return str(records[member_ref]["name"]).strip()
+
+
+def _unique_prefix(values: list[Any], limit: int) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        text = str(value).strip()
+        if not text or text in result:
+            continue
+        result.append(text)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def recover_alignment_batch(
+    call_dir: Path, components: list[dict[str, Any]],
+) -> tuple[AlignmentBatchOutput, dict[str, Any]]:
+    """Recover only known structural tails from a semantically complete Repair.
+
+    Cluster membership, definitions, evidence, and semantic dispositions remain
+    untouched. Names come from source Candidates; reasons only record the
+    Provider-authored grouping; lists are capped deterministically; and a
+    pre-Assignment ``stable`` status is demoted under the frozen M1 policy.
+    """
+
+    audit_path = call_dir / "audit.json"
+    existing_audit = (
+        json.loads(audit_path.read_text(encoding="utf-8"))
+        if audit_path.is_file()
+        else {}
+    )
+    repair_path = call_dir / "repair-raw-response.txt"
+    audited_raw_path = call_dir / str(existing_audit.get("raw_response_path") or "")
+    source_path = (
+        repair_path
+        if repair_path.is_file() and repair_path.stat().st_size > 0
+        else audited_raw_path
+    )
+    if not source_path.is_file() or source_path.stat().st_size == 0:
+        raise PipelineError(
+            "M3 本地恢复缺少非空的已审计原文",
+            code="alignment_local_recovery_not_applicable",
+            retryable=False,
+        )
+    payload = json.loads(source_path.read_text(encoding="utf-8"))
+    clusters = payload.get("clusters")
+    if not isinstance(clusters, list) or not clusters:
+        raise PipelineError(
+            "M3 Repair 未形成完整 clusters 结构",
+            code="alignment_local_recovery_not_applicable",
+            retryable=False,
+        )
+    records = {
+        candidate["ref"]: candidate
+        for component in components
+        for candidate in component["candidates"]
+    }
+    transformations: list[dict[str, Any]] = []
+    for cluster_index, cluster in enumerate(clusters):
+        if not isinstance(cluster, dict):
+            raise PipelineError(
+                "M3 Repair Cluster 不是对象",
+                code="alignment_local_recovery_not_applicable",
+                retryable=False,
+            )
+        members = list(cluster.get("source_members") or [])
+        if not members or any(member not in records for member in members):
+            raise PipelineError(
+                "M3 Repair 包含未知或空 Candidate 成员",
+                code="alignment_local_recovery_unsafe",
+                retryable=False,
+            )
+        path = f"clusters.{cluster_index}"
+        canonical_member_ref = _alignment_canonical_member_ref(members, records)
+        canonical_name = str(cluster.get("canonical_name") or "").strip()
+        if canonical_name in {"", "未命名"}:
+            name = _alignment_canonical_name(members, records)
+            cluster["canonical_name"] = name
+            transformations.append({
+                "path": f"{path}.canonical_name",
+                "before": canonical_name,
+                "after": name,
+                "kind": "select_existing_candidate_name",
+            })
+        canonical_definition = str(cluster.get("canonical_definition") or "").strip()
+        if canonical_definition in {"", "无足够信息定义"}:
+            definition = str(records[canonical_member_ref].get("definition") or "").strip()
+            if not definition:
+                raise PipelineError(
+                    "M3 Placeholder Definition 没有可追溯的 Candidate Definition",
+                    code="alignment_local_recovery_unsafe",
+                    retryable=False,
+                )
+            cluster["canonical_definition"] = definition
+            transformations.append({
+                "path": f"{path}.canonical_definition",
+                "before": canonical_definition,
+                "after": definition,
+                "kind": "select_existing_candidate_definition",
+            })
+        if not str(cluster.get("decision_reason") or "").strip():
+            names = "、".join(str(records[member]["name"]) for member in members)
+            definition = str(cluster.get("canonical_definition") or "").strip()
+            reason = (
+                f"高推理主响应将“{names}”按 {cluster.get('alignment_relation')} 关系归组；"
+                f"共同语义边界为“{definition}”。该结论保留原成员、Evidence 与边界。"
+            )
+            cluster["decision_reason"] = reason[:1000]
+            transformations.append({
+                "path": f"{path}.decision_reason",
+                "before": "",
+                "after": cluster["decision_reason"],
+                "kind": "provider_grouping_provenance",
+            })
+        for field, limit in (("canonical_includes", 8), ("canonical_excludes", 8)):
+            before = list(cluster.get(field) or [])
+            after = _unique_prefix(before, limit)
+            if before != after:
+                cluster[field] = after
+                transformations.append({
+                    "path": f"{path}.{field}",
+                    "before": before,
+                    "after": after,
+                    "kind": "ordered_schema_cap",
+                })
+        if cluster.get("recommended_status") == "stable":
+            cluster["recommended_status"] = "probable"
+            transformations.append({
+                "path": f"{path}.recommended_status",
+                "before": "stable",
+                "after": "probable",
+                "kind": "pre_assignment_support_policy",
+            })
+    value = AlignmentBatchOutput.model_validate(payload)
+    validate_alignment_batch(value, components)
+    recovery = {
+        "version": "alignment-local-recovery-v1",
+        "provider_call_count": 0,
+        "source_path": source_path.name,
+        "source_hash": _hash_file(source_path),
+        "allowed_transformation_kinds": [
+            "select_existing_candidate_name",
+            "select_existing_candidate_definition",
+            "provider_grouping_provenance",
+            "ordered_schema_cap",
+            "pre_assignment_support_policy",
+        ],
+        "recovery_mode": (
+            "audited_structural_normalization"
+            if transformations
+            else "disposition_aware_schema_revalidation"
+        ),
+        "transformations": transformations,
+        "result_hash": _stable_hash(value.model_dump(mode="json")),
+        "created_at": _utc_now(),
+    }
+    _write_json(call_dir / "parsed-output.json", value.model_dump(mode="json"))
+    audit = existing_audit
+    audit_parameter_corrections: list[dict[str, Any]] = []
+    completion_tokens = int((audit.get("usage") or {}).get("completion_tokens") or 0)
+    recorded_max_tokens = int((audit.get("parameters") or {}).get("max_tokens") or 0)
+    if completion_tokens > recorded_max_tokens:
+        audit.setdefault("parameters", {})["max_tokens"] = ALIGNMENT_MAX_TOKENS
+        audit_parameter_corrections.append({
+            "path": "parameters.max_tokens",
+            "before": recorded_max_tokens,
+            "after": ALIGNMENT_MAX_TOKENS,
+            "reason": "resume used enlarged M3 ceiling; observed completion exceeded stale ceiling",
+        })
+    recovery["audit_parameter_corrections"] = audit_parameter_corrections
+    _write_json(call_dir / "local-recovery-audit.json", recovery)
+    repair_path = call_dir / "repair-audit.json"
+    audit["repair"] = (
+        json.loads(repair_path.read_text(encoding="utf-8"))
+        if repair_path.is_file()
+        else None
+    )
+    audit.update(status="completed", local_recovery=recovery, finished_at=_utc_now())
+    _write_json(audit_path, audit)
+    return value, audit
+
+
 class DomainCompletionService:
     def __init__(
         self, *, repository: TaxonomyRepository, run_repository: TaxonomyRunRepository,
@@ -1247,6 +1951,8 @@ class DomainCompletionService:
             raise PipelineError("不是 Domain Completion Run", code="domain_completion_run_invalid", retryable=False)
         if run.get("current_stage") == "unresolved_adjudication":
             return self.execute_unresolved_adjudication(run_id)
+        if run.get("current_stage") == "cross_run_alignment":
+            return self.execute_cross_run_alignment(run_id)
         if run.get("current_stage") in {
             "semantic_contract_v2_review",
             "semantic_contract_v2_review_2",
@@ -1254,6 +1960,8 @@ class DomainCompletionService:
             "unresolved_adjudication_review",
             "unresolved_adjudication_review_2",
             "unresolved_adjudication_blocked",
+            "cross_run_alignment_review",
+            "cross_run_alignment_blocked",
         }:
             return self.status(run_id)
         protocol = run["parameters"]["protocol_manifest"]
@@ -1667,3 +2375,233 @@ class DomainCompletionService:
                 error_message="; ".join(blocking_findings),
             )
         return review
+
+    def execute_cross_run_alignment(self, run_id: int) -> dict[str, Any]:
+        run = self.run_repository.get_run(run_id)
+        if run is None or run.get("run_kind") != "domain_completion":
+            raise PipelineError("不是 Domain Completion Run", code="domain_completion_run_invalid", retryable=False)
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        m2_review = json.loads(
+            (run_dir / "m2-unresolved-final-review.json").read_text(encoding="utf-8")
+        )
+        if m2_review.get("verdict") not in {"PASS", "PASS_WITH_CONCERNS"}:
+            raise PipelineError(
+                "M2 unresolved 尚未冻结",
+                code="unresolved_not_frozen",
+                retryable=False,
+            )
+        checkpoint = self.output_dir.parent / "checkpoints" / "checkpoint-312c"
+        run_a_dir = self.output_dir / "run-000012"
+        run_b_dir = self.output_dir / "run-000022"
+        run_c1_dir = self.output_dir / "run-000023"
+        profile_run_id = str(
+            json.loads((run_a_dir / "run-manifest.json").read_text(encoding="utf-8"))["profile_run_id"]
+        )
+        profile_path = (
+            self.output_dir.parent / "profile_spikes" / profile_run_id / "profiles.jsonl"
+        )
+        current_bundle = build_cross_run_alignment_bundle(
+            run_a_dir=run_a_dir,
+            run_b_dir=run_b_dir,
+            run_c1_dir=run_c1_dir,
+            checkpoint_312c_dir=checkpoint,
+            profile_path=profile_path,
+            semantic_contract_path=run_dir / "domain-semantic-contract-v2.json",
+            semantic_bundle_path=run_dir / "m1-semantic-audit-bundle.json",
+            unresolved_final_path=run_dir / "unresolved-adjudication-final.json",
+        )
+        bundle_path = run_dir / "m3-cross-run-alignment-bundle.json"
+        if bundle_path.exists():
+            frozen_bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+            if _stable_hash(frozen_bundle) != _stable_hash(current_bundle):
+                raise PipelineError(
+                    "M3 Alignment 输入已漂移",
+                    code="alignment_bundle_drift",
+                    retryable=False,
+                )
+            bundle = frozen_bundle
+        else:
+            _write_json_once(bundle_path, current_bundle)
+            bundle = current_bundle
+
+        component_batches = pack_alignment_components(bundle["components"])
+        provider_clusters: list[AlignmentClusterDecision] = []
+        for batch_index, components in enumerate(component_batches, start=1):
+            unit_key = f"batch-{batch_index:03d}"
+            prompt = build_alignment_prompt(
+                contract=bundle["semantic_contract"], components=components,
+            )
+            stage = self.run_repository.ensure_stage(
+                run_id, "cross_run_alignment", unit_key,
+            )
+            attempt_number = max(1, int(stage["attempt_count"]))
+            stage_dir = run_dir / "cross_run_alignment" / unit_key
+            existing_call_dirs = sorted(stage_dir.glob("attempt-*"))
+            call_dir = (
+                existing_call_dirs[-1]
+                if existing_call_dirs
+                else stage_dir / f"attempt-{attempt_number:02d}"
+            )
+            saved_prompt_path = call_dir / "prompt.txt"
+            if saved_prompt_path.is_file():
+                prompt = saved_prompt_path.read_text(encoding="utf-8")
+            audited_raw_available = False
+            audit_path = call_dir / "audit.json"
+            if audit_path.is_file():
+                call_audit = json.loads(audit_path.read_text(encoding="utf-8"))
+                audited_raw = call_dir / str(call_audit.get("raw_response_path") or "")
+                audited_raw_available = (
+                    audited_raw.is_file() and audited_raw.stat().st_size > 0
+                )
+            if (
+                stage["status"] == "retry_wait"
+                and not (call_dir / "parsed-output.json").is_file()
+                and (
+                    (call_dir / "repair-raw-response.txt").is_file()
+                    or audited_raw_available
+                )
+            ):
+                recovered, audit = recover_alignment_batch(call_dir, components)
+                recovered_payload = recovered.model_dump(mode="json")
+                self.run_repository.complete_stage(
+                    run_id, "cross_run_alignment", unit_key,
+                    output_path=str(call_dir / "parsed-output.json"),
+                    output_hash=_stable_hash(recovered_payload),
+                    audit=_combined_audit(audit),
+                )
+            output = self.workflow._model_stage(
+                run_id=run_id,
+                run_dir=run_dir,
+                stage_name="cross_run_alignment",
+                unit_key=unit_key,
+                role="taxonomy_global",
+                prompt=prompt,
+                prompt_version=ALIGNMENT_PROMPT_VERSION,
+                schema=AlignmentBatchOutput,
+                schema_hint=ALIGNMENT_SCHEMA_HINT,
+                max_tokens=ALIGNMENT_MAX_TOKENS,
+                input_ids=[component["source_component_id"] for component in components],
+                validator=lambda value, expected=components: validate_alignment_batch(value, expected),
+            )
+            provider_clusters.extend(output.clusters)
+
+        components_by_id = {
+            component["source_component_id"]: component
+            for component in bundle["components"]
+        }
+        candidate_records = {
+            candidate["ref"]: candidate
+            for component in bundle["components"]
+            for candidate in component["candidates"]
+        }
+        clusters = []
+        ordered_provider_clusters = sorted(
+            provider_clusters, key=lambda item: min(item.source_members)
+        )
+        for index, provider_cluster in enumerate(ordered_provider_clusters, start=1):
+            component = components_by_id[provider_cluster.source_component_id]
+            members = [candidate_records[ref] for ref in provider_cluster.source_members]
+            member_set = set(provider_cluster.source_members)
+            member_pairs = [
+                pair for pair in component["local_candidate_pairs"]
+                if pair["left_ref"] in member_set and pair["right_ref"] in member_set
+            ]
+            support_overlap = {
+                "pair_count": len(member_pairs),
+                "max_evidence_overlap": max(
+                    [float(pair["evidence_overlap"]) for pair in member_pairs], default=0.0
+                ),
+                "max_local_score": max(
+                    [float(pair["score"]) for pair in member_pairs], default=0.0
+                ),
+            }
+            source_nodes = sorted({
+                node_ref for member in members for node_ref in member["final_node_refs"]
+            })
+            clusters.append({
+                "cluster_id": f"xc_{index:03d}",
+                "local_source_component_id": provider_cluster.source_component_id,
+                "source_run_nodes": source_nodes,
+                "source_candidates": provider_cluster.source_members,
+                "definitions": [
+                    {"candidate_ref": member["ref"], "definition": member["definition"]}
+                    for member in members
+                ],
+                "parent_positions": [
+                    {"candidate_ref": member["ref"], "parent_hints": member["parent_hints"]}
+                    for member in members
+                ],
+                "evidence_pools": provider_cluster.evidence_pool_ids,
+                "representative_ids": provider_cluster.representative_ids,
+                "support_overlap": support_overlap,
+                "protocol_provenance": sorted({member["source_run"] for member in members}),
+                "known_protocol_risks": provider_cluster.protocol_risk_notes,
+                "alignment_relation": provider_cluster.alignment_relation,
+                "domain_disposition": provider_cluster.domain_disposition,
+                "recommended_status": provider_cluster.recommended_status,
+                "canonical_scope_proposal": {
+                    "name": provider_cluster.canonical_name,
+                    "definition": provider_cluster.canonical_definition,
+                    "includes": provider_cluster.canonical_includes,
+                    "excludes": provider_cluster.canonical_excludes,
+                    "parent_scope_hint": provider_cluster.parent_scope_hint,
+                },
+                "confidence": provider_cluster.confidence,
+                "decision_reason": provider_cluster.decision_reason,
+            })
+
+        clusters_artifact = {
+            "version": "cross-run-domain-clusters-v1",
+            "snapshot_id": 2,
+            "snapshot_hash": SNAPSHOT_2_HASH,
+            "semantic_contract_hash": bundle["semantic_contract_hash"],
+            "candidate_count": bundle["pair_generation"]["candidate_count"],
+            "cluster_count": len(clusters),
+            "clusters": clusters,
+            "created_at": _utc_now(),
+        }
+        decisions_artifact = {
+            "version": "cross-run-alignment-decisions-v1",
+            "pair_generation": bundle["pair_generation"],
+            "batch_count": len(component_batches),
+            "component_count": len(bundle["components"]),
+            "provider_cluster_count": len(clusters),
+            "components": [
+                {
+                    "source_component_id": component["source_component_id"],
+                    "candidate_refs": [candidate["ref"] for candidate in component["candidates"]],
+                    "local_pair_count": len(component["local_candidate_pairs"]),
+                }
+                for component in bundle["components"]
+            ],
+            "decisions": [
+                {
+                    "cluster_id": cluster["cluster_id"],
+                    "source_candidates": cluster["source_candidates"],
+                    "alignment_relation": cluster["alignment_relation"],
+                    "domain_disposition": cluster["domain_disposition"],
+                    "confidence": cluster["confidence"],
+                    "decision_reason": cluster["decision_reason"],
+                }
+                for cluster in clusters
+            ],
+            "created_at": _utc_now(),
+        }
+        _write_json(run_dir / "cross-run-domain-clusters.json", clusters_artifact)
+        _write_json(run_dir / "cross-run-alignment-decisions.json", decisions_artifact)
+        gate = {
+            "version": "cross-run-alignment-gate-v1",
+            "status": "READY_FOR_INDEPENDENT_REVIEW",
+            "clusters_hash": _stable_hash(clusters_artifact),
+            "decisions_hash": _stable_hash(decisions_artifact),
+            "candidate_count": clusters_artifact["candidate_count"],
+            "cluster_count": clusters_artifact["cluster_count"],
+            "batch_count": len(component_batches),
+            "blocking": [],
+        }
+        _write_json(run_dir / "m3-cross-run-alignment-gate.json", gate)
+        self.run_repository.set_run_status(
+            run_id, "waiting_for_review", current_stage="cross_run_alignment_review",
+            error_code=None, error_message=None,
+        )
+        return self.status(run_id)

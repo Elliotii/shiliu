@@ -12,15 +12,21 @@ from shiliu.taxonomy.domain_completion import (
     DomainSemanticContractV2,
     SemanticAdjudicationOutput,
     UnresolvedBatchOutput,
+    AlignmentBatchOutput,
+    _candidate_pair_features,
+    _connected_candidate_components,
     _unresolved_groups,
     apply_unresolved_review,
     build_semantic_review_record,
+    pack_alignment_components,
     build_semantic_adjudication_prompt,
     build_semantic_audit_bundle,
+    recover_alignment_batch,
     recover_unresolved_batch,
     recover_semantic_output,
     revise_semantic_contract_once,
     validate_unresolved_batch,
+    validate_alignment_batch,
     validate_semantic_output,
 )
 
@@ -433,3 +439,314 @@ def test_unresolved_review_requires_override_for_reject_and_revalidates():
     assert final["decisions"][0]["recommended_operation"] == "downgrade_to_topic"
     assert revision["provider_call_count"] == 0
     assert revision["changed_ids"] == ["ua_001"]
+
+
+def test_candidate_pair_graph_is_deterministic_and_scores_evidence_overlap():
+    left = {
+        "name": "算法与数据结构",
+        "definition": "经典算法与复杂度分析",
+        "includes": ["双指针"],
+        "excludes": ["短期刷题"],
+        "parent_hints": [],
+        "supporting_ids": ["C131"],
+    }
+    right = {
+        "name": "算法优化与双指针技巧",
+        "definition": "使用双指针优化数组算法",
+        "includes": ["复杂度优化"],
+        "excludes": ["图算法"],
+        "parent_hints": [],
+        "supporting_ids": ["C131"],
+    }
+    features = _candidate_pair_features(left, right)
+    assert features["evidence_overlap"] == 1.0
+    assert features["score"] >= 5.0
+    records = {"A:nc_001": {}, "B:nc_001": {}, "C1:nc_001": {}}
+    components = _connected_candidate_components(records, [{
+        "left_ref": "A:nc_001", "right_ref": "B:nc_001",
+    }])
+    assert components == [["A:nc_001", "B:nc_001"], ["C1:nc_001"]]
+
+
+def test_alignment_batches_and_validator_allow_split_but_require_exact_coverage():
+    components = [
+        {
+            "source_component_id": "sc_001",
+            "candidate_count": 2,
+            "candidates": [
+                {"ref": "A:nc_001", "supporting_ids": ["C001"]},
+                {"ref": "B:nc_001", "supporting_ids": ["C001", "C002"]},
+            ],
+        },
+        {
+            "source_component_id": "sc_002",
+            "candidate_count": 1,
+            "candidates": [{"ref": "C1:nc_002", "supporting_ids": ["C003"]}],
+        },
+    ]
+    assert len(pack_alignment_components(components, max_candidates=2, max_components=8)) == 2
+    output = AlignmentBatchOutput.model_validate({
+        "clusters": [
+            {
+                "source_component_id": "sc_001",
+                "source_members": ["A:nc_001", "B:nc_001"],
+                "alignment_relation": "equivalent",
+                "domain_disposition": "domain_candidate",
+                "recommended_status": "probable",
+                "canonical_name": "算法基础",
+                "canonical_definition": "长期稳定的算法与数据结构基础知识领域。",
+                "canonical_includes": ["经典算法"],
+                "canonical_excludes": ["单一题目技巧"],
+                "evidence_pool_ids": ["C001", "C002"],
+                "representative_ids": ["C001"],
+                "parent_scope_hint": None,
+                "confidence": "high",
+                "decision_reason": "两个候选的定义、边界和代表 Evidence 均指向同一稳定知识范围。",
+                "protocol_risk_notes": [],
+            },
+            {
+                "source_component_id": "sc_002",
+                "source_members": ["C1:nc_002"],
+                "alignment_relation": "protocol_specific",
+                "domain_disposition": "non_domain_topic",
+                "recommended_status": "not_applicable",
+                "canonical_name": "单一技巧",
+                "canonical_definition": "仅由单一内容支持的窄主题，不构成稳定领域。",
+                "canonical_includes": ["局部技巧"],
+                "canonical_excludes": ["稳定知识领域"],
+                "evidence_pool_ids": ["C003"],
+                "representative_ids": ["C003"],
+                "parent_scope_hint": None,
+                "confidence": "medium",
+                "decision_reason": "候选只在一种协议下出现，且语义范围属于单一窄主题。",
+                "protocol_risk_notes": ["单来源"],
+            },
+        ],
+    })
+    validate_alignment_batch(output, components)
+    output.clusters[1].source_members = ["A:nc_001"]
+    with pytest.raises(Exception):
+        validate_alignment_batch(output, components)
+
+
+def test_alignment_validator_rejects_pre_assignment_stable_and_m2_repromotion():
+    components = [{
+        "source_component_id": "sc_001",
+        "candidate_count": 1,
+        "candidates": [{
+            "ref": "B:nc_001",
+            "name": "间隔重复系统",
+            "supporting_ids": ["C001"],
+            "unresolved_adjudication": {
+                "recommended_operation": "downgrade_to_topic",
+            },
+        }],
+    }]
+    payload = {
+        "clusters": [{
+            "source_component_id": "sc_001",
+            "source_members": ["B:nc_001"],
+            "alignment_relation": "protocol_specific",
+            "domain_disposition": "domain_candidate",
+            "recommended_status": "stable",
+            "canonical_name": "间隔重复系统",
+            "canonical_definition": "围绕间隔重复机制形成的长期学习知识领域。",
+            "canonical_includes": ["重复调度"],
+            "canonical_excludes": ["普通学习技巧"],
+            "evidence_pool_ids": ["C001"],
+            "representative_ids": ["C001"],
+            "parent_scope_hint": None,
+            "confidence": "medium",
+            "decision_reason": "该候选来自单一来源，需要保守判断其产品分类地位。",
+            "protocol_risk_notes": [],
+        }],
+    }
+    output = AlignmentBatchOutput.model_validate(payload)
+    with pytest.raises(Exception, match="不能晋升 stable"):
+        validate_alignment_batch(output, components)
+    output.clusters[0].recommended_status = "weak"
+    with pytest.raises(Exception, match="静默晋升"):
+        validate_alignment_batch(output, components)
+
+
+def test_alignment_schema_preserves_uncertain_disposition_status():
+    output = AlignmentBatchOutput.model_validate({"clusters": [{
+        "source_component_id": "sc_001",
+        "source_members": ["B:nc_039"],
+        "alignment_relation": "uncertain",
+        "domain_disposition": "uncertain",
+        "recommended_status": "uncertain",
+        "canonical_name": "语音交互系统",
+        "canonical_definition": "候选混合具体项目与可能的长期问题空间，当前无法安全确定 Domain 地位。",
+        "canonical_includes": [],
+        "canonical_excludes": [],
+        "evidence_pool_ids": ["C001"],
+        "representative_ids": ["C001"],
+        "parent_scope_hint": None,
+        "confidence": "low",
+        "decision_reason": "M2 判为 candidate_mixed，保留 uncertain 比错误降级或晋升更诚实。",
+        "protocol_risk_notes": [],
+    }]})
+    assert output.clusters[0].recommended_status == "uncertain"
+
+
+def test_recover_alignment_batch_applies_only_audited_structural_tails(tmp_path: Path):
+    components = [{
+        "source_component_id": "sc_001",
+        "candidate_count": 2,
+        "candidates": [
+            {
+                "ref": "A:nc_001", "name": "Agent 长期记忆系统",
+                "supporting_ids": ["C001", "C002"],
+            },
+            {
+                "ref": "B:nc_006", "name": "Agent 记忆与上下文工程",
+                "supporting_ids": ["C002", "C003"],
+            },
+        ],
+    }]
+    repair = {
+        "clusters": [{
+            "source_component_id": "sc_001",
+            "source_members": ["A:nc_001", "B:nc_006"],
+            "alignment_relation": "equivalent",
+            "domain_disposition": "domain_candidate",
+            "recommended_status": "stable",
+            "canonical_name": "",
+            "canonical_definition": "研究 Agent 长期记忆的存储、检索、更新与上下文衔接机制。",
+            "canonical_includes": [f"include-{index}" for index in range(10)],
+            "canonical_excludes": [f"exclude-{index}" for index in range(10)],
+            "evidence_pool_ids": ["C001", "C002", "C003"],
+            "representative_ids": ["C002"],
+            "parent_scope_hint": None,
+            "confidence": "high",
+            "decision_reason": "",
+            "protocol_risk_notes": [],
+        }],
+    }
+    (tmp_path / "repair-raw-response.txt").write_text(
+        json.dumps(repair, ensure_ascii=False), encoding="utf-8",
+    )
+    (tmp_path / "repair-audit.json").write_text(
+        json.dumps({"usage": {"total_tokens": 100}}), encoding="utf-8",
+    )
+    (tmp_path / "audit.json").write_text(
+        json.dumps({"status": "failed", "usage": {"total_tokens": 500}}),
+        encoding="utf-8",
+    )
+
+    output, audit = recover_alignment_batch(tmp_path, components)
+
+    cluster = output.clusters[0]
+    assert cluster.canonical_name in {
+        "Agent 长期记忆系统", "Agent 记忆与上下文工程",
+    }
+    assert cluster.recommended_status == "probable"
+    assert len(cluster.canonical_includes) == 8
+    assert len(cluster.canonical_excludes) == 8
+    assert "高推理主响应" in cluster.decision_reason
+    assert audit["local_recovery"]["provider_call_count"] == 0
+    assert (tmp_path / "parsed-output.json").is_file()
+    assert {
+        item["kind"] for item in audit["local_recovery"]["transformations"]
+    } == {
+        "select_existing_candidate_name", "provider_grouping_provenance",
+        "ordered_schema_cap", "pre_assignment_support_policy",
+    }
+
+
+def test_recover_alignment_batch_accepts_empty_boundaries_only_for_non_domain(tmp_path: Path):
+    components = [{
+        "source_component_id": "sc_001",
+        "candidate_count": 1,
+        "candidates": [{
+            "ref": "C1:nc_008", "name": "Agent 面试内容",
+            "supporting_ids": ["C009"],
+        }],
+    }]
+    cluster = {
+        "source_component_id": "sc_001",
+        "source_members": ["C1:nc_008"],
+        "alignment_relation": "protocol_specific",
+        "domain_disposition": "non_domain_topic",
+        "recommended_status": "not_applicable",
+        "canonical_name": "Agent 面试内容",
+        "canonical_definition": "围绕 Agent 求职面试展开的阶段性内容主题。",
+        "canonical_includes": [],
+        "canonical_excludes": [],
+        "evidence_pool_ids": ["C009"],
+        "representative_ids": ["C009"],
+        "parent_scope_hint": None,
+        "confidence": "medium",
+        "decision_reason": "该候选表达求职使用情境，不构成长期稳定的知识领域。",
+        "protocol_risk_notes": [],
+    }
+    raw_path = tmp_path / "raw-response-02.txt"
+    raw_path.write_text(
+        json.dumps({"clusters": [cluster]}, ensure_ascii=False), encoding="utf-8",
+    )
+    (tmp_path / "audit.json").write_text(json.dumps({
+        "status": "raw_received",
+        "raw_response_path": raw_path.name,
+        "usage": {"total_tokens": 100},
+    }), encoding="utf-8")
+
+    output, audit = recover_alignment_batch(tmp_path, components)
+
+    assert output.clusters[0].canonical_includes == []
+    assert output.clusters[0].canonical_excludes == []
+    assert audit["local_recovery"]["recovery_mode"] == (
+        "disposition_aware_schema_revalidation"
+    )
+    domain_payload = json.loads(json.dumps(cluster))
+    domain_payload["domain_disposition"] = "domain_candidate"
+    domain_payload["recommended_status"] = "probable"
+    with pytest.raises(ValidationError, match="executable includes/excludes"):
+        AlignmentBatchOutput.model_validate({"clusters": [domain_payload]})
+
+
+def test_recover_alignment_batch_replaces_non_domain_placeholders_from_candidate(tmp_path: Path):
+    components = [{
+        "source_component_id": "sc_001",
+        "candidate_count": 1,
+        "candidates": [{
+            "ref": "B:nc_004",
+            "name": "模型评测动态",
+            "definition": "围绕具体模型版本与评测结果展开的阶段性讨论主题。",
+            "supporting_ids": ["C004"],
+        }],
+    }]
+    payload = {"clusters": [{
+        "source_component_id": "sc_001",
+        "source_members": ["B:nc_004"],
+        "alignment_relation": "protocol_specific",
+        "domain_disposition": "non_domain_topic",
+        "recommended_status": "not_applicable",
+        "canonical_name": "未命名",
+        "canonical_definition": "无足够信息定义",
+        "canonical_includes": [],
+        "canonical_excludes": [],
+        "evidence_pool_ids": ["C004"],
+        "representative_ids": ["C004"],
+        "parent_scope_hint": None,
+        "confidence": "low",
+        "decision_reason": "该候选只构成阶段性 Topic，不应进入正式 Domain Tree。",
+        "protocol_risk_notes": [],
+    }]}
+    (tmp_path / "repair-raw-response.txt").write_text(
+        json.dumps(payload, ensure_ascii=False), encoding="utf-8",
+    )
+    (tmp_path / "audit.json").write_text(
+        json.dumps({"status": "failed", "usage": {}}), encoding="utf-8",
+    )
+
+    output, audit = recover_alignment_batch(tmp_path, components)
+
+    cluster = output.clusters[0]
+    assert cluster.canonical_name == "模型评测动态"
+    assert cluster.canonical_definition == components[0]["candidates"][0]["definition"]
+    assert {
+        item["kind"] for item in audit["local_recovery"]["transformations"]
+    } == {
+        "select_existing_candidate_name", "select_existing_candidate_definition",
+    }

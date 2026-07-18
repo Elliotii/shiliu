@@ -136,3 +136,55 @@ review_status
 - `risk`: 未来更多异质内容可能支持重新提出轴纯 Domain；必须用新 Evidence 审议，不能静默恢复旧结论。
 - `provider_source`: local revision 01, provider_call_count=0
 - `review_status`: accepted_PASS_WITH_CONCERNS
+
+### D009 — Treat local alignment pairs as recall candidates, never semantic votes
+
+- `stage`: cross_run_alignment
+- `affected_nodes`: all 126 normalized candidates
+- `before`: A/B/C1 的最终 Tree 与 Candidate 尚未形成统一对应关系。
+- `after`: 本地字符、边界、Evidence 与 parent hint 只生成 105 个候选 Pair 和 42 个 source component；最终关系由 high-thinking 逐 Cluster 裁决。
+- `evidence`: `m3-cross-run-alignment-bundle.json` 的 `local_scores_are_semantic_decisions=false`；8 个批次均携带 protocol provenance。
+- `reason`: 防止把协议差异、名称相似或相同 Evidence 自动解释为语义等价。
+- `alternatives_considered`: 2/3 多数票、固定 Run 权重、直接对齐三棵 Tree；全部拒绝。
+- `risk`: 高召回图仍可能漏连跨 Component 的近重复 Scope，必须由 M3 独立复核补查。
+- `provider_source`: local candidate generation + 8 high-thinking alignment batches
+- `review_status`: engineering_pass_semantic_review_pending
+
+### D010 — Prohibit stable before product Assignment and preserve M2 downgrades
+
+- `stage`: cross_run_alignment
+- `affected_nodes`: all 65 provisional clusters
+- `before`: Provider 在部分 Alignment 响应中按历史节点或发现支持度直接给出 `stable`。
+- `after`: M3 在没有产品 Assignment 证据时一律不得 stable；受影响项只降为 probable。M2 已冻结的 Topic/Entity/unsupported 降级不得被静默复晋升。
+- `evidence`: 最终 `stable=0`；M2 downgrade repromotion=0；Validator 覆盖两项硬门禁。
+- `reason`: 执行 Contract v2 的“语义类型与证据成熟度分离”，把 stable 数值门槛留到 M6。
+- `alternatives_considered`: 接受历史 Run 的 stable；拒绝。删除这些 Candidate；拒绝，仍需保留 provenance 与后续 Assignment 验证。
+- `risk`: probable 数量仍偏高，必须在 Draft A 与 Assignment 后重新评估。
+- `provider_source`: Provider semantics + deterministic policy normalization
+- `review_status`: accepted_engineering_rule
+
+### D011 — Limit local recovery to audited structural transformations
+
+- `stage`: cross_run_alignment_resume
+- `affected_nodes`: Batch 001、002、004、007、008
+- `before`: JSON Repair 或 Schema 条件导致结构尾差，包括旧字段形状、列表上限、非 Domain 空边界、占位名称/定义和 pre-Assignment stable。
+- `after`: 只允许四类有来源变换：从冻结 Candidate 选择名称/定义；按 Schema 有序截限；补写 Provider grouping provenance；stable 降 probable。成员分组、定义语义、Evidence 与 disposition 不由本地代码改写。
+- `evidence`: 每个 `local-recovery-audit.json` 保存 source hash、before/after、result hash 与 `provider_call_count=0`。
+- `reason`: 避免为格式问题重放完整语料，同时不让本地代码冒充语义裁判。
+- `alternatives_considered`: 重放整批；拒绝。直接忽略 Schema；拒绝。人工发明缺失边界；拒绝。
+- `risk`: Batch 001 的 decision reason 是 provenance 描述，不是新的模型语义理由；独立 Reviewer 必须看到该来源差异。
+- `provider_source`: none for recovery; original Provider response retained
+- `review_status`: accepted_engineering_rule
+
+### D012 — Stop M3 before semantic freeze
+
+- `stage`: cross_run_alignment_review
+- `affected_nodes`: provisional clusters `xc_001` … `xc_065`
+- `before`: 8 / 8 Batch、126 / 126 覆盖与工程 Gate 已通过。
+- `after`: Run #24 保持 `waiting_for_review / cross_run_alignment_review`；不进入 Draft A。
+- `evidence`: 本地反例扫描发现 Agent 架构、RAG、AI 辅助开发跨 Component 近重复 Scope；`xc_007`、`xc_018`、`xc_049` 等求职/面试 Scope 可能违反 Use Context 排除规则。
+- `reason`: 工程完整性不能替代语义可用性；M3 验收要求独立反例复核和明确边界。
+- `alternatives_considered`: 把 `READY_FOR_INDEPENDENT_REVIEW` 当 PASS；拒绝。直接在 Draft A Synthesis 再处理；拒绝，会丢失 M3 对齐责任和审计边界。
+- `risk`: M3 尚未冻结；后续必须做最小跨 Component Alignment Revision，不能重跑 A/B/C1 或无界重跑全部 M3。
+- `provider_source`: local audit; independent reviewer verdict not_evaluated
+- `review_status`: stopped_for_review
