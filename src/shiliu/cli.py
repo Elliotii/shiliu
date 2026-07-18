@@ -94,6 +94,7 @@ def build_parser() -> argparse.ArgumentParser:
     full_run_a.add_argument("--profile-run-id", required=True)
     full_run_a.add_argument("--seed", type=int, default=101)
     full_run_a.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    full_run_a.add_argument("--reuse-from-run-id", type=int)
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -211,6 +212,7 @@ def main(argv: list[str] | None = None) -> int:
             profile_run_id=arguments.profile_run_id,
             seed=arguments.seed,
             batch_size=arguments.batch_size,
+            reuse_from_run_id=arguments.reuse_from_run_id,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0

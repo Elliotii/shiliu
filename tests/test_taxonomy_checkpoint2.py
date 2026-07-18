@@ -334,7 +334,7 @@ class WorkflowProvider:
                     "candidate_decisions": [
                         {
                             "candidate_id": candidate_id,
-                            "action": "merged_to_content_type",
+                            "action": "merged_into",
                             "target_id": "ct_01",
                             "reason": "合并同义内容形式候选",
                         }
@@ -369,7 +369,7 @@ class WorkflowProvider:
                     "candidate_decisions": [
                         {
                             "candidate_id": candidate_id,
-                            "action": "merged_to_domain",
+                            "action": "merged_into",
                             "target_id": "d_01",
                             "reason": "合并同义领域候选",
                         }

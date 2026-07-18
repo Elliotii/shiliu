@@ -6,15 +6,26 @@ from pathlib import Path
 import pytest
 
 from shiliu.domain import PipelineError
+from shiliu.db import Database
+from shiliu.cli import build_parser
 from shiliu.taxonomy.candidates import (
     CompactContentTypeTable,
     ContentTypeDraftV1,
+    ContentTypeDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
     normalize_candidates,
+    normalize_content_types,
 )
 from shiliu.taxonomy.quality import evaluate_top_level_rules
+from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 from shiliu.taxonomy.workflow import TaxonomyWorkflow, _write_json_once
+from tests.test_taxonomy_checkpoint2 import (
+    SnapshotRepository as WorkflowSnapshotRepository,
+    WorkflowProvider,
+    _insert_snapshot_row,
+    card,
+)
 
 
 SNAPSHOT_HASH = "1143f0999c569db30b2184a0129e446d3301c0c84e53a34a2807ac9f39db02a2"
@@ -140,6 +151,21 @@ def test_frozen_manifest_cannot_be_silently_replaced(tmp_path) -> None:
         _write_json_once(path, {"seed": 102})
 
     assert error.value.code == "taxonomy_resume_input_mismatch"
+
+
+def test_full_run_a_cli_accepts_explicit_reuse_source() -> None:
+    arguments = build_parser().parse_args(
+        [
+            "taxonomy",
+            "create-full-run-a",
+            "--profile-run-id",
+            "profile-corpus",
+            "--reuse-from-run-id",
+            "10",
+        ]
+    )
+
+    assert arguments.reuse_from_run_id == 10
 
 
 def _local(name: str, parent: str, ids: list[str], ordinal: int):
@@ -271,3 +297,252 @@ def test_quality_blocks_domain_leakage_into_content_type() -> None:
     assert "domain_leakage_into_content_type" in {
         item.code for item in result.blocking_issues
     }
+
+
+def _content_batch(batch_index: int) -> ContentTypeDiscoveryOutputV1:
+    first_id = (batch_index - 1) * 8 + 1
+    return ContentTypeDiscoveryOutputV1.model_validate(
+        {
+            "content_types": [
+                {
+                    "provisional_id": f"lct_{batch_index}_{offset}",
+                    "name": f"形式 {batch_index}-{offset}",
+                    "definition": "独立的合成内容形式",
+                    "includes": ["合成示例"],
+                    "excludes": ["其他形式"],
+                    "supporting_ids": [f"C{first_id + offset:03d}"],
+                    "representative_ids": [f"C{first_id + offset:03d}"],
+                }
+                for offset in range(8)
+            ],
+            "ambiguous_ids": [],
+        }
+    )
+
+
+def test_normalized_candidate_capacity_is_derived_from_batch_protocol() -> None:
+    outputs = [_content_batch(index) for index in range(1, 7)]
+    allowed = {f"C{index:03d}" for index in range(1, 49)}
+
+    table = normalize_content_types(outputs, allowed_ids=allowed)
+
+    assert len(table.content_types) == 48
+    assert table.source_batch_count == 6
+
+
+def test_domain_and_topic_intermediate_capacity_is_not_silently_truncated() -> None:
+    outputs = []
+    allowed = {f"C{index:03d}" for index in range(1, 49)}
+    for batch_index in range(1, 7):
+        first_id = (batch_index - 1) * 8 + 1
+        outputs.append(
+            LocalTopLevelDiscoveryOutput.model_validate(
+                {
+                    "domains": [
+                        {
+                            "provisional_id": f"ld_{batch_index}_{offset}",
+                            "name": f"领域 {batch_index}-{offset}",
+                            "definition": "合成稳定领域",
+                            "supporting_ids": [f"C{first_id + offset:03d}"],
+                        }
+                        for offset in range(8)
+                    ],
+                    "topic_hints": [
+                        {
+                            "name": f"主题 {batch_index}-{offset}",
+                            "supporting_ids": [f"C{first_id:03d}"],
+                        }
+                        for offset in range(5)
+                    ],
+                    "ambiguous_ids": [],
+                }
+            )
+        )
+
+    table = normalize_candidates(outputs, allowed_ids=allowed)
+
+    assert len(table.domains) == 48
+    assert len(table.topic_hints) == 30
+
+
+def test_unhandled_normalization_error_marks_run_and_stage_failed(
+    monkeypatch, app_paths
+) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    snapshot_id = _insert_snapshot_row(db)
+    cards = [card(index) for index in range(1, 41)]
+    provider = WorkflowProvider()
+    workflow = TaxonomyWorkflow(
+        snapshot_repository=WorkflowSnapshotRepository(cards),  # type: ignore[arg-type]
+        run_repository=TaxonomyRunRepository(db),
+        provider_factory=lambda role: provider,  # type: ignore[arg-type]
+        output_dir=app_paths.content_dir / "taxonomy" / "runtime" / "runs",
+    )
+    run_id = workflow.create_run(
+        snapshot_id=snapshot_id, batch_size=20, limit=40
+    )
+    monkeypatch.setattr(
+        "shiliu.taxonomy.workflow.normalize_content_types",
+        lambda *args, **kwargs: (_ for _ in ()).throw(ValueError("capacity")),
+    )
+
+    with pytest.raises(ValueError, match="capacity"):
+        workflow.execute(run_id)
+
+    status = workflow.status(run_id)
+    assert status["run"]["status"] == "failed"
+    assert status["run"]["current_stage"] == "content_type_normalization"
+    stages = {
+        (item["stage_name"], item["unit_key"]): item
+        for item in status["stages"]
+    }
+    assert stages[("content_type_normalization", "main")]["status"] == "failed"
+    assert all(
+        stages[(name, f"batch-{index:03d}")]["status"] == "completed"
+        for name in ("local_discovery", "content_type_discovery")
+        for index in (1, 2)
+    )
+    failure = json.loads(
+        (
+            workflow.output_dir
+            / f"run-{run_id:06d}"
+            / "run-failure.json"
+        ).read_text()
+    )
+    assert failure["failed_stage"] == "content_type_normalization"
+    assert failure["retryable"] is False
+    assert failure["allows_model_artifact_reuse"] is True
+
+
+class ConsolidationCrashesProvider(WorkflowProvider):
+    def complete_raw(self, prompt: str, *, max_tokens: int | None = None):
+        if "全局 Content Type 归并器" in prompt:
+            raise RuntimeError("consolidation crashed")
+        return super().complete_raw(prompt, max_tokens=max_tokens)
+
+
+def test_consolidation_exception_marks_only_current_stage_failed(app_paths) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    snapshot_id = _insert_snapshot_row(db)
+    cards = [card(index) for index in range(1, 41)]
+    provider = ConsolidationCrashesProvider()
+    workflow = TaxonomyWorkflow(
+        snapshot_repository=WorkflowSnapshotRepository(cards),  # type: ignore[arg-type]
+        run_repository=TaxonomyRunRepository(db),
+        provider_factory=lambda role: provider,  # type: ignore[arg-type]
+        output_dir=app_paths.content_dir / "taxonomy" / "runtime" / "runs",
+    )
+    run_id = workflow.create_run(
+        snapshot_id=snapshot_id, batch_size=20, limit=40
+    )
+
+    with pytest.raises(RuntimeError, match="consolidation crashed"):
+        workflow.execute(run_id)
+
+    status = workflow.status(run_id)
+    stages = {
+        (item["stage_name"], item["unit_key"]): item
+        for item in status["stages"]
+    }
+    assert status["run"]["status"] == "failed"
+    assert stages[("content_type_consolidation", "main")]["status"] == "failed"
+    assert stages[("content_type_normalization", "main")]["status"] == "completed"
+    assert all(
+        stages[(name, f"batch-{index:03d}")]["status"] == "completed"
+        for name in ("local_discovery", "content_type_discovery")
+        for index in (1, 2)
+    )
+
+
+def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
+    app_paths,
+) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    snapshot_id = _insert_snapshot_row(db)
+    cards = [card(index) for index in range(1, 41)]
+    provider = WorkflowProvider()
+    repository = TaxonomyRunRepository(db)
+    workflow = TaxonomyWorkflow(
+        snapshot_repository=WorkflowSnapshotRepository(cards),  # type: ignore[arg-type]
+        run_repository=repository,
+        provider_factory=lambda role: provider,  # type: ignore[arg-type]
+        output_dir=app_paths.content_dir / "taxonomy" / "runtime" / "runs",
+    )
+    provider_contract = {
+        "provider": "synthetic",
+        "model": provider.model,
+        "thinking_enabled": provider.thinking_enabled,
+        "reasoning_effort": provider.reasoning_effort,
+        "temperature": None,
+    }
+    protocol = {
+        "snapshot_id": snapshot_id,
+        "snapshot_hash": "a" * 64,
+        "discovery_eligible_count": 40,
+        "evidence_counts": {"A": 40, "B": 0, "C": 0, "D": 0},
+        "profile_run_id": None,
+        "profile_hash": None,
+        "profile_version": None,
+        "compact_form_view_version": "compact_form_view_v1",
+        "domain_prompt_version": "top-level-local-discovery-v2",
+        "content_type_prompt_version": "content-type-discovery-v2",
+        "domain_schema_version": "local-top-level-domain-schema-v2",
+        "content_type_schema_version": "content-type-local-schema-v2",
+        "temperature": None,
+        "batch_size": 20,
+        "run_seed": 73,
+        "ordering_strategy": "stable_short_id_map_then_seeded_shuffle",
+        "providers": {
+            "taxonomy_local": provider_contract,
+            "taxonomy_content_type": provider_contract,
+        },
+    }
+    selected = [f"C{index:03d}" for index in range(1, 41)]
+    source_run_id = workflow.create_run(
+        snapshot_id=snapshot_id,
+        seed=73,
+        batch_size=20,
+        limit=None,
+        selected_ids=selected,
+        protocol_manifest=protocol,
+    )
+    assert workflow.execute(source_run_id)["run"]["status"] == "completed"
+    source_stages_before = repository.list_stages(source_run_id)
+    calls_before = (provider.local_calls, provider.content_type_calls)
+
+    target_protocol = {**protocol, "reuse_from_run_id": source_run_id}
+    target_run_id = workflow.create_run(
+        snapshot_id=snapshot_id,
+        seed=73,
+        batch_size=20,
+        limit=None,
+        selected_ids=selected,
+        protocol_manifest=target_protocol,
+    )
+    result = workflow.execute(target_run_id)
+
+    assert result["run"]["status"] == "completed"
+    assert (provider.local_calls, provider.content_type_calls) == calls_before
+    reused = [
+        item
+        for item in result["stages"]
+        if item["stage_name"] in {"local_discovery", "content_type_discovery"}
+    ]
+    assert len(reused) == 4
+    assert all(item["status"] == "completed" for item in reused)
+    assert all(item["attempt_count"] == 0 for item in reused)
+    lineage = json.loads(
+        (
+            workflow.output_dir
+            / f"run-{target_run_id:06d}"
+            / "reused-discovery-lineage.json"
+        ).read_text()
+    )
+    assert lineage["source_run_id"] == source_run_id
+    assert lineage["reused_stage_count"] == 4
+    assert all(item["source_input_hash"] for item in lineage["stages"])
+    assert all(item["source_output_hash"] for item in lineage["stages"])
+    assert repository.list_stages(source_run_id) == source_stages_before

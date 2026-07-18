@@ -11,6 +11,7 @@ from shiliu.taxonomy.candidates import (
     CompactContentTypeTable,
     ContentTypeDiscoveryOutputV1,
     ContentTypeDraftV1,
+    LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT,
     TopLevelDomainDraft,
     normalized_name,
 )
@@ -385,7 +386,7 @@ class TopLevelQualityResult(BaseModel):
 
 
 LOCAL_VALIDATION_PROMPT_VERSION = "local-top-level-validation-v1"
-TOP_LEVEL_QUALITY_GATE_VERSION = "top-level-quality-gate-v2"
+TOP_LEVEL_QUALITY_GATE_VERSION = "top-level-quality-gate-v3"
 LOCAL_VALIDATION_SCHEMA_HINT = (
     '{"unit_id":"sibling_001","findings":[{"code":"",'
     '"message":"","node_ids":["d_01","d_02"],'
@@ -587,7 +588,7 @@ def evaluate_top_level_rules(
             item.candidate_id: item for item in content_type_draft.candidate_decisions
         }
         rejected_content_type_candidates = sum(
-            item.action == "rejected" for item in decisions.values()
+            item.action.startswith("removed_") for item in decisions.values()
         )
         if local_content_types:
             candidates_by_name = {
@@ -602,7 +603,7 @@ def evaluate_top_level_rules(
                 batch_candidate_ids.discard(None)
                 if batch_candidate_ids and all(
                     decisions.get(candidate_id) is not None
-                    and decisions[candidate_id].action == "rejected"
+                    and decisions[candidate_id].action.startswith("removed_")
                     for candidate_id in batch_candidate_ids
                 ):
                     lost_content_type_batches += 1
@@ -630,6 +631,38 @@ def evaluate_top_level_rules(
                 code="c_level_ambiguity_high",
                 message="超过一半 C 级内容在局部 Content Type 发现中被标为 ambiguous。",
                 node_ids=sorted(c_ambiguous),
+            )
+        )
+
+    content_type_count = (
+        len(content_type_draft.content_types) if content_type_draft else 0
+    )
+    if content_type_count > 8:
+        warnings.append(
+            QualityIssue(
+                code="content_type_count_high",
+                message="最终 Content Type 超过通常浏览规模 8，需要复核语义独立性。",
+                node_ids=[item.id for item in content_type_draft.content_types],
+            )
+        )
+    saturated_content_type_batches = sum(
+        len(output.content_types) == LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT
+        for output in (local_content_types or [])
+    )
+    if saturated_content_type_batches:
+        warnings.append(
+            QualityIssue(
+                code="content_type_local_candidate_saturation",
+                message="部分局部批次达到 Content Type 候选上限，需要观察 Reduce 收缩质量。",
+            )
+        )
+
+    if len(draft.domains) > 10:
+        warnings.append(
+            QualityIssue(
+                code="primary_domain_count_high",
+                message="最终一级 Domain 超过通常浏览规模 10，需要复核粒度。",
+                node_ids=[item.id for item in draft.domains],
             )
         )
 
@@ -685,9 +718,7 @@ def evaluate_top_level_rules(
             "entity_leakage_count": len(entity_leaks),
             "content_type_leakage_count": len(type_leaks),
             "local_validation_unit_count": len(units),
-            "content_type_count": (
-                len(content_type_draft.content_types) if content_type_draft else 0
-            ),
+            "content_type_count": content_type_count,
             "domain_leakage_into_content_type_count": (
                 len(ct_domain_leaks) if content_type_draft else 0
             ),
@@ -699,6 +730,7 @@ def evaluate_top_level_rules(
             "c_level_ambiguous_count": len(c_ambiguous),
             "c_level_ambiguous_ratio": c_ambiguous_ratio,
             "overbroad_primary_domain_count": len(overbroad),
+            "content_type_saturated_batch_count": saturated_content_type_batches,
         },
     )
 

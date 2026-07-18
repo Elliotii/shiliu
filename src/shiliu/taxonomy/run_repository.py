@@ -188,6 +188,62 @@ class TaxonomyRunRepository:
                 ),
             )
 
+    def record_reused_stage(
+        self,
+        run_id: int,
+        stage_name: str,
+        unit_key: str,
+        *,
+        input_hash: str,
+        output_path: str,
+        output_hash: str,
+        model: str | None,
+        prompt_version: str,
+        thinking_enabled: bool | None,
+        reasoning_effort: str | None,
+    ) -> None:
+        """Record a verified cross-Run artifact without pretending it was called again."""
+
+        stage = self.ensure_stage(
+            run_id, stage_name, unit_key, input_hash=input_hash
+        )
+        if stage["status"] not in {"pending", "completed"}:
+            raise ValueError("Only pending or already reused stages can be recorded")
+        if stage["status"] == "completed":
+            if (
+                stage.get("input_hash") != input_hash
+                or stage.get("output_hash") != output_hash
+                or stage.get("output_path") != output_path
+            ):
+                raise ValueError("Reused stage lineage changed")
+            return
+        now = utc_now()
+        with self.db.connect() as connection:
+            connection.execute(
+                """
+                UPDATE taxonomy_stage_runs
+                SET status='completed', attempt_count=0, input_hash=?,
+                    output_path=?, output_hash=?, model=?, prompt_version=?,
+                    thinking_enabled=?, reasoning_effort=?, input_tokens=NULL,
+                    output_tokens=NULL, reasoning_tokens=NULL,
+                    elapsed_seconds=0, started_at=?, completed_at=?, updated_at=?
+                WHERE id=?
+                """,
+                (
+                    input_hash,
+                    output_path,
+                    output_hash,
+                    model,
+                    prompt_version,
+                    int(thinking_enabled) if thinking_enabled is not None else None,
+                    reasoning_effort,
+                    now,
+                    now,
+                    now,
+                    stage["id"],
+                ),
+            )
+
     def fail_stage(
         self,
         run_id: int,

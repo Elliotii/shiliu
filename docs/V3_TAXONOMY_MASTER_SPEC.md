@@ -586,6 +586,21 @@ formal verdict is `FAIL`; details and the minimal correction are recorded in
 `reports/V3_FULL_DISCOVERY_RUN_A.md`. Run B/C and every downstream stage remain
 blocked.
 
+The corrective Run A protocol keeps Run #10 immutable. Intermediate Domain,
+Topic, and Content Type capacity is derived from `source_batch_count ×` the
+corresponding local Schema limit; Normalize performs no fixed Top-K. A new Run
+may reuse a completed Discovery batch only after verifying Snapshot, selected
+IDs, batch membership and order, input Hash, View/Prompt/Schema versions,
+Provider/Model/thinking settings, raw and parsed artifacts, Audit metadata, and
+output Hash. Reused stages are copied into the new private Run directory with
+explicit source-stage lineage and `attempt_count=0`. Consolidation and every
+downstream stage remain new work.
+
+Unhandled local or model-stage exceptions now persist a failed Run/Stage plus a
+private failure artifact containing time, error, retryability, completed and
+unfinished stages, and model-artifact reuse eligibility. This correction does
+not rewrite Run #10's historical database row or files.
+
 ### Checkpoint 4 — Formal top-level Taxonomy Discovery
 
 Status: **Planned**

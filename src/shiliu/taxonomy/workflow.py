@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import random
+import shutil
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -65,7 +67,7 @@ from shiliu.taxonomy.run_repository import TaxonomyRunRepository
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v8"
+WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v9"
 SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
 
 
@@ -180,6 +182,7 @@ class TaxonomyWorkflow:
         profile_run_id: str,
         seed: int = 101,
         batch_size: int = 24,
+        reuse_from_run_id: int | None = None,
     ) -> int:
         snapshot = self.snapshot_repository.get_snapshot(snapshot_id)
         if snapshot is None:
@@ -228,8 +231,16 @@ class TaxonomyWorkflow:
                 "taxonomy_repair",
             )
         }
+        if reuse_from_run_id is not None:
+            source_run = self.run_repository.get_run(reuse_from_run_id)
+            if source_run is None or source_run.get("run_kind") != "full_discovery_run_a":
+                raise PipelineError(
+                    "复用来源不是 Full Discovery Run A",
+                    code="run_a_reuse_source_invalid",
+                    retryable=False,
+                )
         protocol = {
-            "protocol_version": "full-discovery-run-a-v1",
+            "protocol_version": "full-discovery-run-a-v2",
             "snapshot_id": snapshot_id,
             "snapshot_hash": snapshot["snapshot_hash"],
             "snapshot_card_count": snapshot["content_count"],
@@ -258,6 +269,7 @@ class TaxonomyWorkflow:
             "ordering_strategy": "stable_short_id_map_then_seeded_shuffle",
             "git_commit": git_commit,
             "git_worktree_clean": True,
+            "reuse_from_run_id": reuse_from_run_id,
         }
         run_id = self.create_run(
             snapshot_id=snapshot_id,
@@ -275,6 +287,13 @@ class TaxonomyWorkflow:
         return run_id
 
     def execute(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
+        try:
+            return self._execute_impl(run_id, resume=resume)
+        except Exception as exc:
+            self._record_workflow_failure(run_id, exc)
+            raise
+
+    def _execute_impl(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
         run = self.run_repository.get_run(run_id)
         if run is None:
             raise LookupError("Taxonomy Run 不存在")
@@ -385,6 +404,18 @@ class TaxonomyWorkflow:
                 "batches": [[row[0] for row in batch] for batch in batches],
             },
         )
+        reuse_from_run_id = (parameters.get("protocol_manifest") or {}).get(
+            "reuse_from_run_id"
+        )
+        if reuse_from_run_id is not None:
+            self._reuse_discovery_stages(
+                run_id=run_id,
+                source_run_id=int(reuse_from_run_id),
+                run_dir=run_dir,
+                domain_batches=batches,
+                content_type_batches=compact_batches,
+                representation=representation,
+            )
 
         local_outputs: list[LocalTopLevelDiscoveryOutput] = []
         for index, batch in enumerate(batches, start=1):
@@ -463,7 +494,7 @@ class TaxonomyWorkflow:
             prompt_version=CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
             schema=ContentTypeDraftV1,
             schema_hint=CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
-            max_tokens=4096,
+            max_tokens=8192,
             input_ids=sorted(
                 {
                     short_id
@@ -586,6 +617,338 @@ class TaxonomyWorkflow:
 
         self.run_repository.set_run_status(run_id, "completed", current_stage=None)
         return self.status(run_id)
+
+    def _reuse_discovery_stages(
+        self,
+        *,
+        run_id: int,
+        source_run_id: int,
+        run_dir: Path,
+        domain_batches: list[list[Any]],
+        content_type_batches: list[list[Any]],
+        representation: str,
+    ) -> None:
+        source_run = self.run_repository.get_run(source_run_id)
+        target_run = self.run_repository.get_run(run_id)
+        if source_run is None or target_run is None or source_run_id == run_id:
+            raise PipelineError(
+                "Run A 复用来源不存在或自引用",
+                code="run_a_reuse_source_invalid",
+                retryable=False,
+            )
+        source_protocol = source_run["parameters"].get("protocol_manifest") or {}
+        target_protocol = target_run["parameters"].get("protocol_manifest") or {}
+        comparable_fields = (
+            "snapshot_id",
+            "snapshot_hash",
+            "discovery_eligible_count",
+            "evidence_counts",
+            "profile_run_id",
+            "profile_hash",
+            "profile_version",
+            "compact_form_view_version",
+            "domain_prompt_version",
+            "content_type_prompt_version",
+            "domain_schema_version",
+            "content_type_schema_version",
+            "temperature",
+            "batch_size",
+            "run_seed",
+            "ordering_strategy",
+        )
+        mismatched = [
+            field
+            for field in comparable_fields
+            if source_protocol.get(field) != target_protocol.get(field)
+        ]
+        for role in ("taxonomy_local", "taxonomy_content_type"):
+            if (source_protocol.get("providers") or {}).get(role) != (
+                target_protocol.get("providers") or {}
+            ).get(role):
+                mismatched.append(f"providers.{role}")
+        if source_run["parameters"].get("selected_ids") != target_run[
+            "parameters"
+        ].get("selected_ids"):
+            mismatched.append("selected_ids")
+        if mismatched:
+            raise PipelineError(
+                "Run A 批次复用协议不一致：" + ", ".join(mismatched),
+                code="run_a_reuse_protocol_mismatch",
+                retryable=False,
+            )
+
+        source_dir = self.output_dir / f"run-{source_run_id:06d}"
+        source_plan_path = source_dir / "batch-plan.json"
+        if not source_plan_path.is_file():
+            raise PipelineError(
+                "Run A 复用来源缺少 batch plan",
+                code="run_a_reuse_batch_plan_missing",
+                retryable=False,
+            )
+        source_plan = json.loads(source_plan_path.read_text(encoding="utf-8"))
+        expected_batches = [[str(row[0]) for row in batch] for batch in domain_batches]
+        if source_plan.get("batches") != expected_batches or [
+            [str(row[0]) for row in batch] for batch in content_type_batches
+        ] != expected_batches:
+            raise PipelineError(
+                "Run A 复用来源 Batch 成员或顺序不一致",
+                code="run_a_reuse_batch_mismatch",
+                retryable=False,
+            )
+
+        source_stages = {
+            (item["stage_name"], item["unit_key"]): item
+            for item in self.run_repository.list_stages(source_run_id)
+        }
+        lineage_path = run_dir / "reused-discovery-lineage.json"
+        existing_lineage = (
+            json.loads(lineage_path.read_text(encoding="utf-8"))
+            if lineage_path.is_file()
+            else {"stages": []}
+        )
+        existing_by_key = {
+            (item["stage_name"], item["unit_key"]): item
+            for item in existing_lineage.get("stages") or []
+        }
+        lineage: list[dict[str, Any]] = []
+        specifications = [
+            (
+                "local_discovery",
+                "taxonomy_local",
+                LOCAL_TOP_LEVEL_PROMPT_VERSION,
+                LocalTopLevelDiscoveryOutput,
+                domain_batches,
+                lambda batch: build_top_level_local_prompt(
+                    batch, representation=representation
+                ),
+                lambda value, batch: validate_local_top_level(
+                    value, {str(row[0]) for row in batch}
+                ),
+            ),
+            (
+                "content_type_discovery",
+                "taxonomy_content_type",
+                CONTENT_TYPE_PROMPT_VERSION,
+                ContentTypeDiscoveryOutputV1,
+                content_type_batches,
+                build_content_type_prompt,
+                lambda value, batch: validate_content_types(
+                    value, {str(row[0]) for row in batch}
+                ),
+            ),
+        ]
+        for (
+            stage_name,
+            role,
+            prompt_version,
+            schema,
+            batches,
+            prompt_builder,
+            validator,
+        ) in specifications:
+            provider = self.provider_factory(role)
+            for index, batch in enumerate(batches, start=1):
+                unit_key = f"batch-{index:03d}"
+                source_stage = source_stages.get((stage_name, unit_key))
+                prompt = prompt_builder(batch)
+                input_hash = _hash_text(prompt)
+                if (
+                    source_stage is None
+                    or source_stage.get("status") != "completed"
+                    or source_stage.get("attempt_count") != 1
+                    or source_stage.get("input_hash") != input_hash
+                    or source_stage.get("prompt_version") != prompt_version
+                    or source_stage.get("model") != provider.model
+                    or bool(source_stage.get("thinking_enabled"))
+                    != bool(provider.thinking_enabled)
+                    or source_stage.get("reasoning_effort")
+                    != provider.reasoning_effort
+                ):
+                    raise PipelineError(
+                        f"Run A 复用资格检查失败：{stage_name}/{unit_key}",
+                        code="run_a_reuse_stage_mismatch",
+                        retryable=False,
+                    )
+                source_output = Path(str(source_stage.get("output_path") or ""))
+                source_call_dir = source_output.parent
+                source_prompt = source_call_dir / "prompt.txt"
+                source_raw = source_call_dir / "raw-response.txt"
+                source_audit = source_call_dir / "audit.json"
+                if not all(
+                    path.is_file()
+                    for path in (source_output, source_prompt, source_raw, source_audit)
+                ) or source_prompt.read_text(encoding="utf-8") != prompt:
+                    raise PipelineError(
+                        f"Run A 复用来源产物不完整：{stage_name}/{unit_key}",
+                        code="run_a_reuse_artifact_invalid",
+                        retryable=False,
+                    )
+                audit = json.loads(source_audit.read_text(encoding="utf-8"))
+                expected_ids = [str(row[0]) for row in batch]
+                expected_provider = (target_protocol.get("providers") or {}).get(role)
+                if (
+                    audit.get("status") != "completed"
+                    or audit.get("prompt_version") != prompt_version
+                    or audit.get("model") != provider.model
+                    or audit.get("input_ids") != expected_ids
+                    or audit.get("request_attempt_count") != 1
+                    or audit.get("repair") is not None
+                    or (audit.get("parameters") or {}).get("thinking_enabled")
+                    != provider.thinking_enabled
+                    or (audit.get("parameters") or {}).get("reasoning_effort")
+                    != provider.reasoning_effort
+                ):
+                    raise PipelineError(
+                        f"Run A 复用来源 Audit 不匹配：{stage_name}/{unit_key}",
+                        code="run_a_reuse_audit_mismatch",
+                        retryable=False,
+                    )
+                parsed = schema.model_validate_json(
+                    source_output.read_text(encoding="utf-8")
+                )
+                validator(parsed, batch)
+                output_hash = _stable_hash(parsed.model_dump(mode="json"))
+                if output_hash != source_stage.get("output_hash"):
+                    raise PipelineError(
+                        f"Run A 复用来源输出 Hash 不匹配：{stage_name}/{unit_key}",
+                        code="run_a_reuse_output_hash_mismatch",
+                        retryable=False,
+                    )
+                target_call_dir = (
+                    run_dir / stage_name / unit_key / "reused-attempt-00"
+                )
+                if not target_call_dir.exists():
+                    target_call_dir.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(source_call_dir, target_call_dir)
+                target_output = target_call_dir / "parsed-output.json"
+                if _hash_file(target_output) != _hash_file(source_output):
+                    raise PipelineError(
+                        "复制后的复用产物 Hash 改变",
+                        code="run_a_reuse_copy_hash_mismatch",
+                        retryable=False,
+                    )
+                existing = existing_by_key.get((stage_name, unit_key))
+                record = {
+                    "stage_name": stage_name,
+                    "unit_key": unit_key,
+                    "batch_members": [str(row[0]) for row in batch],
+                    "reused_from_run_id": source_run_id,
+                    "reused_from_stage_id": int(source_stage["id"]),
+                    "source_input_hash": input_hash,
+                    "source_output_hash": output_hash,
+                    "source_raw_hash": _hash_file(source_raw),
+                    "source_parsed_file_hash": _hash_file(source_output),
+                    "source_prompt_file_hash": _hash_file(source_prompt),
+                    "source_audit_hash": _hash_file(source_audit),
+                    "prompt_version": prompt_version,
+                    "provider_contract": expected_provider,
+                    "model": provider.model,
+                    "thinking_enabled": provider.thinking_enabled,
+                    "reasoning_effort": provider.reasoning_effort,
+                    "reuse_reason": (
+                        "模型输入、输出语义与冻结协议未改变；仅修复下游容量和失败状态"
+                    ),
+                    "verified_at": (
+                        existing.get("verified_at") if existing else _utc_now()
+                    ),
+                }
+                if existing is not None and existing != record:
+                    raise PipelineError(
+                        "Run A 复用血缘在 Resume 时改变",
+                        code="run_a_reuse_lineage_changed",
+                        retryable=False,
+                    )
+                lineage.append(record)
+                self.run_repository.record_reused_stage(
+                    run_id,
+                    stage_name,
+                    unit_key,
+                    input_hash=input_hash,
+                    output_path=str(target_output),
+                    output_hash=output_hash,
+                    model=provider.model,
+                    prompt_version=prompt_version,
+                    thinking_enabled=provider.thinking_enabled,
+                    reasoning_effort=provider.reasoning_effort,
+                )
+        _write_json_once(
+            lineage_path,
+            {
+                "source_run_id": source_run_id,
+                "target_run_id": run_id,
+                "reused_stage_count": len(lineage),
+                "stages": lineage,
+            },
+        )
+
+    def _record_workflow_failure(self, run_id: int, exc: Exception) -> None:
+        run = self.run_repository.get_run(run_id)
+        if run is None or run.get("status") in {"completed", "quality_failed"}:
+            return
+        stages = self.run_repository.list_stages(run_id)
+        failed_stage = str(run.get("current_stage") or "workflow")
+        retryable = isinstance(exc, PipelineError) and exc.retryable
+        error_code = (
+            exc.code if isinstance(exc, PipelineError) else "taxonomy_unhandled_exception"
+        )
+        current = next(
+            (
+                item
+                for item in stages
+                if item["stage_name"] == failed_stage
+                and item["status"] in {"pending", "processing"}
+            ),
+            None,
+        )
+        if current is not None:
+            self.run_repository.fail_stage(
+                run_id,
+                current["stage_name"],
+                current["unit_key"],
+                error_code=error_code,
+                error_message=str(exc),
+                retryable=retryable,
+            )
+        elif run.get("status") not in {"failed", "retry_wait"}:
+            self.run_repository.set_run_status(
+                run_id,
+                "retry_wait" if retryable else "failed",
+                current_stage=failed_stage,
+                error_code=error_code,
+                error_message=str(exc),
+            )
+        refreshed = self.run_repository.list_stages(run_id)
+        completed = [
+            f"{item['stage_name']}/{item['unit_key']}"
+            for item in refreshed
+            if item["status"] == "completed"
+        ]
+        unfinished = [
+            f"{item['stage_name']}/{item['unit_key']}"
+            for item in refreshed
+            if item["status"] != "completed"
+        ]
+        _write_json(
+            self.output_dir / f"run-{run_id:06d}" / "run-failure.json",
+            {
+                "run_id": run_id,
+                "failed_stage": failed_stage,
+                "failed_at": _utc_now(),
+                "last_error": {"code": error_code, "message": str(exc)},
+                "retryable": retryable,
+                "completed_stages": completed,
+                "unfinished_stages": unfinished,
+                "allows_model_artifact_reuse": bool(
+                    completed
+                    and all(
+                        item["status"] == "completed"
+                        for item in refreshed
+                        if item["stage_name"]
+                        in {"local_discovery", "content_type_discovery"}
+                    )
+                ),
+            },
+        )
 
     def _load_profile_rows(
         self,
@@ -1047,6 +1410,14 @@ def _combined_audit(audit: dict[str, Any]) -> dict[str, Any]:
 
 def _hash_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _hash_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def _stable_hash(value: Any) -> str:

@@ -12,18 +12,21 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from shiliu.domain import PipelineError
 
 
-CANDIDATE_TABLE_VERSION = "compact-domain-candidates-v2"
-CONTENT_TYPE_TABLE_VERSION = "compact-content-type-candidates-v2"
+CANDIDATE_TABLE_VERSION = "compact-domain-candidates-v3"
+CONTENT_TYPE_TABLE_VERSION = "compact-content-type-candidates-v3"
 LOCAL_TOP_LEVEL_SCHEMA_VERSION = "local-top-level-domain-schema-v2"
 TOP_LEVEL_DOMAIN_SCHEMA_VERSION = "two-level-domain-draft-schema-v2"
 CONTENT_TYPE_SCHEMA_VERSION = "content-type-local-schema-v2"
-CONTENT_TYPE_DRAFT_SCHEMA_VERSION = "content-type-draft-schema-v2"
+CONTENT_TYPE_DRAFT_SCHEMA_VERSION = "content-type-draft-schema-v3"
 LOCAL_TOP_LEVEL_PROMPT_VERSION = "top-level-local-discovery-v2"
-TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION = "two-level-domain-consolidation-v2"
+TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION = "two-level-domain-consolidation-v3"
 CONTENT_TYPE_PROMPT_VERSION = "content-type-discovery-v2"
-CONTENT_TYPE_NORMALIZATION_VERSION = "content-type-candidate-normalization-v2"
-CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v2"
-CANDIDATE_NORMALIZATION_VERSION = "candidate-normalization-v2"
+CONTENT_TYPE_NORMALIZATION_VERSION = "content-type-candidate-normalization-v3"
+CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v3"
+CANDIDATE_NORMALIZATION_VERSION = "candidate-normalization-v3"
+LOCAL_DOMAIN_CANDIDATE_LIMIT = 8
+LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT = 8
+LOCAL_TOPIC_HINT_LIMIT = 5
 
 
 class TopicHint(BaseModel):
@@ -72,8 +75,12 @@ class LocalTopLevelDomainCandidate(BaseModel):
 class LocalTopLevelDiscoveryOutput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    domains: list[LocalTopLevelDomainCandidate] = Field(default_factory=list, max_length=8)
-    topic_hints: list[TopicHint] = Field(default_factory=list, max_length=5)
+    domains: list[LocalTopLevelDomainCandidate] = Field(
+        default_factory=list, max_length=LOCAL_DOMAIN_CANDIDATE_LIMIT
+    )
+    topic_hints: list[TopicHint] = Field(
+        default_factory=list, max_length=LOCAL_TOPIC_HINT_LIMIT
+    )
     ambiguous_ids: list[str] = Field(default_factory=list, max_length=32)
 
     @model_validator(mode="before")
@@ -81,7 +88,11 @@ class LocalTopLevelDiscoveryOutput(BaseModel):
     def cap_bounded_fields(cls, value):
         return _cap_fields(
             value,
-            lists={"domains": 8, "topic_hints": 5, "ambiguous_ids": 32},
+            lists={
+                "domains": LOCAL_DOMAIN_CANDIDATE_LIMIT,
+                "topic_hints": LOCAL_TOPIC_HINT_LIMIT,
+                "ambiguous_ids": 32,
+            },
         )
 
 
@@ -114,13 +125,21 @@ class ContentTypeCandidateV1(BaseModel):
 class ContentTypeDiscoveryOutputV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    content_types: list[ContentTypeCandidateV1] = Field(min_length=1, max_length=8)
+    content_types: list[ContentTypeCandidateV1] = Field(
+        min_length=1, max_length=LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT
+    )
     ambiguous_ids: list[str] = Field(default_factory=list, max_length=32)
 
     @model_validator(mode="before")
     @classmethod
     def cap_bounded_fields(cls, value):
-        return _cap_fields(value, lists={"content_types": 8, "ambiguous_ids": 32})
+        return _cap_fields(
+            value,
+            lists={
+                "content_types": LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT,
+                "ambiguous_ids": 32,
+            },
+        )
 
 
 class CompactContentTypeCandidate(BaseModel):
@@ -141,10 +160,18 @@ class CompactContentTypeTable(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     version: str = CONTENT_TYPE_TABLE_VERSION
-    content_types: list[CompactContentTypeCandidate] = Field(
-        default_factory=list, max_length=24
-    )
+    content_types: list[CompactContentTypeCandidate] = Field(default_factory=list)
     source_batch_count: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def validate_protocol_capacity(self):
+        maximum = self.source_batch_count * LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT
+        if len(self.content_types) > maximum:
+            raise ValueError(
+                "normalized Content Type candidates exceed source batches × "
+                "per-batch Schema limit"
+            )
+        return self
 
 
 class ContentTypeNodeV1(BaseModel):
@@ -178,7 +205,16 @@ class ContentTypeCandidateDecision(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     candidate_id: str = Field(pattern=r"^nct_[0-9]{3}$")
-    action: Literal["merged_to_content_type", "rejected"]
+    action: Literal[
+        "kept",
+        "merged_into",
+        "renamed",
+        "removed_as_duplicate",
+        "removed_as_domain",
+        "removed_as_entity",
+        "removed_as_topic",
+        "removed_as_unsupported",
+    ]
     target_id: str | None = Field(default=None, pattern=r"^ct_[a-z0-9_]+$")
     reason: str = Field(min_length=1, max_length=180)
 
@@ -186,7 +222,7 @@ class ContentTypeCandidateDecision(BaseModel):
 class ContentTypeDraftV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    content_types: list[ContentTypeNodeV1] = Field(min_length=1, max_length=8)
+    content_types: list[ContentTypeNodeV1] = Field(min_length=1, max_length=16)
     candidate_decisions: list[ContentTypeCandidateDecision] = Field(default_factory=list)
     consolidation_notes: list[str] = Field(default_factory=list, max_length=5)
 
@@ -225,9 +261,25 @@ class CompactCandidateTable(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     version: str = CANDIDATE_TABLE_VERSION
-    domains: list[CompactDomainCandidate] = Field(default_factory=list, max_length=48)
-    topic_hints: list[CompactTopicHint] = Field(default_factory=list, max_length=16)
+    domains: list[CompactDomainCandidate] = Field(default_factory=list)
+    topic_hints: list[CompactTopicHint] = Field(default_factory=list)
     source_batch_count: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def validate_protocol_capacity(self):
+        domain_maximum = self.source_batch_count * LOCAL_DOMAIN_CANDIDATE_LIMIT
+        topic_maximum = self.source_batch_count * LOCAL_TOPIC_HINT_LIMIT
+        if len(self.domains) > domain_maximum:
+            raise ValueError(
+                "normalized Domain candidates exceed source batches × "
+                "per-batch Schema limit"
+            )
+        if len(self.topic_hints) > topic_maximum:
+            raise ValueError(
+                "normalized Topic hints exceed source batches × "
+                "per-batch Schema limit"
+            )
+        return self
 
 
 class SubdomainNode(BaseModel):
@@ -276,10 +328,13 @@ class DomainCandidateDecision(BaseModel):
 
     candidate_id: str = Field(pattern=r"^nc_[0-9]{3}$")
     action: Literal[
-        "merged_to_domain",
+        "kept",
+        "merged_into",
+        "renamed",
         "downgraded_to_topic",
         "downgraded_to_entity",
-        "rejected",
+        "removed_as_duplicate",
+        "removed_as_unsupported",
     ]
     target_id: str | None = Field(default=None, pattern=r"^d_[a-z0-9_]+$")
     reason: str = Field(min_length=1, max_length=180)
@@ -335,8 +390,8 @@ CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT = (
     '"definition":"","includes":[""],"excludes":[""],'
     '"supporting_ids":["C001"],"representative_ids":["C001"],'
     '"node_type":"content_type"}],"candidate_decisions":['
-    '{"candidate_id":"nct_001","action":"merged_to_content_type|rejected",'
-    '"target_id":"ct_01|null","reason":""}],"consolidation_notes":[]}'
+    '{"candidate_id":"nct_001","action":"merged_into",'
+    '"target_id":"ct_01","reason":""}],"consolidation_notes":[]}'
 )
 TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT = (
     '{"domains":[{"id":"d_01","name":"","definition":"",'
@@ -345,8 +400,8 @@ TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT = (
     '"name":"","definition":"","includes":[""],"excludes":[""],'
     '"supporting_ids":["C001"],"representative_ids":["C001"],'
     '"parent_id":"d_01","node_type":"domain"}]}],"candidate_decisions":['
-    '{"candidate_id":"nc_001","action":"merged_to_domain|downgraded_to_topic|'
-    'downgraded_to_entity|rejected","target_id":"d_01|null","reason":""}],'
+    '{"candidate_id":"nc_001","action":"merged_into",'
+    '"target_id":"d_01","reason":""}],'
     '"consolidation_notes":[""]}'
 )
 
@@ -398,9 +453,10 @@ def build_content_type_consolidation_prompt(
 ) -> str:
     return f"""你是全局 Content Type 归并器，只处理内容表达形式，不处理知识领域。
 输入只有分批 Content Type 候选表，不包含 Domain、Topic、Entity、Profile 或完整卡片。
-合并语义相同但名称不同的候选，生成 2 至 8 个稳定 Content Type；不得输出或暗示 Domain Tree。
+合并语义相同但名称不同的候选，通常生成 2 至 8 个稳定 Content Type，技术安全上限 16；不得为了凑数量保留重复项，也不得输出或暗示 Domain Tree。
 每个节点保留短名称、定义、includes/excludes、supporting IDs 和最多 3 个 representative IDs。
-必须为输入表中的每个 candidate_id 输出一条 candidate_decisions，说明合并到哪个 Content Type 或拒绝及原因。
+必须为输入表中的每个 candidate_id 输出一条 candidate_decisions，使用 kept、merged_into、renamed 或 removed_as_duplicate/domain/entity/topic/unsupported 说明处理结果和原因。
+kept、merged_into、renamed 必须填写最终 ct_ target_id；所有 removed_* 的 target_id 必须为 null。
 supporting_ids 只能来自输入；representative_ids 必须属于 supporting_ids。名称和定义使用中文，专有名词保留英文。只输出 JSON。
 
 精简输出结构：{CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT}
@@ -419,7 +475,8 @@ def build_top_level_consolidation_prompt(table: CompactCandidateTable) -> str:
 只有存在语义明显不同、边界清晰、有足够语料支持且长期可复用的稳定子群时才生成 children；不得机械补齐二级分类。
 名称、定义和边界说明使用中文，专有名词保留英文。每个节点 includes/excludes 各最多 5 条。
 supporting_ids 只能来自输入；representative_ids 必须属于 supporting_ids 且最多 3 个。只输出 JSON。
-必须为输入表中的每个 candidate_id 输出一条 candidate_decisions，说明合并到哪个 Domain、降级为 Topic/Entity，或拒绝及原因。
+必须为输入表中的每个 candidate_id 输出一条 candidate_decisions，使用 kept、merged_into、renamed、downgraded_to_topic/entity 或 removed_as_duplicate/unsupported 说明处理结果和原因。
+kept、merged_into、renamed 必须填写最终 d_ target_id；downgraded_* 和 removed_* 的 target_id 必须为 null。
 consolidation_notes 是可选辅助信息，最多 5 条；不要逐节点重复解释。
 
 精简输出结构：{TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT}
@@ -578,10 +635,13 @@ def _validate_content_type_decisions(
         item.candidate_id
         for item in decisions
         if (
-            item.action == "merged_to_content_type"
+            item.action in {"kept", "merged_into", "renamed"}
             and item.target_id not in target_ids
         )
-        or (item.action == "rejected" and item.target_id is not None)
+        or (
+            item.action not in {"kept", "merged_into", "renamed"}
+            and item.target_id is not None
+        )
     ]
     if invalid:
         raise PipelineError(
@@ -656,7 +716,7 @@ def normalize_candidates(
             topic_names[key].add(topic.name.strip())
             topic_groups[key].update(topic.supporting_ids)
     topic_hints = []
-    for key in sorted(topic_groups)[:16]:
+    for key in sorted(topic_groups):
         support = sorted(topic_groups[key], key=_short_id_order)
         names = sorted(topic_names[key], key=lambda item: (len(item), item))
         topic_hints.append(
@@ -739,9 +799,13 @@ def validate_top_level_draft(
         item.candidate_id
         for item in value.candidate_decisions
         if (
-            item.action == "merged_to_domain" and item.target_id not in target_ids
+            item.action in {"kept", "merged_into", "renamed"}
+            and item.target_id not in target_ids
         )
-        or (item.action != "merged_to_domain" and item.target_id is not None)
+        or (
+            item.action not in {"kept", "merged_into", "renamed"}
+            and item.target_id is not None
+        )
     ]
     if invalid_decisions:
         raise PipelineError(
