@@ -43,6 +43,7 @@ from shiliu.taxonomy.workflow import (
     DOMAIN_CONSOLIDATION_TOKEN_POLICY,
     TOP_LEVEL_QUALITY_GATE_VERSION,
     TaxonomyWorkflow,
+    _combined_audit,
     _domain_consolidation_max_tokens,
 )
 
@@ -392,6 +393,12 @@ class DomainStabilityService:
             allowed_ids=set(selected_ids),
         )
         prompt = build_top_level_consolidation_prompt(table)
+        self._recover_domain_consolidation_overflow_if_possible(
+            run_id=run_id,
+            run_dir=run_dir,
+            table=table,
+            allowed_ids=set(selected_ids),
+        )
         draft = self.workflow._model_stage(
             run_id=run_id,
             run_dir=run_dir,
@@ -444,6 +451,76 @@ class DomainStabilityService:
             error_message=None if gate.passed else "Domain Run Gate 未通过",
         )
         return self.status(run_id)
+
+    def _recover_domain_consolidation_overflow_if_possible(
+        self,
+        *,
+        run_id: int,
+        run_dir: Path,
+        table: CompactCandidateTable,
+        allowed_ids: set[str],
+    ) -> None:
+        stage = self.run_repository.ensure_stage(run_id, "domain_consolidation", "main")
+        if stage["status"] != "retry_wait" or int(stage["attempt_count"]) < 2:
+            return
+        call_dir = run_dir / "domain_consolidation" / "main" / "attempt-01"
+        repair_audit_path = call_dir / "repair-audit.json"
+        if not repair_audit_path.is_file():
+            return
+        repair_audit = json.loads(repair_audit_path.read_text(encoding="utf-8"))
+        raw_path = call_dir / str(repair_audit.get("raw_response_path") or "")
+        if not raw_path.is_file():
+            return
+        raw_value = json.loads(raw_path.read_text(encoding="utf-8"))
+        normalized, events = normalize_domain_overflow(raw_value, table)
+        draft = TopLevelDomainDraft.model_validate(normalized)
+        validate_top_level_draft(
+            draft,
+            allowed_ids=allowed_ids,
+            candidate_ids={item.candidate_id for item in table.domains},
+        )
+        output_path = call_dir / "parsed-output.json"
+        _write_json(output_path, draft.model_dump(mode="json"))
+        recovery = {
+            "version": "domain-overflow-recovery-v1",
+            "source_raw_response": raw_path.name,
+            "source_raw_hash": _hash_file(raw_path),
+            "selection_basis": [
+                "representative content priority",
+                "source candidate support frequency",
+                "node name and definition relevance",
+                "stable lexical tie break",
+            ],
+            "events": events,
+            "semantic_selection_count": len(events),
+            "created_at": _utc_now(),
+        }
+        _write_json(call_dir / "deterministic-overflow-recovery.json", recovery)
+        _write_json(
+            call_dir / "repair-semantic-diff.json",
+            {
+                "version": "repair-semantic-diff-v1",
+                "events": events,
+                "semantic_change_count": len(events),
+                "syntax_only_count": 0,
+            },
+        )
+        main_audit = json.loads((call_dir / "audit.json").read_text(encoding="utf-8"))
+        main_audit.update(
+            status="completed",
+            repair=repair_audit,
+            deterministic_overflow_recovery="deterministic-overflow-recovery.json",
+            finished_at=_utc_now(),
+        )
+        _write_json(call_dir / "audit.json", main_audit)
+        self.run_repository.complete_stage(
+            run_id,
+            "domain_consolidation",
+            "main",
+            output_path=str(output_path),
+            output_hash=_stable_hash(draft.model_dump(mode="json")),
+            audit=_combined_audit(main_audit),
+        )
 
     def status(self, run_id: int) -> dict[str, Any]:
         run = self.run_repository.get_run(run_id)
@@ -863,6 +940,94 @@ def _source_node(label: str, node: Any, *, parent_id: str | None) -> dict[str, A
     }
 
 
+def normalize_domain_overflow(
+    raw_value: dict[str, Any], table: CompactCandidateTable
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Resolve only bounded-list overflow using frozen candidate evidence."""
+
+    value = json.loads(json.dumps(raw_value, ensure_ascii=False))
+    candidates = {item.candidate_id: item for item in table.domains}
+    target_candidates: dict[str, list[Any]] = defaultdict(list)
+    for decision in value.get("candidate_decisions", []):
+        target = decision.get("target_id")
+        candidate = candidates.get(str(decision.get("candidate_id")))
+        if target and candidate is not None:
+            target_candidates[str(target)].append(candidate)
+    events: list[dict[str, Any]] = []
+
+    def normalize_node(node: dict[str, Any], path: str) -> None:
+        target = str(node.get("id") or "")
+        sources = target_candidates.get(target, [])
+        for field, limit in (
+            ("includes", 5),
+            ("excludes", 5),
+            ("supporting_ids", 32),
+            ("representative_ids", 3),
+        ):
+            original = list(node.get(field) or [])
+            if len(original) <= limit:
+                continue
+            if field == "supporting_ids":
+                frequency = Counter(
+                    short_id for item in sources for short_id in item.supporting_ids
+                )
+                representatives = set(node.get("representative_ids") or [])
+                selected = sorted(
+                    original,
+                    key=lambda item: (
+                        -(item in representatives),
+                        -frequency[item],
+                        _short_id_key(item),
+                    ),
+                )[:limit]
+            elif field == "representative_ids":
+                supporting = set(node.get("supporting_ids") or [])
+                selected = [item for item in original if item in supporting][:limit]
+            else:
+                frequency = Counter(
+                    phrase
+                    for item in sources
+                    for phrase in getattr(item, field)
+                )
+                context = normalized_name(
+                    str(node.get("name") or "") + str(node.get("definition") or "")
+                )
+                selected = sorted(
+                    original,
+                    key=lambda item: (
+                        -frequency[item],
+                        -(normalized_name(str(item)) in context),
+                        str(item),
+                    ),
+                )[:limit]
+            node[field] = selected
+            events.append(
+                {
+                    "stage_id": TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION,
+                    "attempt_id": "deterministic-overflow-recovery-1",
+                    "content_id": None,
+                    "candidate_id": target,
+                    "field_path": f"{path}.{field}",
+                    "original_value": original,
+                    "repaired_value": selected,
+                    "change_type": "semantic_selection",
+                    "reason": "严格 Schema 列表预算溢出；依据冻结候选证据选择。",
+                    "validation_error": f"{field} max_length={limit}",
+                    "evidence": {
+                        "source_candidate_ids": [item.candidate_id for item in sources],
+                        "not_selected": [item for item in original if item not in selected],
+                    },
+                    "timestamp": _utc_now(),
+                }
+            )
+        for index, child in enumerate(node.get("children") or []):
+            normalize_node(child, f"{path}.children[{index}]")
+
+    for index, node in enumerate(value.get("domains") or []):
+        normalize_node(node, f"$.domains[{index}]")
+    return value, events
+
+
 def build_alignment_candidates(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
     pairs: list[dict[str, Any]] = []
     for index, left in enumerate(nodes):
@@ -1237,6 +1402,11 @@ def _character_similarity(left: str, right: str) -> float:
     a = set(normalized_name(left))
     b = set(normalized_name(right))
     return len(a & b) / len(a | b) if a or b else 0.0
+
+
+def _short_id_key(value: str) -> tuple[int, str]:
+    match = re.fullmatch(r"C([0-9]+)", value)
+    return (int(match.group(1)), value) if match else (10**9, value)
 
 
 def _hash_text(value: str) -> str:

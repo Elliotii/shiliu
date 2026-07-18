@@ -17,6 +17,7 @@ from shiliu.taxonomy.domain_stability import (
     build_draft_a_gate,
     build_risk_units,
     merge_aligned_nodes,
+    normalize_domain_overflow,
     validate_alignment,
     validate_hierarchy_output,
     _domain_provider_manifest,
@@ -290,3 +291,55 @@ def test_domain_provider_manifest_matches_full_run_a_field_set() -> None:
         "reasoning_effort": "high",
         "temperature": None,
     }
+
+
+def test_domain_overflow_recovery_uses_candidate_evidence() -> None:
+    from shiliu.taxonomy.candidates import CompactCandidateTable
+
+    table = CompactCandidateTable.model_validate(
+        {
+            "version": "compact-domain-candidates-v3",
+            "source_batch_count": 1,
+            "domains": [
+                {
+                    "candidate_id": "nc_001",
+                    "name": "Agent 工程",
+                    "definition": "Agent 工程",
+                    "includes": ["高频概念", "共同概念"],
+                    "excludes": ["具体工具"],
+                    "support_count": 2,
+                    "batch_count": 1,
+                    "supporting_ids": ["C006", "C001"],
+                    "representative_ids": ["C006"],
+                    "evidence_codes": ["durable_domain"],
+                    "parent_hints": [],
+                    "confidence": "high",
+                }
+            ],
+        }
+    )
+    raw = {
+        "domains": [
+            {
+                "id": "d_01",
+                "name": "Agent 工程",
+                "definition": "Agent 工程的稳定知识领域",
+                "includes": ["低频甲", "低频乙", "低频丙", "低频丁", "高频概念", "共同概念"],
+                "excludes": ["具体工具"],
+                "supporting_ids": [f"C{i:03d}" for i in range(1, 36)],
+                "representative_ids": ["C006"],
+                "children": [],
+            }
+        ],
+        "candidate_decisions": [
+            {"candidate_id": "nc_001", "action": "kept", "target_id": "d_01", "reason": "保留"}
+        ],
+        "consolidation_notes": [],
+    }
+    normalized, events = normalize_domain_overflow(raw, table)
+    node = normalized["domains"][0]
+    assert len(node["includes"]) == 5
+    assert "高频概念" in node["includes"]
+    assert len(node["supporting_ids"]) == 32
+    assert "C006" in node["supporting_ids"]
+    assert {item["change_type"] for item in events} == {"semantic_selection"}
