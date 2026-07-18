@@ -157,14 +157,14 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - [x] M1 Contract v2：Run #24，Revision 01，独立复核 `PASS_WITH_CONCERNS`，无 Blocking。
 - [x] M2 unresolved adjudication：13 个来源项去重为 12 组，Revision 01 后独立复核 `PASS_WITH_CONCERNS`，0 Blocking。
 - [x] M3 cross-run alignment：8 / 8 批次、独立语义复核、单次 Revision 01、第二次复核和 Freeze 已完成。
-- [ ] M4 Draft A。
-- [ ] M5 hierarchy validation。
+- [x] M4 Draft A：冻结 M3 的 31 个可用 Cluster 经单次 high-thinking Synthesis 形成 25 个节点，5 个 Cluster 显式排除待补证据。
+- [x] M5 hierarchy validation：确定性 Gate 通过；独立 Reviewer `PASS_WITH_CONCERNS`、0 Blocking；无需 Hierarchy Revision；Draft A 已冻结。
 - [ ] M6 131 Assignment。
 - [ ] M7 Eval / Diagnosis。
 - [ ] M8 Revision。
 - [ ] M9 Draft B / Final Review。
 
-当前停止点：Run #24 为 `waiting_for_review / m3_frozen`。M3 已满足进入 Draft A 的前置条件；下一动作是只读取 M3 Frozen 产物执行一次 high-thinking Draft A Synthesis。
+当前停止点：Run #24 为 `waiting_for_review / domain_draft_a_frozen_before_trial_assignment`。Draft A 已冻结，允许的下一阶段是 M6 Trial Assignment，但本轮按任务边界尚未启动。
 
 ## M1 completion note
 
@@ -201,3 +201,14 @@ CLI 名称在 M1 Runtime 实现后固定；如果现有 CLI 语法要求平铺�
 - 第二次独立 Reviewer 只检查首轮 Blocking 与 Revision 影响，结论 `PASS_WITH_CONCERNS`、0 Blocking；保留 Agent 三类边界、Object 重叠与未受影响项 Hash 审计粒度三个 Concern。
 - M3 Frozen 文件 SHA256：Clusters `de67704a5d6f68c807ee2fd93d8f42e25a08d7cc1c81e60e1019daf8a6b5edd3`；Decisions `aa21cac07730a335503d99d7f672e89a7d3f420ef09b5a5c8198e45efe3a13ee`；Semantic Review `ce6a2834ee36d00c6b2fa256b0a9c7483d3022502ed43cd95b47d252c27af30d`；Gate `69b31d88c0edf36ac4720bb1c7ab164932b53a48cac849ee73301704028b1993`；Manifest `7cf8f7cd0add7068c80334baabad43b6d8486cdbb2ce520483eb7c6547c4ac1e`。
 - 完整本轮报告：`reports/V3_DOMAIN_COMPLETION_RUN_REPORT_2026-07-19.md`。
+
+## M4–M5 completion note — Draft A frozen before Trial Assignment
+
+- Synthesis 只读取 Frozen Contract、M2 约束、M3 Final Clusters/Decisions、紧凑 Decision Log 和每 Cluster 最多 3 条代表 Profile；未读取完整 131 Cards、Silver 或 A/B/C1 原始输出。
+- 预算预检：31 个可用 Cluster；Prompt 52,593 字符，估算 17,531 input tokens；output 上界估算 14,370 tokens；单次 high-thinking 策略满足 24,576 max tokens 预算。
+- Provider Draft：25 节点，其中顶层 20、二级 5；19 probable、1 weak、5 uncertain、0 stable；26 个 Cluster 进入节点，5 个 uncertain Cluster 显式排除待补证据。
+- 确定性 Complexity Gate 无 Blocking；风险为树偏平、接近一 Cluster 一节点，以及 `draft_019` / `draft_021` 的兄弟证据重叠。
+- 独立 Hierarchy Reviewer：`PASS_WITH_CONCERNS`、0 Blocking、0 Dimension Leakage；强制压缩会引入无来源父域，因此不执行 Hierarchy Revision，把复杂度验证留给 Trial Assignment。
+- Draft A Frozen Hash：`be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`；Tree Hash：`a19ffd72ebf4c9f83a7e203130b0c192058523085bf29d12e090eaf4549cfbff`。
+- 调用恢复出现并发异常：已确认至少 2 次 Primary + 2 次 Repair Response；已知最小 usage 为 46,800 input、42,128 output、14,481 reasoning、560.049 秒，另有 1 个 Repair Response 的 usage 无法恢复。没有再发起 Provider 调用。
+- 正式报告：`reports/V3_M3_REVIEW_AND_DOMAIN_DRAFT_A_2026-07-19.md`。

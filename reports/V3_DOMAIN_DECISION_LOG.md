@@ -214,3 +214,29 @@ review_status
 - `risk`: 仍保留 weak/uncertain 与非阻断边界问题，不得在 Draft A 提前标记 stable。
 - `provider_source`: independent read-only review, provider_call_count=0
 - `review_status`: accepted_PASS_WITH_CONCERNS
+
+### D015 — Synthesize Draft A from frozen M3 evidence only
+
+- `stage`: domain_draft_a_synthesis
+- `affected_nodes`: `draft_001` … `draft_025`
+- `before`: M3 冻结 55 个 Cluster，其中 31 个为 `domain_candidate / uncertain`，尚无产品 Domain Tree。
+- `after`: 形成 25 节点的两级 Draft A；20 顶层、5 二级；19 probable、1 weak、5 uncertain、0 stable；26 个 Cluster 进入节点，5 个 uncertain Cluster 显式排除待补证据。
+- `evidence`: Frozen Contract、M2 约束、M3 Final Clusters/Decisions、紧凑 Decision Log、每 Cluster 最多 3 条代表 Profile；Draft Hash `be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`。
+- `reason`: 只综合冻结语义证据，不复制任一历史 Run，也不在没有 Trial Assignment 的情况下晋升 stable。
+- `alternatives_considered`: 一 Cluster 一节点、强制 Top-K、读取完整 131 Cards、重跑 A/B/C1；全部拒绝。
+- `risk`: 树偏平，且部署/生产化/基础设施等相邻边界仍需 Assignment 分布验证。
+- `provider_source`: deepseek-v4-pro high-thinking synthesis + JSON Repair；并发恢复审计见正式报告。
+- `review_status`: deterministic_gate_pass_independent_review_pending
+
+### D016 — Freeze Draft A without hierarchy revision
+
+- `stage`: domain_draft_a_hierarchy_review_and_freeze
+- `affected_nodes`: 全部 25 个 Draft A 节点和 5 个 excluded Cluster。
+- `before`: Complexity Gate 无 Blocking，但 `root_share=0.8`、`node/eligible-cluster ratio=0.806452`，存在一组兄弟 Evidence 重叠。
+- `after`: 独立 Reviewer 判定 `PASS_WITH_CONCERNS`、0 Blocking、0 Dimension Leakage；Hierarchy Revision 标记为 `not_required`，Draft A 冻结。
+- `evidence`: `domain-draft-a-hierarchy-review.json`、`domain-draft-a-manifest.json`、Tree Hash `a19ffd72ebf4c9f83a7e203130b0c192058523085bf29d12e090eaf4549cfbff`。
+- `reason`: 任务只允许修复 Blocking；强行降低节点数会引入无来源父域，复杂度应交由 Trial Assignment 验证。
+- `alternatives_considered`: 为追求更低节点数执行无 Blocking 的全树改写；拒绝。把 Concern 隐去；拒绝，全部保留在 Manifest。
+- `risk`: 当前树可能对浏览偏细；若 Assignment 显示持续混淆或空节点，再在后续 Diagnosis 中提出受限 Revision。
+- `provider_source`: independent read-only hierarchy review, provider_call_count=0
+- `review_status`: accepted_PASS_WITH_CONCERNS

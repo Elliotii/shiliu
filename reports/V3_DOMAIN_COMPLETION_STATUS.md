@@ -2,14 +2,16 @@
 
 ```yaml
 mission: V3 Domain Taxonomy Completion
-current_milestone: M3_frozen_before_domain_draft_a
+current_milestone: M5_domain_draft_a_frozen_before_trial_assignment
 run_id: 24
 completed_milestones:
   - M0_mission_bootstrap
   - M1_semantic_contract_v2
   - M2_unresolved_adjudication
   - M3_candidate_centric_cross_run_alignment
-current_best_artifact: <local-run-artifact>/run-000024/m3-final-manifest.json
+  - M4_domain_draft_a_synthesis
+  - M5_hierarchy_validation_and_freeze
+current_best_artifact: <local-run-artifact>/run-000024/domain-draft-a-manifest.json
 current_metrics:
   snapshot_cards: 131
   discovery_eligible: 128
@@ -65,22 +67,38 @@ current_metrics:
   alignment_final_stable: 0
   alignment_final_m2_repromotions: 0
   alignment_final_gate: PASS
-last_provider_call: M3_batch_008_json_repair
+  draft_a_eligible_clusters: 31
+  draft_a_used_clusters: 26
+  draft_a_excluded_clusters: 5
+  draft_a_total_nodes: 25
+  draft_a_top_level_nodes: 20
+  draft_a_second_level_nodes: 5
+  draft_a_probable: 19
+  draft_a_weak: 1
+  draft_a_uncertain: 5
+  draft_a_stable: 0
+  draft_a_complexity_blocking: 0
+  draft_a_hierarchy_review: PASS_WITH_CONCERNS
+  draft_a_hierarchy_blocking: 0
+  draft_a_dimension_leakage: 0
+  draft_a_hierarchy_revision: not_required
+last_provider_call: domain_draft_a_json_repair_concurrent_recovery
 provider_cost:
-  scope: M1_through_M3_including_failures_and_repairs
-  prompt_tokens: 141165
-  completion_tokens: 140142
-  reasoning_tokens: 90500
-  elapsed_seconds: 2062.617
-last_validation: full_suite_261_passed_and_M3_exact_coverage_passed
-last_git_commit_before_checkpoint: 00df8b2_feat_adjudicate_unresolved_domain_candidates
+  scope: M1_through_M5_known_minimum_including_failures_and_repairs
+  prompt_tokens: 187965
+  completion_tokens: 182270
+  reasoning_tokens: 104981
+  elapsed_seconds: 2622.666
+  unknown_usage_responses: 1
+last_validation: full_suite_273_passed
+last_git_commit_before_checkpoint: 287554a_feat_review_and_freeze_M3_domain_alignment
 open_blockers: []
-next_action: commit_m3_freeze_then_synthesize_domain_draft_a
+next_action: M6_trial_assignment_allowed_but_not_started
 ```
 
 ## Runtime discipline
 
-- Domain Completion Run #24 已完成 M1/M2 和 M3 八批工程执行，当前停在 `waiting_for_review / cross_run_alignment_review`。
+- Domain Completion Run #24 已完成 M1–M5，当前停在 `waiting_for_review / domain_draft_a_frozen_before_trial_assignment`。
 - 历史 Run A/B/C1 及 Snapshot #2 保持只读。
 - C2 明确禁用。
 - Silver Reference 不得读取。
@@ -120,3 +138,13 @@ next_action: commit_m3_freeze_then_synthesize_domain_draft_a
 - 126 / 126 Candidate 保持唯一覆盖；Cluster 从 65 收敛到 55；`stable=0`；M2 精确与语义旁路复晋升均为 0。
 - Run #24 当前停在 `waiting_for_review / m3_frozen`；Git 提交后才进入 Draft A Synthesis。
 - Frozen SHA256：Clusters `de67704a5d6f68c807ee2fd93d8f42e25a08d7cc1c81e60e1019daf8a6b5edd3`；Decisions `aa21cac07730a335503d99d7f672e89a7d3f420ef09b5a5c8198e45efe3a13ee`；Review `ce6a2834ee36d00c6b2fa256b0a9c7483d3022502ed43cd95b47d252c27af30d`；Gate `69b31d88c0edf36ac4720bb1c7ab164932b53a48cac849ee73301704028b1993`；Manifest `7cf8f7cd0add7068c80334baabad43b6d8486cdbb2ce520483eb7c6547c4ac1e`。
+
+## M4–M5 Domain Draft A frozen result
+
+- 31 个 eligible M3 Cluster 进入 Synthesis；26 个进入树，5 个 uncertain Cluster 显式排除待补证据。
+- Draft A：25 个节点；20 个顶层、5 个二级；19 probable、1 weak、5 uncertain、0 stable。
+- 确定性 Gate：0 Blocking；Complexity 为 `CONCERN`，主要因 `root_share=0.8` 与 `node/eligible-cluster ratio=0.806452`。
+- 独立 Hierarchy Reviewer：`PASS_WITH_CONCERNS`、0 Blocking、0 Dimension Leakage；没有要求 Revision，因此按边界不执行 Hierarchy Revision。
+- Run #24 已冻结在 `waiting_for_review / domain_draft_a_frozen_before_trial_assignment`；Trial Assignment 没有启动。
+- Draft Hash：`be4c86e2038088af5ed966d2ab5cd60a2088df8387950bf8c21c167e171be855`；Tree Hash：`a19ffd72ebf4c9f83a7e203130b0c192058523085bf29d12e090eaf4549cfbff`。
+- 并发恢复异常导致实际 Provider 调用超过计划：已知至少 2 Primary + 2 Repair Response；最小 usage 46,800 input、42,128 output、14,481 reasoning、560.049 秒，另有 1 个 Repair usage unknown。冻结后禁止追加调用。
