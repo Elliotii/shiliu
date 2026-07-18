@@ -23,7 +23,7 @@ from shiliu.taxonomy.semantic_purity import build_budget_preflight, require_safe
 HYBRID_ENGINE_VERSION = "hybrid-controlled-facets-v1"
 HYBRID_PROTOCOL_VERSION = "checkpoint311-hybrid-controlled-facets-v1"
 ASSIGNMENT_SCHEMA_VERSION = "controlled-facet-assignment-v1"
-ASSIGNMENT_PROMPT_VERSION = "controlled-facet-assignment-v1"
+ASSIGNMENT_PROMPT_VERSION = "controlled-facet-assignment-v2"
 ENTITY_MAPPING_VERSION = "entity-object-type-mapping-v1"
 DYNAMIC_FACETING_VERSION = "dynamic-faceting-v1"
 QUALITY_GATE_VERSION = "checkpoint311-controlled-facet-gate-v1"
@@ -223,6 +223,20 @@ class ControlledDomainAssignment(BaseModel):
     secondary_paths: list[list[str]] = Field(max_length=2)
     confidence: Literal["high", "medium", "low"]
 
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_secondary_path_shorthand(cls, value: Any) -> Any:
+        """Accept the model's unambiguous `[child_id]` shorthand, then canonicalize later."""
+        if not isinstance(value, dict):
+            return value
+        secondary = value.get("secondary_paths")
+        if isinstance(secondary, list):
+            value = dict(value)
+            value["secondary_paths"] = [
+                [path] if isinstance(path, str) else path for path in secondary
+            ]
+        return value
+
 
 class ControlledFormAssignment(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
@@ -318,7 +332,8 @@ class ControlledQualityResult(BaseModel):
 ASSIGNMENT_SCHEMA_HINT = (
     '{"version":"controlled-facet-assignment-v1","assignments":[{'
     '"content_id":"C001","domain":{"primary_path":["d_01"],'
-    '"secondary_paths":[],"confidence":"high|medium|low"},'
+    '"secondary_paths":[["d_02","d_02_01"]],'
+    '"confidence":"high|medium|low"},'
     '"presentation_form":{"primary":"PF01|unknown","secondary":null,'
     '"confidence":"high|medium|low","evidence":[""]},'
     '"object_types":[{"id":"OT01","source_entities":[""],'
@@ -365,7 +380,7 @@ Focus Object Type 只在内容围绕明确具体对象类别时填写，0～2 �
 
 Suggested Use Context 是可空 AI 建议，0～2 个；不得从 Domain 或收藏夹名称机械推断。Novelty 只能写 Proposal，不能用于本条正式赋值。
 
-Domain 只使用冻结 ID，primary path 1～2 级，secondary paths 最多 2。所有 evidence 必须来自本条输入。只输出 JSON。
+Domain 只使用冻结 ID，primary path 1～2 级，secondary paths 最多 2。secondary_paths 的每个元素都必须是完整路径数组，例如 [["d_02","d_02_01"]]，不能写成 ["d_02_01"]。所有 evidence 必须来自本条输入。只输出 JSON。
 
 Schema：{ASSIGNMENT_SCHEMA_HINT}
 输入：{_compact_json(payload)}"""
@@ -392,6 +407,13 @@ def validate_assignments(
         for child in parent.children:
             parent_by_id[child.id] = parent.id
     for item in output.assignments:
+        item.domain.primary_path = _canonical_domain_path(
+            item.domain.primary_path, parent_by_id
+        )
+        item.domain.secondary_paths = [
+            _canonical_domain_path(path, parent_by_id)
+            for path in item.domain.secondary_paths
+        ]
         _validate_domain_path(item.domain.primary_path, parent_by_id)
         for path in item.domain.secondary_paths:
             _validate_domain_path(path, parent_by_id)
@@ -441,6 +463,15 @@ def _validate_domain_path(path: list[str], parent_by_id: dict[str, str | None]) 
         raise PipelineError("Domain path 父子关系错误", code="invalid_domain_path", retryable=False)
     if len(path) == 1 and parent_by_id[path[0]] is not None:
         raise PipelineError("子 Domain 缺少父级", code="invalid_domain_path", retryable=False)
+
+
+def _canonical_domain_path(
+    path: list[str], parent_by_id: dict[str, str | None]
+) -> list[str]:
+    if len(path) != 1 or path[0] not in parent_by_id:
+        return path
+    parent_id = parent_by_id[path[0]]
+    return [parent_id, path[0]] if parent_id is not None else path
 
 
 def build_dynamic_faceting(

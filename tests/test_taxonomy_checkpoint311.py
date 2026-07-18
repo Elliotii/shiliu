@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from shiliu.cli import build_parser
 from shiliu.domain import PipelineError
-from shiliu.taxonomy.candidates import TopLevelDomainDraft, TopLevelDomainNode
+from shiliu.taxonomy.candidates import SubdomainNode, TopLevelDomainDraft, TopLevelDomainNode
 from shiliu.taxonomy.controlled_facets import (
     ASSIGNMENT_SCHEMA_VERSION,
     DYNAMIC_FACETING_VERSION,
@@ -53,7 +53,18 @@ def domain() -> TopLevelDomainDraft:
                 excludes=["硬件"],
                 supporting_ids=["C004"],
                 representative_ids=["C004"],
-                children=[],
+                children=[
+                    SubdomainNode(
+                        id="d_02_01",
+                        name="模型训练",
+                        definition="模型训练子领域",
+                        includes=["训练"],
+                        excludes=["部署"],
+                        supporting_ids=["C004"],
+                        representative_ids=["C004"],
+                        parent_id="d_02",
+                    )
+                ],
             ),
         ],
         candidate_decisions=[],
@@ -260,6 +271,24 @@ def test_label_budgets_fail_without_silent_truncation() -> None:
     with pytest.raises(ValidationError):
         HybridControlledAssignment.model_validate(payload)
     assert len(payload["object_types"]) == 3
+
+
+def test_secondary_domain_shorthand_is_canonicalized_without_new_label() -> None:
+    registry = load_controlled_vocabularies()
+    payload = assignment("C001").model_dump(mode="json")
+    payload["domain"]["secondary_paths"] = ["d_02_01"]
+    output = HybridAssignmentOutput(
+        assignments=[HybridControlledAssignment.model_validate(payload)]
+    )
+    mappings = map_entities_to_object_types(["Paper A"], registry)
+    validate_assignments(
+        output,
+        expected_ids={"C001"},
+        domain_draft=domain(),
+        registry=registry,
+        entity_mappings={"C001": mappings},
+    )
+    assert output.assignments[0].domain.secondary_paths == [["d_02", "d_02_01"]]
 
 
 def test_dynamic_faceting_only_exposes_nonzero_options() -> None:
