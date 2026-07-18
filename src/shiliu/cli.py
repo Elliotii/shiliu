@@ -144,6 +144,11 @@ def build_parser() -> argparse.ArgumentParser:
     domain_merge.add_argument("--run-a-id", type=int, default=12)
     domain_merge.add_argument("--run-b-id", type=int, required=True)
     domain_merge.add_argument("--run-c-id", type=int, required=True)
+    domain_c1 = taxonomy_commands.add_parser(
+        "create-domain-c1", help="创建 Checkpoint 3.12D 两阶段 Domain Run C1",
+    )
+    domain_c1.add_argument("--source-run-id", type=int, default=12)
+    domain_c1.add_argument("--seed", type=int, default=303, choices=(303,))
     taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
     taxonomy_run.add_argument("run_id", type=int)
     taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
@@ -239,6 +244,13 @@ def main(argv: list[str] | None = None) -> int:
             run_a_id=arguments.run_a_id,
             run_b_id=arguments.run_b_id,
             run_c_id=arguments.run_c_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-domain-c1":
+        app = Application()
+        run_id = app.taxonomy_domain_consolidation_v2.create_run_c1(
+            source_run_id=arguments.source_run_id, seed=arguments.seed,
         )
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
@@ -368,8 +380,11 @@ def main(argv: list[str] | None = None) -> int:
                 "domain_cross_run_merge",
             }
         )
+        is_domain_c1 = bool(run and run.get("run_kind") == "domain_consolidation_v2")
         service = (
-            app.taxonomy_domain_stability
+            app.taxonomy_domain_consolidation_v2
+            if is_domain_c1
+            else app.taxonomy_domain_stability
             if is_domain_stability
             else app.taxonomy_controlled_facet_completion
             if is_completion
