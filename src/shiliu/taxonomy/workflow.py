@@ -21,6 +21,9 @@ from shiliu.taxonomy.candidates import (
     CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION,
     CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT,
     CONTENT_TYPE_DRAFT_SCHEMA_VERSION,
+    CONTENT_TYPE_PURITY_CONSOLIDATION_PROMPT_VERSION,
+    CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT,
+    CONTENT_TYPE_PURITY_DRAFT_SCHEMA_VERSION,
     CONTENT_TYPE_NORMALIZATION_VERSION,
     CONTENT_TYPE_PROMPT_VERSION,
     CONTENT_TYPE_SCHEMA_VERSION,
@@ -34,17 +37,20 @@ from shiliu.taxonomy.candidates import (
     CompactCandidateTable,
     CompactContentTypeTable,
     ContentTypeDraftV1,
+    ContentTypeDraftV2,
     ContentTypeDiscoveryOutputV1,
     DualViewDiscoveryOutputV1,
     LocalTopLevelDiscoveryOutput,
     TopLevelDomainDraft,
     build_content_type_consolidation_prompt,
+    build_content_type_purity_consolidation_prompt,
     build_content_type_prompt,
     build_top_level_consolidation_prompt,
     build_top_level_local_prompt,
     normalize_candidates,
     normalize_content_types,
     validate_content_type_draft,
+    validate_content_type_draft_v2,
     validate_content_types,
     validate_local_top_level,
     validate_top_level_draft,
@@ -64,10 +70,25 @@ from shiliu.taxonomy.quality import (
 )
 from shiliu.taxonomy.repository import TaxonomyRepository
 from shiliu.taxonomy.run_repository import TaxonomyRunRepository
+from shiliu.taxonomy.semantic_purity import (
+    CHECKPOINT39_QUALITY_GATE_VERSION,
+    CONTENT_TYPE_PURITY_JUDGE_PROMPT_VERSION,
+    CONTENT_TYPE_PURITY_JUDGE_SCHEMA_VERSION,
+    OUTPUT_BUDGET_PREFLIGHT_VERSION,
+    PURITY_JUDGE_SCHEMA_HINT,
+    Checkpoint39QualityResult,
+    ContentTypePurityReport,
+    OutputBudgetPreflight,
+    build_budget_preflight,
+    build_purity_judge_prompt,
+    combine_checkpoint39_quality,
+    require_safe_budget,
+    validate_purity_report,
+)
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
-WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v10"
+WORKFLOW_ENGINE_VERSION = "dual-view-discovery-workflow-v11"
 SUPPORTED_REPRESENTATIONS = {"compact", "classification_profile_v1"}
 CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS = 8192
 DOMAIN_CONSOLIDATION_TOKEN_POLICY = {
@@ -313,6 +334,156 @@ class TaxonomyWorkflow:
         _write_json_once(run_dir / "run-manifest.json", protocol)
         return run_id
 
+    def create_content_type_purity_run(self, *, source_run_id: int = 12) -> int:
+        source_run = self.run_repository.get_run(source_run_id)
+        if (
+            source_run is None
+            or source_run.get("run_kind") != "full_discovery_run_a"
+            or source_run.get("status") != "completed"
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 要求 completed Full Discovery Run A 来源",
+                code="checkpoint39_source_run_invalid",
+                retryable=False,
+            )
+        source_dir = self.output_dir / f"run-{source_run_id:06d}"
+        required_paths = {
+            "manifest": source_dir / "run-manifest.json",
+            "content_type_table": (
+                source_dir
+                / "content-type-normalization"
+                / "compact-content-types.json"
+            ),
+            "domain_table": source_dir / "candidate-normalization" / "compact-candidates.json",
+            "domain_draft": source_dir / "taxonomy-draft.json",
+            "compact_corpus": source_dir / "compact-corpus.json",
+            "local_content_types": source_dir / "content-type-local-candidates.json",
+        }
+        missing = [name for name, path in required_paths.items() if not path.is_file()]
+        if missing:
+            raise PipelineError(
+                "Checkpoint 3.9 来源缺少产物：" + ", ".join(missing),
+                code="checkpoint39_source_artifact_missing",
+                retryable=False,
+            )
+        table = CompactContentTypeTable.model_validate_json(
+            required_paths["content_type_table"].read_text(encoding="utf-8")
+        )
+        source_protocol = source_run["parameters"].get("protocol_manifest") or {}
+        consolidation_source_run_id = int(
+            source_protocol.get("reuse_content_type_consolidation_from_run_id")
+            or source_run_id
+        )
+        consolidation_source = next(
+            (
+                item
+                for item in self.run_repository.list_stages(consolidation_source_run_id)
+                if item["stage_name"] == "content_type_consolidation"
+                and item["unit_key"] == "main"
+                and item["status"] == "completed"
+            ),
+            None,
+        )
+        historical_content_tokens = (
+            int(consolidation_source.get("output_tokens") or 0)
+            if consolidation_source
+            else 0
+        ) or None
+        content_preflight = build_budget_preflight(
+            stage_name="content_type_consolidation",
+            complexity_count=len(table.content_types),
+            schema_hint_characters=len(CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT),
+            historical_completion_tokens=historical_content_tokens,
+            technical_max_tokens=16384,
+            safety_margin_ratio=0.25,
+            base_tokens=4096,
+            tokens_per_item=128,
+            historical_growth_factor=1.8,
+        )
+        require_safe_budget(content_preflight)
+        domain_stage = next(
+            (
+                item
+                for item in self.run_repository.list_stages(source_run_id)
+                if item["stage_name"] == "consolidation"
+                and item["unit_key"] == "main"
+                and item["status"] == "completed"
+            ),
+            None,
+        )
+        if domain_stage is None or not domain_stage.get("output_tokens"):
+            raise PipelineError(
+                "Checkpoint 3.9 无法读取历史 Domain 输出预算",
+                code="checkpoint39_domain_budget_history_missing",
+                retryable=False,
+            )
+        domain_preflight = build_budget_preflight(
+            stage_name="domain_consolidation_future_preflight",
+            complexity_count=42,
+            schema_hint_characters=len(TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT),
+            historical_completion_tokens=int(domain_stage["output_tokens"]),
+            technical_max_tokens=24576,
+            safety_margin_ratio=0.20,
+            base_tokens=8192,
+            tokens_per_item=256,
+        )
+        require_safe_budget(domain_preflight)
+        git_commit, git_clean = _git_state()
+        if not git_clean:
+            raise PipelineError(
+                "冻结 Checkpoint 3.9 前 Git 工作区必须干净",
+                code="checkpoint39_git_dirty",
+                retryable=False,
+            )
+        providers = {
+            role: _provider_manifest(self.provider_factory(role))
+            for role in (
+                "taxonomy_content_type_global",
+                "taxonomy_content_type_purity",
+                "taxonomy_repair",
+            )
+        }
+        protocol = {
+            "protocol_version": "checkpoint39-content-type-semantic-purity-v1",
+            "source_run_id": source_run_id,
+            "snapshot_id": int(source_run["corpus_snapshot_id"]),
+            "snapshot_hash": source_run["parameters"]["snapshot_hash"],
+            "selected_ids": source_run["parameters"].get("selected_ids"),
+            "source_artifact_hashes": {
+                name: _hash_file(path) for name, path in required_paths.items()
+            },
+            "content_type_candidate_count": len(table.content_types),
+            "content_type_draft_schema_version": CONTENT_TYPE_PURITY_DRAFT_SCHEMA_VERSION,
+            "content_type_consolidation_prompt_version": (
+                CONTENT_TYPE_PURITY_CONSOLIDATION_PROMPT_VERSION
+            ),
+            "purity_judge_prompt_version": CONTENT_TYPE_PURITY_JUDGE_PROMPT_VERSION,
+            "purity_judge_schema_version": CONTENT_TYPE_PURITY_JUDGE_SCHEMA_VERSION,
+            "quality_gate_version": CHECKPOINT39_QUALITY_GATE_VERSION,
+            "budget_preflight_version": OUTPUT_BUDGET_PREFLIGHT_VERSION,
+            "content_type_budget_preflight": content_preflight.model_dump(mode="json"),
+            "domain_future_budget_preflight": domain_preflight.model_dump(mode="json"),
+            "providers": providers,
+            "git_commit": git_commit,
+            "git_worktree_clean": True,
+            "local_content_type_prompt_changed": False,
+            "second_layer_repair": False,
+        }
+        run_id = self.create_run(
+            snapshot_id=int(source_run["corpus_snapshot_id"]),
+            run_kind="content_type_semantic_purification",
+            seed=int(source_run["parameters"]["seed"]),
+            batch_size=int(source_run["parameters"]["batch_size"]),
+            limit=None,
+            representation="classification_profile_v1",
+            profile_run_id=str(source_run["parameters"]["profile_run_id"]),
+            selected_ids=list(source_run["parameters"].get("selected_ids") or []),
+            protocol_manifest=protocol,
+        )
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        _write_json_once(run_dir / "run-manifest.json", protocol)
+        return run_id
+
     def execute(self, run_id: int, *, resume: bool = False) -> dict[str, Any]:
         try:
             return self._execute_impl(run_id, resume=resume)
@@ -332,6 +503,8 @@ class TaxonomyWorkflow:
                 code="taxonomy_engine_version_mismatch",
                 retryable=False,
             )
+        if run["run_kind"] == "content_type_semantic_purification":
+            return self._execute_content_type_purity_run(run, resume=resume)
         quality_feedback: dict[str, Any] | None = None
         if run["status"] == "quality_failed":
             if not resume:
@@ -665,6 +838,443 @@ class TaxonomyWorkflow:
 
         self.run_repository.set_run_status(run_id, "completed", current_stage=None)
         return self.status(run_id)
+
+    def _execute_content_type_purity_run(
+        self,
+        run: dict[str, Any],
+        *,
+        resume: bool,
+    ) -> dict[str, Any]:
+        run_id = int(run["id"])
+        parameters = run["parameters"]
+        protocol = parameters.get("protocol_manifest") or {}
+        run_dir = self.output_dir / f"run-{run_id:06d}"
+        manifest_path = run_dir / "run-manifest.json"
+        if not manifest_path.is_file() or json.loads(
+            manifest_path.read_text(encoding="utf-8")
+        ) != protocol:
+            raise PipelineError(
+                "Checkpoint 3.9 Manifest 缺失或改变",
+                code="checkpoint39_manifest_changed",
+                retryable=False,
+            )
+        git_commit, git_clean = _git_state()
+        if git_commit != protocol.get("git_commit") or not git_clean:
+            raise PipelineError(
+                "Checkpoint 3.9 执行代码或工作区与冻结 Manifest 不一致",
+                code="checkpoint39_code_state_changed",
+                retryable=False,
+            )
+        source_run_id = int(protocol["source_run_id"])
+        source_dir = self.output_dir / f"run-{source_run_id:06d}"
+        artifact_dir = self._reuse_checkpoint39_source(
+            run_id=run_id,
+            source_run_id=source_run_id,
+            run_dir=run_dir,
+            protocol=protocol,
+        )
+        table = CompactContentTypeTable.model_validate_json(
+            (artifact_dir / "compact-content-types.json").read_text(encoding="utf-8")
+        )
+        domain_table = CompactCandidateTable.model_validate_json(
+            (artifact_dir / "compact-candidates.json").read_text(encoding="utf-8")
+        )
+        domain_draft = TopLevelDomainDraft.model_validate_json(
+            (artifact_dir / "taxonomy-draft.json").read_text(encoding="utf-8")
+        )
+        local_content_types = [
+            ContentTypeDiscoveryOutputV1.model_validate(item)
+            for item in json.loads(
+                (artifact_dir / "content-type-local-candidates.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+        ]
+        compact = json.loads((artifact_dir / "compact-corpus.json").read_text(encoding="utf-8"))
+        compact_rows_by_id = {str(row[0]): row for row in compact["rows"]}
+        allowed_ids = set(parameters.get("selected_ids") or [])
+        if len(allowed_ids) != 128 or any(
+            item not in compact_rows_by_id for item in allowed_ids
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 固定输入 ID 与 Compact Corpus 不一致",
+                code="checkpoint39_selected_ids_mismatch",
+                retryable=False,
+            )
+
+        content_preflight = OutputBudgetPreflight.model_validate(
+            protocol["content_type_budget_preflight"]
+        )
+        require_safe_budget(content_preflight)
+        _write_json_once(
+            run_dir / "budget-preflight" / "content-type-consolidation.json",
+            content_preflight.model_dump(mode="json"),
+        )
+        _write_json_once(
+            run_dir / "budget-preflight" / "domain-future.json",
+            protocol["domain_future_budget_preflight"],
+        )
+        content_prompt = build_content_type_purity_consolidation_prompt(table)
+        content_types = self._model_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            stage_name="content_type_consolidation",
+            unit_key="semantic-purity-v1",
+            role="taxonomy_content_type_global",
+            prompt=content_prompt,
+            prompt_version=CONTENT_TYPE_PURITY_CONSOLIDATION_PROMPT_VERSION,
+            schema=ContentTypeDraftV2,
+            schema_hint=CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT,
+            max_tokens=content_preflight.allocated_max_tokens,
+            input_ids=sorted(
+                {
+                    short_id
+                    for item in table.content_types
+                    for short_id in item.supporting_ids
+                }
+            ),
+            validator=lambda value: validate_content_type_draft_v2(
+                value,
+                allowed_ids=allowed_ids,
+                candidate_ids={item.candidate_id for item in table.content_types},
+            ),
+        )
+        _write_json(
+            run_dir / "content-types-purified.json",
+            content_types.model_dump(mode="json"),
+        )
+
+        purity_prompt = build_purity_judge_prompt(
+            draft=content_types,
+            table=table,
+            domain_draft=domain_draft,
+            compact_rows_by_id=compact_rows_by_id,
+        )
+        purity_preflight = build_budget_preflight(
+            stage_name="content_type_semantic_purity_judge",
+            complexity_count=len(content_types.content_types),
+            schema_hint_characters=len(PURITY_JUDGE_SCHEMA_HINT),
+            historical_completion_tokens=None,
+            technical_max_tokens=8192,
+            safety_margin_ratio=0.25,
+            base_tokens=1536,
+            tokens_per_item=384,
+        )
+        require_safe_budget(purity_preflight)
+        _write_json_once(
+            run_dir / "budget-preflight" / "semantic-purity-judge.json",
+            purity_preflight.model_dump(mode="json"),
+        )
+        purity = self._model_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            stage_name="content_type_semantic_purity_judge",
+            unit_key="main",
+            role="taxonomy_content_type_purity",
+            prompt=purity_prompt,
+            prompt_version=CONTENT_TYPE_PURITY_JUDGE_PROMPT_VERSION,
+            schema=ContentTypePurityReport,
+            schema_hint=PURITY_JUDGE_SCHEMA_HINT,
+            max_tokens=purity_preflight.allocated_max_tokens,
+            input_ids=[item.id for item in content_types.content_types],
+            validator=lambda value: validate_purity_report(
+                value,
+                expected_node_ids={item.id for item in content_types.content_types},
+            ),
+        )
+        _write_json(
+            run_dir / "content-type-semantic-purity-report.json",
+            purity.model_dump(mode="json"),
+        )
+
+        normalization_audit = _checkpoint39_normalization_audit(run_dir)
+        _write_json(
+            run_dir / "normalization-audit.json",
+            normalization_audit,
+        )
+        evidence_by_id = {
+            str(row[0]): str(row[1]) for row in compact["rows"] if row
+        }
+        selected_compact_rows = [
+            compact_rows_by_id[short_id] for short_id in parameters["selected_ids"]
+        ]
+        rules = self._structural_validation_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            draft=domain_draft,
+            candidate_table=domain_table,
+            allowed_ids=allowed_ids,
+            known_entity_names=_known_entities(selected_compact_rows),
+            content_type_names={item.name for item in content_types.content_types},
+            content_type_draft=content_types,  # type: ignore[arg-type]
+            content_type_table=table,
+            local_content_types=local_content_types,
+            evidence_by_id=evidence_by_id,
+        )
+        structural = self._top_level_quality_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            rules=rules,
+            reports=[],
+        )
+        quality = self._checkpoint39_quality_stage(
+            run_id=run_id,
+            run_dir=run_dir,
+            structural=structural,
+            draft=content_types,
+            table=table,
+            purity=purity,
+            silent_normalization_event_count=int(
+                normalization_audit["silent_normalization_event_count"]
+            ),
+        )
+        _write_json(
+            run_dir / "content-type-semantic-purity-output.json",
+            {
+                "source_run_id": source_run_id,
+                "draft": content_types.model_dump(mode="json"),
+                "purity": purity.model_dump(mode="json"),
+                "quality": quality.model_dump(mode="json"),
+            },
+        )
+        if not quality.passed:
+            self.run_repository.set_run_status(
+                run_id,
+                "quality_failed",
+                current_stage="checkpoint39_quality_gate",
+                error_code="content_type_semantic_purity_failed",
+                error_message=(
+                    quality.blocking_issues[0].message
+                    if quality.blocking_issues
+                    else "Content Type Semantic Purity 未通过"
+                ),
+            )
+            return self.status(run_id)
+        self.run_repository.set_run_status(run_id, "completed", current_stage=None)
+        return self.status(run_id)
+
+    def _checkpoint39_quality_stage(
+        self,
+        *,
+        run_id: int,
+        run_dir: Path,
+        structural: TopLevelQualityResult,
+        draft: ContentTypeDraftV2,
+        table: CompactContentTypeTable,
+        purity: ContentTypePurityReport,
+        silent_normalization_event_count: int,
+    ) -> Checkpoint39QualityResult:
+        input_value = {
+            "structural": structural.model_dump(mode="json"),
+            "draft": draft.model_dump(mode="json"),
+            "table_hash": _stable_hash(table.model_dump(mode="json")),
+            "purity": purity.model_dump(mode="json"),
+            "silent_normalization_event_count": silent_normalization_event_count,
+        }
+        input_hash = _stable_hash(input_value)
+        stage = self.run_repository.ensure_stage(
+            run_id, "checkpoint39_quality_gate", "main", input_hash=input_hash
+        )
+        if stage["status"] == "completed":
+            return _load_completed(stage, Checkpoint39QualityResult, None)
+        self.run_repository.start_stage(
+            run_id,
+            "checkpoint39_quality_gate",
+            "main",
+            input_hash=input_hash,
+            model=None,
+            prompt_version=CHECKPOINT39_QUALITY_GATE_VERSION,
+            thinking_enabled=None,
+            reasoning_effort=None,
+        )
+        result = combine_checkpoint39_quality(
+            structural=structural,
+            draft=draft,
+            table=table,
+            purity=purity,
+            silent_normalization_event_count=silent_normalization_event_count,
+        )
+        output_path = run_dir / "checkpoint39-quality-gate" / "quality-result.json"
+        _write_json(output_path, result.model_dump(mode="json"))
+        self.run_repository.complete_stage(
+            run_id,
+            "checkpoint39_quality_gate",
+            "main",
+            output_path=str(output_path),
+            output_hash=_stable_hash(result.model_dump(mode="json")),
+        )
+        return result
+
+    def _reuse_checkpoint39_source(
+        self,
+        *,
+        run_id: int,
+        source_run_id: int,
+        run_dir: Path,
+        protocol: dict[str, Any],
+    ) -> Path:
+        source_run = self.run_repository.get_run(source_run_id)
+        if source_run is None or source_run.get("status") != "completed":
+            raise PipelineError(
+                "Checkpoint 3.9 来源 Run 已改变或不可用",
+                code="checkpoint39_source_run_invalid",
+                retryable=False,
+            )
+        source_dir = self.output_dir / f"run-{source_run_id:06d}"
+        source_paths = {
+            "manifest": source_dir / "run-manifest.json",
+            "content_type_table": source_dir / "content-type-normalization" / "compact-content-types.json",
+            "domain_table": source_dir / "candidate-normalization" / "compact-candidates.json",
+            "domain_draft": source_dir / "taxonomy-draft.json",
+            "compact_corpus": source_dir / "compact-corpus.json",
+            "local_content_types": source_dir / "content-type-local-candidates.json",
+        }
+        expected_hashes = protocol.get("source_artifact_hashes") or {}
+        if any(
+            not path.is_file() or _hash_file(path) != expected_hashes.get(name)
+            for name, path in source_paths.items()
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 来源产物 Hash 改变",
+                code="checkpoint39_source_artifact_changed",
+                retryable=False,
+            )
+        artifact_dir = run_dir / "reused-source-artifacts"
+        artifact_names = {
+            "content_type_table": "compact-content-types.json",
+            "domain_table": "compact-candidates.json",
+            "domain_draft": "taxonomy-draft.json",
+            "compact_corpus": "compact-corpus.json",
+            "local_content_types": "content-type-local-candidates.json",
+        }
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        for key, target_name in artifact_names.items():
+            target = artifact_dir / target_name
+            if not target.exists():
+                shutil.copy2(source_paths[key], target)
+            if _hash_file(target) != expected_hashes[key]:
+                raise PipelineError(
+                    "Checkpoint 3.9 复制产物 Hash 改变",
+                    code="checkpoint39_reuse_copy_hash_mismatch",
+                    retryable=False,
+                )
+
+        reuse_stage_names = {
+            "local_discovery",
+            "content_type_discovery",
+            "content_type_normalization",
+            "candidate_normalization",
+            "consolidation",
+        }
+        source_stages = [
+            item
+            for item in self.run_repository.list_stages(source_run_id)
+            if item["stage_name"] in reuse_stage_names
+        ]
+        expected_counts = {
+            "local_discovery": 6,
+            "content_type_discovery": 6,
+            "content_type_normalization": 1,
+            "candidate_normalization": 1,
+            "consolidation": 1,
+        }
+        actual_counts = {
+            name: sum(item["stage_name"] == name for item in source_stages)
+            for name in expected_counts
+        }
+        if actual_counts != expected_counts or any(
+            item["status"] != "completed" for item in source_stages
+        ):
+            raise PipelineError(
+                "Checkpoint 3.9 来源 Stage 不完整",
+                code="checkpoint39_source_stage_incomplete",
+                retryable=False,
+            )
+        lineage: list[dict[str, Any]] = []
+        for source_stage in source_stages:
+            source_output = Path(str(source_stage.get("output_path") or ""))
+            if not source_output.is_file():
+                raise PipelineError(
+                    "Checkpoint 3.9 来源 Stage 输出缺失",
+                    code="checkpoint39_source_stage_incomplete",
+                    retryable=False,
+                )
+            payload = json.loads(source_output.read_text(encoding="utf-8"))
+            if _stable_hash(payload) != source_stage.get("output_hash"):
+                raise PipelineError(
+                    "Checkpoint 3.9 来源 Stage 输出 Hash 不匹配",
+                    code="checkpoint39_source_stage_hash_mismatch",
+                    retryable=False,
+                )
+            target = (
+                run_dir
+                / "reused-source-stages"
+                / str(source_stage["stage_name"])
+                / str(source_stage["unit_key"])
+                / "parsed-output.json"
+            )
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if not target.exists():
+                shutil.copy2(source_output, target)
+            if _hash_file(target) != _hash_file(source_output):
+                raise PipelineError(
+                    "Checkpoint 3.9 Stage 复制 Hash 改变",
+                    code="checkpoint39_reuse_copy_hash_mismatch",
+                    retryable=False,
+                )
+            self.run_repository.record_reused_stage(
+                run_id,
+                str(source_stage["stage_name"]),
+                str(source_stage["unit_key"]),
+                input_hash=str(source_stage["input_hash"]),
+                output_path=str(target),
+                output_hash=str(source_stage["output_hash"]),
+                model=source_stage.get("model"),
+                prompt_version=str(source_stage.get("prompt_version") or "reused"),
+                thinking_enabled=(
+                    bool(source_stage["thinking_enabled"])
+                    if source_stage.get("thinking_enabled") is not None
+                    else None
+                ),
+                reasoning_effort=source_stage.get("reasoning_effort"),
+            )
+            lineage.append(
+                {
+                    "stage_name": source_stage["stage_name"],
+                    "unit_key": source_stage["unit_key"],
+                    "reused_from_run_id": source_run_id,
+                    "reused_from_stage_id": source_stage["id"],
+                    "source_input_hash": source_stage["input_hash"],
+                    "source_output_hash": source_stage["output_hash"],
+                    "source_file_hash": _hash_file(source_output),
+                    "target_file_hash": _hash_file(target),
+                    "verified_at": _utc_now(),
+                }
+            )
+        existing_lineage_path = run_dir / "checkpoint39-reuse-lineage.json"
+        existing = (
+            json.loads(existing_lineage_path.read_text(encoding="utf-8"))
+            if existing_lineage_path.is_file()
+            else None
+        )
+        upstream_lineage_path = source_dir / "reused-discovery-lineage.json"
+        lineage_payload = {
+            "source_run_id": source_run_id,
+            "target_run_id": run_id,
+            "reused_stage_count": len(lineage),
+            "source_artifact_hashes": expected_hashes,
+            "upstream_discovery_lineage_hash": (
+                _hash_file(upstream_lineage_path)
+                if upstream_lineage_path.is_file()
+                else None
+            ),
+            "stages": lineage,
+        }
+        if existing is not None:
+            for current, previous in zip(lineage_payload["stages"], existing["stages"]):
+                current["verified_at"] = previous["verified_at"]
+        _write_json_once(existing_lineage_path, lineage_payload)
+        return artifact_dir
 
     def _reuse_discovery_stages(
         self,
@@ -1668,6 +2278,119 @@ def _combined_audit(audit: dict[str, Any]) -> dict[str, Any]:
 
 def _hash_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _checkpoint39_normalization_audit(run_dir: Path) -> dict[str, Any]:
+    stages = (
+        ("content_type_consolidation", "semantic-purity-v1"),
+        ("content_type_semantic_purity_judge", "main"),
+    )
+    events: list[dict[str, Any]] = []
+    silent_count = 0
+    for stage_name, unit_key in stages:
+        call_dirs = sorted((run_dir / stage_name / unit_key).glob("attempt-*"))
+        if not call_dirs:
+            raise PipelineError(
+                f"{stage_name} 缺少调用目录，无法审计模型字段变化",
+                code="checkpoint39_normalization_audit_missing",
+                retryable=False,
+            )
+        call_dir = call_dirs[-1]
+        audit = json.loads((call_dir / "audit.json").read_text(encoding="utf-8"))
+        parsed = json.loads((call_dir / "parsed-output.json").read_text(encoding="utf-8"))
+        repair = audit.get("repair")
+        if repair is not None:
+            raw_path = call_dir / str(
+                repair.get("raw_response_path") or "repair-raw-response.txt"
+            )
+        else:
+            raw_path = call_dir / str(
+                audit.get("raw_response_path") or "raw-response.txt"
+            )
+        raw = _extract_json_object(raw_path.read_text(encoding="utf-8"))
+        changed_paths = _json_difference_paths(raw, parsed)
+        if changed_paths and repair is None:
+            silent_count += len(changed_paths)
+            events.append(
+                {
+                    "stage_name": stage_name,
+                    "event_type": "unapproved_silent_normalization",
+                    "field_paths": changed_paths,
+                    "normalization_reason": None,
+                }
+            )
+        elif repair is not None:
+            events.append(
+                {
+                    "stage_name": stage_name,
+                    "event_type": "explicit_json_repair",
+                    "field_paths": changed_paths,
+                    "normalization_reason": "raw response failed strict Schema; audited Repair",
+                    "repair_audit_path": str(call_dir / "repair-audit.json"),
+                }
+            )
+        else:
+            events.append(
+                {
+                    "stage_name": stage_name,
+                    "event_type": "strict_validation_no_change",
+                    "field_paths": [],
+                    "normalization_reason": "raw JSON equals persisted parsed output",
+                }
+            )
+    return {
+        "events": events,
+        "silent_normalization_event_count": silent_count,
+        "output_hash_basis": "persisted parsed-output.json",
+        "generated_at": _utc_now(),
+    }
+
+
+def _extract_json_object(content: str) -> Any:
+    text = content.strip()
+    if text.startswith("```") and text.endswith("```"):
+        first_newline = text.find("\n")
+        text = text[first_newline + 1:-3].strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end < start:
+        raise PipelineError(
+            "模型原始响应没有可审计 JSON",
+            code="checkpoint39_normalization_audit_invalid",
+            retryable=False,
+        )
+    try:
+        return json.loads(text[start:end + 1])
+    except json.JSONDecodeError as exc:
+        raise PipelineError(
+            "模型原始 JSON 无法用于字段审计",
+            code="checkpoint39_normalization_audit_invalid",
+            retryable=False,
+        ) from exc
+
+
+def _json_difference_paths(left: Any, right: Any, path: str = "$") -> list[str]:
+    if type(left) is not type(right):
+        return [path]
+    if isinstance(left, dict):
+        differences: list[str] = []
+        for key in sorted(set(left) | set(right)):
+            child = f"{path}.{key}"
+            if key not in left or key not in right:
+                differences.append(child)
+            else:
+                differences.extend(_json_difference_paths(left[key], right[key], child))
+        return differences
+    if isinstance(left, list):
+        if len(left) != len(right):
+            return [path]
+        differences = []
+        for index, (left_item, right_item) in enumerate(zip(left, right)):
+            differences.extend(
+                _json_difference_paths(left_item, right_item, f"{path}[{index}]")
+            )
+        return differences
+    return [] if left == right else [path]
 
 
 def _domain_consolidation_max_tokens(

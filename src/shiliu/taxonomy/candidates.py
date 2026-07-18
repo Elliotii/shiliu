@@ -18,11 +18,13 @@ LOCAL_TOP_LEVEL_SCHEMA_VERSION = "local-top-level-domain-schema-v2"
 TOP_LEVEL_DOMAIN_SCHEMA_VERSION = "two-level-domain-draft-schema-v2"
 CONTENT_TYPE_SCHEMA_VERSION = "content-type-local-schema-v2"
 CONTENT_TYPE_DRAFT_SCHEMA_VERSION = "content-type-draft-schema-v3"
+CONTENT_TYPE_PURITY_DRAFT_SCHEMA_VERSION = "content-type-purity-draft-schema-v1"
 LOCAL_TOP_LEVEL_PROMPT_VERSION = "top-level-local-discovery-v2"
 TOP_LEVEL_CONSOLIDATION_PROMPT_VERSION = "two-level-domain-consolidation-v3"
 CONTENT_TYPE_PROMPT_VERSION = "content-type-discovery-v2"
 CONTENT_TYPE_NORMALIZATION_VERSION = "content-type-candidate-normalization-v3"
 CONTENT_TYPE_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v3"
+CONTENT_TYPE_PURITY_CONSOLIDATION_PROMPT_VERSION = "content-type-consolidation-v4"
 CANDIDATE_NORMALIZATION_VERSION = "candidate-normalization-v3"
 LOCAL_DOMAIN_CANDIDATE_LIMIT = 8
 LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT = 8
@@ -34,12 +36,6 @@ class TopicHint(BaseModel):
 
     name: str = Field(min_length=1, max_length=60)
     supporting_ids: list[str] = Field(min_length=1, max_length=5)
-
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(value, text={"name": 60}, lists={"supporting_ids": 5})
-
 
 class LocalTopLevelDomainCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -56,22 +52,6 @@ class LocalTopLevelDomainCandidate(BaseModel):
     confidence: Literal["high", "medium", "low"] = "medium"
     node_type: Literal["domain"] = "domain"
 
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(
-            value,
-            text={"name": 60, "definition": 140},
-            lists={
-                "supporting_ids": 5,
-                "representative_ids": 3,
-                "evidence_codes": 3,
-                "includes": 3,
-                "excludes": 3,
-            },
-        )
-
-
 class LocalTopLevelDiscoveryOutput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -82,19 +62,6 @@ class LocalTopLevelDiscoveryOutput(BaseModel):
         default_factory=list, max_length=LOCAL_TOPIC_HINT_LIMIT
     )
     ambiguous_ids: list[str] = Field(default_factory=list, max_length=32)
-
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(
-            value,
-            lists={
-                "domains": LOCAL_DOMAIN_CANDIDATE_LIMIT,
-                "topic_hints": LOCAL_TOPIC_HINT_LIMIT,
-                "ambiguous_ids": 32,
-            },
-        )
-
 
 class ContentTypeCandidateV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -107,21 +74,6 @@ class ContentTypeCandidateV1(BaseModel):
     supporting_ids: list[str] = Field(min_length=1, max_length=5)
     representative_ids: list[str] = Field(default_factory=list, max_length=3)
 
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(
-            value,
-            text={"name": 60, "definition": 140},
-            lists={
-                "includes": 3,
-                "excludes": 3,
-                "supporting_ids": 5,
-                "representative_ids": 3,
-            },
-        )
-
-
 class ContentTypeDiscoveryOutputV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -129,18 +81,6 @@ class ContentTypeDiscoveryOutputV1(BaseModel):
         min_length=1, max_length=LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT
     )
     ambiguous_ids: list[str] = Field(default_factory=list, max_length=32)
-
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(
-            value,
-            lists={
-                "content_types": LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT,
-                "ambiguous_ids": 32,
-            },
-        )
-
 
 class CompactContentTypeCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -175,7 +115,7 @@ class CompactContentTypeTable(BaseModel):
 
 
 class ContentTypeNodeV1(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
 
     id: str = Field(pattern=r"^ct_[a-z0-9_]+$")
     name: str = Field(min_length=1, max_length=60)
@@ -184,22 +124,7 @@ class ContentTypeNodeV1(BaseModel):
     excludes: list[str] = Field(min_length=1, max_length=5)
     supporting_ids: list[str] = Field(min_length=1, max_length=32)
     representative_ids: list[str] = Field(min_length=1, max_length=3)
-    node_type: Literal["content_type"] = "content_type"
-
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(
-            value,
-            text={"name": 60, "definition": 180},
-            lists={
-                "includes": 5,
-                "excludes": 5,
-                "supporting_ids": 32,
-                "representative_ids": 3,
-            },
-        )
-
+    node_type: Literal["content_type"]
 
 class ContentTypeCandidateDecision(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -226,10 +151,71 @@ class ContentTypeDraftV1(BaseModel):
     candidate_decisions: list[ContentTypeCandidateDecision] = Field(default_factory=list)
     consolidation_notes: list[str] = Field(default_factory=list, max_length=5)
 
-    @model_validator(mode="before")
-    @classmethod
-    def cap_notes(cls, value):
-        return _cap_fields(value, lists={"consolidation_notes": 5})
+
+
+class ContentTypeCandidateDecisionV2(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    candidate_id: str = Field(pattern=r"^nct_[0-9]{3}$")
+    candidate_kind: Literal[
+        "content_type", "domain", "topic", "entity", "mixed", "unsupported"
+    ]
+    reason: str = Field(min_length=1, max_length=240)
+    supporting_evidence: list[str] = Field(min_length=1, max_length=3)
+    topic_substitution_result: Literal[
+        "passes", "fails", "partial", "insufficient_evidence"
+    ]
+    recommended_action: Literal[
+        "keep",
+        "merge_into",
+        "rename",
+        "remove_as_domain",
+        "remove_as_topic",
+        "remove_as_entity",
+        "remove_as_unsupported",
+        "salvage_content_type",
+        "needs_review",
+    ]
+    target_node_id: str | None = Field(pattern=r"^ct_[a-z0-9_]+$")
+    salvaged_content_type: str | None = Field(min_length=1, max_length=60)
+    confidence: Literal["high", "medium", "low"]
+
+    @model_validator(mode="after")
+    def validate_routing(self):
+        required_action = {
+            "domain": "remove_as_domain",
+            "topic": "remove_as_topic",
+            "entity": "remove_as_entity",
+            "unsupported": "remove_as_unsupported",
+        }.get(self.candidate_kind)
+        if required_action and self.recommended_action != required_action:
+            raise ValueError(f"{self.candidate_kind} candidate must use {required_action}")
+        routed_actions = {"keep", "merge_into", "rename", "salvage_content_type"}
+        if (self.recommended_action in routed_actions) != (self.target_node_id is not None):
+            raise ValueError("accepted or salvaged candidate must target a final node")
+        if self.recommended_action == "salvage_content_type":
+            if self.candidate_kind != "mixed" or not self.salvaged_content_type:
+                raise ValueError("salvage_content_type requires a mixed candidate and name")
+        elif self.salvaged_content_type is not None:
+            raise ValueError("salvaged_content_type is only valid for salvage action")
+        if self.candidate_kind == "content_type" and self.recommended_action not in {
+            "keep", "merge_into", "rename", "needs_review"
+        }:
+            raise ValueError("content_type candidate has incompatible action")
+        if self.candidate_kind == "mixed" and self.recommended_action not in {
+            "salvage_content_type", "needs_review", "remove_as_domain",
+            "remove_as_topic", "remove_as_entity", "remove_as_unsupported",
+        }:
+            raise ValueError("mixed candidate cannot be directly merged")
+        return self
+
+
+class ContentTypeDraftV2(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    content_types: list[ContentTypeNodeV1] = Field(min_length=1, max_length=16)
+    candidate_decisions: list[ContentTypeCandidateDecisionV2]
+    consolidation_notes: list[str] = Field(max_length=5)
 
 
 class CompactDomainCandidate(BaseModel):
@@ -308,21 +294,6 @@ class TopLevelDomainNode(BaseModel):
     representative_ids: list[str] = Field(min_length=1, max_length=3)
     children: list[SubdomainNode] = Field(default_factory=list, max_length=6)
 
-    @model_validator(mode="before")
-    @classmethod
-    def cap_bounded_fields(cls, value):
-        return _cap_fields(
-            value,
-            text={"name": 80, "definition": 240},
-            lists={
-                "includes": 5,
-                "excludes": 5,
-                "supporting_ids": 32,
-                "representative_ids": 3,
-            },
-        )
-
-
 class DomainCandidateDecision(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -346,18 +317,6 @@ class TopLevelDomainDraft(BaseModel):
     domains: list[TopLevelDomainNode] = Field(min_length=1, max_length=12)
     candidate_decisions: list[DomainCandidateDecision] = Field(default_factory=list)
     consolidation_notes: list[str] = Field(default_factory=list, max_length=5)
-
-    @model_validator(mode="before")
-    @classmethod
-    def cap_auxiliary_notes(cls, value):
-        if not isinstance(value, dict):
-            return value
-        normalized = dict(value)
-        notes = normalized.get("consolidation_notes")
-        if isinstance(notes, list):
-            normalized["consolidation_notes"] = notes[:5]
-        return normalized
-
 
 class DualViewDiscoveryOutputV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -392,6 +351,19 @@ CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT = (
     '"node_type":"content_type"}],"candidate_decisions":['
     '{"candidate_id":"nct_001","action":"merged_into",'
     '"target_id":"ct_01","reason":""}],"consolidation_notes":[]}'
+)
+CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT = (
+    '{"content_types":[{"id":"ct_01","name":"操作教程",'
+    '"definition":"","includes":[""],"excludes":[""],'
+    '"supporting_ids":["C001"],"representative_ids":["C001"],'
+    '"node_type":"content_type"}],"candidate_decisions":['
+    '{"candidate_id":"nct_001","candidate_kind":"content_type|domain|topic|entity|mixed|unsupported",'
+    '"reason":"","supporting_evidence":[""],'
+    '"topic_substitution_result":"passes|fails|partial|insufficient_evidence",'
+    '"recommended_action":"keep|merge_into|rename|remove_as_domain|remove_as_topic|'
+    'remove_as_entity|remove_as_unsupported|salvage_content_type|needs_review",'
+    '"target_node_id":"ct_01|null","salvaged_content_type":null,'
+    '"confidence":"high|medium|low"}],"consolidation_notes":[]}'
 )
 TOP_LEVEL_CONSOLIDATION_SCHEMA_HINT = (
     '{"domains":[{"id":"d_01","name":"","definition":"",'
@@ -460,6 +432,30 @@ kept、merged_into、renamed 必须填写最终 ct_ target_id；所有 removed_*
 supporting_ids 只能来自输入；representative_ids 必须属于 supporting_ids。名称和定义使用中文，专有名词保留英文。只输出 JSON。
 
 精简输出结构：{CONTENT_TYPE_CONSOLIDATION_SCHEMA_HINT}
+Compact Content Type Table：{_compact_json(table.model_dump(mode="json"))}"""
+
+
+def build_content_type_purity_consolidation_prompt(
+    table: CompactContentTypeTable,
+) -> str:
+    return f"""你是 Content Type Semantic Purification Reduce，只处理内容表达、组织或使用形式。
+你的目标不是保留所有候选，而是产生最小充分、语义纯净、可跨领域复用的 Content Type 集合。
+
+先对每个候选独立判断 candidate_kind：content_type、domain、topic、entity、mixed 或 unsupported，再决定路由。必须实际执行 Topic Substitution Test：把主题替换成数据库、烹饪、摄影或游戏开发后，标签仍描述合理内容形式才算通过。
+只有 content_type 能直接 keep、merge_into 或 rename。domain/entity/topic/unsupported 必须使用对应 remove_as_*，不得因为有 supporting IDs 就强制并入最终节点。
+mixed 不得整体合并；只有存在清晰、可跨主题复用的形式成分时才 salvage_content_type，并写出 salvaged_content_type 和最终 target_node_id，否则 needs_review 或移除为最接近的非 Content Type 类型。
+
+通用示例：
+- “操作教程”在数据库、烹饪和摄影主题下都成立 → content_type。
+- “数据库索引原理”更换主题后不成立 → domain。
+- “PostgreSQL”是具体对象 → entity。
+- “某次版本发布争议”是阶段性议题 → topic。
+
+不得把知识主题、具体对象、短期议题或内容目标重新命名后伪装成 Content Type。最终节点不设固定 Top-K；数量由语义独立性、跨领域复用性、真实证据、长期浏览价值和边界共同决定，技术 Schema 上限 16 不是目标数量。
+必须为输入中的每个 candidate_id 输出且只输出一条 candidate_decisions。覆盖全部候选表示每个候选都有可追踪决定，不表示每个候选语义都被接纳。
+supporting_evidence 写 1～3 条来自候选 name/definition/includes/excludes 的短证据；不得引用未提供事实。所有最终 supporting_ids 只能来自输入，representative_ids 必须属于 supporting_ids。只输出 JSON。
+
+精简输出结构：{CONTENT_TYPE_PURITY_CONSOLIDATION_SCHEMA_HINT}
 Compact Content Type Table：{_compact_json(table.model_dump(mode="json"))}"""
 
 
@@ -611,6 +607,58 @@ def validate_content_type_draft(
             retryable=False,
         )
     _validate_content_type_decisions(value, candidate_ids=candidate_ids)
+
+
+def validate_content_type_draft_v2(
+    value: ContentTypeDraftV2,
+    *,
+    allowed_ids: set[str],
+    candidate_ids: set[str],
+) -> None:
+    ids = [item.id for item in value.content_types]
+    names = [normalized_name(item.name) for item in value.content_types]
+    if len(ids) != len(set(ids)) or len(names) != len(set(names)):
+        raise PipelineError(
+            "Purified Content Type Draft ID 或名称重复",
+            code="content_type_draft_collision",
+            retryable=False,
+        )
+    used = {short_id for item in value.content_types for short_id in item.supporting_ids}
+    if not used <= allowed_ids:
+        raise PipelineError(
+            "Purified Content Type Draft 引用了未知短 ID",
+            code="content_type_draft_support_mismatch",
+            retryable=False,
+        )
+    if any(
+        not set(item.representative_ids) <= set(item.supporting_ids)
+        for item in value.content_types
+    ):
+        raise PipelineError(
+            "Purified Content Type representative_ids 不属于 supporting_ids",
+            code="content_type_draft_representative_mismatch",
+            retryable=False,
+        )
+    decisions = value.candidate_decisions
+    decision_ids = [item.candidate_id for item in decisions]
+    if len(decision_ids) != len(set(decision_ids)) or set(decision_ids) != candidate_ids:
+        raise PipelineError(
+            "Purified candidate_decisions 未完整且唯一覆盖候选",
+            code="content_type_decision_coverage_mismatch",
+            retryable=False,
+        )
+    target_ids = {item.id for item in value.content_types}
+    invalid_targets = [
+        item.candidate_id
+        for item in decisions
+        if item.target_node_id is not None and item.target_node_id not in target_ids
+    ]
+    if invalid_targets:
+        raise PipelineError(
+            "Purified candidate_decisions 的 target_node_id 无效",
+            code="content_type_decision_target_mismatch",
+            retryable=False,
+        )
 
 
 def _validate_content_type_decisions(
@@ -823,26 +871,6 @@ def normalized_name(value: str) -> str:
 def stable_hash(value: Any) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
-
-
-def _cap_fields(
-    value: Any,
-    *,
-    text: dict[str, int] | None = None,
-    lists: dict[str, int] | None = None,
-) -> Any:
-    if not isinstance(value, dict):
-        return value
-    normalized = dict(value)
-    for key, limit in (text or {}).items():
-        item = normalized.get(key)
-        if isinstance(item, str):
-            normalized[key] = item[:limit]
-    for key, limit in (lists or {}).items():
-        item = normalized.get(key)
-        if isinstance(item, list):
-            normalized[key] = item[:limit]
-    return normalized
 
 
 def _short_id_order(value: str) -> tuple[int, str]:

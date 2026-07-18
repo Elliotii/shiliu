@@ -97,29 +97,26 @@ def _table() -> CompactCandidateTable:
     )
 
 
-def test_local_contract_caps_quantity_and_forbids_entities() -> None:
+def test_local_contract_rejects_overflow_instead_of_silent_truncation() -> None:
     candidate = _local("软件工程", ["C001"]).domains[0].model_dump(mode="json")
-    capped = LocalTopLevelDiscoveryOutput.model_validate(
-        {
-            "domains": [
-                {
-                    **candidate,
-                    "provisional_id": f"ld_{index}",
-                    "definition": "定义" * 100,
-                    "supporting_ids": [f"C{item:03d}" for item in range(1, 8)],
-                }
-                for index in range(9)
-            ],
-            "topic_hints": [
-                {"name": f"topic-{index}", "supporting_ids": ["C001"]}
-                for index in range(6)
-            ],
-        }
-    )
-    assert len(capped.domains) == 8
-    assert len(capped.domains[0].definition) == 140
-    assert len(capped.domains[0].supporting_ids) == 5
-    assert len(capped.topic_hints) == 5
+    with pytest.raises(ValidationError):
+        LocalTopLevelDiscoveryOutput.model_validate(
+            {
+                "domains": [
+                    {
+                        **candidate,
+                        "provisional_id": f"ld_{index}",
+                        "definition": "定义" * 100,
+                        "supporting_ids": [f"C{item:03d}" for item in range(1, 8)],
+                    }
+                    for index in range(9)
+                ],
+                "topic_hints": [
+                    {"name": f"topic-{index}", "supporting_ids": ["C001"]}
+                    for index in range(6)
+                ],
+            }
+        )
     with pytest.raises(ValidationError):
         LocalTopLevelDiscoveryOutput.model_validate(
             {"domains": [candidate], "entities": [{"name": "ToolX"}]}
@@ -191,15 +188,13 @@ def test_domain_draft_allows_only_two_levels_and_forbids_mixed_facets() -> None:
         TopLevelDomainDraft.model_validate(payload)
 
 
-def test_top_level_draft_caps_non_semantic_consolidation_notes() -> None:
+def test_top_level_draft_rejects_fields_that_previously_truncated() -> None:
     payload = _draft().model_dump(mode="json")
     payload["consolidation_notes"] = [f"note-{index}" for index in range(7)]
     payload["domains"][0]["includes"] = [f"include-{index}" for index in range(7)]
 
-    value = TopLevelDomainDraft.model_validate(payload)
-
-    assert value.consolidation_notes == [f"note-{index}" for index in range(5)]
-    assert value.domains[0].includes == [f"include-{index}" for index in range(5)]
+    with pytest.raises(ValidationError):
+        TopLevelDomainDraft.model_validate(payload)
 
 
 def test_rules_detect_entity_leak_and_localize_sibling_review() -> None:

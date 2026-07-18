@@ -11,6 +11,7 @@ from shiliu.taxonomy.candidates import (
     CompactContentTypeTable,
     ContentTypeDiscoveryOutputV1,
     ContentTypeDraftV1,
+    ContentTypeDraftV2,
     LOCAL_CONTENT_TYPE_CANDIDATE_LIMIT,
     TopLevelDomainDraft,
     normalized_name,
@@ -403,7 +404,7 @@ def evaluate_top_level_rules(
     allowed_ids: set[str],
     known_entity_names: set[str],
     content_type_names: set[str] | None = None,
-    content_type_draft: ContentTypeDraftV1 | None = None,
+    content_type_draft: ContentTypeDraftV1 | ContentTypeDraftV2 | None = None,
     content_type_table: CompactContentTypeTable | None = None,
     local_content_types: list[ContentTypeDiscoveryOutputV1] | None = None,
     evidence_by_id: dict[str, str] | None = None,
@@ -588,7 +589,8 @@ def evaluate_top_level_rules(
             item.candidate_id: item for item in content_type_draft.candidate_decisions
         }
         rejected_content_type_candidates = sum(
-            item.action.startswith("removed_") for item in decisions.values()
+            _content_type_decision_action(item).startswith("remove")
+            for item in decisions.values()
         )
         if local_content_types:
             candidates_by_name = {
@@ -603,7 +605,9 @@ def evaluate_top_level_rules(
                 batch_candidate_ids.discard(None)
                 if batch_candidate_ids and all(
                     decisions.get(candidate_id) is not None
-                    and decisions[candidate_id].action.startswith("removed_")
+                    and _content_type_decision_action(
+                        decisions[candidate_id]
+                    ).startswith("remove")
                     for candidate_id in batch_candidate_ids
                 ):
                     lost_content_type_batches += 1
@@ -732,6 +736,13 @@ def evaluate_top_level_rules(
             "overbroad_primary_domain_count": len(overbroad),
             "content_type_saturated_batch_count": saturated_content_type_batches,
         },
+    )
+
+
+def _content_type_decision_action(value: Any) -> str:
+    return str(
+        getattr(value, "recommended_action", None)
+        or getattr(value, "action", "")
     )
 
 

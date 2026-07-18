@@ -103,6 +103,7 @@ class Application:
         is_taxonomy_light = role in {
             "taxonomy_local", "taxonomy_content_type", "taxonomy_content_type_global",
             "taxonomy_validator",
+            "taxonomy_content_type_purity",
             "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
         }
         model_role = "formal_summary" if role.startswith("taxonomy_") else role
@@ -116,6 +117,7 @@ class Application:
                 if is_transcript or role in {
                     "taxonomy_local", "taxonomy_content_type",
                     "taxonomy_content_type_global", "taxonomy_validator",
+                    "taxonomy_content_type_purity",
                     "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
                 }
                 else True
