@@ -23,7 +23,7 @@ from shiliu.taxonomy.semantic_purity import build_budget_preflight, require_safe
 HYBRID_ENGINE_VERSION = "hybrid-controlled-facets-v1"
 HYBRID_PROTOCOL_VERSION = "checkpoint311-hybrid-controlled-facets-v1"
 ASSIGNMENT_SCHEMA_VERSION = "controlled-facet-assignment-v1"
-ASSIGNMENT_PROMPT_VERSION = "controlled-facet-assignment-v2"
+ASSIGNMENT_PROMPT_VERSION = "controlled-facet-assignment-v3"
 ENTITY_MAPPING_VERSION = "entity-object-type-mapping-v1"
 DYNAMIC_FACETING_VERSION = "dynamic-faceting-v1"
 QUALITY_GATE_VERSION = "checkpoint311-controlled-facet-gate-v1"
@@ -377,6 +377,7 @@ def build_assignment_prompt(
 Presentation Form 回答作者如何组织、表达或呈现。primary 必须是一个 PF ID或 unknown；secondary 最多一个且只有明显检索价值时填写。对象词、领域词、面试等场景词不能改变 Form 名称。
 
 Focus Object Type 只在内容围绕明确具体对象类别时填写，0～2 个。具体名称必须写在 source_entities，ID 只表示类别。先保留 deterministic 映射；untyped/unsupported Entity 可在文本证据充分时 model_assisted 选择一个已有 OT，也可留空。知识体系、任务流程、个人经验、主题观点、学习路径、技术方法、目标和抽象领域都不是 Object Type。
+source_entities 只能逐字复制该 content_id 的 entity_mappings.source_entity；该列表为空时 object_types 必须为空。每个 evidence 数组最多 3 条。
 
 Suggested Use Context 是可空 AI 建议，0～2 个；不得从 Domain 或收藏夹名称机械推断。Novelty 只能写 Proposal，不能用于本条正式赋值。
 
@@ -384,6 +385,22 @@ Domain 只使用冻结 ID，primary path 1～2 级，secondary paths 最多 2。
 
 Schema：{ASSIGNMENT_SCHEMA_HINT}
 输入：{_compact_json(payload)}"""
+
+
+def _build_repair_schema_hint(
+    entity_mappings: dict[str, list[EntityObjectMapping]],
+) -> str:
+    allowed = {
+        content_id: [mapping.source_entity for mapping in mappings]
+        for content_id, mappings in entity_mappings.items()
+    }
+    return (
+        ASSIGNMENT_SCHEMA_HINT
+        + "\nRepair constraints: source_entities may only copy exact strings from "
+        + _compact_json(allowed)
+        + ". If a content_id has no allowed source entity, object_types must be []. "
+        + "Each evidence array has at most 3 items."
+    )
 
 
 def _active_terms(vocabulary: ControlledVocabulary) -> list[dict[str, Any]]:
@@ -854,11 +871,13 @@ class HybridControlledFacetsService:
         assignments: list[HybridControlledAssignment] = []
         for index in range(0, 48, 12):
             batch_ids = selected_ids[index:index + 12]
-            prompt = build_assignment_prompt(rows=[rows[value] for value in batch_ids], domain_draft=domain, registry=registry, entity_mappings={value: mapping_by_id[value] for value in batch_ids})
-            budget = build_budget_preflight(stage_name=f"hybrid_assignment_batch_{index // 12 + 1:03d}", complexity_count=len(batch_ids), schema_hint_characters=len(ASSIGNMENT_SCHEMA_HINT), historical_completion_tokens=None, technical_max_tokens=8192, safety_margin_ratio=0.25, base_tokens=2048, tokens_per_item=256)
+            batch_mappings = {value: mapping_by_id[value] for value in batch_ids}
+            prompt = build_assignment_prompt(rows=[rows[value] for value in batch_ids], domain_draft=domain, registry=registry, entity_mappings=batch_mappings)
+            repair_schema_hint = _build_repair_schema_hint(batch_mappings)
+            budget = build_budget_preflight(stage_name=f"hybrid_assignment_batch_{index // 12 + 1:03d}", complexity_count=len(batch_ids), schema_hint_characters=len(repair_schema_hint), historical_completion_tokens=None, technical_max_tokens=8192, safety_margin_ratio=0.25, base_tokens=2048, tokens_per_item=256)
             require_safe_budget(budget)
             _write_json(run_dir / "budget-preflight" / f"assignment-{index // 12 + 1:03d}.json", budget.model_dump(mode="json"))
-            output = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="hybrid_controlled_assignment", unit_key=f"batch-{index // 12 + 1:03d}", prompt=prompt, max_tokens=budget.allocated_max_tokens, input_ids=batch_ids, validator=lambda value, expected=set(batch_ids), maps={key: mapping_by_id[key] for key in batch_ids}: validate_assignments(value, expected_ids=expected, domain_draft=domain, registry=registry, entity_mappings=maps))
+            output = self._model_stage(run_id=run_id, run_dir=run_dir, stage_name="hybrid_controlled_assignment", unit_key=f"batch-{index // 12 + 1:03d}", prompt=prompt, schema_hint=repair_schema_hint, max_tokens=budget.allocated_max_tokens, input_ids=batch_ids, validator=lambda value, expected=set(batch_ids), maps=batch_mappings: validate_assignments(value, expected_ids=expected, domain_draft=domain, registry=registry, entity_mappings=maps))
             assignments.extend(output.assignments)
         assignments.sort(key=lambda value: selected_ids.index(value.content_id))
         assignment_payload = {"version": ASSIGNMENT_SCHEMA_VERSION, "assignments": [value.model_dump(mode="json") for value in assignments]}
@@ -889,7 +908,7 @@ class HybridControlledFacetsService:
         self.run_repository.set_run_status(run_id, "completed", current_stage="checkpoint311_quality_gate", error_code=None if quality.passed else "hybrid_quality_failed", error_message=None if quality.passed else "Checkpoint 3.11 automated gate failed")
         return self.status(run_id)
 
-    def _model_stage(self, *, run_id: int, run_dir: Path, stage_name: str, unit_key: str, prompt: str, max_tokens: int, input_ids: list[str], validator) -> HybridAssignmentOutput:
+    def _model_stage(self, *, run_id: int, run_dir: Path, stage_name: str, unit_key: str, prompt: str, schema_hint: str, max_tokens: int, input_ids: list[str], validator) -> HybridAssignmentOutput:
         input_hash = _hash_text(prompt)
         stage = self.run_repository.ensure_stage(run_id, stage_name, unit_key, input_hash=input_hash)
         if stage["status"] == "completed":
@@ -901,7 +920,7 @@ class HybridControlledFacetsService:
         call_dir = run_dir / stage_name / unit_key / f"attempt-{attempt:02d}"
         caller = AuditedJsonCaller(provider=provider, repair_provider=repair)
         try:
-            value, audit = caller.call(call_dir=call_dir, prompt=prompt, prompt_version=ASSIGNMENT_PROMPT_VERSION, schema=HybridAssignmentOutput, schema_hint=ASSIGNMENT_SCHEMA_HINT, max_tokens=max_tokens, input_ids=input_ids, validator=validator, resume=call_dir.exists())
+            value, audit = caller.call(call_dir=call_dir, prompt=prompt, prompt_version=ASSIGNMENT_PROMPT_VERSION, schema=HybridAssignmentOutput, schema_hint=schema_hint, max_tokens=max_tokens, input_ids=input_ids, validator=validator, resume=call_dir.exists())
         except PipelineError as exc:
             self.run_repository.fail_stage(run_id, stage_name, unit_key, error_code=exc.code, error_message=str(exc), retryable=exc.retryable); raise
         self.run_repository.complete_stage(run_id, stage_name, unit_key, output_path=str(call_dir / "parsed-output.json"), output_hash=_stable_hash(value.model_dump(mode="json")), audit=_combined_audit(audit)); return value

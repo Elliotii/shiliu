@@ -19,6 +19,7 @@ from shiliu.taxonomy.controlled_facets import (
     HybridControlledAssignment,
     NoveltyProposal,
     SuggestedContextAssignment,
+    _build_repair_schema_hint,
     _query,
     build_derived_filter_proposals,
     build_dynamic_faceting,
@@ -289,6 +290,19 @@ def test_secondary_domain_shorthand_is_canonicalized_without_new_label() -> None
         entity_mappings={"C001": mappings},
     )
     assert output.assignments[0].domain.secondary_paths == [["d_02", "d_02_01"]]
+
+
+def test_repair_hint_limits_object_sources_to_each_cards_frozen_entities() -> None:
+    registry = load_controlled_vocabularies()
+    hint = _build_repair_schema_hint(
+        {
+            "C001": map_entities_to_object_types(["Paper A"], registry),
+            "C002": [],
+        }
+    )
+    assert '"C001":["Paper A"]' in hint
+    assert '"C002":[]' in hint
+    assert "object_types must be []" in hint
 
 
 def test_dynamic_faceting_only_exposes_nonzero_options() -> None:
