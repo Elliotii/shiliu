@@ -525,7 +525,6 @@ def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
             "taxonomy_content_type": provider_contract,
             "taxonomy_content_type_global": provider_contract,
         },
-        "content_type_consolidation_max_tokens": 8192,
     }
     selected = [f"C{index:03d}" for index in range(1, 41)]
     source_run_id = workflow.create_run(
@@ -546,6 +545,7 @@ def test_new_run_reuses_verified_batches_with_lineage_and_zero_attempts(
 
     target_protocol = {
         **protocol,
+        "content_type_consolidation_max_tokens": 8192,
         "reuse_from_run_id": source_run_id,
         "reuse_content_type_consolidation_from_run_id": source_run_id,
     }

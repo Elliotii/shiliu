@@ -960,7 +960,6 @@ class TaxonomyWorkflow:
             "content_type_draft_schema_version",
             "content_type_normalization_version",
             "content_type_consolidation_prompt_version",
-            "content_type_consolidation_max_tokens",
         )
         mismatched = [
             field
@@ -968,6 +967,20 @@ class TaxonomyWorkflow:
             if source_protocol.get(field) != target_protocol.get(field)
         ]
         role = "taxonomy_content_type_global"
+        source_content_type_budget = int(
+            source_protocol.get(
+                "content_type_consolidation_max_tokens",
+                CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS,
+            )
+        )
+        target_content_type_budget = int(
+            target_protocol.get(
+                "content_type_consolidation_max_tokens",
+                CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS,
+            )
+        )
+        if source_content_type_budget != target_content_type_budget:
+            mismatched.append("content_type_consolidation_max_tokens")
         if (source_protocol.get("providers") or {}).get(role) != (
             target_protocol.get("providers") or {}
         ).get(role):
@@ -994,12 +1007,7 @@ class TaxonomyWorkflow:
         )
         provider = self.provider_factory(role)
         input_hash = _hash_text(prompt)
-        expected_max_tokens = int(
-            target_protocol.get(
-                "content_type_consolidation_max_tokens",
-                CONTENT_TYPE_CONSOLIDATION_MAX_TOKENS,
-            )
-        )
+        expected_max_tokens = target_content_type_budget
         if (
             source_stage is None
             or source_stage.get("status") != "completed"
