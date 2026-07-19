@@ -1,0 +1,49 @@
+{
+  "model_id": "Qwen/Qwen3-Embedding-0.6B",
+  "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+  "local_path": "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B",
+  "output_dimension": 512,
+  "dtype": "float32",
+  "device": "mps:0",
+  "normalization": "L2",
+  "pooling": "model-defined last-token pooling",
+  "maximum_input_tokens": 512,
+  "query_instruction": "Given a Chinese or English AI and software engineering knowledge retrieval query, retrieve the most relevant evidence passages.",
+  "cold_load_seconds": 47.257571,
+  "warm_query_median_seconds": 0.034030,
+  "document_batch_count": 8,
+  "document_batch_seconds": 0.659287,
+  "process_max_rss_bytes": 596393984,
+  "norm_min": 0.9999999404,
+  "norm_max": 1.0000001192,
+  "all_finite": true,
+  "ascii": {
+    "queries": ["MCP", "LangGraph", "RAG", "FAISS", "Claude Code", "Codex", "OpenAI Agents SDK"],
+    "token_ids": {
+      "MCP": [44, 7123, 151643],
+      "LangGraph": [26223, 11212, 151643],
+      "RAG": [49, 1890, 151643],
+      "FAISS": [3627, 30849, 151643],
+      "Claude Code": [64117, 793, 6119, 151643],
+      "Codex": [63691, 327, 151643],
+      "OpenAI Agents SDK": [5002, 15469, 50254, 26623, 151643]
+    },
+    "pair_count": 21,
+    "identical_pair_count": 0,
+    "maximum_pairwise_cosine": 0.5791682005,
+    "minimum_pairwise_max_abs_difference": 0.1234175712
+  },
+  "mixed": {
+    "pair_count": 10,
+    "identical_pair_count": 0,
+    "maximum_pairwise_cosine": 0.5420550704,
+    "minimum_pairwise_max_abs_difference": 0.1339024454
+  },
+  "chinese_semantic": {
+    "pair_count": 3,
+    "identical_pair_count": 0,
+    "maximum_pairwise_cosine": 0.5036504269,
+    "minimum_pairwise_max_abs_difference": 0.1565520167
+  },
+  "hard_gate": "PASS"
+}

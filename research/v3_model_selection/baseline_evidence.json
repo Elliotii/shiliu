@@ -1,0 +1,26 @@
+{
+  "evidence_version": "v3-model-selection-baseline-v1",
+  "model_id": "BAAI/bge-small-zh-v1.5",
+  "revision": "46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59",
+  "dimension": 512,
+  "projection_version": "v3-dense-projection-v2",
+  "dense_index_version": "v3-stage2-dense-bge-small-zh-v1",
+  "formal_units": {"video": 142, "transcript_chunk": 1405, "total": 1547},
+  "cache_path": "/Users/elliot/Library/Caches/Shiliu/fastembed",
+  "cache_size_mib": 91,
+  "offline_recheck": {
+    "cold_load_seconds": 0.337661,
+    "warm_query_median_seconds": 0.001073,
+    "max_rss_bytes": 273121280
+  },
+  "full_dense_build_seconds": 0.766059,
+  "dense_database_delta_bytes": 5611520,
+  "ascii_collapse": {
+    "queries": ["MCP", "LangGraph", "RAG", "FAISS"],
+    "all_pairwise_exactly_identical": true,
+    "pairwise_cosine": 1.0000001192,
+    "maximum_absolute_difference": 0.0
+  },
+  "mixed_query_evidence": "distinct normalized vectors; Stage 2 report section 7.2",
+  "chinese_semantic_evidence": "distinct normalized vectors and relevant provenance-bearing results; Stage 2 report sections 7.3 and 9"
+}

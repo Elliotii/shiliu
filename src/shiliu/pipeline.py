@@ -4,7 +4,7 @@ import json
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Protocol
 
 from shiliu.artifacts import ArtifactStore, extract_urls
 from shiliu.asr import ASRService
@@ -39,6 +39,10 @@ from shiliu.prompts import (
 ProviderFactory = Callable[..., OpenAICompatibleProvider]
 ASRServiceFactory = Callable[[], ASRService]
 
+
+class _IndexCoordinator(Protocol):
+    def safe_sync_video(self, video_id: int, *, trigger: str) -> object: ...
+
 FULL_PIPELINE_MAX_SECONDS = 8 * 60
 SUMMARY_ONLY_MAX_SECONDS = 16 * 60
 
@@ -52,12 +56,14 @@ class PipelineService:
         artifacts: ArtifactStore,
         provider_factory: ProviderFactory,
         asr_service_factory: ASRServiceFactory | None = None,
+        index_coordinator: _IndexCoordinator | None = None,
     ) -> None:
         self.db = db
         self.adapter = adapter
         self.artifacts = artifacts
         self.provider_factory = provider_factory
         self.asr_service_factory = asr_service_factory
+        self.index_coordinator = index_coordinator
         self._automatic_asr_submissions = 0
 
     def begin_sync_cycle(self) -> None:
@@ -104,6 +110,7 @@ class PipelineService:
                 error_code=None,
                 error_message=None,
             )
+            self._sync_index(video_id, "subtitle_only_completed")
             return True
 
         if policy == "summary_only":
@@ -282,6 +289,7 @@ class PipelineService:
             error_code=None,
             error_message=None,
         )
+        self._sync_index(video_id, "source_subtitle_fetched")
         return True
 
     def _record_missing_subtitle(
@@ -429,6 +437,7 @@ class PipelineService:
             error_code=None,
             error_message=None,
         )
+        self._sync_index(video_id, "transcript_completed")
         return result
 
     def _run_summary_stage(
@@ -519,6 +528,7 @@ class PipelineService:
             error_message=None,
         )
         self.db.add_event("summary_completed", video_id, {"source_id": video["source_id"]})
+        self._sync_index(video_id, "summary_completed")
         return result
 
     def _run_refined_transcript_stage(
@@ -681,7 +691,12 @@ class PipelineService:
             video_id,
             {"decision": review.decision, "change_reasons": review.change_reasons},
         )
+        self._sync_index(video_id, "refinement_completed")
         return True
+
+    def _sync_index(self, video_id: int, trigger: str) -> None:
+        if self.index_coordinator is not None:
+            self.index_coordinator.safe_sync_video(video_id, trigger=trigger)
 
     def _record_refinement_failure(
         self, video_id: int, stage_name: StageName, attempt: int, error: PipelineError

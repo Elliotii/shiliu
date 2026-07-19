@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from shiliu.artifacts import ArtifactStore
@@ -12,6 +13,17 @@ from shiliu.library import LibraryService
 from shiliu.domain import PipelineError
 from shiliu.logging_config import configure_logging
 from shiliu.pipeline import PipelineService
+from shiliu.retrieval import (
+    HybridRetrievalService,
+    QwenEmbeddingProvider,
+    RetrievalIndexCoordinator,
+    RetrievalService,
+    SearchOrchestrator,
+    SearchResultConsolidator,
+    EvidenceEnricher,
+    ProductSearchService,
+    SQLiteExactDenseIndex,
+)
 from shiliu.sync import SyncService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
@@ -39,7 +51,6 @@ class Application:
         configure_logging(self.paths.logs_dir)
         self.db = Database(self.paths.database)
         self.db.initialize()
-        self.library = LibraryService(self.db)
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,
@@ -47,6 +58,34 @@ class Application:
             )
         self.adapter = BilibiliAdapter(Path(self.config.bili_cli_root))
         self.artifacts = ArtifactStore(self.paths.videos_dir)
+        self.retrieval = RetrievalService(db=self.db, artifacts=self.artifacts)
+        self._dense_retrieval: SQLiteExactDenseIndex | None = None
+        self._hybrid_retrieval: HybridRetrievalService | None = None
+        self._search_orchestrator: SearchOrchestrator | None = None
+        self._product_search: ProductSearchService | None = None
+        default_cache = (
+            self.paths.state_dir / "fastembed-cache"
+            if paths is not None
+            else Path.home() / "Library" / "Caches" / "Shiliu" / "fastembed"
+        )
+        self.fastembed_cache_dir = Path(
+            os.environ.get("SHILIU_FASTEMBED_CACHE_DIR", default_cache)
+        ).expanduser()
+        self.qwen_model_path = Path(
+            os.environ.get(
+                "SHILIU_QWEN_MODEL_PATH",
+                "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B",
+            )
+        ).expanduser()
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        self.retrieval_coordinator = RetrievalIndexCoordinator(
+            db=self.db,
+            lexical=self.retrieval,
+            dense_factory=lambda: self.dense_retrieval,
+        )
+        self.retrieval_coordinator.initialize_schema()
+        self.library = LibraryService(self.db, self.retrieval_coordinator)
         self.taxonomy_corpus = TaxonomyCorpusService(self.db, self.artifacts)
         self.taxonomy_facets = FacetExtractionService(
             repository=self.taxonomy_corpus.repository,
@@ -141,6 +180,7 @@ class Application:
             artifacts=self.artifacts,
             provider_factory=self.provider,
             asr_service_factory=self.asr_service,
+            index_coordinator=self.retrieval_coordinator,
         )
         self.sync_service = SyncService(
             db=self.db,
@@ -148,7 +188,47 @@ class Application:
             pipeline=self.pipeline,
             favorite_id=self.config.favorite_id,
             lock_path=self.paths.sync_lock,
+            index_coordinator=self.retrieval_coordinator,
         )
+
+    @property
+    def dense_retrieval(self) -> SQLiteExactDenseIndex:
+        if self._dense_retrieval is None:
+            self._dense_retrieval = SQLiteExactDenseIndex(
+                db=self.db,
+                provider=QwenEmbeddingProvider(model_path=self.qwen_model_path),
+            )
+        return self._dense_retrieval
+
+    @property
+    def hybrid_retrieval(self) -> HybridRetrievalService:
+        if self._hybrid_retrieval is None:
+            self._hybrid_retrieval = HybridRetrievalService(
+                lexical=self.retrieval, dense=self.dense_retrieval
+            )
+        return self._hybrid_retrieval
+
+    @property
+    def search_orchestrator(self) -> SearchOrchestrator:
+        if self._search_orchestrator is None:
+            self._search_orchestrator = SearchOrchestrator(
+                db=self.db,
+                lexical=self.retrieval,
+                dense_factory=lambda: self.dense_retrieval,
+                hybrid_factory=lambda: self.hybrid_retrieval,
+            )
+        return self._search_orchestrator
+
+    @property
+    def product_search(self) -> ProductSearchService:
+        if self._product_search is None:
+            self._product_search = ProductSearchService(
+                db=self.db,
+                raw_search=self.search_orchestrator,
+                consolidator=SearchResultConsolidator(),
+                enricher=EvidenceEnricher(db=self.db, artifacts=self.artifacts),
+            )
+        return self._product_search
 
     def provider(self, role: str = "formal_summary") -> OpenAICompatibleProvider:
         try:
@@ -200,4 +280,5 @@ class Application:
             adapter=self.adapter,
             artifacts=self.artifacts,
             provider=provider,
+            index_coordinator=self.retrieval_coordinator,
         )

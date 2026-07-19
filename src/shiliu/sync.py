@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import TracebackType
-from typing import Callable
+from typing import Callable, Protocol
 
 from shiliu.bilibili import BilibiliAdapter
 from shiliu.db import Database, utc_now
@@ -22,6 +22,10 @@ QUIET_HOURS_ENABLED = False
 
 class SyncAlreadyRunning(RuntimeError):
     pass
+
+
+class _IndexCoordinator(Protocol):
+    def safe_sync_video(self, video_id: int, *, trigger: str) -> object: ...
 
 
 class ProcessLock:
@@ -64,6 +68,7 @@ class SyncService:
         now_factory: Callable[[], datetime] = datetime.now,
         sleep: Callable[[float], None] = time.sleep,
         randint: Callable[[int, int], int] = random.randint,
+        index_coordinator: _IndexCoordinator | None = None,
     ) -> None:
         self.db = db
         self.adapter = adapter
@@ -73,6 +78,7 @@ class SyncService:
         self.now_factory = now_factory
         self.sleep = sleep
         self.randint = randint
+        self.index_coordinator = index_coordinator
 
     def sync(
         self,
@@ -190,6 +196,7 @@ class SyncService:
                     result.current_count += len(items)
                     if not bool(source.get("baseline_initialized")):
                         queued = self.db.initialize_source_memberships(source_id, items)
+                        self._sync_source_videos(source_id, "source_baseline_initialized")
                         result.baseline_created = True
                         result.messages.append(
                             f"{source['folder_title']} 已建立基线，历史待处理 {queued} 条"
@@ -201,6 +208,7 @@ class SyncService:
                             items,
                             processing_profile=profile,
                         )
+                        self._sync_source_videos(source_id, "source_snapshot_recorded")
                         discovered_ids.extend(new_ids)
                         result.discovered_count += len(new_ids)
 
@@ -244,6 +252,21 @@ class SyncService:
                 error_summary=f"{type(exc).__name__}: {exc}",
             )
             raise
+
+    def _sync_source_videos(self, source_id: int, trigger: str) -> None:
+        if self.index_coordinator is None:
+            return
+        with self.db.connect() as connection:
+            video_ids = [
+                int(row[0])
+                for row in connection.execute(
+                    "SELECT DISTINCT video_id FROM video_source_memberships "
+                    "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                    (source_id,),
+                )
+            ]
+        for video_id in video_ids:
+            self.index_coordinator.safe_sync_video(video_id, trigger=trigger)
 
     def _process_new_and_due(
         self,
@@ -308,6 +331,10 @@ class SyncService:
             video_id = self.db.materialize_history_membership(
                 int(membership["source_id"]), str(membership["bvid"])
             )
+            if self.index_coordinator is not None:
+                self.index_coordinator.safe_sync_video(
+                    video_id, trigger="history_membership_materialized"
+                )
             self.db.update_sync_run(
                 run_id,
                 current_phase="history",
@@ -402,6 +429,16 @@ class SyncService:
             for item in items:
                 self.db.mark_seen(item.bvid)
             self.db.reconcile_current_items(current_ids)
+            if self.index_coordinator is not None:
+                with self.db.connect() as connection:
+                    legacy_video_ids = [
+                        int(row[0])
+                        for row in connection.execute("SELECT id FROM videos ORDER BY id")
+                    ]
+                for video_id in legacy_video_ids:
+                    self.index_coordinator.safe_sync_video(
+                        video_id, trigger="legacy_snapshot_recorded"
+                    )
             profile = "fast" if result.mode == SyncMode.MANUAL else "formal"
             for item in new_items:
                 self.db.create_video(

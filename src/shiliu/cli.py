@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import sys
+import time
 from dataclasses import replace
 from pathlib import Path
 
@@ -13,6 +15,16 @@ from shiliu.db import Database
 from shiliu.domain import SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
+from shiliu.retrieval import (
+    ProductSearchError,
+    ProductSearchRequest,
+    SearchExecutionError,
+    SearchFilterRequest,
+    SearchRequest,
+)
+from shiliu.retrieval.dense import (
+    provider_identity,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,6 +39,46 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1", choices=["127.0.0.1"], help="V0 只允许本机监听")
     serve.add_argument("--port", type=int, default=18520)
     subcommands.add_parser("install-launchd", help="安装每小时同步任务")
+    retrieval = subcommands.add_parser("retrieval", help="管理 V3 本地词法检索索引")
+    retrieval_commands = retrieval.add_subparsers(
+        dest="retrieval_command", required=True
+    )
+    retrieval_commands.add_parser("rebuild", help="完整重建 FTS5 词法索引")
+    retrieval_commands.add_parser("stats", help="显示词法索引统计与一致性")
+    retrieval_commands.add_parser("dense-rebuild", help="构建或增量刷新 Dense 索引")
+    retrieval_commands.add_parser("dense-stats", help="显示 Dense 索引统计")
+    retrieval_sync_video = retrieval_commands.add_parser(
+        "sync-video", help="同步一个 Video 的词法和 Dense 索引"
+    )
+    retrieval_sync_video.add_argument("video_id", type=int)
+    retrieval_commands.add_parser("sync-status", help="显示 Retrieval 同步状态")
+    retrieval_commands.add_parser("retry-failed", help="重试失败或 stale 的 Video")
+    retrieval_commands.add_parser("reconcile", help="按当前 Product 状态协调全部 Video")
+    retrieval_search = retrieval_commands.add_parser("search", help="执行本地词法检索")
+    retrieval_search.add_argument("query")
+    retrieval_search.add_argument(
+        "--scope", "--level", dest="scope",
+        choices=("video", "transcript_chunk", "all"), default="all"
+    )
+    retrieval_search.add_argument("--top-k", type=int, default=20)
+    retrieval_search.add_argument(
+        "--mode", choices=("lexical", "dense", "hybrid", "auto"), default="lexical"
+    )
+    retrieval_search.add_argument("--trace", action="store_true")
+    retrieval_search.add_argument("--grouped", action="store_true")
+    retrieval_search.add_argument("--result-limit", type=int, default=10)
+    retrieval_search.add_argument("--max-windows", type=int, default=2)
+    retrieval_search.add_argument("--source-db-id", type=int)
+    retrieval_search.add_argument("--folder-id", type=int)
+    retrieval_search.add_argument("--favorite-time-from", type=int)
+    retrieval_search.add_argument("--favorite-time-to", type=int)
+    retrieval_search.add_argument(
+        "--reading-state", choices=("unread", "in_progress", "read")
+    )
+    retrieval_search.add_argument("--marked", choices=("true", "false"))
+    retrieval_search.add_argument("--uploader")
+    retrieval_search.add_argument("--archived", choices=("true", "false"))
+    retrieval_search.add_argument("--include-ignored", action="store_true")
     taxonomy = subcommands.add_parser("taxonomy", help="运行可恢复的 V3 Taxonomy 工作流")
     taxonomy_commands = taxonomy.add_subparsers(dest="taxonomy_command", required=True)
     facet_spike = taxonomy_commands.add_parser("facet-spike", help="运行 10～20 条 Facet 小样本 Spike")
@@ -185,6 +237,108 @@ def main(argv: list[str] | None = None) -> int:
         app = Application()
         destination = install_launch_agent(app.paths)
         print(destination)
+        return 0
+    if arguments.command == "retrieval":
+        app = Application()
+        if arguments.retrieval_command == "rebuild":
+            print(json.dumps(app.retrieval.rebuild().as_dict(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "stats":
+            print(json.dumps(app.retrieval.statistics(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "dense-rebuild":
+            print(json.dumps(app.dense_retrieval.rebuild().as_dict(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "dense-stats":
+            print(json.dumps(app.dense_retrieval.statistics(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "sync-video":
+            started = time.monotonic()
+            result = app.retrieval_coordinator.sync_video(
+                arguments.video_id, trigger="cli_sync_video"
+            )
+            payload = result.as_dict()
+            payload.update(
+                lexical_index_version="v3-stage1-lexical-v1",
+                dense_index_version=provider_identity(
+                    app.dense_retrieval.provider
+                ).dense_index_version,
+                duration_seconds=round(time.monotonic() - started, 6),
+            )
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0 if result.success else 1
+        if arguments.retrieval_command == "sync-status":
+            print(json.dumps(app.retrieval_coordinator.status(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "retry-failed":
+            result = app.retrieval_coordinator.retry_failed()
+            print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2))
+            return 0 if result.failed == 0 else 1
+        if arguments.retrieval_command == "reconcile":
+            started = time.monotonic()
+            result = app.retrieval_coordinator.reconcile_all(trigger="cli_reconcile")
+            payload = result.as_dict()
+            payload["duration_seconds"] = round(time.monotonic() - started, 6)
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0 if result.failed == 0 else 1
+        try:
+            filters = SearchFilterRequest(
+                source_db_id=arguments.source_db_id,
+                folder_id=arguments.folder_id,
+                favorite_time_from=arguments.favorite_time_from,
+                favorite_time_to=arguments.favorite_time_to,
+                reading_state=arguments.reading_state,
+                marked=_cli_bool(arguments.marked),
+                uploader=arguments.uploader,
+                archived=_cli_bool(arguments.archived),
+                ignored=arguments.include_ignored,
+            )
+            if arguments.grouped:
+                request = ProductSearchRequest(
+                    query=arguments.query,
+                    mode=arguments.mode,
+                    scope=arguments.scope,
+                    result_limit=arguments.result_limit,
+                    max_windows_per_video=arguments.max_windows,
+                    filters=filters,
+                )
+                response = app.product_search.search(request)
+            else:
+                request = SearchRequest(
+                    query=arguments.query, mode=arguments.mode, scope=arguments.scope,
+                    raw_top_k=arguments.top_k, filters=filters,
+                )
+                response = app.search_orchestrator.search(request)
+        except ValueError as exc:
+            print(
+                json.dumps(
+                    {"ok": False, "error": {"code": "invalid_search_request", "message": str(exc)}},
+                    ensure_ascii=False,
+                ),
+                file=sys.stderr,
+            )
+            return 2
+        except SearchExecutionError as exc:
+            print(
+                json.dumps({"ok": False, "error": exc.as_dict()}, ensure_ascii=False),
+                file=sys.stderr,
+            )
+            return 2
+        except ProductSearchError as exc:
+            print(
+                json.dumps({"ok": False, "error": exc.as_dict()}, ensure_ascii=False),
+                file=sys.stderr,
+            )
+            return 2
+        payload = response.as_dict()
+        if arguments.trace:
+            raw_trace = app.search_orchestrator.get_trace(response.trace_id)
+            payload["trace"] = raw_trace
+            if arguments.grouped:
+                payload["presentation"] = app.product_search.get_presentation(
+                    response.trace_id
+                )
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "facet-spike":
         app = Application()
@@ -483,6 +637,12 @@ def run_setup() -> int:
         save_config(config, paths)
         print("launchd 已安装；当前已临时取消静默时段，历史积压和自动处理均可全天运行。")
     return 0
+
+
+def _cli_bool(value: str | None) -> bool | None:
+    if value is None:
+        return None
+    return value == "true"
 
 
 if __name__ == "__main__":

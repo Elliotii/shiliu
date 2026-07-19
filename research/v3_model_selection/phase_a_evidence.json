@@ -1,0 +1,47 @@
+{
+  "gate_version": "v3-model-selection-gate-v1",
+  "captured_at": "2026-07-20",
+  "environment": {
+    "python": "3.12.13",
+    "macos": "26.5.1 build 25F80",
+    "architecture": "arm64",
+    "physical_memory_bytes": 25769803776,
+    "free_disk_gib": 588,
+    "hf_cli": "/Users/elliot/new-systems/agent-job-prep/Shiliu/.venv/bin/hf"
+  },
+  "dependencies": {
+    "installation_command": ".venv/bin/python -m pip install -e '.[model-selection]'",
+    "torch": "2.13.0",
+    "transformers": "5.14.1",
+    "sentence_transformers": "5.6.0",
+    "huggingface_hub": "1.24.0",
+    "fastembed": "0.8.0",
+    "selected_installed_directories_kib": 802132,
+    "pip_check": "No broken requirements found"
+  },
+  "cache_roots": {
+    "formal_fastembed": "/Users/elliot/Library/Caches/Shiliu/fastembed",
+    "huggingface": "/Users/elliot/.cache/huggingface",
+    "model_selection": "/Users/elliot/Library/Caches/Shiliu/model-selection"
+  },
+  "harness": {
+    "location": "research/v3_model_selection",
+    "formal_database_mode": "mode=ro",
+    "candidate_storage": "independent SQLite database outside the repository",
+    "output_dimension": 512,
+    "maximum_input_tokens": 512,
+    "query_instruction": "Given a Chinese or English AI and software engineering knowledge retrieval query, retrieve the most relevant evidence passages.",
+    "model_selection_tests": "9 passed",
+    "full_suite": "332 passed"
+  },
+  "qwen_checkpoint": {
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "metadata_last_modified": "2026-04-20T02:45:58.000Z",
+    "target": "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B",
+    "dry_run_files": 12,
+    "dry_run_total": "1.2G",
+    "target_size_after_dry_run": "8K metadata/lock files only",
+    "model_files_downloaded": false
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "model_id": "Qwen/Qwen3-Embedding-0.6B",
+  "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+  "dimension": 512,
+  "experimental_database": "/Users/elliot/Library/Caches/Shiliu/model-selection/experiments/qwen3-embedding-0.6b-512.db",
+  "experimental_database_bytes": 7032832,
+  "total_units": 1547,
+  "video_units": 142,
+  "transcript_chunk_units": 1405,
+  "successful_vectors": 1547,
+  "failed_vectors": 0,
+  "duplicate_count": 0,
+  "damaged_vector_count": 0,
+  "build_duration_seconds": 569.049285,
+  "max_rss_bytes": 634159104,
+  "formal_dense_fingerprint_before": "c7b86066a485ec6b0103b52f7df66a98f780a6dd68cd0347c5d061450021db77",
+  "formal_dense_fingerprint_after": "c7b86066a485ec6b0103b52f7df66a98f780a6dd68cd0347c5d061450021db77",
+  "formal_dense_unchanged": true,
+  "comparison_queries": 16,
+  "comparison_duration_seconds": 7.710318,
+  "comparison_evidence_path": "/Users/elliot/Library/Caches/Shiliu/model-selection/experiments/qwen_comparison.json"
+}

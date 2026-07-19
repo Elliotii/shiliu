@@ -32,6 +32,12 @@ from shiliu.domain import PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
 from shiliu.library import LibraryNotFound, LibraryValidationError
+from shiliu.retrieval import (
+    ProductSearchError,
+    ProductSearchRequest,
+    SearchExecutionError,
+    SearchRequest,
+)
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 
 
@@ -280,12 +286,54 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             raise HTTPException(404, "同步任务不存在")
         return JSONResponse({"ok": True, "run": run})
 
+    @web.post("/api/search/raw")
+    async def raw_search(payload: SearchRequest, request: Request) -> JSONResponse:
+        try:
+            response = await asyncio.to_thread(
+                _core(request).search_orchestrator.search, payload
+            )
+        except SearchExecutionError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, **response.as_dict()})
+
+    @web.post("/api/search")
+    async def product_search(payload: ProductSearchRequest, request: Request) -> JSONResponse:
+        try:
+            response = await asyncio.to_thread(_core(request).product_search.search, payload)
+        except SearchExecutionError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        except ProductSearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, **response.as_dict()})
+
+    @web.get("/api/search/traces/{trace_id}")
+    async def search_trace(trace_id: str, request: Request) -> JSONResponse:
+        core = _core(request)
+        raw_trace = core.search_orchestrator.get_trace(trace_id)
+        if raw_trace is None:
+            raise HTTPException(404, "Search Trace 不存在")
+        presentation = core.product_search.get_presentation(trace_id)
+        return JSONResponse(
+            {
+                "ok": True,
+                "trace": raw_trace,
+                "raw_trace": raw_trace,
+                "presentation": presentation,
+            }
+        )
+
     @web.post("/api/videos/{video_id}/ignore")
     async def ignore(video_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
-        core.db.set_ignored(video_id, True)
+        core.library.set_ignored(video_id, True)
         return JSONResponse({"ok": True})
 
     @web.post("/api/videos/{video_id}/restore")
@@ -293,7 +341,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core = _core(request)
         if core.db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
-        core.db.set_ignored(video_id, False)
+        core.library.set_ignored(video_id, False)
         return JSONResponse({"ok": True})
 
     @web.patch("/api/videos/{video_id}/reading-state")
@@ -502,6 +550,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 history_limit=payload.history_limit,
             )
             queued = core.db.initialize_source_memberships(source_db_id, items)
+            _sync_source_video_ids(core, source_db_id, "source_added")
         except PipelineError as exc:
             return JSONResponse(
                 {"ok": False, "error": str(exc), "code": exc.code}, status_code=400
@@ -521,6 +570,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
         core.db.set_source_status(source_db_id, "paused")
+        _sync_source_video_ids(core, source_db_id, "source_paused")
         return JSONResponse({"ok": True})
 
     @web.post("/api/sources/{source_db_id}/resume")
@@ -529,6 +579,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
         core.db.set_source_status(source_db_id, "active")
+        _sync_source_video_ids(core, source_db_id, "source_resumed")
         return JSONResponse({"ok": True})
 
     @web.post("/api/sources/{source_db_id}/move")
@@ -556,7 +607,18 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             save_config(config, core.paths)
             core.config = config
             core.sync_service.favorite_id = None
+        with core.db.connect() as connection:
+            affected_video_ids = [
+                int(row[0])
+                for row in connection.execute(
+                    "SELECT DISTINCT video_id FROM video_source_memberships "
+                    "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                    (source_db_id,),
+                )
+            ]
         core.db.remove_source(source_db_id)
+        for video_id in affected_video_ids:
+            core.retrieval_coordinator.safe_sync_video(video_id, trigger="source_removed")
         return JSONResponse({"ok": True})
 
     @web.post("/api/setup/models")
@@ -879,6 +941,20 @@ def _start_background_refinement(
         app.state.background_thread = thread
         thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}
+
+
+def _sync_source_video_ids(core: Application, source_db_id: int, trigger: str) -> None:
+    with core.db.connect() as connection:
+        video_ids = [
+            int(row[0])
+            for row in connection.execute(
+                "SELECT DISTINCT video_id FROM video_source_memberships "
+                "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                (source_db_id,),
+            )
+        ]
+    for video_id in video_ids:
+        core.retrieval_coordinator.safe_sync_video(video_id, trigger=trigger)
 
 
 def _start_background_asr(
