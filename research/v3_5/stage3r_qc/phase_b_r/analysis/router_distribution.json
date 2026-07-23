@@ -1,0 +1,24 @@
+{
+  "hybrid": {
+    "q0_router_distribution": {
+      "not_invoked_explicit_hybrid": 10
+    },
+    "q1_router_distribution": {
+      "not_invoked_explicit_hybrid": 10
+    },
+    "q2_router_distribution": {
+      "not_invoked_explicit_hybrid": 29
+    }
+  },
+  "product_default": {
+    "q0_router_distribution": {
+      "not_invoked_explicit_lexical": 10
+    },
+    "q1_router_distribution": {
+      "not_invoked_explicit_lexical": 10
+    },
+    "q2_router_distribution": {
+      "not_invoked_explicit_lexical": 29
+    }
+  }
+}

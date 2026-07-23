@@ -1,0 +1,18 @@
+{
+  "approved_query_hash_match": true,
+  "canonical_identity_used": true,
+  "effective_configs_compared": true,
+  "exact_only_deduplication": true,
+  "external_calls": 0,
+  "heldout_accessed": false,
+  "index_rebuilt": false,
+  "insufficient_excluded_from_recall": true,
+  "known_positive_smoke_passed": true,
+  "lexical_rerun": false,
+  "phase_b_lexical_reused": true,
+  "product_default_assumed_auto": false,
+  "product_path_resolved": true,
+  "q2_reranked": false,
+  "q2_union_only": true,
+  "queries_modified": false
+}

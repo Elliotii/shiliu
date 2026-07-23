@@ -1,0 +1,32 @@
+{
+  "hybrid": {
+    "embedding_cache_hits": 0,
+    "embedding_calls": 49,
+    "exact_duplicate_reuse_count": 0,
+    "logical_queries": 49,
+    "new_calls": 49,
+    "q0_new_calls": 10,
+    "q1_new_calls": 10,
+    "q2_new_calls": 29,
+    "reused_results": 0,
+    "unique_queries": 49
+  },
+  "lexical": {
+    "logical_queries": 49,
+    "new_calls": 0,
+    "source": "reused_phase_b"
+  },
+  "preflight": {
+    "embedding_calls": 1,
+    "hybrid_calls": 1,
+    "lexical_calls": 1
+  },
+  "product_default": {
+    "embedding_cache_hits": 0,
+    "embedding_calls": 0,
+    "logical_queries": 49,
+    "new_calls": 0,
+    "reused_results": 49,
+    "unique_queries": 49
+  }
+}

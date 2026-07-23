@@ -1,0 +1,11 @@
+{
+  "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+  "dimension": 512,
+  "embedding_mode": "mrl-first-512-normalized",
+  "input_policy_version": "v3-qwen-input-512-v1",
+  "model_id": "Qwen/Qwen3-Embedding-0.6B",
+  "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+  "projection_version": "v3-dense-projection-qwen-v1",
+  "provider_version": "v3-qwen3-embedding-provider-v1",
+  "query_instruction_version": "v3-qwen-query-instruction-v1"
+}

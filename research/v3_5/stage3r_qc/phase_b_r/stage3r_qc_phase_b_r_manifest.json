@@ -1,0 +1,18 @@
+{
+  "case_count": 10,
+  "decision": [
+    "frozen_hybrid_capable_but_product_default_gap"
+  ],
+  "evidence_bearing_case_count": 9,
+  "insufficient_diagnostic_case_count": 1,
+  "report": "research/v3_5/stage3r_qc/phase_b_r/V3_5_STAGE3R_QC_PHASE_B_R_MODE_CORRECTED_DIAGNOSTIC_REPORT.md",
+  "review_packet": "research/v3_5/stage3r_qc/phase_b_r/STAGE3R_QC_PHASE_B_R_HUMAN_REVIEW_PACKET.md",
+  "runner_version": "v3.5-stage3r-qc-phase-b-r-v1",
+  "stage": "Stage 3R-QC Phase B-R",
+  "status": "complete",
+  "views": {
+    "H": "new_explicit_hybrid",
+    "L": "reused_phase_b_explicit_lexical",
+    "P": "reused_from_L_product_default_lexical"
+  }
+}

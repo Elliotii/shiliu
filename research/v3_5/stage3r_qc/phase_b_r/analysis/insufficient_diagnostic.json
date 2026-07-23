@@ -1,0 +1,239 @@
+{
+  "case_id": "C2C_ee3fac675fc7d408",
+  "hybrid": {
+    "q0": {
+      "candidate_chunk_count": 48,
+      "candidate_video_count": 10,
+      "effective_mode": "hybrid",
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "query": "AI 自动导入 Godot 精灵动画相比手工导入节省多少时间，错误率如何？",
+      "requested_mode": "hybrid",
+      "router_decision": null,
+      "router_invoked": false,
+      "router_reason_codes": [],
+      "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true,
+      "top_candidates": [
+        {
+          "rank": 1,
+          "source_id": "BV1kqAUzAEho",
+          "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+          "top_evidence": []
+        },
+        {
+          "rank": 2,
+          "source_id": "BV1atjU6KEJF",
+          "title": "2026-06-20 AI 编程中的测试和 Loop",
+          "top_evidence": []
+        },
+        {
+          "rank": 3,
+          "source_id": "BV1kLT46aEKp",
+          "title": "手搓AI应用前先去Github上找找",
+          "top_evidence": []
+        }
+      ]
+    },
+    "q1": {
+      "candidate_chunk_count": 47,
+      "candidate_video_count": 10,
+      "effective_mode": "hybrid",
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "query": "AI 自动导入 Godot 精灵动画",
+      "requested_mode": "hybrid",
+      "router_decision": null,
+      "router_invoked": false,
+      "router_reason_codes": [],
+      "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true,
+      "top_candidates": [
+        {
+          "rank": 1,
+          "source_id": "BV1kqAUzAEho",
+          "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+          "top_evidence": []
+        },
+        {
+          "rank": 2,
+          "source_id": "BV1UaPmzrESw",
+          "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+          "top_evidence": []
+        },
+        {
+          "rank": 3,
+          "source_id": "BV11N7s6oEtb",
+          "title": "2026年，将AI作为游戏玩法的技术瓶颈",
+          "top_evidence": []
+        }
+      ]
+    },
+    "q2": {
+      "all_intents_empty": false,
+      "cache_hit_count": 0,
+      "cross_intent_rerank": false,
+      "intent_results": [
+        {
+          "candidate_chunk_count": 48,
+          "candidate_video_count": 10,
+          "empty_result": false,
+          "exact_query_cache_hit": false,
+          "intent_index": 1,
+          "query": "Godot 精灵动画自动导入",
+          "target_transcript_chunk_hit": true,
+          "target_video_best_rank": 1,
+          "target_video_hit": true,
+          "target_video_level_hit": true
+        },
+        {
+          "candidate_chunk_count": 46,
+          "candidate_video_count": 10,
+          "empty_result": false,
+          "exact_query_cache_hit": false,
+          "intent_index": 2,
+          "query": "AI 导入精灵动画流程",
+          "target_transcript_chunk_hit": true,
+          "target_video_best_rank": 1,
+          "target_video_hit": true,
+          "target_video_level_hit": true
+        },
+        {
+          "candidate_chunk_count": 49,
+          "candidate_video_count": 10,
+          "empty_result": false,
+          "exact_query_cache_hit": false,
+          "intent_index": 3,
+          "query": "自动导入和手工导入对比",
+          "target_transcript_chunk_hit": true,
+          "target_video_best_rank": 1,
+          "target_video_hit": true,
+          "target_video_level_hit": true
+        }
+      ],
+      "intents": [
+        "Godot 精灵动画自动导入",
+        "AI 导入精灵动画流程",
+        "自动导入和手工导入对比"
+      ],
+      "logical_intent_count": 3,
+      "merge_rule": "union_of_canonical_video_identities",
+      "new_retrieval_call_count": 3,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_hit_intents": [
+        1,
+        2,
+        3
+      ],
+      "target_video_per_intent_ranks": {
+        "1": 1,
+        "2": 1,
+        "3": 1
+      },
+      "union_candidate_video_count": 21,
+      "unique_execution_query_count": 3
+    },
+    "query_contract_classification": "already_retrievable",
+    "reused_from_view": null
+  },
+  "identity_failure": false,
+  "label_role": "insufficient_diagnostic",
+  "lexical": {
+    "q0": {
+      "candidate_video_count": 0,
+      "empty_result": true,
+      "query": "AI 自动导入 Godot 精灵动画相比手工导入节省多少时间，错误率如何？",
+      "target_video_best_rank": null,
+      "target_video_hit": false
+    },
+    "q1": {
+      "candidate_video_count": 0,
+      "empty_result": true,
+      "query": "AI 自动导入 Godot 精灵动画",
+      "target_video_best_rank": null,
+      "target_video_hit": false
+    },
+    "q2": {
+      "all_intents_empty": true,
+      "intent_results": [
+        {
+          "empty_result": true,
+          "query": "Godot 精灵动画自动导入"
+        },
+        {
+          "empty_result": true,
+          "query": "AI 导入精灵动画流程"
+        },
+        {
+          "empty_result": true,
+          "query": "自动导入和手工导入对比"
+        }
+      ],
+      "intents": [
+        "Godot 精灵动画自动导入",
+        "AI 导入精灵动画流程",
+        "自动导入和手工导入对比"
+      ],
+      "target_video_best_rank": null,
+      "target_video_hit": false
+    },
+    "query_contract_classification": "unresolved_under_mode",
+    "source": "reused_phase_b"
+  },
+  "notes": "Insufficient-label diagnostic excluded from main recall.",
+  "product_default": {
+    "effective_mode": "lexical",
+    "q0": {
+      "candidate_video_count": 0,
+      "empty_result": true,
+      "query": "AI 自动导入 Godot 精灵动画相比手工导入节省多少时间，错误率如何？",
+      "target_video_best_rank": null,
+      "target_video_hit": false
+    },
+    "q1": {
+      "candidate_video_count": 0,
+      "empty_result": true,
+      "query": "AI 自动导入 Godot 精灵动画",
+      "target_video_best_rank": null,
+      "target_video_hit": false
+    },
+    "q2": {
+      "all_intents_empty": true,
+      "intent_results": [
+        {
+          "empty_result": true,
+          "query": "Godot 精灵动画自动导入"
+        },
+        {
+          "empty_result": true,
+          "query": "AI 导入精灵动画流程"
+        },
+        {
+          "empty_result": true,
+          "query": "自动导入和手工导入对比"
+        }
+      ],
+      "intents": [
+        "Godot 精灵动画自动导入",
+        "AI 导入精灵动画流程",
+        "自动导入和手工导入对比"
+      ],
+      "target_video_best_rank": null,
+      "target_video_hit": false
+    },
+    "query_contract_classification": "unresolved_under_mode",
+    "reused_from_view": "lexical",
+    "router_decisions": [],
+    "source": "reused_phase_b"
+  },
+  "query_type": "actual_result_verification",
+  "retrieval_mode_classification": "explicit_hybrid_required",
+  "runtime_failure": false
+}

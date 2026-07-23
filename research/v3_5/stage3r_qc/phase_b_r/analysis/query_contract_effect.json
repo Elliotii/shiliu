@@ -1,0 +1,62 @@
+{
+  "hybrid": {
+    "q0_recall": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q1_recall": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q1_recovery_over_q0": 0,
+    "q2_additional_recovery_over_q0_q1": 0,
+    "q2_recall": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "unresolved_count": 0
+  },
+  "lexical": {
+    "q0_recall": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q1_recall": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q1_recovery_over_q0": 0,
+    "q2_additional_recovery_over_q0_q1": 0,
+    "q2_recall": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "unresolved_count": 9
+  },
+  "product_default": {
+    "q0_recall": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q1_recall": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q1_recovery_over_q0": 0,
+    "q2_additional_recovery_over_q0_q1": 0,
+    "q2_recall": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "unresolved_count": 9
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "candidate_builder_calls": 0,
+  "external_embedding_calls": 0,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "heldout_accessed": false,
+  "known_positive_held_out": false,
+  "selector_calls": 0
+}

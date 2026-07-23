@@ -1,0 +1,21 @@
+{
+  "effective_fields_compared": [
+    "mode",
+    "router_behavior",
+    "normalization",
+    "lexical_version",
+    "dense_provider",
+    "embedding_model",
+    "rrf_version",
+    "top_k",
+    "raw_top_k",
+    "scope",
+    "filters",
+    "index_identity"
+  ],
+  "product_default_effective_config_equals_hybrid": false,
+  "product_default_effective_config_equals_lexical": true,
+  "product_default_reused_from_hybrid": false,
+  "product_default_reused_from_lexical": true,
+  "resolved": true
+}

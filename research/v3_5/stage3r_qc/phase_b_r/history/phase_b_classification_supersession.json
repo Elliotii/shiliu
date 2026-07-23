@@ -1,0 +1,5 @@
+{
+  "global_classification_superseded": true,
+  "phase_b_lexical_data_valid": true,
+  "replacement_source": "scoring/case_results.mode_corrected.jsonl"
+}

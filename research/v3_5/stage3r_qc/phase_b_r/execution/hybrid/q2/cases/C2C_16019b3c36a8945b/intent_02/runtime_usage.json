@@ -1,0 +1,7 @@
+{
+  "embedding_cache_hits": 0,
+  "exact_query_cache_hit": false,
+  "external_calls": 0,
+  "local_query_embedding_calls": 1,
+  "retrieval_call_count": 1
+}

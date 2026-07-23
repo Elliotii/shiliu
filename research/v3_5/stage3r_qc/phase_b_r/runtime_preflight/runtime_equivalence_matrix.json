@@ -1,0 +1,19 @@
+{
+  "compared_fields": [
+    "mode",
+    "router_behavior",
+    "normalization",
+    "lexical_version",
+    "dense_provider",
+    "embedding_model",
+    "rrf_version",
+    "top_k",
+    "raw_top_k",
+    "scope",
+    "filters",
+    "index_identity"
+  ],
+  "lexical_equals_hybrid": false,
+  "lexical_equals_product_default": true,
+  "product_default_equals_hybrid": false
+}

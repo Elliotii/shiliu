@@ -1,0 +1,15 @@
+{
+  "preserved": [
+    "Phase B Lexical execution",
+    "Phase B Lexical empty-result metrics",
+    "Phase B input freeze",
+    "Phase B runtime audit"
+  ],
+  "reason": [
+    "Phase B only executed Explicit Lexical",
+    "Product-default and Hybrid were not evaluated"
+  ],
+  "superseded": [
+    "Phase B global persistent_retrieval_gap interpretation"
+  ]
+}

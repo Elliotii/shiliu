@@ -1,0 +1,20 @@
+{
+  "decision": [
+    "frozen_hybrid_capable_but_product_default_gap"
+  ],
+  "external_calls": 0,
+  "heldout_accessed": false,
+  "hybrid_q0_q1_q2_completed": true,
+  "index_rebuilt": false,
+  "lexical_rerun": false,
+  "product_default_effective_mode": "lexical",
+  "product_default_rerun": false,
+  "product_default_reused_from_lexical": true,
+  "query_contract_and_retrieval_mode_effects_separated": true,
+  "recorded_at": "2026-07-23T21:42:41+00:00",
+  "retrieval_configuration_modified": false,
+  "runner_version": "v3.5-stage3r-qc-phase-b-r-v1",
+  "runtime_preflight_passed": true,
+  "stage": "Stage 3R-QC Phase B-R",
+  "status": "complete"
+}

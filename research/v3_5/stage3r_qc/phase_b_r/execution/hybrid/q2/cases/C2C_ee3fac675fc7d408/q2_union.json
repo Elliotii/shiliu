@@ -1,0 +1,141 @@
+{
+  "cross_intent_rerank": false,
+  "merge_rule": "union_of_canonical_video_identities",
+  "union": [
+    {
+      "canonical_video_identity": "BV11N7s6oEtb",
+      "per_intent_ranks": {
+        "1": 8,
+        "2": 5
+      }
+    },
+    {
+      "canonical_video_identity": "BV13pqGB2E2G",
+      "per_intent_ranks": {
+        "2": 2
+      }
+    },
+    {
+      "canonical_video_identity": "BV15CwBzsEmt",
+      "per_intent_ranks": {
+        "2": 8,
+        "3": 5
+      }
+    },
+    {
+      "canonical_video_identity": "BV15wGR6CEhY",
+      "per_intent_ranks": {
+        "2": 3
+      }
+    },
+    {
+      "canonical_video_identity": "BV1CbktBxErc",
+      "per_intent_ranks": {
+        "1": 9,
+        "3": 6
+      }
+    },
+    {
+      "canonical_video_identity": "BV1EbdbBHEPa",
+      "per_intent_ranks": {
+        "1": 5
+      }
+    },
+    {
+      "canonical_video_identity": "BV1G8CFYvEjt",
+      "per_intent_ranks": {
+        "3": 2
+      }
+    },
+    {
+      "canonical_video_identity": "BV1K2546oEkg",
+      "per_intent_ranks": {
+        "1": 2
+      }
+    },
+    {
+      "canonical_video_identity": "BV1UaPmzrESw",
+      "per_intent_ranks": {
+        "1": 3
+      }
+    },
+    {
+      "canonical_video_identity": "BV1XrEZ6NEuD",
+      "per_intent_ranks": {
+        "1": 4
+      }
+    },
+    {
+      "canonical_video_identity": "BV1atjU6KEJF",
+      "per_intent_ranks": {
+        "3": 9
+      }
+    },
+    {
+      "canonical_video_identity": "BV1co9yBhEvW",
+      "per_intent_ranks": {
+        "2": 10
+      }
+    },
+    {
+      "canonical_video_identity": "BV1cyMi6tEqU",
+      "per_intent_ranks": {
+        "1": 10,
+        "2": 6
+      }
+    },
+    {
+      "canonical_video_identity": "BV1fRSfBWE5X",
+      "per_intent_ranks": {
+        "1": 7,
+        "2": 7
+      }
+    },
+    {
+      "canonical_video_identity": "BV1gPGE6iELk",
+      "per_intent_ranks": {
+        "3": 4
+      }
+    },
+    {
+      "canonical_video_identity": "BV1ixAVz9EaQ",
+      "per_intent_ranks": {
+        "1": 6,
+        "2": 4,
+        "3": 8
+      }
+    },
+    {
+      "canonical_video_identity": "BV1kLT46aEKp",
+      "per_intent_ranks": {
+        "3": 10
+      }
+    },
+    {
+      "canonical_video_identity": "BV1kMVt6mEgr",
+      "per_intent_ranks": {
+        "2": 9
+      }
+    },
+    {
+      "canonical_video_identity": "BV1kqAUzAEho",
+      "per_intent_ranks": {
+        "1": 1,
+        "2": 1,
+        "3": 1
+      }
+    },
+    {
+      "canonical_video_identity": "BV1qTYizcEN3",
+      "per_intent_ranks": {
+        "3": 3
+      }
+    },
+    {
+      "canonical_video_identity": "BV1yDLG6DE39",
+      "per_intent_ranks": {
+        "3": 7
+      }
+    }
+  ]
+}

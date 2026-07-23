@@ -1,0 +1,65 @@
+{
+  "all_intents_empty": false,
+  "cache_hit_count": 0,
+  "cross_intent_rerank": false,
+  "intent_results": [
+    {
+      "candidate_chunk_count": 48,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 1,
+      "query": "completion-only 作用",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 8,
+      "target_video_hit": true,
+      "target_video_level_hit": false
+    },
+    {
+      "candidate_chunk_count": 47,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 2,
+      "query": "NEFTune 作用和调参",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    },
+    {
+      "candidate_chunk_count": 49,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 3,
+      "query": "SFT completion-only 和 NEFTune 怎么选",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    }
+  ],
+  "intents": [
+    "completion-only 作用",
+    "NEFTune 作用和调参",
+    "SFT completion-only 和 NEFTune 怎么选"
+  ],
+  "logical_intent_count": 3,
+  "merge_rule": "union_of_canonical_video_identities",
+  "new_retrieval_call_count": 3,
+  "target_video_best_rank": 1,
+  "target_video_hit": true,
+  "target_video_hit_intents": [
+    1,
+    2,
+    3
+  ],
+  "target_video_per_intent_ranks": {
+    "1": 8,
+    "2": 1,
+    "3": 1
+  },
+  "union_candidate_video_count": 21,
+  "unique_execution_query_count": 3
+}

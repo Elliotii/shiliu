@@ -1,0 +1,24 @@
+{
+  "effective_mode": "hybrid",
+  "fallback_state": {
+    "fallback": false,
+    "fallback_reason": null
+  },
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "requested_mode": "hybrid",
+  "router_decision": null,
+  "router_invoked": false,
+  "router_reason_codes": [],
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "search_trace_id": "b10e0887-5dad-4231-abee-b610f49468e4"
+}

@@ -1,0 +1,8 @@
+{
+  "classification_counts": {
+    "explicit_hybrid_required": 9
+  },
+  "lexical_to_product_recovery_count": 0,
+  "persistent_across_modes_count": 0,
+  "product_to_hybrid_recovery_count": 9
+}

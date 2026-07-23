@@ -1,0 +1,23 @@
+{
+  "effective_config_equal": true,
+  "effective_mode": "lexical",
+  "equivalence_fields": [
+    "mode",
+    "router_behavior",
+    "normalization",
+    "lexical_version",
+    "dense_provider",
+    "embedding_model",
+    "rrf_version",
+    "top_k",
+    "raw_top_k",
+    "scope",
+    "filters",
+    "index_identity"
+  ],
+  "new_retrieval_call_count": 0,
+  "query_kind": "q2",
+  "reused_from_view": "L",
+  "source": "research/v3_5/stage3r_qc/phase_b",
+  "view": "P"
+}

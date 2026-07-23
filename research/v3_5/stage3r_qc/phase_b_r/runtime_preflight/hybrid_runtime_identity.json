@@ -1,0 +1,15 @@
+{
+  "dense_provider": "v3-qwen3-embedding-provider-v1",
+  "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+  "filters": {},
+  "index_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "lexical_version": "v3-stage1-lexical-v1",
+  "mode": "hybrid",
+  "normalization": "SearchPlanner.normalize_query",
+  "raw_top_k": 50,
+  "router_behavior": "explicit_mode_no_auto_routing",
+  "rrf_version": "v3-stage2-rrf-v1",
+  "runtime_identity_sha256": "f4faac9a9d40675ce1825d49954c4cdc213a6607257f3f4d4ac40cd0862d0ac8",
+  "scope": "all",
+  "top_k": 10
+}

@@ -1,0 +1,65 @@
+{
+  "all_intents_empty": false,
+  "cache_hit_count": 0,
+  "cross_intent_rerank": false,
+  "intent_results": [
+    {
+      "candidate_chunk_count": 42,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 1,
+      "query": "RAG 生产工程能力",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    },
+    {
+      "candidate_chunk_count": 41,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 2,
+      "query": "RAG 离线评测",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 2,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    },
+    {
+      "candidate_chunk_count": 43,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 3,
+      "query": "RAG 在线质量评测",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 2,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    }
+  ],
+  "intents": [
+    "RAG 生产工程能力",
+    "RAG 离线评测",
+    "RAG 在线质量评测"
+  ],
+  "logical_intent_count": 3,
+  "merge_rule": "union_of_canonical_video_identities",
+  "new_retrieval_call_count": 3,
+  "target_video_best_rank": 1,
+  "target_video_hit": true,
+  "target_video_hit_intents": [
+    1,
+    2,
+    3
+  ],
+  "target_video_per_intent_ranks": {
+    "1": 1,
+    "2": 2,
+    "3": 2
+  },
+  "union_candidate_video_count": 13,
+  "unique_execution_query_count": 3
+}

@@ -1,0 +1,14 @@
+{
+  "dense_provider": null,
+  "embedding_model": null,
+  "filters": {},
+  "index_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "lexical_version": "v3-stage1-lexical-v1",
+  "mode": "lexical",
+  "normalization": "SearchPlanner.normalize_query",
+  "raw_top_k": 50,
+  "router_behavior": "explicit_mode_no_auto_routing",
+  "rrf_version": null,
+  "scope": "all",
+  "top_k": 10
+}

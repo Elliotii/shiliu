@@ -1,0 +1,63 @@
+{
+  "all_intents_empty": false,
+  "cache_hit_count": 0,
+  "cross_intent_rerank": false,
+  "intent_results": [
+    {
+      "candidate_chunk_count": 49,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 1,
+      "query": "应用云部署流程",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 3,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    },
+    {
+      "candidate_chunk_count": 46,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 2,
+      "query": "自动化测试上线流程",
+      "target_transcript_chunk_hit": false,
+      "target_video_best_rank": null,
+      "target_video_hit": false,
+      "target_video_level_hit": false
+    },
+    {
+      "candidate_chunk_count": 50,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 3,
+      "query": "云部署回滚机制",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": null,
+      "target_video_hit": false,
+      "target_video_level_hit": false
+    }
+  ],
+  "intents": [
+    "应用云部署流程",
+    "自动化测试上线流程",
+    "云部署回滚机制"
+  ],
+  "logical_intent_count": 3,
+  "merge_rule": "union_of_canonical_video_identities",
+  "new_retrieval_call_count": 3,
+  "target_video_best_rank": 3,
+  "target_video_hit": true,
+  "target_video_hit_intents": [
+    1
+  ],
+  "target_video_per_intent_ranks": {
+    "1": 3,
+    "2": null,
+    "3": null
+  },
+  "union_candidate_video_count": 22,
+  "unique_execution_query_count": 3
+}

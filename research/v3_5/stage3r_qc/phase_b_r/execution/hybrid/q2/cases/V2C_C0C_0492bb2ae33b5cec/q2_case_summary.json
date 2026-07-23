@@ -1,0 +1,50 @@
+{
+  "all_intents_empty": false,
+  "cache_hit_count": 0,
+  "cross_intent_rerank": false,
+  "intent_results": [
+    {
+      "candidate_chunk_count": 47,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 1,
+      "query": "Python 数字类型",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    },
+    {
+      "candidate_chunk_count": 49,
+      "candidate_video_count": 10,
+      "empty_result": false,
+      "exact_query_cache_hit": false,
+      "intent_index": 2,
+      "query": "Python 类型转换注意事项",
+      "target_transcript_chunk_hit": true,
+      "target_video_best_rank": 1,
+      "target_video_hit": true,
+      "target_video_level_hit": true
+    }
+  ],
+  "intents": [
+    "Python 数字类型",
+    "Python 类型转换注意事项"
+  ],
+  "logical_intent_count": 2,
+  "merge_rule": "union_of_canonical_video_identities",
+  "new_retrieval_call_count": 2,
+  "target_video_best_rank": 1,
+  "target_video_hit": true,
+  "target_video_hit_intents": [
+    1,
+    2
+  ],
+  "target_video_per_intent_ranks": {
+    "1": 1,
+    "2": 1
+  },
+  "union_candidate_video_count": 15,
+  "unique_execution_query_count": 2
+}

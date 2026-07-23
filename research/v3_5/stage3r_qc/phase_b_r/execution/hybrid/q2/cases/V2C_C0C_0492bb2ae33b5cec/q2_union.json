@@ -1,0 +1,101 @@
+{
+  "cross_intent_rerank": false,
+  "merge_rule": "union_of_canonical_video_identities",
+  "union": [
+    {
+      "canonical_video_identity": "BV12nw4z6Eoa",
+      "per_intent_ranks": {
+        "2": 9
+      }
+    },
+    {
+      "canonical_video_identity": "BV14fTc6TEi5",
+      "per_intent_ranks": {
+        "1": 5
+      }
+    },
+    {
+      "canonical_video_identity": "BV15J5u6HEP4",
+      "per_intent_ranks": {
+        "1": 3,
+        "2": 3
+      }
+    },
+    {
+      "canonical_video_identity": "BV1BxL561EaF",
+      "per_intent_ranks": {
+        "2": 8
+      }
+    },
+    {
+      "canonical_video_identity": "BV1JA411c7VT",
+      "per_intent_ranks": {
+        "1": 9
+      }
+    },
+    {
+      "canonical_video_identity": "BV1Lk4y117Cb",
+      "per_intent_ranks": {
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "canonical_video_identity": "BV1T21PBqErg",
+      "per_intent_ranks": {
+        "1": 4,
+        "2": 2
+      }
+    },
+    {
+      "canonical_video_identity": "BV1YR5E6EE9o",
+      "per_intent_ranks": {
+        "2": 10
+      }
+    },
+    {
+      "canonical_video_identity": "BV1aawjzpEmS",
+      "per_intent_ranks": {
+        "1": 2,
+        "2": 5
+      }
+    },
+    {
+      "canonical_video_identity": "BV1gmWDeLEMZ",
+      "per_intent_ranks": {
+        "2": 7
+      }
+    },
+    {
+      "canonical_video_identity": "BV1hr6EBBEhM",
+      "per_intent_ranks": {
+        "1": 10
+      }
+    },
+    {
+      "canonical_video_identity": "BV1iVoVBgERD",
+      "per_intent_ranks": {
+        "2": 4
+      }
+    },
+    {
+      "canonical_video_identity": "BV1mcAfzqEnE",
+      "per_intent_ranks": {
+        "1": 8
+      }
+    },
+    {
+      "canonical_video_identity": "BV1nkdqByEtR",
+      "per_intent_ranks": {
+        "1": 6,
+        "2": 6
+      }
+    },
+    {
+      "canonical_video_identity": "BV1ukRrBMEfp",
+      "per_intent_ranks": {
+        "1": 7
+      }
+    }
+  ]
+}

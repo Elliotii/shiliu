@@ -1,0 +1,19 @@
+{
+  "candidate_source": "research/v3_eval/eval_pool_candidates.jsonl",
+  "frozen_modes_with_candidates": [
+    "dense",
+    "hybrid",
+    "lexical"
+  ],
+  "hybrid_known_positive_returns_results": true,
+  "hybrid_result_count": 10,
+  "lexical_known_positive_returns_results": true,
+  "lexical_result_count": 10,
+  "product_default_known_positive_returns_results": true,
+  "product_result_count": 10,
+  "product_reused_from_lexical": true,
+  "query": "MCP",
+  "query_id": "Q01",
+  "selection_rule": "first locked, non-held-out formal-eval query with frozen lexical and hybrid candidates",
+  "source": "research/v3_eval/eval_queries.locked.jsonl"
+}

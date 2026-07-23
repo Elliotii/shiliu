@@ -1,0 +1,68 @@
+{
+  "hybrid": {
+    "q0_empty": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q1_empty": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q2_all_intents_empty": {
+      "denominator": 9,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "q2_per_intent_empty": {
+      "denominator": 26,
+      "numerator": 0,
+      "rate": 0.0
+    }
+  },
+  "lexical": {
+    "q0_empty": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q1_empty": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q2_all_intents_empty": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q2_per_intent_empty": {
+      "denominator": 26,
+      "numerator": 26,
+      "rate": 1.0
+    }
+  },
+  "product_default": {
+    "q0_empty": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q1_empty": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q2_all_intents_empty": {
+      "denominator": 9,
+      "numerator": 9,
+      "rate": 1.0
+    },
+    "q2_per_intent_empty": {
+      "denominator": 26,
+      "numerator": 26,
+      "rate": 1.0
+    }
+  }
+}

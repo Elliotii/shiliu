@@ -1,0 +1,12 @@
+{
+  "candidate_source": "research/v3_eval/eval_pool_candidates.jsonl",
+  "frozen_modes_with_candidates": [
+    "dense",
+    "hybrid",
+    "lexical"
+  ],
+  "query": "MCP",
+  "query_id": "Q01",
+  "selection_rule": "first locked, non-held-out formal-eval query with frozen lexical and hybrid candidates",
+  "source": "research/v3_eval/eval_queries.locked.jsonl"
+}
