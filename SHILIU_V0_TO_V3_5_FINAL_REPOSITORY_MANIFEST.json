@@ -93,7 +93,7 @@
     {
       "authority": "repository-wide V0-V3.5 closeout",
       "path": "SHILIU_V0_TO_V3_5_FINAL_CLOSEOUT.md",
-      "sha256": "871722800d97e4e5fb29f123c9a923da67c9ef5feea491e09923630427c8804f",
+      "sha256": "be9a24aab6810f7561636ec5f1c240bce807e4c0852471b5d633846600d16381",
       "status": "final",
       "supersedes": null
     }
@@ -304,8 +304,8 @@
   ],
   "repository": {
     "branch": "codex/v3-domain-completion",
-    "commit": "CONTENT_BASELINE_COMMIT_PENDING",
-    "commit_date": "2026-07-29T00:00:00+08:00",
+    "commit": "0e804f85b360d0127cc53bf16edcddbc3a64f223",
+    "commit_date": "2026-07-29T00:46:31+08:00",
     "commit_role": "content_baseline_parent_of_manifest_packaging_commit",
     "historical_v3_5_source_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a",
     "manifest_packaging_commit": "SELF",

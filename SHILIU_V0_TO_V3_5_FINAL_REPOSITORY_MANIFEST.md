@@ -11,8 +11,8 @@ video identifiers, evidence text, labels, groups, decisions, or failures.
 | Field | Value |
 |---|---|
 | Branch | `codex/v3-domain-completion` |
-| Content baseline commit | `CONTENT_BASELINE_COMMIT_PENDING` |
-| Commit date | `2026-07-29T00:00:00+08:00` |
+| Content baseline commit | `0e804f85b360d0127cc53bf16edcddbc3a64f223` |
+| Commit date | `2026-07-29T00:46:31+08:00` |
 | Manifest packaging commit | `SELF` |
 | Expected final working tree | `clean_after_manifest_packaging_commit` |
 
@@ -43,7 +43,7 @@ to contain its own hash.
 | `V3_5_FINAL_CLOSEOUT.md` | `8ff300e13b9cca4283085082d37d0fa32568cb47be0e9086e7875c0da1297df8` | `final` | V3.5 formal narrative closeout |
 | `V3_5_FINAL_CLOSEOUT.json` | `79e85a945e985ad3e87c464924250f0568a6be4dc7776399b8ab8f3606ab4d38` | `final` | V3.5 machine-readable closeout |
 | `V3_5_V4_READINESS_REPORT.md` | `876a426f1a0108ffd34e7c8bad7192a1c240c35e5fabd04051d53f84f7a846a2` | `historical_final_readiness` | V3.5 readiness record; future-version suggestions not inherited |
-| `SHILIU_V0_TO_V3_5_FINAL_CLOSEOUT.md` | `871722800d97e4e5fb29f123c9a923da67c9ef5feea491e09923630427c8804f` | `final` | repository-wide V0-V3.5 closeout |
+| `SHILIU_V0_TO_V3_5_FINAL_CLOSEOUT.md` | `be9a24aab6810f7561636ec5f1c240bce807e4c0852471b5d633846600d16381` | `final` | repository-wide V0-V3.5 closeout |
 
 ## Superseded documents
 

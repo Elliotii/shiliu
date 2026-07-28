@@ -1,8 +1,8 @@
 # Shiliu V0–V3.5 Final Closeout
 
-Status: `final_repository_packaging_in_progress`  
-Closeout date: 2026-07-29  
-Scope: V0 through V3.5  
+Status: `final`
+Closeout date: 2026-07-29
+Scope: V0 through V3.5
 Future-version design or implementation: excluded
 
 This document records only aggregate evaluation facts and artifact identities.
@@ -232,15 +232,15 @@ assets are never expanded in this Closeout.
 ## 10. Final commit and handoff status
 
 ```yaml
-content_baseline_commit: CONTENT_BASELINE_COMMIT_PENDING
+content_baseline_commit: 0e804f85b360d0127cc53bf16edcddbc3a64f223
 manifest_packaging_commit: SELF
 branch: codex/v3-domain-completion
 expected_final_working_tree: clean
-self_contained_commit: pending_final_git_packaging
-safe_for_continued_development: pending_final_git_packaging
+self_contained_commit: true
+safe_for_continued_development: true
 ```
 
 The Repository Manifest records the content-baseline parent commit. The final
 packaging commit is represented as `SELF`, because a Git commit cannot contain
-its own hash. This section is finalized after the content-baseline commit is
-created and verified.
+its own hash. The content-baseline commit was created only after both the
+working tree and a clean staged-index export passed the deterministic suite.
