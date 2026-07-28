@@ -583,6 +583,14 @@ tool_calls: max_12
 answer_calls: 1
 repeated_query_stop: true
 no_new_evidence_stop: true
+focused_video_limit: 8
+consecutive_no_new_evidence_limit: 2
+window_default_each_side: 2
+window_max_each_side: 4
+final_evidence_context_chars: 12000
+total_runtime_seconds: 360
+search_phase_cutoff_seconds: 150
+final_answer_reserve_seconds: 210
 ```
 
 Deterministic runtime code, not the Prompt, enforces:
@@ -597,6 +605,14 @@ Deterministic runtime code, not the Prompt, enforces:
 
 The Agent may recommend an action, but the runtime guard decides whether it is
 allowed.
+
+The 360-second total deadline covers the complete Deep request, including final
+answer generation. New decisions and Tools may not start after the 150-second
+search cutoff. If usable Evidence exists, the runtime moves to shared answer
+finalization and preserves up to 210 seconds for the initial answer and the
+existing bounded same-context repair. V4 Structured Provider calls must be
+bounded by the remaining monotonic deadline; this does not change Fast defaults
+or historical Provider call semantics.
 
 Stop mapping:
 
@@ -884,10 +900,12 @@ The following are reconsidered only after a recorded real failure:
 The design and Goal 1 research integration are approved. Goal 1 completed
 implementation, deterministic/full regression verification, real DeepSeek
 Vertical Slice validation, and Main Session Integration Review on 2026-07-29.
-The next action is:
+The bounded Goal 2 plan and 360/150/210-second runtime envelope were approved
+on 2026-07-29. The next action is:
 
 ```text
-prepare the bounded Goal 2 Execution Prompt after user authorization
+start a separate bounded Goal 2 Execution Session using
+V4_G2_EXECUTION_PROMPT.md
 ```
 
 Goal 2 must preserve the shared Ask, Answer, Citation, Evidence, Provider and

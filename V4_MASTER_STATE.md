@@ -2,9 +2,9 @@
 
 ```yaml
 document_role: current_state_authority
-status: goal_1_complete
+status: goal_2_prompt_ready
 implementation_status: goal_1_complete
-current_phase: goal_2_planning_ready
+current_phase: goal_2_execution_ready
 last_updated: 2026-07-29
 ```
 
@@ -79,6 +79,14 @@ tool_calls: max_12
 answer_calls: 1
 repeated_query_stop: true
 no_new_evidence_stop: true
+focused_video_limit: 8
+consecutive_no_new_evidence_limit: 2
+window_default_each_side: 2
+window_max_each_side: 4
+final_evidence_context_chars: 12000
+total_runtime_seconds: 360
+search_phase_cutoff_seconds: 150
+final_answer_reserve_seconds: 210
 ```
 
 此外，Deep Search 必须由确定性代码执行重复 Segment、Context Budget 和总运行时间限制。上述数字是第一版安全包络，Vertical Slice 后依据真实质量、延迟和成本调整。
@@ -140,6 +148,7 @@ no_new_evidence_stop: true
   - `V4_MASTER_STATE.md`
   - `V4_DECISION_LEDGER.md`
   - `V4_G1_EXECUTION_PROMPT.md`
+  - `V4_G2_EXECUTION_PROMPT.md`
 - Goal 1 — Complete Grounded RAG 已实现并通过主 Session Integration Review：
   - `POST /api/ask` Fast 模式；
   - Query Analysis 与最多两个 bounded rewrites；
@@ -191,11 +200,11 @@ Context Truncation；这些是后续轻量 Eval 和产品优化输入，不阻�
 
 ```text
 Goal 1 已完成并通过 Integration Review
-→ 与用户确认 Goal 2 的有界实施计划
-→ 形成 V4 Goal 2 Execution Prompt
-→ 再启动独立 Goal 2 Execution Session
+→ Goal 2 有界实施计划与 360/150/210 秒运行包络已获用户批准
+→ V4 Goal 2 Execution Prompt 已形成
+→ 可启动独立 Goal 2 Execution Session
 ```
 
-在用户授权前不创建 Goal 2 Execution Prompt，也不开始 Goal 2 实现。Goal 2
-必须复用 Goal 1 已落地的共享 Ask、Answer、Citation、Evidence、Provider 和
-Trace 合同，不得重新实现第二套后端。
+Goal 2 实现尚未开始。新的 Goal 2 Execution Session 必须完整阅读
+`V4_G2_EXECUTION_PROMPT.md`，复用 Goal 1 已落地的共享 Ask、Answer、
+Citation、Evidence、Provider 和 Trace 合同，不得重新实现第二套后端。

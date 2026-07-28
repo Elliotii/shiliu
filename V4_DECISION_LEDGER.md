@@ -581,3 +581,43 @@ Transcript、Summary、Taxonomy 和 Single-flight 链的行为。
 
 Goal 2 的结构化 Agent Action 和共享 Grounded Answer 必须沿用该边界。任何
 更复杂的退避、熔断或 Provider 平台能力仍不属于 V4。
+
+## D-019 — Deep Search 采用 360/150/210 秒确定性时间包络
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: deep_runtime_deadline
+```
+
+**决定**
+
+Deep Search 第一版采用：
+
+```yaml
+total_runtime_seconds: 360
+search_phase_cutoff_seconds: 150
+final_answer_reserve_seconds: 210
+```
+
+- 360 秒覆盖完整 Deep 请求，不只是 Agent 搜索循环。
+- 150 秒后不得开始新的 Agent Decision 或 Tool。
+- 如果已有可用 Evidence，立即进入共享 Grounded Answer Finalization。
+- Final Answer 与现有一次受控 Same-context Repair 共用最多 210 秒余额。
+- Provider 调用必须被剩余 Monotonic Deadline 限制。
+
+**理由**
+
+Goal 1 的真实 DeepSeek Vertical Slice 已观察到约 37.6–112.1 秒延迟，且一次
+Repair 可能成为完整回答的一部分。Deep Search 如果把全部时间用于搜索，会
+在已经找到 Evidence 后仍无法可靠完成最终结构化回答。将搜索阶段和回答保留
+时间显式分开，可以同时保持动态搜索价值、总成本上界和可解释停止。
+
+**影响**
+
+- Goal 2 必须使用 Fake Clock 和受控 Provider Timeout 测试整个包络。
+- `budget_exhausted` 必须能表达 Search、Context 或总时间预算停止。
+- 可以为 V4 Structured Provider 增加可选的 Per-invocation Timeout/Deadline，
+  但 Fast 默认行为和历史 Provider API 语义必须保持不变。
+- 该包络是 Vertical Slice 的第一版安全值，不是生产 SLA；调整必须依据真实
+  延迟、成本与回答质量，并由主 Session 记录。
