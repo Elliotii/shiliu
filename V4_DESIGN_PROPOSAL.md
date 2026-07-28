@@ -1,6 +1,6 @@
 # Shiliu V4 Design Proposal
 
-Status: `review_ready`
+Status: `goal_1_implementation_ready`
 Date: `2026-07-29`
 Scope: `Shiliu V4 only`
 
@@ -92,6 +92,7 @@ answer_blocks:
 
 citations:
   - citation_id: string
+    citation_identity_version: string
     video_id: integer
     bvid: string
     title: string
@@ -121,6 +122,11 @@ trace_summary: object
 
 `answer_blocks` are the only source of the rendered final answer. V4 does not
 keep a second free-form `answer` field or a parallel `claims` fact source.
+
+Goal 1 applies the stricter deterministic rule that every non-empty
+`answer_block` must contain at least one allowed Citation ID. Titles, status
+explanations, and unsupported limitations are represented by the UI,
+`status`, and `limitations`; they are not uncited Answer Blocks.
 
 `status` expresses answer sufficiency. `termination_reason` expresses why the
 runtime stopped. They must never be conflated.
@@ -274,6 +280,7 @@ Both Fast RAG and Deep Search consume one authoritative evidence contract:
 ```yaml
 TranscriptEvidenceSpan:
   citation_id:
+  citation_identity_version:
   video_id:
   bvid:
   title:
@@ -293,9 +300,16 @@ TranscriptEvidenceSpan:
   retrieval_provenance:
 ```
 
-`citation_id` is a stable hash of:
+Goal 1 defines:
 
 ```text
+CITATION_IDENTITY_VERSION = "v4-citation-identity-v1"
+```
+
+`citation_id` is a versioned stable hash of:
+
+```text
+citation_identity_version
 source_artifact_id
 source_version
 timeline_run_id
@@ -305,6 +319,16 @@ ordered segment_ids
 It must not contain Query, rank, retrieval method, Candidate Builder method, or
 parent Search Candidate identity.
 
+Canonicalization is deterministic:
+
+- segments share one Source Artifact, Source Version, and Timeline Run;
+- segments are ordered by authoritative Segment ordinal, never by opaque
+  Segment ID text;
+- ordinals are strictly increasing, duplicates are rejected, and spans that
+  claim continuity must remain contiguous;
+- the ordered Segment IDs are serialized with the existing canonical JSON
+  convention.
+
 The Window Reader may expand a mapped Chunk with bounded adjacent segments only
 when:
 
@@ -313,6 +337,10 @@ when:
 - all segments share one `timeline_run_id`;
 - ordinals remain ordered and contiguous;
 - character and duration budgets are satisfied.
+
+The Citation identity binds only the final Segment set admitted into factual
+Answer Context. Extra before/after Segments shown when a user expands an
+Evidence card are display context and do not change Citation identity.
 
 ### 5.4 Stale evidence
 
@@ -357,8 +385,10 @@ AskRequest(mode=fast)
 → deduplication / lightweight fusion
 → Transcript-only Context construction
 → one Grounded Answer call
+→ deterministic Schema and Citation validation
 → optional one structured-output repair
-→ deterministic Citation validation
+→ repeat the complete deterministic validation
+→ final Source Version revalidation
 → shared AskResponse
 ```
 
@@ -405,6 +435,7 @@ It does not contain:
 Context construction performs:
 
 - deduplication by Citation/Segment identity;
+- deterministic rank-only fusion across distinct Query executions;
 - deterministic ordering by fused relevance and video/time;
 - per-span and total character/token budgets;
 - bounded same-source merging;
@@ -418,7 +449,7 @@ Online validation is deterministic only:
 
 - every referenced Citation ID exists in the current Evidence Context;
 - every Citation has current Source Version and valid Segment lineage;
-- `complete` and `partial` material answer blocks have Citation IDs;
+- every non-empty Answer Block has at least one allowed Citation ID;
 - no answer block references a navigation-only source;
 - Citation time bounds reconstruct from the referenced Segments;
 - final Citation order is stable and duplicate-free.
@@ -426,6 +457,34 @@ Online validation is deterministic only:
 No runtime Semantic Judge is used.
 
 Semantic claim-support quality is evaluated offline with a small V4 Eval set.
+Runtime does not claim it can detect or split a semantically half-supported
+Block.
+
+### 6.4 Repair and fail-closed behavior
+
+Goal 1 permits at most one Answer repair call. The repair receives the same
+Query, the same factual Evidence Context, the allowed Citation IDs, and
+deterministic validation errors.
+
+Repair may correct structure or regenerate Answer Blocks from that same
+Evidence. It may not retrieve again, introduce a new Citation, mechanically
+replace an unknown Citation with an arbitrary allowed ID, or add facts absent
+from the Evidence Context.
+
+The repaired output runs through the complete Schema, Citation, Identity,
+Version, Segment, and time-bound validation again. If it remains invalid, Goal
+1 returns:
+
+```yaml
+status: insufficient
+answer_blocks: []
+termination_reason: provider_error
+```
+
+The first version does not salvage a subset of valid Blocks after a failed
+repair. Block salvage and finer sentence/claim granularity are reconsidered
+only after Vertical Slice evidence shows that the stricter behavior materially
+harms useful answers.
 
 ## 7. Independent Agentic Search
 
@@ -699,9 +758,11 @@ Included:
 - Fast RAG Query Analysis and bounded rewrites;
 - one-execution Search boundary;
 - Evidence materialization and stale handling;
+- versioned and canonical Stable Citation identity;
+- factual Evidence Span versus display-context separation;
 - Context Builder;
 - DeepSeek role extension needed by Fast RAG;
-- Grounded Answer and deterministic Citation validation;
+- Grounded Answer, one bounded repair, and deterministic Citation validation;
 - Fast Ask API;
 - focused service/API tests.
 
@@ -774,6 +835,7 @@ Exact thresholds and case counts are intentionally not frozen yet.
 V4 acceptance must demonstrate:
 
 - Fast RAG returns useful Answer Blocks with valid transcript citations;
+- every returned Answer Block has an allowed Citation;
 - Deep Search operates independently of Candidate Builder;
 - Deep Search changes actions based on observations;
 - deterministic budgets and stop reasons work;
@@ -794,6 +856,8 @@ V4 acceptance must demonstrate:
 | source changes after Retrieval | bind current version, skip stale Hits, revalidate final Citations |
 | Candidate ID changes with retrieval path | use source-derived stable Citation ID |
 | Multi-query repeats Retrieval | one `SearchExecution` per distinct query, materializer never searches |
+| display expansion changes Citation identity | bind identity to factual Segment set, not UI-only context |
+| malformed repair introduces new claims | one same-context repair, full revalidation, then fail closed |
 | Agent repeats searches or reads | deterministic normalized Query and Segment visited sets |
 | LangGraph leaks into Domain | framework-independent services and thin node adapters |
 | Provider latency or malformed JSON | role budgets, bounded retry/repair, typed termination |
@@ -817,11 +881,11 @@ The following are reconsidered only after a recorded real failure:
 
 ## 15. Next action
 
-After user review of this design baseline:
+The design and Goal 1 research integration are approved. The next action is:
 
 ```text
-write V4_G1_EXECUTION_PROMPT.md
-→ execute Goal 1 in a bounded implementation Session
+open a bounded Goal 1 Execution Session
+→ follow V4_G1_EXECUTION_PROMPT.md
 → main Session reviews code, tests, and real runs
 ```
 

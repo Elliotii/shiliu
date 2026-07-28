@@ -2,9 +2,9 @@
 
 ```yaml
 document_role: current_state_authority
-status: design_documents_ready_for_review
+status: goal_1_execution_ready
 implementation_status: not_started
-current_phase: pre_goal_1
+current_phase: goal_1_ready_to_start
 last_updated: 2026-07-29
 ```
 
@@ -52,9 +52,12 @@ trace_summary:
 约束：
 
 - `answer_blocks` 是答案正文的唯一结构化事实源，不同时维护自由正文和独立 Claims。
-- 材料性回答段落必须绑定本次 Evidence Context 中已有的 Citation ID。
+- Goal 1 首版所有非空 Answer Block 都必须绑定本次 Evidence Context 中已有的 Citation ID。
 - `status` 表示回答充分度；`termination_reason` 表示运行停止原因，两者不得混用。
 - 在线验证只做确定性的 Citation、Identity、Source Version 和 Segment 检查。
+- Goal 1 的 Stable Citation 使用显式 Identity Version，并按权威 Segment Ordinal 规范化。
+- 事实 Evidence Span 与 UI 展示扩窗分离；纯展示上下文不改变 Citation Identity。
+- Answer 最多 Repair 一次；Repair 后仍无效则整体 Fail-closed，不做首版 Block Salvage。
 - 首版答案一次性返回；搜索进度事件可做但不阻塞核心闭环。
 
 ## 4. 当前执行预算
@@ -84,7 +87,7 @@ no_new_evidence_stop: true
 
 | Goal | 当前状态 | 目标 |
 |---|---|---|
-| Goal 1 — Complete Grounded RAG | `not_started` | 从 Query Analysis、单次 Retrieval 物化、Evidence Context 到 Grounded Answer/Citation，完成 Fast 闭环 |
+| Goal 1 — Complete Grounded RAG | `ready_to_start` | 从 Query Analysis、单次 Retrieval 物化、Evidence Context 到 Grounded Answer/Citation，完成 Fast 闭环 |
 | Goal 2 — Independent Agentic Search | `not_started` | 从用户 Query 独立导航视频并渐进读取字幕，用有界 StateGraph 完成 Deep 闭环 |
 | Goal 3 — Product Integration、Lightweight Eval 与 Demo | `not_started` | 完成 `/ask`、共享证据展示、轻量离线 Eval、Trace 摘要和可演示闭环 |
 
@@ -129,10 +132,14 @@ no_new_evidence_stop: true
 - 确认当前 `EvidenceSearchService.search_library()` 会自行执行检索；V4 设计已要求拆出消费 `SearchExecution` 的 Materializer。
 - 确认现有 Candidate Identity 不适合作为 Stable Citation；设计已定义与 Retrieval Strategy 解耦的稳定标识方向。
 - 完成 V4 产品入口、Answer/Citation 合同、LangGraph 边界、预算和停止条件的讨论与决策。
+- 完成 Goal 1 外部设计校验研究及主 Session 源码复核。
+- 确认 `source_version` 是权威原字幕文件字节的 SHA-256；字幕文本或时间变化会使旧 Segment/Citation 失效。
+- 完成 Goal 1 的 Citation Version、Canonical Segment Ordering、Evidence/Display Context 分离和 Repair Fail-closed 决策。
 - 已形成：
   - `V4_DESIGN_PROPOSAL.md`
   - `V4_MASTER_STATE.md`
   - `V4_DECISION_LEDGER.md`
+  - `V4_G1_EXECUTION_PROMPT.md`
 
 ## 8. 尚未完成
 
@@ -142,7 +149,6 @@ no_new_evidence_stop: true
 - 尚未拆分单次 Retrieval 与 Evidence Materialization。
 - 尚未实现 Deep Search StateGraph、Action Schema、Tools 或确定性预算执行器。
 - 尚未建立 V4 轻量离线 Eval 与端到端 Demo。
-- 尚未创建 Goal 1 Execution Prompt。
 
 ## 9. 验证基线
 
@@ -171,6 +177,8 @@ tests/test_boundaries_and_web.py
 - 视频级 Navigation Projection 的真实召回质量尚未用 V4 查询实测；先复用现有混合索引和字段投影，失败后再考虑独立索引。
 - Source Version 变化后，旧 Retrieval Hit 必须被识别为 stale 并跳过；其发生频率尚未知。
 - Query Analysis、Evidence Context 和 Grounded Answer 的 Prompt、模型参数与延迟需要在 Goal 1 Vertical Slice 中实测。
+- Block 级 Citation 是否足够、是否需要更细的句子级结构，必须依据 Goal 1 真实失败决定。
+- Repair 后整体 Fail-closed 对有效回答保留率的影响需要实测；首版不自动 Salvage 部分 Block。
 - Deep Search 的六轮/十二次调用预算是否兼顾质量与延迟，需要在 Goal 2 Vertical Slice 中校准。
 - LangGraph 依赖版本与项目现有依赖管理的兼容性尚待 Goal 2 实施前确认。
 - 轻量 Eval 的具体 Case、指标和阈值尚未冻结，应由已实现的纵向闭环反推，而非预建平台。
@@ -180,9 +188,10 @@ tests/test_boundaries_and_web.py
 ## 11. 当前下一步
 
 ```text
-用户审阅三份 V4 正式文件
-→ 主 Session 编写 Goal 1 Execution Prompt
-→ 启动 Goal 1 Vertical Slice
+新建 Shiliu V4 Goal 1 Execution Session
+→ 完整读取 V4_G1_EXECUTION_PROMPT.md
+→ 实施并验证 Goal 1 Vertical Slice
+→ 返回主 Session 做 Integration Review
 ```
 
-在用户确认三份文件前，不开始实现，不创建 Goal 1 Execution Prompt。
+Goal 1 Session 可以直接进入实现，不再扩大总体源码审计，也不得自行改变共享产品合同或扩展到 Goal 2。

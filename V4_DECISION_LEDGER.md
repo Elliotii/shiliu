@@ -442,3 +442,107 @@ scope: response_delivery
 **影响**
 
 Token-by-token Streaming 进入 `deferred`；State Progress Events 可作为 Goal 2/3 的薄支持。
+
+## D-015 — Stable Citation 使用显式 Identity Version 和权威 Segment 顺序
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: citation_identity
+```
+
+**决定**
+
+Goal 1 定义：
+
+```text
+CITATION_IDENTITY_VERSION = "v4-citation-identity-v1"
+```
+
+Citation Hash 至少绑定：
+
+```yaml
+citation_identity_version:
+source_artifact_id:
+source_version:
+timeline_run_id:
+ordered_segment_ids:
+```
+
+Segment 顺序必须来自权威 `segment_ordinal` 或 `run_local_ordinal`。不得按不透明的 Segment Hash 字符串排序。重复 Segment 被拒绝；声明连续的 Span 必须通过同一 Source、Version、Timeline 和连续 Ordinal 检查。
+
+**理由**
+
+拾流现有 Source Identity、Mapping 和 Replay 合同均显式版本化。Citation 算法同样需要迁移护栏，而稳定身份不能依赖 Query、Rank、Retriever 或 UI 编号。
+
+**源码事实**
+
+- `source_version` 是权威原字幕文件字节的 SHA-256。
+- `segment_id` 包含 `source_artifact_id`、`source_version` 和原始 Ordinal。
+- 字幕文本或时间变化会改变 Source Version，并使旧 Segment/Citation 失效。
+
+**影响**
+
+Goal 1 必须为 Citation Hash 提供固定 Canonical Serialization 和属性测试；Identity Version 是薄合同，不发展成 Citation Platform。
+
+## D-016 — Citation 事实 Span 与 UI 展示扩窗分离
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: evidence_display_boundary
+```
+
+**决定**
+
+Citation Identity 只绑定实际进入事实 Answer Context 的 Segment 集合。
+
+```yaml
+factual_support_segments:
+  included_in_citation_identity: true
+
+display_context_before_after:
+  included_in_citation_identity: false
+```
+
+若 Window Reader 加入的相邻 Segment 实际进入模型事实 Context，则它们属于事实 Span；若仅在用户展开字幕卡时展示，则不能改变 Citation Identity。
+
+**理由**
+
+事实支持范围与阅读辅助上下文具有不同语义。UI 展开行为不能让同一事实引用发生身份漂移。
+
+**影响**
+
+Goal 1 的 `TranscriptEvidenceSpan`、Citation Adapter 和前端展示字段必须显式区分事实 Segment 与显示上下文。
+
+## D-017 — Goal 1 所有 Answer Blocks 强制引用，Repair 失败整体关闭
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: grounded_answer_validation
+```
+
+**决定**
+
+- Goal 1 首版每个非空 `answer_block` 都必须至少引用一个本次 Context Allowlist 中的 Citation ID。
+- 标题、状态说明和限制不作为无引用 Answer Block；分别由 UI、`status` 和 `limitations` 表达。
+- Answer 最多 Repair 一次，并且只能使用相同 Query、相同 Evidence Context 和相同 Citation Allowlist。
+- Repair 后重新执行完整确定性验证。
+- Repair 后仍然无效时，返回：
+
+```yaml
+status: insufficient
+answer_blocks: []
+termination_reason: provider_error
+```
+
+- 首版不自动删除非法 Block 后保留其余 Block，也不在运行时自动拆分“半支持 Block”。
+
+**理由**
+
+没有 Runtime Semantic Judge 时，代码无法可靠判断无引用文字是否“非材料性”，也无法确认删块后的剩余答案仍然连贯。更严格的全 Block 引用和整体 Fail-closed 能保持确定性边界。
+
+**影响**
+
+Block 原子性通过 Prompt 与轻量离线 Supportedness Eval 约束。是否需要句子级结构或部分 Block Salvage，只能依据 Vertical Slice 的真实失败重新决定。
