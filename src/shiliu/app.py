@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from shiliu.artifacts import ArtifactStore
+from shiliu.ask import AskService
 from shiliu.asr import ASRService, ParaformerProvider
 from shiliu.bilibili import BilibiliAdapter
 from shiliu.config import AppConfig, AppPaths, load_api_key, load_config
@@ -66,6 +67,7 @@ class Application:
         self._hybrid_retrieval: HybridRetrievalService | None = None
         self._search_orchestrator: SearchOrchestrator | None = None
         self._product_search: ProductSearchService | None = None
+        self._ask_service: AskService | None = None
         self._stage5_pipeline: Stage5PipelineService | None = None
         self.runtime_config = PRODUCT_RUNTIME_CONFIG
         default_cache = (
@@ -236,6 +238,17 @@ class Application:
         return self._product_search
 
     @property
+    def ask_service(self) -> AskService:
+        if self._ask_service is None:
+            self._ask_service = AskService(
+                db=self.db,
+                product_search=self.product_search,
+                provider_factory=self.provider,
+                runtime_corpus_identity=self.runtime_config.corpus_identity,
+            )
+        return self._ask_service
+
+    @property
     def stage5_pipeline(self) -> Stage5PipelineService:
         if self._stage5_pipeline is None:
             evidence_search = EvidenceSearchService(
@@ -264,15 +277,18 @@ class Application:
             "taxonomy_content_type_purity",
             "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
         }
+        is_ask_light = role == "query_analysis"
         model_role = "formal_summary" if role.startswith("taxonomy_") else role
         return OpenAICompatibleProvider(
             base_url=self.config.llm_base_url,
             api_key=api_key,
             model=self.config.model_for(model_role),
-            timeout_seconds=180 if is_transcript else 600,
+            timeout_seconds=180 if is_transcript or role in {
+                "query_analysis", "grounded_answer"
+            } else 600,
             thinking_enabled=(
                 False
-                if is_transcript or role in {
+                if is_transcript or is_ask_light or role in {
                     "taxonomy_local", "taxonomy_content_type",
                     "taxonomy_content_type_global", "taxonomy_validator",
                     "taxonomy_content_type_purity",
@@ -280,7 +296,11 @@ class Application:
                 }
                 else True
             ),
-            reasoning_effort=None if is_transcript or is_taxonomy_light else "high",
+            reasoning_effort=(
+                None
+                if is_transcript or is_taxonomy_light or is_ask_light
+                else "high"
+            ),
         )
 
     def asr_service(self) -> ASRService:

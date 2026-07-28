@@ -546,3 +546,38 @@ termination_reason: provider_error
 **影响**
 
 Block 原子性通过 Prompt 与轻量离线 Supportedness Eval 约束。是否需要句子级结构或部分 Block Salvage，只能依据 Vertical Slice 的真实失败重新决定。
+
+## D-018 — Provider 传输重试只服务 V4 Structured Runtime，Answer Repair 不处理无输出故障
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: provider_and_repair_boundary
+```
+
+**决定**
+
+- `query_analysis` 与 `grounded_answer` 的 V4 Structured Runtime 遇到可重试
+  Transport Failure 时最多重试一次。
+- 历史 `complete_json()`、`complete_raw()` 和 `test_connection()` 保持单次
+  HTTP 请求语义。
+- Answer Repair 只处理已经收到内容但未通过 JSON/Pydantic Schema 的输出，
+  或已经形成 Draft 但未通过确定性 Answer/Citation Validation 的结果。
+- Network、Timeout、Authentication、Balance、Forbidden、Model Not Found、
+  Bad Config、Context Too Large、Output Budget Exhausted、Empty Output 及其他
+  没有可修复结构化内容的 Provider Failure 直接返回
+  `insufficient / provider_error`，不得消耗 Repair Call。
+- Logical Provider Call 与底层 Transport Retry 分开计数。
+
+**理由**
+
+Repair 是同一 Evidence Context 内的结构化答案修复，不是第二套 Provider
+重试机制。将无输出故障送入 Repair 会扩大延迟与调用成本，也会混淆
+`provider_error` 和 Answer Validation Failure。将 Transport Retry 限定在
+V4 Structured Runtime 可满足 Fast/Deep 的有界容错需求，同时不改变历史
+Transcript、Summary、Taxonomy 和 Single-flight 链的行为。
+
+**影响**
+
+Goal 2 的结构化 Agent Action 和共享 Grounded Answer 必须沿用该边界。任何
+更复杂的退避、熔断或 Provider 平台能力仍不属于 V4。

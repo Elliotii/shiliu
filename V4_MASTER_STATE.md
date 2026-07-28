@@ -2,9 +2,9 @@
 
 ```yaml
 document_role: current_state_authority
-status: goal_1_execution_ready
-implementation_status: not_started
-current_phase: goal_1_ready_to_start
+status: goal_1_complete
+implementation_status: goal_1_complete
+current_phase: goal_2_planning_ready
 last_updated: 2026-07-29
 ```
 
@@ -87,7 +87,7 @@ no_new_evidence_stop: true
 
 | Goal | 当前状态 | 目标 |
 |---|---|---|
-| Goal 1 — Complete Grounded RAG | `ready_to_start` | 从 Query Analysis、单次 Retrieval 物化、Evidence Context 到 Grounded Answer/Citation，完成 Fast 闭环 |
+| Goal 1 — Complete Grounded RAG | `complete` | 从 Query Analysis、单次 Retrieval 物化、Evidence Context 到 Grounded Answer/Citation，完成 Fast 闭环 |
 | Goal 2 — Independent Agentic Search | `not_started` | 从用户 Query 独立导航视频并渐进读取字幕，用有界 StateGraph 完成 Deep 闭环 |
 | Goal 3 — Product Integration、Lightweight Eval 与 Demo | `not_started` | 完成 `/ask`、共享证据展示、轻量离线 Eval、Trace 摘要和可演示闭环 |
 
@@ -140,45 +140,47 @@ no_new_evidence_stop: true
   - `V4_MASTER_STATE.md`
   - `V4_DECISION_LEDGER.md`
   - `V4_G1_EXECUTION_PROMPT.md`
+- Goal 1 — Complete Grounded RAG 已实现并通过主 Session Integration Review：
+  - `POST /api/ask` Fast 模式；
+  - Query Analysis 与最多两个 bounded rewrites；
+  - 每个不同 Query 一次 Retrieval，Materializer 不自行搜索；
+  - 当前原字幕 Evidence、Stale Skip 与 Transcript-only Context；
+  - Versioned Stable Citation、Answer Blocks、一次 Repair 和最终 Source Version 复验；
+  - `complete / partial / insufficient` 与类型化停止原因；
+  - V4 Structured Provider 的一次传输重试，且不改变历史 Provider 调用语义；
+  - 真实 DeepSeek Vertical Slice 与主 Session 独立回归验证。
+- Goal 1 Integration Review 的正式实现报告为：
+  - `V4_G1_IMPLEMENTATION_REPORT.md`
 
 ## 8. 尚未完成
 
-- 尚未修改任何 V4 运行时代码。
-- 尚未创建 `/ask` 页面或 Ask API。
-- 尚未实现 Query Analysis、Context Construction、Grounded Answer 或 Citation Runtime Validation。
-- 尚未拆分单次 Retrieval 与 Evidence Materialization。
+- 尚未创建正式 `/ask` 页面；当前已完成共享 Ask API 的 Fast 模式。
 - 尚未实现 Deep Search StateGraph、Action Schema、Tools 或确定性预算执行器。
 - 尚未建立 V4 轻量离线 Eval 与端到端 Demo。
 
 ## 9. 验证基线
 
-本轮 P0 审计执行的定向测试：
+Goal 1 主 Session Integration Review 独立复跑：
 
 ```text
-136 passed
+159 passed（Goal 1 定向与历史回归）
+1428 passed，4 deselected（默认全套）
 1 existing Starlette/httpx deprecation warning
 ```
 
-测试范围：
-
-```text
-tests/test_product_search_api.py
-tests/test_evidence_contracts.py
-tests/test_evidence_stage1b.py
-tests/test_search_enrichment.py
-tests/test_v1.py
-tests/test_boundaries_and_web.py
-```
-
-这只证明相关历史基线在审计时通过，不代表任何 V4 能力已经实现。
+此外，Goal 1 Session 使用真实 DeepSeek、真实字幕和本机数据库只读快照完成
+三条普通 Query Vertical Slice。实测延迟约 37.6–112.1 秒，三条均发生
+Context Truncation；这些是后续轻量 Eval 和产品优化输入，不阻塞 Goal 1
+完成。
 
 ## 10. 当前已知风险与待实测项
 
 - 视频级 Navigation Projection 的真实召回质量尚未用 V4 查询实测；先复用现有混合索引和字段投影，失败后再考虑独立索引。
-- Source Version 变化后，旧 Retrieval Hit 必须被识别为 stale 并跳过；其发生频率尚未知。
-- Query Analysis、Evidence Context 和 Grounded Answer 的 Prompt、模型参数与延迟需要在 Goal 1 Vertical Slice 中实测。
+- Source Version 变化后的 Stale Skip 已实现并测试；真实产品运行中的发生频率仍未知。
+- Goal 1 Vertical Slice 实测 Provider 延迟约 37.6–112.1 秒，Provider 是主要成本。
+- 三条真实 Fast Query 均发生 Context Truncation，Grounded Answer Prompt 约 7.7k Tokens。
 - Block 级 Citation 是否足够、是否需要更细的句子级结构，必须依据 Goal 1 真实失败决定。
-- Repair 后整体 Fail-closed 对有效回答保留率的影响需要实测；首版不自动 Salvage 部分 Block。
+- 真实跨视频 Query 使用一次 Repair 后成功；Repair 频率和整体 Fail-closed 对有效回答保留率的影响仍需轻量 Eval。
 - Deep Search 的六轮/十二次调用预算是否兼顾质量与延迟，需要在 Goal 2 Vertical Slice 中校准。
 - LangGraph 依赖版本与项目现有依赖管理的兼容性尚待 Goal 2 实施前确认。
 - 轻量 Eval 的具体 Case、指标和阈值尚未冻结，应由已实现的纵向闭环反推，而非预建平台。
@@ -188,10 +190,12 @@ tests/test_boundaries_and_web.py
 ## 11. 当前下一步
 
 ```text
-新建 Shiliu V4 Goal 1 Execution Session
-→ 完整读取 V4_G1_EXECUTION_PROMPT.md
-→ 实施并验证 Goal 1 Vertical Slice
-→ 返回主 Session 做 Integration Review
+Goal 1 已完成并通过 Integration Review
+→ 与用户确认 Goal 2 的有界实施计划
+→ 形成 V4 Goal 2 Execution Prompt
+→ 再启动独立 Goal 2 Execution Session
 ```
 
-Goal 1 Session 可以直接进入实现，不再扩大总体源码审计，也不得自行改变共享产品合同或扩展到 Goal 2。
+在用户授权前不创建 Goal 2 Execution Prompt，也不开始 Goal 2 实现。Goal 2
+必须复用 Goal 1 已落地的共享 Ask、Answer、Citation、Evidence、Provider 和
+Trace 合同，不得重新实现第二套后端。

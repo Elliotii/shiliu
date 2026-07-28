@@ -30,7 +30,7 @@ from shiliu.evidence.authority import (
     bind_snapshot_manifest_version,
 )
 from shiliu.evidence.audit import MappingAuditSummary, audit_snapshot_chunk_mappings
-from shiliu.evidence.search import EvidenceSearchService
+from shiliu.evidence.search import EvidenceSearchService, SearchExecution
 from shiliu.evidence.source import (
     authoritative_raw_json_path,
     load_source_artifact,
@@ -55,6 +55,7 @@ __all__ = [
     "ChunkSegmentMapping",
     "EvidenceContractError",
     "EvidenceSearchService",
+    "SearchExecution",
     "MappingAuditSummary",
     "ParsedSourceArtifact",
     "RawEvidenceSegment",

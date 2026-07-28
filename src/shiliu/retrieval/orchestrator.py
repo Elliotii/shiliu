@@ -328,9 +328,18 @@ class SearchOrchestrator:
             lexical = connection.execute(
                 "SELECT * FROM retrieval_index_meta WHERE index_name=?", (INDEX_NAME,)
             ).fetchone()
-            dense = connection.execute(
-                "SELECT * FROM retrieval_dense_index_meta WHERE index_name='shiliu_dense'"
+            dense_table = connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' "
+                "AND name='retrieval_dense_index_meta'"
             ).fetchone()
+            dense = (
+                connection.execute(
+                    "SELECT * FROM retrieval_dense_index_meta "
+                    "WHERE index_name='shiliu_dense'"
+                ).fetchone()
+                if dense_table is not None
+                else None
+            )
         result: dict[str, object] = {
             "lexical_index_version": str(lexical["index_version"]) if lexical else None,
             "dense_index_version": str(dense["dense_index_version"]) if dense else None,

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 from typing import Literal
+from uuid import uuid4
 
 from shiliu.db import Database
 from shiliu.evidence.authority import (
@@ -26,10 +28,23 @@ from shiliu.evidence.contracts import (
     SourceArtifactReference,
 )
 from shiliu.evidence.mapping import map_retrieval_chunk
-from shiliu.retrieval.product_search import ProductSearchRequest, ProductSearchService
+from shiliu.retrieval.orchestrator import RawSearchResponse
+from shiliu.retrieval.product_search import (
+    ProductSearchRequest,
+    ProductSearchResponse,
+    ProductSearchService,
+)
 
 
 AuthorityMode = Literal["snapshot_manifest", "pinned_request", "live_current_exact_replay"]
+
+
+@dataclass(frozen=True)
+class SearchExecution:
+    execution_id: str
+    request: ProductSearchRequest
+    raw_response: RawSearchResponse
+    product_response: ProductSearchResponse
 
 
 class EvidenceSearchService:
@@ -53,7 +68,25 @@ class EvidenceSearchService:
         self.runtime_corpus_identity = runtime_corpus_identity
 
     def search_library(self, request: ProductSearchRequest) -> SearchCandidateSet:
+        """Compatibility wrapper for callers that still submit a free request."""
+        return self.materialize_execution(self.execute_search(request))
+
+    def execute_search(self, request: ProductSearchRequest) -> SearchExecution:
         raw, product = self.product_search.search_with_raw(request)
+        return SearchExecution(
+            execution_id=f"search_execution_{uuid4().hex}",
+            request=request,
+            raw_response=raw,
+            product_response=product,
+        )
+
+    def materialize_execution(
+        self, execution: SearchExecution
+    ) -> SearchCandidateSet:
+        """Materialize an already-completed retrieval without searching again."""
+        request = execution.request
+        raw = execution.raw_response
+        product = execution.product_response
         rows = self._unit_rows([hit.unit_id for hit in raw.raw_hits])
         raw_candidates = tuple(
             self._raw_candidate(hit, rows.get(hit.unit_id), raw.executed_mode)

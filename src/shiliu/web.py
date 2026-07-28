@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from shiliu.app import Application
+from shiliu.ask import AskModeNotImplemented, AskRequest
 from shiliu.asr import ParaformerProvider
 from shiliu.config import (
     ASR_KEYCHAIN_ACCOUNT,
@@ -320,6 +321,32 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, **response.as_dict()})
+
+    @web.post("/api/ask")
+    async def ask(payload: AskRequest, request: Request) -> JSONResponse:
+        try:
+            response = await asyncio.to_thread(
+                _core(request).ask_service.ask, payload
+            )
+        except AskModeNotImplemented as exc:
+            return JSONResponse(
+                {
+                    "error": {
+                        "code": exc.code,
+                        "message": str(exc),
+                        "mode": payload.mode,
+                    }
+                },
+                status_code=exc.http_status,
+            )
+        return JSONResponse(response.model_dump(mode="json"))
+
+    @web.get("/api/ask/traces/{run_id}")
+    async def ask_trace(run_id: str, request: Request) -> JSONResponse:
+        trace = _core(request).ask_service.get_trace(run_id)
+        if trace is None:
+            raise HTTPException(404, "Ask Trace 不存在")
+        return JSONResponse({"ok": True, "trace": trace})
 
     @web.post("/api/evidence-sufficiency")
     async def evidence_sufficiency(

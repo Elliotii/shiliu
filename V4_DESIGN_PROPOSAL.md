@@ -1,6 +1,6 @@
 # Shiliu V4 Design Proposal
 
-Status: `goal_1_implementation_ready`
+Status: `goal_1_complete`
 Date: `2026-07-29`
 Scope: `Shiliu V4 only`
 
@@ -881,12 +881,14 @@ The following are reconsidered only after a recorded real failure:
 
 ## 15. Next action
 
-The design and Goal 1 research integration are approved. The next action is:
+The design and Goal 1 research integration are approved. Goal 1 completed
+implementation, deterministic/full regression verification, real DeepSeek
+Vertical Slice validation, and Main Session Integration Review on 2026-07-29.
+The next action is:
 
 ```text
-open a bounded Goal 1 Execution Session
-→ follow V4_G1_EXECUTION_PROMPT.md
-→ main Session reviews code, tests, and real runs
+prepare the bounded Goal 2 Execution Prompt after user authorization
 ```
 
-No V4 implementation has started at the time of this proposal.
+Goal 2 must preserve the shared Ask, Answer, Citation, Evidence, Provider and
+Trace contracts established by the accepted Goal 1 implementation.
