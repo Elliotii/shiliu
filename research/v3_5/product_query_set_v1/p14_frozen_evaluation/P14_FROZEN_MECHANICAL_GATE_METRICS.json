@@ -1,0 +1,8 @@
+{
+  "invalid_count": 0,
+  "judge_eligible_count": 5,
+  "routing_accuracy": 0.5,
+  "schema_version": "v3.5-mechanical-gate-metrics-v1",
+  "source_unverifiable_count": 5,
+  "unhandled_exception_count": 0
+}

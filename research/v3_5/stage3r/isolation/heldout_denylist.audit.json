@@ -1,0 +1,8 @@
+{
+  "deny_patterns": [
+    "heldout case payload",
+    "heldout Gold",
+    "heldout query"
+  ],
+  "protocol_only_read_allowed": true
+}

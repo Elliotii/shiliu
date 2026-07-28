@@ -1,0 +1,137 @@
+{
+  "Development_Sufficiency_Gold_hashes": {
+    "content_opened_before_prediction": false,
+    "sha256": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "Frozen_Evaluation_accessed": false,
+  "Track_A_input_hashes": {
+    "file_count": 14,
+    "files": {
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q003.trace.json": "b9280078b4e97cde5e8df28b6c09139e9b0d9c9a258eba12fdd74d231d4c13f4",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q004.trace.json": "6639bdd7c7b6ac0f456777a6141cf49604a15d47d71a3849cbea1d5e7b675a92",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q005.trace.json": "588eef26c202e0d882095d611580337d446bb5647e6b54ebfa8a9f039b60783c",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q006.trace.json": "6b16c4918aeb7b6e184771085f9b3721b82cf509dac84ce5574be05bc9a363d0",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q007.trace.json": "65d33763d794d1b3b91acf4a8c68d9b327abb571cd3f66788474b83012b7ad87",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q008.trace.json": "5a93508a2aa9ec99f9ec970ad76797b050fb4e312760d3070fc22e44f08e21b1",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q011.trace.json": "ae1fb57828a752a8a48b640bb3b799b9826406bad662b6d6f74443a4ca9845a6",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q012.trace.json": "9bb26c1df9f8d6236f8ad3c1fcc4fc2cd3724c3f898397b8220a4902420ed64a",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q013.trace.json": "2146dfebc04e62589d579278f2c75047ed0d4f4ad80eab4d38c17f66b7693dca",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q014.trace.json": "33e72dd1d63ed82caed45bd2261dcfb87b2b6d460ec14457b6b97ea53ee6e5a1",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q015.trace.json": "d87b55881a2e7556f70d608e8302c32562c6e6e62607a9e5ef4535257e659b80",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q017.trace.json": "e07871e0a0eda54b96d85957135abb709790429c7d4d98517722cb58de3606b0",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q018.trace.json": "14e8e05d78aa9543bc6f3f98342dbade6ed15434e2a1712196e6f80fac307058",
+      "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/PQS_V1_Q019.trace.json": "bff49b97c66ec946d6c0c6f5a2f4fd0bc0d1bd3ef4a99d0904ebf190286c83ed"
+    },
+    "root_sha256": "f4849cc62b1f1582b69c5dd4901c0a4c3b5c43785809f09de1041b97d41befd2"
+  },
+  "Track_B_input_hashes": {
+    "evidence_gold_sha256": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "projection_sha256": "25e362e8cb5c0e4965a2b296fc88ef98d2872636b5897c48ddaec16f8242d355",
+    "retrieval_gold_sha256": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679"
+  },
+  "Track_C_input_hashes": {
+    "evidence_gold_sha256": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "projection_sha256": "547026b58b7eea055ea1e793982ffe9cc8c0031fc8a994b725bf740770b4c5e2"
+  },
+  "asset_integrity": {
+    "Development_Evidence_Gold_valid": true,
+    "Development_Sufficiency_Gold_valid": true,
+    "Evidence_Identity_Contract_V1_valid": true,
+    "Track_A_inputs_identified": true,
+    "Track_B_inputs_identified": true,
+    "current_Development_split_valid": true,
+    "existing_Sufficiency_contracts_identified": true,
+    "formal_builder_valid": true,
+    "formal_selector_valid": true,
+    "mechanical_gate_v1_r1_valid": true
+  },
+  "compatible_schema_patch_if_any": {
+    "patch": {
+      "additive_only": true,
+      "backward_compatible": true,
+      "decision_additions": {
+        "evaluation_track": "added approved_evidence_diagnostic enum member",
+        "reason_codes": "default empty tuple"
+      },
+      "public_contract_breaking_change": false,
+      "request_additions": {
+        "evaluation_track": "added approved_evidence_diagnostic enum member",
+        "evidence_bundle": "default null",
+        "mechanical_gate_status": "default null",
+        "policy_version": "default null",
+        "query_language": "default und"
+      }
+    },
+    "sha256": "5b399dbf2dbd1ba0340a3d738218517738921342f38ce6e410be04bf64095a84"
+  },
+  "confidence_policy": {
+    "meaning": "confidence that the selected four-state boundary is correct",
+    "must_not_substitute_for_status": true,
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  "formal_upstream_hashes": {
+    "Evidence_Identity_Contract_V1_hashes": {
+      "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "file_count": 4,
+      "root_sha256": "0b65d3bee751b3f1ca466b2bfe4e6984ef4d48a2319eb4a0fa6e99415a0fbb08"
+    },
+    "formal_builder_hashes": {
+      "file_count": 2,
+      "root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1"
+    },
+    "formal_selector_hashes": {
+      "file_count": 1,
+      "root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67"
+    },
+    "identity_contract_sha256": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "stage4a_freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c"
+  },
+  "judge_model": "gpt-5.6-terra",
+  "judge_provider": "openai-codex-cli",
+  "language_policy": {
+    "judge_query_and_evidence_semantically_across_languages": true,
+    "language_difference_alone_is_not_a_verification_blocker": true
+  },
+  "minimum_acceptance": {
+    "Track_A_is_product_authority": true,
+    "Track_C_non_trivial_judge_capability_required": true,
+    "conservative_overclaim_rate_after_revision_must_not_worsen": true,
+    "evidence_id_validity_rate": 1.0,
+    "mechanical_source_unverifiable_routing_accuracy": 1.0,
+    "schema_validity_rate": 1.0,
+    "severe_false_sufficient_count_maximum": 0,
+    "trace_completeness_rate": 1.0
+  },
+  "parse_failure_policy": "retry_once_then_fail_closed_without_prediction",
+  "policy_version": "v3.5-semantic-sufficiency-policy-v1",
+  "pre_prediction_structured_output_corrections": [
+    "nullable verification_blocker made schema-required",
+    "semantic reason codes constrained to the frozen registry enum"
+  ],
+  "prompt_version": "v3.5-semantic-judge-prompt-v1",
+  "reason_code_policy": [
+    "SJ_ALL_MATERIAL_NEEDS_SUPPORTED",
+    "SJ_AUTHORITATIVE_VERIFICATION_BLOCKED",
+    "SJ_BLOCKING_CONFLICT",
+    "SJ_CROSS_LANGUAGE_SUPPORT",
+    "SJ_MEANINGFUL_SUBSET_WITH_MATERIAL_GAP",
+    "SJ_REVIEWABLE_WITHOUT_USABLE_MAIN_ANSWER"
+  ],
+  "reasoning_effort": "medium",
+  "retry_policy": {
+    "maximum_retries": 1,
+    "retry_on": [
+      "provider_failure",
+      "parse_failure",
+      "validation_failure"
+    ]
+  },
+  "reused_decision_contract": "v3.5-sufficiency-decision-v1",
+  "reused_request_contract": "v3.5-sufficiency-request-v1",
+  "schema_version": "v3.5-stage4b-initial-policy-freeze-v1",
+  "structured_output_mode": "codex_exec_json_schema",
+  "temperature": 0
+}

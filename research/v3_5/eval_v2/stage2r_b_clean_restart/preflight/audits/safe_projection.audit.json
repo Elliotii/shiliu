@@ -1,0 +1,14 @@
+{
+  "only_approved_safe_projection_used": true,
+  "sha256": "2c2fd3e0d06452201119f22ab3b68dcdfc738f91d19a916e50dbb9fd2051b564",
+  "manifest_sha256": "2c2fd3e0d06452201119f22ab3b68dcdfc738f91d19a916e50dbb9fd2051b564",
+  "expected_sha256": "2c2fd3e0d06452201119f22ab3b68dcdfc738f91d19a916e50dbb9fd2051b564",
+  "record_count": 4,
+  "candidate_ids_unique": true,
+  "allowed_fields_only": true,
+  "pilot_candidate_allowed_all": true,
+  "forbidden_keys": 0,
+  "raw_assignment_accessed": false,
+  "heldout_accessed": false,
+  "forbidden_access_attempts": 0
+}

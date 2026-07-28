@@ -1,0 +1,51 @@
+{
+  "boundary_notes": [],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [
+    {
+      "alternative_expression_notes": "",
+      "required_aspect_indices": [
+        0
+      ],
+      "required_span_indices": [
+        0
+      ]
+    }
+  ],
+  "missing_aspect_indices": [],
+  "optional_context_spans": [],
+  "reason_codes": [],
+  "required_aspects": [
+    {
+      "text": "视频讨论了使用命令行界面（CLI）方式相较于MCP的优势，包括更直接、更快，并在授权、边界情况等方面更有优势。"
+    }
+  ],
+  "required_spans": [
+    {
+      "segment_ids": [
+        "BV1o87764Ebs_seg_000149",
+        "BV1o87764Ebs_seg_000150",
+        "BV1o87764Ebs_seg_000151",
+        "BV1o87764Ebs_seg_000154",
+        "BV1o87764Ebs_seg_000155",
+        "BV1o87764Ebs_seg_000156",
+        "BV1o87764Ebs_seg_000161",
+        "BV1o87764Ebs_seg_000162",
+        "BV1o87764Ebs_seg_000163",
+        "BV1o87764Ebs_seg_000164",
+        "BV1o87764Ebs_seg_000165",
+        "BV1o87764Ebs_seg_000166",
+        "BV1o87764Ebs_seg_000167",
+        "BV1o87764Ebs_seg_000168"
+      ],
+      "supported_aspect_indices": [
+        0
+      ]
+    }
+  ],
+  "status": "sufficient",
+  "supported_aspect_indices": [
+    0
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "acceptable_video_ids": [
+    "bilibili:BV1vQwJzTEdz"
+  ],
+  "exhaustive": false,
+  "gold_version": "PQS_V1_DEVELOPMENT_GOLD_REVIEWER_A_PROPOSED_REVISION_V1",
+  "hard_negative_video_ids": [],
+  "known_relevant_video_ids": [
+    "bilibili:BV1vQwJzTEdz"
+  ],
+  "query_id": "PQS_V1_Q017",
+  "reason_codes": [
+    "RG_KNOWN_RELEVANT",
+    "RG_UNJUDGED_OUTSIDE_POOL"
+  ],
+  "relevance_review_scope": {
+    "pool_construction_method": "independent human semantic review using Locked Query, neutral Library navigation, Transcript Identity Catalog, and complete authoritative transcript; no Product pipeline",
+    "pool_version": "DEVELOPMENT_REVIEWER_A_BOUNDED_POOL_V1",
+    "review_authority": "reviewer_A_independent",
+    "review_timestamp": "2026-07-26T13:10:13.488484Z",
+    "reviewed_video_ids": [
+      "bilibili:BV1vQwJzTEdz"
+    ]
+  },
+  "review_state": "independent_review_complete",
+  "unjudged_outside_pool_is_negative": false
+}

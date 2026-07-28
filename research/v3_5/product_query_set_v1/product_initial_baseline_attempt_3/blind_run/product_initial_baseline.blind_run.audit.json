@@ -1,0 +1,32 @@
+{
+  "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "best_of_n": false,
+  "complete_terminal_predictions": 14,
+  "component_behavior_changed": false,
+  "development_gold_opened": false,
+  "development_gold_opened_before_prediction_freeze": false,
+  "frozen_gold_opened": false,
+  "frozen_query_runs": 0,
+  "gold_aware_retry": false,
+  "manual_result_selection": false,
+  "prediction_hashes_verified": true,
+  "prediction_runs": 14,
+  "prior_attempt": {
+    "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_2",
+    "partial_prediction_count": 9,
+    "reused_in_attempt_3": false,
+    "status": "invalid_incomplete_attempt"
+  },
+  "recovery": {
+    "category": "evaluation_terminal_serialization",
+    "component_functional_behavior_changed": false,
+    "harness_version_changed": true,
+    "source_terminal_code": [
+      "no_supported_subtitle"
+    ]
+  },
+  "sealed_at": "2026-07-26T16:16:32.152+00:00",
+  "started_at": "2026-07-26T16:15:56.685+00:00",
+  "status": "sealed_before_gold_scoring",
+  "valid_prediction_runs_per_query": 1
+}

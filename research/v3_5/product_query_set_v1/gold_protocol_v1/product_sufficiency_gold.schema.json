@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "product_sufficiency_gold.schema.json",
+  "title": "Product Sufficiency Gold v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query_id",
+    "gold_version",
+    "status",
+    "material_aspect_ids",
+    "supported_aspects",
+    "missing_aspects",
+    "reason_codes",
+    "evidence_group_ids_used",
+    "gold_policy_version",
+    "review_state",
+    "authoritative_sources_reviewable"
+  ],
+  "properties": {
+    "query_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gold_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "sufficient",
+        "partial",
+        "insufficient",
+        "unverifiable"
+      ]
+    },
+    "material_aspect_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "supported_aspects": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "missing_aspects": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "evidence_group_ids_used": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "gold_policy_version": {
+      "const": "PRODUCT_QUERY_GOLD_PROTOCOL_V1"
+    },
+    "review_state": {
+      "enum": [
+        "draft",
+        "initial_complete",
+        "independent_review_complete",
+        "adjudication_required",
+        "adjudicated",
+        "blocked_by_source",
+        "sealed"
+      ]
+    },
+    "authoritative_sources_reviewable": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "sufficient"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "authoritative_sources_reviewable": {
+            "const": true
+          },
+          "missing_aspects": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "partial"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "supported_aspects": {
+            "minItems": 1
+          },
+          "missing_aspects": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "insufficient"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "authoritative_sources_reviewable": {
+            "const": true
+          },
+          "supported_aspects": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "unverifiable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "authoritative_sources_reviewable": {
+            "const": false
+          },
+          "supported_aspects": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "x-cross-object-validator-required": true,
+  "x-system-failure-attribution-stored-in-gold": false
+}

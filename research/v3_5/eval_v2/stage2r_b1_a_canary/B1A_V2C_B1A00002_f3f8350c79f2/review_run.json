@@ -1,0 +1,11 @@
+{
+  "agreement_status": "mandatory_human_review",
+  "case_id": "V2C_B1A00002",
+  "human_review_required": true,
+  "packet_sha256": "11ac62de7dc152f43ac79227d275b1ba0960ae996eb1723f834dc9018f35f794",
+  "primary_attempts": 3,
+  "primary_status": "valid",
+  "review_run_id": "B1A_V2C_B1A00002_f3f8350c79f2",
+  "secondary_attempts": 1,
+  "secondary_status": "valid"
+}

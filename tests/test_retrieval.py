@@ -343,7 +343,7 @@ def test_metadata_visibility_and_folder_filters(app_paths) -> None:
         artifacts,
         bvid="BV1234567890",
         title="Shared Search Entity Alpha",
-        uploader="Alice",
+        uploader="Alice Creator",
         folder_id=101,
         folder_title="Alpha Folder",
     )
@@ -375,7 +375,7 @@ def test_metadata_visibility_and_folder_filters(app_paths) -> None:
             folder_id=101,
             reading_state="read",
             is_marked=True,
-            uploader="Alice",
+            uploader_contains="LiCe cRe",
             archived=True,
         ),
     )
@@ -458,6 +458,58 @@ def test_short_query_uses_documented_fallback(app_paths) -> None:
     assert removed_id not in default_ids
     assert ignored_id not in default_ids
     assert ignored_id in included_ids
+
+
+def test_uploader_exact_and_contains_contracts_are_independent(app_paths) -> None:
+    db, artifacts, retrieval = make_service(app_paths)
+    _, exact_id = add_video(
+        db,
+        artifacts,
+        bvid="BV7000000001",
+        title="Shared Filter Term One",
+        uploader="Alice Studio",
+        folder_id=701,
+    )
+    _, extended_id = add_video(
+        db,
+        artifacts,
+        bvid="BV7000000002",
+        title="Shared Filter Term Two",
+        uploader="Alice Studio Extra",
+        folder_id=702,
+    )
+    add_video(
+        db,
+        artifacts,
+        bvid="BV7000000003",
+        title="Shared Filter Term Three",
+        uploader="Bob Channel",
+        folder_id=703,
+    )
+    retrieval.rebuild()
+
+    def result_ids(filters: RetrievalFilters) -> set[int]:
+        return {
+            item.video_id
+            for item in retrieval.search(
+                "Shared Filter Term",
+                level="video",
+                top_k=10,
+                filters=filters,
+            )
+        }
+
+    assert result_ids(RetrievalFilters(uploader="aLiCe StUdIo")) == {exact_id}
+    assert result_ids(RetrievalFilters(uploader="Alice")) == set()
+    assert result_ids(RetrievalFilters(uploader_contains="ALICE ST")) == {
+        exact_id,
+        extended_id,
+    }
+    assert result_ids(RetrievalFilters(uploader_contains="Alice Studio")) == {
+        exact_id,
+        extended_id,
+    }
+    assert result_ids(RetrievalFilters(uploader_contains="unrelated")) == set()
 
 
 def test_raw_subtitle_source_is_retained_for_ai_human_and_asr(app_paths) -> None:

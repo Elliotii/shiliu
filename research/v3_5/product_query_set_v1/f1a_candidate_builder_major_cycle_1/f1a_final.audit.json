@@ -1,0 +1,63 @@
+{
+  "schema_version": "v3.5-b-f1a-final-audit-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "builder_freeze": {
+    "seal_sha256": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+    "source_hash_matches": true,
+    "config_hash_matches": true,
+    "test_hashes_match": true,
+    "trace_schema_hash_matches": true,
+    "behavior_changed_after_seal": false
+  },
+  "evaluation_runner_recovery": {
+    "generic_terminal_fix": true,
+    "query_id_specific": false,
+    "video_id_specific": false,
+    "gold_aware": false,
+    "recognized_source_terminal_codes": [
+      "no_supported_subtitle"
+    ],
+    "development_dry_runtime_outputs": "14/14",
+    "stress_dry_runtime_outputs": "20/20",
+    "dry_evidence_contract_error_count": 0,
+    "dry_invalid_terminal_count": 0,
+    "runner_freeze_before_gold_access": true,
+    "runner_behavior_changed_after_freeze": false
+  },
+  "formal_runs": {
+    "prior_incomplete_development_attempt_preserved": true,
+    "prior_incomplete_attempt_counted_as_complete_score": false,
+    "complete_development_scored_run_count": 1,
+    "complete_stress_scored_run_count": 1,
+    "post_score_behavior_change": false
+  },
+  "component_scope": {
+    "builder_changed_during_harness_recovery": false,
+    "retrieval_changed": false,
+    "router_changed": false,
+    "anchor_discovery_changed": false,
+    "selector_changed": false,
+    "mechanical_gate_changed": false,
+    "query_changed": false,
+    "split_changed": false,
+    "development_gold_changed": false
+  },
+  "access": {
+    "development_gold_semantic_access_after_runner_freeze": true,
+    "frozen_evaluation_gold_accessed": false,
+    "repository_recursive_search_count": 0,
+    "forbidden_path_touch_count": 0
+  },
+  "cycle": {
+    "builder_major_cycles_used": 1,
+    "builder_major_cycles_remaining": 0,
+    "second_builder_major_cycle_authorized": false
+  },
+  "outcome_candidate": "rejected_keep_existing_builder",
+  "final_builder_candidate": "stage3b-acronym-w3.5-v1",
+  "acceptance_status": "pending_v3_5_b_review",
+  "f1a_closed_by_codex": false,
+  "f1b_started": false,
+  "stage4_started": false,
+  "p10_started": false
+}

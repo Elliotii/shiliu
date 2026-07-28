@@ -1,0 +1,15 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "audit_sha256": "b921cef2de6cfe05fbad9979007955b0fc3753f9e694957ae4c9e44772465ac2",
+  "cycle_status": "frozen_gold_sealed_execution_candidate_ready",
+  "decided_at_utc": "2026-07-26T14:40:00Z",
+  "decision_version": "FROZEN_GOLD_V1_EXECUTION_DECISION_V1",
+  "execution_status": "complete",
+  "frozen_gold_formally_accepted_by_codex": false,
+  "frozen_gold_sealed_execution_candidate_ready": true,
+  "manifest_sha256": "3978a4339f791c0faf102be9b565148f07836317b96df7a6a10116226b7725e9",
+  "p7_final_closeout_authorized": false,
+  "p8_authorized": false,
+  "pending_user_adjudication": 0,
+  "semantic_choice_made_by_orchestrator": false
+}

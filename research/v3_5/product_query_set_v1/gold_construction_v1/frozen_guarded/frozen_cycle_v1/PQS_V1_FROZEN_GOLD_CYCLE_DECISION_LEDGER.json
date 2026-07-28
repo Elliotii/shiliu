@@ -1,0 +1,140 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 Frozen Gold Cycle and Mechanical Seal Decision",
+  "schema_version": "v3.5-pqs-v1-frozen-gold-cycle-v1",
+  "decision_date": "2026-07-26",
+  "decision_authority": "V3.5-B",
+  "authorization": {
+    "frozen_gold_cycle_authorized": true,
+    "frozen_gold_mechanical_seal_authorized_if_all_cases_resolved": true,
+    "p7_final_closeout_authorized": false,
+    "p8_authorized": false
+  },
+  "entry_state": {
+    "p3": "accepted",
+    "p4": "accepted",
+    "p5": "accepted",
+    "p6": "accepted",
+    "p7a": "accepted",
+    "development_gold_cycle": "accepted",
+    "development_gold_version": "DEVELOPMENT_GOLD_V1",
+    "development_gold_formally_sealed_by_v3_5_b": true,
+    "frozen_gold_cycle_started": false,
+    "p8_started": false
+  },
+  "frozen_set_identity": {
+    "query_count": 10,
+    "query_ids_visible_for_identity_only": [
+      "PQS_V1_Q001",
+      "PQS_V1_Q002",
+      "PQS_V1_Q009",
+      "PQS_V1_Q010",
+      "PQS_V1_Q016",
+      "PQS_V1_Q020",
+      "PQS_V1_Q021",
+      "PQS_V1_Q022",
+      "PQS_V1_Q023",
+      "PQS_V1_Q024"
+    ],
+    "split_assignment_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+    "frozen_locked_jsonl_sha256": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+    "p7a_frozen_packet_count": 5,
+    "p7a_guard_sha256": "aad5e437cb49ccae62b9a72ccd706da827a6235089c045ef2688fe4bbe8c7f10",
+    "neutral_navigation_sha256": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "transcript_identity_catalog_sha256": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4"
+  },
+  "execution_topology": {
+    "orchestrator": {
+      "role": "mechanical_only",
+      "may_read_frozen_gold_semantics": false,
+      "may_route_opaque_artifact_paths_and_hashes": true,
+      "may_run_non_rendering_validators": true
+    },
+    "annotator": {
+      "unit_id": "frozen_annotator_A",
+      "scope": "all_5_guarded_batches_10_queries",
+      "independent_from_reviewer": true
+    },
+    "reviewer": {
+      "unit_id": "frozen_reviewer_B",
+      "scope": "all_5_guarded_batches_10_queries",
+      "must_finish_and_seal_independent_three_layer_drafts_before_opening_initial_annotations": true
+    },
+    "runtime_batching": {
+      "batch_count": 5,
+      "governance_stage_count_added": 0,
+      "purpose": "bounded context and checkpointing only"
+    }
+  },
+  "semantic_protocol": {
+    "gold_layers": [
+      "retrieval_gold",
+      "evidence_gold",
+      "sufficiency_gold"
+    ],
+    "review_outcomes": [
+      "agree",
+      "revise_gold",
+      "escalate",
+      "blocked_by_source"
+    ],
+    "reconciliation_rounds_max": 1,
+    "unresolved_route": "protected_user_adjudication_bundle_in_separate_session",
+    "main_orchestrator_may_choose_semantic_result": false,
+    "main_v3_5_b_may_read_case_level_frozen_gold": false
+  },
+  "source_boundaries": {
+    "authoritative_evidence_sources": [
+      "official_subtitle",
+      "asr_transcript"
+    ],
+    "navigation_only_sources": [
+      "title",
+      "description",
+      "ai_summary",
+      "ai_chapter",
+      "neutral_library_navigation_index"
+    ],
+    "full_raw_transcript_review_required": true,
+    "evidence_gold_may_not_be_limited_by_retrieval_or_candidate_builder_output": true,
+    "product_prediction_read": false,
+    "existing_gold_read": false,
+    "development_gold_read_by_semantic_units": false,
+    "product_pipeline_calls": 0
+  },
+  "visibility_policy": {
+    "completion_metadata_visible_to_v3_5_b": [
+      "completed_case_count",
+      "aggregate_review_outcome_counts",
+      "pending_user_adjudication_count",
+      "validator_status",
+      "evidence_span_replay_count",
+      "artifact_hashes",
+      "seal_status",
+      "guard_status",
+      "scope_violation_counts"
+    ],
+    "hidden_from_v3_5_b_until_formal_frozen_evaluation": [
+      "gold_status",
+      "relevant_video_ids",
+      "acceptable_video_ids",
+      "hard_negative_video_ids",
+      "evidence_groups",
+      "required_spans",
+      "quote_text",
+      "supported_aspects",
+      "missing_aspects",
+      "reason_codes",
+      "case_level_review_differences",
+      "case_level_reconciliation_content"
+    ]
+  },
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "frozen_gold_sealed_execution_candidate_ready": true,
+    "frozen_gold_formally_accepted_by_codex": false,
+    "pending_user_adjudication": 0,
+    "p7_final_closeout_authorized": false,
+    "p8_authorized": false
+  }
+}

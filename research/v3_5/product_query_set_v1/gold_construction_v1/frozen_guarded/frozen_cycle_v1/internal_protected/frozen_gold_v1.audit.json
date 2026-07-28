@@ -1,0 +1,36 @@
+{
+  "aggregate_outcomes": {
+    "blocked_by_source": 0,
+    "direct_agree": 10,
+    "escalated": 0,
+    "reconciled": 0
+  },
+  "audit_version": "FROZEN_GOLD_V1_AUDIT_V1",
+  "case_count": 10,
+  "independent_draft_seal_sha256_after": "97eff00429cfaa62ca414793d45503149ddeda887c1301ede176081dca77073d",
+  "independent_draft_seal_sha256_before": "97eff00429cfaa62ca414793d45503149ddeda887c1301ede176081dca77073d",
+  "manifest_sha256": "3978a4339f791c0faf102be9b565148f07836317b96df7a6a10116226b7725e9",
+  "pending_user_adjudication": 0,
+  "reviewed_case_count": 10,
+  "scope": {
+    "development_gold_read_by_semantic_units": false,
+    "existing_gold_read": false,
+    "frozen_gold_leakage_detected": false,
+    "p7_final_closeout_started": false,
+    "p8_started": false,
+    "product_pipeline_calls": 0,
+    "product_prediction_read": false,
+    "semantic_fields_changed_by_orchestrator": false
+  },
+  "validation": {
+    "byte_identical_copy": true,
+    "downstream_failure_codes_in_gold": 0,
+    "evidence_replay": "passed",
+    "evidence_spans_replayed": 37,
+    "navigation_only_sources_used_as_evidence": 0,
+    "p5_identity": "passed",
+    "p6_cross_object": "passed",
+    "p6_schema": "passed",
+    "replay_failures": 0
+  }
+}

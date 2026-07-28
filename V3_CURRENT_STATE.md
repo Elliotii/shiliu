@@ -1,11 +1,16 @@
 # Shiliu V3 Current State
 
+> **Status: superseded.** This file is retained as a historical Stage 6 state
+> record. Current V3 authority is `SHILIU_V3_VERSION_DECISION.md` and
+> `V3_CLOSEOUT.md`; repository-wide authority is
+> `SHILIU_V0_TO_V3_5_FINAL_CLOSEOUT.md`.
+
 ## 1. Version Identity
 
 ```text
 Version: Shiliu V3 — Searchable Evidence Library
 Role: Portfolio-grade Retrieval MVP
-Status: Stage 4B Accepted with Follow-up — Stage 5 Ready for Planning
+Status: Stage 6B Delivered — Ready for Version Session Review with Follow-up
 Authority:
 - 00_V3_RETRIEVAL_VERSION_BRIEF.md
 - 01_V3_SESSION_OPERATING_CONTRACT.md
@@ -20,8 +25,8 @@ Project root:
 Audited branch:
 codex/v3-domain-completion
 
-Audited HEAD:
-4673a8f
+Stage 5 starting HEAD:
+8287c8d
 
 Application:
 Python / FastAPI / Jinja / SQLite / filesystem artifacts
@@ -110,8 +115,8 @@ silently rewritten.
 * Metadata filtering: Stage 1 baseline delivered
 * Timestamp Evidence: Stage 4B grouped windows and deterministic raw-segment jump anchors delivered
 * Incremental indexing: Stage 3 post-commit Product hooks, per-Video synchronization and reconciliation delivered
-* Product surface: raw and grouped CLI/API delivered; Web Search UI remains Stage 5
-* Retrieval Eval: not delivered
+* Product surface: raw and grouped CLI/API plus Stage 5 evidence-oriented Web Search UI delivered
+* Retrieval Eval: Stage 6B formal Snapshot-only evaluation delivered
 * Search Trace and tests: linked bounded Raw and Product Presentation traces delivered
 
 ### Optional
@@ -134,8 +139,9 @@ Selected Dense Model: Qwen/Qwen3-Embedding-0.6B revision 97b0c614be4d77ee51c0cef
 Model Adoption: Accepted with Follow-up
 Stage 4A: Accepted with Follow-up
 Stage 4B: Accepted with Follow-up
-Stage 5: Ready for Planning
-Stage 6: Not Started
+Stage 5: Accepted with Follow-up
+Stage 6A: Delivered
+Stage 6B: Delivered — Ready for Version Session Review with Follow-up
 ```
 
 Stage 1 follow-up disposition at Stage 2 delivery:
@@ -216,18 +222,46 @@ Stage 1 follow-up disposition at Stage 2 delivery:
 * Explicit boundary behavior for RAG, AI, MCP, GPT-5, OpenAI, C++, C#, `.NET` and Qwen version entities
 * Fifty-nine additional anchor-boundary test cases; 75 enrichment tests and 485-test controlled full-suite pass
 * Six-query formal boundary smoke with linked Raw and Product Presentation Traces
+* Independent `/search` Jinja page with a single-column, backend-ordered video result list
+* Native JavaScript URL state, Back/Forward restoration, explicit mode/scope and Product filters
+* Additive batch-loaded cover, detail, reading, marked and folder display metadata without frontend N+1 requests
+* Evidence cards with primary/additional windows, honest precise/fallback anchor wording and auxiliary AI Chapter labels
+* Central Bilibili timestamp URL helper and real-browser timestamp navigation evidence
+* Idle, Loading, Success, Empty, Auto Fallback, structured Error and partial-enrichment states
+* AbortController plus monotonic-sequence protection against stale-search result replacement
+* Safe DOM rendering, keyboard/accessibility support and desktop/narrow responsive layout
+* Fourteen focused Stage 5 tests and 499-test controlled full-suite pass
+* Six Stage 5 browser screenshots and real formal-database browser validation
+* Stage 6A writer audit, settled Live baseline, Backup-API SQLite snapshot and lightweight artifact freeze
+* Immutable 1,555-unit Eval corpus with manifest, hashes, zero Live artifact references and isolated writable trace copy
+* Locked Stage 6 evaluation protocol and 24-query candidate set (20 held out, 2 negative controls)
+* Three-mode 72-request candidate pooling with 452 complete query/video rows and no explicit-mode fallback
+* Non-authoritative relevant-video suggestions plus 10 authoritative raw-subtitle interval candidates
+* Bounded 24-section Gold Review Packet and deterministic snapshot reproducibility evidence
+* Seven focused Stage 6A tests and 506-test standard full-suite pass
+* Validated amended 452-row Human Decision Ledger with only the authorized five-row review set touched
+* Locked 24-query pooled Gold after all Part A eligibility, interval, R_title and U_title gates passed
+* Snapshot-only Lexical / Dense / Hybrid / Auto formal evaluation with three stable measured repetitions per query and mode
+* Discovery, Evidence, category, held-out, window, anchor, duplicate, grouping, router, latency and negative-control diagnostics
+* Dense truncation, cross-language, AI Summary, unjudged-sensitivity and failure-case evidence reports
+* Twelve focused Stage 6B tests and 518-test standard full-suite pass
 
 ## 8. Eval Status
 
 ```text
-Query Set: Not started
-Lexical metrics: Not available
-Dense metrics: Not available
-Hybrid metrics: Not available
-Failure analysis: Not started
+Locked Query Set: 24 rows
+Gold: locked from the validated amended 452-row Human Decision Ledger
+Candidate Pool: complete for Lexical / Dense / Hybrid on frozen Snapshot
+Lexical discovery Recall@5 / Recall@10 / MRR: 0.349973 / 0.403274 / 0.500000
+Dense discovery Recall@5 / Recall@10 / MRR: 0.783956 / 0.880141 / 1.000000
+Hybrid discovery Recall@5 / Recall@10 / MRR: 0.783956 / 0.882035 / 1.000000
+Auto discovery Recall@5 / Recall@10 / MRR: 0.777462 / 0.881629 / 1.000000
+Failure analysis: delivered
+Classification: Ready for Version Session Review with Follow-up
 ```
 
-Functional acceptance searches and filter tests exist, but they are not a formal Retrieval Eval.
+Formal Stage 6B evaluation is complete. It remains a pooled/judged Snapshot-only
+evaluation and does not claim exhaustive relevance judgment over the live Product corpus.
 
 ## 9. Active Issues
 
@@ -235,10 +269,10 @@ Functional acceptance searches and filter tests exist, but they are not a formal
 2. Cleaned transcript sections do not retain exact raw-segment lineage.
 3. Summary chapters are not precise timestamp evidence.
 4. Historical events are not consumed as an index queue; Stage 3 reconciliation derives desired state directly from current Product tables.
-5. Bilibili timestamp-link behavior has not been tested end to end.
+5. Bilibili timestamp-link behavior was tested end to end in Stage 5; broader platform/browser variation remains outside the current evidence.
 6. Queries shorter than three characters use a documented substring fallback rather than FTS5/BM25.
 7. A single upstream subtitle segment longer than the configured character or duration limit is preserved whole, so that unit may exceed the target bound.
-8. The formal Retrieval Eval and Stage 5 Web Search UI remain undelivered; Stage 5 is ready for planning but has not started.
+8. Stage 6B Gold locking, formal metrics and failure analysis are delivered; Version Session decisions remain, including default-mode and evidence-window follow-up.
 9. Historical BGE evidence showed identical query vectors for pure-ASCII `MCP`, `LangGraph`, `RAG` and `FAISS`. Qwen adoption resolved this collapse without adding rewrite or translation.
 10. Standalone subtitle regeneration and favorite-folder title editing are `Not Currently Implemented`; Stage 3 did not create those Product features.
 
@@ -281,11 +315,69 @@ Functional acceptance searches and filter tests exist, but they are not a formal
 35. ASCII technical entities require external ASCII letter/digit boundaries in both high-confidence anchor paths; generic `\b` and plain substring containment are not used.
 36. `.NET` may match within `ASP.NET`, and `C++` may match `C++20`; these are explicit product semantics fixed by tests.
 37. Chinese full-phrase and CJK keyword substring semantics remain unchanged by the ASCII boundary closure.
+38. Stage 5 search UI consumes `POST /api/search` without client-side regrouping, window recomputation, ranking, or anchor calculation.
+39. Stage 5 defaults remain `mode=lexical`, `scope=all`, `archived=false`, and `ignored=false`; Auto is optional and Hybrid remains non-default.
+40. Product display metadata is loaded once per Product response after group selection and does not alter group or window order.
+41. Exact/mixed/keyword anchor sources use precise play wording; `chunk_start_fallback` uses explicitly approximate related-window wording.
+42. Raw and Product Presentation Trace data remain internal and are not exposed as a Web debug surface.
+43. Stage 6 evaluation uses snapshot `20260720T094346Z_c7663365`; Live database pooling is forbidden.
+44. `shiliu_eval.db` is the read-only corpus authority; `pool_work.db` is its trace-isolated writable derivative.
+45. Stage 6 Gold is pooled/judged and must not be described as exhaustive judgment of every Product video.
+46. Auto is a routing policy, not a fourth base retriever; its fixed oracle-gap definition is recorded in `research/v3_eval/V3_EVAL_PROTOCOL.md`.
+47. The amended Human Decision Ledger is the authoritative Stage 6B judgment input; the original ledger remains immutable provenance.
+48. Stage 6B formal metrics use the derived Eval work database only; Snapshot corpus rows and Live Product data remain unchanged.
+49. V3 Closeout is not started and requires a separate Version Session decision.
 
-## 11. Stage 4B Closure
+## 11. Stage 6B Closure
 
 ```text
-Stage 4B is Accepted with Follow-up. Stage 5 is Ready for Planning but has not started.
+Stage 6B is Delivered and ready for Version Session review with follow-up.
+
+Formal result:
+- amended Human Ledger validation passed with 452 judgments and no out-of-scope changes;
+- Gold Lock completed for 24 queries, including 104 R_evidence, 6 R_title, 337 N and 5 U_title judgments;
+- Snapshot-only Lexical, Dense, Hybrid and Auto evaluation completed with stable repeated rankings;
+- Dense and Hybrid materially exceeded Lexical discovery recall on the judged pool;
+- negative-control nearest-neighbor behavior, broad evidence windows, weak anchor precision,
+  Dense truncation causality and cross-language coverage remain follow-up evidence or product decisions;
+- 12 focused Stage 6B tests and the 518-test standard full suite passed;
+- Snapshot and Live Product/Index/Trace integrity remained unchanged.
+```
+
+No default-mode, Router, Retriever, Chunk, Embedding or Query change was made.
+`V3_CLOSEOUT.md` has not been generated.
+
+## 12. Stage 5 Closure
+
+```text
+Stage 5 is Delivered and ready for Version Session review.
+
+Formal result:
+- `/search` is reachable from shared navigation and uses the existing Product Search API;
+- URL state, explicit modes/scopes, real Product filters, Back/Forward and refresh restoration passed;
+- one backend result maps to one ordered video card with unchanged evidence windows;
+- local detail navigation and real Bilibili timestamp navigation passed;
+- safe rendering, stale-request protection, complete UI states and narrow layout passed;
+- 14 focused Stage 5 tests passed;
+- 499-test controlled full suite passed after removing invalid proxy environment variables;
+- 1,555 Retrieval / FTS / Dense rows remain aligned;
+- after the existing LaunchAgent startup sync settled, `/search` plus Product Search retained all Product Source hashes;
+- the initial pre-launch hash comparison is separately disclosed because the existing LaunchAgent automatically synchronized favorite sources at startup;
+- SQLite integrity_check is ok and foreign_key_check is empty;
+- six real browser screenshots were captured.
+```
+
+Recommended classification is Accepted with Follow-up. Remaining follow-up is
+limited to minor visual polish and Stage 6-only relevance, long-window and
+Timestamp Anchor Error evaluation.
+
+Default mode remains Lexical. Auto remains optional. Hybrid remains non-default.
+Raw and Presentation Traces remain internal. Stage 6A and Stage 6B were subsequently delivered.
+
+## 13. Stage 4B Closure
+
+```text
+Stage 4B is Accepted with Follow-up. Stage 5 was subsequently delivered.
 
 Formal result:
 - both `exact_query_phrase` and `exact_entity_term` use shared ASCII technical-entity boundary semantics;
@@ -301,12 +393,12 @@ Formal result:
 ```
 
 Default mode remains Lexical. Auto remains optional. Hybrid remains non-default.
-Search Web UI remains Stage 5 and formal Retrieval Eval remains Stage 6.
+Search Web UI was delivered in Stage 5; formal Retrieval Eval was subsequently delivered in Stage 6B.
 
 Remaining Stage 4B follow-up is limited to Timestamp Anchor Error evaluation,
 long-duration Evidence Window presentation, and formal relevance evaluation.
 
-## 12. Stage 4A Closure
+## 14. Stage 4A Closure
 
 ```text
 Stage 4A is Delivered and ready for Version Session review.
@@ -331,7 +423,7 @@ Formal result:
 Stage 4B later added post-retrieval grouping, evidence windows, deterministic jump
 anchors and auxiliary Chapter enrichment without changing this Raw Search boundary.
 
-## 13. Stage 3 Lifecycle Closure
+## 15. Stage 3 Lifecycle Closure
 
 ```text
 Stage 3 is Delivered and ready for Version Session review.
@@ -372,17 +464,17 @@ Not Currently Implemented Product mutation paths:
 * standalone subtitle regeneration action;
 * favorite-folder title editing action.
 
-## 14. Deviations
+## 16. Deviations
 
 1. FTS5 `trigram` cannot match one- or two-character queries, so Stage 1 provides an explicit case-insensitive substring fallback with retrieval method `lexical_substring_fallback` and score `0.0`.
 2. Whole-segment provenance takes precedence over hard splitting; an indivisible oversized upstream segment may exceed normal chunk bounds.
 3. First formal Hybrid request included Qwen lazy load and took approximately 4.65 seconds; subsequent formal Hybrid requests were approximately 48–83 ms in the observed run.
 
-## 15. Escalations
+## 17. Escalations
 
 None.
 
-## 16. Remaining Time Budget
+## 18. Remaining Time Budget
 
 ```text
 Original target: 18–24 effective hours

@@ -1,0 +1,55 @@
+{
+  "schema_version": "v3.5-b-f1b-selector-v2-freeze-seal-v1",
+  "selector_version": "v3.5-deterministic-fine-selector-v2",
+  "selector_source_hashes": {
+    "src/shiliu/evidence/stage3a.py": "ce2f3d19834f4438852e2097a5c7ed24abd28a5720c784e546d99f66eca26ee8",
+    "scripts/run_f1b_selector_cycle.py": "8ca2766059b8c94d172ec3751a260704619875dcfaaa5ac9d0441247f433e9ad"
+  },
+  "selector_config_hashes": {
+    "research/v3_5/product_query_set_v1/f1b_selector_major_cycle_1/selector_v2_config.json": "f965e66ed01552e955e3c43db2f26a142f16fcd0b678f0e328bc936b296184e0"
+  },
+  "marginal_objective_hash": "f965e66ed01552e955e3c43db2f26a142f16fcd0b678f0e328bc936b296184e0",
+  "test_hashes": {
+    "tests/test_v3_5_f1b_greedy_marginal_selector.py": "97340404fe518cef88185b6ce5aede385494a3bd118744b1c2b03987491084da",
+    "tests/test_v3_5_stage3b_selector.py": "16797eda874f53bfb79a743f72b93dee9f5ede4f20caad581cc6e0695837d235",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_evidence_identity_contract_v1.py": "b64a977d611b786c0aaad021c759580b5a2eec37a80542c30f9227cd93aee752",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_scorer_v4_projection.py": "35c48d0d827f6d6a183cba4c6def2d626cbd61632c10c1aaeefffd944a272fe2",
+    "research/v3_5/product_query_set_v1/f1b_selector_major_cycle_1/f1b_gold_free_test_results.json": "97ece155ad3f1346f6ae90360d4c13789c52187ba8bd1dd6889b4e2a8b0203c1"
+  },
+  "formal_builder_hashes": {
+    "version": "stage3b-acronym-w3.5-v1",
+    "preimplementation_root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "stage3b_run_manifest_sha256": "b6d567164274df97b7386143d976a7b2c0e828776f6b1746bebf15c0eea59e8d",
+    "builder_behavior_changed": false
+  },
+  "Evidence_Identity_Contract_V1_hashes": {
+    "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "root_sha256": "0b65d3bee751b3f1ca466b2bfe4e6984ef4d48a2319eb4a0fa6e99415a0fbb08"
+  },
+  "projection_contract_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_projection.py": "8d2752ed92fb96337af603a7768d47a628550b7796904dd760dc516d70e9cb7e",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/SCORER_V4_FREEZE_SEAL.json": "e45b4c5604d2de9171086093ad2e26d09dcfd446f233a6397af9f86a4876b669"
+  },
+  "Development_Gold_hashes": {
+    "root_sha256": "f6332ff17cec180023cda34e3144390beb96559349a370ce34815ca6666698b0"
+  },
+  "Product_input_hashes": {
+    "root_sha256": "fcbafeffaa8e90443e34159d7314bd3ca74381d217b8a6447f91055dffa6c7b6"
+  },
+  "Stress_input_hashes": {
+    "root_sha256": "57ce23a00fa6c2797796eda24d84a7b8511014c84f18c97b5e9813aada6639d5"
+  },
+  "F1B_GATE_FREEZE_hash": "b7179fba4619a33e677a435ba68c5b82dc404f55b60ade4be209244cb2dcd781",
+  "bundle_budget": 6,
+  "major_cycles_consumed": 1,
+  "major_cycles_remaining": 0,
+  "freeze_constraints": {
+    "selector_behavior_change": false,
+    "selector_config_change": false,
+    "weight_or_priority_change": false,
+    "test_semantics_change": false
+  },
+  "Gold_free_at_runtime": true,
+  "Development_Gold_accessed_for_after_scoring_before_freeze": false,
+  "Frozen_Evaluation_accessed": false
+}

@@ -1,0 +1,32 @@
+{
+  "Frozen_Evaluation_accessed": false,
+  "Q006_regressions": 1,
+  "builder_version": "stage3b-acronym-w3.5-v1",
+  "bundle_budget": 6,
+  "compactness_percent": 99.74638860805051,
+  "formal_Product_After_run_count": 1,
+  "invalid_identity_or_timeline": 0,
+  "maximum_selected_candidate_count": 6,
+  "mean_selector_latency_ms": 75.35663095768541,
+  "query_count": 14,
+  "recovered_previous_misses": {
+    "denominator": 5,
+    "numerator": 0
+  },
+  "schema_version": "v3.5-b-f1b-product-after-v1",
+  "selector_hits_on_builder_complete_cases": {
+    "denominator": 6,
+    "numerator": 0
+  },
+  "selector_to_builder_aspect_capture": {
+    "denominator": 18,
+    "numerator": 0
+  },
+  "selector_to_builder_aspect_capture_ratio": 0.0,
+  "selector_to_builder_span_capture": {
+    "denominator": 18,
+    "numerator": 0
+  },
+  "selector_to_builder_span_capture_ratio": 0.0,
+  "selector_version": "v3.5-deterministic-fine-selector-v2"
+}

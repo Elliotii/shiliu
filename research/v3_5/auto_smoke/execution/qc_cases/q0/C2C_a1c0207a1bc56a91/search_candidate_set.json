@@ -1,0 +1,1946 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "终端、命令行和命令有什么区别,初学者运行命令时怎样避免误删文件?",
+    "planned_mode": "hybrid",
+    "query_type": "semantic_question",
+    "raw_query": "终端、命令行和命令有什么区别，初学者运行命令时怎样避免误删文件？",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "semantic_question_dual_signal",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.6957350969314575,
+      "end_time": 116.46,
+      "excerpt": "上一期我们讲过打开代码编辑器之后 你会看到三块面板 有左边的资源管理器 中边的编辑区 还有下方那个黑底儿白字儿的小窗口 那今天这一期我们就专门讲一讲 那个黑色的窗口 让很多人都有点恐惧的那个黑窗口 它有三个名字 你肯定都听过 有终端 有命令行 有CLI 听起来像三件事 其实指的是同一件事 只是角度不一样 首先终端英文叫terminal 指的是那个窗口本身就是一个软件 一个黑底白字的一个小框 CLI全称是command line interface 就是命令行界面 它指的不是窗口 而是通过敲字儿给电脑下命令的这种交互方式 那最后就是命令 也就是comman",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "编程名词扫盲之“啥是终端？”",
+      "unit_id": "transcript_chunk:bilibili:BV1LWRxBNEaq:p1:chunk_c7180d02fdb22ec7e4f21a30df32f070",
+      "unit_type": "transcript_chunk",
+      "uploader": "一枚卓子",
+      "video_id": 82
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.6674160957336426,
+      "end_time": 665.74,
+      "excerpt": "我觉得影响我们这个cl呃 影响我们心中体验的几个关键的操作吧 第一COOI和GORGUI的一个拉扯 就有的时候 我们我明明在命令行里面执行的好好的 但是我们需要去打开一个具体的应用哈 打开浏览器 也或者是打开访访达哈 打开这个PDF的预览 那这个时候坦白讲 其实我们是完完全全呃 这个这个就会破坏我们这个这个这个 这个操作的一个丝滑 就是我们要脱离这个cl i环境 去用鼠标的方式去点点点 当然A技能在没有computer use的情况下 也是用命令命令行的 比如这个open杠a preview哈 这个这个我我当时就是在这个这个cl2里面 发现了这个命令哈 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 546.08,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_34b94271d416d0fbddf3376ac1cee21c",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.6520590782165527,
+      "end_time": null,
+      "excerpt": "[Title] 编程名词扫盲之“啥是终端？” [Uploader] 一枚卓子 [Summary Conclusion] 终端是黑底白字的软件窗口，命令行（CLI）是通过敲命令与电脑交互的方式，命令是输入的具体指令；使用命令行因速度快、可批量重复及远程操作，在编辑器中内置终端并配合AI编程工具能提升开发效率。 [Summary Key Points] 终端、命令行、CLI三者指同一事物：终端是窗口软件，CLI是交互方式，命令是输入内容。 程序员使用命令行的三个原因：一行命令快速完成多步操作、可写成脚本批量重复使用、可远程操作无图形界面的服务器。 常用命令包",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "编程名词扫盲之“啥是终端？”",
+      "unit_id": "video:bilibili:BV1LWRxBNEaq:p1",
+      "unit_type": "video",
+      "uploader": "一枚卓子",
+      "video_id": 82
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.5581153631210327,
+      "end_time": 1800.78,
+      "excerpt": "那显然是不足的 我们这个时候可能要用MAD u哈 去对这个PDF做一个整体的一个pass 更精确的一个pass 好 最后我们再回顾一下 我们这这期主要讨论的一些内容哈 就核心就是要养成一个好的习惯 要保持追求一个心流的状态 我们要尽可能多的用COI 用键盘去平滑的去做各种各样的操作 对于各种软件的话 我们要尝试去记各种常用的快捷键 避免我们尽可能少的去避免去使用这个键盘 因为我们追求心灵状态就是少中断 少等待 然后一定要把你手弄脏 去熟悉 去练习 去记忆各种各样的快捷的操作 去熟悉你的操作系统 去熟悉你的shell 去熟悉各种各样的工具 熟悉各种各样的快",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 1695.81,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_12773aae22ecc53c82d9661f70dc094c",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.5528005361557007,
+      "end_time": 1002.08,
+      "excerpt": "就大家如果可以去系统性的去去整理这些 去通过这两个站点吧 去查漏补缺一下自己的可能缺失的一些命令哈 好整个slides可能有点乱哈 但是我觉得我还是还是还是 能把这个大致的含义给大家讲清楚哈 就是我们的cl是z cl啊 然后我们的blue还没有 我们要熟悉我们的blue的一个环境哈 我们还可以用fast fish啊 去看一下我们这个一个配置哈 fast psh它 呃看啊他提供了很多哦 算了 fast fish我杠C我们更喜欢的是25这个配置吧 就是看一下自己这个系统的一个环境啊 很多人把这个fast fish写到这个这个excel里边啊的 就是你比如这个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 883.52,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_2de2b52583e0c1ad81d5b8a9085c9743",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.5438133478164673,
+      "end_time": 1236.96,
+      "excerpt": "他叫速度哈 去查看这个端口级别的 网络连接的一个上传下载 当然我之前可能更多用的还是i f states 但是具体端口的话 具体看哪个interface呃 我们可以用 用root啊 比如这个我们就用的1N0 我想想看我们用假如说f states杠IEN0啊 就是可以看到这个端口下的一个上传下载哈 啊就无所谓哈 对terminal的话 我就目前用的还是r tm two哈 呃note和node npm node提供了这样一个NPM 就是类似于Python的PRT哈 我们就可以安装这个安装这个呃 各种各样的AI的这个coding的工具哈 然后get it gi",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 1117.67,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_0efae7425d74beaac25e56b398cb92c0",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.5326794385910034,
+      "end_time": 1021.38,
+      "excerpt": "擦掉 那么到现在呢我们的一个简单的配置就完成了 现在呢我们就可以开始来执行 我们的一些基础的操作了 怎么操作呢 在这里呢就是说明一下呃一些常用的命令吧 首先初始化就give in it 相当于新建一个日记本 我们可以实际操作一下 我们在这个地方呢新建一个文件 随便叫什么名字 右键在终端打开 这就是我们集成到这里面的好处 已经因为我们这因为我们集成到这里面呢 我们就不用在这里打开那个了 好我们输入刚刚的get in it 新建一个日记本 如果你在这个查看这里 没有打开我们的隐藏项目的话 你这个点get it文件是看不到的 点get it文件呢 主要是存存储",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 905.9,
+      "subtitle_source": "ai",
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_c7c6865d8d1fed7ebde6fcec4aff8a50",
+      "unit_type": "transcript_chunk",
+      "uploader": "左-岚",
+      "video_id": 131
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.5234145522117615,
+      "end_time": 104.88,
+      "excerpt": "好亲爱的朋友们 大家中午好 今天我们继续回到我们这个苹果M芯片 这个系列 这期我们介绍Mac os电脑一个装机配置指南 它当然同样适用于LINUX环境 windows环境 凡是我们在我们自己的电脑或者主机上去 安装了coding engines 然后我们日常在使用这个电脑 我们自己使用这个电脑 或者我们用的q coda近词 去使用这个电脑的时候的一些尖端 而意义上的一些最佳的 也是体验嘛终极的一个目的哈 我们是要让我们自己也包括cod1镜子 达到一个心流的状态 对于我们而言就是少切换 对于A键词而言 就使用最佳的工具 不退而求其次 一个丝滑平滑的一个体验",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_f75bbde226c1af271b0a02a006734c1a",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.5198264718055725,
+      "end_time": 886.89,
+      "excerpt": "是一个notebook Python的notebook 然后google slides呢 它是用来做一些宏观的topic格和线索 去梳理一些更宏观的一些串串联 而谷歌浏览器就保持一个登录状态 因为到时候我们跨设备跨终端的时候 或者我们换了升级了我们我们的电脑 这里面还保留了大量的收藏和文件夹 还有一些插件 左til的话 我们用坚果云去做备份 那这样的话也可以跨设备跨文件呃 跨终端 然后换电脑的时候也可以无缝的去去备份哈 然后第二个就是UV哈 用get get it去管理仪器呃 康纳还是太重了哈 或者是管理的会太混乱了哈 我们用UV管理器哈 所有的项目都有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 776.96,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_24fbe562c833ff1abd47caaa314def2c",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.5131134986877441,
+      "end_time": 695.94,
+      "excerpt": "就首先我们要去定义它的一个名字 然后他的一个描述对 然后他有可以使用什么工具 然后一些提示词的防御极限啊 就是你这一个角色他不能做什么 然后可以做什么 然后定义好他是一个一名高级的代码审查员 怎么样 然后审查的流程是怎么样的 然后对这些就都是一些细节 所以当我们定义好一个角色以及他的身份 他能做的事情 以及他做的事情的一些规范之后呢 我们以后在当要使用这一个爵士的时候 我们就很简单的在cloud口里面说调用这一个角色 然后他就会帮我们把这些所有的规范 他的身份 他的指令全部都给我们规范好 我们就可以直接使用就好了 所以这一个也是一个非常重要的概念 就是这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 577.01,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_582449e973e0580328ce7f5f308d7f7d",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.5074809789657593,
+      "end_time": 1489.59,
+      "excerpt": "主要是这个p link犯了个错 我们右键这个这个可视化的软件 选择打开这个位置 好然后呢 在他的这个app这个文件夹下有个TOS 这里面有这里面有有一个工具PUTTY 但是这个工具呢它没有可视化界面 那么那么我们怎么弄呢 右键再双端打开 打开了之后呢 我们输入7link git act git e e减抗 好它就会自动执行一下 就像我们刚刚的那个 就像就像我们一开始的一个SSH里面的哦 需要加个斜反斜杠 然后呢这个地方呢是说要不要保存缓存下来 选择Y缓存一下好 添加成功了 添加添加成功了之后呢 我们重新进行一次推送 推送 执行成功 然后呢 我们现在觉得 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 1370.75,
+      "subtitle_source": "ai",
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_4062d7c839b1f2f472073684298c2b77",
+      "unit_type": "transcript_chunk",
+      "uploader": "左-岚",
+      "video_id": 131
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.5068529844284058,
+      "end_time": 2084.87,
+      "excerpt": "那就这个新终端就会被留在这里面 就是哪怕你把这个终端关了也没关系 我们怎么去找回这个终端呢 就TMUSIS 你就可以看到有个名字叫哈哈的 这个终端存在在这个地方 是什么时候创建的 那我们怎么样去回到这个终端呢 p m u x edge杠T哈哈哈哎呀我们就又回来了 是不是非常简单对非常简单 那就是那我们怎么样就是删除这个终端了 就直接exit他就没了 就是这个中单就消失了 嗯再看一下啊 就你也想要 就是删除指定终端 还有个方法就是将u u s q session杠T 然后把那终端名字给报上去 慢慢孤独独自 除此之外还有一个是叫做啊kill server 就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 1965.61,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a406088a2dd9946f4b08f60b8f0ef1b5",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.5060864090919495,
+      "end_time": 182.34,
+      "excerpt": "MKDIR加名字等于新建一个文件夹 Python man点PY就是让电脑跑一下这个Python文件 git clone网址就是从GITHUB把别人的代码下载到本地 那这个GITHUB我们下期再讲怎么用怎么回事 你以后看到博主在那个黑窗口里敲东西 无非就是在干这几件事当中 其中一件像vs code这个代码编辑器 下方就带一个终端 也就是我们上期讲的那个 而且cloud code或者codex这类AI编程智能体 直接可以在这个内置终端里跑了 这样做有两个非常直接的好处 第一个就是所有东西在同一个屏幕上 代码文件数 终端AI对话框不用在多个软件之间反复切了 第",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 113.0,
+      "subtitle_source": "ai",
+      "title": "编程名词扫盲之“啥是终端？”",
+      "unit_id": "transcript_chunk:bilibili:BV1LWRxBNEaq:p1:chunk_7c3bdbfebb44f32045d7e234da336073",
+      "unit_type": "transcript_chunk",
+      "uploader": "一枚卓子",
+      "video_id": 82
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.49828898906707764,
+      "end_time": 813.85,
+      "excerpt": "你想恢复原样 那就得用git或者安装检查点之类的扩展了 但因为pi本身并不支持直接撤销文件更改 但在运行任何操作之前 最好确保所有文件都已经提交到git里 这样万一要回退也有办法 但文档里还有更详细的说明 如果你很好奇 可以直接去GITHUB上看system prompt 点ts文件 了解默认系统提示词是如何构建的 我们简单聊一下 技能和提示词模板如何帮助我们扩展agent的 以及他们解决不同问题的思路 当我们说到技能 它主要用于封装可复用的能力 比如工作流配置 脚本参考文档等等 现在有很多流行的技能 但为了让你更容易理解技能的工作原理 我给你看一个真实",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 696.58,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_6a951e1bf0cea9c059a458db99a77ae6",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.49580469727516174,
+      "end_time": 465.28,
+      "excerpt": "但这样会执行命令 并将输出发送给LLM 但如果我们在命令前加两个感叹号 那么命令会执行 但不会把输出发送给LLM 在我们的情况下 我们不需要把这个输出发给LLM 所以我们就用两个感叹号 然后按回车 这这样就完成了 现在我们可以再试一下CTRLG 但看起来没有生效 我们重新打开一个终端 再试一次 但这次当我们按CTRLG时 visual studio code打开了 我们可以点击管理信任此窗口 对然后我们可以输入提示的其余部分 比如这是一个测试 我在思考 这大概就是 为什么你会想打开一个独立编辑器的主要原因 因为如果我们保存并关闭它 但他会把我们写的内容放",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 346.12,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_318d56e5dd3b02a22f1798aeca4de590",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.4926762580871582,
+      "end_time": 205.84,
+      "excerpt": "优先使用RG或者RG杠杠files 因为RG比GU替代方案快得多 同时呢RG是一个现代化的 基于rust的一个一个搜索工具 它是project级别的 也就是说我很多时候我们的project里边 一个项目里边很多大纲无关的一些配置代码 RG是可以自动的ignore的 它比GRP更快 同时更精准 过滤了大量的我们不care完 几乎很难去care的一些配置文件 ignore的一些文件哈 然后他当时说要并行 你要尝试去并行 尽可能多的 如果可能的话 尽可能多去并行 就比如这个cat工具查询哈 然后RG还有seed iOS get shoe n l w c n l",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 102.5,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_fd023db21cafdc984eca31e1d4650c96",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.4925447106361389,
+      "end_time": 1119.15,
+      "excerpt": "RG是查查找文件和文件名 FD呢是定位文件哈 当然我们可以用CDF哈 就我们刚刚写的这个 我我给大家看一下哈 对 就这个我刚写了这样一个CDF这样一个命令哈 去定位到文件的一个路径哈 我举例哈 我假如说我们去查这个DAVE 我就模模糊糊糊的记得他叫set dive set up点PDF吧 对我们可以定位到这个它的路径 对我们可以open杠a preview啊 一个dive点啊 工具啊 这对就无所谓了哈 可能更更直观的 我们在任何路径底下 我们都可以open杠a preview 然后CTRLT啊 模糊搜索dive set up Pdf 对它自动不全哈 GQ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 999.49,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_d8a1826f35574ac989b768f1d2d6853d",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.4893990159034729,
+      "end_time": 2148.52,
+      "excerpt": "我们就是打开文件去找什么样一个东西呢 一般在主目录下面会有一个文件叫做点batch rc 那我们在这下面来加上一个命令啊 比如说这个ha activate cos 加上之后怎么办呢 就加上 然后保存 我们需要force波浪号 往斜杠点再到B哎好接下来就见证奇迹了 我们TMUX可以看到我们就可以生成默认 就直接激活默认的环境 就不用每次进一个新环境 都要重新的activate一下 这就是想要给大家讲的所有的知识了 那么希望大家能够在之后的所有工作当中 把这一套给玩六 玩溜了之后 就大大提升你的一个效率吧 至少是版本管理的效率会大大提升 好今天就到这里拜拜",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 2079.41,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_f626eb3b4cf4ab6c817ca1cba8e5642e",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.48817548155784607,
+      "end_time": 501.94,
+      "excerpt": "就可以先搞清楚它的作用 因为我现在也不是很好说清楚 最后一个就是当你发现你的文件变成十删了的时候可以使用 但是你难免可能会遇到 因为前期需求说的不是特别清楚 后面有改之类的 他可能就会把一个新的文件覆盖到原来旧的文件上面 这样的话就导致其实做了很多重复的工作 但是你自己又很难去一个一个的check 哪些是重复的 让AI自己去跑的话 他自己可能也会困惑 就是出现这样的问题 那这种情况下就可能会需要你去做文件重构 但是这个的话要谨慎使用 如果说你在文件重构的过程中 也可能他会误删一些重要的东西 所以说可以先在git上备份一份 就是以便出现问题的时候回滚嗯 然",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 442.14,
+      "subtitle_source": "ai",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_7b7e5fa90ea2a3ad0b4deb0f6ff9f4b3",
+      "unit_type": "transcript_chunk",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.48804521560668945,
+      "end_time": 121.22,
+      "excerpt": "我之前不是发了一个那个丰泰 说要做一个我们就是大学生的一个扫盲课 这个是第一节 然后呢就是get it get up和get it意的完整讲解嗯 首先呢我们这是它对应的软件的什么链接 视频呢 后面发了再会补充进去 这个PDF呢也会给出来放到百度网盘里面 然后首先是get it 它是一个时光 就是一个日记本 就比如你如果是单纯的那种写文档的话 还好你可以另存为很多很多个版本 然后你命个名什么的 但是其实很多时候 我们不止不只是一个地方改动 就比如说你写代码 你可能是一个一个代码文件的改动 而是多个代码文件 那么这个东西呢它相当于就是帮你记录下 你每次写的代",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 1.74,
+      "subtitle_source": "ai",
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_69ac51ef043be8c5986e658fbea72f2f",
+      "unit_type": "transcript_chunk",
+      "uploader": "左-岚",
+      "video_id": 131
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.4874865412712097,
+      "end_time": 806.46,
+      "excerpt": "commit id在一个仓库里面是绝对唯一的 所以我们跟AI交流的时候 最好直接使用commit id 这样会更加的精确 我们来试一下 这里我想让AI帮我把删除跟苹果这两次提交 整个移除掉 把仓库回退到荔枝这个状态 我们在荔枝上面右键选择copy commit哈 希然后把这个id粘贴给A 你把仓库还原到这次提交的状态 他后面的所有提交都不要了 AI在底层执行的核心命令其实是git reset hard 但是在AI时代 我们完全不需要记忆这些命令 你只需要了解commit的基础概念 就能让AI完成一切操作 我们回到仓库看一下 现在整个仓库已经回退到了对应的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 687.7,
+      "subtitle_source": "ai",
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_fce298cb76f2be3c13b66f0b4eaa0d9f",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 70
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.48604080080986023,
+      "end_time": 1392.56,
+      "excerpt": "把它合并成一个提交去交上去 你交的时候要注意要变成这D的push杠F来交 不然的话是交不上去的 好了 现在时间已经到了20分钟了 那么至此 你基本上已经掌握了跟git vs code 相关的所有的知识了 这些就够用了 这些知识你会了之后 就已经对版本管理已经是如鱼得水了 接下来就是一些进阶的功能哦 我也给大家讲讲完 下一个进阶功能就是我改变远程仓库 是我们刚刚其实是一直在链接在其中的一个 远程仓库上面 但这时候我可能想切换一下远程仓库怎么办呢 哎这个git remote杠V 就是列出我现在对应的哪一个远程仓库 你可以看到我们现在对应的是两个远程仓库 那么",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 1274.05,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a1b2fa3058685bc0c1f15a4d676ad4fd",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.485806405544281,
+      "end_time": 581.91,
+      "excerpt": "大家可能要注意一下 特别是你去大公司的时候会用到的问题 你平时自己玩的时候用不着的 那么还有一个也是我们需要看的是什么呢 叫做BF statues 我们需要查看一下 你当前这个分支是不是有一些没有check的子模块 这些都是子模块才会遇到的问题 就是你运行了这个命令之后 你就可以简单的看一下你的妹妹不吃 我看看 就是我们这里就会显示nothing to commit 就是一个非常干净的一个工作数 但是如果这时候他出现了一些啊 就是一些没有被提交 没有被check的一些文件 这时候你就要小心了 你就需要把它们给添加到你的it check当中 这样子才能够正",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 462.32,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_5ddc9d7f7d43702eb3fcf6ef290d36c8",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.4856465458869934,
+      "end_time": 777.76,
+      "excerpt": "就是我是希望比如我这个control对 然后比如这个token journey PDF对也可以定位到他的那个路径哈 L1下对 当第三个影响这个破坏心流体验的 就是这个键盘和鼠标哈 就是或者是触摸板哈 对Mac os的话 苹果Macbook pro的话就是触摸板 那这种的话你你脱离键盘 你用这个鼠标的时候 其实也也是破坏你这个操作的一个丝滑性 那这种我们的解决方案就是你要熟悉快捷键 比如你熟悉v vim里面的各种各样的快捷键 你就你又不用这个鼠标去去选中哈 或者干嘛复制粘贴什么之类的 诸如此类的 那最后一个就是假如说我们不熟悉一些命令 不熟悉一些概念呃 一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 660.34,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_355f15025c7baf5b5595688dffa831a5",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.48459097743034363,
+      "end_time": 698.26,
+      "excerpt": "就能看到同样的绘画被重新加载了 如果运行PAIR就会列出所有历史绘画 但我们可以按tab键在当前目录和全部之间切换 用CTRLS排序 但排序方式有按线程 按最近按模糊匹配 要删除某个绘画 选中后按CTRLD再回车确认啊 这样那个绘画就被删掉了 回到刚才我们正在工作的对话 在里面运行fork 对 然后选择要回到哪条消息 比如说我们想回到第二条消息 但这次不让他创建hello路径 而是创建goodbye路径 结果呢hello路径并没有被删掉 只是新加了goodbye路径 但所以运行folk时 我们并不是撤销代码变更 只是改变了对话历史 但如果我们不想分叉 而",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 579.22,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_dbd18d0f275e3c17a6bc4ad9829ba7ea",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.48456642031669617,
+      "end_time": 235.28,
+      "excerpt": "这个command字段就是运行的命令了 这里是运行一段Python脚本 实际上如果你的操作简单 可以直接把完整命令写到这个字段内 那么脚本文件该放在哪呢 我们可以放在项目内 或者用户文件夹内的点cloud 文件夹的hooks文件夹 前者仅在当前项目生效 后者是全局生效 可以看到脚本从标准输入中读取解析成JASON 再根据解析出的JASON进行操作 处理完毕之后再通过标准输出发送回去 这里不详细讲 标准输入输出可以自行了解hooks配置和脚本 完全可以使用cloud code自己生成 下面手把手教大家配置一个项目级的hooks 需注意你的电脑必须有Pyth",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 116.369,
+      "subtitle_source": "ai",
+      "title": "Hooks入门只需5分钟",
+      "unit_id": "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7990b8784016af0c0575caa6f079ec2e",
+      "unit_type": "transcript_chunk",
+      "uploader": "Yin_Code",
+      "video_id": 74
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.4837583899497986,
+      "end_time": 690.84,
+      "excerpt": "如果对某一次代码修改不满意 我们可以找到这个文件 点击这里的discard changes 也就是放弃这次代码修改 把代码回退到上一次提交 也就是更改之前的状态 我们使用AI编程的时候 有一个技巧 就是每次让AI完成一个小的功能点 我们就做一次commit 这样可以非常好的保存好每次的历史记录 如果我们发现AA的更改不符合预期 可以随时点击这个discard按钮 抛弃掉AA的更改 然后我们就可以修改提示词 让AI重做 在下面的graph里面 可以看到每次提交的历史链路 然后展开具体的某一次commit 可以看到那次提交的文件改动情况 如果想要查看某次提交",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 571.269,
+      "subtitle_source": "ai",
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_f2c50228ec690508c8f4d1b6c0aa48cc",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 70
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.4832899272441864,
+      "end_time": 118.36,
+      "excerpt": "CLI这个计算机世界里面最古老的交互方式正在迎来一次新的爆发 飞书钉钉起微 谷歌stripe在最近两周内都不约而同地开源了自己的CLI产品 越来越多的软件开始转向CLI化 CLI全称是command line interface 其实就是命令行界面 CLI跟我们平时熟悉的图形界面 GUOI代表了两种不同的交互逻辑 如果我想把这个视频的前五秒切分出来 使用GUI的方式是先导入剪辑软件 找到对应的时间点切分 最后再把视频导出出来 使用CLA的方式则是打开命令行窗口 执行这一个命令就搞定了 GOI专门为人类设计 因为人类不擅长记忆命令 而更擅长使用图形工具 而",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.48185276985168457,
+      "end_time": 2206.21,
+      "excerpt": "但他们发现说不给他这个工具还好 一给他这个工具反而更容易出错 因为对于模型来说 他只看到城市马的某一段到某一段 他根本不知道完整的城市马长什么样子 所以他甚至有可能会犯下这种给两个括号 因为前面这个括号是他自己打的 另外一个括号是本来城市里面有的 他根本不知道已经有一个右括号了 又自己多加一个右括号 所以导致syntax文语法的错误哦 所以如果给他这个edit的工具 你还要加上一个叫做linking的工具 那这个工具呢是检查语法有没有错误 所以每次模型修改完之后会检查语法有没有错 如果语法有错 就告诉他错在哪里 然后要求他重新写 那结果如何呢 那这边结果",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 2090.14,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_828b6f47cd8d757c94938333a87bd2d0",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.4814932346343994,
+      "end_time": null,
+      "excerpt": "[Title] 为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？ [Uploader] 技术爬爬虾 [Description] CLI这个计算机世界里最古老的交互方式，正在迎来一次新的爆发。最近越来越多的软件开始转向CLI化。 CLI全称是Command Line Interface，其实就是命令行界面。CLI跟我们平时熟悉的图形界面（GUI）代表了两种不同的交互逻辑。在这股CLI热度下面。最近Github上出现了两个非常火热的开源项目。 第一个是 CLI Anything， 只需要一行命令，就能把任意软件以CLI的形式接入Agent 框架。短",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "video:bilibili:BV1G29EBGE8b:p1",
+      "unit_type": "video",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.4812818169593811,
+      "end_time": 232.1,
+      "excerpt": "然后其实重要的只有那么几个 比如说重要的是有类似于skills这一个文件夹 然后里面就包含了各种不同skills的定义 我们可以随便点击一两个进来看 这是一个skill的定义 我们待会也可以找几个 然后来学习一下像这一个黑客松的冠军 他平时是怎么去写他的这些skill的 然后除了skill呢 另一个就是这个规则的文件夹 它里面也写好了各种不同的规则呃 可能是一些写代码的 比如说这是C加加的写代码的规则 java的规则 Python的规则 我这一个桌子他都帮我们定义好了 对然后另一个就是这一个hook是一个钩子 也是比较重要的文件夹 然后这一个comman",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 113.75,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_439b503c27065996de2a0519ecf73328",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.47648364305496216,
+      "end_time": 352.58,
+      "excerpt": "你提到他的名字 模型往往已经知道很多 所以人类文档喜欢把步骤写全 但skill正文不能这么写 模型已经知道大量通用工具怎么用 你再写一遍 不仅浪费token 还可能把模型限制死 原文举了git的例子 不要在skill里写一串命令 先get it log 再check out main 再建分支 再cherry pick 更好的写法是 把这个commit cherry pick到一个干净分支上 解决冲突时保留原意 如果不能干净合入 就解释原因 这是让你从命令级指导切到意图级指导 命令及指导很脆弱 因为真实环境里分支状态冲突情况 权限和仓库状态都可能不一样 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 233.5,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_92828609256e887f3916d86b44c137f1",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.47420790791511536,
+      "end_time": 318.88,
+      "excerpt": "还有magic 这是后来是摸索出来的一个magic这样一个工具哈 它可以把很多帧拼起来去做一个contact sets 我待会会稍微简单讲一下哈 当然对于如果这个video哈没有这个字幕文件的话 我们本地要有一个whisper的一个环境 把它整理成字幕 这是一切的出发点 从A进的执行的角度 我们要给他提供 或者我们要给他准备 或者我们要在scale里面去告诉它 什么是工具的最佳实现 我们可以在codex执行过程中 我们观察到的它常用的一些指令哈 首先这个RG因为他是写到这个哈 这个系统消息里边的R级R级杠杠files RG呢是默认的是搜索内容 RG杠杠f",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 204.64,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_547ffa3c97c5fe36fa1a74a392529194",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.47402423620224,
+      "end_time": 923.26,
+      "excerpt": "第三个是revert revert是通过生成一个反向的提交 来抵消掉某次commit 所以revert比较安全 在多人协作的分支上 应该优先使用revert来回退 更改好 我们再看一个例子 我想比较一下新增荔枝跟新增橘子 这两次提交之间修改了什么内容 我还是把两次的commit id复制下来 我让AI比较一下这两次提交有什么区别 修改了什么内容 AI帮我们完成了统计 列出了几次提交的改动 修改的文件统计的非常好 我们看到AI在底层执行的是git def命令 不过我们完全不需要记忆这些命令 只需要理解commit的概念就可以完成操作 说到这里 我想起了庄子",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 805.14,
+      "subtitle_source": "ai",
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_f7dca511645d838ed6a5df6e88e27683",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 70
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.47131603956222534,
+      "end_time": 573.489,
+      "excerpt": "存放了所有第三方依赖包 通常里面包含成千上万个文件 如果其他人需要 可以使用npm install随时下载 因此我们通常会把node modules目录也添加进点 Git ignore 我们在点get it ignore里面写一行node modules 注意末尾要添加一个斜杠 表示这是一个目录 那这样整个和目录就被排除在外 点git一个now 最好在项目初始化的时候就一起创建好 这样可以从一开始就避免 把不应该提交的内容物提交到仓库里里面 所以我们使用AI对目录进行get it 初始化的时候可以这么说 把这个目录进行get it初始化 注意把不需要的内",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 459.7,
+      "subtitle_source": "ai",
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_15782fc7ab09b81d84300a41c5c92848",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 70
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.4702075719833374,
+      "end_time": 698.38,
+      "excerpt": "填上校验码就登录完成了 然后我们可以使用这个命令查看一下open cloud上面的医术列表 或者使用这个命令给我自己创建一个新的仓库 我们看到这里仓库就创建出来了 更多命令的是使用方法 可以参考GITHUB官方CLI的文档 后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说 MCP就是AA大模型的标准化工具箱 大模型可以利用这些工具与外界互动获取信息 并且完成具体任务 不过由于MCP协议设计之初存在的一些问题 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 比如AI搜索巨头PROPLEXITY在2026年3月宣布",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 579.04,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.4689428210258484,
+      "end_time": 1933.06,
+      "excerpt": "医术分成两种 open跟close 其中open一般指的是还没有解决的bug 或者还在讨论的问题 close的则是指的已经解决的bug 或者已经结束的讨论 我们在使用或学习开源项目的时候 不妨在这里搜索一番 因为有些问题可能别人也遇到过 并且在医术里面已经有人给出了解决方案 我来介绍几个get up好用的快捷键 首先是斜线 它会快速的打开GITHUB的搜索功能 然后是键盘上的T键 它会快速定位到文件搜索栏 我们可以在这里根据文件名字搜索对应的文件 我们搜索一个文件进来以后 就可以查看文件内容 这里还有一个好用的快捷键 是键盘上的L键 我们可以快速定位到一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 1813.12,
+      "subtitle_source": "ai",
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_31c0be89979aa79309fd316bd2fca55b",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 70
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.4645746648311615,
+      "end_time": null,
+      "excerpt": "[Title] 【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师 [Uploader] happy魇 [Description] https://dwexzknzsh8.feishu.cn/docx/VkYud3H0zoDTrrxNX5lce0S4nDh?from=from_copylink [Favorite Folders] 2026找工作学习",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "video:bilibili:BV1Fw4m1C7Tq:p1",
+      "unit_type": "video",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.46387413144111633,
+      "end_time": 466.809,
+      "excerpt": "看看档案里面有什么再改它 然后最后我还告诉他什么叫做完成 告诉他说 所谓的完成就是有一些specific的criteria 有一些既定的标准 你要达成那些既定的标准以后才算是完成好 有了这些以后 同样的gma for2B的模型 就是多加了刚才那一段指令 再去做刚才一模一样的任务 那以下呢就是他的表现 他第一个反应是他要做ls s Ls s 如果大家熟悉这个batch的指令的话 就是把把现在你所在目录里面的档案列出来 因为我刚才要告诉他说 在做任何事之前 都看看你脚边有什么样的东西 所以他知道他读得懂这串指令 首先先看看我脚边有什么样的东西 他发现有pas",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 347.72,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_efe9b27c36cd02014362a18317939f8b",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.46229875087738037,
+      "end_time": 812.32,
+      "excerpt": "那我们就点一下它CTRL就可以看到 我们马上就新建了一个新的分支 这个分支完全就是克隆了 刚刚那个分支点开这里看一下 就可以看到我们的本地分支当中多了一个东西 就是这个新分支 然后我们接下来要做的所有更改 都在新分支当中去进行就好了 就不会影响到主分支的一个进程好了 这个时候大家就说 那我修改代码的话 我怎么样去记录呀 什么什么阿巴阿巴这些 那比如说我随便点开一个文件 我对它进行一个简单的修改 你可以看到这边是标绿了 那标绿的意思就可以看到它这里有个M 就是modify 它被修改就代表这行文件被修改了 你就可以在做完你自己的所有修改之后 再进行一次提交 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 694.2,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_05c039fcb83aa676e2ab082273c7b049",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.46222931146621704,
+      "end_time": 581.22,
+      "excerpt": "看一下它支持哪些参数 这里有城市经验 学历等等 比如我搜索一个青岛的软件开发岗位 我们看到它在后台自动调用了chrome浏览器 为我们找到了软件开发的相关岗位 在后面追加杠FJASON 让他把数据以JASON的格式返回回来 open c li支持下面几十种网站 还有工具 这里我就不一一介绍了 我们除了使用这些作者已经编写好的命令行工具 也可以基于这个项目进行二次开发 把自己需要的工具加入进来 接下来我们使用AI编程工具对这个项目进行一个二次开发 第一步我们先把项目的源代码克隆下来 这里来到项目目录 打开我们的AI编程工具 这里我使用的还是codex 我让",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 462.02,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b723a6df3621a41edce29744404ed4ca",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.4618193507194519,
+      "end_time": 442.45,
+      "excerpt": "下面呢我们快速过一遍常用的CLI命令 不需要死记啊 你就当这个视频是你的速查表就行了 需要的时候回来翻一下认证相关的就这么几条 Logan logan token os Status os logo都很直白 守护进程相关的常用的就是start启动 stop停止status 看状态 locks看日志 调试的时候 我比较推荐加一个for ground 这样它是前台运行的日志 直接打在终端里 你排查问题的时候看的很清楚 还有multica demon locks杠F可以实时追日志 跟LINUX里面的tail杠F1个意思 工作空间就四条命令 List Watch",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 333.52,
+      "subtitle_source": "ai",
+      "title": "一人公司神器！Multica零基础搭建AI Agent管理系统",
+      "unit_id": "transcript_chunk:bilibili:BV1DT5y6jEYA:p1:chunk_7e0e7f757e48f70d7c1b795541da3167",
+      "unit_type": "transcript_chunk",
+      "uploader": "极客魔导师",
+      "video_id": 67
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.4595373868942261,
+      "end_time": 930.96,
+      "excerpt": "这又可以看到 就是我们在number派的基础上又多了一个input time 那我们对于这个更改也可以再次点一个加哎 他就把所有的更改都合在了一个地方 这就是啊get it里面常见的命令叫做 git ADD嗯 比如说他差点什么文件 但是没必要用这个指令来 其实你直接结合vs code就可以了 那么我们在做好更改之后 我们要怎么提交呢 哎其实也很简单 你每次修改你肯定要告诉大家 你改了什么嘛对吧 而且我建议大家就是每个修改我只提交一次 我不把很多的修改提交在一 就是一次性提交 最好你改完什么一个功能 你就把它给提交上去 这样子写get it的时候 写com",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 811.28,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_65892710bd12bd530bcd3140171a6a7a",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.4560192823410034,
+      "end_time": 1385.98,
+      "excerpt": "就是权限最这个最紧的那个人会赢 他这个propermission mode要要要踹很多地方 比如说你当前运行的模式 你是plan模式啊 还是auto模式 还是bypass permission模式对吧 这个时候涉及到权限的确认 然后呢有的时候你在hook里面呃 会设置权限 然后classifier这个是它内部定义好了 就是要用用模型来分析某些工具是不是需要人类确认 是不是需要全信确认 所以这两个完全来路不同 然后第三个呢是bash classifier 就是最危险的是bash命令 也就是说你在命令行里面 其实它可以运行任何的这种batch命令对吧 它可以",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 1267.17,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_1db9841940bf824e9e9dc5dcf50caab3",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.45240724086761475,
+      "end_time": 1968.04,
+      "excerpt": "要先切到这个0827test two 然后我们找到这个提交的哈希值哎 其实就是后面这个值 那么保就是稳当点 我们就把整串都给复制下来 我们就直接git cherry pick 你看神奇的事情发生了 那么这一次的提交 就会被直接给应用到我的这个分支上面 就刚刚我们是从这上面创建了一个新分支吗 我们就会把这一次的提交 直接给加到这个分支上 就生成了一个新的提交 你可以看到有趣的是 他这个date写的是8月6号 这不是最新的 就是你可以有时候会发现一条git链当中 突然有一次提交就时间不对 他有可能就是进行一个cherry pick的一个操作啊 这边我就讲完了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 1848.35,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_10f0f0a116fc081658586ef468cd0b26",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.4521080255508423,
+      "end_time": 1607.01,
+      "excerpt": "可以直接回滚 可以直接选择变机 或者我们直接重置到这个提交 这三个合并方式哦 我现在直接选择强行合并好 强行合强 强行合并好之后呢 我们可以看一眼 你会发现这个二它又出现了 也就是说我可以随心所欲 只要我全部文件进行了管理 那么我就可以在多个版 多个版本中进行相应的那种操作了 好讲完这个呢 我们还然后就是我们的一个 但是这个其实还不够 因为因为这 因为这个东西呢 只是我们的一个单纯的使用而已 我们现在还需要最后一个东西 那就是克隆 这个如何下载别人的代码啊 或者你下载自己的代码也行 现在演示一下如何克隆 我们直接点击这个克隆 然后先手自己仓库嘛 选择复制",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 1488.21,
+      "subtitle_source": "ai",
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_ed1840458fb09a5a686a90230c481f16",
+      "unit_type": "transcript_chunk",
+      "uploader": "左-岚",
+      "video_id": 131
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.44843292236328125,
+      "end_time": 1368.26,
+      "excerpt": "第一个分区是working directory 也就是工作区 工作区就是你电脑磁盘上的本地文件夹 下一个分区是local repository 也就是本地仓库commit以后 你的文件改动就提交到了本地仓库下一个分区 Remote repository 也就是远端仓库 一般来说我们指的就是GITHUB网站 当然还有其他类型的远端仓库 比如glab get ee等等 远端仓库用来分享或者备份代码 只有推送到远端仓库的代码才能被其他人看到 大部分git操作的本质 就是从这些分区里面互相同步文件 首先git clone是把远端仓库保存到本地 同时创建出本地存储",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 1253.169,
+      "subtitle_source": "ai",
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_90c5649ad4baa4bfcc782b2ab4c09186",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 70
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.446765661239624,
+      "end_time": 698.55,
+      "excerpt": "就叫做IP1邮箱呢 就是啊随便怎么取都可以 我们这时候就需要把这两个代码 直接在终端去运行就好了 敲回车就好了 这边我就就不写了 不改 那么写完这个之后 你就会看到代码是谁改的 怎么看呢 这不是安装了GIRAFT吗 点吗 你可以看到这个order是谁 他是谁谁改的 然后是什么时候改的 他改了一个什么东西都在这边可以看到 就是他改了啥 有个对比嘛 左边是旧的 右边是新的 就是他改动了一些什么样的一个东西 都会被记录下来 那么对于一个嗯新手来说 比如说你新又使用师兄留下的代码分支 但是你又不能直接改在师兄的代码上面 那你要怎么操作呢 你肯定需要在师兄的代码上",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 578.859,
+      "subtitle_source": "ai",
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a6500b6c3705e5924390b749328f9d02",
+      "unit_type": "transcript_chunk",
+      "uploader": "happy魇",
+      "video_id": 132
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.4447077214717865,
+      "end_time": 936.61,
+      "excerpt": "你也要手动绘制成PDF呃 因为截止我这个呃 目前的NBANNER还是不支持输出PDF的 但是呢论文里的图片需要用PDF 是一个非常严格的一个呃学术规范 那因为它是需要是矢量图 但是你SVG也行 就是一个矢量格式 是的图片是一个非常重要的学术规范 如果说你不画矢量图 不传矢量的图 如果说我作为审稿人的时候 发现你的里面的字选不中的话 我就会给你扣掉一分印象分 这个是我觉得是一个非常old school也好 也是我觉得是一个学术界的一个基本规范吧 所以说呢take可V2 就是那个banana画图真牛 但是别忘了重绘成矢量图 第三部分或者第四部分 这是我觉得这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 818.17,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_cd0685b7a5dad3ba5d5c92e4b65acfad",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.44400474429130554,
+      "end_time": 1352.63,
+      "excerpt": "包括他和这个open杠a preview的一个组合 CTRLCTRLT哈 我们dive set up 嗯PDF对 就快速的去 可以去去定位到一个具体的文件的路径 然后把它给用和这个open杠A组合起来 然后YZ呢就是终端里边的一个更现代的一个 文件管理器哈 YZ哈我就呃左中右哈的方式哈 右边是最右侧击预览 我们可以按tab还可以查看一些那个metadata哈 就是这个这个video的哈 然后我想想看我们D哈是删除 就是他这个YZ里面的所有的命令哈 指令都和vim是兼容的 是一致的 不展开讲了哈 然后YZ的配置文件就是它TML哈 左中右的一个形式哈 左边是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 1232.72,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_0e4f9ea7d56a48e61c23f0274aff03b5",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV1LWRxBNEaq:p1:chunk_c7180d02fdb22ec7e4f21a30df32f070",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1LWRxBNEaq",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/0f78ad2cf5b218099834cf6fc16842dfe255e88c.jpg",
+      "detail_url": "/videos/82/transcript",
+      "duration": 183.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "上一期我们讲过打开代码编辑器之后 你会看到三块面板 有左边的资源管理器 中边的编辑区 还有下方那个黑底儿白字儿的小窗口 那今天这一期我们就专门讲一讲 那个黑色的窗口 让很多人都有点恐惧的那个黑窗口 它有三个名字 你肯定都听过 有终端 有命令行 有CLI 听起来像三件事 其实指的是同一件事 只是角度不一样 首先终端英文叫terminal 指的是那个窗口本身就是一个软件 一个黑底白字的一个小框 CLI全称是command line interface 就是命令行界面 它指的不是窗口 而是通过敲字儿给电脑下命令的这种交互方式 那最后就是命令 也就是comman",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "编程名词扫盲之“啥是终端？”",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "一枚卓子",
+      "video_id": 82,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1LWRxBNEaq",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1LWRxBNEaq:p1:chunk_c7180d02fdb22ec7e4f21a30df32f070",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 59.68,
+            "source": "ai_summary",
+            "start_time": 0.04,
+            "summary": "解释终端、命令行、CLI三者的区别与联系，指出终端是窗口，CLI是交互方式，命令是具体输入内容。",
+            "title": "终端、命令行、CLI的概念"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1LWRxBNEaq:p1:chunk_c7180d02fdb22ec7e4f21a30df32f070",
+            "transcript_chunk:bilibili:BV1LWRxBNEaq:p1:chunk_7c3bdbfebb44f32045d7e234da336073"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            1,
+            13
+          ],
+          "duration": 182.3,
+          "excerpt": "上一期我们讲过打开代码编辑器之后 你会看到三块面板",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.04,
+          "jump_url": "https://www.bilibili.com/video/BV1LWRxBNEaq?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 182.34,
+          "window_start": 0.04
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 2,
+      "best_score": 0.016129032258064516,
+      "best_unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_34b94271d416d0fbddf3376ac1cee21c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1SrLG6oEax",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/7ce1ec77bdb25aa5fc3d6b21d5144238cf661988.jpg",
+      "detail_url": "/videos/33/transcript",
+      "duration": 1802.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "我觉得影响我们这个cl呃 影响我们心中体验的几个关键的操作吧 第一COOI和GORGUI的一个拉扯 就有的时候 我们我明明在命令行里面执行的好好的 但是我们需要去打开一个具体的应用哈 打开浏览器 也或者是打开访访达哈 打开这个PDF的预览 那这个时候坦白讲 其实我们是完完全全呃 这个这个就会破坏我们这个这个这个 这个操作的一个丝滑 就是我们要脱离这个cl i环境 去用鼠标的方式去点点点 当然A技能在没有computer use的情况下 也是用命令命令行的 比如这个open杠a preview哈 这个这个我我当时就是在这个这个cl2里面 发现了这个命令哈 ",
+      "matched_unit_count": 11,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 11,
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "五道口纳什",
+      "video_id": 33,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1SrLG6oEax",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_34b94271d416d0fbddf3376ac1cee21c",
+          "best_rank": 2,
+          "best_score": 0.016129032258064516,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 554.0,
+            "source": "ai_summary",
+            "start_time": 85.0,
+            "summary": "通过扒Codex源码发现系统指令中推荐使用rg等高效工具，并强调review Agent执行过程以优化工具选择。",
+            "title": "从Codex指令中学习最佳工具实践"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_34b94271d416d0fbddf3376ac1cee21c",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_2de2b52583e0c1ad81d5b8a9085c9743",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_0efae7425d74beaac25e56b398cb92c0",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_24fbe562c833ff1abd47caaa314def2c",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_d8a1826f35574ac989b768f1d2d6853d",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_355f15025c7baf5b5595688dffa831a5",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_0e4f9ea7d56a48e61c23f0274aff03b5"
+          ],
+          "component_hit_count": 7,
+          "component_raw_ranks": [
+            2,
+            5,
+            6,
+            9,
+            17,
+            24,
+            50
+          ],
+          "duration": 806.5500000000001,
+          "excerpt": "还包括我们的coding与镜子 我大概简单列了一下 我觉得影响我们这个cl呃",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 546.08,
+          "jump_url": "https://www.bilibili.com/video/BV1SrLG6oEax?t=546",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1352.63,
+          "window_start": 546.08
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_12773aae22ecc53c82d9661f70dc094c",
+          "best_rank": 4,
+          "best_score": 0.015625,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 1707.0,
+            "source": "ai_summary",
+            "start_time": 1564.0,
+            "summary": "讲述如何使用UV管理Python项目和全局环境，包括uv init、uv run、uv tool install等。",
+            "title": "UV管理一切Python环境"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_12773aae22ecc53c82d9661f70dc094c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            4
+          ],
+          "duration": 104.97000000000003,
+          "excerpt": "他如果直接读PDF 它会是一个非常非常轻量级的解决方案 那显然是不足的",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1695.81,
+          "jump_url": "https://www.bilibili.com/video/BV1SrLG6oEax?t=1695",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1800.78,
+          "window_start": 1695.81
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_c7c6865d8d1fed7ebde6fcec4aff8a50",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1G8CFYvEjt",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/82d30faf80db0f2c8ee2fc689684c945483e136d.jpg",
+      "detail_url": "/videos/131/transcript",
+      "duration": 1929.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "擦掉 那么到现在呢我们的一个简单的配置就完成了 现在呢我们就可以开始来执行 我们的一些基础的操作了 怎么操作呢 在这里呢就是说明一下呃一些常用的命令吧 首先初始化就give in it 相当于新建一个日记本 我们可以实际操作一下 我们在这个地方呢新建一个文件 随便叫什么名字 右键在终端打开 这就是我们集成到这里面的好处 已经因为我们这因为我们集成到这里面呢 我们就不用在这里打开那个了 好我们输入刚刚的get in it 新建一个日记本 如果你在这个查看这里 没有打开我们的隐藏项目的话 你这个点get it文件是看不到的 点get it文件呢 主要是存存储",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "左-岚",
+      "video_id": 131,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1G8CFYvEjt",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_c7c6865d8d1fed7ebde6fcec4aff8a50",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_c7c6865d8d1fed7ebde6fcec4aff8a50"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 115.48000000000002,
+          "excerpt": "他就已经成功导入了 成功导入之后呢 就不用管它了",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 905.9,
+          "jump_url": "https://www.bilibili.com/video/BV1G8CFYvEjt?t=905",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1021.38,
+          "window_start": 905.9
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_4062d7c839b1f2f472073684298c2b77",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_4062d7c839b1f2f472073684298c2b77",
+            "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_ed1840458fb09a5a686a90230c481f16"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            11,
+            46
+          ],
+          "duration": 236.26,
+          "excerpt": "那么这个问题呢如何解决 点击关闭它 主要是这个p link犯了个错",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1370.75,
+          "jump_url": "https://www.bilibili.com/video/BV1G8CFYvEjt?t=1370",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1607.01,
+          "window_start": 1370.75
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_582449e973e0580328ce7f5f308d7f7d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1XrEZ6NEuD",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/6f766d248fd091bb5e29cd0ba7c16a9c03d1adfc.jpg",
+      "detail_url": "/videos/45/transcript",
+      "duration": 908.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "就首先我们要去定义它的一个名字 然后他的一个描述对 然后他有可以使用什么工具 然后一些提示词的防御极限啊 就是你这一个角色他不能做什么 然后可以做什么 然后定义好他是一个一名高级的代码审查员 怎么样 然后审查的流程是怎么样的 然后对这些就都是一些细节 所以当我们定义好一个角色以及他的身份 他能做的事情 以及他做的事情的一些规范之后呢 我们以后在当要使用这一个爵士的时候 我们就很简单的在cloud口里面说调用这一个角色 然后他就会帮我们把这些所有的规范 他的身份 他的指令全部都给我们规范好 我们就可以直接使用就好了 所以这一个也是一个非常重要的概念 就是这",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "奇思妙想CYC",
+      "video_id": 45,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1XrEZ6NEuD",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_582449e973e0580328ce7f5f308d7f7d",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 647.54,
+            "source": "ai_summary",
+            "start_time": 558.28,
+            "summary": "介绍Agent如何定义角色身份、工具和审查流程，以code reviewer为例，强调角色复用的便利性。",
+            "title": "Agent文件夹"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_582449e973e0580328ce7f5f308d7f7d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 118.93000000000006,
+          "excerpt": "这也是他原本写的 那我们也可以来看看我们的中文版嗯 就首先我们要去定义它的一个名字",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 577.01,
+          "jump_url": "https://www.bilibili.com/video/BV1XrEZ6NEuD?t=577",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 695.94,
+          "window_start": 577.01
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_439b503c27065996de2a0519ecf73328",
+          "best_rank": 31,
+          "best_score": 0.01098901098901099,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 216.41,
+            "source": "ai_summary",
+            "start_time": 32.07,
+            "summary": "介绍仓库背景和重要文件夹（skills、agent、commands、rules、hooks等），并说明系列视频的三期安排。",
+            "title": "仓库概览与文件夹介绍"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_439b503c27065996de2a0519ecf73328"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            31
+          ],
+          "duration": 118.35,
+          "excerpt": "OK那我们先看一下这一个仓库 左边这里有很多的文件夹 然后其实重要的只有那么几个",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 113.75,
+          "jump_url": "https://www.bilibili.com/video/BV1XrEZ6NEuD?t=113",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 232.1,
+          "window_start": 113.75
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a406088a2dd9946f4b08f60b8f0ef1b5",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1Fw4m1C7Tq",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/9ccf3d0b599d596e4d9b5820855cd563314d148c.jpg",
+      "detail_url": "/videos/132/transcript",
+      "duration": 2150.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "那就这个新终端就会被留在这里面 就是哪怕你把这个终端关了也没关系 我们怎么去找回这个终端呢 就TMUSIS 你就可以看到有个名字叫哈哈的 这个终端存在在这个地方 是什么时候创建的 那我们怎么样去回到这个终端呢 p m u x edge杠T哈哈哈哎呀我们就又回来了 是不是非常简单对非常简单 那就是那我们怎么样就是删除这个终端了 就直接exit他就没了 就是这个中单就消失了 嗯再看一下啊 就你也想要 就是删除指定终端 还有个方法就是将u u s q session杠T 然后把那终端名字给报上去 慢慢孤独独自 除此之外还有一个是叫做啊kill server 就",
+      "matched_unit_count": 9,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 8,
+      "title": "【研1基本功 别人不教的，那就我来】SSH+Git+Gitee+Vscode 学会了就是代码管理大师",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "happy魇",
+      "video_id": 132,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1Fw4m1C7Tq",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a406088a2dd9946f4b08f60b8f0ef1b5",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a406088a2dd9946f4b08f60b8f0ef1b5",
+            "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_f626eb3b4cf4ab6c817ca1cba8e5642e",
+            "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_10f0f0a116fc081658586ef468cd0b26"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            12,
+            18,
+            45
+          ],
+          "duration": 300.1700000000001,
+          "excerpt": "我们要怎么做呢 首先我们先把这个分支 要先切到这个0827test two",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1965.61,
+          "jump_url": "https://www.bilibili.com/video/BV1Fw4m1C7Tq?t=1965",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2148.52,
+          "window_start": 1848.35
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a1b2fa3058685bc0c1f15a4d676ad4fd",
+          "best_rank": 22,
+          "best_score": 0.012195121951219513,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Fw4m1C7Tq:p1:chunk_a1b2fa3058685bc0c1f15a4d676ad4fd"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            22
+          ],
+          "duration": 118.50999999999999,
+          "excerpt": "就是你回退两个就敲两次 这就是回退提交 把它合并成一个提交去交上去",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1274.05,
+          "jump_url": "https://www.bilibili.com/video/BV1Fw4m1C7Tq?t=1274",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1392.56,
+          "window_start": 1274.05
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 14,
+      "best_score": 0.013513513513513514,
+      "best_unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_6a951e1bf0cea9c059a458db99a77ae6",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1kMVt6mEgr",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/d4d4dc2efa2b64eccf435a169c108df95f59cf01.jpg",
+      "detail_url": "/videos/47/transcript",
+      "duration": 2020.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "你想恢复原样 那就得用git或者安装检查点之类的扩展了 但因为pi本身并不支持直接撤销文件更改 但在运行任何操作之前 最好确保所有文件都已经提交到git里 这样万一要回退也有办法 但文档里还有更详细的说明 如果你很好奇 可以直接去GITHUB上看system prompt 点ts文件 了解默认系统提示词是如何构建的 我们简单聊一下 技能和提示词模板如何帮助我们扩展agent的 以及他们解决不同问题的思路 当我们说到技能 它主要用于封装可复用的能力 比如工作流配置 脚本参考文档等等 现在有很多流行的技能 但为了让你更容易理解技能的工作原理 我给你看一个真实",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "pi世界",
+      "video_id": 47,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1kMVt6mEgr",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_6a951e1bf0cea9c059a458db99a77ae6",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 731.37,
+            "source": "ai_summary",
+            "start_time": 508.51,
+            "summary": "会话树结构，fork、clone、-c 等命令管理分支，提醒文件撤销需依赖 git 或扩展。",
+            "title": "会话分支与历史恢复"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_6a951e1bf0cea9c059a458db99a77ae6",
+            "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_dbd18d0f275e3c17a6bc4ad9829ba7ea"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            14,
+            25
+          ],
+          "duration": 234.63,
+          "excerpt": "咱们进pi里看看实际效果 但在运行PAIA这次加上副C参数 就能看到同样的绘画被重新加载了",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 696.58,
+          "jump_url": "https://www.bilibili.com/video/BV1kMVt6mEgr?t=696",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 813.85,
+          "window_start": 579.22
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_318d56e5dd3b02a22f1798aeca4de590",
+          "best_rank": 15,
+          "best_score": 0.013333333333333334,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 508.51,
+            "source": "ai_summary",
+            "start_time": 309.74,
+            "summary": "提升效率的关键命令：Ctrl+L 选模型，Ctrl+P 循环模型，感叹号执行 bash，Ctrl+G 打开编辑器等。",
+            "title": "常用快捷键与命令"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_318d56e5dd3b02a22f1798aeca4de590"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            15
+          ],
+          "duration": 119.15999999999997,
+          "excerpt": "里面说对于bash命令 我们可以用单个感叹号作为前缀来运行命令 但这样会执行命令",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 346.12,
+          "jump_url": "https://www.bilibili.com/video/BV1kMVt6mEgr?t=346",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 465.28,
+          "window_start": 346.12
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 19,
+      "best_score": 0.012658227848101266,
+      "best_unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_7b7e5fa90ea2a3ad0b4deb0f6ff9f4b3",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1fRSfBWE5X",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/5a9a59925461a139602705ef37eb287496c278ed.jpg",
+      "detail_url": "/videos/34/transcript",
+      "duration": 520.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": true,
+      "match_excerpt": "就可以先搞清楚它的作用 因为我现在也不是很好说清楚 最后一个就是当你发现你的文件变成十删了的时候可以使用 但是你难免可能会遇到 因为前期需求说的不是特别清楚 后面有改之类的 他可能就会把一个新的文件覆盖到原来旧的文件上面 这样的话就导致其实做了很多重复的工作 但是你自己又很难去一个一个的check 哪些是重复的 让AI自己去跑的话 他自己可能也会困惑 就是出现这样的问题 那这种情况下就可能会需要你去做文件重构 但是这个的话要谨慎使用 如果说你在文件重构的过程中 也可能他会误删一些重要的东西 所以说可以先在git上备份一份 就是以便出现问题的时候回滚嗯 然",
+      "matched_unit_count": 1,
+      "reading_state": "read",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "chocpink_AI版",
+      "video_id": 34,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1fRSfBWE5X",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_7b7e5fa90ea2a3ad0b4deb0f6ff9f4b3",
+          "best_rank": 19,
+          "best_score": 0.012658227848101266,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 520.0,
+            "source": "ai_summary",
+            "start_time": 294.04,
+            "summary": "强调在编码前建立design system和组件库的重要性，分享避免后期混乱的步骤和cursor rules的使用，以及文件重构的注意事项。",
+            "title": "设计系统与开发经验"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_7b7e5fa90ea2a3ad0b4deb0f6ff9f4b3"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            19
+          ],
+          "duration": 59.80000000000001,
+          "excerpt": "cursor rules这样一个文件 就如果不懂它是干嘛的话 就可以先搞清楚它的作用",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 442.14,
+          "jump_url": "https://www.bilibili.com/video/BV1fRSfBWE5X?t=442",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 501.94,
+          "window_start": 442.14
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 21,
+      "best_score": 0.012345679012345678,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_fce298cb76f2be3c13b66f0b4eaa0d9f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ySLc6QEcB",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/6107b3f7c8f89fe5d8681082f2722a834d46cbfa.jpg",
+      "detail_url": "/videos/70/transcript",
+      "duration": 2570.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "commit id在一个仓库里面是绝对唯一的 所以我们跟AI交流的时候 最好直接使用commit id 这样会更加的精确 我们来试一下 这里我想让AI帮我把删除跟苹果这两次提交 整个移除掉 把仓库回退到荔枝这个状态 我们在荔枝上面右键选择copy commit哈 希然后把这个id粘贴给A 你把仓库还原到这次提交的状态 他后面的所有提交都不要了 AI在底层执行的核心命令其实是git reset hard 但是在AI时代 我们完全不需要记忆这些命令 你只需要了解commit的基础概念 就能让AI完成一切操作 我们回到仓库看一下 现在整个仓库已经回退到了对应的",
+      "matched_unit_count": 6,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 6,
+      "title": "Git+Github核心概念大串讲，从零到一全攻略，详细实战教程",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "技术爬爬虾",
+      "video_id": 70,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1ySLc6QEcB",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_fce298cb76f2be3c13b66f0b4eaa0d9f",
+          "best_rank": 21,
+          "best_score": 0.012345679012345678,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 860.0,
+            "source": "ai_summary",
+            "start_time": 511.0,
+            "summary": "介绍commit作为版本控制基本单元，如何在VS Code中提交、查看历史、回退（discard、reset、revert），以及如何利用commit id让AI执行精准操作。",
+            "title": "提交与版本管理"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_fce298cb76f2be3c13b66f0b4eaa0d9f",
+            "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_f2c50228ec690508c8f4d1b6c0aa48cc",
+            "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_f7dca511645d838ed6a5df6e88e27683",
+            "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_15782fc7ab09b81d84300a41c5c92848"
+          ],
+          "component_hit_count": 4,
+          "component_raw_ranks": [
+            21,
+            27,
+            34,
+            35
+          ],
+          "duration": 463.56,
+          "excerpt": "还有一种情况 像是node js项目的node modules文件夹 存放了所有第三方依赖包",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 687.7,
+          "jump_url": "https://www.bilibili.com/video/BV1ySLc6QEcB?t=687",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 923.26,
+          "window_start": 459.7
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_31c0be89979aa79309fd316bd2fca55b",
+          "best_rank": 37,
+          "best_score": 0.010309278350515464,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 1953.0,
+            "source": "ai_summary",
+            "start_time": 1408.0,
+            "summary": "详细演示git clone、git push/pull、在GitHub上直接编辑文件等远端操作，说明本地与远端的同步流程。",
+            "title": "远端仓库操作实战"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ySLc6QEcB:p1:chunk_31c0be89979aa79309fd316bd2fca55b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            37
+          ],
+          "duration": 119.94000000000005,
+          "excerpt": "你也可以参与讨论 或者帮助其他人解决问题 医术分成两种",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1813.12,
+          "jump_url": "https://www.bilibili.com/video/BV1ySLc6QEcB?t=1813",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1933.06,
+          "window_start": 1813.12
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 26,
+      "best_score": 0.011627906976744186,
+      "best_unit_id": "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7990b8784016af0c0575caa6f079ec2e",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1yDLG6DE39",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/d1b981c1f3cfedf8207cbee136f6a21d951d0003.jpg",
+      "detail_url": "/videos/74/transcript",
+      "duration": 273.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "这个command字段就是运行的命令了 这里是运行一段Python脚本 实际上如果你的操作简单 可以直接把完整命令写到这个字段内 那么脚本文件该放在哪呢 我们可以放在项目内 或者用户文件夹内的点cloud 文件夹的hooks文件夹 前者仅在当前项目生效 后者是全局生效 可以看到脚本从标准输入中读取解析成JASON 再根据解析出的JASON进行操作 处理完毕之后再通过标准输出发送回去 这里不详细讲 标准输入输出可以自行了解hooks配置和脚本 完全可以使用cloud code自己生成 下面手把手教大家配置一个项目级的hooks 需注意你的电脑必须有Pyth",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "Hooks入门只需5分钟",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Yin_Code",
+      "video_id": 74,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1yDLG6DE39",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7990b8784016af0c0575caa6f079ec2e",
+          "best_rank": 26,
+          "best_score": 0.011627906976744186,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 156.45,
+            "source": "ai_summary",
+            "start_time": 96.29,
+            "summary": "type 字段可选 command、提示词或 agent，command 字段编写命令或脚本路径。",
+            "title": "执行方式配置"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7990b8784016af0c0575caa6f079ec2e"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            26
+          ],
+          "duration": 118.911,
+          "excerpt": "或将唤起一个agent 再往下走 这个command字段就是运行的命令了",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 116.369,
+          "jump_url": "https://www.bilibili.com/video/BV1yDLG6DE39?t=116",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 235.28,
+          "window_start": 116.369
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 28,
+      "best_score": 0.011363636363636364,
+      "best_unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1G29EBGE8b",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/fb141e539232315a1d9cc60e22d1e4ed73dde37a.jpg",
+      "detail_url": "/videos/78/transcript",
+      "duration": 832.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "CLI这个计算机世界里面最古老的交互方式正在迎来一次新的爆发 飞书钉钉起微 谷歌stripe在最近两周内都不约而同地开源了自己的CLI产品 越来越多的软件开始转向CLI化 CLI全称是command line interface 其实就是命令行界面 CLI跟我们平时熟悉的图形界面 GUOI代表了两种不同的交互逻辑 如果我想把这个视频的前五秒切分出来 使用GUI的方式是先导入剪辑软件 找到对应的时间点切分 最后再把视频导出出来 使用CLA的方式则是打开命令行窗口 执行这一个命令就搞定了 GOI专门为人类设计 因为人类不擅长记忆命令 而更擅长使用图形工具 而",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "技术爬爬虾",
+      "video_id": 78,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1G29EBGE8b",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+          "best_rank": 28,
+          "best_score": 0.011363636363636364,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 121.0,
+            "source": "ai_summary",
+            "start_time": 0.0,
+            "summary": "介绍 CLI 重新崛起，对比 GUI 说明为何 CLI 更适配 AI，以及 CLI 的各种优势。",
+            "title": "CLI 热潮与 CLI vs GUI 对比"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            28
+          ],
+          "duration": 118.32,
+          "excerpt": "CLI这个计算机世界里面最古老的交互方式正在迎来一次新的爆发 飞书钉钉起微",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.04,
+          "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 118.36,
+          "window_start": 0.04
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+          "best_rank": 36,
+          "best_score": 0.010416666666666666,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 600.0,
+            "source": "ai_summary",
+            "start_time": 362.0,
+            "summary": "演示 OpenCLI 操作网站、搜索职位等，并展示通过 AI 编程工具为 OpenCLI 二次开发新命令。",
+            "title": "OpenCLI 项目演示与二次开发"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b723a6df3621a41edce29744404ed4ca"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            36,
+            41
+          ],
+          "duration": 236.36,
+          "excerpt": "可以使用open c li去boss上面搜索职位 我们先使用杠杠help 看一下它支持哪些参数",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 579.04,
+          "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=579",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 698.38,
+          "window_start": 462.02
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 18.378,
+      "chapter_ms": 1.157,
+      "grouping_ms": 0.065,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 90.221,
+      "total_ms": 111.107
+    },
+    "raw": {
+      "dense_ms": 84.19,
+      "fusion_ms": 4.554,
+      "lexical_ms": 0.846,
+      "planning_ms": 0.018,
+      "total_ms": 90.186
+    }
+  },
+  "trace_id": "2d057578-c76f-4d99-96da-1ab8c4909096",
+  "trace_persisted": false
+}

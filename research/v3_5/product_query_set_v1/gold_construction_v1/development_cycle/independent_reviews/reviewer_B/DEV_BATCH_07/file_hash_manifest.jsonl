@@ -1,0 +1,4 @@
+{"path":"retrieval_gold.independent.jsonl","sha256":"115b0f49ed0b6c6b0939daa5c3b93d5b46a760d94d9fd28313b24d786042d5b9","size_bytes":1549}
+{"path":"evidence_gold.independent.jsonl","sha256":"eb196e5aebeea2a8523d2bac54ca5428a173e2ecf95b635ec4e0c1dffdf73b55","size_bytes":12107}
+{"path":"sufficiency_gold.independent.jsonl","sha256":"bd88c2d0a42f3eb53a0d3cb379f6d21436a20822ad87dbed7dc6351e4951b769","size_bytes":870}
+{"path":"independent_draft_report.md","sha256":"cf7b254e30b0b23c5624fde89386cc0b24c0ef2c2707e50297e741b4c1eb6cc7","size_bytes":566}

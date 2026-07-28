@@ -1,0 +1,183 @@
+{
+  "Frozen_Evaluation_accessed": false,
+  "Gold_opened_after_prediction_freeze": true,
+  "Track_A": {
+    "aspect_metrics": {
+      "exact_match_non_applicability_reason": "Judge outputs query-facing free text and was intentionally isolated from Gold aspect identifiers; only status-implied material-boundary coverage is scored without a second semantic scorer.",
+      "free_text_to_gold_identifier_exact_match": null,
+      "gold_aspect_annotations_present": true,
+      "gold_material_aspect_count": 39,
+      "gold_missing_aspect_count": 1,
+      "gold_supported_aspect_count": 38,
+      "material_aspect_weighted_boundary_accuracy": 0.41025641025641024,
+      "scoring_phase_only": true
+    },
+    "class_recall": {
+      "insufficient": 1.0,
+      "partial": null,
+      "sufficient": 0.38461538461538464,
+      "unverifiable": null
+    },
+    "conservative_overclaim_rate": 0.0,
+    "evidence_id_validity_rate": 1.0,
+    "exact_four_state_accuracy": 0.42857142857142855,
+    "four_state_confusion_matrix": {
+      "insufficient": {
+        "insufficient": 1,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "partial": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "sufficient": {
+        "insufficient": 4,
+        "partial": 3,
+        "sufficient": 5,
+        "unverifiable": 1
+      },
+      "unverifiable": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      }
+    },
+    "insufficient_recall": 1.0,
+    "mean_latency_ms": 75091.0,
+    "mechanical_source_unverifiable_cases": 1,
+    "partial_recall": null,
+    "schema_validity_rate": 1.0,
+    "semantic_judge_cases": 13,
+    "severe_false_sufficient_count": 0,
+    "severe_false_unverifiable_count": 1,
+    "sufficient_recall": 0.38461538461538464,
+    "total_cases": 14,
+    "trace_completeness_rate": 1.0,
+    "unverifiable_recall": null
+  },
+  "Track_B": {
+    "aspect_metrics": {
+      "exact_match_non_applicability_reason": "Judge outputs query-facing free text and was intentionally isolated from Gold aspect identifiers; only status-implied material-boundary coverage is scored without a second semantic scorer.",
+      "free_text_to_gold_identifier_exact_match": null,
+      "gold_aspect_annotations_present": true,
+      "gold_material_aspect_count": 39,
+      "gold_missing_aspect_count": 1,
+      "gold_supported_aspect_count": 38,
+      "material_aspect_weighted_boundary_accuracy": 0.9743589743589743,
+      "scoring_phase_only": true
+    },
+    "class_recall": {
+      "insufficient": 0.0,
+      "partial": null,
+      "sufficient": 1.0,
+      "unverifiable": null
+    },
+    "conservative_overclaim_rate": 0.0,
+    "evidence_id_validity_rate": 1.0,
+    "exact_four_state_accuracy": 0.9285714285714286,
+    "four_state_confusion_matrix": {
+      "insufficient": {
+        "insufficient": 0,
+        "partial": 1,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "partial": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "sufficient": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 13,
+        "unverifiable": 0
+      },
+      "unverifiable": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      }
+    },
+    "insufficient_recall": 0.0,
+    "mean_latency_ms": 79331.0,
+    "mechanical_source_unverifiable_cases": 0,
+    "partial_recall": null,
+    "schema_validity_rate": 1.0,
+    "semantic_judge_cases": 14,
+    "severe_false_sufficient_count": 0,
+    "severe_false_unverifiable_count": 0,
+    "sufficient_recall": 1.0,
+    "total_cases": 14,
+    "trace_completeness_rate": 1.0,
+    "unverifiable_recall": null
+  },
+  "Track_C": {
+    "aspect_metrics": {
+      "exact_match_non_applicability_reason": "Judge outputs query-facing free text and was intentionally isolated from Gold aspect identifiers; only status-implied material-boundary coverage is scored without a second semantic scorer.",
+      "free_text_to_gold_identifier_exact_match": null,
+      "gold_aspect_annotations_present": true,
+      "gold_material_aspect_count": 39,
+      "gold_missing_aspect_count": 1,
+      "gold_supported_aspect_count": 38,
+      "material_aspect_weighted_boundary_accuracy": 0.8974358974358975,
+      "scoring_phase_only": true
+    },
+    "class_recall": {
+      "insufficient": 0.0,
+      "partial": null,
+      "sufficient": 0.9230769230769231,
+      "unverifiable": null
+    },
+    "conservative_overclaim_rate": 0.0,
+    "evidence_id_validity_rate": 1.0,
+    "exact_four_state_accuracy": 0.8571428571428571,
+    "four_state_confusion_matrix": {
+      "insufficient": {
+        "insufficient": 0,
+        "partial": 1,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "partial": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "sufficient": {
+        "insufficient": 0,
+        "partial": 1,
+        "sufficient": 12,
+        "unverifiable": 0
+      },
+      "unverifiable": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      }
+    },
+    "insufficient_recall": 0.0,
+    "mean_latency_ms": 89173.0,
+    "mechanical_source_unverifiable_cases": 0,
+    "partial_recall": null,
+    "schema_validity_rate": 1.0,
+    "semantic_judge_cases": 14,
+    "severe_false_sufficient_count": 0,
+    "severe_false_unverifiable_count": 0,
+    "sufficient_recall": 0.9230769230769231,
+    "total_cases": 14,
+    "trace_completeness_rate": 1.0,
+    "unverifiable_recall": null
+  },
+  "same_as_initial_no_revision": true,
+  "schema_version": "v3.5-stage4b-final-metrics-v1"
+}

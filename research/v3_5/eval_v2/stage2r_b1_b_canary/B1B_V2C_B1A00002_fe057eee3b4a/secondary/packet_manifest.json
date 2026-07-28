@@ -1,0 +1,24 @@
+{
+  "allowed_top_level_fields": [
+    "annotation_protocol_version",
+    "case_id",
+    "case_input_sha256",
+    "evaluation_view",
+    "evidence_question",
+    "full_raw_transcript",
+    "original_query",
+    "packet_version",
+    "projection_policy_version",
+    "query",
+    "query_language",
+    "review_output_schema_version",
+    "segment_schema",
+    "source_metadata"
+  ],
+  "forbidden_field_scan": [],
+  "model": "deepseek-v4-pro",
+  "packet_sha256": "8ae0123eef74c1f85b395914fa1db122e9962d2fffa1e83061bea7850f6c59e1",
+  "prompt_version": "v3.5-secondary-reviewer-draft-prompt-v2-query-grounded",
+  "provider_id": "deepseek",
+  "schema_version": "v3.5-reviewer-draft-v2"
+}

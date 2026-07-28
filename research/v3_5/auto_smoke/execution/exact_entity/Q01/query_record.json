@@ -1,0 +1,33 @@
+{
+  "auto_router_invoked": true,
+  "auto_vs_lexical_regression": false,
+  "case_id": null,
+  "effective_mode": "lexical",
+  "embedding_cache_hit": false,
+  "embedding_invoked": false,
+  "embedding_model": null,
+  "embedding_provider": null,
+  "empty_result": false,
+  "exact_query_cache_hit": false,
+  "existing_hybrid_result_count": 10,
+  "existing_hybrid_target_hit": true,
+  "existing_lexical_result_count": 10,
+  "existing_lexical_target_hit": true,
+  "latency_ms": 79.87041701562703,
+  "query": "MCP",
+  "query_id": "Q01",
+  "query_type": "exact_entity",
+  "query_view": "exact_entity",
+  "requested_mode": "auto",
+  "result_count": 10,
+  "router_decision": "lexical",
+  "router_mode_consistent": true,
+  "router_reason_codes": [
+    "short_ascii_entity"
+  ],
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "runtime_error": false,
+  "runtime_error_type": null,
+  "target_video_best_rank": 1,
+  "target_video_hit": true
+}

@@ -1,0 +1,108 @@
+{
+  "decision_name": "Shiliu V3.5-B P9 Candidate Design Amendment Ledger",
+  "schema_version": "v3.5-b-p9-design-amendment-v1",
+  "decision_date": "2026-07-27",
+  "decision_authority": "V3.5-B",
+  "basis": {
+    "p9_status": "complete_and_accepted",
+    "p9_decision": "execute",
+    "accepted_failure_mechanism": "bounded_candidate_pruning_coverage_gap",
+    "secondary_mechanism": "dedup_below_threshold_leaves_complement_gap",
+    "builder_primary_failures": 6,
+    "addressable_failures": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q004",
+      "PQS_V1_Q005",
+      "PQS_V1_Q008",
+      "PQS_V1_Q015"
+    ],
+    "non_goal_failures": [
+      "PQS_V1_Q018"
+    ],
+    "f1a_major_cycles_max": 1,
+    "f1a_implementation_started": false
+  },
+  "supersession": {
+    "superseded_candidate_design": "bounded_coverage_reserve_v1",
+    "superseded_policy": "fixed_28_relevance_plus_4_coverage_slots",
+    "replacement_candidate_design": "adaptive_bounded_coverage_swap_v1",
+    "p9_execute_decision_changed": false,
+    "failure_mechanism_changed": false,
+    "addressable_failure_set_changed": false,
+    "acceptance_thresholds_changed": false,
+    "major_cycle_count_changed": false
+  },
+  "amended_design": {
+    "name": "adaptive_bounded_coverage_swap_v1",
+    "baseline_set": {
+      "preserve_original_top_32": true,
+      "candidate_cap": 32
+    },
+    "swap_policy": {
+      "min_swaps": 0,
+      "max_swaps": 4,
+      "forced_swaps": false,
+      "strict_set_improvement_required": true,
+      "replace_redundant_candidates_first": true
+    },
+    "outside_candidate_eligibility": [
+      "source_identity_valid",
+      "timeline_valid",
+      "retrieval_mapped",
+      "query_supported_anchor_region",
+      "minimum_relevance_or_anchor_support",
+      "existing_window_and_total_budget_valid"
+    ],
+    "lexicographic_priority": [
+      "new_supported_anchor_region_coverage",
+      "new_interval_union_coverage",
+      "lower_redundancy",
+      "higher_original_relevance",
+      "shorter_window_and_lower_noise"
+    ],
+    "victim_priority": [
+      "high_interval_overlap",
+      "high_normalized_text_overlap",
+      "low_new_segment_union_gain",
+      "lower_original_relevance_as_tiebreaker"
+    ],
+    "budgets_unchanged": {
+      "candidate_cap": 32,
+      "window_segment_limit": 6,
+      "window_seconds_limit": 60,
+      "window_character_limit": 500,
+      "total_seconds_limit": 600,
+      "total_character_limit": 6000
+    },
+    "forbidden": [
+      "query_id_rule",
+      "video_id_rule",
+      "gold_segment_or_gold_aspect_access_at_runtime",
+      "unbounded_window_expansion",
+      "candidate_cap_increase",
+      "llm_or_heavy_reranker",
+      "segment_dense_index",
+      "multi_design_best_of_n",
+      "forced_four_swaps"
+    ]
+  },
+  "scope": {
+    "document_and_governance_only": true,
+    "code_change_forbidden": true,
+    "prediction_or_scoring_rerun_forbidden": true,
+    "f1a_implementation_forbidden": true,
+    "f1b_or_stage4_start_forbidden": true,
+    "frozen_gold_access_forbidden": true
+  },
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "p9_design_amendment_status": "execution_candidate_ready",
+    "active_candidate_design": "adaptive_bounded_coverage_swap_v1",
+    "p9_decision": "execute",
+    "f1a_authorized_for_implementation": false,
+    "f1a_major_cycles_remaining": 1,
+    "f1b_authorized": false,
+    "stage4_started": false
+  }
+}

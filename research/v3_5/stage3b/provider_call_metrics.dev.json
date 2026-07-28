@@ -1,0 +1,255 @@
+[
+  {
+    "case_correlation_id": "CASE_001",
+    "config_id": "stage3b-structured-selector-full-v1",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_local_budget_rejection",
+    "response_hash": "not_applicable",
+    "error": "candidate_count_exceeded",
+    "evaluation_track": "track_a",
+    "raw_attempt_count": 0
+  },
+  {
+    "case_correlation_id": "CASE_002",
+    "config_id": "stage3b-structured-selector-full-v1",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_local_budget_rejection",
+    "response_hash": "not_applicable",
+    "error": "candidate_count_exceeded",
+    "evaluation_track": "track_a",
+    "raw_attempt_count": 0
+  },
+  {
+    "attempts": [
+      {"attempt": 1, "latency_seconds": 27.151257417164743, "validation": "invalid_json"},
+      {"attempt": 2, "latency_seconds": 28.05801058281213, "validation": "invalid_json"}
+    ],
+    "case_correlation_id": "CASE_001",
+    "config_id": "stage3b-structured-selector-full-v1",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_not_persisted_on_typed_failure",
+    "response_hash": "unavailable_not_persisted_on_typed_failure",
+    "usage": "unavailable",
+    "error": "repair_attempt_exhausted",
+    "evaluation_track": "track_b",
+    "raw_attempt_count": 2
+  },
+  {
+    "attempts": [
+      {"attempt": 1, "latency_seconds": 26.82929987506941, "validation": "invalid_json"},
+      {"attempt": 2, "latency_seconds": 33.27825291687623, "validation": "invalid_json"}
+    ],
+    "case_correlation_id": "CASE_002",
+    "config_id": "stage3b-structured-selector-full-v1",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_not_persisted_on_typed_failure",
+    "response_hash": "unavailable_not_persisted_on_typed_failure",
+    "usage": "unavailable",
+    "error": "repair_attempt_exhausted",
+    "evaluation_track": "track_b",
+    "raw_attempt_count": 2
+  },
+  {
+    "attempts": [
+      {"attempt": 1, "latency_seconds": 27.021024208981544, "validation": "invalid_json"},
+      {"attempt": 2, "latency_seconds": 32.165093834046274, "validation": "invalid_json"}
+    ],
+    "case_correlation_id": "CASE_005",
+    "config_id": "stage3b-structured-selector-full-v1",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_not_persisted_on_typed_failure",
+    "response_hash": "unavailable_not_persisted_on_typed_failure",
+    "usage": "unavailable",
+    "error": "repair_attempt_exhausted",
+    "evaluation_track": "track_b",
+    "raw_attempt_count": 2
+  },
+  {
+    "attempt_count": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "latency_seconds": 116.30247370805591,
+        "validation": "schema_validation_failure"
+      },
+      {
+        "attempt": 2,
+        "latency_seconds": 76.34728245809674,
+        "validation": "valid"
+      }
+    ],
+    "candidate_set_hash": "017576ce0d31d7d8caa89bda4d8a747b83deff54fe2f625d0ad09943c3b2e2e5",
+    "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+    "case_correlation_id": "CASE_001",
+    "cost": "unavailable",
+    "evaluation_track": "track_a",
+    "latency_seconds": 192.64975616615266,
+    "model_identity": "deepseek-v4-pro",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "provider_abstraction": "openai-compatible",
+    "repair_used": true,
+    "request_hash": "562dd875e4e7ab4ba2e4b6ed1443fecbce87424c5a3adcbb49530f6931755c95",
+    "response_hash": "22d9314f4ab5fc6069f80f3f937986880ce7d25cecacd872e160a4ab63e10a18",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "usage": {
+      "completion_tokens": 5600,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4944
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 5314,
+      "prompt_tokens": 5570,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "total_tokens": 11170
+    }
+  },
+  {
+    "attempt_count": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "latency_seconds": 81.8018332910724,
+        "validation": "schema_validation_failure"
+      },
+      {
+        "attempt": 2,
+        "latency_seconds": 71.45556979090907,
+        "validation": "valid"
+      }
+    ],
+    "candidate_set_hash": "88939b7f6667c3a2d79b9261e7f3f33f9602bb1789e761821b85b061bfb949ef",
+    "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+    "case_correlation_id": "CASE_002",
+    "cost": "unavailable",
+    "evaluation_track": "track_a",
+    "latency_seconds": 153.25740308198147,
+    "model_identity": "deepseek-v4-pro",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "provider_abstraction": "openai-compatible",
+    "repair_used": true,
+    "request_hash": "f8a37a9383b5bc2aab64184dfa401073b6150e9baa68375b0be4c9bbd70db203",
+    "response_hash": "a51c40da8a6a7167b117dc0ea364607406bae3327f05e5b8500b1519ad259203",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "usage": {
+      "completion_tokens": 4392,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3696
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 5037,
+      "prompt_tokens": 5293,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "total_tokens": 9685
+    }
+  },
+  {
+    "attempt_count": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "latency_seconds": 75.46831370913424,
+        "validation": "schema_validation_failure"
+      },
+      {
+        "attempt": 2,
+        "latency_seconds": 59.280615124851465,
+        "validation": "valid"
+      }
+    ],
+    "candidate_set_hash": "675324d7f265788c51ece2591b5002b47a13def776cac73eaee9bb78b3a99787",
+    "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+    "case_correlation_id": "CASE_001",
+    "cost": "unavailable",
+    "evaluation_track": "track_b",
+    "latency_seconds": 134.7489288339857,
+    "model_identity": "deepseek-v4-pro",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "provider_abstraction": "openai-compatible",
+    "repair_used": true,
+    "request_hash": "7cdd64721e824d9a9a52af68103d062121f982705230914c88b20d44adb64fd5",
+    "response_hash": "f90dc8dbbab6b8a9737bee97cf34d9a53e9364368cf549167b14c78cd22d1273",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "usage": {
+      "completion_tokens": 4346,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3656
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 5182,
+      "prompt_tokens": 5438,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "total_tokens": 9784
+    }
+  },
+  {
+    "attempts": [
+      {
+        "attempt": 1,
+        "latency_seconds": 115.38826254219748,
+        "validation": "invalid_json"
+      },
+      {
+        "attempt": 2,
+        "latency_seconds": 69.83513354114257,
+        "validation": "schema_validation_failure"
+      }
+    ],
+    "case_correlation_id": "CASE_002",
+    "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+    "error": "repair_attempt_exhausted",
+    "evaluation_track": "track_b",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_not_persisted_on_typed_failure",
+    "response_hash": "unavailable_not_persisted_on_typed_failure",
+    "usage": "unavailable"
+  },
+  {
+    "attempts": [
+      {
+        "attempt": 1,
+        "latency_seconds": 79.26223329198547,
+        "validation": "schema_validation_failure"
+      },
+      {
+        "attempt": 2,
+        "latency_seconds": 37.29430108307861,
+        "validation": "schema_validation_failure"
+      }
+    ],
+    "case_correlation_id": "CASE_005",
+    "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+    "error": "repair_attempt_exhausted",
+    "evaluation_track": "track_b",
+    "model_identity": "deepseek-v4-pro",
+    "provider_abstraction": "openai-compatible",
+    "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+    "schema_version": "v3.5-structured-fine-selector-v1",
+    "request_hash": "unavailable_not_persisted_on_typed_failure",
+    "response_hash": "unavailable_not_persisted_on_typed_failure",
+    "usage": "unavailable"
+  }
+]

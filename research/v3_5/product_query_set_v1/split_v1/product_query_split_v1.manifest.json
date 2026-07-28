@@ -1,0 +1,114 @@
+{
+  "manifest_version": "v3.5-pqs-v1-p5-split-manifest-r2",
+  "dataset_name": "Shiliu Product Query Set v1",
+  "split_version": "PQS_V1_SPLIT_V1",
+  "execution_status": "complete",
+  "acceptance_status": "pending_v3_5_b_review",
+  "random_seed": null,
+  "seed_policy": "not_applicable_to_explicit_deterministic_assignment",
+  "frozen_before_gold_and_product_baseline": true,
+  "semantic_split_changes_require_new_version": true,
+  "source_hashes": {
+    "r2_task_contract": "2a333af5efa3b31f173584c2acb440e4c15505b411544d3772a192b24993851e",
+    "r2_decision_ledger": "af33dee545a577b1f467f9092396ec74ddfbe4d965f1ab0855b62a99b62b184c",
+    "supersession_notice": "7b29827e23244aebd980638d5854cb69ff07fd183ff5abda95a8f2af91d88f53",
+    "p4": {
+      "PRODUCT_QUERY_SET_V1_FREEZE_REPORT.md": "1c60574b1a84afb1160b66a8423dfa37640b88c7a56a63b0166864ab2a4b342b",
+      "product_query_set_v1.file_hash_manifest.jsonl": "27a8c052f3697b19a8ffe49a8e87a9715a6d7c9ed86cccfa8ac89e93da4a5bf5",
+      "product_query_set_v1.freeze_execution_decision.json": "2e22eb39013ecaa83fa0378ba3b48e80c5e42674620b9735ea0e471ab9cf285e",
+      "product_query_set_v1.lock.audit.json": "95f00c022a9cf2afb0bd7e189798c8ef5e3b8b2575ec51a78edb246c703075bd",
+      "product_query_set_v1.locked.jsonl": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c",
+      "product_query_set_v1.manifest.json": "eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb"
+    }
+  },
+  "canonical_assignment_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+  "development_count": 14,
+  "frozen_evaluation_count": 10,
+  "distributions": {
+    "development": {
+      "query_family": {
+        "comparison": 3,
+        "limitation": 1,
+        "mechanism": 2,
+        "prerequisite": 1,
+        "process": 2,
+        "reported_result": 1,
+        "risk": 1,
+        "synthesis": 1,
+        "tradeoff": 2
+      },
+      "topic_cluster": {
+        "Agent 记忆": 2,
+        "Coding Agent 工具": 2,
+        "Harness 与验证": 5,
+        "RAG 工程": 3,
+        "浏览器与界面 Agent": 1,
+        "规格驱动开发": 1
+      },
+      "single_or_multi_video": {
+        "multi": 10,
+        "single": 4
+      },
+      "complexity": {
+        "moderate": 9,
+        "natural_multi_aspect": 2,
+        "simple": 3
+      },
+      "query_language": {
+        "zh": 14
+      },
+      "authoring_origin": {
+        "corpus_aware_codex": 14
+      }
+    },
+    "frozen_evaluation": {
+      "query_family": {
+        "career_judgment": 3,
+        "comparison": 1,
+        "mechanism": 2,
+        "process": 2,
+        "tradeoff": 2
+      },
+      "topic_cluster": {
+        "AI 产品与全栈": 1,
+        "Agent Skills": 1,
+        "Agent 学习与项目选择": 2,
+        "Coding Agent 工具": 2,
+        "模型原理与推理": 1,
+        "模型训练": 1,
+        "求职与成长": 1,
+        "求职与项目规划": 1
+      },
+      "single_or_multi_video": {
+        "multi": 8,
+        "single": 2
+      },
+      "complexity": {
+        "moderate": 5,
+        "natural_multi_aspect": 2,
+        "simple": 3
+      },
+      "query_language": {
+        "zh": 10
+      },
+      "authoring_origin": {
+        "corpus_aware_codex": 9,
+        "user_discussion": 1
+      }
+    }
+  },
+  "library_gap_risk": {
+    "preassigned_labels": false,
+    "quota_used": false
+  },
+  "output_hashes": {
+    "locked_split": "3191bbe3bad682966a0f4c865510c86ac3cbdec933da298cc1bb0cafa2f0d09b",
+    "development_jsonl": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935",
+    "frozen_evaluation_jsonl": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+    "frozen_access_guard": "6a1363a7799e625fa0b976030a5e08f7d454bca7745166c55d281b54453a1d53",
+    "audit": "6e42b697d5351a95d5e83946315b47d95a0f9935c4a0c098fef6b10f07a8b1d8",
+    "report": "e747cf11d972b75f75282644e290614544766276eecca901462bbabbbbfd5f33",
+    "execution_decision": "b52db565256fb35e6380d8cc21e286f2c3ed269e153ccf876df4319dd3528d3b",
+    "repository_ledger_copy": "af33dee545a577b1f467f9092396ec74ddfbe4d965f1ab0855b62a99b62b184c"
+  }
+}

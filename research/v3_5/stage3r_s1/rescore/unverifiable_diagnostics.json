@@ -1,0 +1,16 @@
+{
+  "track_a": {
+    "cases": 4,
+    "correct_source_authority_terminal": 0,
+    "incorrect_bundle_created": 0,
+    "incorrect_regular_selector_failure": 4,
+    "other_typed_terminal": 0
+  },
+  "track_b": {
+    "cases": 0,
+    "correct_source_authority_terminal": 0,
+    "incorrect_bundle_created": 0,
+    "incorrect_regular_selector_failure": 0,
+    "other_typed_terminal": 0
+  }
+}

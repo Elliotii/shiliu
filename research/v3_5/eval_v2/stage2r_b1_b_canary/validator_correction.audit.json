@@ -1,0 +1,9 @@
+{
+  "additional_transport_attempts": 0,
+  "cause": "anchor phrase contained spaces while semantically identical aspect did not",
+  "corrected_rule": "exact evidence-question substring remains mandatory for anchors; aspect binding tolerates spacing when all significant query terms are present",
+  "original_false_positive": "aspect_not_bound_to_anchor:0",
+  "persisted_draft_recompiled": "secondary/reviewer_draft.repair.json",
+  "provider_resampled": false,
+  "result": "valid_after_repair"
+}

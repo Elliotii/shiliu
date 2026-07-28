@@ -1,0 +1,46 @@
+{
+  "coverage": {
+    "complete_union": true,
+    "development_queries": 14,
+    "disjoint": true,
+    "duplicates": 0,
+    "frozen_queries": 10,
+    "locked_queries": 24,
+    "missing": 0,
+    "unexpected": 0
+  },
+  "input_identity": {
+    "decision_ledger_hash_matches": true,
+    "decision_ledger_sha256": "5fd179b5a89cfff5d9eda326dde5bd245a9c380a91de1909af1462d654288953",
+    "development_seal_identity_matches": true,
+    "frozen_seal_identity_matches": true,
+    "p4_locked_query_identity_matches": true,
+    "p5_split_identity_matches": true,
+    "task_contract_sha256": "8b384619570754fc3e95007ebd06635ce07343dc6d8bd78e24572b32d4e87dd3"
+  },
+  "resolution": {
+    "development_pending": 0,
+    "frozen_pending": 0,
+    "total_pending": 0
+  },
+  "scope": {
+    "annotation_or_review_started": false,
+    "frozen_gold_leakage_detected": false,
+    "p8_started": false,
+    "product_pipeline_calls": 0,
+    "product_prediction_read": false,
+    "sealed_files_modified": false,
+    "semantic_content_opened": false
+  },
+  "seals": {
+    "development_formally_sealed": true,
+    "frozen_formally_sealed": true,
+    "source_hashes_unchanged": true
+  },
+  "three_layer_records": {
+    "development_each_layer": 14,
+    "frozen_each_layer": 10,
+    "total_case_status": 24,
+    "total_each_layer": 24
+  }
+}

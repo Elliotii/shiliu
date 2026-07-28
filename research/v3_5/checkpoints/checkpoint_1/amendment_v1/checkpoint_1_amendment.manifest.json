@@ -1,0 +1,93 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "amended_findings": {
+    "candidate_builder_complete_group_coverage": {
+      "definition": "Queries with at least one Gold-defined acceptable group and constructible material evidence.",
+      "denominator": 13,
+      "eligible_query_count": 13,
+      "excluded_query_count": 1,
+      "excluded_query_ids": [
+        "PQS_V1_Q017"
+      ],
+      "exclusion_reason": {
+        "PQS_V1_Q017": "zero_acceptable_evidence_groups_and_material_evidence_nonconstructible"
+      },
+      "numerator": 6,
+      "value": 0.46153846153846156
+    },
+    "candidate_builder_primary_failures": 6,
+    "candidate_builder_required_aspect_coverage": {
+      "definition": "Macro mean over queries whose material aspects have constructible Gold evidence options.",
+      "denominator": 13,
+      "eligible_query_count": 13,
+      "excluded_query_count": 1,
+      "excluded_query_ids": [
+        "PQS_V1_Q017"
+      ],
+      "exclusion_reason": {
+        "PQS_V1_Q017": "zero_acceptable_evidence_groups_and_material_evidence_nonconstructible"
+      },
+      "numerator": 8.5,
+      "value": 0.6538461538461539
+    },
+    "candidate_builder_required_span_recall": {
+      "definition": "Macro mean over queries with Gold-required span IDs in an acceptable evidence group.",
+      "denominator": 13,
+      "eligible_query_count": 13,
+      "excluded_query_count": 1,
+      "excluded_query_ids": [
+        "PQS_V1_Q017"
+      ],
+      "exclusion_reason": {
+        "PQS_V1_Q017": "zero_acceptable_evidence_groups_and_material_evidence_nonconstructible"
+      },
+      "numerator": 8.5,
+      "value": 0.6538461538461539
+    },
+    "primary_failure_distribution": {
+      "candidate_builder_failure": 6,
+      "deterministic_selector_failure": 5,
+      "end_to_end_bundle_hit": 1,
+      "gold_defined_evidence_absent": 1,
+      "source_unverifiable": 1
+    },
+    "selector_primary_failures": 5
+  },
+  "checkpoint_1_amendment_status": "execution_candidate_ready",
+  "execution_status": "complete",
+  "governance_files_updated": [
+    "V3_5_CURRENT_STATE.md",
+    "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+    "02_PRODUCT_QUERY_SET_AND_REMAINING_V3_5_PLAN.md",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/V3_5_P8_SCORING_CHECKPOINT_1_AMENDMENT_DECISION_LEDGER.json"
+  ],
+  "p7_status": "complete_and_accepted",
+  "p8_formal_attempt": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "p8_scoring": {
+    "current_version": "P8_SCORING_AMENDMENT_V1",
+    "original_status": "superseded_by_scoring_amendment",
+    "scoring_hash_root": "54bc35083f4410ace027452b64fc2d22432111be5a2036c0ce245e6319849795",
+    "status": "complete_execution_candidate"
+  },
+  "p8_prediction_seal_sha256": "069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617",
+  "p8_prediction_set_status": "valid_and_frozen",
+  "p8_scoring_amendment_path": "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.manifest.json",
+  "p8_scoring_hash_root": "54bc35083f4410ace027452b64fc2d22432111be5a2036c0ce245e6319849795",
+  "p9_restart_readiness": true,
+  "p9_restarted": false,
+  "f1a_entry_signal": true,
+  "f1a_authorized": false,
+  "f1b_authorized": false,
+  "stage4_started": false,
+  "selector_findings": {
+    "bundle_hit": {
+      "denominator": 13,
+      "numerator": 1,
+      "value": 0.07692307692307693
+    },
+    "primary_failures": 5,
+    "required_aspect_coverage": 0.12179487179487179,
+    "required_span_recall": 0.12179487179487179
+  },
+  "schema_version": "v3.5-b-checkpoint-1-amendment-v1"
+}

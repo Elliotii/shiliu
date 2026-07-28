@@ -1,0 +1,11 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "development_gold_formally_sealed": true,
+  "execution_status": "complete",
+  "frozen_gold_formally_sealed": true,
+  "p7_product_gold_package_version": "PQS_V1_PRODUCT_GOLD_V1",
+  "p7_status": "closeout_execution_candidate_ready",
+  "p8_authorized": false,
+  "total_query_count": 24,
+  "unresolved_case_count": 0
+}

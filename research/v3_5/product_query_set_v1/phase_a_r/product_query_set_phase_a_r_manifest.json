@@ -1,0 +1,10 @@
+{
+  "candidate_count": 40,
+  "cap_exclusions": 3,
+  "exact_duplicates_removed": 0,
+  "phase_a_candidates_retained": 36,
+  "possible_semantic_duplicates": 0,
+  "runner_version": "v3.5-product-query-set-phase-a-r-v1",
+  "status": "Stage 3R-PQS-A-R Complete",
+  "supplemental_candidates_added": 4
+}

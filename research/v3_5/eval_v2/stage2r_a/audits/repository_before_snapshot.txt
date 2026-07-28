@@ -1,0 +1,15 @@
+Stage: stage2r_a
+Captured at task intake: 2026-07-22 Asia/Shanghai
+HEAD: 8287c8d92378b87290274d02605cdc704cb8c470
+Branch: codex/v3-domain-completion
+Pre-existing tracked modifications:
+ M V3_CURRENT_STATE.md
+ M src/shiliu/retrieval/__init__.py
+ M src/shiliu/retrieval/orchestrator.py
+ M src/shiliu/retrieval/product_search.py
+ M src/shiliu/templates/base.html
+ M src/shiliu/web.py
+Pre-existing untracked roots included V3/V3.5 reports, research/v3_5, research/v3_eval,
+src/shiliu/eval, src/shiliu/eval_v3_5, src/shiliu/evidence, and related tests/web assets.
+No cleanup, reset, checkout, or unrelated formatting was performed.
+

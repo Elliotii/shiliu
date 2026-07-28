@@ -1,0 +1,64 @@
+{
+  "schema_version": "v3.5-stage5-current-integration-test-results-v1",
+  "timestamp": "2026-07-27T17:37:42Z",
+  "focused_contract_and_regression": {
+    "passed": 139,
+    "failed": 0,
+    "warnings": 1,
+    "coverage": {
+      "uploader_exact_contract": true,
+      "uploader_contains_contract": true,
+      "legacy_filter_object_compatibility": true,
+      "product_search_api": true,
+      "stage5_evidence_sufficiency_api": true,
+      "mechanical_gate_routing": true,
+      "semantic_judge_call_and_bypass_behavior": true,
+      "evidence_id_preservation": true,
+      "trace_propagation": true,
+      "typed_error_mapping": true,
+      "safe_ui_dom": true,
+      "sync_cooldown_and_no_legacy_fallback": true,
+      "live_frozen_runtime_guard": true,
+      "formal_component_regressions": true
+    }
+  },
+  "syntax_and_static_checks": {
+    "python_compileall": "pass",
+    "javascript_node_check": "pass",
+    "git_diff_check": "pass",
+    "uncontrolled_innerHTML": false
+  },
+  "safe_repository_suite": {
+    "passed": 948,
+    "failed": 6,
+    "warnings": 1,
+    "remaining_failures_caused_by_post_freeze_delta": 0,
+    "remaining_failures_stage5_blocking": 0,
+    "remaining_failures_frozen_eval_runner_blocking": 0,
+    "triage": "STAGE5_REPOSITORY_FAILURE_TRIAGE.json"
+  },
+  "collection_dependency": {
+    "path": "scripts/export_pqs_v1_authoring_packet.py",
+    "missing": true,
+    "required_for_stage5_runtime": false,
+    "required_for_frozen_eval_runner": false,
+    "blocking": false
+  },
+  "frozen_content_test_boundary": {
+    "excluded_test_file_count": 29,
+    "reason": "No Frozen Query, Gold, Prediction, or Failure Analysis content access was authorized."
+  },
+  "formal_integrity": {
+    "auto_router_sha256": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "formal_builder_root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "formal_selector_root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+    "Evidence_Identity_Contract_V1_sha256": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "Stage4A_R_freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "SufficiencyRequest_schema_sha256": "93ff095b2d01062194c1a663e06bd37ae57dd9f3e3fa5edda11c18db4a0a594c",
+    "SufficiencyDecision_schema_sha256": "cf23071972bb34580dfe3ed075697f689b0dbeb67b3d0468df9d9141cc3477aa",
+    "semantic_judge_implementation_sha256": "55cd6811b0bb4e801a4f499ea0ea3b965db33323f7b2740f0ebb237d6aa687c9",
+    "Semantic_Judge_Final_Freeze_Seal_sha256": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+    "unchanged": true
+  },
+  "Frozen_Evaluation_content_accessed": false
+}

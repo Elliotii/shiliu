@@ -1,0 +1,30 @@
+{
+  "auto_router_invoked": true,
+  "case_id": "C2C_16019b3c36a8945b",
+  "effective_mode": "hybrid",
+  "embedding_cache_hit": false,
+  "embedding_invoked": true,
+  "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+  "embedding_provider": "v3-qwen3-embedding-provider-v1",
+  "empty_result": false,
+  "exact_query_cache_hit": false,
+  "intent_count": 3,
+  "intent_index": 1,
+  "latency_ms": 119.49433293193579,
+  "query": "MSE 适用任务和异常值",
+  "query_id": "C2C_16019b3c36a8945b:q2:01",
+  "query_type": "mixed_entity",
+  "query_view": "q2",
+  "requested_mode": "auto",
+  "result_count": 10,
+  "router_decision": "hybrid",
+  "router_mode_consistent": true,
+  "router_reason_codes": [
+    "entity_plus_semantic_context"
+  ],
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "runtime_error": false,
+  "runtime_error_type": null,
+  "target_video_best_rank": 1,
+  "target_video_hit": true
+}

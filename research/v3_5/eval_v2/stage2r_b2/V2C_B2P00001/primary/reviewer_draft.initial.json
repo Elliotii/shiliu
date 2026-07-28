@@ -1,0 +1,27 @@
+{
+  "boundary_notes": [
+    "完整字幕主要讨论AI agent开发中的自动化验证、前后端分离、回归测试和LLM裁判，未实质讨论RAG。"
+  ],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [],
+  "missing_aspect_indices": [
+    0
+  ],
+  "optional_context_spans": [],
+  "reason_codes": [
+    "TOPIC_NOT_SUBSTANTIALLY_DISCUSSED"
+  ],
+  "required_aspects": [
+    {
+      "query_anchor_texts": [
+        "RAG",
+        "完整原字幕"
+      ],
+      "text": "视频的完整原字幕是否实质讨论RAG。"
+    }
+  ],
+  "required_spans": [],
+  "status": "insufficient",
+  "supported_aspect_indices": []
+}

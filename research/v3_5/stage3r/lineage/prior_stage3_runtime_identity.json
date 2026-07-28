@@ -1,0 +1,9 @@
+{
+  "candidate_builder": "stage3b-acronym-w3.5-v1",
+  "fine_selector": "v3.5-deterministic-fine-selector-v1",
+  "generic_normalization_policy": "v3.5-stage3b-asr-acronym-anchor-v1",
+  "structured_llm_selector": {
+    "disposition": "rejected_after_stage3b",
+    "enabled": false
+  }
+}

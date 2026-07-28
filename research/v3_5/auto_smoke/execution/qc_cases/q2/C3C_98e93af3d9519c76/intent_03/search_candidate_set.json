@@ -1,0 +1,1821 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "Home Rail 后续规划",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "Home Rail 后续规划",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.5370213985443115,
+      "end_time": null,
+      "excerpt": "[Title] 我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】 [Uploader] 小天fotos [Description] 大家久等了 答应大家的，我的语音多Agent编排系统 开源了 不过改名叫homerail 本期视频聊聊它能干什么不能干什么 以及未来的RoadMap [Summary Conclusion] HomeRail 正式开源，这是一个面向家庭数据中心的语音控制多 Agent 编排系统，目前处于早期阶段，适合有技术能力的用户探索，未来将逐步完善成为家庭 AI 助手。 [Summary Key Points]",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "video:bilibili:BV1cyMi6tEqU:p1",
+      "unit_type": "video",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.4494176506996155,
+      "end_time": 118.71,
+      "excerpt": "朋友们一个月前立的flag今天正式开园了 我的语音控制的多A真的系统 你可以把它想象成 运行在你个人电脑或者NAS上的一个贾维斯 它可以语音交互 可以编排多维人进行复杂的任务 而且它有一个非常不一样的交互界面 这之前看我视频的朋友应该都知道 那今天我就说话算话了 正式开源给大家 那本期视频我就跟大家聊一聊 他打算解决什么样的问题 他对什么样的人群有意义 适合做什么样的任务 以及它未来会朝着什么样的方向发展 同时伴随着开源 我自己也会开始实践一种building public 现在不是流行这个吗 我也会在大家监督下 一边分享着我的领悟 一边去build这个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_ed59af5140b12e6e1837b1b09a1f99fe",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.388686865568161,
+      "end_time": 9066.59,
+      "excerpt": "然后呃同期会发生的事情是 我们能看到A卷的框架在呃 就就已经在过去的两三个月 open call本身也进行了大量的改进 然后你也能看到一些自学习和自迭代的一些诶 诶框架的一些产生 然后嗯嗯然后我嗯所所以AH的框架这一层 也会在接下来两个月会进步的非常快 嗯嗯然后再其次就是呃呃随随着前两个爆发啊 就是嗯A卷的框架越强 模型嗯的能力进一步的飞升飞升 并且我们的成本是有极致的优势的情况下 那么其实推理的需求一定会爆发 我觉得几倍到十倍的空间是是非常非常可能 会立即当下会发生的事情 那么对于推理芯片就会达到一个空前高涨的的 这样一个需求 所以那么怎么去在现有的产",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 8946.97,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b938bc3ddffdfe95fd39545c0155a542",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.3822106719017029,
+      "end_time": 12782.1,
+      "excerpt": "还有一个就是会不会你的训练跟推理 是在易购的集群上训的 然后所以你你你你你的训练和推的不一致性 我觉得在原来cod跟master的呃 那个reasoning那个范式里边 是不能容忍这个事情的 但现在你必须要容忍这个事情 然后引擎你怎么去做一些 更多的异构资源的调度 比如说现在除了GPU 你还要管CPU 然后你还要管存储对吧 然后所以就是怎么在这种很复杂异构资源里边 把这个模型训起来 然后嗯 就是我觉得这里边需要很多 算法跟工程的一个妥协 嗯中间这个模糊的地带非常多 然后呃所以他对inf尔人的要求的 灵活性的要求 和 这种啊 这种就这跨这两个领域的这样的一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 12662.54,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_24626a52e73695fb8df69cc52308c55d",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.3784368336200714,
+      "end_time": 3600.91,
+      "excerpt": "可能没有替代大模型训练的办法 所以今天的情况是 至少对于前沿实验室来说 它们正面临数据约束 这很有趣，因为我认为设计决策将会彻底改变 我意思是计算资源永远重要 但我认为设计决策会改变 例如 你知道的 只用一个epoch训练数据 这似乎没什么意义 如果你有更多的计算资源 为什么不至少多跑几个epoch 或者做更智能的事情 或许会有不同的架构设计 例如 因为Transformer最初的设计动机 你知道的 是为了计算效率 嗯 这是值得思考的问题 依然围绕效率展开 但设计决策反映所处阶段 现在我要深入第一个单元 呃，这个单元 你知道的 在那之前 有没有问题 你们",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 3482.93,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.377748966217041,
+      "end_time": 11504.15,
+      "excerpt": "还是变得更平缓了 相对于23年竞争的维度变多了吗 竞争的维度变多了嗯 但是其实呃 这应该说竞争的维度和速度变都变多了 速度变得非常快 可能每诶你做预训练 你不可能一个月出一个模型 但你做空训练 你确实可以一个月出一个模型 嗯然后呃嗯还有就是呃呃其实AJ这个事 他除了看AH的架构本身 也看你对整个推理测的嗯 结构或者说甚至硬件芯片 对你是怎么去认知它的 我觉得它它会影响到有一些最基本的决策 比如说嗯十兆的contest什么时候做 嗯嗯要不要怎么怎么去skinning 一兆的contest 其实它也涉及到你在比如说你在预训练 如果阶段就去skinning 那",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 11385.9,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_5a2799520081417571c5f79b26bb0d73",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.3749636709690094,
+      "end_time": 11965.17,
+      "excerpt": "那么大家比拼的就是啊怎么去快速的去啊 第一个怎么让agent的框架跟模型 互相自自迭代提升 第二个 怎么让这个agent的架构去更多的去嗯耦合 你现在所具备的资源对嗯 或者说生态位 怎么让AHAHAH的价格去理解你 理解和调度你现在所谓的资源和生态位 比如操作系统是 比如说硬件是 比如说啊呃呃流量也算是对嗯 然后呃社是流量社交这些都算是对 怎么让这个A型架构去适配 你现在的所具备具备的战略资源 然后然后就最后合合力起来 怎么把它给整合好 其实嗯他很考验的是呃 呃我我自己觉得他非常考验的是呃 一个公司愿不愿意用一套新的方式 来做这个事情 什么叫新的方式得思",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 11846.769,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_eaaa4338ef90f89906be1dfd2ff82cdd",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.37463846802711487,
+      "end_time": 6398.7,
+      "excerpt": "1T的模型可能是未来竞争的一个入场券 是这样吗 是agent的 你要做到接近cloud4.6 office的水平的这样一个入场券 你当时立项的时候还没有这个模型对吧 为什么你当时就已经觉得一定要是1T的嗯 就首先我训过DPCV3这么大小600多 600多700B的模型 你不会再想去训一个同样的模型 对就肯定还是继续往下一步skinny嘛 所以EET是一个嗯在我们当时已有的卡的讯 已有的卡的数量情况下 的一个比较极限的一个区间对 嗯是多少卡 几千卡 反正训这个模型是几千卡 但实际上我们要投入大量的卡去做研究 所以其实实际上的研究的卡 会是实际训练卡的几倍训",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 6280.01,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_4ebfacc5a8e74219a642e593c1834a3d",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.3736132085323334,
+      "end_time": 5820.81,
+      "excerpt": "理解更多contest的时候 那么你的潜力就越高 这个跟原来差的的这个方式是完全不一样 因为全原来差的方式 他的contest就是人输的 人输的就是很短 所以他纯靠这个预训练 但是ASIAN这个范式他他就是很很吃post train嗯 你对框架理解对 对于怎么去呃 呃所有多一些的写作啊 乱七八糟也好 反正反正他他他他你可以理解为 就是我们在post tra上要去投入的 算你嗯会可能跟培训是相当的 所以你这个时间周期再拉长 那么呃在一个呃呃 你比如说你post train要做半年或一年的场景下 那么你前半年去假定了非常多的东西 它可能是失效的 嗯就你假定要",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 5701.61,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3f0b6ce253001cf55bb6e5783dec10fa",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.37338730692863464,
+      "end_time": 556.68,
+      "excerpt": "让新手朋友能无障碍地使用桌面版 同时把这个manager agent的skill不断优化 让他能够当一个值得信赖的助手 我的中目标会着重放在生成式UI和编排 模板和编排skill的优化上 我自己的观点是这样 人的带宽是有限的 人应该和更容易看得懂的UI来交互 同时后台跑的应该是更加复杂的编排逻辑 人不应该去了解底层的细节 只是在关键的节点 通过生成式的动态UI面板 来了解每个阶段的进度就好了 那长期目标 我希望他能稳定跑在家庭的数据中心里 或者说NAS里 那现在有个趋势啊 NAS的计算性能在不断的增长 他们现在已经不单纯是管理存储的角色 我觉得他们未来很",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 461.46,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_bd67b113b30d3883efb31cfbbdf643eb",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.37004438042640686,
+      "end_time": 5702.93,
+      "excerpt": "尤其是当没有看到none connect的价值 和A证的这个范式的时候 mi确实是一个非常不错的选择 对那他未来会成为主流吗 嗯我觉得我我我觉得应该不会还是不会嗯 呃不不 ma应该不会对我说mg p m TP 如果说如果就看 就看大家大家的下一代模型结构是什么样 就嗯我觉得现在模型结构设计大概有两个趋势 一个就是你真的在预训练阶段 你就想明白你后边推理的场景是什么 比如说你要在什么上的卡 什么上卡去推 然后你要在多场上下文上去推 你的推理的并行的方式是什么 你可能连这个都要想明白 那么你就可以设计一个针对这个场景 和这个推理方式和这个这款芯片的完美的结构",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 5583.56,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_9fe8ff56c493cdf9a991bde865a1310d",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.36920368671417236,
+      "end_time": 8020.16,
+      "excerpt": "不知道能不能迈过去诶 如果迈过去 这会带来什么呀 这会带来更大的想象力吗 更优雅的结构 我倒我我我我最开始是认为 如果我们把它统一都离散化 那么我们可以用一套基础架构去解决这个问题 同一套预训练基础架构 同一套做R的基础架构 很优雅的把所有范式都统一了 就太太太简洁了 这是如果如果真能做到的话 但是我现在发现一个问题是 嗯当我们有cr code和顶尖的模型过后 这些架构 比如说我们重新去写一套l inf尔架构 重新去写一套纯理inf尔架构 我们最近嗯 嗯就已经完全再从头去写一些新的架构 我原来以为写这些架构蛮蛮耗费人力 蛮耗费时间的 但是现在看起来在AG",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 7904.86,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_0b116ed4b6026eadc9755ab015bbeb5c",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.35902830958366394,
+      "end_time": 9181.79,
+      "excerpt": "这个决定就要保密了哈哈 所以我们现在看到的所有密谋相关 都是半年前的决定 嗯差不多我看到你发文 他推说就好几个人都问过 你说为什么嗯 米某团队非常的迅速 然后你给了几个关键的结论 一个是核心架构与基础设施的研究周期漫长 所以嗯需要看到回报的一年前就具备战略信念 第二个是训练后的敏捷性 是另外一种能力 然后第三个是好奇心 就是热爱 是你一以贯之的在说的 你能不能解释一下这三点为什么能带来呃 一个超级大规模的模型的训练的迅速呃 预训练 因为它太潜质了 所以更关键的事情是 你需要在哎你你需要有一种预测能力 或说有一种战略定性 就是你训这一代模型到底是for什么",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 9063.83,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_513dc371d0cf61076c19bd370b262dd9",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.3578294515609741,
+      "end_time": 2101.61,
+      "excerpt": "确实算力和数据是主要的驱动力 但是不可否认可能有别的方向 可能驱动力失算啊 你什么意思 举个简单的例子 比如说东方态生成对嗯 那个我觉得可能就是一个算法上来说 没有太想清楚的事对 所以那个还是个科学问题还没有解决对 但是语言已经不是科学问题了 自然语言的生成 我觉得目前这条技术方案撞到头之前 我觉得在科学上是比较清楚 但是工程上也还有很多很多 会要很多要做的事嗯 你觉得预训练还能提高多少 通过预训练提升模型能力 还有多少 多长的路可以走 可以预期到 人就是这样 就是当你没有撞到头的时候 你其实不知道这个路有多长 我能我我能看到的就是现在还没撞到头 但我也",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 1982.48,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_bef05c576727d98521994f145d901453",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.3567047715187073,
+      "end_time": 252.96,
+      "excerpt": "在commodity化垂直场景才有长期价值 下次两天搭完r a g demo效果特别好的时候 先别高兴太早 问自己 这东西能在生产环境跑三个月不出问题吗 这里是LLM x factors 我们下期见",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 233.56,
+      "subtitle_source": "ai",
+      "title": "Demo很爽，生产很难",
+      "unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_64c84a10aff26af20acea08846d9c22b",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.3506225645542145,
+      "end_time": 6283.09,
+      "excerpt": "嗯也不早起 我们我们训了就发了 所以你们看到的时候也就是我们呵嗯对嗯 没没有规划 很早 我们基本上大部分的模型的训练 都是在下半夜进行的 对嗯去年的下半年对嗯嗯从flash到pro 你对pro的预期是什么样的 嗯哦当然那是同一时间 嗯对就是两个模型同步训练 我们相信这一代的架构是没问题的 只是我们在训pro的中组的过程中 去解决了非常多的呃 比如说训练数值的不稳定性 对啊这个是训跟ET参数量级的模型 通常会遇到的很struggle的问题 对你老老训着训着lose back 脑顺手顺着OK哎某个激活值很大 然后那你要考虑怎么去呃 呃或者说某些expert呃",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 6163.21,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_093107d767effbced5a78270d960d279",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.349048912525177,
+      "end_time": 6510.68,
+      "excerpt": "所以现在卡反而变成一个更更 更关键的一个制约项 当然还这只只是for训练 那for推理的话 卡更是一个更危这些因素对嗯 就推理卡的需求量远远比训练会更高很多嗯 训练推理呃和实验 这个最好是记笔记嗯 推理看看看用户数对 或或者说是看高价值场景消耗的token书 所以这个很多场景因人而异 对没对 所以就把推理嗯拆开看嗯 那我如果说我们嗯这样子来说嗯 就是for研究跟for printrain和for poster train对嗯 我自己觉得一个非常合理的 卡的一个比例是可能三比一比一对嗯 对和后就prince pose try应该比例是投入的 算力是相当的 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 6395.3,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_52e09ca107963e00c72ef51592cdc96b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.34610605239868164,
+      "end_time": 8717.61,
+      "excerpt": "以以及他现在的呃基础条件太好了 他有那么多算力可以用 然后嗯嗯它有人类宝贵的知识起点 作为一个基基基础的起点可以用 还有那么多人帮他提升 所以感觉这两个环境完全不一样 所以进化路径就不太一样 语言之后模型的进化的下一步会是什么 或者哪怕在语言里细分coding之后 下一步会是什么 嗯coding他还是会有一个它非常好的一个主旋律 就是他要做一个很复杂的软件工程 以一步直达的开发 我觉得能持续的时间越久哦 能做的开发的复复杂度不一定是代码量 这要是复杂度越高哦 比如说你写个curl算子 它可能代码量并不高 但是你需要写了去啊 调试debug 看他是不是在真",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 8598.53,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_9aa6b079bcb764b8762374cd7bf22e8b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.3458736538887024,
+      "end_time": 397.25,
+      "excerpt": "they’ve been split into two! Front end features are nearly done, so now, time for the back end! June and July—those two months will see high traffic, so let’s nail down the architecture first. Tired of watching this video yet? Next up, let’s play a little game! Check out these tw",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 362.205,
+      "subtitle_source": "ai",
+      "title": "10分钟app开发全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_3809b3a3749b8b750014dd8100e1c228",
+      "unit_type": "transcript_chunk",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.3446877598762512,
+      "end_time": 9868.62,
+      "excerpt": "这个这个这个语段的长度一直变长 可能并不是一个很现实的方案 但是很现实的事是 你如何在有限的context下去做更长的工呃工作 其实你其实是想人其实就是这个样子 人的contact其实很短很短 你现在问我昨天晚上吃的什么 我是一点也想不起来了 嗯啊你可能能想起来哈哈 我是一点也想不起来了 因为因为因为什么 因为他对我现在这个场景来说不关键对吧 就是我现在知道昨天晚上吃什么又能怎么样 所以我选择把它忘掉 所以人本质上context是很短 但他能够选择性的遗忘 然后让他选择性的对去retrieve 就是去把这些重要 跟当前场景相关的信息再抓回来对 所以说我觉",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 9751.84,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_e1d53c0ce4fa810bae7c992e1083c56a",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.341936320066452,
+      "end_time": 6976.63,
+      "excerpt": "可以并行的去探索 对做研究来说是有优势的 但是我并不认为他对嗯 我刚刚说的那种场景 发现发现一个可能是问题的问题 然后去深入排查原因 去解决它 我并不认为他对这种模型 训练进程中遇到的问题是是很大 团队是优势 反而很大 团队有可能是劣势 嗯嗯训这个模型过程中 你们团队状态是什么样的 团队状态是嗯原来做数据的那一 那做一训练数据的那一群人就去做后训练的嗯 然后嗯做infer 做训练框架 做推理 INFA人一块来去解决训练过程当中的问题 嗯那这是为什么 这是为什么为什么有这个变化 这是为什么预训练的人要去做后训练 很多样的原因哈 嗯首先后训练的一大部分的原因",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 6858.27,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_8b84d34786fc5c3a08b20fa29324e332",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.34186220169067383,
+      "end_time": 7788.339,
+      "excerpt": "其实就是预训练的时候训一层 然后mi得顺手再训额外更多的层 然后预训练训一层是为了去提升基座能力 后面嗯嗯post tra去训跟罗成 是为了推理的时候 用更多层实现更好的推理加速对嗯 关于pro的技术要点 除了刚才三个我没有遗漏的差不多了 我觉得聊得已经非常透了 所以pro是几个月前开始做的嗯 那另外两个呢同期基本上都是同期哦 都是那个时候开始规划的 对对对 其实都是三个三 三大概是三个方向 同期再往前去推荐的flow加上OMI加上TTS 他好像整个的V2家族是在指向 多模态的叙事哦 但是他的模态又非常的不一样 嗯文字是离散的token 图片是像素矩阵 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 7669.27,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_274e9c884d1348b3567e44f4330a4372",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.34154224395751953,
+      "end_time": 12875.5,
+      "excerpt": "没有没有skinning到跟PRINTRAIN一样亮起 嗯这是嗯之前发展的两个范式吗 你觉得再往后有什么新的范式吗 不确定先把这个方式做了再说 我觉得是我们我们刚刚聊到那个是呃 就是一个一个生成模型跟嗯感知能力很强 模型联合到一套新的框架边去进行 进行2号训练 这个事已经足够的 在我的规划里边已经足够了 长期并且比较难实现 现在有人说是continue learning Online learning 我现在觉得continue learning和online learning我更多的是代指呃 它跟这个环境产生交互的时候 或者说跟A金属框架呃 多轮交互的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 12779.38,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_ffcc0fd271eefd2e5e605d845b804316",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.33874204754829407,
+      "end_time": 5586.16,
+      "excerpt": "我们同期的开始去去进行训练的 唉放在当时你当时为什么会选择MTP MTP的选择还真的是蛮后验的 就是是我们这个模型已经快训到中后期了 然后嗯我们觉得呃 我们嗯把这个模型开始为他去设计推理方案了 然后我们再我们自己的那一代的推理卡上去 实际的去设计推理的并行方案的时候 发现他的计算剩余的实在太多太多了 就哦我们没有想到它会剩余这么多 然后所以那你就想的是怎么把这些剩余的啊 计算给它有效利用起来 那么MTP太适合了 然后但是我们嗯嗯在呃预训练阶段加上MTP的 原因是它确实能提升基座的能力 这个我们跟deep sea是一样的 就是预训练加MTB 是因为MTB能",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 5467.55,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_f8b0ede81118e9a5e1186023fe0eddc6",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.3371955156326294,
+      "end_time": 10809.159,
+      "excerpt": "把呃那个live code bench这些偏code的benchmark 就是思考很久给出一个答案这种 然后把这种嗯呃呃呃呃呃AME 对这些对你可以在这个范式上选择继续生根 你也可以选择我豁去掉 我就不管这些 对我不管这一套范式 然后我就去想下一下嗯 我我可能在车道翻上能够做到六七十分就OK了 其实M1做到60分就六七十分 就表示这个链路你已经走通了 但是你你你是不是可以就可能比较聪明的团队 我觉得25年年中就会全面拥抱 去佛新的一技能架构去做事情 而这是你的选择 me max是已经转过来了 me master我觉得算是转的最早的 MMAX是国内转的最早",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 10692.44,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_5f5fd340617360f702880a2d9c527333",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.3365481197834015,
+      "end_time": 10460.64,
+      "excerpt": "虽然妈妈搞过 你也能看到结论 但那个结论不一定是说这个结构的问题 就是就是它太贵了 它太贵了 你去训它也很贵 然后你去推他也很贵 没有人会去搬运一个又笨又贵的模型对 那所以你m o e for更高效的训练 然后更高效推理 然后像ma这种for更更更高更更低的啊 推理成本的这这些模型的架构就会诞生 对 所以这是这这是同阶段 可能q in跟deep sk在走两个路径 q in是在纯SKINING 然后啊deep sick是呃考虑的是创新的基础上 再SSKINNING嗯 哪个是正确的 没有没有没没没没有什么 我觉得正确或错误吧 因为他们两个人的一个是为了啊 拿",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 10340.92,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_db63f7ea590175112ebbfd9be802782a",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.336051344871521,
+      "end_time": 11277.46,
+      "excerpt": "我觉得是非常啊是基本上没有的 或者说非常接近 或者说国内的大部型团队在ping train上 结构上是有优势的 呃甚至一度我认为cloud啊 可能嗯在哎过去很长一段时间 做了很多contest engineering 我们都误以为它是因为模型结构不是很先进 然后为了成本而做了一些妥协的设计 但现在回过头来看 可能是有点想的太局限了 然后现在可能你能看到所谓的这些contest 不管他最开始的东西是什么 但最终目前的啊这样的一个状态 是他所谓的这个context的管理 以及搭配的整个SKYFORD或者agent的架构呃 嗯其实是为了啊呃配合模型发挥更强大的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 11159.05,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_2e58861ac65c72c778988956efe81e89",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.33574700355529785,
+      "end_time": 2441.46,
+      "excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 2324.32,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.33562907576560974,
+      "end_time": 8123.74,
+      "excerpt": "新的范式就是后训练强化学习 但是更多的就不知道了 对其实呃其实我觉得我去ASAI的时候 大家已经比较清楚这个事儿该大概该怎么做 就是大概的这个方向是怎么做 然后呃 当然后来就是后来 随着我对这个领域知道越来越多之后 我就发现 其实那个时刻 其实open i做的方式和ANSPORRY 其实还是差别挺大的 这么说啊 就具体这种算法呀和使用啊 数据的方式其实是不太一样的 虽然都叫候选人和强化学习 虽然都叫这个 但是当然就是我觉得那些不是不是本质区别 就是就是本大的方向来说 他们是同一个 就是找了一些找一些这种很回归线稿 非常清楚 非常客观 然后呃数据本身又比较",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 8006.1,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_26565a2391fb34134b79e028ec2236b6",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.3341405987739563,
+      "end_time": 12665.52,
+      "excerpt": "去找到一种可skin的方式 去把他这个嗯这个边界给补充回来 有可能是呃呃去构造一批更强的数据诶 以及更强的环境 让它能够嗷嗷训练起来 然后呃有可能是for for bug到预训练的某个环节 可能这批数据没做好 我给我把这个数据给他补上 这一类的数据给它补上 那么可能我下次去模型的时候会更好 总之就是呃更在乎模型体验的人 更跟模型交互的频次更高的人 嗯嗯他会非常适应这个范式 因为因为我我我觉得这个迭代是有价值的 就如尤其是那些维护了自己 很多私有的测试库的人 然后他疯狂去测不同模型的边界 然后呃呃突然发现某个模型嗯强了 然后呃然后分享出来自己这种独特体验的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 12546.51,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_376887816e2330393e358602187165dc",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.33387821912765503,
+      "end_time": 9754.48,
+      "excerpt": "他好像是知道怎么跟AI写作的某种产品经理 对我觉得呃 上一代产品经理可能但也不全是就上来 也也有一些就是交互交互方式级别的变化 但每一次交互方式级别方变化 其实就带来一很大的产品 比如说就是可能这个抖音 就是一个交互方式级别改变的产品 那它一下子就带来了很大的打开了新的方向 呃 然后我觉得可能克拉code 也是一个这样级别的产品 对嗯呃CROCODE和COWORK都是BORIS 我不知道call work是谁做的 OK我已经离开了 哎希那说说你到了google DeepMind以后的工作吧 工作重心发生变化没有呃 还是发生了一些变化的 然后呃我我反正我自",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 9634.82,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5cc1ec4dee3d4eeaf56a70f19fb0d4ca",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.3326081931591034,
+      "end_time": 11735.43,
+      "excerpt": "以及他们各自怎么去自进化 自接待以及互相互相去沟通 嗯这这都还有还有空间 就嗯都还虽然有你 你你感觉现在已经有这个雏形了 而且哎我自己也MARTIAGON也用的挺顺的 但是我我我始终觉得他还是在去唉节省成本 节省时间 并没有去放大最终的上限 我现在还没有感感受到这样的 所以那会不会猫TJ的协同的RO训练 会不会做到这个事情 我嗯maybe必吧 那你觉得模型公司的边界在哪里啊 现在模型公司好像没有边界 就是感觉好像我我我之前说我不想做产品 但现在发现就是它它又变成直接做产品了 对模型机产品是对的 对借助AH的它的产品力反而更强了 然后其他所有东西都很简单 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 11616.67,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b9363c925876067f2e174096e37fba16",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.3320605754852295,
+      "end_time": 9297.38,
+      "excerpt": "我们怎么基于当下这个模型能力 跟这套意见的范式产生这种化学反应嗯 对 然后你怎么去快速的去设计新的啊INFA架构啊 对这也要涉及到新的R语法架构 因为针对于针对于呃code和master这种reasoning的呃 这种呃这种恰的形态下的reasoning的 INFA架构的核心嗯 是这个呃序推理引擎本身是模型的 推理引擎本身 因为模型要推很长 思考很久 然后给出一个答案 这套就是这套LINFA架构的问题 而针对于agent的INFA架构 它并不只关注这个模型 推理本身 它还要关注呃 呃这个模型嗯跟这个agent的的一个耦合对 所以他是以从如out这个推理引",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 9178.39,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e7345ffe7cad983cb3497bda2b6b1c11",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.3305668830871582,
+      "end_time": 11161.45,
+      "excerpt": "一堆token 然后你的模型的R的范式可能还是我刚刚说的 就以以推理ROOUT为中心 但其实agent能已经不是了 你觉得mini max是在这个转变是比较快的 我我感知到我觉得他是比较快的 因为他们用一个识别的模型 做到目前的这样的一个嗯AH的能力 我觉得是是蛮惊艳的 就是他们的后训练的敏捷程度是非常惊艳的 但是你说嗯agent的这个第二幕 所谓的入场券是1T的基础模型 那嗯那mini max没有这么大的模型呀 对 所以我我觉得他们并没有说 真正意义上已经对标cod4点 obs是4.6了 就我把入场定义为你要做到对标到cos cloud offer 4",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 11042.23,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_2b7aac9598cdbf68438a09bebd46ce95",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.32845115661621094,
+      "end_time": 119.739,
+      "excerpt": "诶你好 各位听众 今天咱们来聊一篇很新的论文 题目叫mata harness End to end optimizations of model Harnesses 先用一句人话说他到底在做什么 一句话讲 他想自动化模型外面那层系统代码的设计 作者把这层代码叫做harness 也就是包在大模型外面的那层程序 决定要存什么历史 怎么检索 什么时候把哪些内容拼进上下文 怎么组织多轮交互 怎么判断任务完成 论文的核心观点是很多 系统表现的差异不止来自模型 权重 还来自这层HARN 既然如此 那就不该只卷模型 也要开始系统地搜索 Harness 论文是2026年",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 0.34,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_76b348fbe675899287c903c85e90f4c0",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.32808196544647217,
+      "end_time": 1519.68,
+      "excerpt": "但是对于个人来说无所谓啊 就是我反正是一个开源的项目 我代码垃圾又如何 你帮我来一起写吧 对吧哈哈对 但是我觉得不管是MANUS还是open cloud 它其实指了一个方向 就是可能 这也是2026年的某种叙事的可能性 你对2026年怎么样思考和预期的呃 我觉得其实有太多的可能性 然后对我来说 从呃从模型能力上来说 我觉得呃模型就是我有时候特别爱说这个口号 就是这我觉得模型做到呃 Train with finite context Use as infinite context 就是换句话说 就是你用有限的这个这个context length去训练它 但",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 1401.99,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5b1f83c3423e9361849db0d29a08c50b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.3267960548400879,
+      "end_time": 277.56,
+      "excerpt": "我觉得这个路径如果能跑通的话 真的是一个非常好的AI的助手对 然后当然现在还在内测中 席位还在内测中 那后续呢也希望他们能有更多的 比较好的一些新的功能出现 然后我今天也问了 他们会在WAIC大会上 就是在7月17到19号 上海世界人工智大会上 他们也会有个展台 大家有兴趣的话可以去看一看 因为他们正好今天也发了AI硬件 就是一个录音笔 不能叫录音笔 就是一个录音的壳子 有点像在你手机后面贴着的一个录音的壳子 然后可以帮你记录面聊 可以帮你记录这个组织的上下文 我觉得大家可以去体验一下 到时候嗯拜拜",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 231.52,
+      "subtitle_source": "ai",
+      "title": "好的想法从哪来？聊聊试用企微AI助手的感想",
+      "unit_id": "transcript_chunk:bilibili:BV1zDTX6eEGu:p1:chunk_d48ebadd7ddae424beaf55c513ee1a15",
+      "unit_type": "transcript_chunk",
+      "uploader": "晓辉博士",
+      "video_id": 1
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.3265707492828369,
+      "end_time": 465.86,
+      "excerpt": "靠多模态去进行一个观察 那另一条呢就是把前后端彻底拆开啊 后端变成一个能独立运行的AIA卷 所有的调用都能做成命令行的控制形式 看前端呢退到一边 只负责把后端的信息这个监控出来 给人们去看啊 让人进行操作 我选的其实就是第二条路啊 前后段分离啊 原因是在于我用MCP 我的确能够看到网页上面的一些操作 但是呢在这个authorization呐 或者在一些具体的corner case 包括效率上面啊 没有前后端分离来的这么直接来的这么快 而且说实话啊 就是做前后端这一步啊 我们也花了不少力气啊 原因在于 我们之前其实是重度使用了这个VERCEL的 A i s",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 348.2,
+      "subtitle_source": "ai",
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6",
+      "unit_type": "transcript_chunk",
+      "uploader": "数字黑魔法",
+      "video_id": 6
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.3265082836151123,
+      "end_time": 1035.78,
+      "excerpt": "所以说每次的话就是传统的 相当于把多个用户请求就凑成一个批次 一定要一起处理 那我必须得等这批次里的所有请求都做完 我才能处理下一个批次 这个车必须所有人都上完之后 我才能把他开了 然后再弄下一辆 但是我的continuous的话 相当于是嗯这个最大的问题是 如果有一个请求很长 所以其他短的请求也得等他 所以说导致你会有大量的空闲时间 嗯简而言之就是如果有人迟到的话 那一车人都等他们对吧 就像老师说的 你一人浪费一分钟 你就浪费了我们60分钟呃 所以说你这样子的话 就是其他短的请求 麻利的人也得等这个迟到的人 所以说你的这个就会有大量的这种空闲时间 而c",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 916.27,
+      "subtitle_source": "ai",
+      "title": "llm氪普课-ai infra入门所需知识完整梳理",
+      "unit_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_735a242ec9f7a99fab52517bfdc0525d",
+      "unit_type": "transcript_chunk",
+      "uploader": "llm氪ke普课",
+      "video_id": 76
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.3264181911945343,
+      "end_time": 1163.65,
+      "excerpt": "不选择Mac和AMD 哪怕是更大内存的Mac studio ultra 就这两个平台只能让你们体验更强的模型能力 而这些其实都是API就可以满足的 它不能带给你主流推理平台 infrared的一些实践经验 第三种啊 就是自己是老板 有预算跑通了 生产产品需要考虑杠杆 那这个阶段只能是多卡的扩大设备 比如说pro6000就是性价比挺好的 甚至更高级 但是你必须得有经济模型 也就是说token怎么样转化成钱 效率是多少 你首先要用API就能跑通 然后你才有前提去用本地部署来最大化杠杆 因为这个你要算的就是经济账了 我自己的目标呢是第二种到第三种之间 如果我的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 1044.579,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_83674167a56763c0579cedcac3d343f8",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.32576799392700195,
+      "end_time": 9985.889,
+      "excerpt": "有科学问题也有工程问题 我觉得他科学问题更多的是呃 怎么把不同的方案尝试一下 以和以更以更科学的方式尝试之 后来呃找到一条最后我们要走的走的这个方案 这个有哪些方式呃 我可能不太太太说 说的太细了 但粗的来说 从有一些方案是从呃普train的角度 从预训练角度来说 有一些方案就是类似于这种稀疏的attention Spart attention 那这个比如deep sick也有一些工作 然后学界也有很多工作 然后从后训练的角度也有后训练的方案 比如说像呃外界 比如说你每天用什么cursor这些 他们就是很强的context management 管理这个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 9866.42,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_24335aca1533a71b552d1df1855c1b35",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.32574573159217834,
+      "end_time": 1053.96,
+      "excerpt": "所以更可审计 这其实也是为什么harness engineering比直接改模型 权重更像一个可控的工程方向 如果我们把这篇论文放在更大的脉络里 它的重要性到底在哪儿 我觉得可以用一个三阶段的说法来总结 第一阶段大家意识到光有模型不够系统 外面的harness很重要 第二阶段大家开始手工总结harness经验 什么场景适合检索 什么场景适合memory few short 该怎么摆 agent loop怎么设计 第三阶段也就是这篇mata harness代表的阶段 不只是人类总结harness方法论 而是让AI自己去做harness engineerin",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 935.5,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_4c0fb8a330a262ce7fdf217ec473b51a",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.3248792588710785,
+      "end_time": 7093.87,
+      "excerpt": "嗯现在已经到100人 但是这100人是包含嗯 就是嗯嗯所有链路上的人 就所有链路报 比如说数据采集嗯 数据质量按PRINTRAIN的infer post train 然后包含甚至我们的开发 我们需我们需要有一些开发 还有包含我们的产品 包含我们的数据 百晓生还有包含三个方向上的算法工程师 就是呃大致你可以发散吗 就是呃语言动态和语音对嗯 然后这里边100个人里边 实习生的比例是很高的 然后有有部分实习生可能是在做一些更当下 不会立马反应到这一代模型结构上的事哦 模模型能力上的事情 所以其实真正投入到一代模型里边去迭代人 我觉得是很少的 可能可能所有内容上",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 6975.07,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_4fc9f99c62a35ecdf88e9b719cf7702b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.3238675594329834,
+      "end_time": 582.74,
+      "excerpt": "做不到杠杆 是因为如果你只有cloud code或者是open cloud hermes 你只有这样的框架是不行的 因为真正让模型发挥出优势的是更加复杂的 Harness 是更加合理的分工规划 流程控制 而且是无人值守 高并发全自动端到端的交付 那么简而言之 就是说 除了有模型以及对模型能力边界的极致理解 你还需要一整套的harness来实现这一切 对你需要的不是模型 而是软件 好的就是现在 这是目前AI世界里没有标准答案的地方 也是被迷雾蒙住的一块 也是更有价值的一块 所以每个人都有机会啊对吧 但我敢保证 也就是今年内市场上就不断会有答案产生 说说我自",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 466.23,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.3233221173286438,
+      "end_time": 578.75,
+      "excerpt": "合并到open spec space主规范目录里 第二呢就是会移动归档目录 它会把完整的变更文件夹移动到ARCAVE目录下 第三呢就是会更新主规范 现在open spec specks目录中会包含评论系统的完整规范 这就是open spec的知识沉淀机制 每次归档都会让open spec的spec更加完整 随着项目的演进 这个目录就会逐渐成为我们系统的完整 功能手册 新加入的团队 开发成员都可以直接去读这个目录 然后理解系统都做了些什么事情 这就是open spec的基本工作流 提案执行归档 这三部工作流已经足以应对绝大多数的场景 每一步都有明确的产物 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 460.78,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_579f2d528a6a5753842642f9d37e6da7",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.3228380084037781,
+      "end_time": 2682.89,
+      "excerpt": "好的 但需要注意这未考虑 推理成本 这简直 如何训练出最佳模型 无论模型有多大 因此这里存在一些限制 但无论如何这对模型开发极为有用 所以在本次任务中这有点像 嗯 你知道挺有趣的 因为我们定义了一个引号 未引号的训练API 你可以用特定超参数进行查询 你需要指定架构、批量大小等 我们会返回一个损失值 你 你的决策将获得 好的 你的任务是 你有一个FLOPs预算 你要尝试训练多个模型 然后收集数据 你需要将收集的数据拟合到缩放定律 然后提交你的预测结果 你知道你会选择什么 超参数 模型规模等 在更大规模下 好的 这里你需要 真的 我们希望让你处于这种位置 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 2564.85,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.3227958381175995,
+      "end_time": 701.34,
+      "excerpt": "还有deep sick的manifold hyper connections 以及今天的KIMI的注意力残差 它们之间的异同 那在这篇注意力残差的论文里 实际上提出了一种大一统的架构 所有的这些和残差相关的改进呢 都被它定义到了这样的一个架构里面 它们的区别仅仅是M的不同 那么如果是传统参差连接 实际上M就等于一 那么V一一直加V0 一直加到V 一加到V 然后减一一种直接的相加 那么HC与MHC呢是做了这样的一种压缩 那么实际上它也是一种在硫与硫 每个残差流与残差流之间的一种变换 而今天的注意力残差呢 是直接把每一层给拿出来来做一个加权 直接对所有的历史",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 582.16,
+      "subtitle_source": "ai",
+      "title": "【注意力残差】10分钟看懂 马斯克盛赞的Kimi最新技术",
+      "unit_id": "transcript_chunk:bilibili:BV1fNw9ziEYk:p1:chunk_674824c01eb803cb02375956f0194ce8",
+      "unit_type": "transcript_chunk",
+      "uploader": "东川路第一可爱猫猫虫",
+      "video_id": 118
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.3213365972042084,
+      "end_time": 1011.86,
+      "excerpt": "VR slim就你要懂它里边那个推理的框架 还有training的框架 FSDP麦克TRA 然后可能很很重要的就是分布式训练哈 数据并行 张量并行 流水线并行 序列并行和专家并行 还有你要去关注一些training的一个projects 比如这个很很重要的事情 数据从哪里来 数据呃 creation的一个过程 还有这个ftwin fan training和这个post training 以及那个air training的这样多阶段的一个训练啊 对这是整体的 我大概也哈拉了一些重点哈 就是我目前其实大家也可以就留意到了哈 我始终在我就是我基本上所有的系列视",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 905.93,
+      "subtitle_source": "ai",
+      "title": "[说说心里话] [2026-春] 人机协作的视角，AI 时代的学习指南与焦虑缓解",
+      "unit_id": "transcript_chunk:bilibili:BV12nw4z6Eoa:p1:chunk_0e8d2099f8516957adf602dfa0883235",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 98
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.32081520557403564,
+      "end_time": 11495.839,
+      "excerpt": "因为首先蓝猫coding是 因为google首先自己是一个AI research大户 然后他自己又是AI research最全站的 就是他不仅有这些训练模型 这些这些部分 它还有设计硬件的部分 从硬件接到模型的部分 这一整套东西如果能被被加速 会或者或者说被更好的管理 那可能对这个公司来说是很有价值 LAHORRIDER就不说了 就所有人都知道 就所有人都很都都都觉得很重要对 所以说我觉得那个可能是对我来说 不能说是范式级别的 绝对是不到范式级别的 但是是一个我觉得是很有价值 需要去在未来几个月之内 能够呃能够看到曙光的是 然后嗯 我觉得范式集 可能就还",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 11378.54,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_6b19622cbbe33e3242b9fbb7e6b577bc",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.3207769989967346,
+      "end_time": 10912.189,
+      "excerpt": "他也嗯不错 那google是这种自下而上的 它依然是自下而上的是吗 他比以前肯定要更自上而下了哦 比起最早的时候 但是他比嗯曹北来说还是更自洽上了一些 就好像不同的文化都可以是吗 对就是对模型的训练 就是我觉得大公司有大公司的打法 startup有STARUP的打法 所以大公司是 你刚刚也说他是一个完全不一样的趋势 它是一个不一样的呃方法 google是什么方法 现在我觉得google更多的说说 是像这种比较确定性的事 比如像预训练已经是一个比较确定性的范式了 那可能姑姑就会更像把它做成一个工程项目 然后工程google的工程管理能力很强 所以说他就能慢",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 10795.02,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_f3bd32ec7a22dba56d1d8b97733ec357",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "video:bilibili:BV1cyMi6tEqU:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1cyMi6tEqU",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/2f73b7639223c8d164918338372df7a797cfb900.jpg",
+      "detail_url": "/videos/13/transcript",
+      "duration": 557.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "[Title] 我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】 [Uploader] 小天fotos [Description] 大家久等了 答应大家的，我的语音多Agent编排系统 开源了 不过改名叫homerail 本期视频聊聊它能干什么不能干什么 以及未来的RoadMap [Summary Conclusion] HomeRail 正式开源，这是一个面向家庭数据中心的语音控制多 Agent 编排系统，目前处于早期阶段，适合有技术能力的用户探索，未来将逐步完善成为家庭 AI 助手。 [Summary Key Points]",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "小天fotos",
+      "video_id": 13,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1cyMi6tEqU",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 73.33,
+          "anchor_segment_start": 71.69,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_ed59af5140b12e6e1837b1b09a1f99fe",
+          "best_rank": 2,
+          "best_score": 0.016129032258064516,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 114.13,
+            "source": "ai_summary",
+            "start_time": 54.7,
+            "summary": "解释改名 HomeRail 的原因：Home 代表家庭数据中心，Rail 象征可动态调整的 Agent 运行轨道，并提及代码仓库已公开。",
+            "title": "产品命名与设计理念"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_ed59af5140b12e6e1837b1b09a1f99fe"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            2
+          ],
+          "duration": 118.71,
+          "excerpt": "所以就先把名字改了 新的名字叫home real 也描述了我到底想要他做一个什么",
+          "jump_source": "exact_entity_term",
+          "jump_time": 71.69,
+          "jump_url": "https://www.bilibili.com/video/BV1cyMi6tEqU?t=71",
+          "matched_terms": [
+            "Home"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 118.71,
+          "window_start": 0.0
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_bd67b113b30d3883efb31cfbbdf643eb",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 525.759,
+            "source": "ai_summary",
+            "start_time": 432.48,
+            "summary": "阐述产品定位是可通过手机、平板、电视等操控的语音 Agent，并介绍短、中、长期目标，最终愿景是成为运行在 NAS 上的家庭 AI 中心。",
+            "title": "未来发展规划与愿景"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_bd67b113b30d3883efb31cfbbdf643eb"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 95.21999999999997,
+          "excerpt": "让新手朋友能无障碍地使用桌面版 同时把这个manager agent的skill不断优化 让他能够当一个值得信赖的助手 我的中目标会着重放在生成式UI和编排 模板和编排skill的优化上 我自己的观点是这样 人的带宽是有限的 人应该和更容易看得懂的UI来交互 同时后台跑的应该是更加复杂的编排逻辑 人不应该去了解底层的细节 只是在关键的节点 通过生成式的动态UI面板 来了解每个阶段的进度就好了 那长期目标 我希望他能稳定跑在家庭的数据中心里 或者说NAS里 那现在有个趋势啊 NAS的计算性能在不断的增长 他们现在已经不单纯是管理存储的角色 我觉得他们未来很",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 461.46,
+          "jump_url": "https://www.bilibili.com/video/BV1cyMi6tEqU?t=461",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 556.68,
+          "window_start": 461.46
+        }
+      ]
+    },
+    {
+      "additional_window_count": 13,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b938bc3ddffdfe95fd39545c0155a542",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1iVoVBgERD",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d9c8cb358259ceb896a07e588506abee526dbc6f.jpg",
+      "detail_url": "/videos/90/transcript",
+      "duration": 12879.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "然后呃同期会发生的事情是 我们能看到A卷的框架在呃 就就已经在过去的两三个月 open call本身也进行了大量的改进 然后你也能看到一些自学习和自迭代的一些诶 诶框架的一些产生 然后嗯嗯然后我嗯所所以AH的框架这一层 也会在接下来两个月会进步的非常快 嗯嗯然后再其次就是呃呃随随着前两个爆发啊 就是嗯A卷的框架越强 模型嗯的能力进一步的飞升飞升 并且我们的成本是有极致的优势的情况下 那么其实推理的需求一定会爆发 我觉得几倍到十倍的空间是是非常非常可能 会立即当下会发生的事情 那么对于推理芯片就会达到一个空前高涨的的 这样一个需求 所以那么怎么去在现有的产",
+      "matched_unit_count": 25,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 25,
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "total_window_count": 15,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1iVoVBgERD",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b938bc3ddffdfe95fd39545c0155a542",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b938bc3ddffdfe95fd39545c0155a542",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_513dc371d0cf61076c19bd370b262dd9",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e7345ffe7cad983cb3497bda2b6b1c11"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            3,
+            13,
+            33
+          ],
+          "duration": 350.40999999999985,
+          "excerpt": "然后呃同期会发生的事情是 我们能看到A卷的框架在呃 就就已经在过去的两三个月 open call本身也进行了大量的改进 然后你也能看到一些自学习和自迭代的一些诶 诶框架的一些产生 然后嗯嗯然后我嗯所所以AH的框架这一层 也会在接下来两个月会进步的非常快 嗯嗯然后再其次就是呃呃随随着前两个爆发啊 就是嗯A卷的框架越强 模型嗯的能力进一步的飞升飞升 并且我们的成本是有极致的优势的情况下 那么其实推理的需求一定会爆发 我觉得几倍到十倍的空间是是非常非常可能 会立即当下会发生的事情 那么对于推理芯片就会达到一个空前高涨的的 这样一个需求 所以那么怎么去在现有的产",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 8946.97,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=8946",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 9297.38,
+          "window_start": 8946.97
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_24626a52e73695fb8df69cc52308c55d",
+          "best_rank": 4,
+          "best_score": 0.015625,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_24626a52e73695fb8df69cc52308c55d",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_ffcc0fd271eefd2e5e605d845b804316",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_376887816e2330393e358602187165dc"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            4,
+            23,
+            30
+          ],
+          "duration": 328.9899999999998,
+          "excerpt": "还有一个就是会不会你的训练跟推理 是在易购的集群上训的 然后所以你你你你你的训练和推的不一致性 我觉得在原来cod跟master的呃 那个reasoning那个范式里边 是不能容忍这个事情的 但现在你必须要容忍这个事情 然后引擎你怎么去做一些 更多的异构资源的调度 比如说现在除了GPU 你还要管CPU 然后你还要管存储对吧 然后所以就是怎么在这种很复杂异构资源里边 把这个模型训起来 然后嗯 就是我觉得这里边需要很多 算法跟工程的一个妥协 嗯中间这个模糊的地带非常多 然后呃所以他对inf尔人的要求的 灵活性的要求 和 这种啊 这种就这跨这两个领域的这样的一",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 12662.54,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=12662",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 12875.5,
+          "window_start": 12546.51
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1T21PBqErg",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c778e7f134bcef6ff0be47bf490738884124f86f.jpg",
+      "detail_url": "/videos/123/transcript",
+      "duration": 80139.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "可能没有替代大模型训练的办法 所以今天的情况是 至少对于前沿实验室来说 它们正面临数据约束 这很有趣，因为我认为设计决策将会彻底改变 我意思是计算资源永远重要 但我认为设计决策会改变 例如 你知道的 只用一个epoch训练数据 这似乎没什么意义 如果你有更多的计算资源 为什么不至少多跑几个epoch 或者做更智能的事情 或许会有不同的架构设计 例如 因为Transformer最初的设计动机 你知道的 是为了计算效率 嗯 这是值得思考的问题 依然围绕效率展开 但设计决策反映所处阶段 现在我要深入第一个单元 呃，这个单元 你知道的 在那之前 有没有问题 你们",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "吴恩达大模型",
+      "video_id": 123,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1T21PBqErg",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            5
+          ],
+          "duration": 117.98000000000002,
+          "excerpt": "可能没有替代大模型训练的办法 所以今天的情况是 至少对于前沿实验室来说 它们正面临数据约束 这很有趣，因为我认为设计决策将会彻底改变 我意思是计算资源永远重要 但我认为设计决策会改变 例如 你知道的 只用一个epoch训练数据 这似乎没什么意义 如果你有更多的计算资源 为什么不至少多跑几个epoch 或者做更智能的事情 或许会有不同的架构设计 例如 因为Transformer最初的设计动机 你知道的 是为了计算效率 嗯 这是值得思考的问题 依然围绕效率展开 但设计决策反映所处阶段 现在我要深入第一个单元 呃，这个单元 你知道的 在那之前 有没有问题 你们",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3482.93,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=3482",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3600.91,
+          "window_start": 3482.93
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f",
+          "best_rank": 46,
+          "best_score": 0.009433962264150943,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            46
+          ],
+          "duration": 118.03999999999996,
+          "excerpt": "好的 但需要注意这未考虑 推理成本 这简直 如何训练出最佳模型 无论模型有多大 因此这里存在一些限制 但无论如何这对模型开发极为有用 所以在本次任务中这有点像 嗯 你知道挺有趣的 因为我们定义了一个引号 未引号的训练API 你可以用特定超参数进行查询 你需要指定架构、批量大小等 我们会返回一个损失值 你 你的决策将获得 好的 你的任务是 你有一个FLOPs预算 你要尝试训练多个模型 然后收集数据 你需要将收集的数据拟合到缩放定律 然后提交你的预测结果 你知道你会选择什么 超参数 模型规模等 在更大规模下 好的 这里你需要 真的 我们希望让你处于这种位置 ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2564.85,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=2564",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2682.89,
+          "window_start": 2564.85
+        }
+      ]
+    },
+    {
+      "additional_window_count": 4,
+      "best_rank": 14,
+      "best_score": 0.013513513513513514,
+      "best_unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_bef05c576727d98521994f145d901453",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1YR5E6EE9o",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/72e478e6353621d08b32d644a5e58378a68058e6.jpg",
+      "detail_url": "/videos/91/transcript",
+      "duration": 13681.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "确实算力和数据是主要的驱动力 但是不可否认可能有别的方向 可能驱动力失算啊 你什么意思 举个简单的例子 比如说东方态生成对嗯 那个我觉得可能就是一个算法上来说 没有太想清楚的事对 所以那个还是个科学问题还没有解决对 但是语言已经不是科学问题了 自然语言的生成 我觉得目前这条技术方案撞到头之前 我觉得在科学上是比较清楚 但是工程上也还有很多很多 会要很多要做的事嗯 你觉得预训练还能提高多少 通过预训练提升模型能力 还有多少 多长的路可以走 可以预期到 人就是这样 就是当你没有撞到头的时候 你其实不知道这个路有多长 我能我我能看到的就是现在还没撞到头 但我也",
+      "matched_unit_count": 8,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 8,
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "total_window_count": 6,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1YR5E6EE9o",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_bef05c576727d98521994f145d901453",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_bef05c576727d98521994f145d901453"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            14
+          ],
+          "duration": 119.13000000000011,
+          "excerpt": "确实算力和数据是主要的驱动力 但是不可否认可能有别的方向 可能驱动力失算啊 你什么意思 举个简单的例子 比如说东方态生成对嗯 那个我觉得可能就是一个算法上来说 没有太想清楚的事对 所以那个还是个科学问题还没有解决对 但是语言已经不是科学问题了 自然语言的生成 我觉得目前这条技术方案撞到头之前 我觉得在科学上是比较清楚 但是工程上也还有很多很多 会要很多要做的事嗯 你觉得预训练还能提高多少 通过预训练提升模型能力 还有多少 多长的路可以走 可以预期到 人就是这样 就是当你没有撞到头的时候 你其实不知道这个路有多长 我能我我能看到的就是现在还没撞到头 但我也",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1982.48,
+          "jump_url": "https://www.bilibili.com/video/BV1YR5E6EE9o?t=1982",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2101.61,
+          "window_start": 1982.48
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_e1d53c0ce4fa810bae7c992e1083c56a",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_e1d53c0ce4fa810bae7c992e1083c56a",
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5cc1ec4dee3d4eeaf56a70f19fb0d4ca",
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_24335aca1533a71b552d1df1855c1b35"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            20,
+            31,
+            41
+          ],
+          "duration": 351.0689999999995,
+          "excerpt": "这个这个这个语段的长度一直变长 可能并不是一个很现实的方案 但是很现实的事是 你如何在有限的context下去做更长的工呃工作 其实你其实是想人其实就是这个样子 人的contact其实很短很短 你现在问我昨天晚上吃的什么 我是一点也想不起来了 嗯啊你可能能想起来哈哈 我是一点也想不起来了 因为因为因为什么 因为他对我现在这个场景来说不关键对吧 就是我现在知道昨天晚上吃什么又能怎么样 所以我选择把它忘掉 所以人本质上context是很短 但他能够选择性的遗忘 然后让他选择性的对去retrieve 就是去把这些重要 跟当前场景相关的信息再抓回来对 所以说我觉",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 9751.84,
+          "jump_url": "https://www.bilibili.com/video/BV1YR5E6EE9o?t=9751",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 9985.889,
+          "window_start": 9634.82
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 15,
+      "best_score": 0.013333333333333334,
+      "best_unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_64c84a10aff26af20acea08846d9c22b",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV17ZXpB4Ezi",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/b73532b68e7e86fd8f08bb6ebb8413053807c426.jpg",
+      "detail_url": "/videos/102/transcript",
+      "duration": 255.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "在commodity化垂直场景才有长期价值 下次两天搭完r a g demo效果特别好的时候 先别高兴太早 问自己 这东西能在生产环境跑三个月不出问题吗 这里是LLM x factors 我们下期见",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "Demo很爽，生产很难",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV17ZXpB4Ezi",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_64c84a10aff26af20acea08846d9c22b",
+          "best_rank": 15,
+          "best_score": 0.013333333333333334,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 255.0,
+            "source": "ai_summary",
+            "start_time": 222.78,
+            "summary": "重申Demo到生产鸿沟的昂贵盲区，RAG建设的buy vs build原则，以及通用RAG商品化和垂直场景价值的判断。",
+            "title": "总结核心判断"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_64c84a10aff26af20acea08846d9c22b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            15
+          ],
+          "duration": 19.400000000000006,
+          "excerpt": "在commodity化垂直场景才有长期价值 下次两天搭完r a g demo效果特别好的时候 先别高兴太早 问自己 这东西能在生产环境跑三个月不出问题吗 这里是LLM x factors 我们下期见",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 233.56,
+          "jump_url": "https://www.bilibili.com/video/BV17ZXpB4Ezi?t=233",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 252.96,
+          "window_start": 233.56
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 19,
+      "best_score": 0.012658227848101266,
+      "best_unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_3809b3a3749b8b750014dd8100e1c228",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1Tejc6oEik",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/470a577f8a67b6b9441e78faca41c20d3d2cf0fe.jpg",
+      "detail_url": "/videos/37/transcript",
+      "duration": 686.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "they’ve been split into two! Front end features are nearly done, so now, time for the back end! June and July—those two months will see high traffic, so let’s nail down the architecture first. Tired of watching this video yet? Next up, let’s play a little game! Check out these tw",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "10分钟app开发全流程",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "英雄哪里出来",
+      "video_id": 37,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1Tejc6oEik",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_3809b3a3749b8b750014dd8100e1c228",
+          "best_rank": 19,
+          "best_score": 0.012658227848101266,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 382.2,
+            "source": "ai_summary",
+            "start_time": 294.453,
+            "summary": "将硬编码的数据抽取到 JSON 配置文件中，分离逻辑与数据，提高可维护性。",
+            "title": "数据分离"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_3809b3a3749b8b750014dd8100e1c228"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            19
+          ],
+          "duration": 35.045000000000016,
+          "excerpt": "they’ve been split into two! Front end features are nearly done, so now, time for the back end! June and July—those two months will see high traffic, so let’s nail down the architecture first. Tired of watching this video yet? Next up, let’s play a little game! Check out these tw",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 362.205,
+          "jump_url": "https://www.bilibili.com/video/BV1Tejc6oEik?t=362",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 397.25,
+          "window_start": 362.205
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 35,
+      "best_score": 0.010526315789473684,
+      "best_unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_76b348fbe675899287c903c85e90f4c0",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1rQ9JBoECh",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/48577666212277ddbe221199dfb838084b75fee7.jpg",
+      "detail_url": "/videos/103/transcript",
+      "duration": 1112.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "诶你好 各位听众 今天咱们来聊一篇很新的论文 题目叫mata harness End to end optimizations of model Harnesses 先用一句人话说他到底在做什么 一句话讲 他想自动化模型外面那层系统代码的设计 作者把这层代码叫做harness 也就是包在大模型外面的那层程序 决定要存什么历史 怎么检索 什么时候把哪些内容拼进上下文 怎么组织多轮交互 怎么判断任务完成 论文的核心观点是很多 系统表现的差异不止来自模型 权重 还来自这层HARN 既然如此 那就不该只卷模型 也要开始系统地搜索 Harness 论文是2026年",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1rQ9JBoECh",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_76b348fbe675899287c903c85e90f4c0",
+          "best_rank": 35,
+          "best_score": 0.010526315789473684,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_76b348fbe675899287c903c85e90f4c0"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            35
+          ],
+          "duration": 119.399,
+          "excerpt": "诶你好 各位听众 今天咱们来聊一篇很新的论文 题目叫mata harness End to end optimizations of model Harnesses 先用一句人话说他到底在做什么 一句话讲 他想自动化模型外面那层系统代码的设计 作者把这层代码叫做harness 也就是包在大模型外面的那层程序 决定要存什么历史 怎么检索 什么时候把哪些内容拼进上下文 怎么组织多轮交互 怎么判断任务完成 论文的核心观点是很多 系统表现的差异不止来自模型 权重 还来自这层HARN 既然如此 那就不该只卷模型 也要开始系统地搜索 Harness 论文是2026年",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.34,
+          "jump_url": "https://www.bilibili.com/video/BV1rQ9JBoECh?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 119.739,
+          "window_start": 0.34
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_4c0fb8a330a262ce7fdf217ec473b51a",
+          "best_rank": 42,
+          "best_score": 0.00980392156862745,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_4c0fb8a330a262ce7fdf217ec473b51a"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            42
+          ],
+          "duration": 118.46000000000004,
+          "excerpt": "所以更可审计 这其实也是为什么harness engineering比直接改模型 权重更像一个可控的工程方向 如果我们把这篇论文放在更大的脉络里 它的重要性到底在哪儿 我觉得可以用一个三阶段的说法来总结 第一阶段大家意识到光有模型不够系统 外面的harness很重要 第二阶段大家开始手工总结harness经验 什么场景适合检索 什么场景适合memory few short 该怎么摆 agent loop怎么设计 第三阶段也就是这篇mata harness代表的阶段 不只是人类总结harness方法论 而是让AI自己去做harness engineerin",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 935.5,
+          "jump_url": "https://www.bilibili.com/video/BV1rQ9JBoECh?t=935",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1053.96,
+          "window_start": 935.5
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 37,
+      "best_score": 0.010309278350515464,
+      "best_unit_id": "transcript_chunk:bilibili:BV1zDTX6eEGu:p1:chunk_d48ebadd7ddae424beaf55c513ee1a15",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1zDTX6eEGu",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/71bb513996f50201c3d28d2dd62f5b3ef58a7c59.jpg",
+      "detail_url": "/videos/1/transcript",
+      "duration": 278.0,
+      "folder_names": [
+        "llm"
+      ],
+      "marked": false,
+      "match_excerpt": "我觉得这个路径如果能跑通的话 真的是一个非常好的AI的助手对 然后当然现在还在内测中 席位还在内测中 那后续呢也希望他们能有更多的 比较好的一些新的功能出现 然后我今天也问了 他们会在WAIC大会上 就是在7月17到19号 上海世界人工智大会上 他们也会有个展台 大家有兴趣的话可以去看一看 因为他们正好今天也发了AI硬件 就是一个录音笔 不能叫录音笔 就是一个录音的壳子 有点像在你手机后面贴着的一个录音的壳子 然后可以帮你记录面聊 可以帮你记录这个组织的上下文 我觉得大家可以去体验一下 到时候嗯拜拜",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "好的想法从哪来？聊聊试用企微AI助手的感想",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "晓辉博士",
+      "video_id": 1,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1zDTX6eEGu",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1zDTX6eEGu:p1:chunk_d48ebadd7ddae424beaf55c513ee1a15",
+          "best_rank": 37,
+          "best_score": 0.010309278350515464,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 278.0,
+            "source": "ai_summary",
+            "start_time": 202.35,
+            "summary": "总结AI助手对回顾思想火花、跨领域碰撞的帮助，提出“发芽-织网-沉淀-行动”的路径，并预告WAIC大会展台和新硬件。",
+            "title": "AI助手对研究工作的帮助及未来展望"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1zDTX6eEGu:p1:chunk_d48ebadd7ddae424beaf55c513ee1a15"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            37
+          ],
+          "duration": 46.03999999999999,
+          "excerpt": "我觉得这个路径如果能跑通的话 真的是一个非常好的AI的助手对 然后当然现在还在内测中 席位还在内测中 那后续呢也希望他们能有更多的 比较好的一些新的功能出现 然后我今天也问了 他们会在WAIC大会上 就是在7月17到19号 上海世界人工智大会上 他们也会有个展台 大家有兴趣的话可以去看一看 因为他们正好今天也发了AI硬件 就是一个录音笔 不能叫录音笔 就是一个录音的壳子 有点像在你手机后面贴着的一个录音的壳子 然后可以帮你记录面聊 可以帮你记录这个组织的上下文 我觉得大家可以去体验一下 到时候嗯拜拜",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 231.52,
+          "jump_url": "https://www.bilibili.com/video/BV1zDTX6eEGu?t=231",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 277.56,
+          "window_start": 231.52
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 38,
+      "best_score": 0.01020408163265306,
+      "best_unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1o87764Ebs",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/4a10be5136286ea7516c76a09b40d6bba6d02021.jpg",
+      "detail_url": "/videos/6/transcript",
+      "duration": 867.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "靠多模态去进行一个观察 那另一条呢就是把前后端彻底拆开啊 后端变成一个能独立运行的AIA卷 所有的调用都能做成命令行的控制形式 看前端呢退到一边 只负责把后端的信息这个监控出来 给人们去看啊 让人进行操作 我选的其实就是第二条路啊 前后段分离啊 原因是在于我用MCP 我的确能够看到网页上面的一些操作 但是呢在这个authorization呐 或者在一些具体的corner case 包括效率上面啊 没有前后端分离来的这么直接来的这么快 而且说实话啊 就是做前后端这一步啊 我们也花了不少力气啊 原因在于 我们之前其实是重度使用了这个VERCEL的 A i s",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "数字黑魔法",
+      "video_id": 6,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1o87764Ebs",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6",
+          "best_rank": 38,
+          "best_score": 0.01020408163265306,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 461.18,
+            "source": "ai_summary",
+            "start_time": 241.43,
+            "summary": "将AI Agent改造为前后端分离、命令行驱动的形式，使另一AI能自主获取运行信息，并对比MCP方案选择直接分离；提及SWE-agent的ACI概念。",
+            "title": "第一步：设计面向AI Agent的接口"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            38
+          ],
+          "duration": 117.66000000000003,
+          "excerpt": "靠多模态去进行一个观察 那另一条呢就是把前后端彻底拆开啊 后端变成一个能独立运行的AIA卷 所有的调用都能做成命令行的控制形式 看前端呢退到一边 只负责把后端的信息这个监控出来 给人们去看啊 让人进行操作 我选的其实就是第二条路啊 前后段分离啊 原因是在于我用MCP 我的确能够看到网页上面的一些操作 但是呢在这个authorization呐 或者在一些具体的corner case 包括效率上面啊 没有前后端分离来的这么直接来的这么快 而且说实话啊 就是做前后端这一步啊 我们也花了不少力气啊 原因在于 我们之前其实是重度使用了这个VERCEL的 A i s",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 348.2,
+          "jump_url": "https://www.bilibili.com/video/BV1o87764Ebs?t=348",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 465.86,
+          "window_start": 348.2
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 39,
+      "best_score": 0.010101010101010102,
+      "best_unit_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_735a242ec9f7a99fab52517bfdc0525d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1BxL561EaF",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/7d4f4f3832e288fc46427ddeb6f11690e20d43b8.jpg",
+      "detail_url": "/videos/76/transcript",
+      "duration": 1493.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "所以说每次的话就是传统的 相当于把多个用户请求就凑成一个批次 一定要一起处理 那我必须得等这批次里的所有请求都做完 我才能处理下一个批次 这个车必须所有人都上完之后 我才能把他开了 然后再弄下一辆 但是我的continuous的话 相当于是嗯这个最大的问题是 如果有一个请求很长 所以其他短的请求也得等他 所以说导致你会有大量的空闲时间 嗯简而言之就是如果有人迟到的话 那一车人都等他们对吧 就像老师说的 你一人浪费一分钟 你就浪费了我们60分钟呃 所以说你这样子的话 就是其他短的请求 麻利的人也得等这个迟到的人 所以说你的这个就会有大量的这种空闲时间 而c",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "llm氪普课-ai infra入门所需知识完整梳理",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "llm氪ke普课",
+      "video_id": 76,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1BxL561EaF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_735a242ec9f7a99fab52517bfdc0525d",
+          "best_rank": 39,
+          "best_score": 0.010101010101010102,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_735a242ec9f7a99fab52517bfdc0525d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            39
+          ],
+          "duration": 119.50999999999999,
+          "excerpt": "所以说每次的话就是传统的 相当于把多个用户请求就凑成一个批次 一定要一起处理 那我必须得等这批次里的所有请求都做完 我才能处理下一个批次 这个车必须所有人都上完之后 我才能把他开了 然后再弄下一辆 但是我的continuous的话 相当于是嗯这个最大的问题是 如果有一个请求很长 所以其他短的请求也得等他 所以说导致你会有大量的空闲时间 嗯简而言之就是如果有人迟到的话 那一车人都等他们对吧 就像老师说的 你一人浪费一分钟 你就浪费了我们60分钟呃 所以说你这样子的话 就是其他短的请求 麻利的人也得等这个迟到的人 所以说你的这个就会有大量的这种空闲时间 而c",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 916.27,
+          "jump_url": "https://www.bilibili.com/video/BV1BxL561EaF?t=916",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1035.78,
+          "window_start": 916.27
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 40.271,
+      "chapter_ms": 0.653,
+      "grouping_ms": 0.059,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 63.259,
+      "total_ms": 106.574
+    },
+    "raw": {
+      "dense_ms": 57.919,
+      "fusion_ms": 3.873,
+      "lexical_ms": 1.007,
+      "planning_ms": 0.017,
+      "total_ms": 63.227
+    }
+  },
+  "trace_id": "1331ccc0-b187-43db-a562-4fd27f6a0230",
+  "trace_persisted": false
+}

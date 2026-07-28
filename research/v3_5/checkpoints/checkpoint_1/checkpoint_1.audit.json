@@ -1,0 +1,92 @@
+{
+  "schema_version": "v3.5-b-checkpoint-1-v1",
+  "checkpoint": "Checkpoint_1",
+  "input_identity": {
+    "P7_accepted": true,
+    "P8_attempt_3_accepted": true,
+    "attempt_3_is_only_formal_p8_baseline": true,
+    "attempt_1_and_2_historical_invalid_only": true,
+    "prediction_seal_matches": true,
+    "P8_manifest_and_report_match": true,
+    "p8_hash_manifest_records_verified": 33,
+    "p8_hash_manifest_mismatches": 0
+  },
+  "baseline_findings": {
+    "retrieval": {
+      "hit_at_1": 0.7142857142857143,
+      "hit_at_3": 0.9285714285714286,
+      "hit_at_5": 0.9285714285714286,
+      "hit_at_10": 1.0,
+      "empty_results": 0,
+      "primary_failures": 0
+    },
+    "candidate_builder": {
+      "complete_group_coverage_count": 6,
+      "query_count": 14,
+      "required_span_recall": 0.6538461538461539,
+      "required_aspect_coverage": 0.6071428571428571,
+      "primary_failures": 7
+    },
+    "deterministic_selector": {
+      "bundle_hit_count": 1,
+      "query_count": 14,
+      "complete_group_available_but_not_selected": 5,
+      "required_span_recall": 0.12179487179487179,
+      "required_aspect_coverage": 0.1130952380952381,
+      "primary_failures": 5
+    },
+    "mechanical_gate": {
+      "judge_eligible": 13,
+      "terminal_unverifiable": 1,
+      "invalid_decisions": 0
+    },
+    "primary_failure_distribution": {
+      "candidate_builder_failure": 7,
+      "deterministic_selector_failure": 5,
+      "source_unverifiable": 1,
+      "end_to_end_bundle_hit": 1
+    },
+    "unjudged": {
+      "pairs": 109,
+      "decision_sensitive": 0,
+      "determinate_queries": 14,
+      "indeterminate_queries": 0
+    }
+  },
+  "state_updates": {
+    "current_state_updated": true,
+    "decision_ledger_updated": true,
+    "artifact_index_updated": true,
+    "remaining_plan_updated": true
+  },
+  "scope": {
+    "predictions_rerun": false,
+    "traces_rerun": false,
+    "scoring_rerun": false,
+    "stress_regression_rerun": false,
+    "functional_components_changed": false,
+    "query_split_gold_changed": false,
+    "frozen_gold_opened": false,
+    "F1A_started": false,
+    "F1B_started": false,
+    "Stage4_started": false,
+    "P9_started": false
+  },
+  "governance": {
+    "retrieval_reopen_signal": false,
+    "F1A_entry_signal": true,
+    "F1A_authorized": false,
+    "F1B_candidate_signal": true,
+    "F1B_direct_authorization": false,
+    "F1B_authorized": false,
+    "mechanical_gate_repair_signal": false,
+    "P9_ready_for_authorization": true,
+    "next_step": "P9_F1A_CANDIDATE_BUILDER_DECISION"
+  },
+  "verification": {
+    "checkpoint_and_related_p7_p8_tests_passed": 202,
+    "test_failures": 0,
+    "checkpoint_hash_manifest_records": 9,
+    "checkpoint_hash_manifest_mismatches": 0
+  }
+}

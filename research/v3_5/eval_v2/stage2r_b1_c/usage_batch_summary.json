@@ -1,0 +1,11 @@
+{
+  "b1_b_historical_total_classification": "lower_bound",
+  "b1_b_historical_usage_backfilled": false,
+  "combined_b1_b_and_b1_c_total_classification": "lower_bound",
+  "stage2r_b1_c_cached_tokens": 0,
+  "stage2r_b1_c_input_tokens": 1166,
+  "stage2r_b1_c_output_tokens": 167,
+  "stage2r_b1_c_total_classification": "complete",
+  "stage2r_b1_c_transport_attempt_count": 2,
+  "stage2r_b1_c_usage_complete": true
+}

@@ -1,0 +1,31 @@
+{
+  "old_track_a": {
+    "complete_gold_groups_covered": {
+      "count": 2,
+      "total": 4
+    },
+    "deterministic_bundle_hit_at_1": {
+      "count": 1,
+      "eligible": 2
+    },
+    "evidence_bearing_cases": 4,
+    "target_video_reachable": {
+      "correct": 2,
+      "incorrect": 2,
+      "total": 4
+    }
+  },
+  "old_track_b": {
+    "builder_complete_cases": 3,
+    "case_count": 4,
+    "deterministic_hits": 1,
+    "required_span_count": 7,
+    "required_span_coverage": 6
+  },
+  "stage3b_conclusions_verified": {
+    "deterministic_selector_frozen_preference": true,
+    "generic_acronym_fix_no_coverage_gain": true,
+    "repair_remained_unstable": true,
+    "structured_initial_validity_extremely_low": true
+  }
+}

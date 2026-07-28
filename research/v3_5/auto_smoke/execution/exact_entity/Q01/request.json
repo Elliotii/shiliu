@@ -1,0 +1,8 @@
+{
+  "filters": {},
+  "max_windows_per_video": 2,
+  "mode": "auto",
+  "query": "MCP",
+  "result_limit": 10,
+  "scope": "all"
+}

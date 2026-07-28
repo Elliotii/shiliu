@@ -1,0 +1,22 @@
+{
+  "Frozen_Evaluation_accessed": false,
+  "bundle_contract_failure_count": 0,
+  "exactly_one_terminal_status_per_case": true,
+  "formal_Product_revalidation_run_count": 1,
+  "historical_distribution_reproduced": true,
+  "historical_expected_distribution": {
+    "invalid": 0,
+    "judge_eligible": 13,
+    "source_unverifiable": 1
+  },
+  "invalid": 0,
+  "invalid_identity_count": 0,
+  "judge_eligible": 13,
+  "judge_eligible_bundle_contract_pass_rate": 1.0,
+  "schema_version": "v3.5-b-stage4a-r-product-metrics-v1",
+  "source_unverifiable": 1,
+  "source_unverifiable_cases_have_valid_reason_codes": true,
+  "total_cases": 14,
+  "unhandled_exception_count": 0,
+  "unverifiable_identity_count": 0
+}

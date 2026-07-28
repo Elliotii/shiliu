@@ -1,0 +1,14 @@
+{
+  "approved_b0_task_contract_source_sha256": "2e2eea765e7400141b715cea77c89e0e88f98ef3f9d1f69b468110acf8dc1cc0",
+  "current_state_after_sha256": "29c9b3c951c1ca5d504e2fbc5bbd2055c5cfd75b75b67cc83d141c8cf118134f",
+  "current_state_before_sha256": "b9f14c8817d10fc19b4133911791cb1720d0a71b239764932fd7c61077b82bcc",
+  "manifest_version": "h0-r1",
+  "original_h0_assets": {
+    "HANDOFF_FACT_FREEZE_REPORT.md": "91e5abb8f61556143792beefadd61f3de0089d35ea728387c072829d422d3576",
+    "artifact_hash_inventory.draft.jsonl": "ae5199daebdc0514445c7ebd5f9710e70ba9dd96cc984b8ddf69efa03880773d",
+    "handoff_fact_freeze.json": "17811fe8fad57d3f0850c24afa5868b94790d46b9204132716f9e1d5eb084959",
+    "handoff_fact_freeze_execution.audit.json": "2fc2556a038f8295ad793bb4e2371e29b111c73762f31a70ac5cf0650196088b",
+    "track_b_vs_auto_bundle_hit_diff.audit.json": "dcbed6256714150f98dc9f948b729d7e1629b61eae277cecc0f576c6bd349b24"
+  },
+  "original_h0_assets_overwritten": false
+}

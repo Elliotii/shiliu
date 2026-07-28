@@ -1,0 +1,71 @@
+{
+  "coverage": {
+    "disjoint": true,
+    "duplicate": 0,
+    "missing": 0,
+    "unexpected": 0,
+    "union_equals_locked_query_set": true
+  },
+  "development_gold": {
+    "acceptance_authority": "V3.5-B Decision Ledger",
+    "audit_path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.audit.json",
+    "audit_sha256": "24bf42c63b7c62efe2e8753b33a19e41b2662b8781320da76b2bf4ec10be8451",
+    "formally_sealed_by_v3_5_b": true,
+    "manifest_path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.manifest.json",
+    "manifest_sha256": "5fbed371246b2589cdfca1456f96da64142ea627d8b29fe1872fd1606c1505dc",
+    "query_count": 14,
+    "seal_path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.seal.json",
+    "seal_sha256": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "sealed_artifact_hashes": {
+      "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+      "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+      "status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+      "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+    },
+    "version": "DEVELOPMENT_GOLD_V1"
+  },
+  "frozen_gold": {
+    "acceptance_authority": "V3.5-B Decision Ledger",
+    "audit_path": "research/v3_5/product_query_set_v1/gold_construction_v1/frozen_guarded/frozen_cycle_v1/internal_protected/frozen_gold_v1.audit.json",
+    "audit_sha256": "b921cef2de6cfe05fbad9979007955b0fc3753f9e694957ae4c9e44772465ac2",
+    "formally_sealed_by_v3_5_b": true,
+    "guard_path": "research/v3_5/product_query_set_v1/gold_construction_v1/frozen_guarded/FROZEN_PACKET_ACCESS_GUARD.json",
+    "guard_sha256": "e6b8047dab9b83a6c0f8c26633b869d227dd175188c32f660cf50aa4e8921e88",
+    "manifest_path": "research/v3_5/product_query_set_v1/gold_construction_v1/frozen_guarded/frozen_cycle_v1/internal_protected/product_gold_frozen_v1.manifest.json",
+    "manifest_sha256": "3978a4339f791c0faf102be9b565148f07836317b96df7a6a10116226b7725e9",
+    "query_count": 10,
+    "seal_path": "research/v3_5/product_query_set_v1/gold_construction_v1/frozen_guarded/frozen_cycle_v1/internal_protected/frozen_gold_v1.seal.json",
+    "seal_sha256": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+    "sealed_artifact_hashes": {
+      "evidence": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+      "retrieval": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+      "status": "67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259",
+      "sufficiency": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a"
+    },
+    "version": "FROZEN_GOLD_V1"
+  },
+  "gold_protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "immutability": {
+    "in_place_edit_forbidden": true,
+    "semantic_change_requires_versioned_amendment_or_new_gold_version": true
+  },
+  "locked_query_count": 24,
+  "p7_gold_package_version": "PQS_V1_PRODUCT_GOLD_V1",
+  "product_query_set_version": "PQS_V1",
+  "resolution": {
+    "unresolved_cases": 0
+  },
+  "scope": {
+    "p8_started": false,
+    "product_pipeline_calls": 0,
+    "semantic_content_opened": false
+  },
+  "three_layer_records": {
+    "development_case_status": 14,
+    "development_each_layer": 14,
+    "frozen_case_status": 10,
+    "frozen_each_layer": 10,
+    "total_case_status": 24,
+    "total_each_layer": 24
+  }
+}

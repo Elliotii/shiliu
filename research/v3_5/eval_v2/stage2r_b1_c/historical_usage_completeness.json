@@ -1,0 +1,48 @@
+{
+  "b1_b_historical_attempt_usage_complete": false,
+  "batch_total_classification": "lower_bound",
+  "historical_usage_backfilled": false,
+  "paths": [
+    {
+      "case_id": "V2C_B1A00001",
+      "historical_transport_attempt_count": 3,
+      "historical_usage_fabricated": false,
+      "per_attempt_usage_record_available": false,
+      "repair_attempted": false,
+      "reviewer_role": "primary",
+      "selected_body_input_tokens": 23386,
+      "selected_body_output_tokens": 282
+    },
+    {
+      "case_id": "V2C_B1A00001",
+      "historical_transport_attempt_count": 1,
+      "historical_usage_fabricated": false,
+      "per_attempt_usage_record_available": false,
+      "repair_attempted": false,
+      "reviewer_role": "secondary",
+      "selected_body_input_tokens": 16137,
+      "selected_body_output_tokens": 2181
+    },
+    {
+      "case_id": "V2C_B1A00002",
+      "historical_transport_attempt_count": 2,
+      "historical_usage_fabricated": false,
+      "per_attempt_usage_record_available": false,
+      "repair_attempted": false,
+      "reviewer_role": "primary",
+      "selected_body_input_tokens": 76154,
+      "selected_body_output_tokens": 960
+    },
+    {
+      "case_id": "V2C_B1A00002",
+      "historical_transport_attempt_count": 2,
+      "historical_usage_fabricated": false,
+      "per_attempt_usage_record_available": false,
+      "repair_attempted": true,
+      "reviewer_role": "secondary",
+      "selected_body_input_tokens": 52469,
+      "selected_body_output_tokens": 6019
+    }
+  ],
+  "reason": "B1-B did not persist every successful Draft body separately; missing historical tokens remain unavailable"
+}

@@ -1,0 +1,44 @@
+{
+  "allowed_statuses": [
+    "ambiguous_mapping",
+    "duplicate_canonical_key",
+    "exact_identity_match",
+    "gold_segment_not_present_in_runtime_universe",
+    "ordinal_mismatch",
+    "runtime_segment_identity_missing",
+    "source_artifact_mismatch",
+    "source_version_mismatch",
+    "text_digest_mismatch",
+    "time_mismatch",
+    "timeline_run_mismatch"
+  ],
+  "canonical_segment_key": {
+    "required_fields": [
+      "source_artifact_id",
+      "source_version",
+      "timeline_run_id",
+      "segment_ordinal"
+    ],
+    "segment_ordinal_basis": "zero_based_raw_original_ordinal",
+    "serialization": {
+      "allow_nan": false,
+      "ensure_ascii": false,
+      "separators": [
+        ",",
+        ":"
+      ],
+      "sort_keys": true
+    }
+  },
+  "case_specific_mapping": false,
+  "contract_version": "v3.5-stage3r-segment-identity-bridge-v1",
+  "fuzzy_matching": false,
+  "nearest_time_matching": false,
+  "strong_validation_fields": [
+    "start_time",
+    "end_time",
+    "text_digest"
+  ],
+  "time_epsilon_seconds": 1e-06,
+  "video_specific_mapping": false
+}

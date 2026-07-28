@@ -1,0 +1,68 @@
+{
+  "schema_version": "v3.5-stage5-integration-freeze-seal-v1",
+  "frozen_at": "2026-07-27T15:20:00Z",
+  "outcome": "stage5_minimal_integration_pass_with_documented_limitations",
+  "API_route_hashes": {
+    "src/shiliu/web.py": "60bc93d5798f85591a22b44d27f1484665ef4170a50a2a5db81ad5be59fa674d"
+  },
+  "service_adapter_hashes": {
+    "src/shiliu/stage5.py": "47dfa4d0db0f35c386bed9084f1fcb6f86709c6e6bda6a678f684677741552e3",
+    "src/shiliu/app.py": "b25e58fb29106b51eddd6b5b011b0aeb95e69840c37330212649cf5e126de04b"
+  },
+  "UI_component_hashes": {
+    "src/shiliu/templates/search.html": "37be11c66fee5da39f4fcfb87d5b331a08dd66d6d00296e08ccbd385e2b2d0f4",
+    "src/shiliu/static/search.js": "8f747a1ef2e1d3ec181ea9037071496b694d7fb6084a7a9ae14a1e8021f635f5",
+    "src/shiliu/static/search.css": "4e7628c609d8eba950ea03ef198dfcc050b392f450b7d1d94c23ff56faa5aaec"
+  },
+  "trace_contract_hashes": {
+    "STAGE5_TRACE_CONTRACT.md": "4ccd0716bda3ea40f5d3ea90829d766969e8e0f0fb53ff72137e2e09a78bde8c",
+    "trace_contract_version": "v3.5-stage5-root-trace-v1"
+  },
+  "timeout_configuration": {
+    "maximum_observed_stage4b_latency_ms": 89173,
+    "integration_timeout_seconds": 180,
+    "basis": "greater than 2x the highest per-track Stage 4B observed batch latency",
+    "client_fixed_timeout": null,
+    "proxy_configuration_in_repository": null
+  },
+  "test_hashes": {
+    "tests/test_stage5_integration.py": "974f728259b113efa5e9f30508ea190979cbe37afc9a1c62bd91b5aa23414f60",
+    "tests/test_search_page.py": "a6588988fb9f7ab2dc8dd4697875a2e5bd4a64456df3f06b1e0e26c8c93ccfd2",
+    "STAGE5_INTEGRATION_TEST_RESULTS.json": "8c3bf69e1e3bc60030ff81297c79ce91df2ab60fb49975111f663364f50b84db"
+  },
+  "formal_component_hashes": {
+    "formal_builder_root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "formal_selector_root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+    "Evidence_Identity_Contract_V1_sha256": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "Stage4A_R_freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "SufficiencyRequest_current_canonical_schema_sha256": "93ff095b2d01062194c1a663e06bd37ae57dd9f3e3fa5edda11c18db4a0a594c",
+    "SufficiencyDecision_current_canonical_schema_sha256": "cf23071972bb34580dfe3ed075697f689b0dbeb67b3d0468df9d9141cc3477aa",
+    "semantic_judge_implementation_sha256": "55cd6811b0bb4e801a4f499ea0ea3b965db33323f7b2740f0ebb237d6aa687c9",
+    "semantic_judge_prompt_sha256": "4d87dd06ab3362ae7ffdeae2b4d82e2accc0d10db8dd69cdeb3928f9000f898c",
+    "semantic_judge_policy_sha256": "7bbed36f11ff5d7d0978db039d7471b1028b813da26aec05c4c094ee84b64042"
+  },
+  "Semantic_Judge_Final_Freeze_Seal_hash": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+  "fixture_hashes": {
+    "track_a_runtime": "1eec91410984f3c608d63cc985ca8ac8022ad1b350a61f644fd4f3b40ce7d512",
+    "track_a_predictions": "b56462f928b647354428d88eae17022438230d2645ff27b3ead33e5e303715ab",
+    "track_b_predictions": "749aa37197194a4f4b68d2d62021eeff1b3ff301fe0906cba9c95760b8fa8a9a",
+    "track_c_predictions": "88815bb5cd2d9f519fe0cab0b7d22ad79c9dea676e0521a0b3cd9acfc8e09d3f"
+  },
+  "live_smoke_trace_ids": [
+    "stage4a_trace_0b3e16fec6c9586e8a68e679309378d7445c505f0face567e4b17040208d3cc9",
+    "stage5_trace_f61aab5b89792fe4998583e3c6bb5efee5b3cee96715baad0ad478e00a85df5d",
+    "stage5_trace_1111111111111111111111111111111111111111111111111111111111111111"
+  ],
+  "routing_freeze": {
+    "judge_eligible_calls_judge": true,
+    "source_unverifiable_bypasses_judge": true,
+    "invalid_bypasses_judge": true,
+    "mechanical_and_semantic_statuses_distinct": true
+  },
+  "component_hashes_unchanged": true,
+  "semantic_judge_behavior_unchanged": true,
+  "Final_Answer_generated": false,
+  "Agentic_Search_added": false,
+  "Frozen_Evaluation_accessed": false
+}
+

@@ -1,0 +1,230 @@
+{
+  "audit_role": "F1B Entry Gate Auditor",
+  "case_classifications": {
+    "PQS_V1_Q006": "successful_control",
+    "PQS_V1_Q007": "genuine_selector_failure",
+    "PQS_V1_Q011": "genuine_selector_failure",
+    "PQS_V1_Q012": "genuine_selector_failure",
+    "PQS_V1_Q013": "genuine_selector_failure",
+    "PQS_V1_Q019": "genuine_selector_failure"
+  },
+  "entry_gate": {
+    "Frozen_Evaluation_accessed": false,
+    "Q006_control_reproduced": true,
+    "five_failure_cases_examined": 5,
+    "genuine_selector_failures_minimum": 3,
+    "identity_and_scorer_preconditions_pass": true,
+    "pass": true
+  },
+  "f1b_major_cycle_recommendation": {
+    "authorize": true,
+    "bounded_change": "One deterministic general selector adjustment adding query-anchor/term coverage, span/temporal complementarity, redundancy/overlap penalties, and stable tie-breaks.",
+    "consume_at_execution_only": true,
+    "direction": "Greedy Marginal Bundle Assembly",
+    "implementation_boundaries": {
+      "Auto_Router_change": false,
+      "Candidate_Builder_change": false,
+      "Gold_required_at_runtime": false,
+      "LLM_required": false,
+      "Retrieval_change": false,
+      "bundle_budget_increase": false,
+      "deterministic": true,
+      "query_specific_rules": false,
+      "structured_llm_selector_revived": false
+    },
+    "stop_conditions": [
+      "Stop after the single authorized F1B Major Cycle.",
+      "Stop without a second cycle if any Product Development gate fails.",
+      "Stop if Q006 regresses, identity/timeline invalid count exceeds zero, or the change requires Builder/Retrieval/Router/budget/Gold rules."
+    ]
+  },
+  "failure_mechanism_summary": {
+    "budget_exhausted_cases": [
+      "PQS_V1_Q007",
+      "PQS_V1_Q011",
+      "PQS_V1_Q012",
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ],
+    "same_video_incomplete_complement_cases": [
+      "PQS_V1_Q011",
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ],
+    "summary": "The relevance/locality-first per-video greedy assembly can award the best bundle to a wrong video or spend all six slots on locally strong, partly overlapping windows without rewarding required-span and temporal complementarity.",
+    "wrong_video_bundle_winner_cases": [
+      "PQS_V1_Q007",
+      "PQS_V1_Q012"
+    ]
+  },
+  "genuine_selector_failure_count": 5,
+  "outputs": {
+    "per_case_jsonl": {
+      "path": "p10_a_f1b_entry_gate.per_case.jsonl",
+      "sha256": "59ad7cd3f335774394f19279ca3547cc587adfd468c17a87c93268edcf1a5f27"
+    }
+  },
+  "preconditions": {
+    "Evidence_Identity_Contract_V1_tests": "17/17 pass",
+    "Q006_control_reproduced": true,
+    "all_pass": true,
+    "builder_freeze_or_version_identity_valid": true,
+    "candidate_sets_correspond_to_formal_builder": true,
+    "canonical_matcher_source_hashes_match": true,
+    "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "contract_hash_matches": true,
+    "five_failure_case_candidate_sets_frozen": true,
+    "formal_builder_version": "stage3b-acronym-w3.5-v1",
+    "freeze_seal_valid": true,
+    "invalid_identity_count": 0,
+    "scorer_projection_contract_frozen": true,
+    "selector_before_baseline_reproducible": true,
+    "selector_replay_results": {
+      "PQS_V1_Q006": {
+        "bundle_id_equal": true,
+        "candidate_ids_equal": true,
+        "score_equal": true,
+        "trace_id_equal": true
+      },
+      "PQS_V1_Q007": {
+        "bundle_id_equal": true,
+        "candidate_ids_equal": true,
+        "score_equal": true,
+        "trace_id_equal": true
+      },
+      "PQS_V1_Q011": {
+        "bundle_id_equal": true,
+        "candidate_ids_equal": true,
+        "score_equal": true,
+        "trace_id_equal": true
+      },
+      "PQS_V1_Q012": {
+        "bundle_id_equal": true,
+        "candidate_ids_equal": true,
+        "score_equal": true,
+        "trace_id_equal": true
+      },
+      "PQS_V1_Q013": {
+        "bundle_id_equal": true,
+        "candidate_ids_equal": true,
+        "score_equal": true,
+        "trace_id_equal": true
+      },
+      "PQS_V1_Q019": {
+        "bundle_id_equal": true,
+        "candidate_ids_equal": true,
+        "score_equal": true,
+        "trace_id_equal": true
+      }
+    },
+    "unverifiable_identity_count": 0
+  },
+  "projection_contract": {
+    "aggregate_preserved_span_coverage_allowed": true,
+    "implementation": "scorer_v4_projection.project_evidence + frozen canonical matcher",
+    "match_contributes_to_coverage": true,
+    "non_match_contributes_to_coverage": false,
+    "pipeline": [
+      "Frozen CandidateSet",
+      "Before Selected EvidenceBundle",
+      "Evidence Identity Contract V1 matcher",
+      "Gold Group / Span / Aspect coverage"
+    ],
+    "status": "frozen_by_this_read_only_audit",
+    "unverifiable_contributes_to_coverage": false,
+    "unverifiable_reported_separately": true,
+    "version": "p10-a-selector-projection-v1"
+  },
+  "proposed_product_development_gates": {
+    "Q006_regressions": {
+      "maximum": 0
+    },
+    "compactness_absolute_drop_percentage_points": {
+      "maximum": 10
+    },
+    "invalid_identity_or_timeline": {
+      "maximum": 0
+    },
+    "mean_latency": {
+      "maximum": "min(100ms, 2x before)"
+    },
+    "recovered_previous_misses": {
+      "minimum": "3/5"
+    },
+    "selected_candidate_budget": {
+      "maximum": 6
+    },
+    "selector_hits_on_builder_complete_cases": {
+      "before": "1/6",
+      "minimum_after": "4/6"
+    },
+    "selector_to_builder_aspect_capture_ratio": {
+      "minimum": 0.5
+    },
+    "selector_to_builder_span_capture_ratio": {
+      "minimum": 0.5
+    }
+  },
+  "proposed_stress_regression_gates": {
+    "bundle_hit_minimum": "1/20",
+    "compactness_minimum": 0.7309555256740689,
+    "invalid_identity_or_timeline_maximum": 0,
+    "mean_latency_maximum": "100ms",
+    "note": "The formal Stress Before asset did not record span recall, aspect coverage, compactness, or selector latency. Exact absolute gates are therefore proposed instead of falsely claiming unavailable frozen values; this is a Stress instrumentation limitation, not an Entry Gate identity/projection defect.",
+    "required_aspect_coverage_minimum": 0.05,
+    "required_span_recall_minimum": 0.05,
+    "selected_candidate_count_maximum": 6
+  },
+  "schema_version": "v3.5-b-p10-a-f1b-entry-gate-audit-v1",
+  "scope": {
+    "candidate_builder_changed": false,
+    "control_case": "PQS_V1_Q006",
+    "f1b_major_cycle_consumed": false,
+    "failure_cases": [
+      "PQS_V1_Q007",
+      "PQS_V1_Q011",
+      "PQS_V1_Q012",
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ],
+    "frozen_evaluation_accessed": false,
+    "gold_changed": false,
+    "identity_contract_changed": false,
+    "selector_code_changed": false
+  },
+  "session_can_close": true,
+  "stress_before": {
+    "artifact_path": "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/stress_regression/stress_set_v2_regression.initial_product_baseline.json",
+    "artifact_sha256": "a8c5855ab8b91222fd016d0d700b90ae335c4a7d150bd82d819e270f08bf97b6",
+    "bundle_hit": {
+      "denominator": 20,
+      "numerator": 1,
+      "rate": 0.05
+    },
+    "compactness": {
+      "status": "not_recorded_in_formal_stress_before_asset",
+      "value": null
+    },
+    "invalid_identity_or_timeline": 0,
+    "mean_latency": {
+      "status": "not_recorded_in_formal_stress_before_asset",
+      "value_ms": null
+    },
+    "required_aspect_coverage": {
+      "status": "not_recorded_in_formal_stress_before_asset",
+      "value": null
+    },
+    "required_span_recall": {
+      "status": "not_recorded_in_formal_stress_before_asset",
+      "value": null
+    },
+    "selected_candidate_count": {
+      "distribution": {
+        "6": 20
+      },
+      "maximum": 6,
+      "mean": 6,
+      "source": "research/v3_5/stage3r_qc/track_a_auto_refresh/scoring/case_results.jsonl"
+    }
+  }
+}

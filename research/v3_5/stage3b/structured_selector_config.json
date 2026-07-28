@@ -1,0 +1,11 @@
+{
+  "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+  "max_candidate_characters": 6000,
+  "max_candidates": 32,
+  "max_output_tokens": 8192,
+  "max_repair_attempts": 1,
+  "max_selected_candidates": 6,
+  "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+  "schema_version": "v3.5-structured-fine-selector-v1",
+  "timeout_seconds": 120.0
+}

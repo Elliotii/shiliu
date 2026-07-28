@@ -1,0 +1,9 @@
+{
+  "blank_query_template": "passed",
+  "canonical_video_identity": "passed",
+  "frozen_q0_reuse": "passed",
+  "heldout_isolation": "passed",
+  "packet_allowlist_and_leakage": "passed",
+  "sample_contract": "passed",
+  "stress_set_identity": "passed"
+}

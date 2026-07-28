@@ -1,0 +1,11 @@
+{
+  "action_families": [
+    "data_integrity_action",
+    "evidence_resolution_action",
+    "none",
+    "retrieval_action",
+    "selector_recovery_action",
+    "source_recovery_action"
+  ],
+  "policy_version": "v3.5-mechanical-gate-policy-v1"
+}

@@ -1,0 +1,38 @@
+{
+  "allowed_gold_paths": [
+    "research/v3_5/gold/HELDOUT_ISOLATION_CONTRACT.md",
+    "research/v3_5/gold/V3_5_EVAL_PROTOCOL.locked.md",
+    "research/v3_5/gold/development_gold.8_cases.locked.jsonl"
+  ],
+  "forbidden_open_attempts": [],
+  "forbidden_path_patterns": [
+    "eval_gold.locked",
+    "eval_gold_review",
+    "heldout_gold",
+    "master_gold",
+    "master.18_cases",
+    "adjudicated",
+    "gold_lock_manifest",
+    "gold_lock_audit",
+    "master_case_membership",
+    "development_heldout_split",
+    "reason_code_registry",
+    "human_reviews",
+    "review_packets",
+    "eval_queries.locked"
+  ],
+  "heldout_case_specific_rules_detected": false,
+  "heldout_evidence_loaded": false,
+  "heldout_formal_run_executed": false,
+  "heldout_labels_loaded": false,
+  "runtime_input_paths": [
+    "research/v3_eval/artifact_manifest.jsonl"
+  ],
+  "source_files_scanned": [
+    "research/v3_5/stage3r/execution_manifest/development_runtime_input.31_cases.jsonl",
+    "research/v3_5/stage3r/scoring/development_scoring_projection.31_cases.jsonl",
+    "research/v3_5/stage3r_s1/identity_mapping/gold_segment_identity_projection.jsonl"
+  ],
+  "test_files_scanned": [],
+  "violations": []
+}

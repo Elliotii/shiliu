@@ -1,0 +1,46 @@
+{
+  "seal_version": "v3.5-pqs-v1-frozen-reviewer-independent-draft-seal-v1",
+  "seal_status": "sealed",
+  "reviewer_unit_id": "frozen_reviewer_B",
+  "sealed_at_utc": "2026-07-26T14:32:35.325Z",
+  "initial_annotation_opened": false,
+  "independent_draft_complete": true,
+  "independent_draft_mutable_after_seal": false,
+  "case_count": 10,
+  "guarded_batch_count": 5,
+  "gold_layers_complete": true,
+  "three_layer_counts": {
+    "retrieval_gold": 10,
+    "evidence_gold": 10,
+    "sufficiency_gold": 10
+  },
+  "evidence_spans_replayed": 22,
+  "replay_failures": 0,
+  "validation_status": {
+    "p6_json_schema": "passed",
+    "p6_cross_object": "passed",
+    "evidence_replay": "passed"
+  },
+  "artifact_hashes": {
+    "batch_01.independent_draft.jsonl": "0f0d158cbb71c12fdf8a1d6676e6bebb5a87bab0604c6f2cb3d70644d44695ec",
+    "batch_02.independent_draft.jsonl": "67564a2c3e992e64d1be93fb41d199fbca8f03292140d0c83f8d743a1cf77197",
+    "batch_03.independent_draft.jsonl": "03ba1da46e99058a6b98404c6582977c7a87b123002a72dc76fc22e7ee819347",
+    "batch_04.independent_draft.jsonl": "0a3389facb326da0d2ae2aa94e0e2f1c4622844b820b7534618260e998d99ae6",
+    "batch_05.independent_draft.jsonl": "bfe6840c43ddc5334ebf188bc37a452c9ef8eafcf32a9e5588d6836ed5e33d94",
+    "independent_draft.manifest.json": "7146842fbc88f041a6f9ddd947f0f9e569de6ce6d400857e6b6939752bcc6be9",
+    "independent_draft.audit.json": "8d2393dc22a1747b771b61b67870f8f2ecdd3aff926b674315debd00ac769d3d"
+  },
+  "scope_flags": {
+    "initial_annotation_opened": false,
+    "initial_annotation_path_enumerated": false,
+    "development_gold_opened": false,
+    "development_cycle_opened": false,
+    "development_seal_opened": false,
+    "product_prediction_opened": false,
+    "existing_gold_opened": false,
+    "retrieval_builder_selector_gate_judge_baseline_opened": false,
+    "product_pipeline_calls": 0,
+    "frozen_gold_leakage_detected": false,
+    "semantic_decisions_made_by_orchestrator": false
+  }
+}

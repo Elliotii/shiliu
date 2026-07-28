@@ -1,0 +1,206 @@
+{
+  "dataset_name": "Shiliu Product Query Set v1",
+  "split_version": "PQS_V1_SPLIT_V1",
+  "status": "locked_execution_candidate",
+  "decision_authority": "V3.5-B",
+  "assignment_method": "deterministic_semantic_stratification_before_gold_and_product_baseline",
+  "random_seed": null,
+  "seed_policy": "not_applicable_to_explicit_deterministic_assignment",
+  "source_query_set": {
+    "query_count": 24,
+    "canonical_content_sha256": "fadf21c1992d848f2904192af479f6720a059c9aeb772ccfc4cee3b220942825",
+    "locked_jsonl_sha256": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c"
+  },
+  "development": {
+    "count": 14,
+    "query_ids": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q004",
+      "PQS_V1_Q005",
+      "PQS_V1_Q006",
+      "PQS_V1_Q007",
+      "PQS_V1_Q008",
+      "PQS_V1_Q011",
+      "PQS_V1_Q012",
+      "PQS_V1_Q013",
+      "PQS_V1_Q014",
+      "PQS_V1_Q015",
+      "PQS_V1_Q017",
+      "PQS_V1_Q018",
+      "PQS_V1_Q019"
+    ]
+  },
+  "frozen_evaluation": {
+    "count": 10,
+    "query_ids": [
+      "PQS_V1_Q001",
+      "PQS_V1_Q002",
+      "PQS_V1_Q009",
+      "PQS_V1_Q010",
+      "PQS_V1_Q016",
+      "PQS_V1_Q020",
+      "PQS_V1_Q021",
+      "PQS_V1_Q022",
+      "PQS_V1_Q023",
+      "PQS_V1_Q024"
+    ],
+    "protected_path": "research/v3_5/product_query_set_v1/split_v1/frozen_locked/product_query_frozen_evaluation_v1.locked.jsonl",
+    "access_guard_path": "research/v3_5/product_query_set_v1/split_v1/frozen_locked/FROZEN_EVALUATION_ACCESS_GUARD.json"
+  },
+  "assignments": [
+    {
+      "query_id": "PQS_V1_Q001",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PROJECT_SELECTION_PLANNING"
+    },
+    {
+      "query_id": "PQS_V1_Q002",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_OPEN_SOURCE_PROJECT_CONTRIBUTION"
+    },
+    {
+      "query_id": "PQS_V1_Q003",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_EVAL_AND_OPTIMIZATION"
+    },
+    {
+      "query_id": "PQS_V1_Q004",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_LOOP_AND_BAD_CASE_IMPROVEMENT"
+    },
+    {
+      "query_id": "PQS_V1_Q005",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_EVAL_AND_OPTIMIZATION"
+    },
+    {
+      "query_id": "PQS_V1_Q006",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_LOOP_AND_BAD_CASE_IMPROVEMENT"
+    },
+    {
+      "query_id": "PQS_V1_Q007",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_SPEC_DRIVEN_AGENT_DEVELOPMENT"
+    },
+    {
+      "query_id": "PQS_V1_Q008",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_SPEC_DRIVEN_AGENT_DEVELOPMENT"
+    },
+    {
+      "query_id": "PQS_V1_Q009",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PI_CODING_AGENT_ARCHITECTURE"
+    },
+    {
+      "query_id": "PQS_V1_Q010",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PI_CODING_AGENT_ARCHITECTURE"
+    },
+    {
+      "query_id": "PQS_V1_Q011",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_CODING_AGENT_TOOLING"
+    },
+    {
+      "query_id": "PQS_V1_Q012",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_CODING_AGENT_TOOLING"
+    },
+    {
+      "query_id": "PQS_V1_Q013",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_BROWSER_AGENT_INTEGRATION"
+    },
+    {
+      "query_id": "PQS_V1_Q014",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_MEMORY"
+    },
+    {
+      "query_id": "PQS_V1_Q015",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_MEMORY"
+    },
+    {
+      "query_id": "PQS_V1_Q016",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_AGENT_SKILL_COST"
+    },
+    {
+      "query_id": "PQS_V1_Q017",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_RAG_ENGINEERING"
+    },
+    {
+      "query_id": "PQS_V1_Q018",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_RAG_ENGINEERING"
+    },
+    {
+      "query_id": "PQS_V1_Q019",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "development",
+      "leakage_group": "LG_RAG_ENGINEERING"
+    },
+    {
+      "query_id": "PQS_V1_Q020",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_MODEL_TRAINING_LORA"
+    },
+    {
+      "query_id": "PQS_V1_Q021",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_LOCAL_INFERENCE_OMLX"
+    },
+    {
+      "query_id": "PQS_V1_Q022",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_RESUME_PROJECT_PRESENTATION"
+    },
+    {
+      "query_id": "PQS_V1_Q023",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_AI_PRODUCT_FULLSTACK"
+    },
+    {
+      "query_id": "PQS_V1_Q024",
+      "split_version": "PQS_V1_SPLIT_V1",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PROJECT_SELECTION_PLANNING"
+    }
+  ],
+  "canonical_assignment_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+  "policy": {
+    "leakage_group_atomicity": true,
+    "all_queries_assigned_exactly_once": true,
+    "system_results_used": false,
+    "gold_used": false,
+    "target_videos_used": false,
+    "result_driven_rebalancing_forbidden": true,
+    "split_changes_require_new_version": true
+  }
+}

@@ -1,0 +1,13 @@
+{"bytes":5726,"path":"src/shiliu/retrieval/planner.py","sha256":"0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e"}
+{"bytes":20064,"path":"src/shiliu/retrieval/orchestrator.py","sha256":"ec58192b8e5d1d69a81b131c1e98b800b5c2d088a43714387e68b04374948b2b"}
+{"bytes":37582,"path":"src/shiliu/retrieval/service.py","sha256":"84eefb13b0516fa023beb3792947246ce1eaf9e910e4060e844e53c966a9922b"}
+{"bytes":31462,"path":"src/shiliu/retrieval/dense.py","sha256":"f80bb946e825fdd757ba38274574e58cb1a1981cfc0c3618d4b01903a742eb13"}
+{"bytes":4873,"path":"src/shiliu/retrieval/hybrid.py","sha256":"10876a95c04bb3dfda44f69d662500672a5ab255f385a1b16d4ea060cc5f8a99"}
+{"bytes":8187,"path":"src/shiliu/retrieval/qwen.py","sha256":"b658ad4a6afbd913d4d49c871adef99a8a4670d61edd68b782e327df23ee2888"}
+{"bytes":20422,"path":"src/shiliu/retrieval/product_search.py","sha256":"d73da7595edfaf851b59b6e93a49e339fc0d9cbda1da868fb20e25554eb6353c"}
+{"bytes":6853,"path":"src/shiliu/retrieval/consolidation.py","sha256":"1dfcea26bb05f188f10e9f037020ce55fc58ba8be572e5748f3221a38f12f357"}
+{"bytes":15899,"path":"src/shiliu/retrieval/enrichment.py","sha256":"a01051ac26451aaeffc7fd702b68a57e9eb90e11c8668ef0ad66e28ee719389c"}
+{"bytes":12041,"path":"src/shiliu/evidence/search.py","sha256":"6eaf05e757d2e2fbacbf2ffd7978c4fe1df8deefecf0816fb2cb0c53f5c22959"}
+{"bytes":5714,"path":"src/shiliu/templates/search.html","sha256":"9accbe6572d50e8ea927820848b778c84684a30533841733ec765672e738a1a2"}
+{"bytes":16155,"path":"src/shiliu/static/search.js","sha256":"3a0c714a6e3de991228503c2ddfe19b5399fdf82f49fe3d1d731e88127ad2d4f"}
+{"bytes":42513,"path":"src/shiliu/web.py","sha256":"8d7c79095aa38129a7d3290eff69b8848bf88137b8b66d2d7a93eb0656349c01"}

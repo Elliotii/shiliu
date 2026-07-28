@@ -1,0 +1,1870 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "高质量 Skill 设计",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "高质量 Skill 设计",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.707715630531311,
+      "end_time": 505.7,
+      "excerpt": "才说明它重要 一个差的skill是上下文债务重复常识污染 注意制造误触发 一个好的skill是压缩资产 让agent在正确时间看到正确信息 把团队的判断边界和经验变成可复用的结构 agent系统的竞争正在从谁接了更多工具 进入下一个阶段 谁更懂得管理上下文 这一期讲了 为什么skill是一种税 下一期我们一起来看看perplexity具体怎么做的 一条skill 怎么设计 怎么压缩 怎么评估 怎么维护 这里是慢学AI 我们下期再见",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 470.0,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_be6124302cea21b4525c6fe9b48b0bf0",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.6912199854850769,
+      "end_time": null,
+      "excerpt": "[Title] Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出 [Uploader] 慢学AI [Description] 精读《Designing, Refining, and Maintaining Agent Skills at Perplexity》① 别再随便写skill了，每一个skill都要征收一笔永续税。Perplexity 把 Skill 拆成三层税制——索引税、加载税、运行时税——越靠近上下文入口，税率越高。本期从这套\"上下文经济学\"出发，讲清楚什么值得写进 Skill、什么必须删掉、为什么 Python",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "video:bilibili:BV15J5u6HEP4:p1",
+      "unit_type": "video",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.6791570782661438,
+      "end_time": 118.66,
+      "excerpt": "perplexity说 如果你写skill的时候把每一个步骤都列出来 那你就是在造垃圾 他不是在骂人 他针对的是一个很常见的工程师习惯 很多工程师写说明文档 写惯了 会自然地把每个命令 每个步骤 每个参数都列出来 写skill的时候也很容易退回到这种写法 因为它看起来像是在写文档 但perplexity明确说 skill不是这样写的 写skill要跳过显而易见的东西 不要写一串命令 为什么 因为你不是在教一个新人照手册操作 你是在给一个已经会很多事情的模型 补上他缺的判断边界 比如你写先理解需求 再拆解步骤再执行 最后总结 这当然没错 但大模型本来就会这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 0.22,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_e2d808d458a6e229fc10dbed79d6b9b5",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.676666259765625,
+      "end_time": null,
+      "excerpt": "[Title] Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》② [Uploader] 慢学AI [Description] 精读perplexity《Designing, Refining, and Maintaining Agent Skills at Perplexity》② 第一期我们讲过：Skill 首先是一笔上下文税。这期来回答：既然每个 Skill 都要收税，到底要怎么写，才能让skill的收益大于税收？perplexity总结了一个六步流程 [S",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "video:bilibili:BV1rb5y6wEJV:p1",
+      "unit_type": "video",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.6743326187133789,
+      "end_time": 353.47,
+      "excerpt": "那第二个前提呢就是说啊因为让AI去写嘛 那之前其实skills没出来的 之前我可能还想不到非常好的方法 就是你能够让AI能够完全知道 你当前处在哪一步 然后当前的目标是什么 当前的你你要实现代代码的这个架构 设计是什么 能够让你比如说你第一天写完了两个步骤 然后明天接着写 第三个步骤 他能够马上就知道哦 我完成了前两个步骤 我现在要进行第三个步骤 第三个步骤去是实现这个分割器 那分割器啊 那大概要按照什么方法 它有一些什么样的原则 然后我我这一步有哪些呃 标输入输出的一个标准 以及如何测试 我还不知道你有哪一套逻辑 可以完全的让AI能够这样子去去去写 但",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 233.51,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.672494649887085,
+      "end_time": 232.29,
+      "excerpt": "广州论文同时给了GITHUB仓库 里面有初始skill预演化后的benchmark skill 演化脚本和demo inference路径 那这份matter skill具体写哪几类东西 它被拆成三块 第一块是task decomposition 回答任务怎么理解 怎么拆 成功标准是什么 第二块是agent engineering 回答需要哪些子代理 每个代理拿什么上下文输出什么格式 第三块是workflow orchestration 回答这些代理是串行并行 层级协作还是待循环反思 只把说明书分成三段 听起来还不算自动优化 他怎么自己变好 关键在闭环 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 113.53,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_44469acfc15ebbf5478133010b94cb4f",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.6716158986091614,
+      "end_time": 234.86,
+      "excerpt": "他们是反过来先写评测再写skill 评测用例主要来自三类 第一真实用户查询 第二已知失败案例 第三临近领域混淆 临近领域混淆指的是那些看起来很像 但不该加载这个skill的请求 这里最重要的是复利 很多人做skill只会写正例 用户问A要加载这个skill 用户问B也要加载这个skill 但skill最大的风险之一不是不加载 而是乱加载 一旦乱加载 他就把无关内容塞进上下文 影响别的skill 甚至把模型带到错误方向 所以step0的本质是先定义路由边界 再写skill内容 第二步也就是step1写描述description perplexity 说整个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 115.37,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_b5d76e67ddf09b7126285f6832c5b94d",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.6698492765426636,
+      "end_time": 464.81,
+      "excerpt": "我们还也可以写一些语气的处理对 然后这里也还可以去在一个skill里面去嵌套 另一个skill 比如说他这里说先运行这个BRAINBOSKILL 我们待会可以来看一下这skill长什么样对 然后另一点也比较重要的 就是一个skill不止要交一个模型 说要去做什么 另一点更重要的是要让他禁止去做什么 要不然他很容易就是没我们没有给他禁止 他就很容易去乱做 所以我们可以在这些情况下让他去删掉 或者重写 比如说嗯写到这些什么 在当今快速变化的时代啊 或者去虚假的自我剖析啊 然后去不推动论点的人物背景铺垫啊 就是我们一些呃不想让它出现的情况 我们就可以在skil",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 347.06,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_af2bc7999cfeb875f009dd2814a640cf",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.6697975397109985,
+      "end_time": 463.52,
+      "excerpt": "沉淀成skill 然后投入到日常的生产开发中 这个过程给我的最大感受是 团队级别的skill和个人web coding完全不是一回事 个人web coding的时候其实容错率是很高的 你可以临时补充上下文 看到结果不对之后 立马去修改PRT 也可以不断重试 一直到他给你一个满意的结果 但是在团队生产环境里面 skill本身就要承担更多的责任 尽量让不同的人在使用的时候 产出的结果是稳定的 这里面就会遇到很多边界问题 比如一个很经典的问题就是上下文膨胀 如果你把所有的流程约束都写在一个print里面 整个上下文就会变得非常长 模型的注意力就会被稀释 大模型",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 346.87,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.6567405462265015,
+      "end_time": 549.32,
+      "excerpt": "看它更像改分类器的判别边界 第六步也就是step5 发布原文 这里很短 Ship it 但这里不能理解成写完就发 前面已经做了evil 写了描述 压缩了正文 拆了层级结构 又在分支上迭代过 所以发布这一步的意思是 带着行为证据上线到这里 一个skill才算回答了第一层问题 这笔上下文税暂时值得交 简单总结一下 见skill不是先写内容 而是先定义行为证据 第一用评测定义它应该解决什么问题 第二用描述控制他什么时候进入上下文 第三用正文写高信号判断 而不是通用说明 第四用目录层级承载重内容和条件内容 第五用迭代和评测证明它没有破坏系统 第六发布 如果你的s",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 466.15,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_64e781e074f3356b25fa8979d29a42d4",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.6491668820381165,
+      "end_time": 469.11,
+      "excerpt": "就不要让模型每次重新发明 比如解析日志 检查文件格式 转换数据 生成固定结构 跑验证脚本 一句话给模型可组合的代码 不要让它每次重建代码 references放重型知识 比如API错误码 行业规则合规说明 但不要让模型一上来全读 例如如果API返回非200再读API杠errors点MD 这叫条件加载assets 放模板和schema 他们可以把输出结构固定住 减少生成漂移 Config jason 放首次运行的用户设置 比如默认频道 默认项目 默认仓库 第一次问保存以后复用 所以skill层级结构不是文件整理 它是在设计模型的导航路径 什么信息必须马上给",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 350.02,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_82d00595f918c9e800a71fe526aaae55",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.6419188976287842,
+      "end_time": 471.39,
+      "excerpt": "模型就不知道什么重要什么 按需看前面那个税务例子 1945个section 平铺在一个结构里 比不加载还差 就是在说这件事 结构就是功能 第二条 显示胜过隐视 代码里一切调用都得写清楚 不写就不会执行 但skill的激活靠的是影视模式匹配模型 自己根据语义判断该不该加载 不是你在代码里写死一个if 所以description才那么难写 它不是功能 说明是路由触发器差一个词 模型可能就误判了 第三条 稀疏胜过稠密 Python这句话的意思是写代码别挤在一起 多分行 多留白 逻辑拆开 用空间换可读性 跟字数多少没关系 但在skill里 你没有这个本钱 索引层",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 351.59,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_70dc6cb7b960008525b950c0b70b3c9b",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.6389849185943604,
+      "end_time": 350.35,
+      "excerpt": "然后怎么去召唤一个skill 就是简单的去打一个斜杠 然后把自己skill的名字打出来 我我们的CLO就可以执行这个skills了 前面我做了教程之后呢 就很多朋友问说要怎么去定义好 去写一个skills 所以我们今天就来看一看 这一个黑客松冠军的作者 他是怎么去写好这些skills 我们在他的文件夹里看能不能学到一些内容 那为了让更多朋友呢能有更加好的阅读体验呢 我做了这一个网页版的 把这个仓库变成一个HTML版本 那我们就可以更加直观的在这里 看到整一个残酷的文件 比如说这一个agent里面就有这么多的ND 然后还有这一个command me com",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 230.42,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_49328fdfae596efa1502b42f652a62db",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.6389398574829102,
+      "end_time": 2905.41,
+      "excerpt": "当当你面临一个很大的范式的变化的时候 其实呃呃只要你路径走对了 其实你可以短暂非常短暂的一个窗口期 你去忽略评估 因为因为你靠体感 你就能立马测出来一个非常大的制度呃 差异对呃 但是当你慢慢迈入深水区的时候 还是需要一些非常精细的评估的 嗯最skill是不是改变了模型的生态啊 嗯改变了模型在嗯这种高复高复杂度 高work呃 就是流程复杂度的任务上的执行的准确率对 因为它其实定义了套执行的规范对 然后这套执行的规范 是很难在预训练的数据不具备的 因为训练数里边没有这种internal的信息 这些信息通常是是不是是 是大量企业内部自己去沉淀和积累的这种 就这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 2785.94,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3657fe4fb39830e4aa1fc88df885265a",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.6380845308303833,
+      "end_time": 353.61,
+      "excerpt": "但不一定有你的标准 第四模型反复踩坑的地方 perplexity管这叫GOTCHESS 提醒模型 这里有坑 这个场景别这么做 这个条件下换一种处理方式 这些失败边界往往是整个skill里 最有价值的内容 到了这一步 perplexity给出了最核心的建议 你写skill的每一行字都得先过这关 如果没有这条指令 agent会犯错吗 通不过删掉 不管写的多好 帕斯cal在1657年说过 我之所以把这封信写得更长 只是因为没有时间把它写得更短 写一个短的skill远远难过 写一个长的 那反过来什么不值得写成skill模型 本来就会的东西 git命令通用写作技巧",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 234.179,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_2fd5e43130b1dc7b689b17e959f45184",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.6307379007339478,
+      "end_time": 119.35,
+      "excerpt": "你写了个skill放进agent 你觉得是在帮他长本事 但实际上你刚刚向每一个用户 每一次会话加了一笔长期都要付的税 这个结论来自perplexity团队 他们的computer系统 在生产环境里维护着大量skill 从通用工具到金融 法律健康这些垂直领域能力 真实查询和失败案例反复打磨 为什么说skill是税 答案藏在它的加载机制里 一次skill加载拆成了三层 每一层都是一道税 第一层索引agent会话开始时 系统会把所有skill的name和description放进上下文 一个skill约100个token 几十上百个skill1叠加 每个用户每",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 0.3,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_98c85defea61f041e63679d52bfacf07",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.6213886737823486,
+      "end_time": 902.66,
+      "excerpt": "Article writing skills 我们可以进入到一个skill文件夹 然后就可以看到这里 都是我们刚讲的那些那些skills 比如说我们看到一个叫做article writing 那里面就有这一个skill点ND对 那我们是要把整一个文件夹给复制过去就好了 所以我们就比如说我们看到这一个article writing的 The skill 我们想要我们就把这一个整一个给复制到 cloud co的skill里面 哦我们得退出来 在这个everything cloud co的位置里 然后去复制 对他现在就把我们这里面的skill的article ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 811.03,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_376fdbf26b0aef0edc05d525f5e1a796",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.6204104423522949,
+      "end_time": 579.98,
+      "excerpt": "skill mess的想法是先在验证集上花钱 把metal skill优化好之后 每个测试样本一轮生成my s 而不是像一些推理时方法那样 每个样本都重新搜索 迁移实验为什么重要 因为如果meta skill只在一个模型 一个任务上有效 它更像benchmark调参论文报告 同任务同模型的提升最大 大约7.14到9.53 同任务换模型仍有正迁移 同模型换任务也有正增益 最难的跨模型又跨任务增益最小 但仍是正数 这说明他真的学到了通用原则吗 只能谨慎地说 他学到了一部分可迁移的编排原则 比如多约束任务要并行收集证据 汇总节点要做一致性校验 复杂工具任务要先",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 461.61,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.6117110252380371,
+      "end_time": 579.19,
+      "excerpt": "理解skill的核心概念 是把某一类任务需要的知识流程和工具 组织成一个可以按需加载的能力 然后可以看一些skill的最佳实践和设计指南 学习skill的主文件应该放些什么 哪些资料可以放在reference里面 哪些内容应该拆成脚本或者模板 最后是关于怎么测评 你写的prompt和skill 可以看看OpenAI官方的evolution最佳实践 我看这些东西会比较偏方法论一点 我觉得理解了这些理论之后 去设计prompt和skill都不会太糟糕 然后是MCP server 这也是我在工作中经常会接触到的一块 在AI时代之前 我们通常使用restful ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 461.76,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.6034958362579346,
+      "end_time": 8251.39,
+      "excerpt": "skill的算力和纯嗯这个嗯野生动漫态上 skill的算力还不那么多 可能导致我们现在并没有看到 原生动漫态有那么强的一个嗯嗯本身嗯多么 它本身带来的一个一个一个智能的 一个很大的一个提升 但你能感受到 就比如说很多世界知识 他跟他因为他训过视频 所以他他知道的更多 然后嗯他对很多很细微的东西的感知力 你会发现他更强 但这些都是很虚的 都是我们自己去实际体感去测感知力 对 都是对感知力会更强 但是你在任何BENCHMART上 你是没有任何就纹丝不动 可以这么说 这就是比当然有可能奔驰Mark错了 当然有可能当然有可能 所所以所以我现在也不完全说呃 非常确",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 8132.43,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3cc3a52069c5532f84dde535c6196635",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.601590096950531,
+      "end_time": 2673.64,
+      "excerpt": "或者是上次是你分享的对啊 哦是的是的能听到吗 是的是的哦 然后我这边其实啊也说一下 就是上一次分享的 其实是基于一个项目进行重构的嘛 然后那个项目相对来说是 你对一些需求是相对比较清晰的 然后可能会用的约束比较多 然后这一次啊我在这边新的公司做的项目 可能啊他会要求比较灵活一点 就有很多需求可能都不是那么清晰的情况下啊 这个时候我尝试用类似的输入来做 我发现效果不太好 一开始约束太多 反而限制了发挥 后面我就自己搭建了一套啊 比较灵活一点的那个啊体系 然后就区别于以前那一套 然后这一次的话就充分的发挥这个AI的 这个啊创造性 然后啊我总体看下来感 感觉比",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 2554.619,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_03c383a2769c7374ed062fb2f5659461",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.5943945646286011,
+      "end_time": 232.1,
+      "excerpt": "然后其实重要的只有那么几个 比如说重要的是有类似于skills这一个文件夹 然后里面就包含了各种不同skills的定义 我们可以随便点击一两个进来看 这是一个skill的定义 我们待会也可以找几个 然后来学习一下像这一个黑客松的冠军 他平时是怎么去写他的这些skill的 然后除了skill呢 另一个就是这个规则的文件夹 它里面也写好了各种不同的规则呃 可能是一些写代码的 比如说这是C加加的写代码的规则 java的规则 Python的规则 我这一个桌子他都帮我们定义好了 对然后另一个就是这一个hook是一个钩子 也是比较重要的文件夹 然后这一个comman",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 113.75,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_439b503c27065996de2a0519ecf73328",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.5910904407501221,
+      "end_time": 579.55,
+      "excerpt": "然后还可以根据你不不同的类型的内容 去做不同类型的规范对 然后也可以去嵌套另外的skill 比如说这里讲到这个brain boys skill 我们来看一看对这一个是他原本的这个skill 然后们也看一看中文版 the brain boys skill呢 是说从真实的素材里面去构建持久的声音档案 然后在所有的场景里面去复用这一个档案 不用每次都去从头推导风格 然后在什么时候去激活呢 比如说用户需要用特定的声音去创作内容 或者说在X啊linking上要去更新一些写作 或者说已经知道了某一个作者的语气 然后我们想要把这一个语气去适配到 不同的平台 不同的渠道",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 461.47,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_ea8044f2469fae24438baa08c450d346",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.5889065265655518,
+      "end_time": 1518.34,
+      "excerpt": "去抄一遍别人的提示词等等 而对于非专业用户来说 你想要搞一个agent比较低门槛的方式 就是通过扣子等低代码平台去手动的进行搭建 那么事情也是一模一样的 复制别人的提示词 重新配置一遍所有的mc p tools 所以势必会导致agent的分享没有那么容易 而agent skill他的这个解决方案 它能够实现说我的一整个agent需要的这些东西我都打包成一个文件夹 甚至你不懂AI的人 也可以通过微信发文件的方式直接就分享出去 那么我在我的电脑中 在我的比如说在我的cursor 在我的color code 在我的一个合适的位置 只要我去解压这个文件夹 那我立",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 1399.12,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_b1caaef08370da3f88f715183389a27f",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.5868637561798096,
+      "end_time": 349.68,
+      "excerpt": "先在同一个任务内 把高分轨迹和低分轨迹分组比较 他们从哪个编排决策开始分叉 是拆任务漏了约束还是代理角色不清 还是汇总节点没有校验 然后再把多个任务的诊断合起来 提炼跨任务反复出现的弱点和稳定优势 这些诊断最后怎么变成新的metal skill 反思阶段会形成evidence package 也就是一组有优先级的修复证据优化器 先删掉或改写证据显示无效的旧规则 再给对应模块加入新原则 论文要求保留三模块骨架 而且每个改动都要来自证据 并抽象成通用编排原则 不能写成某道题的补丁 能不能给一个更具体的例子 browse compl的例子很直观 初始流程可能偏",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 230.83,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.5840258598327637,
+      "end_time": 704.72,
+      "excerpt": "因为这是我们自己描述的 如果有对应的一个关键字 它就会触发这个skills 我们来看一下是不是 如果在不支持这种啊skills的AI coding的能力下 你这么写 他也不会处于除法 但是如果真的支持了他 你在这个按照SSKUSE逻辑 而description和mental data写的非常好 你只要写下一阶段 它就能够检验到啊 是一个skills 我们来看一下是不是好 然后我们开始执行 好你看let me roid的skills first 所以他已经发现了 下一阶段就是要去执行这个skills 所以第一步呢 其实是需要去啊激活一个虚拟环境 这是我要写",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 585.23,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_b43fd0b37fe3cafa1f2e28d9812c18f6",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.5815770626068115,
+      "end_time": 708.89,
+      "excerpt": "混合的金牌 就可能上面的这些原则去进行各种的组合啊 总而言之呢要回答我们刚才的这样的一个问题 所以你必须先要了解的是对应的一个八股 那了解了也或者说是基础知识吧 了解了具体的知识知识以后啊 那面试官为什么让他去做 基于问他为什么要做基于规则的一个竞台 那其实就照着回答就说就就行了 其实其实我们的项目如果你去去看的话 我们的项目在金牌这一块并没有一定要求 是要做crossing encoder 或者一定要用规则 一定要用LLM 而我们做了一个可插拔 就用了一个工厂的模式 所以这一块用什么是你自己去规定的 我在项目的实现过程中 是用了大圆模型去做金牌 但是你",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 589.36,
+      "subtitle_source": "ai",
+      "title": "最新字节大模型开发暑期实习一面面试精讲",
+      "unit_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_ccb2a04a863a326f7cda50ea480e75ed",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 73
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.5801130533218384,
+      "end_time": 638.62,
+      "excerpt": "否则metal skill可能学偏 第二评分器或标签有偏差时 反思会把偏差写进组织规则 第三演化阶段需要多次roll out和模型调用 适合高价值会重复出现的任务 足不一定适合一次性小任务 你怎么看这篇论文的真正贡献 我的理解是他把多agent的改进对象说清楚了 不只是更强模型 更多agent或更长思考时间 还可以是外部化的组织经验 把这份经验写成可检查 可改写 可迁移的metal skill系统 就有机会在不改模型参数的情况下 逐轮改进自己的协作方式 最后用一句话收束听众 该记住什么 记住这一点 skill mess要学习的不是更多agent 而是组织",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 577.37,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d0575623817b7fec0bbc86aaf7bf75df",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.5692614912986755,
+      "end_time": 462.27,
+      "excerpt": "Review pr 对不对 确实其实就是这五个的一个阶段 那对于他这个sky来说 他在里面做了什么呢 通过貌似大做的 并且计划是他做的 OK他其实他都做了 然后他在里面具体做了什么 需求分析完成之后 它会输出一个文档啊 一个space文档编写计划 他也是会做出一个plan文档 而这两个这两个文档哈 他其实是没有文档的一个管理的 文档管理是很混乱的 他的一个文档管理是这么来管理的哈 这么来管理的啊 叉叉叉他可能是这个这个样子的嗯 OK他是这个样子的 那我会面临什么问题呢 我们可能我们的功能需求有有几十个几百个 我们按道理这个地方应该还有一个模块才对 对不对",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 348.07,
+      "subtitle_source": "ai",
+      "title": "superpowers 使用心得分享！竟还能优化？",
+      "unit_id": "transcript_chunk:bilibili:BV1iRXaBnESX:p1:chunk_ac5ded814f9aa4541c5b1e94457a311b",
+      "unit_type": "transcript_chunk",
+      "uploader": "xhyovo",
+      "video_id": 106
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.568466305732727,
+      "end_time": 235.85,
+      "excerpt": "也让其他skill更难被正确调用 第三层运行时长篇参考文档模板脚本特殊案例 这些可能有用 但每次都直接加载 太贵了 所以更适合放在附件里 等模型真正需要读取时再付成本 三层合在一起 索引body附件越早进上下文税率越高 索引最贵 所有绘画都要看body次之 加载后会跟着任务走一段时间 直到上下文压缩或任务边界出现 附件最便宜 用到才读 这也解释了为什么给模型更多资料 不一定会让它更强 perplexity的税务skill 早期把1945个税法章节 全塞进一个文件 结果比不加载还差 后来重构成三层嵌套 先定位大的领域 再进入更细的主题 还配了快速参考指南 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 116.52,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_0c72f52a6c889651f5f8517d9c4fe0f9",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.5644819736480713,
+      "end_time": 469.5,
+      "excerpt": "他的一个相当于只是是指的skill 它这个是干什么呢 就是说因为所有的MD文档 就是我们最终的一个核心 所以当你修改了一个MD的时候 他你在跑这个脚本 它也能够及时的把这个MD文件去进行一个处理 处理了 完完了以后切成多一个小块 然后有一个索引 让这个AI能够根据这个索引动态的去找到 他当前步骤要的一个内容 所以就是同步文档 这是最重要的 你可以去改文档 然后它每一次执行的时候都可以生效 具体的定义其实就写在skilled的spec sync的skill m d下 第二呢就是prograss truck 那当他完成了文档的设计以后 他要判断当前 文档当前",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 349.93,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.5609785318374634,
+      "end_time": 587.07,
+      "excerpt": "一些原则呀 然后包括你用什么样的方式去写代码呀 包括遵循我们遵循我们的scale的一个定呃 SPECT的定义是最重要的一件事 就是第三步 它不光要执行 还要搞清楚 通过斯spike 搞清楚他的一个要求和期预期的输入输出 然后最后就是进行一个测试 然后去进行一个迭代 如果测试通过了以后 第五个就是check point 然后把对最易近的一个节点去进行一个一个最 最最就是这一步的工作去做做一个总结 然后让用户去确认 如果确认OK了 那它就会自动的去帮我更新那个排期表 并且提交一些抗me的一个信息 然后甚至是帮我直接commit 这个就是他一个整整个的一个逻辑",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 468.34,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_cc752528c971ccfd483528d3405e31b9",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.5568122863769531,
+      "end_time": 117.01,
+      "excerpt": "今天聊一篇蚂蚁集团和香港科技大学 广州团队的论文 题目是skill max 他研究的痛点很具体 多叫几个agent并不难 难的是让他们稳定地拆任务 查证据 互相校验 汇总结果 并把失败经验留到下一次 先按论文摘要说这篇到底解决什么问题 它解决的是自动多agent系统里的能力和经验 保留困境 Skill mass 把meta agent的编排能力写成可自动演化的meta scale 通过多轨迹执行和选择性反思 提炼通用编排原则 论文在四个复杂基准和四类LLM上 报告了更高的平均表现 同时把推理成本控制在中等区间 这里的meta skill和普通prompt",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 0.12,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d1cb53af018bb6c9d354b2a29e05afef",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.5547555685043335,
+      "end_time": 382.14,
+      "excerpt": "有一个非常有意思的事情就发生了 在这个评估里边呢 他发现我把所有的SPS都给到这个模型 让他去帮我处理问题的时候 其实它的准确率只有77% 当我不给skills的时候 什么skills都不给的时候 他有97% 那为什么有这么大的区别呢 它一个呢是这个skills其实也会占很多上下文 然后模型会根据这些skills去指导 去做一些东西 但是你会发现啊 这些文档的话 它的呃实事性也也好啊 他的指导性具体指导性也好 它与你具体所在这个项目的结构也好啊 后边变更变更之后 这些代码也好 他可能就有些会对不上 所以很有可能你的这些skills就影响了他 那最佳的方式",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 279.67,
+      "subtitle_source": "ai",
+      "title": "构建可交付的AI Agent系统",
+      "unit_id": "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7",
+      "unit_type": "transcript_chunk",
+      "uploader": "雷哥AI",
+      "video_id": 50
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.5530630946159363,
+      "end_time": 623.01,
+      "excerpt": "是否具备系统评估A证的表现的一个能力 接下来的话就是to检索与路由啊 也就是我们这个项目当前是怎么去管理工具的 以及怎么去选择工具的啊 他的机制是什么 那这个也是可以作为一个切入点 最后一个的话就是streaming 中间状态的一个可见性 这个的话也是一个为他做贡献的一个维度好 然后让AI去帮你去输出每一个维度 它的现状 最终的话让他去输出三条贡献 建议以上那么多东西 那AI建议你最优先做哪三个 以及为什么啊 为什么要适合你做 以及这个点是否能在面试中讲的清楚 因为我们最终还是要为了让自己在面试中加分 所以说我们还是要选择一些适合在面试中讲出 来的一些贡",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 507.68,
+      "subtitle_source": "ai",
+      "title": "手把手教你做高质量 AIAgent 开源项目，为面试上大分！",
+      "unit_id": "transcript_chunk:bilibili:BV1FPTT6uEd2:p1:chunk_1f4cfd19e6db2aa1044da3274c8368e7",
+      "unit_type": "transcript_chunk",
+      "uploader": "LucianAIAgent干中学",
+      "video_id": 4
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.5452843904495239,
+      "end_time": null,
+      "excerpt": "[Title] 开源一个 PPT Skill｜压进了我 10 年的设计经验 [Uploader] 歸藏的AI工具箱 [Description] 来了！藏师傅的 PPT Skill 更新了第二套主题，新主题更加简洁美观，适合讲一些数据和事实性的内容 而且支持 4 种颜色、20 多个版式。支持用 Codex 内置的 GPT-2.0 帮你生成配图和美化截图。还能让它帮你生成各种平台的封面，以及公众号配图。 详情：github.com/op7418/guizang-ppt-skill [Summary Conclusion] 藏师傅开源了包含瑞士国际主义风格和杂",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "开源一个 PPT Skill｜压进了我 10 年的设计经验",
+      "unit_id": "video:bilibili:BV1K2546oEkg:p1",
+      "unit_type": "video",
+      "uploader": "歸藏的AI工具箱",
+      "video_id": 86
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.5350581407546997,
+      "end_time": 704.15,
+      "excerpt": "一个小时变成两个小时 让他们之间自己去吵 去解决这些问题 是不是就解放我们的时间 解放我们的时间的话 这下面也就都可以操作了 好吧 这个就是思路OK了 这里面出现个什么问题呢 出现了问题就是时间解决了 质量呢 他这即使我们会给一些知识给他们 但是会出现一个情况 就他们炒出来的一个结果 聊的可欢了 聊的可好了 得出来的结果很好 但是这里面某些环节你如果回头去看的话 你觉得哇靠你们都在吵些啥 聊些啥 偏离了偏离你的主线了 怎么样才能够把这个质量提高好呢 这就涉及到了我们这些视频 一直以来在聊的内容了 怎么样优化我们的skills 不管了 来优化我们的skil",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 584.38,
+      "subtitle_source": "ai",
+      "title": "2026 年中 对人工智能的思考和分享",
+      "unit_id": "transcript_chunk:bilibili:BV1zYLD62EPe:p1:chunk_a6777fb0a71a54a02b436dc0acd03eac",
+      "unit_type": "transcript_chunk",
+      "uploader": "Ming在职AI从业者",
+      "video_id": 144
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.534935474395752,
+      "end_time": 184.68,
+      "excerpt": "就是你在网上很少再听说RG了 很少再听说这个数据处理了 大家都在关注AIAH的能力 包括skills这些领域专家知识沉淀这些能力 但是实际呢我在给企业在做陪跑 在做资产沉淀的时候 我们发现啊企业真正的资产是那那堆数据资产 就是数据资产 一个是你要把数据呢整理非常好的 一个高质量的一个数据资产 然后第二呢就是你老的系统 然后怎么去改造成CLI 然后标准化给AI形成的这些接口 调用的这个这些资产 当然你转不转MCP啊 这都是另外一个事情 但是呢这里面我想跟大家讲的就是 除了领域知识的skills策划以外 其实一定不要忽略我们现有的这些数据资产 比如说我们可以",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 89.68,
+      "subtitle_source": "ai",
+      "title": "AI应用现状",
+      "unit_id": "transcript_chunk:bilibili:BV12zVE6vECK:p1:chunk_2aac62768cd276c268e3fe540f877587",
+      "unit_type": "transcript_chunk",
+      "uploader": "雷哥AI",
+      "video_id": 53
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.5345330238342285,
+      "end_time": 1010.94,
+      "excerpt": "而不是技能 是因为技能的标题和描述 总是会被半注入到上下文中 这并不理想 我只在我明确调用它的时候才想触发它 所以如果我们明确输入TX9 这是他被注入上下文的唯一时机 因为pi扩展的一个功能是 可以在执行过程中发送消息 这很棒 usage基本上也就是一个技能 但我不希望它被注入 除非我明确要求他会给模型一系列 关于如何计算我所有智能体使用量的指令派 Codex 我还想把get factory加进去 以及其他几个 但这只是我用来大致估算 最近使用量的一种方法 一是一个非常实用的功能 这就像是CEO之前想出的一个命令 他让他的cloud code写了一个it",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 899.54,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_5cd173c807b01b0daca1b9e4be505f74",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.5341325998306274,
+      "end_time": 1501.51,
+      "excerpt": "然后以后同一个session或者是子智能体 它可以动态调用 然后最最简单就是context collapse 就是对话折叠啊 折叠完成这个这个折叠字面上意思应该就是压缩的意思 然后就是触发 比如说触到85% 他就触发这个额压缩进行摘要啊 这个是p t l point啊 错误处罚嗯 这个不太知道什么意思嗯哦就是关于上下文的压缩 但是其实体现起来很多人说codex上下文压缩比这个克劳code要好 因为克拉扣压缩的时候非常慢 codex是一个进展式压缩 其实它在你使用的过程当中不断压缩 我认为codex这个这个体验是好 但是他后端应该应用的更大的这个算力在这并",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 1382.94,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_56b9fd7c974d37fe193c25965e8836f8",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.5339375734329224,
+      "end_time": 1401.32,
+      "excerpt": "选择上下文 压缩上下文以及隔离上下文四个部分 这一块儿大家可以下会之后详细阅读 我就不展开了 好了 讲了这么多 现在终于还是回到了我的初心 agent skill这一块 首先我觉得我们不急着去看这个skill的具体的技术细节 我们可以先去想一下 就是一开始说的 站在这个时间节点 我们目前还有哪些问题没有被解决呢 比如说最经典的这个上下文爆炸的问题 可能每个做一阵子的团队或多或少都有遇到过 那么agent skill针对这一块的一个亮点的设计 就是基于文件系统的渐进式加载 可以简单地理解成我的提示词 不再是在用户请求的时候一次性加载进来 全量的递给模型 而",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 1281.63,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.5330371856689453,
+      "end_time": 1633.56,
+      "excerpt": "拿到你下载的所有可用skill的名称和描述 把这些东西全部都塞到coding agent的主脑模型的系统提示词里面去 当你在终端或者在对话框里面啪啪啪发一个请求 说我要我要写什么代码 我要实现什么能力的时候 coding agent的主导模型就会去看一下 你的请求是否能匹配上你下载的某一个技能 如果他认为相关性特别强 那么他就会选择激活这个技能 什么是激活 其实本质上就是他会把这个skill文件夹里面的这一整个skill 点MD里面的所有的内容全部都加载到自己的A证的上下文里面去 注意在此之前它只加载了你的这个skill的名称和描述 接着他在任务运行的过",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 1514.34,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_83c4180ed322a4dd903a9575ce742d08",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.5284408330917358,
+      "end_time": 2788.95,
+      "excerpt": "还会有一些比如说同步文档更新这种skill 可能去做驱动 对 就是当我做完这个需求之后 我可能啊运用一下那个skill 让他去帮我自己去整理一下这个啊文档 然后我个人感觉这样方式还是挺好的 对对对对 你说的我我一个非常重要的一个心声 就是就是那个SCD框架用不了的 很重要的原因 就是因为它这个东西啊得自己搭一套 然后那个SDD的这些模板 然后每个项目它又不一样 然后技术转选型 他那个前后端的鞋做集成方式各种都不一样 然后你全都得自己写 他其实自己写也没什么成本 然后就A帮你去去整理一下就可以了 所以为什么我慢慢我们废弃了SDD 我就从来没用怎么用起来过 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 2669.6,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_16db4986fa8c03507979f44b24a59efd",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.5273765325546265,
+      "end_time": 464.71,
+      "excerpt": "offer ms更像在学协作图 MSP更像在调每个节点 怎么说 muse更像在管理技能资产 skill mass处理的是更上层的组织经验 什么时候要并行 什么时候要验证什么任务要回溯 哪个模块应该被改写 这几条线在他这里汇到同一个max编排问题里 实验覆盖哪些任务 会不会只适合研究类任务 论文用了四个基准 Deep research bench 看深度研究报告质量 Humanities last exam math 看专家级数学推理 Bross come plus 看多跳动态问答 Vita bench 模拟日常多工具使用 它们分别覆盖研究数学 浏览问答和",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 346.25,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_f50b66ea6357920f044889e95e7a984b",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.5232926607131958,
+      "end_time": 583.91,
+      "excerpt": "然后聊很多之后 然后他就最终呃 最终把这些内容都写到了这个requirements里面 我们来看一下他最终写出来的那个内容 是不是符合我们的要求 你看他的那个输入输入规范写的非常的清晰 这样模型在开发代码的时候就不会跑偏 他就知道具体要做什么 然后有哪些可配置的一些参数 然后以及一些制作流程 然后技术站什么的其实都写到了 当他写完了之后 你其实还可以对他去做调整的 比如说对于我这里 他写完了之后 他问我还有什么需要改进的地方吗 那我们肯定得要把事情说清楚 那么这里可以让它基于呃spec原则去告诉他 我开发的这个软件 它的面向用户是什么 比如说对于我这里的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 464.96,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_b727812fbffbac50882f498116e378cc",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.5222082138061523,
+      "end_time": 3723.0,
+      "excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 3604.0,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.5216045379638672,
+      "end_time": 467.2,
+      "excerpt": "但是用hermes agent是不一样的 就是你在和他对话聊天的过程中 在你去指挥他完成一个任务的过程中 hermes agent他会自己去判断这个流程是否足够复杂 是否我犯了足够多的错误 是否值得沉淀成经验 如果他认为需要的话 他会自己把这个执行过程总结一下 然后沉淀为一个agent skill保存起来 这样的话下次遇到类似任务就可以直接调用 不需要再犯那么多的错误 那么除了创建之外 你接下来在下一次使用这个技能的过程中 如果他发现有更好的解决方案 或者说他觉得有哪些细节需要打磨 他也会去自己更新这个skill 然后非常值得一提的就是这个hermes ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 350.22,
+      "subtitle_source": "ai",
+      "title": "Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1oKdxBzEVz:p1:chunk_3fa9cd7a309bed09ea414d1c42f4eff4",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 95
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.5194737911224365,
+      "end_time": 119.51,
+      "excerpt": "大家好 介绍一下我开源的这个PPT skill 现在已经更新到了第二个主题 之前的版本已经有非常多的朋友用过它了 主要它是由HTML就是网页生成的PPT 包括两套的风格和主题 首先是这套瑞士的瑞士风格 或者主国际主义风格 第二套是这种杂志的风格 这个是有一个这种衬线字体 和这种非常好的排版去生成瑞士这种风格 就是这种非常正常的这种细字体 也是比较注重排版 这里边这两套主题的所有的排版和所有的格式 都是我自己手工在AI生成之后手工调整的 所以它是非常稳定的 即使你用相对差一些的模型 也可以保证效果 同时我来展示一下它的版式 比如说这个杂志的风格 它的前面会",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 0.08,
+      "subtitle_source": "ai",
+      "title": "开源一个 PPT Skill｜压进了我 10 年的设计经验",
+      "unit_id": "transcript_chunk:bilibili:BV1K2546oEkg:p1:chunk_ed66d88017bc79095f7ec8739e405e9e",
+      "unit_type": "transcript_chunk",
+      "uploader": "歸藏的AI工具箱",
+      "video_id": 86
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.5191303491592407,
+      "end_time": 730.299,
+      "excerpt": "最后让他产出这个方案的优点是什么 缺点或者风险是什么啊 以及什么场景下适用啊 最后123方案OK进行一个对比 那对比下来之后他推荐的一个方案啊 这个时候他需要给出一个理由好 那这个时候其实它已经产出一版最优的方案了 好接下来的话就是一个实现规划 基于上面的那个推荐方案的话 让他给出一个改动清单来 然后额实现完了之后呢 其实还有一个很重要的点 就是一个验证的错策略 可能是一个手动的验证 可能是单元测试啊 有可能有一些边界情况需要格外注意的 做完以上这些步骤之后呢 其实就下一步其实就可以开始干活了 但是在干活之前 我们需要与维护者进行一些沟通 发一条issu",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 620.599,
+      "subtitle_source": "ai",
+      "title": "手把手教你做高质量 AIAgent 开源项目，为面试上大分！",
+      "unit_id": "transcript_chunk:bilibili:BV1FPTT6uEd2:p1:chunk_b683298e9a8a0ac8c99d27f9300def1c",
+      "unit_type": "transcript_chunk",
+      "uploader": "LucianAIAgent干中学",
+      "video_id": 4
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.51877760887146,
+      "end_time": 590.24,
+      "excerpt": "理解了这些 你就可以去回答这个也不讲 然后第四个是金牌 为什么不用从不用cross encoder l做基于规则 所以所以我们这里看一下 针对于这个问题 所以你第一个要去掌握就是RAG的这个金牌 所以它其实是一个承建的一个八股 或者说是啊RAG里面最基本的一个知识点 所以在最金牌是什么东西 就是位于RNG后面的一个出牌金牌 这样一个环节 它是啊基本上成熟的rap系统都会用 所以一般来说金牌会有哪三种方法呢 一个是基于CROSSENCODER 它本质上是一种模型 但是它不是大模型 而是一种相对来说可能就几十个兆 几百兆的这样的一个模型 在本地上就能够去进行",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 471.54,
+      "subtitle_source": "ai",
+      "title": "最新字节大模型开发暑期实习一面面试精讲",
+      "unit_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_842a9170fb465ff54740f390afe1d78c",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 73
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_be6124302cea21b4525c6fe9b48b0bf0",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15J5u6HEP4",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/a47b1e2f5366701b1d9fb9f2515baf8ed2f98128.jpg",
+      "detail_url": "/videos/60/transcript",
+      "duration": 510.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "才说明它重要 一个差的skill是上下文债务重复常识污染 注意制造误触发 一个好的skill是压缩资产 让agent在正确时间看到正确信息 把团队的判断边界和经验变成可复用的结构 agent系统的竞争正在从谁接了更多工具 进入下一个阶段 谁更懂得管理上下文 这一期讲了 为什么skill是一种税 下一期我们一起来看看perplexity具体怎么做的 一条skill 怎么设计 怎么压缩 怎么评估 怎么维护 这里是慢学AI 我们下期再见",
+      "matched_unit_count": 6,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "慢学AI",
+      "video_id": 60,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV15J5u6HEP4",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 2.18,
+          "anchor_segment_start": 0.3,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_be6124302cea21b4525c6fe9b48b0bf0",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 35.59,
+            "source": "ai_summary",
+            "start_time": 0.3,
+            "summary": "提出Skill如同向用户征收永久税，并引出三层加载机制。",
+            "title": "引言：你写的每个 Skill 都在向用户征税"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_be6124302cea21b4525c6fe9b48b0bf0",
+            "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_70dc6cb7b960008525b950c0b70b3c9b",
+            "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_2fd5e43130b1dc7b689b17e959f45184",
+            "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_98c85defea61f041e63679d52bfacf07",
+            "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_0c72f52a6c889651f5f8517d9c4fe0f9"
+          ],
+          "component_hit_count": 5,
+          "component_raw_ranks": [
+            1,
+            12,
+            15,
+            16,
+            30
+          ],
+          "duration": 505.4,
+          "excerpt": "你写了个skill放进agent 你觉得是在帮他长本事",
+          "jump_source": "exact_entity_term",
+          "jump_time": 0.3,
+          "jump_url": "https://www.bilibili.com/video/BV15J5u6HEP4?t=0",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 505.7,
+          "window_start": 0.3
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_e2d808d458a6e229fc10dbed79d6b9b5",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1rb5y6wEJV",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/6b6201f83e3ae75605abd9a61da5d0d0d861a642.jpg",
+      "detail_url": "/videos/61/transcript",
+      "duration": 554.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "perplexity说 如果你写skill的时候把每一个步骤都列出来 那你就是在造垃圾 他不是在骂人 他针对的是一个很常见的工程师习惯 很多工程师写说明文档 写惯了 会自然地把每个命令 每个步骤 每个参数都列出来 写skill的时候也很容易退回到这种写法 因为它看起来像是在写文档 但perplexity明确说 skill不是这样写的 写skill要跳过显而易见的东西 不要写一串命令 为什么 因为你不是在教一个新人照手册操作 你是在给一个已经会很多事情的模型 补上他缺的判断边界 比如你写先理解需求 再拆解步骤再执行 最后总结 这当然没错 但大模型本来就会这",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "慢学AI",
+      "video_id": 61,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1rb5y6wEJV",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 4.66,
+          "anchor_segment_start": 1.36,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_e2d808d458a6e229fc10dbed79d6b9b5",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 81.0,
+            "source": "ai_summary",
+            "start_time": 0.0,
+            "summary": "说明 Skill 不是操作手册，重复通用步骤会浪费上下文，应注入领域判断。",
+            "title": "为什么写步骤列表是造垃圾"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_e2d808d458a6e229fc10dbed79d6b9b5",
+            "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_b5d76e67ddf09b7126285f6832c5b94d"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            3,
+            7
+          ],
+          "duration": 234.64000000000001,
+          "excerpt": "perplexity说 如果你写skill的时候把每一个步骤都列出来 那你就是在造垃圾",
+          "jump_source": "exact_entity_term",
+          "jump_time": 1.36,
+          "jump_url": "https://www.bilibili.com/video/BV1rb5y6wEJV?t=1",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 234.86,
+          "window_start": 0.22
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 397.14,
+          "anchor_segment_start": 394.22,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_64e781e074f3356b25fa8979d29a42d4",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 412.0,
+            "source": "ai_summary",
+            "start_time": 333.0,
+            "summary": "通过scripts、references、assets等目录实现按需加载，分离确定性代码与重型知识。",
+            "title": "Step3：用目录层级承载复杂度"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_64e781e074f3356b25fa8979d29a42d4",
+            "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_82d00595f918c9e800a71fe526aaae55"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            10,
+            11
+          ],
+          "duration": 199.30000000000007,
+          "excerpt": "第一次问保存以后复用 所以skill层级结构不是文件整理 它是在设计模型的导航路径",
+          "jump_source": "exact_entity_term",
+          "jump_time": 394.22,
+          "jump_url": "https://www.bilibili.com/video/BV1rb5y6wEJV?t=394",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 549.32,
+          "window_start": 350.02
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ixAVz9EaQ",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/62cba1443965a26a70d29b74399a2748f8eee475.jpg",
+      "detail_url": "/videos/113/transcript",
+      "duration": 1178.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "那第二个前提呢就是说啊因为让AI去写嘛 那之前其实skills没出来的 之前我可能还想不到非常好的方法 就是你能够让AI能够完全知道 你当前处在哪一步 然后当前的目标是什么 当前的你你要实现代代码的这个架构 设计是什么 能够让你比如说你第一天写完了两个步骤 然后明天接着写 第三个步骤 他能够马上就知道哦 我完成了前两个步骤 我现在要进行第三个步骤 第三个步骤去是实现这个分割器 那分割器啊 那大概要按照什么方法 它有一些什么样的原则 然后我我这一步有哪些呃 标输入输出的一个标准 以及如何测试 我还不知道你有哪一套逻辑 可以完全的让AI能够这样子去去去写 但",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 349.93,
+          "anchor_segment_start": 348.65,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_b43fd0b37fe3cafa1f2e28d9812c18f6",
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_cc752528c971ccfd483528d3405e31b9"
+          ],
+          "component_hit_count": 4,
+          "component_raw_ranks": [
+            5,
+            26,
+            31,
+            32
+          ],
+          "duration": 471.21000000000004,
+          "excerpt": "它会有第一个第一个阶段是进行一个spec sink 这个也是一个skill 他的一个相当于只是是指的skill",
+          "jump_source": "exact_entity_term",
+          "jump_time": 348.65,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=348",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 704.72,
+          "window_start": 233.51
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 6,
+      "best_score": 0.015151515151515152,
+      "best_unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_44469acfc15ebbf5478133010b94cb4f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV16GjU6jEdP",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/ce4f324e747cd9cd99459f2d943ea2a785c10094.jpg",
+      "detail_url": "/videos/35/transcript",
+      "duration": 639.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "广州论文同时给了GITHUB仓库 里面有初始skill预演化后的benchmark skill 演化脚本和demo inference路径 那这份matter skill具体写哪几类东西 它被拆成三块 第一块是task decomposition 回答任务怎么理解 怎么拆 成功标准是什么 第二块是agent engineering 回答需要哪些子代理 每个代理拿什么上下文输出什么格式 第三块是workflow orchestration 回答这些代理是串行并行 层级协作还是待循环反思 只把说明书分成三段 听起来还不算自动优化 他怎么自己变好 关键在闭环 ",
+      "matched_unit_count": 6,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 6,
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV16GjU6jEdP",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 120.97,
+          "anchor_segment_start": 117.01,
+          "best_chunk_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_44469acfc15ebbf5478133010b94cb4f",
+          "best_rank": 6,
+          "best_score": 0.015151515151515152,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 123.43,
+            "source": "ai_summary",
+            "start_time": 0.12,
+            "summary": "介绍 Skill-MAS 解决自动多 Agent 系统中的能力与经验保留困境，通过将 Meta-Agent 编排能力写成可演化的 Meta-Skill。",
+            "title": "论文简介与核心痛点"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_44469acfc15ebbf5478133010b94cb4f",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d0575623817b7fec0bbc86aaf7bf75df",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d1cb53af018bb6c9d354b2a29e05afef",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_f50b66ea6357920f044889e95e7a984b"
+          ],
+          "component_hit_count": 6,
+          "component_raw_ranks": [
+            6,
+            18,
+            25,
+            28,
+            33,
+            44
+          ],
+          "duration": 638.5,
+          "excerpt": "广州论文同时给了GITHUB仓库 里面有初始skill预演化后的benchmark skill 演化脚本和demo inference路径",
+          "jump_source": "exact_entity_term",
+          "jump_time": 117.01,
+          "jump_url": "https://www.bilibili.com/video/BV16GjU6jEdP?t=117",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 638.62,
+          "window_start": 0.12
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 8,
+      "best_score": 0.014705882352941176,
+      "best_unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_af2bc7999cfeb875f009dd2814a640cf",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1XrEZ6NEuD",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/6f766d248fd091bb5e29cd0ba7c16a9c03d1adfc.jpg",
+      "detail_url": "/videos/45/transcript",
+      "duration": 908.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "我们还也可以写一些语气的处理对 然后这里也还可以去在一个skill里面去嵌套 另一个skill 比如说他这里说先运行这个BRAINBOSKILL 我们待会可以来看一下这skill长什么样对 然后另一点也比较重要的 就是一个skill不止要交一个模型 说要去做什么 另一点更重要的是要让他禁止去做什么 要不然他很容易就是没我们没有给他禁止 他就很容易去乱做 所以我们可以在这些情况下让他去删掉 或者重写 比如说嗯写到这些什么 在当今快速变化的时代啊 或者去虚假的自我剖析啊 然后去不推动论点的人物背景铺垫啊 就是我们一些呃不想让它出现的情况 我们就可以在skil",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "奇思妙想CYC",
+      "video_id": 45,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1XrEZ6NEuD",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 127.97,
+          "anchor_segment_start": 126.13,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_af2bc7999cfeb875f009dd2814a640cf",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 216.41,
+            "source": "ai_summary",
+            "start_time": 32.07,
+            "summary": "介绍仓库背景和重要文件夹（skills、agent、commands、rules、hooks等），并说明系列视频的三期安排。",
+            "title": "仓库概览与文件夹介绍"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_af2bc7999cfeb875f009dd2814a640cf",
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_49328fdfae596efa1502b42f652a62db",
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_439b503c27065996de2a0519ecf73328",
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_ea8044f2469fae24438baa08c450d346"
+          ],
+          "component_hit_count": 4,
+          "component_raw_ranks": [
+            8,
+            13,
+            22,
+            23
+          ],
+          "duration": 465.79999999999995,
+          "excerpt": "我们可以随便点击一两个进来看 这是一个skill的定义 我们待会也可以找几个",
+          "jump_source": "exact_entity_term",
+          "jump_time": 126.13,
+          "jump_url": "https://www.bilibili.com/video/BV1XrEZ6NEuD?t=126",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 579.55,
+          "window_start": 113.75
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 814.74,
+          "anchor_segment_start": 812.43,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_376fdbf26b0aef0edc05d525f5e1a796",
+          "best_rank": 17,
+          "best_score": 0.012987012987012988,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 908.0,
+            "source": "ai_summary",
+            "start_time": 760.56,
+            "summary": "演示如何克隆仓库并将需要的Skill文件夹复制到本地Claude Code配置目录，并验证加载成功。",
+            "title": "安装方法演示"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_376fdbf26b0aef0edc05d525f5e1a796"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            17
+          ],
+          "duration": 91.63,
+          "excerpt": "Article writing skills 我们可以进入到一个skill文件夹 然后就可以看到这里",
+          "jump_source": "exact_entity_term",
+          "jump_time": 812.43,
+          "jump_url": "https://www.bilibili.com/video/BV1XrEZ6NEuD?t=812",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 902.66,
+          "window_start": 811.03
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1co9yBhEvW",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/95412e13ce98a90ea8d053ed266fadaed9171290.jpg",
+      "detail_url": "/videos/71/transcript",
+      "duration": 925.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "沉淀成skill 然后投入到日常的生产开发中 这个过程给我的最大感受是 团队级别的skill和个人web coding完全不是一回事 个人web coding的时候其实容错率是很高的 你可以临时补充上下文 看到结果不对之后 立马去修改PRT 也可以不断重试 一直到他给你一个满意的结果 但是在团队生产环境里面 skill本身就要承担更多的责任 尽量让不同的人在使用的时候 产出的结果是稳定的 这里面就会遇到很多边界问题 比如一个很经典的问题就是上下文膨胀 如果你把所有的流程约束都写在一个print里面 整个上下文就会变得非常长 模型的注意力就会被稀释 大模型",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "polebug23",
+      "video_id": 71,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1co9yBhEvW",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 347.97,
+          "anchor_segment_start": 346.87,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 360.32,
+            "source": "ai_summary",
+            "start_time": 120.9,
+            "summary": "介绍按工作需求驱动的学习顺序，从LangGraph搭建Agent Workflow到Tool Calling、持久化，推荐官方文档、视频课程及OpenAI/Anthropic最佳实践。",
+            "title": "转AI方向学习路径：Agent Workflow与Tool Calling"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            9,
+            19
+          ],
+          "duration": 232.32000000000005,
+          "excerpt": "需要把团队过去积累的一些开发经验 沉淀成skill 然后投入到日常的生产开发中",
+          "jump_source": "exact_entity_term",
+          "jump_time": 346.87,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=346",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 579.19,
+          "window_start": 346.87
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 14,
+      "best_score": 0.013513513513513514,
+      "best_unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3657fe4fb39830e4aa1fc88df885265a",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1iVoVBgERD",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d9c8cb358259ceb896a07e588506abee526dbc6f.jpg",
+      "detail_url": "/videos/90/transcript",
+      "duration": 12879.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "当当你面临一个很大的范式的变化的时候 其实呃呃只要你路径走对了 其实你可以短暂非常短暂的一个窗口期 你去忽略评估 因为因为你靠体感 你就能立马测出来一个非常大的制度呃 差异对呃 但是当你慢慢迈入深水区的时候 还是需要一些非常精细的评估的 嗯最skill是不是改变了模型的生态啊 嗯改变了模型在嗯这种高复高复杂度 高work呃 就是流程复杂度的任务上的执行的准确率对 因为它其实定义了套执行的规范对 然后这套执行的规范 是很难在预训练的数据不具备的 因为训练数里边没有这种internal的信息 这些信息通常是是不是是 是大量企业内部自己去沉淀和积累的这种 就这",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1iVoVBgERD",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 2812.97,
+          "anchor_segment_start": 2809.73,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3657fe4fb39830e4aa1fc88df885265a",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3657fe4fb39830e4aa1fc88df885265a"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            14
+          ],
+          "duration": 119.4699999999998,
+          "excerpt": "还是需要一些非常精细的评估的 嗯最skill是不是改变了模型的生态啊 嗯改变了模型在嗯这种高复高复杂度",
+          "jump_source": "exact_entity_term",
+          "jump_time": 2809.73,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=2809",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2905.41,
+          "window_start": 2785.94
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 8132.43,
+          "anchor_segment_start": 8128.92,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3cc3a52069c5532f84dde535c6196635",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3cc3a52069c5532f84dde535c6196635"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            20
+          ],
+          "duration": 118.95999999999913,
+          "excerpt": "所以我我猜测可能是因为我们在这两个方向上 skill的就在纯纯语言上 skill的算力和纯嗯这个嗯野生动漫态上",
+          "jump_source": "exact_entity_term",
+          "jump_time": 8128.92,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=8128",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 8251.39,
+          "window_start": 8132.43
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 21,
+      "best_score": 0.012345679012345678,
+      "best_unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_03c383a2769c7374ed062fb2f5659461",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1atjU6KEJF",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/de1c269ba79e6a0b85c91daffcf945af32ab8a2e.jpg",
+      "detail_url": "/videos/12/transcript",
+      "duration": 4118.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "或者是上次是你分享的对啊 哦是的是的能听到吗 是的是的哦 然后我这边其实啊也说一下 就是上一次分享的 其实是基于一个项目进行重构的嘛 然后那个项目相对来说是 你对一些需求是相对比较清晰的 然后可能会用的约束比较多 然后这一次啊我在这边新的公司做的项目 可能啊他会要求比较灵活一点 就有很多需求可能都不是那么清晰的情况下啊 这个时候我尝试用类似的输入来做 我发现效果不太好 一开始约束太多 反而限制了发挥 后面我就自己搭建了一套啊 比较灵活一点的那个啊体系 然后就区别于以前那一套 然后这一次的话就充分的发挥这个AI的 这个啊创造性 然后啊我总体看下来感 感觉比",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "少个分号",
+      "video_id": 12,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1atjU6KEJF",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 2664.51,
+          "anchor_segment_start": 2663.29,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_03c383a2769c7374ed062fb2f5659461",
+          "best_rank": 21,
+          "best_score": 0.012345679012345678,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_03c383a2769c7374ed062fb2f5659461",
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_16db4986fa8c03507979f44b24a59efd"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            21,
+            43
+          ],
+          "duration": 234.33099999999968,
+          "excerpt": "这个相当于这个文档体系和这个啊 skill之类这种 然后我会除了我说的这这些分层的文档以外",
+          "jump_source": "exact_entity_term",
+          "jump_time": 2663.29,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=2663",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2788.95,
+          "window_start": 2554.619
+        },
+        {
+          "anchor_confidence": "medium",
+          "anchor_segment_end": 3660.29,
+          "anchor_segment_start": 3655.17,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+          "best_rank": 46,
+          "best_score": 0.009433962264150943,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            46
+          ],
+          "duration": 119.0,
+          "excerpt": "就是刚才你说的你不同的人技能不一样是吧 那么好的人设计这个设计比较思思考比较全 比较完整的时候",
+          "jump_source": "keyword_overlap",
+          "jump_time": 3655.17,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3655",
+          "matched_terms": [
+            "设计"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3723.0,
+          "window_start": 3604.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 24,
+      "best_score": 0.011904761904761904,
+      "best_unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_b1caaef08370da3f88f715183389a27f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1zSDMBUE5o",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/a6d7a2ec2d9299db46a4bbca29e5f12515a5ddf2.jpg",
+      "detail_url": "/videos/111/transcript",
+      "duration": 2025.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "去抄一遍别人的提示词等等 而对于非专业用户来说 你想要搞一个agent比较低门槛的方式 就是通过扣子等低代码平台去手动的进行搭建 那么事情也是一模一样的 复制别人的提示词 重新配置一遍所有的mc p tools 所以势必会导致agent的分享没有那么容易 而agent skill他的这个解决方案 它能够实现说我的一整个agent需要的这些东西我都打包成一个文件夹 甚至你不懂AI的人 也可以通过微信发文件的方式直接就分享出去 那么我在我的电脑中 在我的比如说在我的cursor 在我的color code 在我的一个合适的位置 只要我去解压这个文件夹 那我立",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1zSDMBUE5o",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1548.81,
+          "anchor_segment_start": 1543.479,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_b1caaef08370da3f88f715183389a27f",
+          "best_rank": 24,
+          "best_score": 0.011904761904761904,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_b1caaef08370da3f88f715183389a27f",
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1",
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_83c4180ed322a4dd903a9575ce742d08"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            24,
+            41,
+            42
+          ],
+          "duration": 351.92999999999984,
+          "excerpt": "什么是激活 其实本质上就是他会把这个skill文件夹里面的这一整个skill 点MD里面的所有的内容全部都加载到自己的A证的上下文里面去",
+          "jump_source": "exact_entity_term",
+          "jump_time": 1543.479,
+          "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=1543",
+          "matched_terms": [
+            "Skill"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1633.56,
+          "window_start": 1281.63
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 27,
+      "best_score": 0.011494252873563218,
+      "best_unit_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_ccb2a04a863a326f7cda50ea480e75ed",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1Wu5f6GEr6",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/72f987996c1ae5233e9cf1b8028693390e1d6513.jpg",
+      "detail_url": "/videos/73/transcript",
+      "duration": 1675.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "混合的金牌 就可能上面的这些原则去进行各种的组合啊 总而言之呢要回答我们刚才的这样的一个问题 所以你必须先要了解的是对应的一个八股 那了解了也或者说是基础知识吧 了解了具体的知识知识以后啊 那面试官为什么让他去做 基于问他为什么要做基于规则的一个竞台 那其实就照着回答就说就就行了 其实其实我们的项目如果你去去看的话 我们的项目在金牌这一块并没有一定要求 是要做crossing encoder 或者一定要用规则 一定要用LLM 而我们做了一个可插拔 就用了一个工厂的模式 所以这一块用什么是你自己去规定的 我在项目的实现过程中 是用了大圆模型去做金牌 但是你",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "最新字节大模型开发暑期实习一面面试精讲",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "骑猪撞宝马71",
+      "video_id": 73,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1Wu5f6GEr6",
+      "windows": [
+        {
+          "anchor_confidence": "medium",
+          "anchor_segment_end": 565.99,
+          "anchor_segment_start": 564.07,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_ccb2a04a863a326f7cda50ea480e75ed",
+          "best_rank": 27,
+          "best_score": 0.011494252873563218,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_ccb2a04a863a326f7cda50ea480e75ed",
+            "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_842a9170fb465ff54740f390afe1d78c"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            27,
+            50
+          ],
+          "duration": 237.34999999999997,
+          "excerpt": "就是我自己人为去定义一个算法或者是规则啊 它依赖于人工的规则的设计 但是它的好处是更加的一个定制化啊",
+          "jump_source": "keyword_overlap",
+          "jump_time": 564.07,
+          "jump_url": "https://www.bilibili.com/video/BV1Wu5f6GEr6?t=564",
+          "matched_terms": [
+            "设计"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 708.89,
+          "window_start": 471.54
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 81.544,
+      "chapter_ms": 0.765,
+      "grouping_ms": 0.075,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 59.75,
+      "total_ms": 144.479
+    },
+    "raw": {
+      "dense_ms": 53.783,
+      "fusion_ms": 4.391,
+      "lexical_ms": 0.759,
+      "planning_ms": 0.017,
+      "total_ms": 59.703
+    }
+  },
+  "trace_id": "cc9f5fe0-150f-445d-82b6-862a4f0d33d5",
+  "trace_persisted": false
+}

@@ -1,0 +1,66 @@
+{
+  "Agentic_Search_added": false,
+  "Development_result_hashes": {
+    "F1A_final_execution_decision": "36447553130bbcb78976209b0f676cb7c52cf2b788642f785216d4c994a9e363",
+    "F1B_final_closeout": "1a2b80659c0f4bba691b85ded1dbb542ec40e61a6da1a6c4a5f8350eddd0ce6b",
+    "P8_amended_scores": "8271d68f7942f960650b1638330935fa3d1298702893d61133cbf8598ed425ec",
+    "Stage4A_R_final_closeout": "51f0cbce9b7ff7d33a8cdc2c86d5c2963244f998133fdf52beaa232db305df68",
+    "Stage4B_final_closeout": "a881fdc4cea3fd0a625009181ef0eda0b029f26608a11e98e1acdb4cd94f24c0"
+  },
+  "Final_Answer_added": false,
+  "Frozen_and_Gold_integrity": {
+    "Frozen_Gold_hashes": {
+      "aggregate_seal": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+      "evidence": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+      "retrieval": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+      "sufficiency": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a"
+    },
+    "Frozen_Query_hash": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+    "modified": false,
+    "post_prediction_freeze_open_only": true
+  },
+  "P14_result_freeze_hash": "9dfe516c354267edbf69db9470a5048499a034ea5c68c2891ceab2a95970e145",
+  "PQS_and_split_hashes": {
+    "Frozen_Gold_seal": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+    "PQS_manifest": "eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb",
+    "development_Gold_seal": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "split_manifest": "34d3ecdb79dfa86d9ac43f48a6a245ab4c996004cacb4191a637798ec1f85ec3"
+  },
+  "Stage5_current_refreeze_hash": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+  "V3_5_status": "formally_closed",
+  "V4_implementation_started": false,
+  "final_closeout_hashes": {
+    "V3_5_FINAL_CLOSEOUT.json": "79e85a945e985ad3e87c464924250f0568a6be4dc7776399b8ab8f3606ab4d38",
+    "V3_5_FINAL_CLOSEOUT.md": "8ff300e13b9cca4283085082d37d0fa32568cb47be0e9086e7875c0da1297df8",
+    "V3_5_V4_READINESS_REPORT.md": "876a426f1a0108ffd34e7c8bad7192a1c240c35e5fabd04051d53f84f7a846a2"
+  },
+  "formal_component_hashes": {
+    "Evidence_Identity_Contract": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "Stage5_integration_seal": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+    "auto_router": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "candidate_builder": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "fine_selector": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+    "mechanical_gate": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "retrieval": null,
+    "semantic_judge": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59"
+  },
+  "frozen_at": "2026-07-27T19:01:32+00:00",
+  "original_invalid_run_hashes": {
+    "invalid_run_seal": "f61bb37a04daaf298e0f3c970231a4b10ff87abd3b63b35348b45bfb8d8ae57c",
+    "manifest": "83c7265c32e86fb4b311e604be1545c55a05627817ea265b5c8d97fc46bc2101",
+    "provider_failure_log": "4a88086eb1f452631401a1b8bcce141d16730a172b4671242db115a840c49df6"
+  },
+  "outcome": "v3_5_final_closeout_complete",
+  "post_frozen_tuning_occurred": false,
+  "replacement_run_hashes": {
+    "P14_result_freeze": "9dfe516c354267edbf69db9470a5048499a034ea5c68c2891ceab2a95970e145",
+    "freeze_barrier_correction": "26a289dce5dd82b66325095f1e4ebc7d8486ccb227aa33823bc9ae2f753443a6",
+    "manifest": "3d09dd34a62bf4470a7d47cdee753fb68507910b5588f056c3cd3f0f51fda9da",
+    "predictions": "9742fca9d4c88dffee193133757f5fa11cbc8a2f72885e0b6796be0c7de46748",
+    "predictions_freeze": "3612c3f6889a9a05c87d507f42bc748888d386547ab0f43eeae15ee2fd920f2e",
+    "same_run_resume_audit": "05db24ed58c81d58ebfd1b6f32abf88a5b40929cadc051bb6144763c838c38e8"
+  },
+  "repository_source_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a",
+  "schema_version": "v3.5-b-final-freeze-seal-v1",
+  "session_can_be_closed": true
+}

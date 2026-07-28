@@ -1,0 +1,359 @@
+{
+  "snapshot_id": "20260720T094346Z_c7663365",
+  "snapshot_db_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+  "snapshot_db_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "artifact_root": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts",
+  "git_branch": "codex/v3-domain-completion",
+  "git_head": "8287c8d92378b87290274d02605cdc704cb8c470",
+  "human_ledger_source": "research/v3_eval/eval_gold_review.decisions.amended.jsonl",
+  "supersedes": "research/v3_eval/eval_gold_review.decisions.jsonl",
+  "amendment_reason": "five-row incremental human review after evidence-availability audit",
+  "query_count": 24,
+  "pool_candidate_count": 452,
+  "label_counts": {
+    "N": 337,
+    "R_evidence": 104,
+    "R_title": 6,
+    "U_title": 5
+  },
+  "snapshot_table_counts": {
+    "retrieval_units": 1555,
+    "retrieval_units_fts": 1555,
+    "retrieval_dense_vectors": 1555
+  },
+  "default_eligibility": {
+    "checked_candidates": 452,
+    "violations": 0
+  },
+  "explicit_filter_audit": {
+    "Q19": {
+      "filters": {
+        "folder_id": 3876418799
+      },
+      "candidate_count": 26,
+      "all_passed": true,
+      "time_unit": "Unix seconds",
+      "timezone": "UTC",
+      "lower_comparison": "favorite_time >= favorite_time_from",
+      "upper_comparison": "favorite_time <= favorite_time_to",
+      "human_readable_utc": {}
+    },
+    "Q20": {
+      "filters": {
+        "marked": true
+      },
+      "candidate_count": 1,
+      "all_passed": true,
+      "time_unit": "Unix seconds",
+      "timezone": "UTC",
+      "lower_comparison": "favorite_time >= favorite_time_from",
+      "upper_comparison": "favorite_time <= favorite_time_to",
+      "human_readable_utc": {}
+    },
+    "Q21": {
+      "filters": {
+        "uploader": "慢学AI"
+      },
+      "candidate_count": 6,
+      "all_passed": true,
+      "time_unit": "Unix seconds",
+      "timezone": "UTC",
+      "lower_comparison": "favorite_time >= favorite_time_from",
+      "upper_comparison": "favorite_time <= favorite_time_to",
+      "human_readable_utc": {}
+    },
+    "Q22": {
+      "filters": {
+        "favorite_time_from": 1784246400,
+        "favorite_time_to": 1784505600
+      },
+      "candidate_count": 11,
+      "all_passed": true,
+      "time_unit": "Unix seconds",
+      "timezone": "UTC",
+      "lower_comparison": "favorite_time >= favorite_time_from",
+      "upper_comparison": "favorite_time <= favorite_time_to",
+      "human_readable_utc": {
+        "favorite_time_from": "2026-07-17T00:00:00+00:00",
+        "favorite_time_to": "2026-07-20T00:00:00+00:00"
+      }
+    },
+    "Q23": {
+      "filters": {
+        "favorite_time_from": 1780272000,
+        "favorite_time_to": 1782864000
+      },
+      "candidate_count": 15,
+      "all_passed": true,
+      "time_unit": "Unix seconds",
+      "timezone": "UTC",
+      "lower_comparison": "favorite_time >= favorite_time_from",
+      "upper_comparison": "favorite_time <= favorite_time_to",
+      "human_readable_utc": {
+        "favorite_time_from": "2026-06-01T00:00:00+00:00",
+        "favorite_time_to": "2026-07-01T00:00:00+00:00"
+      }
+    },
+    "Q24": {
+      "filters": {
+        "favorite_time_from": 1767225600,
+        "favorite_time_to": 1775001600
+      },
+      "candidate_count": 13,
+      "all_passed": true,
+      "time_unit": "Unix seconds",
+      "timezone": "UTC",
+      "lower_comparison": "favorite_time >= favorite_time_from",
+      "upper_comparison": "favorite_time <= favorite_time_to",
+      "human_readable_utc": {
+        "favorite_time_from": "2026-01-01T00:00:00+00:00",
+        "favorite_time_to": "2026-04-01T00:00:00+00:00"
+      }
+    }
+  },
+  "q04_video125": {
+    "in_complete_pool": false,
+    "added_to_gold": false,
+    "isolated_cross_file_mismatch": true
+  },
+  "q10_video135": {
+    "query_id": "Q10",
+    "video_id": 135,
+    "status": "passed",
+    "bvid": "BV1Up756vEK7",
+    "start": 1.12,
+    "end": 6.3,
+    "raw_segment_start_index": 1,
+    "raw_segment_end_index": 2,
+    "source": "authoritative_raw_subtitle",
+    "evidence": "为什么复杂agent越来越采用daa g workflow 而不是简单的react循环",
+    "decision": "approve",
+    "human_note": "Approved; human inspection confirmed the video fully matches and explains the question."
+  },
+  "title_and_unjudged_content_audit": [
+    {
+      "query_id": "Q02",
+      "video_id": 142,
+      "label": "R_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 137,
+      "label": "R_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 44,
+      "label": "U_title",
+      "has_reviewable_content": true,
+      "accepted_amendment_exception": true
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 112,
+      "label": "U_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q09",
+      "video_id": 49,
+      "label": "R_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q09",
+      "video_id": 23,
+      "label": "U_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q22",
+      "video_id": 137,
+      "label": "R_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q22",
+      "video_id": 143,
+      "label": "R_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q22",
+      "video_id": 142,
+      "label": "U_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q23",
+      "video_id": 41,
+      "label": "U_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    },
+    {
+      "query_id": "Q24",
+      "video_id": 125,
+      "label": "R_title",
+      "has_reviewable_content": false,
+      "accepted_amendment_exception": false
+    }
+  ],
+  "interval_audit": [
+    {
+      "query_id": "Q01",
+      "video_id": 78,
+      "status": "passed",
+      "bvid": "BV1G29EBGE8b",
+      "start": 62.96,
+      "end": 72.7,
+      "raw_segment_start_index": 26,
+      "raw_segment_end_index": 28,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "越来越多的公司开源社区开始放弃MCP转而拥抱CLI 视频的后半段 我们会探讨MCP跟CLI各自都有哪些优势",
+      "decision": "approve",
+      "human_note": "Approved as a useful MCP/CLI comparison entry point."
+    },
+    {
+      "query_id": "Q02",
+      "video_id": 77,
+      "status": "passed",
+      "bvid": "BV1JLN2z4EZQ",
+      "start": 170.9,
+      "end": 180.56,
+      "raw_segment_start_index": 81,
+      "raw_segment_end_index": 82,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "我们一起来看看rag是如何解决这个问题的 首先rag会把文档切分为多个片段",
+      "decision": "approve",
+      "human_note": "Approved: begins explaining the RAG mechanism and document chunking."
+    },
+    {
+      "query_id": "Q03",
+      "video_id": 40,
+      "status": "passed",
+      "bvid": "BV1oa6uBXE8J",
+      "start": 6.88,
+      "end": 10.44,
+      "raw_segment_start_index": 4,
+      "raw_segment_end_index": 4,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "呃这篇论文的名字呢叫做memory os",
+      "decision": "approve",
+      "human_note": "Approved as a minimal entity anchor for MemoryOS."
+    },
+    {
+      "query_id": "Q04",
+      "video_id": 117,
+      "status": "passed",
+      "bvid": "BV1UaPmzrESw",
+      "start": 119.23,
+      "end": 125.65,
+      "raw_segment_start_index": 47,
+      "raw_segment_end_index": 48,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "我们微调要用到的LAURA就是来自这个库 TRL是专门用于大模型微调的工具库",
+      "decision": "approve",
+      "human_note": "Approved after human inspection: the interval is part of installing the library required for LoRA fine-tuning."
+    },
+    {
+      "query_id": "Q06",
+      "video_id": 83,
+      "status": "passed",
+      "bvid": "BV1qTYizcEN3",
+      "start": 5.74,
+      "end": 9.379,
+      "raw_segment_start_index": 3,
+      "raw_segment_end_index": 3,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "function calling以及MCP模型上下文协议",
+      "decision": "approve",
+      "human_note": "Approved after human inspection: the opening directly enters the Function Calling and MCP topic."
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 38,
+      "status": "passed",
+      "bvid": "BV1z6SXBzEYh",
+      "start": 3.42,
+      "end": 15.35,
+      "raw_segment_start_index": 3,
+      "raw_segment_end_index": 9,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "crowd code记忆系统 你有没有想过 当你跟AI编程助手对话的时候 他是怎么记住你说过的话 你的偏好 你项目的上下文的更进一步 他怎么在多个会话之间保持记忆",
+      "decision": "approve",
+      "human_note": "Approved as the direct topic entry for Claude Code memory mechanisms."
+    },
+    {
+      "query_id": "Q08",
+      "video_id": 30,
+      "status": "passed",
+      "bvid": "BV11wEb6uEwB",
+      "start": 28.23,
+      "end": 32.96,
+      "raw_segment_start_index": 11,
+      "raw_segment_end_index": 11,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "就是rag中间过程的一些优化的拆解",
+      "decision": "approve",
+      "human_note": "Approved as the direct section entry for RAG optimization."
+    },
+    {
+      "query_id": "Q10",
+      "video_id": 135,
+      "status": "passed",
+      "bvid": "BV1Up756vEK7",
+      "start": 1.12,
+      "end": 6.3,
+      "raw_segment_start_index": 1,
+      "raw_segment_end_index": 2,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "为什么复杂agent越来越采用daa g workflow 而不是简单的react循环",
+      "decision": "approve",
+      "human_note": "Approved; human inspection confirmed the video fully matches and explains the question."
+    },
+    {
+      "query_id": "Q15",
+      "video_id": 78,
+      "status": "passed",
+      "bvid": "BV1G29EBGE8b",
+      "start": 62.96,
+      "end": 72.7,
+      "raw_segment_start_index": 26,
+      "raw_segment_end_index": 28,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "越来越多的公司开源社区开始放弃MCP转而拥抱CLI 视频的后半段 我们会探讨MCP跟CLI各自都有哪些优势",
+      "decision": "approve",
+      "human_note": "Approved as the direct entry to the CLI-versus-MCP advantages discussion."
+    },
+    {
+      "query_id": "Q17",
+      "video_id": 117,
+      "status": "passed",
+      "bvid": "BV1UaPmzrESw",
+      "start": 175.45,
+      "end": 183.32,
+      "raw_segment_start_index": 72,
+      "raw_segment_end_index": 73,
+      "source": "authoritative_raw_subtitle",
+      "evidence": "而我们接下来要做的事情就是通过SFT微调 让模型在回答问题时融入特定的动漫人格",
+      "decision": "approve",
+      "human_note": "Approved in the surrounding SFT+LoRA anime-persona fine-tuning workflow."
+    }
+  ],
+  "negative_controls": [
+    "Q14",
+    "Q18"
+  ],
+  "validation_status": "passed"
+}

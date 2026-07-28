@@ -1,0 +1,16 @@
+{
+  "approved_b0_task_contract_restored": true,
+  "candidate_builder_run": false,
+  "current_state_updated": true,
+  "embedding_run": false,
+  "formal_handoff_files_generated": false,
+  "frozen_evaluation_accessed": false,
+  "historical_reports_overwritten": false,
+  "original_h0_assets_overwritten": false,
+  "production_code_modified": false,
+  "retrieval_run": false,
+  "selector_run": false,
+  "stage3r_pqs_b0_accepted": false,
+  "stage3r_pqs_b0_executed": false,
+  "sufficiency_judge_run": false
+}

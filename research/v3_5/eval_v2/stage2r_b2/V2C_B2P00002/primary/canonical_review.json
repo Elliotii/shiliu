@@ -1,0 +1,94 @@
+{
+  "case_id": "V2C_B2P00002",
+  "review": {
+    "acceptable_evidence_groups": [
+      {
+        "alternative_expression_notes": "以 AI/coding agent 参与并自动化代码开发、回归测试和迭代的具体流程，实质性讨论了 vibe coding 相关主题。",
+        "group_id": "G1",
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "required_span_ids": [
+          "S1"
+        ]
+      }
+    ],
+    "boundary_notes": "字幕未直接出现“vibe coding”这一术语，但围绕使用 Codex 等 coding agent 进行代码开发、测试和迭代的工作流展开。",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [],
+    "optional_context_spans": [],
+    "reason_codes": [
+      "SUBSTANTIVE_TOPIC_DISCUSSION"
+    ],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "视频是否实质讨论了 vibe coding。"
+      }
+    ],
+    "required_spans": [
+      {
+        "end_time": 717.5,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000296",
+          "BV1o87764Ebs_seg_000297",
+          "BV1o87764Ebs_seg_000298",
+          "BV1o87764Ebs_seg_000299",
+          "BV1o87764Ebs_seg_000300",
+          "BV1o87764Ebs_seg_000301",
+          "BV1o87764Ebs_seg_000302",
+          "BV1o87764Ebs_seg_000303",
+          "BV1o87764Ebs_seg_000304",
+          "BV1o87764Ebs_seg_000305",
+          "BV1o87764Ebs_seg_000306",
+          "BV1o87764Ebs_seg_000307",
+          "BV1o87764Ebs_seg_000308",
+          "BV1o87764Ebs_seg_000309",
+          "BV1o87764Ebs_seg_000310",
+          "BV1o87764Ebs_seg_000311",
+          "BV1o87764Ebs_seg_000312"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S1",
+        "span_role": "required",
+        "start_time": 665.87,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      }
+    ],
+    "reviewed_full_transcript": true,
+    "status": "sufficient",
+    "supported_aspects": [
+      "A1"
+    ],
+    "transcript_first_segment_id": "BV1o87764Ebs_seg_000001",
+    "transcript_last_segment_id": "BV1o87764Ebs_seg_000374"
+  },
+  "review_metadata": {
+    "case_input_sha256": "a3d593b24a3c01a10d0a750c6ed9143a9f4d405a5415051adb36bc5d810c878a",
+    "completed_at": "2026-07-22T19:40:46.635628Z",
+    "latency_ms": 20961,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-primary-reviewer-draft-prompt-v3-query-grounded",
+    "repair_count": 0,
+    "reviewer_model": "gpt-5.6-terra",
+    "reviewer_provider": "openai",
+    "reviewer_role": "primary",
+    "started_at": "2026-07-22T19:40:25.674628Z",
+    "usage": {
+      "cached_tokens": 0,
+      "estimated_cost_usd": null,
+      "input_tokens": 76120,
+      "output_tokens": 1386
+    },
+    "validation_status": "valid"
+  }
+}

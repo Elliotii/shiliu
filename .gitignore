@@ -6,6 +6,10 @@ __pycache__/
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
 .coverage
 htmlcov/
 .env
@@ -32,3 +36,22 @@ eval/private_reference/silver_calls_v*.jsonl
 eval/private_reference/silver_reference_manifest_v*.json
 eval/private_reference/silver_work/
 eval/private_reference/candidate_videos_*.jsonl
+
+# V3/V3.5 closeout: retain formal manifests/seals/results, not local execution bulk.
+research/v3_5/product_query_set_v1/p14_frozen_evaluation/replacement_provider_state/
+research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/
+research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_work/
+research/v3_5/product_query_set_v1/product_initial_baseline_v1/blind_run/product_initial_baseline.traces/
+research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/
+research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/f1a_swap_traces/
+research/v3_5/stage3r/track_a/cases/
+research/v3_5/stage3r/track_a/search/
+research/v3_5/stage3r/track_b/cases/
+research/v3_5/stage3r_qc/phase_b_r/execution/hybrid/q0/cases/
+research/v3_5/stage3r_qc/phase_b_r/execution/hybrid/q1/cases/
+research/v3_5/stage3r_qc/phase_b_r/execution/hybrid/q2/cases/
+research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/
+
+# Keep one small, non-sensitive Stage 3A trace fixture; exclude the remaining bulk.
+research/v3_5/stage3a/trace_samples/*
+!research/v3_5/stage3a/trace_samples/CASE_001.track_a.json

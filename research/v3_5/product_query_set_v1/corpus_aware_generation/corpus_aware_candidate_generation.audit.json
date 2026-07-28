@@ -1,0 +1,344 @@
+{
+  "method_version": "v3.5-pqs-corpus-aware-authoring-method-v1",
+  "repository_root": "/Users/elliot/new-systems/agent-job-prep/Shiliu",
+  "resolved_sources": {
+    "canonical_collection_metadata": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#favorite_sources,video_source_memberships",
+    "canonical_video_metadata": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#videos",
+    "ai_summary_assets": "/Users/elliot/Documents/Shiliu/videos/*/summary.md and summary.refined.md selected by videos.summary_path",
+    "ai_chapter_assets": "Important-chapter headings inside canonical summary markdown selected by videos.summary_path",
+    "topic_or_category_assets": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#taxonomy_classification_cards latest populated snapshot",
+    "subtitle_manifest": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#videos subtitle_language,subtitle_source,raw_subtitle_path",
+    "official_subtitle_assets": "/Users/elliot/Documents/Shiliu/videos/*/subtitle-raw.txt where videos.subtitle_source is ai or human",
+    "asr_assets": "/Users/elliot/Documents/Shiliu/videos/*/subtitle-raw.txt where videos.subtitle_source is asr",
+    "current_product_scenario_docs": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/authoring_packet/PQS_V1_PRODUCT_SCENARIO_BRIEF.md"
+  },
+  "allowed_sources_read": [
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/config.py",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/app.py",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/authoring_packet/PQS_V1_PRODUCT_SCENARIO_BRIEF.md",
+    "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#favorite_sources,videos,video_source_memberships,taxonomy_classification_cards",
+    "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#sqlite_master (schema preflight only; no retrieval/evaluation/result rows)",
+    "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1Up756vEK7/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1tM9UBSEdg/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1aTKP61E31/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1HCM46TESg/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV15bKn6iEmF/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1xQ7K6CESQ/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1Tdjw6hEH5/summary.refined.md",
+    "/Users/elliot/Documents/Shiliu/videos/BV1vQwJzTEdz/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/metadata.json",
+    "/Users/elliot/Documents/Shiliu/videos/BV1atjU6KEJF/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1z6SXBzEYh/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1FMGJ6XE8c/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1pCGJ6ZEDH/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV15J5u6HEP4/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1rb5y6wEJV/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV18NLx6fEAq/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1G29EBGE8b/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1wBfvBnEkY/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1UaPmzrESw/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV19pPSzsEXv/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1Up756vEK7/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1tM9UBSEdg/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1xQ7K6CESQ/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1Tdjw6hEH5/subtitle-raw.txt"
+  ],
+  "blocking_or_unclear_paths": [],
+  "historical_assets_seen_but_not_read": [
+    "research/v3_5/product_query_set_v1/authoring_packet/PQS_V1_NEUTRAL_LIBRARY_CONTENT_MAP.md",
+    "research/v3_5/product_query_set_v1/authoring_packet/PQS_V1_LEGACY_CANDIDATE_PACKET.md",
+    "research/v3_5/product_query_set_v1/authoring_packet/pqs_v1_legacy_candidates.jsonl",
+    "research/v3_5/product_query_set_v1/phase_a/**",
+    "research/v3_5/product_query_set_v1/phase_a_r/**"
+  ],
+  "filename_inventory_only_paths": [
+    "research/v3_5 evaluation, Gold, result, prediction, score, stress, held-out, and frozen-evaluation path names encountered during preflight listing; file bodies not read"
+  ],
+  "transcript_files_or_items_inspected": [
+    "/Users/elliot/Documents/Shiliu/videos/BV1vQwJzTEdz/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1atjU6KEJF/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1z6SXBzEYh/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1FMGJ6XE8c/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1pCGJ6ZEDH/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV15J5u6HEP4/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1rb5y6wEJV/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV18NLx6fEAq/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1G29EBGE8b/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1wBfvBnEkY/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1UaPmzrESw/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV19pPSzsEXv/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1Up756vEK7/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1tM9UBSEdg/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1xQ7K6CESQ/subtitle-raw.txt",
+    "/Users/elliot/Documents/Shiliu/videos/BV1Tdjw6hEH5/subtitle-raw.txt"
+  ],
+  "full_corpus_dump_used": false,
+  "product_retrieval_calls": 0,
+  "eval_runner_calls": 0,
+  "candidate_builder_calls": 0,
+  "selector_calls": 0,
+  "mechanical_gate_calls": 0,
+  "semantic_judge_calls": 0,
+  "final_answer_calls": 0,
+  "gold_assets_read": false,
+  "system_results_read": false,
+  "search_candidate_set_read": false,
+  "dev_frozen_split_read": false,
+  "old_user_decisions_read": false,
+  "legacy_acceptance_results_read": false,
+  "old_neutral_pass1_candidates_read": false,
+  "product_queries_finalized": false,
+  "user_validation_filled": false,
+  "read_audit": [
+    {
+      "file_or_table": "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/config.py",
+      "access_reason": "resolve production default state, database, and content paths",
+      "source_type": "current_product_configuration_code",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/app.py",
+      "access_reason": "confirm current product path wiring and product boundary",
+      "source_type": "current_product_boundary_code",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/authoring_packet/PQS_V1_PRODUCT_SCENARIO_BRIEF.md",
+      "access_reason": "understand current product scenario and query boundary",
+      "source_type": "product_scenario",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#favorite_sources,videos,video_source_memberships,taxonomy_classification_cards",
+      "access_reason": "resolve canonical collection membership and scan allowed navigation fields",
+      "source_type": "canonical_sqlite_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db#sqlite_master",
+      "access_reason": "source-resolution preflight table-name and schema inspection only; no retrieval, evaluation, trace, or result rows read",
+      "source_type": "database_schema_preflight",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1Up756vEK7/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1tM9UBSEdg/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1aTKP61E31/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1HCM46TESg/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV15bKn6iEmF/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1xQ7K6CESQ/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1Tdjw6hEH5/summary.refined.md",
+      "access_reason": "inspect AI summary and chapter headings for candidate navigation",
+      "source_type": "ai_summary_and_chapter_navigation",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1vQwJzTEdz/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/metadata.json",
+      "access_reason": "inspect the canonical video metadata container during source-resolution and candidate-basis verification",
+      "source_type": "canonical_video_metadata_container",
+      "transcript_body_read": false,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1atjU6KEJF/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1z6SXBzEYh/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1FMGJ6XE8c/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1pCGJ6ZEDH/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV15J5u6HEP4/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1rb5y6wEJV/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV18NLx6fEAq/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1G29EBGE8b/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1wBfvBnEkY/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1UaPmzrESw/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV19pPSzsEXv/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1Up756vEK7/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1tM9UBSEdg/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1xQ7K6CESQ/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    },
+    {
+      "file_or_table": "/Users/elliot/Documents/Shiliu/videos/BV1Tdjw6hEH5/subtitle-raw.txt",
+      "access_reason": "targeted confirmation that a candidate mechanism, workflow, comparison, result, or limitation exists",
+      "source_type": "official_subtitle_or_asr",
+      "transcript_body_read": true,
+      "evaluation_asset": false,
+      "system_result_asset": false
+    }
+  ],
+  "mechanical_checks": {
+    "candidate_count_valid": true,
+    "exact_duplicate_count": 0,
+    "near_duplicate_review_completed": true,
+    "user_review_forbidden_field_count": 0,
+    "candidate_identity_consistent": true,
+    "transcript_access_logged": true,
+    "prohibited_pipeline_calls_zero": true
+  }
+}

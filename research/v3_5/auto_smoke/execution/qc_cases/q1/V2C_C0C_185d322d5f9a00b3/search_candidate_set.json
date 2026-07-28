@@ -1,0 +1,1859 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "应用从原型到云部署",
+    "planned_mode": "hybrid",
+    "query_type": "keyword_phrase",
+    "raw_query": "应用从原型到云部署",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "keyword_phrase_dual_signal",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.5803507566452026,
+      "end_time": 825.21,
+      "excerpt": "就是可能在公司内部 也有人已经做了类似的这种这种实验 或者这种demo 只是可能并没有作为一个呃产品 去很认真的宣发 然后把它打磨 然后发出去对 然后当事实情况就是你去看这个open cloud 最早版本的GITHUB的那个code 其实那个code也就呃从某种意义上来说 写的也不是特别的干净 但是我觉得他很重要的事是 他呃给大家展示了这种可能性 嗯那可能展示这种可能性之后 未来呃想当欧呃open好好作 作者自己也加入楼盘 然后那可能就是这些呃模型的的实验室 或者说一些呃大一点创业公司会很快跟上 然后把这东西打磨成一个真正可用的产品 嗯对所以我理解其实在",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 706.3,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_1ba612132380d20e4c1bca6dafe33e63",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.5514799952507019,
+      "end_time": 706.779,
+      "excerpt": "装依赖 调参数稍微不一样 就出现我电脑能跑服务器跑不起来的玄学bug 大促前要紧急扩容几百台机器 一台台配环境根本赶不上 大促结束 要缩容 还得一台代清理 效率低 要离谱 怎么办 很简单嘛 你又灵机一动 能不能把服务和他需要的运行环境一起 打包成一个密封盒子 放到哪台服务器都能直接跑 于是你又发明了一个新玩意儿 不用再配环境 把每个微服务的代码依赖配置环境 全部打包成一个镜像 一次打包到处运行 彻底解决了环境不一致的世纪难题 你给它取名叫DOKER容器 于是架构就成了这样 可问题又来了几百上千个溶剂 谁能帮你管呢 于是你又请来个全能大管家 他能安排容器资",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 587.32,
+      "subtitle_source": "ai",
+      "title": "互联网架构就这？1个故事讲清楚",
+      "unit_id": "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_5d58ad4987d247012e82ba8e36e6b1a1",
+      "unit_type": "transcript_chunk",
+      "uploader": "架构师阿Q",
+      "video_id": 64
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.5442691445350647,
+      "end_time": 1859.619,
+      "excerpt": "我自己如果超出我的认知范围了 就是这个plan的质量取决于你的经验 以及你能不能做好的判断 能展开一下普兰网 听前你做的更简单 对我现在做的更简单啊 做做做做 做的非常简 做的简单很多 因为那个CD那个呃他做的太美好 但是我根本就用不起来啊 这是一个 然后呢我可以给大家看一下 比如说一个例子 我的一个代码当中 我今天搞了一个例子 比如举个例子 啊因为我的项目都在内网啊 就是有些东西不能够就看不到 然后这个比如DOS里面就是按上次呃的一个例子 就是这个比如说design把API全都放在这了对吧 他就这个design是一个事实事实方案 就这个描述的是这个系统",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 1741.67,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_2da13eea92f7f41f3b300f179dddb268",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.5387015342712402,
+      "end_time": 2557.05,
+      "excerpt": "本身被这个模型建模不进去的一些东西 所以诶得选资产就是选选选对 这个就OK我觉得嗯嗯关于你们的新模型 我放在后面说 我们先把open cloud这个话题聊完 你观察就你观察 你觉得open cloud是怎么样的一个火起来的链路啊 而且我明显感觉到在中国 它的火的程度比在美国要更强 这是为什么 我看到还有一个很好玩的说法 叫西夏冬阳 叫什么西沙东阳啊 西沙东阳哦 嗯因为我不了解弯曲对它的热度哈 对所以我我仅从你的视角对 仅从我自己以及我身边人的视角 我觉得可能的一个原因是 就中国的开发者 我觉得是更更更多的就是 我说开发者是指他可以用code去提升 他的生",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 2439.2,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_68e4e21d37ca96a563c611d18cf26cee",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.5365008115768433,
+      "end_time": 1737.175,
+      "excerpt": "不知道 但现在用不了 他没有开那个端口 然后呢这是一个常驻智能体啊 这个东西其实我从字面上理解就是一个open cloud 因为cloud code也在走open cloud这条线 就是嗯现在我们不是要长期给它打开嘛 对吧 你打开一次 你每次进来还得cloud code cloud打开 那么它把它做成一个进程 24小时运行的 这样你可以通过其他的端呃去连接它 那么其实就是本质上就是open cloud这样的一个模式 然后远程规划其实就是把这个一些任务 你看30分钟啊 浏览器审批就是把这些任务从本地拉到云端 所以你看他们的他这个方向呢就是本地的进程24小时",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 1617.61,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_160ee763a7ef01fcef9011783340d532",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.5353124141693115,
+      "end_time": 582.74,
+      "excerpt": "做不到杠杆 是因为如果你只有cloud code或者是open cloud hermes 你只有这样的框架是不行的 因为真正让模型发挥出优势的是更加复杂的 Harness 是更加合理的分工规划 流程控制 而且是无人值守 高并发全自动端到端的交付 那么简而言之 就是说 除了有模型以及对模型能力边界的极致理解 你还需要一整套的harness来实现这一切 对你需要的不是模型 而是软件 好的就是现在 这是目前AI世界里没有标准答案的地方 也是被迷雾蒙住的一块 也是更有价值的一块 所以每个人都有机会啊对吧 但我敢保证 也就是今年内市场上就不断会有答案产生 说说我自",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 466.23,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.5271770358085632,
+      "end_time": 815.089,
+      "excerpt": "比如说千万4再除以个27B 那这种能力的杠杆效应会越来越强 好了说了这么多 我自己的东西 你们可能要问 那我们大家应该怎么办呢 那我就给三个建议 首先第一的就是开始尽可能地使用小模型 你别整天就是你订阅了cloud max 你就觉得天下无敌了 但实际上一点意义都没有 你应该想的是 怎么样用更小的成本能摸到它的模型的边界 或者你就直接用deep sk v4pro加flash组合就行了 我给你们教一个技巧啊 如果你用cloud code 你知道怎么样改环境变量对吧 把sonnet和high库的模型设置为deep sk v4flash 四模型配置为V4pro ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 695.83,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_3cab54ef52ee04bfbc3ee0f5bf120047",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.525309681892395,
+      "end_time": 1854.159,
+      "excerpt": "他其实也就是访问这个端口 然后来进行一个调试 其实只要你用skills就可以实现 然后如果说有人会对他的记忆记记忆是很惊艳 其实这也就是普的工程 你使用它的code 也可以让他一会往memory里输出点东西 记住你干了啥 当然各种skills更是从cloud code里出来的 然后open cloud是复用的 所以说呢有些人会说啊 cloud com cloud可以操作操作cos x v cloud code 但是你cos x和cos code也可以操作opp cloud对吧 所以说呢对于我来说 open cloud意义其实就是有一套开源可通讯code ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 1744.1,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_be27facba3ab55f7f6dda62e7b815ff7",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.5243006944656372,
+      "end_time": 587.915,
+      "excerpt": "they can be developed in parallel entirely. This way, you can do two totally different things at once, doubling your dev efficiency! Quick check of results: server on left, client on right. Of course, for the actual launch, the server won’t run on my PC—it has to be deployed to t",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 549.848,
+      "subtitle_source": "ai",
+      "title": "10分钟app开发全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_80f41ce304f8776dea3ec0eca2ef8b43",
+      "unit_type": "transcript_chunk",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.5242434740066528,
+      "end_time": 696.51,
+      "excerpt": "网页是这个样子的 就是这个DMG麦克就可以直接装 演示一下这个OMLX怎么用啊 这个直接拖进去就行了 我是因为装好了 装好了之后呢 在第一次启动的时候啊 它会弹一个welcome string 这个里头有几个重要的点 就是你需要指定一它的base directory 然后这个比较重要 就是它的模型存哪 然后端口和API key你随便指定一个自己喜欢的 然后点这个start 它就启动起来了好吧 然后这个时候它就会有一个面板给大家看一下 这个面板啊有一个小bug 就是它这个中文支持就每次都保存不上 所以我们每次进来如果要用中文的话 把它点一下 它就变成中文了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 577.71,
+      "subtitle_source": "ai",
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_614333a32c11295db65ad422f1bf024c",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 119
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.5241544246673584,
+      "end_time": 1399.84,
+      "excerpt": "就3月3月十多号的版本已经非常易用 就你基本上啊啊呃基于3年级后的版本 截一个啊还不错的模型 你都会觉得他很强大嗯而不是只有JK的模型 你会觉得他很强大 就是因为他整个A证的架构哦 受受一堆人开发者也好 嗯或者说本身像像我这种哦 并不是属于是啊 呃一开始这个框架的开发者只是使用者 我都能去改进它 我服我自己的场景去做改进和优化 所以诶我觉得这这是这个呃 或或者说这是开源A这种框架 本身的价值和意义对嗯在你高强度的那一周 就是跟open cloud交互的那一周 你消耗了多少美金的opus4.6嗯 第一天反正就是快1000块钱1000刀哦 对因为大概用了四五",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 1280.3,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e1289914a9ac92b22983df7e19582eb8",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.521920919418335,
+      "end_time": 117.24,
+      "excerpt": "1cloud design 所以设计的这个功能还是需要订阅才能使用的 那我原先用codex 让他帮我搭建一个减肥的一个app的开发 那我把这个PRD丢给cloud code 看一下设计生成的结果 168轻断食app创建 你读下这篇P2D帮我生成相关主要页面 页面主色调 页面主色调为薄荷绿 辅助色为米色 参考的设计风格是多邻国和你们 cloud code自己的设计风格 按照PRD里面的页面规划 帮我生成首页日历页和个人中心页 A few moments later 丑是挺丑 但是居然能用米色的背景不是特别好看 进食的那个圆圈里面 绿色的可进时期和红色的不可",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 0.14,
+      "subtitle_source": "ai",
+      "title": "对比三大UI设计Agent页面生成效果，Claude  Design、Figma Make、Google Stitch",
+      "unit_id": "transcript_chunk:bilibili:BV1CsojB8Eyf:p1:chunk_65640a09a023ad22eb5ce3309eabfaa2",
+      "unit_type": "transcript_chunk",
+      "uploader": "Panix潘尼",
+      "video_id": 66
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.5186333656311035,
+      "end_time": 706.98,
+      "excerpt": "而这种框架设计 它是能够弥补非常多模型能力的短板 然后呃哦当然了呃 呃我觉得这是open CD本身它这个框架的一个呃 相相较于cloud code一个差异化的优势 嗯但是其实对于如果说我们要去追求呃 你怎么在这不同的这个SKYFALL的框架下去 模型都有一个呃超预期的非常稳定的表现 那么呃就回到了呃另外一个命题就是呃 你当你当你有非常多 现在其实是呃市场上的这种框架非常的丰富 Cocode open coore 好啊 Kilo code open code等等等 但当你面临这么多很很复杂的一 这种框架的时候 你怎么让你的模型呃 在不同框架上都有一个 非常",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 588.46,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_eb39cec13a5b7db9eac63ed4a068835e",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.5171900987625122,
+      "end_time": 4766.37,
+      "excerpt": "我还没有看到一个我我自己觉得呃 呃至少在改一性的框架本身 我觉得你这种产品你至少要去迭代框架本身吧 还没有看到一个比open CD开源社区进步更快的 因为open cl下开源社区进步太快了 然后我还没有看到比这个开源社区进步的更快 的这样一个A型的框架 或者说产品出现我还没看到 所以我宁愿用最新的open co嗯 你看嗯open cloud嗯 不久之后就卖给了open i 你觉得是为什么呀 为什么 就是这种非常不错的产品公司 最后还是呃并给了模型公司 这是不是说明没有模型做产品还是比较难的 对 觉得呃就是就这两个 应该是一定要也要深度耦合的一个事情 然后",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 4648.6,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_002c6fbc443e57c249b4fe95abca14d9",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.5107226371765137,
+      "end_time": 934.47,
+      "excerpt": "根据我的plan可能会有一些诶诶记忆的动作 然后保证我呃跨session的时候呃 他的contest是共享是更好的 所以你能看到COCODE他的所有的一种框架设计 其实都是非常的for软件工程的 就怎么去更好写写好代码嗯 但是open cloud它的设计之初 我觉得是呃借鉴了这个思想 但是呢他更想的是他怎么更好 端到端的去完成所有的任务 并且怎么去弥补当下模型 在端到端外完成任务上的短板 然后去设计的呃 所以像这种持久化记忆到呃后边这种 你呃你能通过一个更好的呃remote的切呃 呃界面能够去操控它 然后哦等等这些 所以很很很很好的设计 后边 而陆陆续这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 817.25,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_7e821270f6ce629ff7350153d2f6e2b6",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.5096896886825562,
+      "end_time": 3606.88,
+      "excerpt": "再比如这个人cos用oppo code cloud也无所谓的 但是你这套DOS这套standards和features和这个呃 大家统一的就可以了啊 要统一可了 然后有这个有按照这些模式做一个下限 只能做这种下限的管理 我后来我就今天晚上这个大家老老师 我我还打打扰一下 我还有个问题啊 就是说其实刚才你爷说的 就是说那过程中的文档 比如说你的plan 还有那个你前面那个是丢弃 我们现在也是计划丢弃 但丢弃完之后合入对吧 合入到那个你那个整体的一个文档里面去对吧 合入这块东西 你那你们那边操作是有没什么问题 我们现在用AI合的时候 其实也没有一个 现在我们",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 3488.689,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.5072983503341675,
+      "end_time": 237.72,
+      "excerpt": "就会觉得 ok open CD只是啊coco的加一个M的这样的一个呃 更有利于交互的一个呃UI的一个设计 其实嗯在我1月份的时候 我第一次看到这个东西的时候 我我自己大概也是这样认知 所以我很排我很排斥去用它 然后我觉得嗯呃再加上他嗯创始人 我觉得呃非常适合贴近A 真的去做一些非常玄幻的一些呃运营的动作 所以嗯哎就包括那个skill hub啊 这些的就就让你更去排斥去用一个呃 你觉得啊非常的呃 呃偏运营导向的一个产品的东西 对感觉他是一个产品形态 一个交互方式 对对一个交互的创新呃以及他所谓的本地化 所谓的24小时 在我来看啊 其实呃都是嗯都是一些产品的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 118.13,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_59a87e38676b4ef2cf891d1e91fc57a5",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.5051858425140381,
+      "end_time": 487.56,
+      "excerpt": "甚至到现在2026年还是最强的AI工具 先介绍一下这个看起来酷酷的 这个界面的主要功能 左边的是项目文件夹 这个就是我们刚开始建立的这个项目文件夹 C c test 然后中间呢是编辑器 到时候如果有文件生成 你想看某一个具体的文件内容 就会在这个中间显示 右边呢是cloud code核心的聊天窗口 也是你主要跟cloud code交互的地方 正好我们刚刚添加了我们自己的 这个大模型接口 所以呢我们可以在这里直接问他 你现在使用的是什么模型 他回答的就是我们刚刚添加的这个形的模型 从刚刚这个这么小的例子当中 你可以体会到我们在使用cloud code的过程",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 385.0,
+      "subtitle_source": "ai",
+      "title": "15分钟Claude Code小白入门",
+      "unit_id": "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_959208cdff26ea49a06cb85c15a4f044",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 108
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.5047862529754639,
+      "end_time": 469.87,
+      "excerpt": "你的网站从一个小电商长成了集用户商品 订单于一体的大平台 所有功能代码全挤在一个应用里 长成了大家常说的巨石 应用麻烦也跟着来了 改一行用户相关的代码要全量发布 整个应用多个开发同时改代码 天天冲突不断 想给订单服务加机器抗流量 只能整个应用一起扩容 大把资源白白浪费怎么办 很简单嘛 拆你按照业务边界 把这个长达的应用一刀一刀切开 用户相关的功能做成独立的用户系统 商品订单也分成一个独立的小系统 每个系统单独部署 单独发布 单独扩容 谁也不影响谁一个 它取名叫分布式架构 快拆完 新问题又来了 用户下单的时候要查商品库存 生成订单 这些系统都分开了 相互之",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 350.23,
+      "subtitle_source": "ai",
+      "title": "互联网架构就这？1个故事讲清楚",
+      "unit_id": "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_e575c7875d959482a37e91dc66580186",
+      "unit_type": "transcript_chunk",
+      "uploader": "架构师阿Q",
+      "video_id": 64
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.504633367061615,
+      "end_time": 3004.07,
+      "excerpt": "那这样看可能还是不够直观 我们直接的看一下 怎么去在一个一个NC b host来接入吧 就是我我现在用的是这个吹意 它是字节 现在类似于cursor的一个本地IDE 你可以理解成它就是一个agent的 因为它能帮你写代码 帮你改代码对吧 它这里也提供了一些可以接入的NC p server 那添加进来 其实它就是帮你新增了一条这样的配置 我们可以复制一下 可以看到和刚才的这个高德地图 它提供的这个配置长得是非常相似的 所以这个就是说NCP协议它的伟大之处 他把一切都统一了下来 你不管是谁 你给我的配置都长这样 我都能去做标准化的解析 我们再回到吹意这里 就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 2886.61,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_1f4fd400534e5a1b02aef7c82d8fbadd",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.5021541714668274,
+      "end_time": 2888.83,
+      "excerpt": "其实文档这里也有写的很详细 大家如果去看一些agent的框架 然后一直点这个SDK点到最底层的话 会发现其实他发起的最终的这个网络请求 他传的这个请求体 还有最后收到的响应 就是这样的格式 非常严格的遵循了NCP协议 还有第三点就是数据交换的格式 必须要统一这个NCP协议 它最后统一下来是说 我们都基于这种JASONRPC 2.0的这个协议去进行通信 他的这个主要特点 就是所有的通信消息都是JASON格式 这样比较方便解析 也方便快语的调用 那么接下来还有这个AI应用接入工具的配置 这个我直接找了一个NC p server 因为他正好有这种基于s st6",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 2768.85,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_a188b86fbe28c72cc328d7630d0036d6",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.5020043253898621,
+      "end_time": 192.24,
+      "excerpt": "这样的AI编程软件当中去使用cloud code 这个呢有两个原因 第一个呢 就是因为现在这些编程软件的进步速度非常快 不断的推出非常有趣的这些新功能 我们可以在使用cloud code 同时呢能结合这些编程软件推出的新功能 第二点呢就是cloud code原生其实是在终端里面跑 终端大概就是长这样子 就是一堆文字的 这样的窗口 新手一上来呢 其实对着这些窗口啊 很容易直接劝退 但像vs code和cursor这样的编程软件呢 其实界面就更加友好 在这个界面上面点点鼠标就可以操作了 我们这个视频里面以vs code为例啊 你可以直接去这个vs code官",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 98.56,
+      "subtitle_source": "ai",
+      "title": "15分钟Claude Code小白入门",
+      "unit_id": "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_051ba1a477f51be2efa660c945528d61",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 108
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.49835097789764404,
+      "end_time": 1629.71,
+      "excerpt": "你可以尝试一下 再比如说去用那个computer啊 computer呃 use就是这个computer use 这个估计是可以可以考虑app的 但这个我觉得啊现在还是比较靠前 这个有点靠前哦 好像还有一个那个也可以做有个API 那个安卓的那个调试的那个呃 好像是可以做到自动化的一个一个调试和驱动 只是针对功能测试吗 没有涵盖性能测试啊 我觉得这个大伟你要的东西太多了 你以性能测试很多时候都只是比如说一个迭代 然后优化一次 如果而且它跑一次特别性能测试 这是另外一个专业话题 我可以骨节 其实可以后面开一个单图环节去讲 第一个信息测试 你首先你的压缩机要不性",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 1510.01,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_143ffdd581d2adfad1fd402f37e8647e",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.4976479411125183,
+      "end_time": 581.49,
+      "excerpt": "而且呢这个经常情况下呢 这个open cloud跟人类用户在这个channel里面对话的时候 他不是一问一答 而是多轮问答 所以呢他的这个workflow呢它不是一次性的 而是一个循环语句 执行完上一轮的对话 就进入下一轮的对话 所以它是一个loop 所以呢它是一个工作 一个循环往复的工作流程哈 workflow这个loop 那具体来讲呢 他这个loop里面呢就像个引擎一样 它是由五个冲层来构成的 那第一个冲程呢是接收用户的请求 这个用户请求里面的这个名称呢呃有点错乱啊 他经常会说呢叫做user query请求 那也有时候会说这个user request",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 462.59,
+      "subtitle_source": "ai",
+      "title": "PI: pi-ai & pi-agent-core",
+      "unit_id": "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_537aaeea13d658af1063c2231a1cb8e9",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 109
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.4972724914550781,
+      "end_time": 1737.52,
+      "excerpt": "能够去在合适的时候自动完成调用过程好了 现在有了这个技术方案的思路之后 我们来画一下这个系统架构的设计图吧 首先AI应用的后端必须要与工具的服务解耦合 这里已经解耦合了 然后要注意的一点就是你的工具作为一个服务 它都已经作为一个服务独立部署了对吧 他不应该说一个服务它只能提供一个方法 一个工具更合理的是一个服务 它应该提供一组工具 这一组工具可能是实现某一类功能等等 那我们现在假设这个工具server 它是一个本地的一个server 它提供的可能是帮你处理本地excel的一些能力 然后这个工具server 它是一个部署在远程的一个工具server 它可能",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 1617.74,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_7d36ae7a5c3b97542ce41f59edace7a2",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.4964415729045868,
+      "end_time": 943.1,
+      "excerpt": "我会这样觉得 但是我觉得他可能一个对于大家的惊喜 是说以前可能大家都没有意识到 他让大家意识到了这件事可以做 意识到什么 就意识到了 这个你可以诶让模型做 很是就是你可以控制很多不一样的模型 然后做很多不一样的事情 然后把这个事情汇总汇总之后 做一个很长很长很长long horizon的这种这种工作 我觉得可能呃以前的大家并没有 并没有广泛的对这个事产生共识 那这个事情呃给大家展示了这样一种可能性吧 对你看从去年初火的是minus 今年出火的是open cloud 就是从minus的open cloud变化是什么 是模型能力的变化还是产品的变化 这也是一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 824.45,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_c909d95ea4a3927ece1df28ee09f21b7",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.49556878209114075,
+      "end_time": 286.3,
+      "excerpt": "只是一些简单的复制粘贴的操作而已 然后再给大家分享一个比较实用的技巧 就是我一般会在web coding的时候呢 在旁边开一个其他的AI聊天窗口 比如说GEMINIHHBT豆包前吻 哪个熟悉的 你都可以在安装过程当中有任何的报错 任何按钮找不到啦 哪一步卡住了 你都可以截图或者复制错误的信息 然后直接粘贴过来 它基本上都能帮你瞬间解决掉这个问题 到这一步为止呢 其实lor code已经安装好了 我们可以直接在这个终端里面输入cloud这个单词 然后新人这个目录 当你看到这个cloud code logo的时候 说明你这个cloud code已经安装成功了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 189.78,
+      "subtitle_source": "ai",
+      "title": "15分钟Claude Code小白入门",
+      "unit_id": "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_112126b86cc5eaa4e3b80fba0929aeaf",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 108
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.49494320154190063,
+      "end_time": 598.12,
+      "excerpt": "很多时候你想让cloud code去真正改代码之前 你希望他真正理解你的需求 真正理解你想要去做什么 这就是play mode的这个用途 先确定他的计划是否符合你的预期再去执行 很多人抱怨说这个AI智能体agent不可靠 然后会乱改东西 也实现不了我的需求 但大部分时候都是这个plan不够好的问题 如果你能正确的合理的使用这个play mode智能起啊 大部分时候都会按照你的要求来做事 还有一点就是如果你不知道什么时候要选play mode 什么时候不选play mode 那我的建议啊 就是所有时候所有场景都把play mode给勾选上好 接下来我们就开",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 485.1,
+      "subtitle_source": "ai",
+      "title": "15分钟Claude Code小白入门",
+      "unit_id": "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_103b7d6200582f07d27c2f8a2d4dbe83",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 108
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.49433261156082153,
+      "end_time": 2093.98,
+      "excerpt": "就是通过chat的这个模式 然后把这个把排查里面 所有需要的信息都跟跟大家聊清楚 然后让它保存到一个是的 都都在plan里面 是的 因为原来我也有SD框架的时候 我一直把SDD框架用不起来 就是因为他他就是就是这个问题 就是我直到这个卡拉尼克老哥给我讲讲 他讲了个新因子工程之后 我才把这个事彻底把这套东西弄明白 就是很非常重要的一个东西 就是一个过程方案和事实方案 这个东西你如果没想明白 这个plan就写不好 就是这个就是什么是过程方案和知识方案 就是如果我们以前有时候 比如说我举个例子 我写了一个用户中心 它有登录和注册 然后呢编或者是他会给你 就是说",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 1974.06,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_f4709acc7f5b8e28f624faa2cd0c1889",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.4897955358028412,
+      "end_time": 118.97,
+      "excerpt": "画面中这个抱着电脑说话的人是我 而对面没有人 就是cloud 我的工作流搭子 我的工作是做AAS媒体 有非常多的视频文案 而每期视频发出去 都会有大量的数据可以去统计 而当AI把这些所有的内容全部读取到 他就会在我觉得提不起劲的时候 主动劝我放弃 也会在最关键的时候很强硬 比起JPT5.4打的废话 DREAMI毫无底线的夸赞 cloud不仅话少 而且精准 客观不圆滑 是唯一一个能够陪伴我进入心流模式的AI啊 为什么我敢这么说 从他2月5号发布后 大概一周开始 我就一直用到今天 最初只是想浅试一下 现在是真的离不开了 但问题是它的使用极其不稳定 官方直接秒",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 0.16,
+      "subtitle_source": "ai",
+      "title": "Claude用不了的时候，GLM-5.1能顶上吗？",
+      "unit_id": "transcript_chunk:bilibili:BV14pXZBMEh9:p1:chunk_cbe0e8492858b2a3b67b53ca6a44bedc",
+      "unit_type": "transcript_chunk",
+      "uploader": "人工大黑",
+      "video_id": 105
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.4889838397502899,
+      "end_time": 576.76,
+      "excerpt": "叫SHCLOUD总结这个啊 rebel对吧 对比一下谁呢 对比一下open cloud好 这个可能是个比较长的一个任务 我们让他在这待着嗯 也是一样 就是这个是第二轮对话了 虽然说跟第一轮没关系 你看他就是调用了工具了 file read啊 Read me 点MD 这个时候呢相当于这我把这句话丢给模型 然后模型返回了一个工具 叫做用请用file read来读文件 读哪些文件呢 嗯读read me和一些比较重要的这个呃 比如说cloud md等等 这是模型选择的 他已经能读我当前文件夹下所有的文件了 然后他用了一个web search的一个工具去搜open",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 462.11,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_941778e77da44f9f290be7c7b66d22f8",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.4889276921749115,
+      "end_time": 2023.62,
+      "excerpt": "毕竟每个时代都会有新的热点和机遇 而且我觉得事情的发展和变化太快了 几年前我也没想到是这出 所以就等以后再说吧 最后就是我顺便贴一下cloud code的源代码 大家感兴趣可以看一下好了 那么今天的分享就到这里 非常非常感谢大家又听到这个位置 真的很感谢 有的时候我太晚了 我都不知道自己在讲些什么 不过大家不用太担心我的作息 因为我嗯睡到了两点 定个闹钟起来的 主要是想等我爸妈睡觉之后再录视频 他们太吵了好了 那那这次就到这里吧 我尽快一定抓紧时间更新下一个文档 就这样 好的朋友们再见 下次再见 晚安拜拜",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 1977.5,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_ebe9a145f09ffc297c6e74895463e931",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.48862195014953613,
+      "end_time": 118.89,
+      "excerpt": "Hello 大家好 欢迎来到我的coding vlog 上周我正式开始web coding 我的第一个app嗯 利用下班时间 我完成了简单的一个市场调研 选定了我想做的方向 就用cursor开发了差不多十个页面左右 然后给自己立了一个小flag 就是我准备在五一假期之前 也就是还有一个月多的时间完成这个app的开发 至少要完成到可以提审的状态 接下来我准备用log来记录我的整个开发的过程 也会在这个过程中去分享一些我实际开发遇到的卡点 以及我是如何解决的 那么如果你也是独立开发者 或者是对web coding感兴趣的话 欢迎关注我的开发进度 也欢迎大家随",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 0.48,
+      "subtitle_source": "ai",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_9219fa9d24aa75c958d852ea885b9e43",
+      "unit_type": "transcript_chunk",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.488460898399353,
+      "end_time": 464.19,
+      "excerpt": "看一下我们有没有遗漏或者多余的内容 第二个呢就是在specks目录下面啊 我们要看一下需求描述 是不是符合完整的场景覆盖 第三呢就是在design md里面 我们要看一下技术方案是不是合理的 是不是复用了项目现有的模式 第四呢就是在tasks md里面 我们要看一下任务分解的是否足够的清晰 足够的细依赖顺序是不是正确的 如果在这个过程中发现有任何的问题 我们可以直接告诉cloud code 让他去修改open spec的流动式工作流 意味着我们可以随时修改任何的产物 不需要有回退的阶段 那cloud code会根据我们的反馈更新相关的文件 第四步呢就是执",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 346.159,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_fa0042f666c6a1cdef61ccd2f1429eeb",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.487918496131897,
+      "end_time": 1057.65,
+      "excerpt": "甚至AI纯粹原生的应用场景 我觉得目前除了A加这个coding 就写写代码之外 没有哪个场景是AI真正原生的场景 变得非常成功了 因为从某种意义上来说 XBOT其实是搜索的一个延伸 CHECKBO是搜索延伸 对他为什么不是独立于搜索的 它是因为因为你想大家其实和CHECKBOT最多的交互 是我有一个问题啊 就问这个XBO 然后这个其实是搜索本来干的事 但是它带来的比搜索要远强的一个事情 是他变得非常INTELLETIVE 就是他有交互性 你可以追问 然后他甚至可以帮你总结出一些 通过他获取的一些一些信息 帮你把它压缩成 浓缩成回答你的问题的那个信息 对这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 938.97,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_8518415c594d680e449310698192d9c5",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.4879172742366791,
+      "end_time": null,
+      "excerpt": "[Title] 互联网架构就这？1个故事讲清楚 [Uploader] 架构师阿Q [Description] 一个故事，讲清楚互联网架构涉及的缓存、读写分离、分布式、微服务、容器化、云原生等核心概念及来源。 [Summary Conclusion] 互联网架构的演进是一个从单机到云原生、不断用新组件解决瓶颈的迭代闭环，核心思维是选择适合业务的架构，用空间和复杂度换取性能和扩展性。 [Summary Key Points] 架构演进是补短板、解决新问题的迭代过程，从单机到云原生的每一步都针对上一阶段的瓶颈。 没有最好的架构，只有最适合业务的架构；初创公司应",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "互联网架构就这？1个故事讲清楚",
+      "unit_id": "video:bilibili:BV1M15Q6eEhL:p1",
+      "unit_type": "video",
+      "uploader": "架构师阿Q",
+      "video_id": 64
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.48732978105545044,
+      "end_time": 576.33,
+      "excerpt": "tie scale的 他这里面支持的通讯协议呢只有两种 web socket和这个HTP 那为什么经常在这个open cloud里面会提到SSH 和这个tale scale呢 实际上是组网 如果你的open cloud不是部署在你的本地电脑里面 而是部署在比如说阿里云的云主机里面 你这个访问他的网页的时候 它必须是这个这个local local host 然后什么呃 187981871892这种端口哈 如果你想用公网去访问他的话呢 是不可以直接访问的 因为不安全 因为里面要用了token 这个token是可能会被真亲的 被侦听完了之后就可能会被劫持 那怎",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 459.139,
+      "subtitle_source": "ai",
+      "title": "Openclaw Channel",
+      "unit_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_9bdef4514ad21663a60a9d81fa208188",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 94
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.4862648844718933,
+      "end_time": 154.917,
+      "excerpt": "that lets you fill in this whole slew of stuff. Click “OK”; for my application plan, write me a requirements doc. The PD will form a team, and its members will tackle their own tasks. User researchers analyze target personas, competitive analysts scout rivals, data analysts colla",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 118.708,
+      "subtitle_source": "ai",
+      "title": "10分钟app开发全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_7d38bf3252a649be6f241f20ff2ff685",
+      "unit_type": "transcript_chunk",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.4839819371700287,
+      "end_time": 462.27,
+      "excerpt": "Review pr 对不对 确实其实就是这五个的一个阶段 那对于他这个sky来说 他在里面做了什么呢 通过貌似大做的 并且计划是他做的 OK他其实他都做了 然后他在里面具体做了什么 需求分析完成之后 它会输出一个文档啊 一个space文档编写计划 他也是会做出一个plan文档 而这两个这两个文档哈 他其实是没有文档的一个管理的 文档管理是很混乱的 他的一个文档管理是这么来管理的哈 这么来管理的啊 叉叉叉他可能是这个这个样子的嗯 OK他是这个样子的 那我会面临什么问题呢 我们可能我们的功能需求有有几十个几百个 我们按道理这个地方应该还有一个模块才对 对不对",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 348.07,
+      "subtitle_source": "ai",
+      "title": "superpowers 使用心得分享！竟还能优化？",
+      "unit_id": "transcript_chunk:bilibili:BV1iRXaBnESX:p1:chunk_ac5ded814f9aa4541c5b1e94457a311b",
+      "unit_type": "transcript_chunk",
+      "uploader": "xhyovo",
+      "video_id": 106
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.48385125398635864,
+      "end_time": 1283.08,
+      "excerpt": "呃跟这个模型的一个适配程度 或者说一个泛化能力对 然后呃这这是我现在思考自学习嗯 你说的这个智能体的框架 AH的框架是不是就是我们理解的产品呃 不是它跟产品差异蛮大的 怎么理解这个ASIAN的框架呃 产品跟agent的之间的边界 现在我不知道怎么去界定他 有点他有点模糊对嗯 就是我觉得产品可以定义成是说你直接人交互 能感受到那一层的东西嗯 但AH的框架它确实是有在去定义你的交互层 但是他同时又在去定义 你怎么跟模型沟通那一层嗯 对所以然后他甚至能知道模型能力的长板短板 然后他能知道怎么去更好做调度 嗯就比如说for成本优化调度哦 它相当于是一个中间层嗯 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 1166.86,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_69d25871772e2b5148de20f356242d51",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.4837852716445923,
+      "end_time": 2557.9,
+      "excerpt": "但那只就比如说这个测试 你该用那个该用什么呢 该用这个选型 用用呃 RESEARSHARE还是用mario dB 这个都是有一个印现好的框架 写好了就在代码里面 然后你的过程里面只是写 我现在有哪些API要做测试 它的字段是什么 这个他写API测试的方案是依据什么呢 是依据我的API设计 在这过程方API设计的这个规格 就比如说我有多少个字段 这状态是啥这样的一个逻辑过程 方案里面只是标定了 你哪要标明你哪些需要测试 至于你是走单侧还是还是走这种 是不是在这里面定义的是吧 对 就不用在这个方案布置方案里面 大家得会在方案里面去写一下 提一下 但是具体的技",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 2441.34,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_47e8f6045785edbb72ed7b3a886dbcfb",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.48351117968559265,
+      "end_time": 2080.489,
+      "excerpt": "所以说总而言之 我们还是需要一个全新的一个方案 一个架构 一个协议去解决我们最初遇到的问题 让大模型掉工具 那我现在画出来的这个架构 其实已经是NCP协议的一个 比较标准的一个架构了 只是这些名字我还没有改过来 好了我们现在已经从问题出发 得到了整一个方案设计的思路 那我们现在就看一下这个思路 它最终是被怎么实现的吧 也就是这个NCP协议它到底是什么东西 其实我觉得有了前面这些铺垫 后面很多问题都会变得非常好理解 首先NCP协议 它是去年11月诞生的一个非常新的协议 是一家美国人工智能初创公司提出的 这个是它的官方文档 大家最好还是去看一下 在官方文档中",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 1964.84,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_bba9a7b0f972e16f9c3c5feee94f2574",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.48332732915878296,
+      "end_time": 1279.65,
+      "excerpt": "ABS是有两种情况 这种起床是那种跟你的框架没有关系 你的代码框架没有关系的这种测试 就比如说用那个swagger的测试 用这个布拉O这测试 他是个独立于你的技术站之外的 但是它的缺点有非常明显 这个缺点是什么呢 是比如说要去做一些work克 或者做一些这个数据的清理或者数据的准备 用BROWO这种方式不是很好做 非常不好做 后来我为什么把他放弃了 我只在做这种大型的数据的迁移 或者啊项目的这种迁移过程中 用那个bra o 但实际上最后我还是回到用那个restless share 在jd java里面去写这个Rest share这种API测试 那么这种测",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 1160.2,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_75057558960a104cea963d98967360c4",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.4826318323612213,
+      "end_time": 236.38,
+      "excerpt": "一个AI agent的框架 是26年2月底发布的 也就是前两个月前 那他这个火的速度还是挺猛的 上线不到两个月 拿到了接近3万的GITHUB新标 但是它的功能其实和之前火遍全网的这个 open glow小龙虾其实基本上是类似的 只是说基于它有一些优化 他的这个优化的核心就是the agent that grows with you 与你共同成长的agent 也就是说它最大的特点就是他会越用越懂你 他可以去自我净化 有一套完整的自我净化机制 这里是比较核心的一些链接 大家最好点进去仔细的看一下 包括它的官方文档 这里面有它整体的一些系统架构 上下文记忆等方",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 117.85,
+      "subtitle_source": "ai",
+      "title": "Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1oKdxBzEVz:p1:chunk_7fc91ca544ceb00f38ab4a04659bd1a7",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 95
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.4824962019920349,
+      "end_time": 101.16,
+      "excerpt": "今天这期视频啊 我们只讲一件事情 就是普通人怎么用cross code 把自己需要的工具直接做出来 很多人听到code这个单词啊 写代码觉得跟自己完全就没有关系 但其实cloud code除了超强的这种写代码能力之外 他还能做很多日常的任务 比如说数据分析啊 比如说这个每日资讯的爬虫啊 比如说文件管理等等 甚至连修图P视频这种活啊 它也能帮你把流程搭起来 因为它啊不是某一个具体的工具 它是一个圆工具 什么叫做圆工具呢 就是可以搭建其他工具的工具 你用大白话讲清楚自己的需求 比如说我想做一个网站 我想搭建一个自动化的工作流 我想有一个小助手 每天帮我整理资",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "15分钟Claude Code小白入门",
+      "unit_id": "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_54e64f84d9428632fb2c2847bfa5e0a7",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 108
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.48217684030532837,
+      "end_time": 3139.84,
+      "excerpt": "所以它更深远 但是它这个流动是需要时间的对嗯 就他的能溢出的能量能力更强强很多 比它它它不像它没有一个非常清晰的 那么清晰的定义 像OERE它会有一个嗯数学代码这种嗯 有GRCHOSE一个东西在这嗯 OK你分儿上去了 模型就具备这个能力的 这样一个非常清晰的标准的界定 当然我觉得有呃ASIA其实确实有很多场景 你是有个需要有清晰标准系列的 但大部分的场景是没有的 比较混沌 对对对 所以所以然后它产生的价值 也是慢慢的到一个临界点 突然经营大步 其实可靠 4.0offs确实是是这样一个经营大步的 突然的一个一个时间点 然后但是但是我SY做这个事情 这个路径",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 3021.12,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_6a669c6399e0988b6e39f8290cc8b2b5",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.48161202669143677,
+      "end_time": 353.34,
+      "excerpt": "第四就是当前它的最佳使用形态 不是用UI 而是用coding agent 直接去通过内设的CLI去调用 后端的agent的编排 比如说我就经常用codex去控制体验就很好 完全不需要使用前端 最后前端的体验 其实现在也还没有达到我的预期吧 现在他的概念就是有大量的生成式UI 但是这个这个生成式的东西还太少 也不好看 也不够高效 所以还需要一定时间去摸索 让生成式的UI更加匹配具体的任务 OK叠甲就叠到这里啊 我是希望劝退那些希望开箱即用产品的朋友 你稍微降低一点预期 也给我一点时间 那接下来我们聊一下他现阶段他能干什么 首先啊现在发布的版本是各个平台 它",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 234.06,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_f6dc1c68da54aad61de1b7070ac498fe",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.47999101877212524,
+      "end_time": 193.987,
+      "excerpt": "Switch back to the prior Workspace and hit Send! It’ll link up to Ardor on its own and build out the UI step by step. Whoa—these results are pretty neat! The prototype diagrams will generate page by page—just wait a few minutes, and the full set for the app will be done! Plus, it",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 153.54,
+      "subtitle_source": "ai",
+      "title": "10分钟app开发全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_6aebe953adeaa98076356d606e0113d2",
+      "unit_type": "transcript_chunk",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.4788787066936493,
+      "end_time": 1511.15,
+      "excerpt": "就是如果你在只是跑你当前这个模块的话 你测试重复跑一遍 有时候会很慢 所以说我我的思路就是 你如果在只是开发这个模块的时候 就可以让它只跑这个模块的测试 测试完了之后 然后你会让你会提交上去在CI上跑gt的测试 但AAPI测试的速度是比较快的 单元测试API速度都比较快的 1to1测试是非常慢的 所以呃这里的话就是一推一测试的话 就可以每天比如说你拿一个环境 然后去跑个呃 你当然首先是你在本地上能够跑起来的 APIAAI它可以根据本地 然后通过一对一的方式去给你做调试 然后去修bug 形成一个loop 然后你可以把整体的1to1的这个修的好 放到一个CI",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 1394.08,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_387d85b4b2491d854fe8708e6b44465b",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.4766719937324524,
+      "end_time": 233.09,
+      "excerpt": "而做产品要求的底层能力就是怕麻烦 只有说觉得这个产品用的不顺手 才能去想尽一切办法去降低面向用户的复杂度 去降低解释成本 这两种能力天然就是矛盾的 所以很难出现在一个人身上 就像大厂里产盐吵架的一个名场面 就是产品说啊这个地方用的不顺畅 想优化一下 然后研发说这不是能实现功能吗 你这个优化的价值点在哪里 有没有论证过呃 这个分歧的背后啊 也有这个底层思维方式差异的冲突 为什么这个冲突在我这儿不存在呢 因为我其实就是一个非常怕麻烦的人 所以我就是属于那种技术里面 产品sense非常好 所以我搓的工具呢大家都觉得很好用 但是相比起我那些同事们啊 这个技术深度",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 113.96,
+      "subtitle_source": "ai",
+      "title": "AI产品经理应该具备什么能力？成长路径应该是什么样的？",
+      "unit_id": "transcript_chunk:bilibili:BV1nfjE6YEyK:p1:chunk_34812f2d5689d9cd0096b9fe75df49d7",
+      "unit_type": "transcript_chunk",
+      "uploader": "人拽话又多",
+      "video_id": 17
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_1ba612132380d20e4c1bca6dafe33e63",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1YR5E6EE9o",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/72e478e6353621d08b32d644a5e58378a68058e6.jpg",
+      "detail_url": "/videos/91/transcript",
+      "duration": 13681.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "就是可能在公司内部 也有人已经做了类似的这种这种实验 或者这种demo 只是可能并没有作为一个呃产品 去很认真的宣发 然后把它打磨 然后发出去对 然后当事实情况就是你去看这个open cloud 最早版本的GITHUB的那个code 其实那个code也就呃从某种意义上来说 写的也不是特别的干净 但是我觉得他很重要的事是 他呃给大家展示了这种可能性 嗯那可能展示这种可能性之后 未来呃想当欧呃open好好作 作者自己也加入楼盘 然后那可能就是这些呃模型的的实验室 或者说一些呃大一点创业公司会很快跟上 然后把这东西打磨成一个真正可用的产品 嗯对所以我理解其实在",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1YR5E6EE9o",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_1ba612132380d20e4c1bca6dafe33e63",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_1ba612132380d20e4c1bca6dafe33e63",
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_c909d95ea4a3927ece1df28ee09f21b7",
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_8518415c594d680e449310698192d9c5"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            1,
+            26,
+            35
+          ],
+          "duration": 351.35000000000014,
+          "excerpt": "就是可能在公司内部 也有人已经做了类似的这种这种实验 或者这种demo 只是可能并没有作为一个呃产品 去很认真的宣发 然后把它打磨 然后发出去对 然后当事实情况就是你去看这个open cloud 最早版本的GITHUB的那个code 其实那个code也就呃从某种意义上来说 写的也不是特别的干净 但是我觉得他很重要的事是 他呃给大家展示了这种可能性 嗯那可能展示这种可能性之后 未来呃想当欧呃open好好作 作者自己也加入楼盘 然后那可能就是这些呃模型的的实验室 或者说一些呃大一点创业公司会很快跟上 然后把这东西打磨成一个真正可用的产品 嗯对所以我理解其实在",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 706.3,
+          "jump_url": "https://www.bilibili.com/video/BV1YR5E6EE9o?t=706",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1057.65,
+          "window_start": 706.3
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 2,
+      "best_score": 0.016129032258064516,
+      "best_unit_id": "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_5d58ad4987d247012e82ba8e36e6b1a1",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1M15Q6eEhL",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/66fa5a9bdd83d004b974d6e392a1da04a5a7d4d1.jpg",
+      "detail_url": "/videos/64/transcript",
+      "duration": 764.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "装依赖 调参数稍微不一样 就出现我电脑能跑服务器跑不起来的玄学bug 大促前要紧急扩容几百台机器 一台台配环境根本赶不上 大促结束 要缩容 还得一台代清理 效率低 要离谱 怎么办 很简单嘛 你又灵机一动 能不能把服务和他需要的运行环境一起 打包成一个密封盒子 放到哪台服务器都能直接跑 于是你又发明了一个新玩意儿 不用再配环境 把每个微服务的代码依赖配置环境 全部打包成一个镜像 一次打包到处运行 彻底解决了环境不一致的世纪难题 你给它取名叫DOKER容器 于是架构就成了这样 可问题又来了几百上千个溶剂 谁能帮你管呢 于是你又请来个全能大管家 他能安排容器资",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "互联网架构就这？1个故事讲清楚",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "架构师阿Q",
+      "video_id": 64,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1M15Q6eEhL",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_5d58ad4987d247012e82ba8e36e6b1a1",
+          "best_rank": 2,
+          "best_score": 0.016129032258064516,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 648.04,
+            "source": "ai_summary",
+            "start_time": 577.24,
+            "summary": "用Docker容器封装应用环境，Kubernetes自动化编排容器，解决微服务运维复杂性。",
+            "title": "容器化与Kubernetes"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_5d58ad4987d247012e82ba8e36e6b1a1"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            2
+          ],
+          "duration": 119.45899999999995,
+          "excerpt": "装依赖 调参数稍微不一样 就出现我电脑能跑服务器跑不起来的玄学bug 大促前要紧急扩容几百台机器 一台台配环境根本赶不上 大促结束 要缩容 还得一台代清理 效率低 要离谱 怎么办 很简单嘛 你又灵机一动 能不能把服务和他需要的运行环境一起 打包成一个密封盒子 放到哪台服务器都能直接跑 于是你又发明了一个新玩意儿 不用再配环境 把每个微服务的代码依赖配置环境 全部打包成一个镜像 一次打包到处运行 彻底解决了环境不一致的世纪难题 你给它取名叫DOKER容器 于是架构就成了这样 可问题又来了几百上千个溶剂 谁能帮你管呢 于是你又请来个全能大管家 他能安排容器资",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 587.32,
+          "jump_url": "https://www.bilibili.com/video/BV1M15Q6eEhL?t=587",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 706.779,
+          "window_start": 587.32
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_e575c7875d959482a37e91dc66580186",
+          "best_rank": 19,
+          "best_score": 0.012658227848101266,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 476.45,
+            "source": "ai_summary",
+            "start_time": 343.02,
+            "summary": "按业务拆分巨石应用，形成独立部署和扩展的分布式系统，引入RPC、服务注册发现和消息队列解决通讯与解耦问题。",
+            "title": "分布式架构"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1M15Q6eEhL:p1:chunk_e575c7875d959482a37e91dc66580186"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            19
+          ],
+          "duration": 119.63999999999999,
+          "excerpt": "你的网站从一个小电商长成了集用户商品 订单于一体的大平台 所有功能代码全挤在一个应用里 长成了大家常说的巨石 应用麻烦也跟着来了 改一行用户相关的代码要全量发布 整个应用多个开发同时改代码 天天冲突不断 想给订单服务加机器抗流量 只能整个应用一起扩容 大把资源白白浪费怎么办 很简单嘛 拆你按照业务边界 把这个长达的应用一刀一刀切开 用户相关的功能做成独立的用户系统 商品订单也分成一个独立的小系统 每个系统单独部署 单独发布 单独扩容 谁也不影响谁一个 它取名叫分布式架构 快拆完 新问题又来了 用户下单的时候要查商品库存 生成订单 这些系统都分开了 相互之",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 350.23,
+          "jump_url": "https://www.bilibili.com/video/BV1M15Q6eEhL?t=350",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 469.87,
+          "window_start": 350.23
+        }
+      ]
+    },
+    {
+      "additional_window_count": 4,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_2da13eea92f7f41f3b300f179dddb268",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1atjU6KEJF",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/de1c269ba79e6a0b85c91daffcf945af32ab8a2e.jpg",
+      "detail_url": "/videos/12/transcript",
+      "duration": 4118.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "我自己如果超出我的认知范围了 就是这个plan的质量取决于你的经验 以及你能不能做好的判断 能展开一下普兰网 听前你做的更简单 对我现在做的更简单啊 做做做做 做的非常简 做的简单很多 因为那个CD那个呃他做的太美好 但是我根本就用不起来啊 这是一个 然后呢我可以给大家看一下 比如说一个例子 我的一个代码当中 我今天搞了一个例子 比如举个例子 啊因为我的项目都在内网啊 就是有些东西不能够就看不到 然后这个比如DOS里面就是按上次呃的一个例子 就是这个比如说design把API全都放在这了对吧 他就这个design是一个事实事实方案 就这个描述的是这个系统",
+      "matched_unit_count": 7,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 7,
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "total_window_count": 6,
+      "unwindowed_chunk_count": 0,
+      "uploader": "少个分号",
+      "video_id": 12,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1atjU6KEJF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_2da13eea92f7f41f3b300f179dddb268",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 1955.0,
+            "source": "ai_summary",
+            "start_time": 1590.0,
+            "summary": "讲解过程方案与事实方案的分离：Plan是过程方案，用后即弃；Design为事实方案，实时刷新。SDD框架太理想化且规格交叉，自建轻量文档体系更实际。",
+            "title": "Plan方法与文档体系"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_2da13eea92f7f41f3b300f179dddb268"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            3
+          ],
+          "duration": 117.94899999999984,
+          "excerpt": "我自己如果超出我的认知范围了 就是这个plan的质量取决于你的经验 以及你能不能做好的判断 能展开一下普兰网 听前你做的更简单 对我现在做的更简单啊 做做做做 做的非常简 做的简单很多 因为那个CD那个呃他做的太美好 但是我根本就用不起来啊 这是一个 然后呢我可以给大家看一下 比如说一个例子 我的一个代码当中 我今天搞了一个例子 比如举个例子 啊因为我的项目都在内网啊 就是有些东西不能够就看不到 然后这个比如DOS里面就是按上次呃的一个例子 就是这个比如说design把API全都放在这了对吧 他就这个design是一个事实事实方案 就这个描述的是这个系统",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1741.67,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=1741",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1859.619,
+          "window_start": 1741.67
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299",
+          "best_rank": 16,
+          "best_score": 0.013157894736842105,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            16
+          ],
+          "duration": 118.19100000000026,
+          "excerpt": "再比如这个人cos用oppo code cloud也无所谓的 但是你这套DOS这套standards和features和这个呃 大家统一的就可以了啊 要统一可了 然后有这个有按照这些模式做一个下限 只能做这种下限的管理 我后来我就今天晚上这个大家老老师 我我还打打扰一下 我还有个问题啊 就是说其实刚才你爷说的 就是说那过程中的文档 比如说你的plan 还有那个你前面那个是丢弃 我们现在也是计划丢弃 但丢弃完之后合入对吧 合入到那个你那个整体的一个文档里面去对吧 合入这块东西 你那你们那边操作是有没什么问题 我们现在用AI合的时候 其实也没有一个 现在我们",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3488.689,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3488",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3606.88,
+          "window_start": 3488.689
+        }
+      ]
+    },
+    {
+      "additional_window_count": 5,
+      "best_rank": 4,
+      "best_score": 0.015625,
+      "best_unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_68e4e21d37ca96a563c611d18cf26cee",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1iVoVBgERD",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d9c8cb358259ceb896a07e588506abee526dbc6f.jpg",
+      "detail_url": "/videos/90/transcript",
+      "duration": 12879.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "本身被这个模型建模不进去的一些东西 所以诶得选资产就是选选选对 这个就OK我觉得嗯嗯关于你们的新模型 我放在后面说 我们先把open cloud这个话题聊完 你观察就你观察 你觉得open cloud是怎么样的一个火起来的链路啊 而且我明显感觉到在中国 它的火的程度比在美国要更强 这是为什么 我看到还有一个很好玩的说法 叫西夏冬阳 叫什么西沙东阳啊 西沙东阳哦 嗯因为我不了解弯曲对它的热度哈 对所以我我仅从你的视角对 仅从我自己以及我身边人的视角 我觉得可能的一个原因是 就中国的开发者 我觉得是更更更多的就是 我说开发者是指他可以用code去提升 他的生",
+      "matched_unit_count": 8,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 8,
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "total_window_count": 7,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1iVoVBgERD",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_68e4e21d37ca96a563c611d18cf26cee",
+          "best_rank": 4,
+          "best_score": 0.015625,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_68e4e21d37ca96a563c611d18cf26cee"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            4
+          ],
+          "duration": 117.85000000000036,
+          "excerpt": "本身被这个模型建模不进去的一些东西 所以诶得选资产就是选选选对 这个就OK我觉得嗯嗯关于你们的新模型 我放在后面说 我们先把open cloud这个话题聊完 你观察就你观察 你觉得open cloud是怎么样的一个火起来的链路啊 而且我明显感觉到在中国 它的火的程度比在美国要更强 这是为什么 我看到还有一个很好玩的说法 叫西夏冬阳 叫什么西沙东阳啊 西沙东阳哦 嗯因为我不了解弯曲对它的热度哈 对所以我我仅从你的视角对 仅从我自己以及我身边人的视角 我觉得可能的一个原因是 就中国的开发者 我觉得是更更更多的就是 我说开发者是指他可以用code去提升 他的生",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2439.2,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=2439",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2557.05,
+          "window_start": 2439.2
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e1289914a9ac92b22983df7e19582eb8",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e1289914a9ac92b22983df7e19582eb8",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_69d25871772e2b5148de20f356242d51"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            11,
+            40
+          ],
+          "duration": 232.98000000000002,
+          "excerpt": "就3月3月十多号的版本已经非常易用 就你基本上啊啊呃基于3年级后的版本 截一个啊还不错的模型 你都会觉得他很强大嗯而不是只有JK的模型 你会觉得他很强大 就是因为他整个A证的架构哦 受受一堆人开发者也好 嗯或者说本身像像我这种哦 并不是属于是啊 呃一开始这个框架的开发者只是使用者 我都能去改进它 我服我自己的场景去做改进和优化 所以诶我觉得这这是这个呃 或或者说这是开源A这种框架 本身的价值和意义对嗯在你高强度的那一周 就是跟open cloud交互的那一周 你消耗了多少美金的opus4.6嗯 第一天反正就是快1000块钱1000刀哦 对因为大概用了四五",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1280.3,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=1280",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1399.84,
+          "window_start": 1166.86
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_160ee763a7ef01fcef9011783340d532",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15HXCBkEKY",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/170b367597547663a362761c89dd7dc37b23fda6.jpg",
+      "detail_url": "/videos/93/transcript",
+      "duration": 2257.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "不知道 但现在用不了 他没有开那个端口 然后呢这是一个常驻智能体啊 这个东西其实我从字面上理解就是一个open cloud 因为cloud code也在走open cloud这条线 就是嗯现在我们不是要长期给它打开嘛 对吧 你打开一次 你每次进来还得cloud code cloud打开 那么它把它做成一个进程 24小时运行的 这样你可以通过其他的端呃去连接它 那么其实就是本质上就是open cloud这样的一个模式 然后远程规划其实就是把这个一些任务 你看30分钟啊 浏览器审批就是把这些任务从本地拉到云端 所以你看他们的他这个方向呢就是本地的进程24小时",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "Claude Code 源码分析与复刻实现",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "LLM张老师",
+      "video_id": 93,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15HXCBkEKY",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_160ee763a7ef01fcef9011783340d532",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_160ee763a7ef01fcef9011783340d532"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            5
+          ],
+          "duration": 119.56500000000005,
+          "excerpt": "不知道 但现在用不了 他没有开那个端口 然后呢这是一个常驻智能体啊 这个东西其实我从字面上理解就是一个open cloud 因为cloud code也在走open cloud这条线 就是嗯现在我们不是要长期给它打开嘛 对吧 你打开一次 你每次进来还得cloud code cloud打开 那么它把它做成一个进程 24小时运行的 这样你可以通过其他的端呃去连接它 那么其实就是本质上就是open cloud这样的一个模式 然后远程规划其实就是把这个一些任务 你看30分钟啊 浏览器审批就是把这些任务从本地拉到云端 所以你看他们的他这个方向呢就是本地的进程24小时",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1617.61,
+          "jump_url": "https://www.bilibili.com/video/BV15HXCBkEKY?t=1617",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1737.175,
+          "window_start": 1617.61
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_941778e77da44f9f290be7c7b66d22f8",
+          "best_rank": 31,
+          "best_score": 0.01098901098901099,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_941778e77da44f9f290be7c7b66d22f8"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            31
+          ],
+          "duration": 114.64999999999998,
+          "excerpt": "叫SHCLOUD总结这个啊 rebel对吧 对比一下谁呢 对比一下open cloud好 这个可能是个比较长的一个任务 我们让他在这待着嗯 也是一样 就是这个是第二轮对话了 虽然说跟第一轮没关系 你看他就是调用了工具了 file read啊 Read me 点MD 这个时候呢相当于这我把这句话丢给模型 然后模型返回了一个工具 叫做用请用file read来读文件 读哪些文件呢 嗯读read me和一些比较重要的这个呃 比如说cloud md等等 这是模型选择的 他已经能读我当前文件夹下所有的文件了 然后他用了一个web search的一个工具去搜open",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 462.11,
+          "jump_url": "https://www.bilibili.com/video/BV15HXCBkEKY?t=462",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 576.76,
+          "window_start": 462.11
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 6,
+      "best_score": 0.015151515151515152,
+      "best_unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1TfRfBJEZw",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/f17ceb4fea5bcdb7fd4050225e6b766df9b63dbd.jpg",
+      "detail_url": "/videos/92/transcript",
+      "duration": 1167.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "做不到杠杆 是因为如果你只有cloud code或者是open cloud hermes 你只有这样的框架是不行的 因为真正让模型发挥出优势的是更加复杂的 Harness 是更加合理的分工规划 流程控制 而且是无人值守 高并发全自动端到端的交付 那么简而言之 就是说 除了有模型以及对模型能力边界的极致理解 你还需要一整套的harness来实现这一切 对你需要的不是模型 而是软件 好的就是现在 这是目前AI世界里没有标准答案的地方 也是被迷雾蒙住的一块 也是更有价值的一块 所以每个人都有机会啊对吧 但我敢保证 也就是今年内市场上就不断会有答案产生 说说我自",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "小天fotos",
+      "video_id": 92,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1TfRfBJEZw",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687",
+          "best_rank": 6,
+          "best_score": 0.015151515151515152,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            6
+          ],
+          "duration": 116.50999999999999,
+          "excerpt": "做不到杠杆 是因为如果你只有cloud code或者是open cloud hermes 你只有这样的框架是不行的 因为真正让模型发挥出优势的是更加复杂的 Harness 是更加合理的分工规划 流程控制 而且是无人值守 高并发全自动端到端的交付 那么简而言之 就是说 除了有模型以及对模型能力边界的极致理解 你还需要一整套的harness来实现这一切 对你需要的不是模型 而是软件 好的就是现在 这是目前AI世界里没有标准答案的地方 也是被迷雾蒙住的一块 也是更有价值的一块 所以每个人都有机会啊对吧 但我敢保证 也就是今年内市场上就不断会有答案产生 说说我自",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 466.23,
+          "jump_url": "https://www.bilibili.com/video/BV1TfRfBJEZw?t=466",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 582.74,
+          "window_start": 466.23
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_3cab54ef52ee04bfbc3ee0f5bf120047",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_3cab54ef52ee04bfbc3ee0f5bf120047"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 119.25900000000001,
+          "excerpt": "比如说千万4再除以个27B 那这种能力的杠杆效应会越来越强 好了说了这么多 我自己的东西 你们可能要问 那我们大家应该怎么办呢 那我就给三个建议 首先第一的就是开始尽可能地使用小模型 你别整天就是你订阅了cloud max 你就觉得天下无敌了 但实际上一点意义都没有 你应该想的是 怎么样用更小的成本能摸到它的模型的边界 或者你就直接用deep sk v4pro加flash组合就行了 我给你们教一个技巧啊 如果你用cloud code 你知道怎么样改环境变量对吧 把sonnet和high库的模型设置为deep sk v4flash 四模型配置为V4pro ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 695.83,
+          "jump_url": "https://www.bilibili.com/video/BV1TfRfBJEZw?t=695",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 815.089,
+          "window_start": 695.83
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 8,
+      "best_score": 0.014705882352941176,
+      "best_unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_be27facba3ab55f7f6dda62e7b815ff7",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15CwBzsEmt",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/3923bf10820d7ed27cf2a2686d608dcb42f77389.jpg",
+      "detail_url": "/videos/114/transcript",
+      "duration": 2379.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "他其实也就是访问这个端口 然后来进行一个调试 其实只要你用skills就可以实现 然后如果说有人会对他的记忆记记忆是很惊艳 其实这也就是普的工程 你使用它的code 也可以让他一会往memory里输出点东西 记住你干了啥 当然各种skills更是从cloud code里出来的 然后open cloud是复用的 所以说呢有些人会说啊 cloud com cloud可以操作操作cos x v cloud code 但是你cos x和cos code也可以操作opp cloud对吧 所以说呢对于我来说 open cloud意义其实就是有一套开源可通讯code ",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "NextTryTV",
+      "video_id": 114,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15CwBzsEmt",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_be27facba3ab55f7f6dda62e7b815ff7",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_be27facba3ab55f7f6dda62e7b815ff7"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            8
+          ],
+          "duration": 110.0590000000002,
+          "excerpt": "他其实也就是访问这个端口 然后来进行一个调试 其实只要你用skills就可以实现 然后如果说有人会对他的记忆记记忆是很惊艳 其实这也就是普的工程 你使用它的code 也可以让他一会往memory里输出点东西 记住你干了啥 当然各种skills更是从cloud code里出来的 然后open cloud是复用的 所以说呢有些人会说啊 cloud com cloud可以操作操作cos x v cloud code 但是你cos x和cos code也可以操作opp cloud对吧 所以说呢对于我来说 open cloud意义其实就是有一套开源可通讯code ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1744.1,
+          "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=1744",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1854.159,
+          "window_start": 1744.1
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_80f41ce304f8776dea3ec0eca2ef8b43",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1Tejc6oEik",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/470a577f8a67b6b9441e78faca41c20d3d2cf0fe.jpg",
+      "detail_url": "/videos/37/transcript",
+      "duration": 686.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "they can be developed in parallel entirely. This way, you can do two totally different things at once, doubling your dev efficiency! Quick check of results: server on left, client on right. Of course, for the actual launch, the server won’t run on my PC—it has to be deployed to t",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "10分钟app开发全流程",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "英雄哪里出来",
+      "video_id": 37,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1Tejc6oEik",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_80f41ce304f8776dea3ec0eca2ef8b43",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 563.06,
+            "source": "ai_summary",
+            "start_time": 468.32,
+            "summary": "集成大模型 API 以获取真实数据，并配置 API_KEY 使模型生效。",
+            "title": "模型集成与密钥创建"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_80f41ce304f8776dea3ec0eca2ef8b43"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            9
+          ],
+          "duration": 38.06700000000001,
+          "excerpt": "they can be developed in parallel entirely. This way, you can do two totally different things at once, doubling your dev efficiency! Quick check of results: server on left, client on right. Of course, for the actual launch, the server won’t run on my PC—it has to be deployed to t",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 549.848,
+          "jump_url": "https://www.bilibili.com/video/BV1Tejc6oEik?t=549",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 587.915,
+          "window_start": 549.848
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_7d38bf3252a649be6f241f20ff2ff685",
+          "best_rank": 38,
+          "best_score": 0.01020408163265306,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 144.127,
+            "source": "ai_summary",
+            "start_time": 80.56,
+            "summary": "通过召唤用户研究员和需求分析师，生成需求大纲和详细需求文档，为后续开发奠定基础。",
+            "title": "需求调研与需求文档"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_7d38bf3252a649be6f241f20ff2ff685",
+            "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_6aebe953adeaa98076356d606e0113d2"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            38,
+            48
+          ],
+          "duration": 75.279,
+          "excerpt": "that lets you fill in this whole slew of stuff. Click “OK”; for my application plan, write me a requirements doc. The PD will form a team, and its members will tackle their own tasks. User researchers analyze target personas, competitive analysts scout rivals, data analysts colla",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 118.708,
+          "jump_url": "https://www.bilibili.com/video/BV1Tejc6oEik?t=118",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 193.987,
+          "window_start": 118.708
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_614333a32c11295db65ad422f1bf024c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV19pPSzsEXv",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/c88d972f8c3d394b78696d6d401ed8eae86d7541.jpg",
+      "detail_url": "/videos/119/transcript",
+      "duration": 881.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "网页是这个样子的 就是这个DMG麦克就可以直接装 演示一下这个OMLX怎么用啊 这个直接拖进去就行了 我是因为装好了 装好了之后呢 在第一次启动的时候啊 它会弹一个welcome string 这个里头有几个重要的点 就是你需要指定一它的base directory 然后这个比较重要 就是它的模型存哪 然后端口和API key你随便指定一个自己喜欢的 然后点这个start 它就启动起来了好吧 然后这个时候它就会有一个面板给大家看一下 这个面板啊有一个小bug 就是它这个中文支持就每次都保存不上 所以我们每次进来如果要用中文的话 把它点一下 它就变成中文了",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "小天fotos",
+      "video_id": 119,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV19pPSzsEXv",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_614333a32c11295db65ad422f1bf024c",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 721.0,
+            "source": "ai_summary",
+            "start_time": 482.0,
+            "summary": "手把手演示 oMLX 的安装、启动与配置，展示中文界面、缓存机制、Claude Code 启动命令生成、基准测试工具等，强调其轻量且性能优化的特点。",
+            "title": "oMLX 使用演示与核心功能"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_614333a32c11295db65ad422f1bf024c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 118.79999999999995,
+          "excerpt": "网页是这个样子的 就是这个DMG麦克就可以直接装 演示一下这个OMLX怎么用啊 这个直接拖进去就行了 我是因为装好了 装好了之后呢 在第一次启动的时候啊 它会弹一个welcome string 这个里头有几个重要的点 就是你需要指定一它的base directory 然后这个比较重要 就是它的模型存哪 然后端口和API key你随便指定一个自己喜欢的 然后点这个start 它就启动起来了好吧 然后这个时候它就会有一个面板给大家看一下 这个面板啊有一个小bug 就是它这个中文支持就每次都保存不上 所以我们每次进来如果要用中文的话 把它点一下 它就变成中文了",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 577.71,
+          "jump_url": "https://www.bilibili.com/video/BV19pPSzsEXv?t=577",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 696.51,
+          "window_start": 577.71
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV1CsojB8Eyf:p1:chunk_65640a09a023ad22eb5ce3309eabfaa2",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1CsojB8Eyf",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/7d929fe861cd3ec3684aff30d70531265896b85e.jpg",
+      "detail_url": "/videos/66/transcript",
+      "duration": 399.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "1cloud design 所以设计的这个功能还是需要订阅才能使用的 那我原先用codex 让他帮我搭建一个减肥的一个app的开发 那我把这个PRD丢给cloud code 看一下设计生成的结果 168轻断食app创建 你读下这篇P2D帮我生成相关主要页面 页面主色调 页面主色调为薄荷绿 辅助色为米色 参考的设计风格是多邻国和你们 cloud code自己的设计风格 按照PRD里面的页面规划 帮我生成首页日历页和个人中心页 A few moments later 丑是挺丑 但是居然能用米色的背景不是特别好看 进食的那个圆圈里面 绿色的可进时期和红色的不可",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "对比三大UI设计Agent页面生成效果，Claude  Design、Figma Make、Google Stitch",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Panix潘尼",
+      "video_id": 66,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1CsojB8Eyf",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1CsojB8Eyf:p1:chunk_65640a09a023ad22eb5ce3309eabfaa2",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 136.0,
+            "source": "ai_summary",
+            "start_time": 0.0,
+            "summary": "使用Claude Code进行UI生成，初版效果评价，修改为Liquid Glass风格后改善。",
+            "title": "Claude Design 设计启动"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1CsojB8Eyf:p1:chunk_65640a09a023ad22eb5ce3309eabfaa2"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            12
+          ],
+          "duration": 117.1,
+          "excerpt": "1cloud design 所以设计的这个功能还是需要订阅才能使用的 那我原先用codex 让他帮我搭建一个减肥的一个app的开发 那我把这个PRD丢给cloud code 看一下设计生成的结果 168轻断食app创建 你读下这篇P2D帮我生成相关主要页面 页面主色调 页面主色调为薄荷绿 辅助色为米色 参考的设计风格是多邻国和你们 cloud code自己的设计风格 按照PRD里面的页面规划 帮我生成首页日历页和个人中心页 A few moments later 丑是挺丑 但是居然能用米色的背景不是特别好看 进食的那个圆圈里面 绿色的可进时期和红色的不可",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.14,
+          "jump_url": "https://www.bilibili.com/video/BV1CsojB8Eyf?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 117.24,
+          "window_start": 0.14
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 32.285,
+      "chapter_ms": 0.859,
+      "grouping_ms": 0.069,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 61.705,
+      "total_ms": 98.042
+    },
+    "raw": {
+      "dense_ms": 56.229,
+      "fusion_ms": 4.341,
+      "lexical_ms": 0.654,
+      "planning_ms": 0.016,
+      "total_ms": 61.67
+    }
+  },
+  "trace_id": "d5d731e2-0ea3-48b0-a0a4-0a07b41b89a6",
+  "trace_persisted": false
+}

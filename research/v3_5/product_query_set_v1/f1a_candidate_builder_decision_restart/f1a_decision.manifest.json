@@ -1,0 +1,47 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "candidate_builder": {
+    "source_paths": [
+      "src/shiliu/evidence/stage3a.py",
+      "src/shiliu/eval_v3_5/stage3b.py",
+      "research/v3_5/stage3b/candidate_robustness_config.json"
+    ],
+    "version": "stage3b-acronym-w3.5-v1"
+  },
+  "decision_candidate": "execute",
+  "execution_status": "complete",
+  "input_identity": {
+    "checkpoint_1_amendment_status": "complete_and_accepted",
+    "development_gold_seal_sha256": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "p8_prediction_seal_sha256": "069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617",
+    "p8_predictions_sha256": "b34f173ac99208f4adb72966880ab7e9cf97d3e27157084792502f103e709038",
+    "p8_scoring_hash_root": "54bc35083f4410ace027452b64fc2d22432111be5a2036c0ce245e6319849795",
+    "p8_scoring_version": "P8_SCORING_AMENDMENT_V1",
+    "trace_root_sha256": "f8636d55680e4e3ef72b196f31afe8743c692d48c66ed0a647443679e7353071"
+  },
+  "outputs": [
+    "F1A_CANDIDATE_BUILDER_DECISION.md",
+    "f1a_decision.json",
+    "f1a_failure_analysis.jsonl",
+    "f1a_mechanism_taxonomy.json",
+    "f1a_candidate_design.json",
+    "f1a_decision.audit.json",
+    "f1a_decision.execution_decision.json",
+    "V3_5_P9_F1A_CANDIDATE_BUILDER_DECISION_RESTART_LEDGER.json"
+  ],
+  "p9_status": "decision_execution_candidate_ready",
+  "reconstruction": {
+    "all_six_builder_failure_eligible": true,
+    "candidate_builder_failure_count": 6,
+    "failure_query_ids": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q004",
+      "PQS_V1_Q005",
+      "PQS_V1_Q008",
+      "PQS_V1_Q015",
+      "PQS_V1_Q018"
+    ],
+    "q017_included": false
+  },
+  "schema_version": "v3.5-b-p9-f1a-restart-manifest-v1"
+}

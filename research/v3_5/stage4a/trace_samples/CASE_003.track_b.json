@@ -1,0 +1,19 @@
+{
+  "action_family": "evidence_resolution_action",
+  "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+  "evaluation_track": "oracle_video_conditional",
+  "evidence_bundle_identity": null,
+  "evidence_candidate_set_identity": "candidate_set_fd848edd756be48835c6ae7fbac1bac015efadb4cacc6bb8d35a93c5927afdc8",
+  "evidence_resolution_status": "failed",
+  "failure_attribution": "candidate_generation_failure",
+  "gate_outcome": "terminal_unverifiable",
+  "gold_opened_after_prediction": true,
+  "judge_input_adequate": null,
+  "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+  "operational_reason": "candidate_generation_failure",
+  "query_identity": "Q06",
+  "search_candidate_set_identity": "fdbf57364902a87f4e816574a0f577588ba8f05d500917d4862a827aa921bae3",
+  "selector_version": "v3.5-deterministic-fine-selector-v1",
+  "semantic_judge_required": false,
+  "terminal_sufficiency_decision_id": "decision_ee04b34bc37aa3c70d19fc7c384d1f1d3101464684158a7b128d3f6d1cb2219b"
+}

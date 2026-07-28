@@ -1,0 +1,84 @@
+{
+  "artifact_manifest_sha256": "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f",
+  "case_ids": [
+    "CASE_001",
+    "CASE_002",
+    "CASE_003",
+    "CASE_005",
+    "CASE_012",
+    "CASE_013",
+    "CASE_015",
+    "CASE_017"
+  ],
+  "development_gold_path": "research/v3_5/gold/development_gold.8_cases.locked.jsonl",
+  "development_gold_sha256": "5693830749e3fba38dd35fc143988fb615ae48bf0f02b7344c8b03ce4a1d90d0",
+  "forbidden_semantic_fields": [
+    "applicable_metrics",
+    "candidate_rationale",
+    "conflict_notes",
+    "gold_evidence_groups",
+    "gold_segment_ids",
+    "heldout_membership",
+    "missing_aspects",
+    "primary_reason_codes",
+    "required_aspects",
+    "reviewer_flags",
+    "split_constraint",
+    "sufficiency_label",
+    "support_notes",
+    "supported_aspects"
+  ],
+  "known_limitations": [
+    "CASE_015 has title metadata but no authoritative raw subtitle artifact.",
+    "CASE_017 is a corpus negative control and intentionally has no target video.",
+    "Operational search reason_codes are retained only where required by the frozen SearchCandidate contract; no Gold reason codes are copied.",
+    "Projection-session access warning is recorded in the audit and report."
+  ],
+  "lock_version": "v3.5-development-execution-manifest-lock-v1",
+  "locked_at": "2026-07-21T05:18:26+00:00",
+  "manifest_path": "research/v3_5/stage3a_inputs/development_execution_manifest.8_cases.locked.jsonl",
+  "manifest_sha256": "ef08e5c262d9fc885ab38d81c90f10ce4be6820c31d931c03f0ecdcfe71a534e",
+  "per_case_search_candidate_set_ids": {
+    "CASE_001": "5f94b48e019504e751502e3b1fce7bf6ff331a7a6d89d7cede09d6f3d7f2e531",
+    "CASE_002": "36c22f065d5b556472a122e72805b3aebce7b49fad790d97d73e4234e22e7675",
+    "CASE_003": "fdbf57364902a87f4e816574a0f577588ba8f05d500917d4862a827aa921bae3",
+    "CASE_005": "6353311aa4927863b5092c6234d8d17d42ae99985711b33da07caf7293c700d7",
+    "CASE_012": "5f94b48e019504e751502e3b1fce7bf6ff331a7a6d89d7cede09d6f3d7f2e531",
+    "CASE_013": "36c22f065d5b556472a122e72805b3aebce7b49fad790d97d73e4234e22e7675",
+    "CASE_015": "8fb1edb22296ae24aa5b6148b773473afb006a2675bc819c9b54a8c15bac63f9",
+    "CASE_017": "587782d9c8e809e530d76d197c3a40d383e85a2f85a605c12db2cdab7a89392c"
+  },
+  "record_count": 8,
+  "search_configuration": {
+    "dense_provider_version": "v3-qwen3-embedding-provider-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "grouping_policy": "v3-temporal-consolidation-v1",
+    "lexical_provider_version": "v3-stage1-lexical-v1",
+    "max_windows_per_video": 2,
+    "per_channel_limit": 50,
+    "presentation_policy": "v3-product-presentation-v1",
+    "request_defaults": {
+      "filters": {},
+      "mode": "lexical",
+      "scope": "all"
+    },
+    "requested_limit": 10,
+    "retrieval_router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "trace_policy": {
+      "persistence": "disabled",
+      "version": "v3.5-search-trace-policy-v1"
+    }
+  },
+  "search_configuration_identity": "0afedb3411774894ccde7a95ffe2e3796e12d30f5bf5019728dd552e23719d62",
+  "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "stage1_contract_versions": {
+    "chunk_mapping": "v3.5-exact-chunk-mapping-v1",
+    "replay_implementation": "v3.5-frozen-chunker-replay-v1",
+    "search_candidate": "v3.5-search-candidate-v1",
+    "source_chunk_policy": "v3-frozen-transcript-chunk-policy-v1",
+    "source_identity": "v3.5-source-identity-v2",
+    "source_version_authority": "v3.5-source-version-authority-v1",
+    "timeline_policy": "v3.5-timeline-policy-v1",
+    "trace_policy": "v3.5-search-trace-policy-v1"
+  }
+}

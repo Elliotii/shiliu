@@ -1,0 +1,42 @@
+{
+  "schema_version": "v3.5-stage5-live-smoke-results-v1",
+  "timestamp": "2026-07-27T15:12:00Z",
+  "judge_eligible": {
+    "source": "frozen Development runtime projection only; Gold not opened",
+    "case_id": "PQS_V1_Q003",
+    "status": "insufficient",
+    "trace_id": "stage4a_trace_0b3e16fec6c9586e8a68e679309378d7445c505f0face567e4b17040208d3cc9",
+    "provider": "openai-codex-cli",
+    "model": "gpt-5.6-terra",
+    "temperature": 0,
+    "latency_ms": 11996,
+    "retry_count": 0,
+    "parse_status": "valid",
+    "raw_response_hash": "3c41333857b5f3f7c6b9b31e81783808c0b97d1897d5167d575bf4a5226b29cf"
+  },
+  "mechanical_source_unverifiable": {
+    "trace_id": "stage5_trace_f61aab5b89792fe4998583e3c6bb5efee5b3cee96715baad0ad478e00a85df5d",
+    "status": "source_unverifiable",
+    "bypass_reason": "upstream_retrieval_failure",
+    "judge_calls": 0,
+    "all_required_stage_spans_present": true
+  },
+  "invalid_synthetic_contract": {
+    "trace_id": "stage5_trace_1111111111111111111111111111111111111111111111111111111111111111",
+    "status": "invalid",
+    "reason_code": "synthetic_invalid_contract",
+    "judge_calls": 0
+  },
+  "browser_smoke": {
+    "page": "/search",
+    "real_dom_loaded": true,
+    "sufficiency_control_visible": true,
+    "pipeline_failed_state_rendered_for_empty_local_corpus": true,
+    "typed_integration_error_rendering_present": true,
+    "limitations_visible": true,
+    "console_errors": 0,
+    "automation": "in-app browser DOM smoke"
+  },
+  "Frozen_Evaluation_accessed": false
+}
+

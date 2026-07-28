@@ -1,0 +1,25 @@
+{
+  "Frozen_Gold_opened_after_prediction_freeze": true,
+  "Gold_hashes_verified": {
+    "aggregate_seal": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+    "evidence": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+    "retrieval": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+    "sufficiency": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a"
+  },
+  "prediction_modification": false,
+  "prediction_recomputation": false,
+  "predictions_freeze_hash": "3612c3f6889a9a05c87d507f42bc748888d386547ab0f43eeae15ee2fd920f2e",
+  "predictions_freeze_path": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_PREDICTIONS_FREEZE.json",
+  "predictions_freeze_valid_before_open": true,
+  "projection_contract_hash": "8d2752ed92fb96337af603a7768d47a628550b7796904dd760dc516d70e9cb7e",
+  "provider_recall": false,
+  "recorded_at": "2026-07-27T19:01:32+00:00",
+  "replacement_run_id": "P14_REPLACEMENT_FROZEN_EVALUATION_20260727T184443+0000",
+  "schema_version": "v3.5-b-p14-frozen-gold-opening-audit-v1",
+  "scorer": {
+    "modified": false,
+    "path": "research/scripts/run_p14_frozen_evaluation.py",
+    "run_count": 1,
+    "sha256": "94748013de4902472d295e13d727eeaf6ad2f8bee9d06b96da06763030fdc52e"
+  }
+}

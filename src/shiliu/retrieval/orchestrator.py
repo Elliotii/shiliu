@@ -127,13 +127,16 @@ class SearchOrchestrator:
         dense_factory: Callable[[], SQLiteExactDenseIndex],
         hybrid_factory: Callable[[], HybridRetrievalService],
         planner: SearchPlanner | None = None,
+        persist_trace: bool = True,
     ) -> None:
         self.db = db
         self.lexical = lexical
         self._dense_factory = dense_factory
         self._hybrid_factory = hybrid_factory
         self.planner = planner or SearchPlanner()
-        self.initialize_schema()
+        self.persist_trace = persist_trace
+        if self.persist_trace:
+            self.initialize_schema()
 
     def initialize_schema(self) -> None:
         with self.db.connect() as connection:
@@ -195,9 +198,10 @@ class SearchOrchestrator:
                 str(exc), code="invalid_search_request", stage="planning",
                 http_status=400, trace_id=trace_id,
             )
-            error.trace_persisted = self._persist_validation_error(
-                trace_id, request, error, total
-            )
+            if self.persist_trace:
+                error.trace_persisted = self._persist_validation_error(
+                    trace_id, request, error, total
+                )
             raise error from exc
         planning_ms = _milliseconds(planning_started)
         filters = request.filters.retrieval_filters()
@@ -270,13 +274,15 @@ class SearchOrchestrator:
                 fallback_reason=fallback_reason, index_identity=identity,
                 raw_hits=hits, timing=timing, candidate_counts=candidate_counts,
             )
-            try:
-                self._persist_trace(response, status="success")
-            except Exception as exc:
-                return RawSearchResponse(
-                    **{**response.__dict__, "trace_error": _bounded_error(exc)}
-                )
-            return RawSearchResponse(**{**response.__dict__, "trace_persisted": True})
+            if self.persist_trace:
+                try:
+                    self._persist_trace(response, status="success")
+                except Exception as exc:
+                    return RawSearchResponse(
+                        **{**response.__dict__, "trace_error": _bounded_error(exc)}
+                    )
+                return RawSearchResponse(**{**response.__dict__, "trace_persisted": True})
+            return response
         except Exception as exc:
             mapped = _map_error(exc, trace_id=trace_id)
             identity = self._index_identity(executed_mode)
@@ -292,11 +298,12 @@ class SearchOrchestrator:
                 candidate_counts={"lexical": lexical_count, "dense": dense_count},
                 error={"code": mapped.code, "stage": mapped.stage, "message": str(mapped)},
             )
-            try:
-                self._persist_trace(empty, status="error")
-                mapped.trace_persisted = True
-            except Exception:
-                pass
+            if self.persist_trace:
+                try:
+                    self._persist_trace(empty, status="error")
+                    mapped.trace_persisted = True
+                except Exception:
+                    pass
             raise mapped from exc
 
     def search_raw(self, request: SearchRequest) -> RawSearchResponse:

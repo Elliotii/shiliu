@@ -1,0 +1,13 @@
+{
+  "fixture_class": "non_formal_preflight_fixture",
+  "case_id": "V2C_FIXTURE01",
+  "packet_case_input_sha256": "70ad5947169ed782b133c5627a41d59f6aa62d9fbbdc73f6432300954be237c3",
+  "fixture_file_sha256": "09ab888d798192f5ea92ec44e958fbf8bfab62875ab2e305de5723d1ee15d7cf",
+  "segment_count": 3,
+  "first_segment_id": "seg_1",
+  "last_segment_id": "seg_3",
+  "full_transcript_preserved_in_workspace": true,
+  "primary_packet_hash": null,
+  "secondary_packet_hash": null,
+  "cross_reviewer_hash_identical": "not_reached_no_model_calls"
+}

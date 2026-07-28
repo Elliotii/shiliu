@@ -1,0 +1,43 @@
+{
+  "Frozen_Gold_opened": false,
+  "artifact_modification": false,
+  "authorization_hash": "dc810429cac8a085a5503b94ecad80c94aa61ba94847a1533c89ce2f7149a9fc",
+  "case_file_hashes_before_resume": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q001.json": "73d781d5d3e7ee802dfc2045581b6c7b174e502cdc65c399548058dbc4a985e0",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q002.json": "e0cc01ede34f0ffb8315c1baf20e518d76f180d31e4e55087b03c7489efadf98",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q009.json": "8a9a885efc0946aaaa2690656344d4c510e78b31987c400cddef86d7066ca479",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q010.json": "f21360605a085628d09304c05878b8db5ac037d83074ab771b5bf0ecc0b0e73c",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q016.json": "588e030f40046dfc5b87fbfd1bb66d33a90f980f88f2c613fc26a66827b8563a",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q020.json": "ff3ccd374c83c4d3e0da23ccd0ada76d4e0c61751b1d43224208e4e1b9f8855a",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q021.json": "da005273c72a29c089c28265bcf5c03e787390190bc635740840483d9925d989",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q022.json": "464e264314732a9c37b4f2945c0e78bf7bd9da838ad82250fbca5ddf0070b67d",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q023.json": "b351c0256da16ce7a1894f705aa3441c986903dfaab556740ad7979ed6041d0e",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_cases/PQS_V1_Q024.json": "56ee608c578410b332074d320028dc6e6e901897281ed986456e3e61a737dc8d"
+  },
+  "case_recomputation": false,
+  "configuration_hash": "a1c06c31cd20b39c9d5c6113876f785b4a803efad0dff88deaa8f3b175a3fae2",
+  "existing_case_artifacts_reused": 10,
+  "existing_trace_artifacts_reused": 10,
+  "new_run_id_created": false,
+  "original_resume_log_hash": "0a557032e04f9fa7f84b43da77ec2951721fb29e6f502537c834cc9f7b4f4a72",
+  "prediction_modification": false,
+  "prior_invalid_barrier_report_hash": "60c69cb70680ef0ffada464a2d98b5baba31792624b626c3eee0e2d2d388f2aa",
+  "prior_invalid_barrier_seal_hash": "34ca19631413e3fffc5055368813c7e6528f7486f91c9d33e28ba01cdc456cea",
+  "provider_recall": false,
+  "recorded_at": "2026-07-27T18:56:38+00:00",
+  "replacement_run_id": "P14_REPLACEMENT_FROZEN_EVALUATION_20260727T184443+0000",
+  "same_replacement_run_id_reused": true,
+  "schema_version": "v3.5-b-p14-same-run-resume-audit-v1",
+  "trace_file_hashes_before_resume": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_073e9baf1087ddcc4272425342418e47f812d49930aec4fab26ddc7826c875ba.json": "c9b5a8097c3d7b23ac3ae1522c8cdd3c290cd14331fddb86d49408dc16e51b1d",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_2b5fdad6ead5f6b9ee41195afd08333cfacce9e6c2b12eca74734f026c44cc7a.json": "155e5dd97ce75c87e53c15a85fe6b994771a1f6ba3a6baf7d4c520564247182c",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_2ce237e0cab36c2fe9cd97e15d4f5de009ab8f3f6ddfa3805748c78403e27d9d.json": "f24d06992f4b1bbcf8ac91d6263eb0d7f5424cec8d90543ed8a69dd8d9543480",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_479c8056bc5f4ecae3fd8c21723a2e092967bc35ddc5913948cb7bf2c7e50d9b.json": "0ec4f4ab02fddab9347bddccb0f9c7a58f29c4846dec73732718f8ad8d2f94e8",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_502fc416845b7ec7cd91ea6151cf41293f8ce795f25f3570690d1a4c13bfea8c.json": "63bdb87bde55fd60d536402c41675235134bbbdbffea26f26c15e874197354ac",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_55ec268fe4e5d676f13e9c174c0813d4505b5c9a4e3f47abaaa89bad0fcb96f7.json": "d3d32d58562872180d99e22c43cb219178e6aba56481a9f62689464a04f29da9",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_5909261ccd3527370dc968e2ec97ec80c96736268ae3ebdc1091cc4ab8adef54.json": "19b941b6f0b722579ad6d751ff0c5cf90c348ba6e9692633d51a7d5d642abb4e",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_9dc6d1146184221aa6aef9910b3793424acd0eeeedf92255d04f7a9ad7df856a.json": "baf0bba6e0000cb4c6c7009b4ef881e31a43c364e08b375f4d14303937d912dd",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_a2ac6fe4f963bd2cde1d1dd738ca4ee277bb9a0d14448a4f980e7bb63290819b.json": "e2107e37c7f21b94ab6a2b04b48cec08fed90e03cb5ef537ded803ceb0031504",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_traces/stage4a_trace_a55162c5846eadc1b17c1092251efcf029bd4acff338c913f19e5d6f7e5847fb.json": "0c857272afa547c19ede45be41b93245a83ad9d2299228596945c94cd1dcc237"
+  }
+}

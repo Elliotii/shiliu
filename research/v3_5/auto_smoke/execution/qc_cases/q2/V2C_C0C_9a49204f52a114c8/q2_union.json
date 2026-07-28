@@ -1,0 +1,23 @@
+{
+  "all_intents_empty": false,
+  "auto_improves_vs_lexical": true,
+  "auto_matches_hybrid": true,
+  "auto_regresses_vs_hybrid": false,
+  "candidate_builder_called": false,
+  "cross_intent_rerank": false,
+  "merge_rule": "union_of_canonical_video_identities",
+  "score_merge": false,
+  "selector_called": false,
+  "target_video_best_rank": 1,
+  "target_video_hit": true,
+  "target_video_hit_intents": [
+    1,
+    2,
+    3
+  ],
+  "target_video_per_intent_ranks": {
+    "1": 1,
+    "2": 2,
+    "3": 2
+  }
+}

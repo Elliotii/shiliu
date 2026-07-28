@@ -1,0 +1,48 @@
+{
+  "case_id": "V2C_B1A00001",
+  "review": {
+    "acceptable_evidence_groups": [],
+    "boundary_notes": "完整可读字幕围绕名为“大圆”的AI工作助手、工作上下文、群聊信息汇总及创意展开，未出现或实质讨论MCP。",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [
+      "A1"
+    ],
+    "optional_context_spans": [],
+    "reason_codes": [
+      "query_topic_not_discussed"
+    ],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "视频完整原字幕是否实质讨论MCP。"
+      }
+    ],
+    "required_spans": [],
+    "reviewed_full_transcript": true,
+    "status": "insufficient",
+    "supported_aspects": [],
+    "transcript_first_segment_id": "BV1zDTX6eEGu_seg_000001",
+    "transcript_last_segment_id": "BV1zDTX6eEGu_seg_000106"
+  },
+  "review_metadata": {
+    "case_input_sha256": "0b975c6b5eb91e2223b226e8896269a32b07354eae2f91299c323147375c33a0",
+    "completed_at": "2026-07-22T18:50:01.882957Z",
+    "latency_ms": 13051,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-primary-reviewer-draft-prompt-v3-query-grounded",
+    "repair_count": 0,
+    "reviewer_model": "gpt-5.6-terra",
+    "reviewer_provider": "openai",
+    "reviewer_role": "primary",
+    "started_at": "2026-07-22T18:49:48.831957Z",
+    "usage": {
+      "cached_tokens": 0,
+      "estimated_cost_usd": null,
+      "input_tokens": 23386,
+      "output_tokens": 282
+    },
+    "validation_status": "valid"
+  }
+}

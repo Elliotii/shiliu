@@ -1,0 +1,42 @@
+{
+  "artifact_sha256": {
+    "V3_5_STAGE2R_C0_COVERAGE_AND_POOL_REPORT.md": "358aa4c63db6de85c2968f284f10aaf939bdaf702f45ae1294b54ec204440696",
+    "V3_5_STAGE2R_C0_FIRST_BATCH_CANDIDATE_REVIEW.md": "2e9e6616dd8fb648da948cc78fb0cac08cbed93dfead2a5b0df62afa97f17c48",
+    "research/v3_5/eval_v2/stage2r_c0/current_coverage_ledger.json": "c67f7761e93dfcdefc3822356c83a27f11d754580b4d63ed6f180e56e4fb7f5f",
+    "research/v3_5/eval_v2/stage2r_c0/development_expansion_candidate_pool.v1.jsonl": "03b03bd843497ab9b5fff1f68d2494cd4c12ddd0215526150637a833d5c4a7af",
+    "research/v3_5/eval_v2/stage2r_c0/duplication_and_leakage.audit.json": "1120e6e8715ecaf4fbba95973d841e1b859886d7e1c3edf25c04ec54b1afd6d8",
+    "research/v3_5/eval_v2/stage2r_c0/first_batch_8.audit.json": "2f0e317c50ad7013573dca993b35b865925960ec266f8b7ffbbc86d4872a2e6c",
+    "research/v3_5/eval_v2/stage2r_c0/first_batch_8.provisional.jsonl": "d37d11fb9ec02886d8982f1845b07488a2cad652989f7d9b1ea80f6a22e04daa",
+    "research/v3_5/eval_v2/stage2r_c0/source_coverage_matrix.json": "b3060ffb2b4ee7d957b833c562f4d7e286d6f1793166640512dd47f4229342ad"
+  },
+  "candidate_count": 12,
+  "final_gold_created": 0,
+  "first_batch_count": 8,
+  "first_batch_distribution": {
+    "insufficient": 1,
+    "partial": 3,
+    "sufficient": 2,
+    "unverifiable": 2
+  },
+  "freeze_manifest_sha256_after": "d64d72ebd283fb86d798b9c026a230569d924cdcf2c77471b5a5e0b2c72df394",
+  "freeze_manifest_sha256_before": "d64d72ebd283fb86d798b9c026a230569d924cdcf2c77471b5a5e0b2c72df394",
+  "heldout_or_gold_accessed": false,
+  "manifest_version": "v3.5-stage2r-c0-pool-manifest-v1",
+  "pool_distribution": {
+    "insufficient": 1,
+    "partial": 6,
+    "sufficient": 3,
+    "unverifiable": 2
+  },
+  "prohibited_query_pools_accessed": false,
+  "provider_calls": 0,
+  "reviewer_calls": 0,
+  "session_future_eligibility": {
+    "heldout_evaluation": false,
+    "human_adjudication": false,
+    "judge_evaluation": false,
+    "primary_review": false,
+    "secondary_review": false
+  },
+  "stage2r_c1_entered": false
+}

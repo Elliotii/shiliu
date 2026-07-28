@@ -1,0 +1,11 @@
+{
+  "agreement_status": "not_available",
+  "case_id": "V2C_B1A00001",
+  "human_review_required": true,
+  "packet_sha256": "a89a2a9142fd5896b0b0c7286d5fc88e4b0f0c3c1105d073f20b31b18973f852",
+  "primary_attempts": 3,
+  "primary_status": "provider_error",
+  "review_run_id": "B1A_V2C_B1A00001_ad03c89d1122",
+  "secondary_attempts": 1,
+  "secondary_status": "valid"
+}

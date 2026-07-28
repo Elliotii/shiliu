@@ -97,7 +97,12 @@ class SyncService:
             and is_quiet_hour(self.now_factory())
         )
 
-        sources = self.db.list_sources(active_only=True)
+        all_sources = self.db.list_sources()
+        sources = [
+            source
+            for source in all_sources
+            if source.get("status") in {"active", "cooldown"}
+        ]
         if source_db_id is not None:
             sources = [source for source in sources if int(source["id"]) == source_db_id]
             if not sources:
@@ -130,6 +135,12 @@ class SyncService:
             self.sleep(delay)
 
         if not sources:
+            if all_sources:
+                raise PipelineError(
+                    "收藏夹来源当前均已暂停、需要登录或暂时不可用；请先恢复来源",
+                    code="source_not_active",
+                    retryable=False,
+                )
             if self.favorite_id is None:
                 raise PipelineError("尚未添加收藏夹来源", code="setup_required", retryable=False)
             with ProcessLock(self.lock_path):
@@ -383,7 +394,7 @@ class SyncService:
         if error.code == "authentication_required":
             status = "needs_auth"
             cooldown = None
-        elif is_rate_limited:
+        elif is_rate_limited or error.retryable:
             status = "cooldown"
             minutes = 20 if history else 10
             cooldown = (

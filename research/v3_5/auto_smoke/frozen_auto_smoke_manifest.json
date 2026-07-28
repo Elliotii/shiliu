@@ -1,0 +1,13 @@
+{
+  "case_count": 10,
+  "evidence_bearing_case_count": 9,
+  "exact_entity_count": 3,
+  "human_review_packet": "research/v3_5/auto_smoke/V3_5_FROZEN_AUTO_SMOKE_HUMAN_REVIEW_PACKET.md",
+  "human_review_required": true,
+  "product_default_wiring_authorized": false,
+  "release_gate": "passed",
+  "report": "research/v3_5/auto_smoke/V3_5_FROZEN_AUTO_SMOKE_VALIDATION_REPORT.md",
+  "runner_version": "v3.5-frozen-auto-smoke-v1",
+  "stage": "V3.5 Frozen Auto Smoke Validation",
+  "status": "complete"
+}

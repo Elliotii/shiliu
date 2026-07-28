@@ -1,0 +1,200 @@
+{
+  "Agentic_Search_added": false,
+  "Final_Answer_added": false,
+  "P14_Frozen_Evaluation_Infrastructure_and_Orchestration_Audit": {
+    "final_disposition": {
+      "Frozen_Gold_opened_only_after_prediction_freeze": true,
+      "case_recomputation": false,
+      "correction_scope": "freeze_barrier_orchestration_validation_only",
+      "existing_case_artifacts_reused": 10,
+      "prediction_modification": false,
+      "provider_recall": false,
+      "same_replacement_run_id_reused": true
+    },
+    "first_invalid_run": {
+      "Frozen_Gold_opened": false,
+      "Frozen_Query_opened": true,
+      "Predictions_Freeze_generated": false,
+      "Semantic_Judge_output_available": false,
+      "algorithm_quality_result_available": false,
+      "cause": "openai-codex-cli state database was read-only",
+      "classification": "infrastructure_invalid_run"
+    },
+    "replacement_freeze_barrier_issue": {
+      "algorithm_or_prediction_failure": false,
+      "cause": "full component_versions equality check incorrectly rejected legal route-dependent semantic_model null values",
+      "classification": "orchestration_contract_invalid",
+      "completed_atomic_case_artifacts": 10,
+      "completed_atomic_trace_artifacts": 10,
+      "configuration_hash_identical": true
+    }
+  },
+  "P14_result_freeze_hash": "9dfe516c354267edbf69db9470a5048499a034ea5c68c2891ceab2a95970e145",
+  "PQS_and_split": {
+    "PQS_manifest_hash": "eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb",
+    "dataset": "Shiliu Product Query Set v1",
+    "development_cases": 14,
+    "frozen_cases": 10,
+    "split_manifest_hash": "34d3ecdb79dfa86d9ac43f48a6a245ab4c996004cacb4191a637798ec1f85ec3",
+    "total_cases": 24
+  },
+  "V3_5_status": "formally_closed",
+  "V4_readiness": {
+    "V4_implementation_started": false,
+    "blocking_technical_debt": [],
+    "non_blocking_technical_debt": [
+      {
+        "category": "evaluation_orchestration_contract",
+        "recommendation": "keep stable-field and route-dependent-field validation explicitly separated",
+        "severity": "non_blocking"
+      },
+      "Six historical non-blocking repository tests remain red.",
+      "One historical authoring-packet test dependency is missing.",
+      "Production proxy timeout configuration remains outside the repository.",
+      "Semantic Judge latency remains high."
+    ],
+    "ready_to_start": true,
+    "recommended_V4_first_scope": "Start a new versioned Development cycle focused on authoritative-source reviewability and Builder/Selector complete-group evidence coverage, with explicit stable-versus-route-dependent orchestration validator tests.",
+    "reusable_assets": [
+      "PQS v1 and sealed split/Gold",
+      "Frozen V3 runtime and corpus identity",
+      "Evidence Identity Contract V1",
+      "formal Builder, Selector, Mechanical Gate, and Semantic Judge contracts",
+      "Stage5 API/UI/Trace integration",
+      "P14 atomic artifacts, scorer outputs, and audit lineage"
+    ]
+  },
+  "completed_capabilities": [
+    "PQS v1 with sealed Development/Frozen split",
+    "V3 Search and default Auto retrieval",
+    "SearchCandidateSet to EvidenceBundle",
+    "fine-grained evidence identity and timeline lineage",
+    "Mechanical Gate three-outcome routing",
+    "Semantic Sufficiency four-state decision",
+    "API, UI, and end-to-end Trace integration",
+    "valid Frozen Evaluation with prediction-first Gold isolation"
+  ],
+  "created_at": "2026-07-27T19:01:32+00:00",
+  "development_metrics": {
+    "authority_note": "Product Development and Track A are formal-path results; Tracks B/C remain diagnostic projections.",
+    "candidate_builder_complete_group_coverage": 0.46153846153846156,
+    "candidate_builder_required_aspect_coverage": 0.6538461538461539,
+    "candidate_builder_required_span_recall": 0.6538461538461539,
+    "mechanical_gate_judge_eligible": 13,
+    "mechanical_gate_source_unverifiable": 1,
+    "product_development_case_count": 14,
+    "retrieval_Hit_at_1_3_5_10": [
+      0.7142857142857143,
+      0.9285714285714286,
+      0.9285714285714286,
+      1.0
+    ],
+    "selector_bundle_hit": 0.07692307692307693,
+    "selector_required_aspect_coverage": 0.12179487179487179,
+    "selector_required_span_recall": 0.12179487179487179,
+    "semantic_judge_Track_A_four_state_accuracy": 0.42857142857142855,
+    "semantic_judge_Track_A_mean_latency_ms": 75091.0
+  },
+  "formal_components": {
+    "Evidence_Identity_Contract": {
+      "hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "version": "V1"
+    },
+    "Stage5_integration_seal": {
+      "hash": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+      "path": "STAGE5_CURRENT_INTEGRATION_REFREEZE_SEAL.json"
+    },
+    "auto_router": {
+      "hash": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+      "version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e"
+    },
+    "candidate_builder": {
+      "hash": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+      "version": "stage3b-acronym-w3.5-v1"
+    },
+    "fine_selector": {
+      "hash": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+      "version": "v3.5-deterministic-fine-selector-v1"
+    },
+    "mechanical_gate": {
+      "hash": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+      "version": "mechanical-gate-v1-r1"
+    },
+    "retrieval": {
+      "version": "v3-product-search-default-auto-v1"
+    },
+    "semantic_judge": {
+      "freeze_seal_hash": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+      "model": "gpt-5.6-terra",
+      "policy": "v3.5-semantic-sufficiency-policy-v1",
+      "prompt_hash": "4d87dd06ab3362ae7ffdeae2b4d82e2accc0d10db8dd69cdeb3928f9000f898c",
+      "provider": "openai-codex-cli",
+      "temperature": 0
+    }
+  },
+  "frozen_metrics": {
+    "builder_required_span_recall": 0.1630952380952381,
+    "bundle_required_span_recall": 0.025,
+    "candidate_builder_complete_group_availability": 0.0,
+    "case_count": 10,
+    "completed_predictions": 10,
+    "component_joint_correct_cases": 0,
+    "evidence_bundle_complete_group_hit": 0.0,
+    "mechanical_routing_accuracy": 0.5,
+    "primary_failure_attribution": {
+      "builder_incomplete": 5,
+      "mechanical_source_unverifiable": 5
+    },
+    "retrieval_Hit_at_1_3_5_10": [
+      0.8,
+      0.8,
+      0.9,
+      1.0
+    ],
+    "runtime_error_cases": 0,
+    "semantic_four_state_accuracy": 0.2,
+    "semantic_judge_batch_latency_ms": 49088,
+    "severe_false_sufficient_count": 0
+  },
+  "limitations": {
+    "formal_product_bottlenecks": [
+      "Frozen retrieval reaches Hit@10=1.0, but Builder complete-group availability is 0.0.",
+      "Frozen EvidenceBundle complete-group hit is 0.0 and bundle required-span recall is 0.025.",
+      "Five Frozen Cases terminate as source_unverifiable; Mechanical routing accuracy is 0.5.",
+      "Frozen four-state accuracy is 0.2; primary formal attribution remains five builder_incomplete and five mechanical_source_unverifiable Cases."
+    ],
+    "historical_non_blocking_test_debt": [
+      "Six historical non-blocking repository tests remain red.",
+      "One historical authoring-packet test dependency is missing.",
+      "Production proxy timeout configuration remains outside the repository."
+    ],
+    "latency": {
+      "P14_single_batch_ms": 49088,
+      "Stage4B_Track_A_mean_ms": 75091.0,
+      "Stage4B_Track_B_mean_ms": 79331.0,
+      "Stage4B_Track_C_mean_ms": 89173.0
+    },
+    "not_implemented": [
+      "Final Answer generation",
+      "Agentic Search",
+      "Memory",
+      "Harness",
+      "automatic evidence remediation or iterative search"
+    ],
+    "track_constraints": {
+      "Track_A": "Formal Product Development path; constrained by frozen upstream evidence.",
+      "Track_B": "Known-relevant-video authoritative-span projection; diagnostic only and not a full Builder/Selector replay.",
+      "Track_C": "Development Evidence Group legal bundle projection; diagnostic and not a replacement for Product results."
+    }
+  },
+  "next_action": "report_to_main_session",
+  "outcome": "v3_5_final_closeout_complete",
+  "post_frozen_tuning_occurred": false,
+  "repository_source_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a",
+  "schema_version": "v3.5-b-final-closeout-v1",
+  "technical_debt": {
+    "category": "evaluation_orchestration_contract",
+    "recommendation": "keep stable-field and route-dependent-field validation explicitly separated",
+    "severity": "non_blocking"
+  }
+}

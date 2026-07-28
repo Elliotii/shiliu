@@ -1,0 +1,44 @@
+{
+  "schema_version": "v3.5-b-f1a-manifest-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "status": "blocked_invalid_cycle",
+  "active_design": "adaptive_bounded_coverage_swap_v1",
+  "entry_builder": "stage3b-acronym-w3.5-v1",
+  "sealed_implementation_candidate": "stage3b-adaptive-swap-w3.5-v1",
+  "final_builder_candidate": "stage3b-acronym-w3.5-v1",
+  "formal_outputs": [
+    "F1A_CANDIDATE_BUILDER_MAJOR_CYCLE_BLOCKING_REPORT.md",
+    "f1a_implementation_freeze_seal.json",
+    "f1a_before_metrics.json",
+    "f1a_stress_before.json",
+    "f1a.audit.json",
+    "f1a.execution_decision.json",
+    "V3_5_F1A_CANDIDATE_BUILDER_IMPLEMENTATION_LEDGER.json",
+    "f1a.file_hash_manifest.jsonl"
+  ],
+  "partial_diagnostic_outputs": {
+    "f1a_swap_traces": {
+      "status": "partial_sealed_development_runtime",
+      "query_count": 9,
+      "last_complete_query_id": "PQS_V1_Q013",
+      "blocking_query_id": "PQS_V1_Q014"
+    }
+  },
+  "intentionally_absent_due_to_block": [
+    "f1a_after_metrics.json",
+    "f1a_before_after_per_query.jsonl",
+    "f1a_stress_regression.json",
+    "f1a_acceptance_gate.json"
+  ],
+  "cycle": {
+    "major_cycles_used": 1,
+    "major_cycles_remaining": 0,
+    "second_major_cycle_authorized": false
+  },
+  "downstream": {
+    "f1b_started": false,
+    "stage4_started": false,
+    "p10_entered": false
+  },
+  "acceptance_status": "pending_v3_5_b_review"
+}

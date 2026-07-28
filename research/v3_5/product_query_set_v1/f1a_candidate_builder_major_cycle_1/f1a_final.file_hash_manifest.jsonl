@@ -1,0 +1,15 @@
+{"path":"F1A_EVALUATION_HARNESS_RECOVERY_REPORT.md","sha256":"b6ba41adb38c9e2f1f43633cd4aa2ea78782f9c8a3d4d88e8f6453f224c557f5"}
+{"path":"f1a_evaluation_runner_freeze_seal.json","sha256":"86392cfb08f2e252aa408d89992cd5fd49f72babaa236242800493f53d4db168"}
+{"path":"f1a_gold_free_development_dry_run.json","sha256":"8bee6c77e8a7184c7296e28be82fb4d9d50dbc9db78791c4e08e55f5505f3e2e"}
+{"path":"f1a_gold_free_stress_dry_run.json","sha256":"7454a3c29e00bd45cc777788ed759e2d944af615f13b154cefe12c860a858d63"}
+{"path":"f1a_development_final_metrics.json","sha256":"25eff5c23e945fd08f9d56ffbf41b64b0951c543462355e0943d7e8981f9c41d"}
+{"path":"f1a_development_final_per_query.jsonl","sha256":"e862957f96fb3e6e5f73548a6b86c5fa40b93d7fb9591fac46a3eee3042ef938"}
+{"path":"f1a_stress_final_metrics.json","sha256":"bd66d97fb2a28badbd0a642eed0250b3577935ad39afd8c8019099c0ccc5a5ac"}
+{"path":"f1a_final_acceptance_gate.json","sha256":"ad94871fd6970a8a9e1f985788701776430bf6ca349a3754ad8c6f697e7d8a39"}
+{"path":"f1a_final_execution_decision.json","sha256":"36447553130bbcb78976209b0f676cb7c52cf2b788642f785216d4c994a9e363"}
+{"path":"f1a_final.audit.json","sha256":"12ef90c33b8aeef99bc2196e3d6f60de1889f224f7fe59813bb0167b7a3547eb"}
+{"path":"f1a_final.manifest.json","sha256":"fbaab4722ad55f9ed48beb2e31726c6f7f04a256b86ab3139d1a97953cde63b6"}
+{"path":"run_f1a_scored_regressions.py","sha256":"b9e9caedfcabecbd0fe60a5ac5b2344d9e278e20e1603087716f0e22665844af"}
+{"path":"../../../../src/shiliu/evidence/stage3a.py","sha256":"cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1"}
+{"path":"../../../../tests/test_v3_5_f1a_evaluation_harness_recovery.py","sha256":"764cacd1257d7be3f2972e801d8d6d612fcf8988381aca188adda06288092bd0"}
+{"path":"f1a_implementation_freeze_seal.json","sha256":"12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b"}

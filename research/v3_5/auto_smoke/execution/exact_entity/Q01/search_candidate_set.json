@@ -1,0 +1,1920 @@
+{
+  "candidate_counts": {
+    "dense": 0,
+    "lexical": 50
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": null,
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": false,
+    "normalized_query": "MCP",
+    "planned_mode": "lexical",
+    "query_type": "exact_entity",
+    "raw_query": "MCP",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "short_ascii_entity",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 698.38,
+      "excerpt": "填上校验码就登录完成了 然后我们可以使用这个命令查看一下open cloud上面的医术列表 或者使用这个命令给我自己创建一个新的仓库 我们看到这里仓库就创建出来了 更多命令的是使用方法 可以参考GITHUB官方CLI的文档 后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说 MCP就是AA大模型的标准化工具箱 大模型可以利用这些工具与外界互动获取信息 并且完成具体任务 不过由于MCP协议设计之初存在的一些问题 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 比如AI搜索巨头PROPLEXITY在2026年3月宣布放…",
+      "lexical_rank": 1,
+      "lexical_score": 6.119167754153164,
+      "rank": 1,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 6.119167754153164,
+      "start_time": 579.04,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 814.92,
+      "excerpt": "而且我还可以协助AI进行修复 而MCP对人类来说更像是一个黑盒 整个运行过程都是在agent的内部的 如果运行出错 很难在本地复现问题 调试的难度大大增加 第三点是CLI天生支持管道服操作 可以将多个命令组装成流水线 轻松实现复杂任务 这种组合能力是MCP不具备的 我们来看一个例子 我们先使用GITHUBCLI获取o…",
+      "lexical_rank": 2,
+      "lexical_score": 5.970910025600369,
+      "rank": 2,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.970910025600369,
+      "start_time": 695.8,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b054f1bd553c27a5e404f8c761765571",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "[Title] 为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？ [Uploader] 技术爬爬虾 [Description] CLI这个计算机世界里最古老的交互方式，正在迎来一次新的爆发。最近越来越多的软件开始转向CLI化。 CLI全称是Command Line Interface，其实就是命令行界面。CLI跟我们平时熟悉的图形…",
+      "lexical_rank": 3,
+      "lexical_score": 5.890530639029528,
+      "rank": 3,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.890530639029528,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "video:bilibili:BV1G29EBGE8b:p1",
+      "unit_type": "video",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "…https://github.com/cap153/config/tree/main/pi/.pi 视频中提到的插件或项目： https://github.com/nicobailon/pi-web-access https://github.com/nicobailon/pi-mcp-adapter https://github.com/mrexodia/ida-pro-mcp https://github.com/nicobailon/pi-powerline-footer https://github.com/jiangge/pi-cache-optim…",
+      "lexical_rank": 4,
+      "lexical_score": 5.777567374472183,
+      "rank": 4,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.777567374472183,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "推荐一些Pi Agent插件",
+      "unit_id": "video:bilibili:BV1k6E167Ext:p1",
+      "unit_type": "video",
+      "uploader": "夜未央-天将亮",
+      "video_id": 43
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 579.19,
+      "excerpt": "…资料可以放在reference里面 哪些内容应该拆成脚本或者模板 最后是关于怎么测评 你写的prompt和skill 可以看看OpenAI官方的evolution最佳实践 我看这些东西会比较偏方法论一点 我觉得理解了这些理论之后 去设计prompt和skill都不会太糟糕 然后是MCP server 这也是我在工作中经常会接触到的一块 在AI时代之前 我们通常使用restful API或者photo Buff 这些方式去定义服务之间怎么通信 怎么进行调用 但是现在呢有一些不同调用方不再是某个服务 而是由大模型进行调用 MCP是一种AI时代的协议标准 他把系统的…",
+      "lexical_rank": 5,
+      "lexical_score": 5.655251243279664,
+      "rank": 5,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.655251243279664,
+      "start_time": 461.76,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 118.06,
+      "excerpt": "…以看到他这里调用了search取工具，搜索网页 然后使用fetch工具提取网页的内容 默认情况下，使用search工具的时候，是会打开浏览器，让你确认的 我希望AI可以直接把搜索到的结果告诉我 为了解决这个问题 可以在~/.pi目录下面 然后写入这一行内容 这个插件可以让pi使用MCP服务 pi的作者写过一篇文章 为什么你可能不需要MCP 不过现有的MCP生态确实有些工具 我暂时没有找到合适的CLI工具替代 就拿ida-pro-mcp这个项目为例子 它已经拥有9.3K的star 它需要支持MCP的客户端才能够使用 这个插件可以把pi状态栏更改成powerlin…",
+      "lexical_rank": 6,
+      "lexical_score": 5.6456924594567734,
+      "rank": 6,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.6456924594567734,
+      "start_time": 0.0,
+      "subtitle_source": "human",
+      "title": "推荐一些Pi Agent插件",
+      "unit_id": "transcript_chunk:bilibili:BV1k6E167Ext:p1:chunk_a474278e9d6c5fe406492fc6b64f3ef6",
+      "unit_type": "transcript_chunk",
+      "uploader": "夜未央-天将亮",
+      "video_id": 43
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 119.36,
+      "excerpt": "安吉的m cp scale到底是什么 你一定听过很多关于他们的理论 但你的理解一定是正确的吗 比如MCP的解析式大模型上下文协议 它可以和各种外部系统连接 请问大模型是直接调用外部的服务吗 如果你所在公司的内网搭建了MCP的服务 外部的大模型它怎么能够调用呢 再比如skill的解释是技能 它是有具体的功能吗 要不为啥叫技能呢 它和MCP又有什么区别 上面的问题你要是不能够准确的回答…",
+      "lexical_rank": 7,
+      "lexical_score": 5.300656160191192,
+      "rank": 7,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.300656160191192,
+      "start_time": 0.08,
+      "subtitle_source": "ai",
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "unit_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_bd38bab47f32c042b83c8b1730d5d526",
+      "unit_type": "transcript_chunk",
+      "uploader": "鲁班大叔_007",
+      "video_id": 80
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "[Title] AI到底是如何进行编程的？抓包拆解Claude Code [Uploader] 鲁班大叔_007 [Description] LLM、Agent、 MCP、 SKILL到底是什么？ 你一定听过很多关于它们理论？但你的理解一定是正确的吗？ [Summary Conclusion] 通过抓包拆解Claude Code,揭示了AI编程Agent本质上是一个循环收集信息、解析大模型指令并执行操作的LLM驱动系统,系统提示词、工具列表和历史…",
+      "lexical_rank": 8,
+      "lexical_score": 5.176931840258736,
+      "rank": 8,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.176931840258736,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "unit_id": "video:bilibili:BV1AuzkBREhx:p1",
+      "unit_type": "video",
+      "uploader": "鲁班大叔_007",
+      "video_id": 80
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1244.66,
+      "excerpt": "它在这里还有一个非常酷的东西 叫pip camera 我之前在看它的配置时 非常困惑 为什么在它的配置里 我会把链接放在下面 我真的很困惑 为什么他这里有个ephemeral目录 里面还有一些MCP和skills 看起来这实际上添加了一个SHAIMIUI 用于选择项目 本地skills提示词 扩展MCP服务器 它的实际作用是 确保这些内容不会被全天候加载 而不是像我现在的系统那样 比如我的任何全局技能都会始终加载 如果是临时技能 则只有在你明确将它们添加到上下文中时 才会触…",
+      "lexical_rank": 9,
+      "lexical_score": 5.170504499640209,
+      "rank": 9,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 5.170504499640209,
+      "start_time": 1124.72,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_23cc21a944d69097885b473a86f84e34",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 929.15,
+      "excerpt": "…及你想把它变成什么样子 如果你比较懒 不想自己动手 只想看看别人做了什么 可以去项目的GITHUB仓库查看官方示例 或者访问他们的包库 pi点df packages pi点dio packages的内容非常丰富 你能在上面找到很多很酷的东西 比如context mode 这是一个MCP插件 能帮你节省98%的上下文窗口占用 还有pi自agent的PMCP适配器 但还有pi网络搜索确实有很多好东西 下面这些是pi没有内置 但在其他AI编程工具里很常见的东西 没有内置MCP 没有子agent 没有权限弹窗 没有后台BS 没有待办事项 也没有计划模式 核心规则是 如…",
+      "lexical_rank": 10,
+      "lexical_score": 4.95118175141681,
+      "rank": 10,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.95118175141681,
+      "start_time": 810.5,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_f3e426c077b67e235b6a4c30bea4ab6f",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 4066.83,
+      "excerpt": "…记忆他的评价指标表现出来的话 最后呢是我们的一个数据结果表格的分析 然后大家感兴趣也可以去读一下 好以上呢就是本期视频的全部内容了 然后我也是给大家过了一遍整个GITHUB项目啊 非常感谢大家的收看 最后呢跟大家好像还有一点没讲完吧 对好像是这里没讲完 最后呢跟大家简单讲一下这个MCP吧 MCP呢其实也比较简单 其实就是通过一个接口的方式 通过这个MCT来实现一个 和其他客户端的一个配置 然后能够把我们的记忆系统",
+      "lexical_rank": 11,
+      "lexical_score": 4.690290005084618,
+      "rank": 11,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.690290005084618,
+      "start_time": 3948.86,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_2a4f02bb7201e42859fabb15324ea8fb",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 831.84,
+      "excerpt": "第二个例子是龙虾之父开发的开源软件mc p potter 它可以把任意的MCP转换成CLI的格式 提供给agent的调用 相信以后技术发展的趋势是 每个技术框架可以互相学习优点 它们之间的功能都会互相的融合 这就是本期视频的全部内容 感谢大家点赞支持 我们下期再见",
+      "lexical_rank": 12,
+      "lexical_score": 4.602662898627556,
+      "rank": 12,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.602662898627556,
+      "start_time": 810.76,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_09db47653d9082ab4dbb23c9887824e4",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "[Title] 前后端都可看的Agent开发学习路线 [Uploader] Stellar鱼 [Description] - [Summary Conclusion] Agent开发需要从前端到后端全链路掌握Transformer基础、ReAct架构、工具调用（MCP/function calling）、上下文工程、RAG流程，以及评测监控，并且通过实际项目实践才能快速上手。 [Summary Key Points] 大模型八股虽不如后端体系化，但Transformer自注意力机制和GPT架构是面试高频必问。 工具调用中function ca…",
+      "lexical_rank": 13,
+      "lexical_score": 4.497598776577616,
+      "rank": 13,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.497598776577616,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "前后端都可看的Agent开发学习路线",
+      "unit_id": "video:bilibili:BV13MQQB8ERn:p1",
+      "unit_type": "video",
+      "uploader": "Stellar鱼",
+      "video_id": 99
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "…I 焦虑这件事的一些看法 如果你最近也在关注 AI，希望这期内容能给你一些参考，也希望能对想转 AI 的朋友有一点帮助～ 下期再见嗷～！ [Summary Conclusion] 从Web3后端转AI方向需按工作需求学习Agent Workflow、Prompt/Skill工程、MCP与RAG等，工作转向内部AI工具和团队提效，AI焦虑促使寻找自我使命。 [Summary Key Points] 学习AI路径按工作需求驱动，从Agent Workflow、Tool Calling到Prompt/Skill工程，再到MCP和RAG服务。 团队生产环境中的Prom…",
+      "lexical_rank": 14,
+      "lexical_score": 4.475051645046287,
+      "rank": 14,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.475051645046287,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "video:bilibili:BV1co9yBhEvW:p1",
+      "unit_type": "video",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 117.049,
+      "excerpt": "哈喽小伙伴们大家好 我又活了 这一期视频主要想和大家讲一下 function calling以及MCP模型上下文协议 本期视频的讲解思路可能会和之前的论文讲解 完全不一样 因为我想先讲一下 在没有function calling和NCP之前 开发者们都遇到了什么实际的困境 为了解决这些困境 大家又想出了哪些办法 哪些思路 以及为什么最终function calling和NCP 会…",
+      "lexical_rank": 15,
+      "lexical_score": 4.455713363864085,
+      "rank": 15,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.455713363864085,
+      "start_time": 0.34,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0bffaa55a2081928f2cc898e542e8c78",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 703.74,
+      "excerpt": "…归因 然后隔壁团队老板说 诶搞一下异常指标的这些自动告警监控等等 那么可能你们两个团队都需要用到同一个能力 就是查日志 让模型输出一个查日志的function call 返回结果之后再把日志塞给模型 那么为了减少这种功能的重复开发 为了实现这种通用的方渗扣能力的共享 就出现了这个MCP模型上下文协议 Model context protocol 这个是ENTHROPIC 也就是cloud的母公司在2024年11月提出的一个协议规范 MCP自从提出之后 火了大概一年多的时间",
+      "lexical_rank": 16,
+      "lexical_score": 4.440055175220307,
+      "rank": 16,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.440055175220307,
+      "start_time": 585.169,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_8d5eec8be978921bf9a64a5388531a4b",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 350.59,
+      "excerpt": "…刻的阳台 接着埋头顶天 这里相机放太远了 我已经忘了做到什么程度了 这里陆续尝试了google stitch 还有IMPACCABLE这些UI生成工具 下载了google font里需要用到的字体导入到叉code里 到这里就是差不多完成了用户引导的页面啦 刚刚在cursor的嗯 MCP和插件模块里加上了FIGMA的MCP和菲格玛的插件嗯 然后现在我们可以看看它这里有一些菲格玛相关的skills 就是可以比如说可以直接嗯在cursor里面用到FIGMA的一个链接 去创建一个design system 还有就是可以将菲格玛DIY稿直接落地成代码等等 这些比较关键的…",
+      "lexical_rank": 17,
+      "lexical_score": 4.416071451982356,
+      "rank": 17,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.416071451982356,
+      "start_time": 232.329,
+      "subtitle_source": "ai",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+      "unit_type": "transcript_chunk",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 928.68,
+      "excerpt": "所以我们还学了一下怎么用这个cloud code去debug 最后呢 我们还展示了两个日常生活当中会碰到的 这个任务 dollar code呢其实还有很多其他的高阶的玩法 大家应该也听说过 比如说MCP啊 比如说skill啊 比如说sub agent这些呢我们之后也会介绍 但我想说的是啊 这些其实都不重要 重要的就是你自己先玩起来 先用起来好了 今天视频就到这里了 我是迪自黑心李超 我们下次见",
+      "lexical_rank": 18,
+      "lexical_score": 4.409886554244157,
+      "rank": 18,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.409886554244157,
+      "start_time": 906.68,
+      "subtitle_source": "ai",
+      "title": "15分钟Claude Code小白入门",
+      "unit_id": "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_9096426df09a76b637f54ee323c74a21",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 108
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 118.36,
+      "excerpt": "…OI专门为人类设计 因为人类不擅长记忆命令 而更擅长使用图形工具 而AI则正好相反 大模型在诞生的时候就学习过大量代码 命令行等语料数据 因此CLI天生就是AI的母语 CLI天然具备文本输入 结构化输出 报错清晰 易于组合 方便自动化等一系列的优势 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 视频的后半段 我们会探讨MCP跟CLI各自都有哪些优势 他们各自适应的场景是什么 在这股CLI热度下面 最近GITHUB上面出现了两个非常火热的开源项目 第一个是cla anything 只需要一行命令 就能把任意开源软件以CLI的形式接入的框架 短短两周 get…",
+      "lexical_rank": 19,
+      "lexical_score": 4.386799854082568,
+      "rank": 19,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.386799854082568,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 234.01,
+      "excerpt": "…码的吗 所以从代码层面上能看到具体怎么实现的 那我们先把它讲完 这个里面呃涉及到很多很多的细节 也是cloud code做的最早打磨的最好的 要比呃我觉得比MANUS啊和其他的啦都都更codex什么更细致的东西 就这个里面有系统提示词 上下文的压缩 有这个工具 随着工具的增长 买MCP等等 这个越来越多 那么如何高效的去呃去去把工具的名字告诉模型 而不是去污染模型上下文 MCP也是一样 然后现在已经变成动态的工具搜索了 比如说你有100个工具 那你不能一每一轮把100个工具都给单元模型 告诉他这个任务我有100个工具 然后每个工具分别怎么用的 然后模型把这些全…",
+      "lexical_rank": 20,
+      "lexical_score": 4.325363397565242,
+      "rank": 20,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.325363397565242,
+      "start_time": 115.93,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_66a23e51c93b56c062fb8a83a9eedeab",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 86.34,
+      "excerpt": "…可能的一个发展方向和 未来能给企业做服务 能做哪些场景 其实派设计的一个理念呢 就是核心呢就是极度的经典 把所有的扩展呢交都交给用户去做 那这样用户就有很大的扩展能力 而他的工具呢只有这四个方法 读写编辑 还有去运行和办事命令 因为他这种极简的设计哲学呢 所以派本身呢其实是不支持MCP sub agents 还有一些play mod啊 这些比如说to do啊 我们以前在long cha 在其他框架里边经常见到这些东西 它本身都不支持的 但因为他这种简约和灵活度呢 我们更可以在它上面呢 去构建很多有意思的东西 然后你看啊在一个没有MCP 没有sub 真的没有任何…",
+      "lexical_rank": 21,
+      "lexical_score": 4.289320632548028,
+      "rank": 21,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.289320632548028,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "认真做Agent 一定要看 PI",
+      "unit_id": "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_2d0dfcfbb38d2c73666cc484839ca91b",
+      "unit_type": "transcript_chunk",
+      "uploader": "雷哥AI",
+      "video_id": 100
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 343.82,
+      "excerpt": "…创建的 它非常酷 如果你还没关注他的twitter 真的非常推荐你去关注一下 因为派背后的理念是打造一个极其强大 极简且超级稳健的核心 实际的TUI超级文件扩展系统 超级稳健 核心工具 包含了你在大多数模型下真正需要的一切 然后你可以在此基础上构建自己的东西 比如他甚至都没有内置MCP支持 如果你想要MCP支持 添加的方法就是告诉拍嘿",
+      "lexical_rank": 22,
+      "lexical_score": 4.285352925629108,
+      "rank": 22,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.285352925629108,
+      "start_time": 231.289,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1126.24,
+      "excerpt": "…定义网络工具 他用的是EXA嗯 效果也非常好 就我个人而言 我更喜欢FIRECROW 我觉得他们总体上更好 而且我喜欢他们的定价模式 但重点是你可以随意塞进任何你想要的东西 这都没问题 他加了一个自定义的代办公 我个人不太喜欢代办工作流 但这确实说得通 如果这是你想要的 他还有拍MCP用 来确保MCP能在pad里正常运行 因为开箱即用时并没有这个功能 它在这里还有一个非常酷的东西",
+      "lexical_rank": 23,
+      "lexical_score": 4.278756367689516,
+      "rank": 23,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.278756367689516,
+      "start_time": 1008.98,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_485cbdbc90f38f1e3d484d410badacbe",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 249.533,
+      "excerpt": "…的接入教程 就不在视频里讲了 看视频的附属文档就可以 这里我们先选择跳过 一会再来配置聊天频道 接下来是选择联网搜索的供应商 那如果你有这几家的API Key 那就填如果没有的话就跳过 然后是配置技能 也就是Skills 我们选择否 后面再按需安装就可以 其实Skill为啥出来比MCP晚 但是却能盖过MCP 我们在玩虾子的过程中会有深刻体会 那这一步 是在问你要不要启用一些附加小功能 自动钩子 通俗点讲 就是当虾子触发了某个事件时 自动帮你做一些事情 不开也能用 开了 只是多一些自动化或者是增强功能 看到的这几项大概可以这样理解 boot-md就是在Gatew…",
+      "lexical_rank": 24,
+      "lexical_score": 4.270867255974719,
+      "rank": 24,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.270867255974719,
+      "start_time": 139.733,
+      "subtitle_source": "human",
+      "title": "龙虾退散潮，我做了一期OpenClaw理性入门教程｜下",
+      "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652",
+      "unit_type": "transcript_chunk",
+      "uploader": "不正经的前端啊",
+      "video_id": 88
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "[Title] 什么是Function Calling与MCP协议？它们为何要这样设计？ [Uploader] 堂吉诃德拉曼查的英豪 [Description] 文档飞书链接：https://oigi8odzc5w.feishu.cn/wiki/LWqEwXNkBibT0ykrbI0cvptBnAf 密码：4892@u29 文档 pdf 及…",
+      "lexical_rank": 25,
+      "lexical_score": 4.227459596717687,
+      "rank": 25,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 4.227459596717687,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "video:bilibili:BV1qTYizcEN3:p1",
+      "unit_type": "video",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 790.0,
+      "excerpt": "…就是在不断的在执行 一收集信息 二解析结果 三执行操作 无论它执行多少次 都是在循环的干这三件事情 直到问题解决 那么接下来我们新的问题是关于这个执行操作 它到底可以执行哪些操作呢 除了colloud code自带的这17个工具列表以外 我们还能不能够有更多的操作呢 这个时候就该MCP出场啦 请看下集内容 点赞越多 更新越快 让我们下期再见",
+      "lexical_rank": 26,
+      "lexical_score": 3.6234718360797085,
+      "rank": 26,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.6234718360797085,
+      "start_time": 698.8,
+      "subtitle_source": "ai",
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "unit_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373",
+      "unit_type": "transcript_chunk",
+      "uploader": "鲁班大叔_007",
+      "video_id": 80
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 346.69,
+      "excerpt": "还有就是提示词 工程也是八股相关最喜欢考的问题之一 包括会问你那个提示词一般分哪练习哪些结构 还有skill是什么 四就是工具调用 主要是喜欢问你 function calling和现在MCP有什么区别 这就经常问 然后大部分八股的话 其实就是这些 当然还有一些需要补充的 但是我觉得大概的基础先是问的频率最高的 咳咳意思就是一个A线的下系系统架构 包括哪些部分 大致就是用户输入 然后A键走这边有个呃 相当于是A键系统的大脑 它有一个planner规划器 生成这个计划 …",
+      "lexical_rank": 27,
+      "lexical_score": 3.5621764926240505,
+      "rank": 27,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.5621764926240505,
+      "start_time": 230.42,
+      "subtitle_source": "ai",
+      "title": "前后端都可看的Agent开发学习路线",
+      "unit_id": "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_b8d8c71b78d9c2d7ac1ce63aa09247bb",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 99
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 118.499,
+      "excerpt": "…在的这种开发模式已经发生了变化 我们在工作中当然可以这样直接跟AI交互 去学会这种基于AI的开发 但是呢我觉得我们应该去了解一下这个入code 他究竟是怎么知道去生成这个文件 甚至进行某些工具调用的 你看AIAI过去有很多名词 包括现在也有一些很名词 比如外见的skill啊 m MCP server啊 function的calling啊 抛开这些模名词不谈 我们需要了解这个agent究竟是如何运作的 正好呢 GITHUB上有一个现成的项目 可供我们去了解这么一个A镜的最基本的原理 叫做learn cloud code 当然我们不可能通过这个project去真的…",
+      "lexical_rank": 28,
+      "lexical_score": 3.5567068622265223,
+      "rank": 28,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.5567068622265223,
+      "start_time": 0.94,
+      "subtitle_source": "ai",
+      "title": "【Learn Claude Code 源码详解】- 本地启动 Agent",
+      "unit_id": "transcript_chunk:bilibili:BV1mcAfzqEnE:p1:chunk_9f8ac681f8f6d616e0f5d8d1ce224b40",
+      "unit_type": "transcript_chunk",
+      "uploader": "开发实战分享屋",
+      "video_id": 97
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 811.51,
+      "excerpt": "hub这类管理内部skill和MCP的通用服务 这个方向可以做的事情其实非常多 然后第三个方向呢是帮助其他团队做AI体校 去了解他们的业务 给出一些AI提效的方案 帮助他们把团队经验构建成skill 在实际开发中进行落地 我目前做的事情 会比较偏向于第二和第三个方向 那除了工作方向上的转变之外 我的工作方式其实也变…",
+      "lexical_rank": 29,
+      "lexical_score": 3.4923577559521437,
+      "rank": 29,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4923577559521437,
+      "start_time": 691.68,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6294255f1520d80ab3d7993ecceabf08",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 231.58,
+      "excerpt": "OK话不多说呃 以后可能会出一期视频去介绍一下这这个项目 话不多说 进入我们的一部分大概就是一些核心知识点 然后这一部分呢其实就是大部型技术的八股呃 我觉得大模型相关的八股 和那个后端传统后端不一样的地方是 后端没有后端那么成体系 其实大部分问的八股基本上也是问skill MCP这种最近比较火的概念 而没有后端那么深的技术沉淀 然后如果如果是A型的开发 如果你是呃想做A线的开发相关的 那我觉得这些基础你还是需要了解一下的 就transformer g b t架构 你要能说出来 如果你只是一个后端 但是你你发现你面试中经常被问到这些 那我觉得你想需要了解的…",
+      "lexical_rank": 30,
+      "lexical_score": 3.4748941659082,
+      "rank": 30,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4748941659082,
+      "start_time": 116.02,
+      "subtitle_source": "ai",
+      "title": "前后端都可看的Agent开发学习路线",
+      "unit_id": "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_a94915c2a501a556904e52797a2e0e99",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 99
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 121.73,
+      "excerpt": "… 你也能够用AI工具去开发一个 rock agent这样的一个项目 而且这个项目不是说一个POC的一个 非常简单的一个项目 而是将所有的基本上rag相关的技术 都融合进去的 而是针对于一个程序员的这个深度级别的 一个rag项目 相当于你手搓了rag的每一个框架和细节 最后搭成一个MCP的一个服务 所以教大家如何能够 自己去完成这样子的几件事 所以其实啊当然这个项目 其实我会最终给到一个完整的代码 但是在第一阶段呢 我提交了一个和CCS相关的一个相关的文件 然后会告诉大家 如何通过我的提交的第一个commit的节点节点 自己去尝试着去做 因为我相信你通过我的方法…",
+      "lexical_rank": 31,
+      "lexical_score": 3.4421899877851474,
+      "rank": 31,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4421899877851474,
+      "start_time": 3.66,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_7f0576ba55fd367e4dd516cec6243034",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "…l搜索、yet自动提交等扩展），但强调这只是个性化参考，每个人都应打造专属配置。 搭配c max终端多任务、Zed编辑器及GPT-5.5低推理模式，作者实现了将后端、前端等任务分派给不同Pi实例的高效并行工作流。 通过扩展可以轻松集成Firecrawl、Exa等第三方工具，并弥补MCP等默认缺失，使得Pi成为可以媲美甚至超越其他智能体的全能平台。 [Summary Detailed Notes] 视频作者分享了他从初体验Pi到将其作为主力编程智能体的历程。Pi的开箱即用极其简约，仅包含四个工具、基础系统提示和一个美观的TUI，但模型本身对bash操作、文件读写…",
+      "lexical_rank": 32,
+      "lexical_score": 3.43786926068113,
+      "rank": 32,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.43786926068113,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "video:bilibili:BV14fTc6TEi5:p1",
+      "unit_type": "video",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1749.57,
+      "excerpt": "…大家感兴趣的也可以对话呀对吧 就像刚才一样对话我就不演示了 好然后我们回归到代码嗯 我们演示完了我们的app 我们把它CTRLC暂停一下 好暂停完了 然后暂停完之后呢 我想先跟大家讲一下这个chrome dB 因为chrome dB跟我们的PAPI以及这个playground以及MCP 都是复用的同一套算法 也就是那个MEMOROS的这几个核心代码啊 为什么讲这个呢 是因为我刚才跑了一下 大概跑完了 但是也跑了挺久吧 他终端输出了一大堆东西嗯 然后我们就先来看一下这个吧 那么我运行的是这个代码叫做comprehensive杠test 他主要做了个什么事情呢 他…",
+      "lexical_rank": 33,
+      "lexical_score": 3.437082359889255,
+      "rank": 33,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.437082359889255,
+      "start_time": 1631.909,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_402aa3d310caef4231f5aa99a7909a91",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 350.78,
+      "excerpt": "… 中间调用了哪些工具 每一步拿回了什么数据 如果这些信息一旦离开UI就消失 或者说整个workflow离开UI 它就停止 后端就瘫了 那只能说明我们这一方设计的接口 到现在为止还是为人去设计的 不是为了AI去设计的啊 那么怎么改啊 其实有两条比较现成的路 一条呢就是说啊那我们调用MCP是吧 模拟网页的操作 模拟人的操作 让AI agent的直接去独立的网页 靠多模态去进行一个观察",
+      "lexical_rank": 34,
+      "lexical_score": 3.4286032474382164,
+      "rank": 34,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4286032474382164,
+      "start_time": 232.51,
+      "subtitle_source": "ai",
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_eb4fe4e3ac04e312f5a457f784c79282",
+      "unit_type": "transcript_chunk",
+      "uploader": "数字黑魔法",
+      "video_id": 6
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 119.76,
+      "excerpt": "朋友们这个视频来跟大家聊聊一些想法 就我们这个频道到现在 做的很多内容都特别的细化 比方说之前聊什么Python 聊什么MCP 聊什么那个skills 还有各方面的怎么样项目的具体的开发 这些还是太细了 今天来聊一个比较大一点的观点和看法 就是在做AI这个领域 现在的一些想法来跟大家分享一下 比方说我们现在做这么细的内容 这些都是非常小的优化 但是大家会出现一个情况 就包括像我们公司 现在比方说我之前公…",
+      "lexical_rank": 35,
+      "lexical_score": 3.425223304739172,
+      "rank": 35,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.425223304739172,
+      "start_time": 0.3,
+      "subtitle_source": "ai",
+      "title": "2026 年中 对人工智能的思考和分享",
+      "unit_id": "transcript_chunk:bilibili:BV1zYLD62EPe:p1:chunk_c616f4456f3438d87def8f0d0b7dc299",
+      "unit_type": "transcript_chunk",
+      "uploader": "Ming在职AI从业者",
+      "video_id": 144
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 695.72,
+      "excerpt": "…权限控制这些基础设施 让其他团队可以更低成本 更稳定的使用AI 这部分呢我暂时还没有参与过 第二个方向是内部的AI工具 这一块的范围就比较大了 比较常见的应用就是基于内部文档的知识库 问答服务 还有一些通用的work for平台 或者像是skill hub这类管理内部skill和MCP的通用服务",
+      "lexical_rank": 36,
+      "lexical_score": 3.416802531077463,
+      "rank": 36,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.416802531077463,
+      "start_time": 577.73,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 119.529,
+      "excerpt": "…给大家分享一个我最近在用的一个框架 这是一个在git上有53k star的一个项目啊 它叫这个派 它是一个极简的可拓展的一个AI的终端框架 open cloud也是用的这个框架拓展出来的 所以这个框架还是相当强大的啊 他的理念就是什么都没有啊 他不在内部去装这些任何的能力啊 没有MCP 也没有这个指agent的 然后也没有这个弹窗权限 然后也没有这个play mode 然后也不做to do 也没有这个背景噪声 我们为什么会去关注这样的一个项目 他什么都没有 我们为什么要去关注它 对 我们先来分析一下 我们之前用的一些工具的问题 比如说举例子说codex cod…",
+      "lexical_rank": 37,
+      "lexical_score": 3.4134458034180053,
+      "rank": 37,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4134458034180053,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_b999dc1c7020c99274802185b244624f",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1967.02,
+      "excerpt": "…要统一协议 我还要统一交互的各种数据格式 我还要保证说这个HTTP的这个服务 这个接口 它要给我提供 至少能提供我的这个函数描述的这个列表 并且能够帮助我去调用这些工具 给我返回一个结果 这个是它这个接口必须要实现的两个功能 而且我的数据交换的格式也必须要统一下来 其实我觉得这个MCP本质上 它也无非就是在所有已有的这些API的基础上 又对外包了一层 采用统一的API做了一些统一的实现 唉毕竟著名的计算机科学家鲁迅曾经说过 在计算机的世界里 没有什么是加一个抽象层解决不了的问题 而且不光是说这个远程服务 我们需要统一下来一种协议 为什么说必须要做这个本地进程间…",
+      "lexical_rank": 38,
+      "lexical_score": 3.4134458034180053,
+      "rank": 38,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4134458034180053,
+      "start_time": 1849.35,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_c5a14b028b3f15d4d9b1266c2a22b34b",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 819.569,
+      "excerpt": "火了大概一年多的时间 然后很多公司他都在建立自己的MCP特有的hub 在公司内部去实现这种工具的复用 那么我们来看一下这个NCP 其实所谓协议它无非就是说只要大家都遵循这个规范 都按这个来 那我们这个生态就会非常的其乐融融 就是你遵循这个协议开发出来的这些可供function call的工具 它可以给任何一个遵循的这个协议 适配了这个…",
+      "lexical_rank": 39,
+      "lexical_score": 3.410095664703522,
+      "rank": 39,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.410095664703522,
+      "start_time": 701.78,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_beb8f45eab8efd241aea93433e9f53cb",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 587.389,
+      "excerpt": "…有非常多的门道 包括切片的时候怎么切片 文档里面的这些多模态的这些数据要怎么入库 使用什么样的切入模型 检索的时候采用怎么样的检索方式 如果用户的请求和这个数据库里的回答相似度比较低 你要去做一些什么处理等等等等 然后说完微调和rag之后 我们来看一下function call和MCP 这个其实是另外一条线了 因为上面的这些动作他都是说能让大模型的效果更好 回答的更好 但是归根究底你的大模型它还是一个chat bot 只能和你聊天 他没法去帮你 就是做更多的操作 就不像现在的小龙虾 你给他一个指令 他咕咕帮你把活都干了对吧 所以当初大家是怎么解决这个让模型能够…",
+      "lexical_rank": 40,
+      "lexical_score": 3.4017490175491742,
+      "rank": 40,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.4017490175491742,
+      "start_time": 467.71,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 353.61,
+      "excerpt": "…来什么不值得写成skill模型 本来就会的东西 git命令通用写作技巧 这可能是好文档 但往往是烂 Skill 模型在训练数据里大概率已经见过很多遍了 再写一遍就是噪音 一句系统提示词就能稳定解决的事 也不需要skill 变化比维护还快的东西也不适合写进skill 比如频繁变动的MCP端点 skill1过期就会从知识变成误导agent的 带着旧地图走新地形 根源就是上下文漂移 三个问题帮你判断这是模型稳定缺失的能力吗 长期有效吗 值得每次加载都付成本吗 前面讲的这些规则索引按人头收税加载 不能有废话 只写模型 不知道的 不写它本来就会的 你发现没有 每一条都在…",
+      "lexical_rank": 41,
+      "lexical_score": 3.396760612807979,
+      "rank": 41,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.396760612807979,
+      "start_time": 234.179,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_2fd5e43130b1dc7b689b17e959f45184",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 346.2,
+      "excerpt": "…要重新计算 其实是因为社区对千万3点五的前缀缓存 支持的还不好 但是我觉得啊现在整个的这个MIX社区 他们缺乏一个agent的时代的设计灵魂 这个我们等会再说 我先给你们解释一下什么叫前缀缓存 其实道理很简单 你每次问AI的20K的token里 前面19K都是系统提示词 工具描述MCP之类的 这些是不会变化的 只有你问的那个问题 1+1或者是2+1 它们是变化的前置缓存啊 其实就是把这些不变的东西已经算好的 这个矩阵保存起来 下次拿来直接用 可问题是啊 即使千万3点五的这个前缀缓存问题解决了 你养一只龙虾 有了缓存 它变快了 如果我想养三只呢",
+      "lexical_rank": 42,
+      "lexical_score": 3.3835294471153587,
+      "rank": 42,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.3835294471153587,
+      "start_time": 229.04,
+      "subtitle_source": "ai",
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_9c14d416279e62128e90c4c7089fa4c7",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 119
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 237.16,
+      "excerpt": "…的测试集中呃 F1和blue1平均提升了多少个点 最后是他的一个论文网站文档和YOUTUBE视频 感兴趣的呢 大家可以去检索一下 然后呢最后讲了一下它的特性 它特性呢当然就是说自己的效果有多不好了 然后我个人认为比较重要的一个是这个呃 集成的一个工作流吧 呃但是其实也就是掉了一个MCP的包 提供了一个服务器 呃 所以我们今天呢 着重是讲一个核心算法的原理实现 也就是这个memory os干拍pi呃 然后再带大家看一下这个playground chrome dB 因为这两个其实你会发现 他们有很多的相似之处 都共用了一部分的这个PPYTHON的代码 也就是相当于…",
+      "lexical_rank": 43,
+      "lexical_score": 3.3671347395078297,
+      "rank": 43,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.3671347395078297,
+      "start_time": 118.03,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_d9c7cf8fe5cdba5cc23feb3744b53f45",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 119.39,
+      "excerpt": "…用这个来看 因为毕竟我们是呃国语 用的是中文 对不对 然后呢这是他的论文呃 这是他的多可file 就是配置一个多口文件 最后呢是他的项目代码 项目代码主要是这四五个吧 嗯然后这个拍pi呢 就是它的一些Python的主要的代码 然后playground呢主要是用来做一个实验的呃 干MCP呢就是用来配置的呃 配置给智能体用的 比如配给cursor 配给cloud code 然后chroma dB呢就是优化了一下 这个Python的一个向量处理的过程 因为chroma dB本身也是一个数据呃 数据库格式的一个Python包 然后它优化了",
+      "lexical_rank": 44,
+      "lexical_score": 3.365504002877882,
+      "rank": 44,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.365504002877882,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_e8ae88efd1f16d1b6339394e7814fd8c",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1401.32,
+      "excerpt": "…给模型 而是不同的提示词以文件系统的形式分门别类的存放 我只有在需要这一部分提示词的时候 才把它拉入到上下文中 这个搜索的过程也可以理解成一种agent tic search 我们可以让这个AI直接看到我们的这个文件结构 自己去选择说我要一层层的翻找哪一部分的提示词 再比如说这个MCP协议 它确实实现了工具的可复用 但是有没有什么办法可以实现整一个agent的可疑至可服用呢 有没有什么通用的协议能够实现 说我们团队开发了一个 比如说归因的一个agent的隔壁团队可以直接一键copy 然后就拿来用 或者说某个企业开源了一个很好的agent 能不能让不懂AI的人也…",
+      "lexical_rank": 45,
+      "lexical_score": 3.3557526578260504,
+      "rank": 45,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.3557526578260504,
+      "start_time": 1281.63,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1046.769,
+      "excerpt": "…说公司内部的团队 他愿意去对外提供自己的一些能力 但是他并不太愿意随意公布他的圆满 也就是说他不给你代码 给你copy 还有一个就是跨语言的代码 这个是真的 你你copy了也没有用 所以怎么去解决这些问题呢 大家可以想一下 如果是你的话 你会怎么去解决这个问题 就假设现在完全没有MCP协议 或者任何成熟的解决方案 只有摆在你眼前的这些必须要愉悦的困难 因为你不克服的话 这个AI应用的开发会举步维艰 而且整一个整一个AI的这个生态 也都不太对开发者不太友好 那么其实我们会发现刚才说的这些问题 无非都是copy代码所带来的一些问题 所以有没有什么办法可以让你能用别…",
+      "lexical_rank": 46,
+      "lexical_score": 3.354132924819658,
+      "rank": 46,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.354132924819658,
+      "start_time": 927.34,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 1618.11,
+      "excerpt": "然后调用什么样的CRI工具或者API工具 然后能访问什么样的文文件权限 什么样的写 这里头甚至于有一些skills会给你再套几个Python脚本啊 告诉你如何正确的调用 甚至是CAR的命令行工具 这就是skills plugins呢本质上就是这些东西的快速安装啊 没啥 然后MCP我不讲了嗯 然后子智能系统这个是它的一个特色嗯 但是也比较简单 它子制能力系统所有的memory或者说的session不是内存里 就是文件里啊 然后他们智能体之间的通讯是通过文件通讯 就是这个MAD box也是存在文件里的啊 这个在哪呢 你就可以这么看它一下 看你自己的目录下的这…",
+      "lexical_rank": 47,
+      "lexical_score": 3.35251475466344,
+      "rank": 47,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.35251475466344,
+      "start_time": 1498.49,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_033400d2416f01fb98e970ccf5645a22",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 353.6,
+      "excerpt": "最后呢一次做了很多工程化的实现 包括MCP 包括这个网页的部署 包括配置文模型以及往上走的话 它还集成了一个docker呃 然后集成了一个向量数据库 实现更快的一个记忆检索 然后我们可以看一下这个 MEMOROS的支持列表啊 然后你可以发现它支持了很多的模型 支持了一些客户端呃 其中模型呢它主要支持的是这个open i的…",
+      "lexical_rank": 48,
+      "lexical_score": 3.347669598709043,
+      "rank": 48,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.347669598709043,
+      "start_time": 234.16,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_28e8b55fe2d288c00d74981635e3baa3",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 230.78,
+      "excerpt": "…题 当然如果您只是想解决问题 不想知道为什么 那请直接跳到最后的这个手把手教程吧 首先呢我解释一下 无论是cloud code还是open cloud 当我们问AI11等于几时 实际发给AI的并不只有11 而是有20K的token 这20K的token里包括了系统提示词工具 描述MCP配置 所以无论你问他多少次 他每次都会发同样的东西 大家记住啊 当我们把这20K的请求发送到后台的时候 后台会先做一个叫提示词处理 prom processing或者是叫PREFU 你们应该经常听到prefer这个词 他会把这20K的token 通过这个计算加工成一个大模型 能看…",
+      "lexical_rank": 49,
+      "lexical_score": 3.3444472676573027,
+      "rank": 49,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.3444472676573027,
+      "start_time": 113.05,
+      "subtitle_source": "ai",
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_121244e7dac1515d418359ca7d49b7f4",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 119
+    },
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": 465.86,
+      "excerpt": "靠多模态去进行一个观察 那另一条呢就是把前后端彻底拆开啊 后端变成一个能独立运行的AIA卷 所有的调用都能做成命令行的控制形式 看前端呢退到一边 只负责把后端的信息这个监控出来 给人们去看啊 让人进行操作 我选的其实就是第二条路啊 前后段分离啊 原因是在于我用MCP 我的确能够看到网页上面的一些操作 但是呢在这个authorization呐 或者在一些具体的corner case 包括效率上面啊 没有前后端分离来的这么直接来的这么快 而且说实话啊 就是做前后端这一步啊 我们也花了不少力气啊 原因在于 我们之前其实是重度使用了这个VERCEL…",
+      "lexical_rank": 50,
+      "lexical_score": 3.328428217267552,
+      "rank": 50,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 3.328428217267552,
+      "start_time": 348.2,
+      "subtitle_source": "ai",
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6",
+      "unit_type": "transcript_chunk",
+      "uploader": "数字黑魔法",
+      "video_id": 6
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 6.119167754153164,
+      "best_unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1G29EBGE8b",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/fb141e539232315a1d9cc60e22d1e4ed73dde37a.jpg",
+      "detail_url": "/videos/78/transcript",
+      "duration": 832.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "填上校验码就登录完成了 然后我们可以使用这个命令查看一下open cloud上面的医术列表 或者使用这个命令给我自己创建一个新的仓库 我们看到这里仓库就创建出来了 更多命令的是使用方法 可以参考GITHUB官方CLI的文档 后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说 MCP就是AA大模型的标准化工具箱 大模型可以利用这些工具与外界互动获取信息 并且完成具体任务 不过由于MCP协议设计之初存在的一些问题 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 比如AI搜索巨头PROPLEXITY在2026年3月宣布放…",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "技术爬爬虾",
+      "video_id": 78,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1G29EBGE8b",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 603.14,
+          "anchor_segment_start": 600.26,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+          "best_rank": 1,
+          "best_score": 6.119167754153164,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 832.0,
+            "source": "ai_summary",
+            "start_time": 600.0,
+            "summary": "分析 MCP 在 token 消耗、可调试性、管道组合等方面的劣势，以及其在多租户和权限控制上的优势，讨论未来融合趋势。",
+            "title": "CLI vs MCP 深度对比"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b054f1bd553c27a5e404f8c761765571",
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_09db47653d9082ab4dbb23c9887824e4"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            1,
+            2,
+            12
+          ],
+          "duration": 252.80000000000007,
+          "excerpt": "后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 600.26,
+          "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=600",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 831.84,
+          "window_start": 579.04
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 67.94,
+          "anchor_segment_start": 62.96,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+          "best_rank": 19,
+          "best_score": 4.386799854082568,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 121.0,
+            "source": "ai_summary",
+            "start_time": 0.0,
+            "summary": "介绍 CLI 重新崛起，对比 GUI 说明为何 CLI 更适配 AI，以及 CLI 的各种优势。",
+            "title": "CLI 热潮与 CLI vs GUI 对比"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            19
+          ],
+          "duration": 118.32,
+          "excerpt": "方便自动化等一系列的优势 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 视频的后半段",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 62.96,
+          "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=62",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 118.36,
+          "window_start": 0.04
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 4,
+      "best_score": 5.777567374472183,
+      "best_unit_id": "video:bilibili:BV1k6E167Ext:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1k6E167Ext",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/53bedb7f651fd7134038a2ad92d216b76cb12602.jpg",
+      "detail_url": "/videos/43/transcript",
+      "duration": 239.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "…https://github.com/cap153/config/tree/main/pi/.pi 视频中提到的插件或项目： https://github.com/nicobailon/pi-web-access https://github.com/nicobailon/pi-mcp-adapter https://github.com/mrexodia/ida-pro-mcp https://github.com/nicobailon/pi-powerline-footer https://github.com/jiangge/pi-cache-optim…",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "推荐一些Pi Agent插件",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "夜未央-天将亮",
+      "video_id": 43,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1k6E167Ext",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 59.18,
+          "anchor_segment_start": 56.71,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1k6E167Ext:p1:chunk_a474278e9d6c5fe406492fc6b64f3ef6",
+          "best_rank": 6,
+          "best_score": 5.6456924594567734,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 90.17,
+            "source": "ai_summary",
+            "start_time": 56.71,
+            "summary": "介绍 pi-mcp-adapter 插件如何让 pi 使用 MCP 服务，并以 ida-pro-mcp 为例说明 MCP 生态工具的接入需求。",
+            "title": "MCP 服务插件"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1k6E167Ext:p1:chunk_a474278e9d6c5fe406492fc6b64f3ef6"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            6
+          ],
+          "duration": 118.06,
+          "excerpt": "然后写入这一行内容 这个插件可以让pi使用MCP服务 pi的作者写过一篇文章",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 56.71,
+          "jump_url": "https://www.bilibili.com/video/BV1k6E167Ext?t=56",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "human"
+          ],
+          "window_end": 118.06,
+          "window_start": 0.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 5.655251243279664,
+      "best_unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1co9yBhEvW",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/95412e13ce98a90ea8d053ed266fadaed9171290.jpg",
+      "detail_url": "/videos/71/transcript",
+      "duration": 925.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "…资料可以放在reference里面 哪些内容应该拆成脚本或者模板 最后是关于怎么测评 你写的prompt和skill 可以看看OpenAI官方的evolution最佳实践 我看这些东西会比较偏方法论一点 我觉得理解了这些理论之后 去设计prompt和skill都不会太糟糕 然后是MCP server 这也是我在工作中经常会接触到的一块 在AI时代之前 我们通常使用restful API或者photo Buff 这些方式去定义服务之间怎么通信 怎么进行调用 但是现在呢有一些不同调用方不再是某个服务 而是由大模型进行调用 MCP是一种AI时代的协议标准 他把系统的…",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "polebug23",
+      "video_id": 71,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1co9yBhEvW",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 500.46,
+          "anchor_segment_start": 498.68,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+          "best_rank": 5,
+          "best_score": 5.655251243279664,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 722.41,
+            "source": "ai_summary",
+            "start_time": 482.42,
+            "summary": "介绍MCP协议的学习路径和RAG构建与测评资源，并转向工作内容：企业AI三个方向，自身从事内部工具与团队提效。",
+            "title": "MCP与RAG学习及企业AI团队工作转变"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6294255f1520d80ab3d7993ecceabf08",
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            5,
+            29,
+            36
+          ],
+          "duration": 349.75,
+          "excerpt": "去设计prompt和skill都不会太糟糕 然后是MCP server 这也是我在工作中经常会接触到的一块",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 498.68,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=498",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 811.51,
+          "window_start": 461.76
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 7,
+      "best_score": 5.300656160191192,
+      "best_unit_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_bd38bab47f32c042b83c8b1730d5d526",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1AuzkBREhx",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/f7f1f80684128ea2e2ae20825c6f37383e80a25e.jpg",
+      "detail_url": "/videos/80/transcript",
+      "duration": 791.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "安吉的m cp scale到底是什么 你一定听过很多关于他们的理论 但你的理解一定是正确的吗 比如MCP的解析式大模型上下文协议 它可以和各种外部系统连接 请问大模型是直接调用外部的服务吗 如果你所在公司的内网搭建了MCP的服务 外部的大模型它怎么能够调用呢 再比如skill的解释是技能 它是有具体的功能吗 要不为啥叫技能呢 它和MCP又有什么区别 上面的问题你要是不能够准确的回答…",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "鲁班大叔_007",
+      "video_id": 80,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1AuzkBREhx",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 11.85,
+          "anchor_segment_start": 8.15,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_bd38bab47f32c042b83c8b1730d5d526",
+          "best_rank": 7,
+          "best_score": 5.300656160191192,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_bd38bab47f32c042b83c8b1730d5d526"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 119.28,
+          "excerpt": "但你的理解一定是正确的吗 比如MCP的解析式大模型上下文协议 它可以和各种外部系统连接",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 8.15,
+          "jump_url": "https://www.bilibili.com/video/BV1AuzkBREhx?t=8",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 119.36,
+          "window_start": 0.08
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 784.38,
+          "anchor_segment_start": 781.64,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373",
+          "best_rank": 26,
+          "best_score": 3.6234718360797085,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 791.0,
+            "source": "ai_summary",
+            "start_time": 720.0,
+            "summary": "归纳Agent循环本质,并预告下期将讲解MCP如何扩展Agent的工具操作能力。",
+            "title": "总结与展望MCP"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            26
+          ],
+          "duration": 91.20000000000005,
+          "excerpt": "我们还能不能够有更多的操作呢 这个时候就该MCP出场啦 请看下集内容",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 781.64,
+          "jump_url": "https://www.bilibili.com/video/BV1AuzkBREhx?t=781",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 790.0,
+          "window_start": 698.8
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 5.170504499640209,
+      "best_unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_23cc21a944d69097885b473a86f84e34",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV14fTc6TEi5",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/ad4724a00c0f67f4b6428fc8b5541e91a6b06c8a.jpg",
+      "detail_url": "/videos/7/transcript",
+      "duration": 1287.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "它在这里还有一个非常酷的东西 叫pip camera 我之前在看它的配置时 非常困惑 为什么在它的配置里 我会把链接放在下面 我真的很困惑 为什么他这里有个ephemeral目录 里面还有一些MCP和skills 看起来这实际上添加了一个SHAIMIUI 用于选择项目 本地skills提示词 扩展MCP服务器 它的实际作用是 确保这些内容不会被全天候加载 而不是像我现在的系统那样 比如我的任何全局技能都会始终加载 如果是临时技能 则只有在你明确将它们添加到上下文中时 才会触…",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "狡猾的哈基",
+      "video_id": 7,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV14fTc6TEi5",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1120.32,
+          "anchor_segment_start": 1119.0,
+          "best_chunk_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_23cc21a944d69097885b473a86f84e34",
+          "best_rank": 9,
+          "best_score": 5.170504499640209,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 1287.0,
+            "source": "ai_summary",
+            "start_time": 669.07,
+            "summary": "逐一介绍作者开源配置中的关键扩展和技能，解释定制思路，并强调扩展相较于技能的优越性——仅在需要时注入上下文。",
+            "title": "开源Pi配置详解"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_23cc21a944d69097885b473a86f84e34",
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_485cbdbc90f38f1e3d484d410badacbe"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            9,
+            23
+          ],
+          "duration": 235.68000000000006,
+          "excerpt": "如果这是你想要的 他还有拍MCP用 来确保MCP能在pad里正常运行",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 1119.0,
+          "jump_url": "https://www.bilibili.com/video/BV14fTc6TEi5?t=1119",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1244.66,
+          "window_start": 1008.98
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 340.509,
+          "anchor_segment_start": 338.929,
+          "best_chunk_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad",
+          "best_rank": 22,
+          "best_score": 4.285352925629108,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 669.07,
+            "source": "ai_summary",
+            "start_time": 77.51,
+            "summary": "深入剖析Pi的扩展系统，演示如何通过智能体本身读取文档并创建扩展，实现热重载，以及这种模式如何媲美Neovim的定制深度却零学习成本。",
+            "title": "Pi的扩展系统与定制能力"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            22
+          ],
+          "duration": 112.531,
+          "excerpt": "然后你可以在此基础上构建自己的东西 比如他甚至都没有内置MCP支持 如果你想要MCP支持",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 338.929,
+          "jump_url": "https://www.bilibili.com/video/BV14fTc6TEi5?t=338",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 343.82,
+          "window_start": 231.289
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 4.95118175141681,
+      "best_unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_f3e426c077b67e235b6a4c30bea4ab6f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1kMVt6mEgr",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/d4d4dc2efa2b64eccf435a169c108df95f59cf01.jpg",
+      "detail_url": "/videos/47/transcript",
+      "duration": 2020.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "…及你想把它变成什么样子 如果你比较懒 不想自己动手 只想看看别人做了什么 可以去项目的GITHUB仓库查看官方示例 或者访问他们的包库 pi点df packages pi点dio packages的内容非常丰富 你能在上面找到很多很酷的东西 比如context mode 这是一个MCP插件 能帮你节省98%的上下文窗口占用 还有pi自agent的PMCP适配器 但还有pi网络搜索确实有很多好东西 下面这些是pi没有内置 但在其他AI编程工具里很常见的东西 没有内置MCP 没有子agent 没有权限弹窗 没有后台BS 没有待办事项 也没有计划模式 核心规则是 如…",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "pi世界",
+      "video_id": 47,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1kMVt6mEgr",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 905.16,
+          "anchor_segment_start": 903.7,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_f3e426c077b67e235b6a4c30bea4ab6f",
+          "best_rank": 10,
+          "best_score": 4.95118175141681,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 2020.0,
+            "source": "ai_summary",
+            "start_time": 854.32,
+            "summary": "介绍扩展点（工具、命令、拦截事件等），并列出 Pi 缺省支持的常见功能，推荐访问包库。",
+            "title": "扩展方式与缺失功能"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_f3e426c077b67e235b6a4c30bea4ab6f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 118.64999999999998,
+          "excerpt": "比如context mode 这是一个MCP插件 能帮你节省98%的上下文窗口占用",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 903.7,
+          "jump_url": "https://www.bilibili.com/video/BV1kMVt6mEgr?t=903",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 929.15,
+          "window_start": 810.5
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 11,
+      "best_score": 4.690290005084618,
+      "best_unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_2a4f02bb7201e42859fabb15324ea8fb",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1hr6EBBEhM",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/f3e41466dbd71c14a8a68269d13046ad64f95e8f.jpg",
+      "detail_url": "/videos/39/transcript",
+      "duration": 4245.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "…记忆他的评价指标表现出来的话 最后呢是我们的一个数据结果表格的分析 然后大家感兴趣也可以去读一下 好以上呢就是本期视频的全部内容了 然后我也是给大家过了一遍整个GITHUB项目啊 非常感谢大家的收看 最后呢跟大家好像还有一点没讲完吧 对好像是这里没讲完 最后呢跟大家简单讲一下这个MCP吧 MCP呢其实也比较简单 其实就是通过一个接口的方式 通过这个MCT来实现一个 和其他客户端的一个配置 然后能够把我们的记忆系统",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "日新月异max",
+      "video_id": 39,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1hr6EBBEhM",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 4053.03,
+          "anchor_segment_start": 4049.95,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_2a4f02bb7201e42859fabb15324ea8fb",
+          "best_rank": 11,
+          "best_score": 4.690290005084618,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4245.0,
+            "source": "ai_summary",
+            "start_time": 3806.08,
+            "summary": "讲解LoCoMo数据集格式、评价指标BLEU和F1的计算原理，以及代码中如何生成答案和评估记忆效果。",
+            "title": "评测数据集详解"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_2a4f02bb7201e42859fabb15324ea8fb"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            11
+          ],
+          "duration": 117.9699999999998,
+          "excerpt": "对好像是这里没讲完 最后呢跟大家简单讲一下这个MCP吧 MCP呢其实也比较简单",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 4049.95,
+          "jump_url": "https://www.bilibili.com/video/BV1hr6EBBEhM?t=4049",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 4066.83,
+          "window_start": 3948.86
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1670.68,
+          "anchor_segment_start": 1666.04,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_402aa3d310caef4231f5aa99a7909a91",
+          "best_rank": 33,
+          "best_score": 3.437082359889255,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 2775.51,
+            "source": "ai_summary",
+            "start_time": 1000.87,
+            "summary": "深入分析短期记忆（deque）、中期记忆（段页式存储，session和page结构，向量检索）和长期记忆（用户画像、知识库）的底层数据组织和检索方式。",
+            "title": "记忆存储结构详解"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_402aa3d310caef4231f5aa99a7909a91"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            33
+          ],
+          "duration": 117.66099999999983,
+          "excerpt": "我想先跟大家讲一下这个chrome dB 因为chrome dB跟我们的PAPI以及这个playground以及MCP 都是复用的同一套算法",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 1666.04,
+          "jump_url": "https://www.bilibili.com/video/BV1hr6EBBEhM?t=1666",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1749.57,
+          "window_start": 1631.909
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 13,
+      "best_score": 4.497598776577616,
+      "best_unit_id": "video:bilibili:BV13MQQB8ERn:p1",
+      "best_unit_type": "video",
+      "bvid": "BV13MQQB8ERn",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/77bc11209072cca9ded0f22c6541ba5bfd16a053.jpg",
+      "detail_url": "/videos/99/transcript",
+      "duration": 803.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "[Title] 前后端都可看的Agent开发学习路线 [Uploader] Stellar鱼 [Description] - [Summary Conclusion] Agent开发需要从前端到后端全链路掌握Transformer基础、ReAct架构、工具调用（MCP/function calling）、上下文工程、RAG流程，以及评测监控，并且通过实际项目实践才能快速上手。 [Summary Key Points] 大模型八股虽不如后端体系化，但Transformer自注意力机制和GPT架构是面试高频必问。 工具调用中function ca…",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "前后端都可看的Agent开发学习路线",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Stellar鱼",
+      "video_id": 99,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV13MQQB8ERn",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 143.47,
+          "anchor_segment_start": 141.09,
+          "best_chunk_id": "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_b8d8c71b78d9c2d7ac1ce63aa09247bb",
+          "best_rank": 27,
+          "best_score": 3.5621764926240505,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 241.78,
+            "source": "ai_summary",
+            "start_time": 121.81,
+            "summary": "Transformer架构、GPT原理、参数调优、工具调用（function calling vs MCP）、提示词工程等大模型技术面试高频考点。",
+            "title": "核心面试知识点（八股）"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_b8d8c71b78d9c2d7ac1ce63aa09247bb",
+            "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_a94915c2a501a556904e52797a2e0e99"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            27,
+            30
+          ],
+          "duration": 230.67000000000002,
+          "excerpt": "其实大部分问的八股基本上也是问skill MCP这种最近比较火的概念 而没有后端那么深的技术沉淀",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 141.09,
+          "jump_url": "https://www.bilibili.com/video/BV13MQQB8ERn?t=141",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 346.69,
+          "window_start": 116.02
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 15,
+      "best_score": 4.455713363864085,
+      "best_unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0bffaa55a2081928f2cc898e542e8c78",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1qTYizcEN3",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/3591942da5180f6e019a8b15138f8965444a3197.jpg",
+      "detail_url": "/videos/83/transcript",
+      "duration": 3435.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "哈喽小伙伴们大家好 我又活了 这一期视频主要想和大家讲一下 function calling以及MCP模型上下文协议 本期视频的讲解思路可能会和之前的论文讲解 完全不一样 因为我想先讲一下 在没有function calling和NCP之前 开发者们都遇到了什么实际的困境 为了解决这些困境 大家又想出了哪些办法 哪些思路 以及为什么最终function calling和NCP 会…",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1qTYizcEN3",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 9.379,
+          "anchor_segment_start": 5.74,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0bffaa55a2081928f2cc898e542e8c78",
+          "best_rank": 15,
+          "best_score": 4.455713363864085,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0bffaa55a2081928f2cc898e542e8c78"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            15
+          ],
+          "duration": 116.709,
+          "excerpt": "这一期视频主要想和大家讲一下 function calling以及MCP模型上下文协议 本期视频的讲解思路可能会和之前的论文讲解",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 5.74,
+          "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=5",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 117.049,
+          "window_start": 0.34
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1894.82,
+          "anchor_segment_start": 1892.0,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_c5a14b028b3f15d4d9b1266c2a22b34b",
+          "best_rank": 38,
+          "best_score": 3.4134458034180053,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_c5a14b028b3f15d4d9b1266c2a22b34b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            38
+          ],
+          "duration": 117.67000000000007,
+          "excerpt": "而且我的数据交换的格式也必须要统一下来 其实我觉得这个MCP本质上 它也无非就是在所有已有的这些API的基础上",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 1892.0,
+          "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=1892",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1967.02,
+          "window_start": 1849.35
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 16,
+      "best_score": 4.440055175220307,
+      "best_unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_8d5eec8be978921bf9a64a5388531a4b",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1zSDMBUE5o",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/a6d7a2ec2d9299db46a4bbca29e5f12515a5ddf2.jpg",
+      "detail_url": "/videos/111/transcript",
+      "duration": 2025.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "…归因 然后隔壁团队老板说 诶搞一下异常指标的这些自动告警监控等等 那么可能你们两个团队都需要用到同一个能力 就是查日志 让模型输出一个查日志的function call 返回结果之后再把日志塞给模型 那么为了减少这种功能的重复开发 为了实现这种通用的方渗扣能力的共享 就出现了这个MCP模型上下文协议 Model context protocol 这个是ENTHROPIC 也就是cloud的母公司在2024年11月提出的一个协议规范 MCP自从提出之后 火了大概一年多的时间",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1zSDMBUE5o",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 558.99,
+          "anchor_segment_start": 556.39,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_8d5eec8be978921bf9a64a5388531a4b",
+          "best_rank": 16,
+          "best_score": 4.440055175220307,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_8d5eec8be978921bf9a64a5388531a4b",
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_beb8f45eab8efd241aea93433e9f53cb",
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            16,
+            39,
+            40
+          ],
+          "duration": 351.859,
+          "excerpt": "然后说完微调和rag之后 我们来看一下function call和MCP 这个其实是另外一条线了",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 556.39,
+          "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=556",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 819.569,
+          "window_start": 467.71
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1356.589,
+          "anchor_segment_start": 1353.909,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1",
+          "best_rank": 45,
+          "best_score": 3.3557526578260504,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            45
+          ],
+          "duration": 119.68999999999983,
+          "excerpt": "自己去选择说我要一层层的翻找哪一部分的提示词 再比如说这个MCP协议 它确实实现了工具的可复用",
+          "jump_source": "exact_query_phrase",
+          "jump_time": 1353.909,
+          "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=1353",
+          "matched_terms": [
+            "MCP"
+          ],
+          "retrieval_methods": [
+            "lexical"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1401.32,
+          "window_start": 1281.63
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 73.755,
+      "chapter_ms": 0.883,
+      "grouping_ms": 0.063,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 3.673,
+      "total_ms": 79.87
+    },
+    "raw": {
+      "dense_ms": 0.0,
+      "fusion_ms": 0.0,
+      "lexical_ms": 3.244,
+      "planning_ms": 0.016,
+      "total_ms": 3.645
+    }
+  },
+  "trace_id": "00f1ea03-a7d5-4401-b83f-7d1d00be53ba",
+  "trace_persisted": false
+}

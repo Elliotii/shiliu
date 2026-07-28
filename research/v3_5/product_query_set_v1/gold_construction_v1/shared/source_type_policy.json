@@ -1,0 +1,20 @@
+{
+  "policy_version": "P7A_SOURCE_TYPE_POLICY_V1",
+  "gold_authoritative_sources": [
+    "official_subtitle",
+    "asr_transcript"
+  ],
+  "navigation_only_sources": [
+    "metadata",
+    "title",
+    "description",
+    "ai_summary",
+    "ai_chapter"
+  ],
+  "navigation_only_may_be_gold_evidence": false,
+  "translation_may_replace_source_text": false,
+  "annotator_must_review_full_authoritative_transcript_for_selected_sources": true,
+  "source_version_definition": "SHA-256 of exact authoritative subtitle-raw.json bytes",
+  "segment_identity_version": "v3.5-source-identity-v2",
+  "timeline_policy_version": "v3.5-timeline-policy-v1"
+}

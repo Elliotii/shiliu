@@ -1,0 +1,26 @@
+{
+  "abstain": null,
+  "candidate_budget": 0,
+  "candidate_builder_policy_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+  "candidate_count": 0,
+  "candidate_ids": [],
+  "candidate_set_identity": "7712fa6b8ce269a31339e00c7775cd9af3518dcee53725788bb7d4040cf519b3",
+  "case_correlation_id": "CASE_005",
+  "evaluation_track": "frozen_v3_end_to_end",
+  "gold_after_prediction": {
+    "failure_attribution": "upstream_retrieval_failure",
+    "hit": null
+  },
+  "model_identity": "deepseek-v4-pro",
+  "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+  "query_identity": "Q16",
+  "raw_normalization_result": null,
+  "reconstructed_bundle_id": null,
+  "repair_attempt": null,
+  "request_hash": null,
+  "response_hash": null,
+  "schema_validation": "not_eligible",
+  "selected_candidate_ids": [],
+  "selector_contract_version": "v3.5-structured-fine-selector-v1",
+  "selector_type": "not_eligible"
+}

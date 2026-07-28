@@ -1,0 +1,52 @@
+{
+  "schema_version": "v3.5-b-f1a-final-acceptance-gate-v1",
+  "status": "complete",
+  "gates": {
+    "complete_group_coverage_minimum_8_of_13": {
+      "observed": "0/13",
+      "passed": false
+    },
+    "builder_primary_failures_maximum_4": {
+      "observed": 12,
+      "passed": false
+    },
+    "required_span_recall_minimum_69_23_percent": {
+      "observed": 0.0,
+      "passed": false
+    },
+    "required_aspect_coverage_minimum_69_23_percent": {
+      "observed": 0.0,
+      "passed": false
+    },
+    "existing_six_builder_hits_zero_regressions": {
+      "observed_regressions": 6,
+      "passed": false
+    },
+    "invalid_identity_source_timeline_maximum_0": {
+      "observed": 0,
+      "passed": true
+    },
+    "candidate_cap_required_32": {
+      "observed": 32,
+      "passed": true
+    },
+    "maximum_swaps_per_query_required_4": {
+      "observed": 4,
+      "passed": true
+    },
+    "forced_swaps_required_false": {
+      "observed": false,
+      "passed": true
+    },
+    "stress_complete_group_coverage_floor_11_of_20": {
+      "observed": "14/20",
+      "passed": true
+    },
+    "stress_invalid_identity_source_timeline_maximum_0": {
+      "observed": 0,
+      "passed": true
+    }
+  },
+  "all_required_gates_passed": false,
+  "outcome_candidate": "rejected_keep_existing_builder"
+}

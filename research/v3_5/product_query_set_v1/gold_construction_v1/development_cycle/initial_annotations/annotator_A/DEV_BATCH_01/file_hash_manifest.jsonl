@@ -1,0 +1,5 @@
+{"path":"DEV_BATCH_01/retrieval_gold.initial.jsonl","sha256":"27f4d96df7be7b71ab322d56f831d196df8405e022894b582dcd1625aced57c6"}
+{"path":"DEV_BATCH_01/evidence_gold.initial.jsonl","sha256":"9b2bf811a913ada4b3bd9242acc8f8a2023166043f4349b104fab17a0f38b5a0"}
+{"path":"DEV_BATCH_01/sufficiency_gold.initial.jsonl","sha256":"801cb5bd775a96380e422618a5f597558d21792a6fbde4591c66ba4c6eae3a6d"}
+{"path":"DEV_BATCH_01/initial_annotation_decision.jsonl","sha256":"14933e8abf7dfddf490990ae7180e1cafb73c6d9ba322221832a866ba49a79a8"}
+{"path":"DEV_BATCH_01/annotation_report.md","sha256":"61dcb9409999886f707a9c472cef12b1511ddb5e0a94a843c92b3ae69f07c5f1"}

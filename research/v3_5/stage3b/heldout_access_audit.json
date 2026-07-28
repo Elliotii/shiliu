@@ -1,0 +1,44 @@
+{
+  "allowed_gold_paths": [
+    "research/v3_5/gold/HELDOUT_ISOLATION_CONTRACT.md",
+    "research/v3_5/gold/V3_5_EVAL_PROTOCOL.locked.md",
+    "research/v3_5/gold/development_gold.8_cases.locked.jsonl"
+  ],
+  "forbidden_open_attempts": [],
+  "forbidden_path_patterns": [
+    "eval_gold.locked",
+    "eval_gold_review",
+    "heldout_gold",
+    "master_gold",
+    "master.18_cases",
+    "adjudicated",
+    "gold_lock_manifest",
+    "gold_lock_audit",
+    "master_case_membership",
+    "development_heldout_split",
+    "reason_code_registry",
+    "human_reviews",
+    "review_packets",
+    "eval_queries.locked"
+  ],
+  "heldout_case_specific_rules_detected": false,
+  "heldout_evidence_loaded": false,
+  "heldout_formal_run_executed": false,
+  "heldout_labels_loaded": false,
+  "runtime_input_paths": [
+    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "research/v3_5/gold/development_gold.8_cases.locked.jsonl",
+    "research/v3_5/stage3a_inputs/development_execution_manifest.8_cases.locked.jsonl",
+    "research/v3_eval/artifact_manifest.jsonl"
+  ],
+  "source_files_scanned": [
+    "src/shiliu/eval_v3_5/isolation.py",
+    "src/shiliu/eval_v3_5/stage3b.py",
+    "src/shiliu/evidence/stage3a.py",
+    "src/shiliu/evidence/stage3b.py"
+  ],
+  "test_files_scanned": [
+    "tests/test_v3_5_stage3b_selector.py"
+  ],
+  "violations": []
+}

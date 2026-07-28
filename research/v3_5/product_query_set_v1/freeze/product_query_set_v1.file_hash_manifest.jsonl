@@ -1,0 +1,16 @@
+{"path":"research/v3_5/product_query_set_v1/corpus_aware_generation/product_query_candidates.user_review.jsonl","sha256":"f72e92373ed5ed93a9a82a7e5f88597c4f8e2bdca7f7f781f98062fcb2601213","size_bytes":13679}
+{"path":"research/v3_5/product_query_set_v1/corpus_aware_generation/product_query_candidates.internal_basis.jsonl","sha256":"66ddc96e9484e9080b8df92f3aaf192a5c73cbe126e65cf5bfb69731e3f1b008","size_bytes":46809}
+{"path":"research/v3_5/product_query_set_v1/corpus_aware_generation/product_query_corpus_inventory.internal.jsonl","sha256":"05e71ce08db5dc92e92035fee3e26ce7156ccfacdb40a4a834d857bb229ffe5f","size_bytes":16145}
+{"path":"research/v3_5/product_query_set_v1/corpus_aware_generation/corpus_aware_candidate_generation.audit.json","sha256":"5e50946729ec3afd15a114db802142b926be698f9f3d0dc6547a425f6a4f6269","size_bytes":18158}
+{"path":"research/v3_5/product_query_set_v1/corpus_aware_generation/corpus_aware_candidate_generation_report.md","sha256":"47e5d40aa8d8f7da99edcab0abb3cbf48f2247b8f8abde8a0beeeb3ab2d317fb","size_bytes":5010}
+{"path":"research/v3_5/product_query_set_v1/corpus_aware_generation/corpus_aware_candidate_generation_audit_amendment.md","sha256":"2dcad60f74278d4663491216f85f3464c17c4580654ea480aedfff4574da87a9","size_bytes":5363}
+{"path":"research/v3_5/product_query_set_v1/user_validation/product_query_user_validation.completed.jsonl","sha256":"b66bdd7ae2dd778a629f266aa867330db172f9d63c972768d734ddee6f6f911d","size_bytes":22540}
+{"path":"research/v3_5/product_query_set_v1/user_validation/product_query_candidate_pool.after_user_revision.jsonl","sha256":"a0f7748b8dc2eb71d9204e3042558ae615db9d908e693970f4a6654c28afb667","size_bytes":23548}
+{"path":"research/v3_5/product_query_set_v1/user_validation/PQS_V1_USER_VALIDATION_REPORT.md","sha256":"823dbfcfb931d5bc8771a2ce598881e1840b7150931ac4a327970728dec849d5","size_bytes":1338}
+{"path":"research/v3_5/product_query_set_v1/user_validation/pqs_v1_user_validation.audit.json","sha256":"0acb8f6b88e5d60579dc03b0808862deff6fccd9611dcaaae79fa12b4622b58e","size_bytes":855}
+{"path":"research/v3_5/product_query_set_v1/user_validation/pqs_v1_user_validation.manifest.json","sha256":"a2de9d806f911a80d0b921827fcde53e5614e43afc13daca85e9dda6ddbb6587","size_bytes":1628}
+{"path":"research/v3_5/product_query_set_v1/freeze/product_query_set_v1.locked.jsonl","sha256":"35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c","size_bytes":20311}
+{"path":"research/v3_5/product_query_set_v1/freeze/product_query_set_v1.manifest.json","sha256":"eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb","size_bytes":1765}
+{"path":"research/v3_5/product_query_set_v1/freeze/product_query_set_v1.lock.audit.json","sha256":"95f00c022a9cf2afb0bd7e189798c8ef5e3b8b2575ec51a78edb246c703075bd","size_bytes":1049}
+{"path":"research/v3_5/product_query_set_v1/freeze/PRODUCT_QUERY_SET_V1_FREEZE_REPORT.md","sha256":"1c60574b1a84afb1160b66a8423dfa37640b88c7a56a63b0166864ab2a4b342b","size_bytes":1650}
+{"path":"research/v3_5/product_query_set_v1/freeze/product_query_set_v1.freeze_execution_decision.json","sha256":"2e22eb39013ecaa83fa0378ba3b48e80c5e42674620b9735ea0e471ab9cf285e","size_bytes":381}

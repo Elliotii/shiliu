@@ -1,0 +1,11 @@
+{
+  "anthropic_calls": 0,
+  "candidate_builder_calls": 0,
+  "deepseek_calls": 0,
+  "external_embedding_calls": 0,
+  "external_llm_calls": 0,
+  "network_calls": 0,
+  "openai_calls": 0,
+  "retrieval_calls": 0,
+  "selector_calls": 0
+}

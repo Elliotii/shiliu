@@ -1,0 +1,15 @@
+{
+  "candidate_builder_calls": 20,
+  "dense_effective_calls": 0,
+  "deterministic_selector_calls": 20,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "final_answer_calls": 0,
+  "heldout_accessed": false,
+  "hybrid_effective_calls": 20,
+  "lexical_effective_calls": 0,
+  "product_search_calls": 20,
+  "router_calls": 20,
+  "structured_llm_selector_calls": 0,
+  "sufficiency_judge_calls": 0
+}

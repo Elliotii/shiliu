@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 from shiliu.app import Application
@@ -60,6 +61,51 @@ def test_product_api_groups_same_video_and_combined_trace(app_paths) -> None:
     assert trace["presentation"]["trace_id"] == body["trace_id"]
 
 
+def test_omitted_product_mode_defaults_to_auto_and_persists_provenance(app_paths) -> None:
+    web, _, lexical, dense, hybrid = make_client(app_paths)
+    body = web.post("/api/search", json={"query": "MCP"}).json()
+    plan = body["plan"]
+    assert body["ok"] and body["executed_mode"] == "lexical"
+    assert plan["requested_mode"] is None
+    assert plan["resolved_requested_mode"] == "auto"
+    assert plan["default_applied"] is True
+    assert plan["configured_default_mode"] == "auto"
+    assert plan["router_invoked"] is True
+    assert plan["router_decision"] == plan["effective_mode"] == "lexical"
+    assert plan["embedding_invoked"] is False
+    assert lexical.calls and not dense.calls and not hybrid.calls
+    presentation = web.get(f"/api/search/traces/{body['trace_id']}").json()["presentation"]
+    assert presentation["product_default_wiring_version"] == "v3-product-search-default-auto-v1"
+    assert presentation["requested_mode"] is None and presentation["default_applied"] is True
+    assert presentation["router_invoked"] is True
+    assert presentation["router_decision"] == presentation["effective_mode"] == "lexical"
+
+
+@pytest.mark.parametrize("mode", ["lexical", "dense", "hybrid"])
+def test_explicit_product_modes_bypass_auto_router(app_paths, mode) -> None:
+    web, _, _, _, _ = make_client(app_paths)
+    body = web.post("/api/search", json={"query": "MCP", "mode": mode}).json()
+    plan = body["plan"]
+    assert body["ok"] and body["executed_mode"] == mode
+    assert plan["requested_mode"] == mode and plan["default_applied"] is False
+    assert plan["router_invoked"] is False and plan["effective_mode"] == mode
+    assert plan["router_decision"] is None and plan["router_reason_codes"] == []
+
+
+def test_explicit_auto_invokes_router_and_records_hybrid_execution(app_paths) -> None:
+    web, _, _, _, hybrid = make_client(app_paths)
+    body = web.post(
+        "/api/search",
+        json={"query": "工具调用失败后如何继续", "mode": "auto"},
+    ).json()
+    plan = body["plan"]
+    assert body["ok"] and hybrid.calls
+    assert plan["requested_mode"] == "auto" and plan["default_applied"] is False
+    assert plan["router_invoked"] is True
+    assert plan["router_decision"] == plan["effective_mode"] == "hybrid"
+    assert plan["embedding_invoked"] is True
+
+
 def test_raw_only_trace_keeps_compatibility_and_presentation_null(app_paths) -> None:
     web, _, _, _, _ = make_client(app_paths)
     body = web.post("/api/search/raw", json={"query": "MCP"}).json()
@@ -107,6 +153,55 @@ def test_scope_video_has_no_windows_and_filters_reach_raw_retrieval(app_paths) -
     kwargs = lexical.calls[0][1]
     assert kwargs["level"] == "video" and kwargs["filters"].folder_id == 7
     assert kwargs["include_ignored"] is True
+    assert body["plan"]["default_applied"] is True
+    assert body["plan"]["router_invoked"] is True
+
+
+def test_api_preserves_exact_uploader_and_adds_contains_filter(app_paths) -> None:
+    web, _, lexical, _, _ = make_client(
+        app_paths, lexical_results=[lexical_result()]
+    )
+    exact = web.post(
+        "/api/search",
+        json={"query": "MCP", "filters": {"uploader": "Alice Studio"}},
+    )
+    contains = web.post(
+        "/api/search",
+        json={"query": "MCP", "filters": {"uploader_contains": "alice"}},
+    )
+
+    assert exact.status_code == 200 and contains.status_code == 200
+    assert lexical.calls[-2][1]["filters"].uploader == "Alice Studio"
+    assert lexical.calls[-2][1]["filters"].uploader_contains is None
+    assert lexical.calls[-1][1]["filters"].uploader is None
+    assert lexical.calls[-1][1]["filters"].uploader_contains == "alice"
+
+
+def test_unused_uploader_contains_preserves_frozen_request_shape() -> None:
+    legacy = {
+        "query": "MemoryOS",
+        "mode": "lexical",
+        "scope": "all",
+        "result_limit": 10,
+        "max_windows_per_video": 2,
+        "filters": {
+            "source_db_id": None,
+            "folder_id": None,
+            "favorite_time_from": None,
+            "favorite_time_to": None,
+            "reading_state": None,
+            "marked": None,
+            "uploader": None,
+            "archived": None,
+            "ignored": False,
+        },
+    }
+    assert ProductSearchRequest.model_validate(legacy).model_dump(mode="json") == legacy
+
+    current = ProductSearchRequest.model_validate(
+        {**legacy, "filters": {**legacy["filters"], "uploader_contains": " alice "}}
+    ).model_dump(mode="json")
+    assert current["filters"]["uploader_contains"] == "alice"
 
 
 def test_semantic_product_search_uses_chunk_fallback(app_paths) -> None:
@@ -165,6 +260,6 @@ def test_product_request_validation_and_cli_grouped_flags(app_paths) -> None:
     assert args.grouped and args.result_limit == 4 and args.max_windows == 3
 
 
-def test_direct_product_request_defaults_remain_lexical() -> None:
+def test_direct_product_request_defaults_to_auto() -> None:
     request = ProductSearchRequest(query="MCP")
-    assert request.mode == "lexical" and request.result_limit == 10
+    assert request.mode == "auto" and request.default_applied and request.result_limit == 10

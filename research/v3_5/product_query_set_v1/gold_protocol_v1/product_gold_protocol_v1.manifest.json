@@ -1,0 +1,37 @@
+{
+  "protocol_name": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "protocol_schema_version": "v3.5-pqs-v1-p6-gold-protocol-schema-v1",
+  "source_query_set_hashes": {
+    "canonical_content_sha256": "fadf21c1992d848f2904192af479f6720a059c9aeb772ccfc4cee3b220942825",
+    "locked_jsonl_sha256": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c"
+  },
+  "source_split_hashes": {
+    "canonical_split_assignment_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+    "development_jsonl_sha256": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935",
+    "frozen_jsonl_sha256": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f"
+  },
+  "decision_ledger_sha256": "4449faea22163dfd6b8d347a72bb3e7d7b48e665a62c87143179e5d60a81a720",
+  "artifact_hashes": {
+    "PQS_V1_P6_GOLD_PROTOCOL_DECISION_LEDGER.json": "4449faea22163dfd6b8d347a72bb3e7d7b48e665a62c87143179e5d60a81a720",
+    "PRODUCT_QUERY_GOLD_PROTOCOL_V1.md": "1da2fd575a091ac5adff7e823080b8d90564fbf912abdb3cc5ee409599886e06",
+    "fixtures/synthetic_evidence_gold.valid.json": "b85c4ea6f954461b6c41d705d925fb2d96028b89f1fa74b53a1e722306e6a6f9",
+    "fixtures/synthetic_retrieval_gold.valid.json": "da16e81bfe21c5cda0a419d22173f1a1d47299637191f2c61effa03815ebb511",
+    "fixtures/synthetic_sufficiency_gold.insufficient.valid.json": "697182f265349ee4eccc2fa56024db4999edb29d7084c17e65336e32441419c7",
+    "fixtures/synthetic_sufficiency_gold.partial.valid.json": "448b7ca0745ed988781f5ebdccb22248865f40dc157ab5a81ecbfb29faefd448",
+    "fixtures/synthetic_sufficiency_gold.sufficient.valid.json": "e88912ecf7cfb5ad451a3baa51bdf49c76311ff17ff53875c90fc6176490525d",
+    "fixtures/synthetic_sufficiency_gold.unverifiable.valid.json": "b36e1a1397297534ae30daecc8059c320fc865997da05dad2025483dc95b27d5",
+    "product_evidence_gold.schema.json": "c6d065464e833d1eb36b27c2247e9362ab0040b10cd590451c6c8cdd22eb5947",
+    "product_frozen_evaluation_isolation_contract.md": "d0c3edaa60762432b84e918e958fa3e981677fe4795ca5a38a6a854e96ab5fd6",
+    "product_gold_reason_code_registry.json": "7d759383aeb20aa2730254e2785ac8fc867ef5ecaf8fbcd42909cdf0c83ca50b",
+    "product_gold_review_policy.json": "45514dffb722b4c64c410b00980021889d4f869a827fef2d469c7a0f6538e545",
+    "product_retrieval_gold.schema.json": "6017dc5eaabae1be34701e0a4941ed205ce0e16a7db3885b431d665366b397c0",
+    "product_sufficiency_gold.schema.json": "56054395bb3ab1997bc58474ad34759026c9f4bc774f9164dbe66aedffa638f3"
+  },
+  "artifact_hash_scope": "substantive protocol, schema, registry, policy, isolation, fixture, and ledger files; excludes governance self-references",
+  "retrieval_exhaustive": false,
+  "three_layer_separation": true,
+  "evidence_gold_builder_independent": true,
+  "frozen_isolation_enabled": true,
+  "formal_annotation_started": false,
+  "semantic_changes_require_new_protocol_version": true
+}

@@ -1,0 +1,45 @@
+{
+  "current_distribution": {
+    "insufficient": 3,
+    "partial": 0,
+    "sufficient": 1,
+    "total": 4,
+    "unverifiable": 0
+  },
+  "current_gaps": {
+    "insufficient": 3,
+    "partial": 6,
+    "sufficient": 5,
+    "unverifiable": 8
+  },
+  "development_minimums": {
+    "insufficient": 6,
+    "partial": 6,
+    "sufficient": 6,
+    "unverifiable": 8
+  },
+  "gold_blind": true,
+  "ledger_version": "v3.5-stage2r-c0-coverage-ledger-v1",
+  "pilot_cases": [
+    {
+      "case_id": "V2C_B1A00001",
+      "final_status": "insufficient"
+    },
+    {
+      "case_id": "V2C_B1A00002",
+      "final_status": "sufficient"
+    },
+    {
+      "case_id": "V2C_B2P00001",
+      "final_status": "insufficient"
+    },
+    {
+      "case_id": "V2C_B2P00002",
+      "final_status": "insufficient"
+    }
+  ],
+  "source_of_truth": [
+    "research/v3_5/eval_v2/stage2r_b2/adjudicated_canary_cases.jsonl",
+    "research/v3_5/eval_v2/stage2r_b2/adjudicated_remaining_pilot_cases.jsonl"
+  ]
+}

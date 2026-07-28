@@ -1,0 +1,22 @@
+{
+  "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+  "contracts": {
+    "decision": "v3.5-sufficiency-decision-v1",
+    "gate": "v3.5-mechanical-sufficiency-gate-v1",
+    "policy": "v3.5-mechanical-gate-policy-v1",
+    "request": "v3.5-sufficiency-request-v1"
+  },
+  "evaluation_scope": "development_only",
+  "heldout_executed": false,
+  "input_identities": {
+    "artifact_manifest_sha256": "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f",
+    "development_execution_manifest_sha256": "ef08e5c262d9fc885ab38d81c90f10ce4be6820c31d931c03f0ecdcfe71a534e",
+    "development_gold_sha256": "5693830749e3fba38dd35fc143988fb615ae48bf0f02b7344c8b03ce4a1d90d0",
+    "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
+  },
+  "prediction_freeze_sha256": "1172e4952d23a6179bbd5ee3766f41e1b48118c51fedf32d65fdeaf93330d982",
+  "provider_calls": 0,
+  "runner_version": "v3.5-stage4a-development-runner-v1",
+  "selector_version": "v3.5-deterministic-fine-selector-v1",
+  "semantic_judge_started": false
+}

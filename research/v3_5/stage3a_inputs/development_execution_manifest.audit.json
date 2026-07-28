@@ -1,0 +1,29 @@
+{
+  "audit_version": "v3.5-development-execution-manifest-audit-v1",
+  "checks": {
+    "all_candidates_satisfy_frozen_schema": true,
+    "all_original_queries_present": true,
+    "all_query_identities_present": true,
+    "all_search_candidate_sets_present": true,
+    "artifact_manifest_hash_correct": true,
+    "candidate_chunk_ids_resolvable": true,
+    "candidate_ordering_deterministic": true,
+    "manifest_bytes_identical_across_two_runs": true,
+    "no_frozen_database_writes": true,
+    "no_heldout_semantic_fields_copied": true,
+    "no_non_development_case": true,
+    "no_semantic_gold_fields_copied": true,
+    "query_corpus_targets_absent": true,
+    "query_video_targets_present": true,
+    "record_count": 8,
+    "search_candidate_set_ids_deterministic": true,
+    "snapshot_hash_correct_and_unchanged": true,
+    "source_identities_valid": true,
+    "unique_authorized_case_ids": true
+  },
+  "errors": [],
+  "forbidden_semantic_field_hits": [],
+  "warnings": [
+    "Projection session accidentally exposed one CASE_015 line from each of two forbidden full semantic assets during an initial broad text search; neither source was used for projection."
+  ]
+}

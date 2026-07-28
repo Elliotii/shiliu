@@ -51,6 +51,7 @@ class RetrievalFilters:
     reading_state: str | None = None
     is_marked: bool | None = None
     uploader: str | None = None
+    uploader_contains: str | None = None
     archived: bool | None = None
 
 

@@ -1,0 +1,23 @@
+{
+  "initial_valid": false,
+  "status": "invalid",
+  "errors": [
+    "illegal_group_reference:G1"
+  ],
+  "repair_count": 1,
+  "model": "gpt-5.4",
+  "repair_latency_ms": 42778,
+  "repair_input_tokens": 11652,
+  "repair_output_tokens": 663,
+  "workspace": "/tmp/shiliu-v3-5-review/stage2r-b-clean-20260723T001500Z/B0_PREFLIGHT_FIXTURE_CALL1",
+  "workspace_inventory": [
+    "annotation_protocol_excerpt.md",
+    "annotation_review.v2.schema.json",
+    "current_case.packet.json",
+    "output",
+    "primary_reviewer.v2.md",
+    "workspace_manifest.json"
+  ],
+  "workspace_allowlist_passed": true,
+  "raw_call_count": 2
+}

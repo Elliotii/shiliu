@@ -1,0 +1,23 @@
+{
+  "frozen_dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+  "frozen_lexical_index_version": "v3-stage1-lexical-v1",
+  "index_rebuilt_without_source_or_code_change": true,
+  "queries": [
+    {
+      "candidate_id": "SAFEQ_4c4b6895fe044589f229",
+      "mode": "lexical",
+      "query": "RAG",
+      "selected_bvid": "BV1o87764Ebs",
+      "trace_id": "d65eec87-3db7-4043-877c-ff836074b867"
+    },
+    {
+      "candidate_id": "SAFEQ_ab03f4a17565fae4de35",
+      "mode": "dense",
+      "query": "vibe coding",
+      "selected_bvid": "BV1o87764Ebs",
+      "trace_id": "12658546-6d8f-4fd4-b58b-30985d241289"
+    }
+  ],
+  "search_only_navigation": true,
+  "search_ranking_sent_to_reviewer": false
+}

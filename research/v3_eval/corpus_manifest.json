@@ -1,0 +1,205 @@
+{
+  "snapshot_id": "20260720T094346Z_c7663365",
+  "created_at": "2026-07-20T09:43:46+00:00",
+  "source_db_path": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db",
+  "snapshot_db_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+  "pool_work_db_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/pool_work.db",
+  "snapshot_db_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "git_branch": "codex/v3-domain-completion",
+  "git_head": "8287c8d92378b87290274d02605cdc704cb8c470",
+  "working_tree_dirty": true,
+  "model_identity": {
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "embedding_dimension": 512,
+    "embedding_dtype": "float32",
+    "embedding_mode": "mrl-first-512-normalized",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1",
+    "input_policy_version": "v3-qwen-input-512-v1"
+  },
+  "retrieval_identity": {
+    "lexical_index_name": "shiliu_lexical",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "fts_tokenizer": "trigram",
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "rrf_k": 60,
+    "candidate_k_policy": "max(50, top_k*5)",
+    "consolidation_version": "v3-product-consolidation-v1",
+    "temporal_merge_gap_seconds": 20,
+    "jump_anchor_version": "v3-query-aware-anchor-v1",
+    "chapter_enrichment_version": "v3-ai-chapter-enrichment-v1",
+    "presentation_version": "v3-product-presentation-v1"
+  },
+  "counts": {
+    "videos": 144,
+    "indexed_videos": 143,
+    "absent_videos": 1,
+    "retrieval_units": 1555,
+    "video_units": 143,
+    "transcript_chunks": 1412,
+    "fts_rows": 1555,
+    "dense_rows": 1555,
+    "sync_state_rows": 144,
+    "raw_search_traces": 82,
+    "presentation_traces": 52
+  },
+  "product_table_hashes": {
+    "videos": {
+      "row_count": 144,
+      "sha256": "b825571ab46c6a122500ab1309685592ed93b56686235879bb66fd18dae872dd"
+    },
+    "video_notes": {
+      "row_count": 1,
+      "sha256": "a7b6b81c60c71af692d2ea05a8fc64eec0dfc3dea0be5f44961b935380e67ce8"
+    },
+    "favorite_sources": {
+      "row_count": 2,
+      "sha256": "c1fe9b1c86b39c79e03202b2f50fb8e95eeb8c9b8a774b6d93673ede8bcf751e"
+    },
+    "video_source_memberships": {
+      "row_count": 146,
+      "sha256": "f149ea2a3bde4b69b3314dce3cce399e465858d1b957098c26b6e70e866fb899"
+    },
+    "events": {
+      "row_count": 273,
+      "sha256": "30871f899438b3689c96a459777f9e180714414a15dbb116578bc4c9df850cde"
+    }
+  },
+  "index_table_hashes": {
+    "retrieval_units": {
+      "row_count": 1555,
+      "sha256": "9ad8a51a730df140ecd831f4a64af0988d7e644f38d9b4d7962f31f6c034c93d"
+    },
+    "retrieval_units_fts": {
+      "row_count": 1555,
+      "sha256": "992f1c86aeeafa561345ab37376ca7d763e57029dc06287eb1b423651d1e26c8"
+    },
+    "retrieval_dense_vectors": {
+      "row_count": 1555,
+      "sha256": "40e4b57515df331e237aa2c8aeba0ee1c3a1621529e70270ef00c365a62e3a10"
+    },
+    "retrieval_dense_index_meta": {
+      "row_count": 1,
+      "sha256": "91372a87e9099fdc807362ada8880b66841296d1b9806593c849a3a2f323e3cc"
+    },
+    "retrieval_sync_state": {
+      "row_count": 144,
+      "sha256": "323d55db5e2d133f57143d5ea00bd6f54fdb290bf7e94875a0d041cd2d0c04e3"
+    }
+  },
+  "artifact_counts": {
+    "active_summary:not_declared": 41,
+    "active_summary:ok": 102,
+    "metadata:not_declared": 2,
+    "metadata:ok": 141,
+    "raw_subtitle:not_declared": 14,
+    "raw_subtitle:ok": 129
+  },
+  "artifact_hash_manifest_path": "research/v3_eval/artifact_manifest.jsonl",
+  "service_state_before": {
+    "web": {
+      "loaded": true,
+      "enabled": true,
+      "running": true,
+      "pid": 39119,
+      "runs": 5
+    },
+    "sync": {
+      "loaded": true,
+      "enabled": true,
+      "running": false,
+      "runs": 11,
+      "interval_seconds": 3600,
+      "last_exit_code": 0
+    },
+    "active_sync_run": null
+  },
+  "service_state_during": {
+    "web": {
+      "loaded": true,
+      "enabled": true,
+      "running": true,
+      "pid": 39119,
+      "process_state": "suspended_SIGSTOP"
+    },
+    "sync": {
+      "loaded": true,
+      "enabled": false,
+      "running": false
+    },
+    "active_sync_run": null,
+    "sync_lock": "available"
+  },
+  "service_state_after": {
+    "web": {
+      "loaded": true,
+      "enabled": true,
+      "running": true,
+      "pid": 39119,
+      "runs": 5,
+      "process_state": "running_after_SIGCONT"
+    },
+    "sync": {
+      "loaded": true,
+      "enabled": true,
+      "running": false,
+      "runs": 11,
+      "interval_seconds": 3600,
+      "last_exit_code": 0
+    },
+    "active_sync_run": null
+  },
+  "live_integrity": {
+    "stage6a_protected_hashes_unchanged": true,
+    "after_hashes": {
+      "videos": {
+        "row_count": 144,
+        "sha256": "b825571ab46c6a122500ab1309685592ed93b56686235879bb66fd18dae872dd"
+      },
+      "video_notes": {
+        "row_count": 1,
+        "sha256": "a7b6b81c60c71af692d2ea05a8fc64eec0dfc3dea0be5f44961b935380e67ce8"
+      },
+      "favorite_sources": {
+        "row_count": 2,
+        "sha256": "c1fe9b1c86b39c79e03202b2f50fb8e95eeb8c9b8a774b6d93673ede8bcf751e"
+      },
+      "video_source_memberships": {
+        "row_count": 146,
+        "sha256": "f149ea2a3bde4b69b3314dce3cce399e465858d1b957098c26b6e70e866fb899"
+      },
+      "events": {
+        "row_count": 273,
+        "sha256": "30871f899438b3689c96a459777f9e180714414a15dbb116578bc4c9df850cde"
+      },
+      "retrieval_units": {
+        "row_count": 1555,
+        "sha256": "9ad8a51a730df140ecd831f4a64af0988d7e644f38d9b4d7962f31f6c034c93d"
+      },
+      "retrieval_units_fts": {
+        "row_count": 1555,
+        "sha256": "992f1c86aeeafa561345ab37376ca7d763e57029dc06287eb1b423651d1e26c8"
+      },
+      "retrieval_dense_vectors": {
+        "row_count": 1555,
+        "sha256": "40e4b57515df331e237aa2c8aeba0ee1c3a1621529e70270ef00c365a62e3a10"
+      },
+      "retrieval_dense_index_meta": {
+        "row_count": 1,
+        "sha256": "91372a87e9099fdc807362ada8880b66841296d1b9806593c849a3a2f323e3cc"
+      },
+      "retrieval_sync_state": {
+        "row_count": 144,
+        "sha256": "323d55db5e2d133f57143d5ea00bd6f54fdb290bf7e94875a0d041cd2d0c04e3"
+      }
+    }
+  },
+  "artifact_path_rebinding": {
+    "indexed_video_paths_rebound": 143,
+    "non_indexed_video_live_paths_cleared": 1,
+    "remaining_live_artifact_path_references": 0
+  }
+}

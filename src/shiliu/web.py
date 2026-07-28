@@ -39,6 +39,7 @@ from shiliu.retrieval import (
     SearchRequest,
 )
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
+from shiliu.stage5 import Stage5PipelineRequest
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -157,6 +158,14 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 "config": public_config(_core(request).config),
                 "sources": _core(request).db.list_sources(),
             },
+        )
+
+    @web.get("/search", response_class=HTMLResponse)
+    async def search_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "search.html",
+            {"sources": _core(request).db.list_sources(active_only=True)},
         )
 
     @web.get("/taxonomy", response_class=HTMLResponse)
@@ -311,6 +320,34 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, **response.as_dict()})
+
+    @web.post("/api/evidence-sufficiency")
+    async def evidence_sufficiency(
+        payload: Stage5PipelineRequest, request: Request
+    ) -> JSONResponse:
+        response = await asyncio.to_thread(_core(request).stage5_pipeline.run, payload)
+        status_code = 200
+        if response["pipeline_status"] == "failed":
+            error_types = {
+                str(value.get("type"))
+                for value in response["errors"]
+                if isinstance(value, dict)
+            }
+            status_code = (
+                504
+                if "judge_timeout_or_provider_error" in error_types
+                else 502
+            )
+        return JSONResponse({"ok": status_code == 200, **response}, status_code=status_code)
+
+    @web.get("/api/evidence-sufficiency/traces/{trace_id}")
+    async def evidence_sufficiency_trace(
+        trace_id: str, request: Request
+    ) -> JSONResponse:
+        trace = _core(request).stage5_pipeline.get_trace(trace_id)
+        if trace is None:
+            raise HTTPException(404, "Stage 5 Trace 不存在")
+        return JSONResponse({"ok": True, "trace": trace})
 
     @web.get("/api/search/traces/{trace_id}")
     async def search_trace(trace_id: str, request: Request) -> JSONResponse:

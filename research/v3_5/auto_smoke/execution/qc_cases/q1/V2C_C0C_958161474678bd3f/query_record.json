@@ -1,0 +1,28 @@
+{
+  "auto_router_invoked": true,
+  "case_id": "V2C_C0C_958161474678bd3f",
+  "effective_mode": "lexical",
+  "embedding_cache_hit": false,
+  "embedding_invoked": false,
+  "embedding_model": null,
+  "embedding_provider": null,
+  "empty_result": true,
+  "exact_query_cache_hit": false,
+  "latency_ms": 1.3773331884294748,
+  "query": "SFT completion-only NEFTune",
+  "query_id": "V2C_C0C_958161474678bd3f:q1",
+  "query_type": "exact_entity",
+  "query_view": "q1",
+  "requested_mode": "auto",
+  "result_count": 0,
+  "router_decision": "lexical",
+  "router_mode_consistent": true,
+  "router_reason_codes": [
+    "short_ascii_entity"
+  ],
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "runtime_error": false,
+  "runtime_error_type": null,
+  "target_video_best_rank": null,
+  "target_video_hit": false
+}

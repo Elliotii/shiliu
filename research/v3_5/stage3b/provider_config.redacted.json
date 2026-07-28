@@ -1,0 +1,7 @@
+{
+  "api_key": "redacted",
+  "cost_pricing": "unavailable",
+  "model_identity": "deepseek-v4-pro",
+  "provider_abstraction": "openai-compatible",
+  "thinking_configuration": "high"
+}

@@ -1,0 +1,53 @@
+{
+  "audit_version": "FROZEN_COMPARISON_AUDIT_V1",
+  "phase": "Phase 2",
+  "reviewer_unit_id": "frozen_reviewer_B",
+  "aggregate_counts": {
+    "guarded_batches_compared": 5,
+    "cases_compared": 10,
+    "outcomes": {
+      "agree": 10,
+      "revise_gold": 0,
+      "escalate": 0,
+      "blocked_by_source": 0
+    },
+    "replacement_artifacts": 0
+  },
+  "validation": {
+    "closed_outcome_enum": "passed",
+    "case_identity_alignment": "passed",
+    "initial_annotation_hash_identity": "passed",
+    "independent_draft_hash_identity_before_after": "passed",
+    "revise_gold_replacement_completeness": "passed"
+  },
+  "scope_flags": {
+    "independent_draft_modified": false,
+    "reconciliation_started": false,
+    "development_gold_opened": false,
+    "development_cycle_opened": false,
+    "development_seal_opened": false,
+    "product_prediction_opened": false,
+    "existing_gold_opened": false,
+    "retrieval_builder_selector_gate_judge_baseline_opened": false,
+    "product_pipeline_calls": 0,
+    "frozen_gold_leakage_detected": false
+  },
+  "independent_draft_identity": {
+    "seal_sha256_before": "97eff00429cfaa62ca414793d45503149ddeda887c1301ede176081dca77073d",
+    "seal_sha256_after": "97eff00429cfaa62ca414793d45503149ddeda887c1301ede176081dca77073d",
+    "unchanged": true
+  },
+  "manifest_sha256": "2f0bd8159e7253ed7cf87322b6f35e977b800f34f88fdaecc6c675adfbbb9de4",
+  "case_artifact_hashes": {
+    "opaque_case_001.json": "973c504e04a68b718044d1d8bac7043b3c2610f4f64c7eba06bcd562e745912b",
+    "opaque_case_002.json": "21c5c0f6c3ca84746ed9b3ea77c6dcbc6f9e87de363505a3b69a9323c63ceaaf",
+    "opaque_case_003.json": "ea189bf9c5d92489cd73f92ff984822e2919231f5da2c719683b53763db2968a",
+    "opaque_case_004.json": "2af55285556d5af56bd45846b6dd8e7c71f88b41c0a503064cf9fb246e086aa6",
+    "opaque_case_005.json": "ae55d237f9a63c62850f18a44d0a6206fe5deed56e2611a84dfb09ed0e53cc91",
+    "opaque_case_006.json": "7b39524cef643cec4fb110a83419f754f318da5a396dbba44785d1a40498a150",
+    "opaque_case_007.json": "1cb34167183cf0b77f1f3454bd583c0b38e1f3c06290af3036ff86b12c7d42a6",
+    "opaque_case_008.json": "012e5a31346978015909a5dfa47e743a041960c89cb565fd3b4bb53c2072a4c2",
+    "opaque_case_009.json": "e0321b7846bb45fb7e401d920c5c798e7fd75a2b85e12224d38f3925d0d23172",
+    "opaque_case_010.json": "ff42f19059bf4e6129d7ab3336dd5c99e4790f78a1b8c3b0593bcaf3221339f6"
+  }
+}

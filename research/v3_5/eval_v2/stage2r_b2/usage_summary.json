@@ -1,0 +1,10 @@
+{
+  "all_attempts_included": true,
+  "attempt_count": 4,
+  "cached_tokens_known_total": 0,
+  "http_400_count": 0,
+  "input_tokens": 257157,
+  "model_body_count": 4,
+  "output_tokens": 5004,
+  "usage_completeness": "lower_bound"
+}

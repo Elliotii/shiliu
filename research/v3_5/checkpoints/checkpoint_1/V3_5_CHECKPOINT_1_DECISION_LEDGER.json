@@ -1,0 +1,89 @@
+{
+  "decision_name": "Shiliu V3.5-B Checkpoint 1 Decision Ledger",
+  "schema_version": "v3.5-b-checkpoint-1-v1",
+  "decision_date": "2026-07-27",
+  "decision_authority": "V3.5-B",
+  "entry_state": {
+    "P7": {
+      "status": "complete_and_accepted",
+      "package_version": "PQS_V1_PRODUCT_GOLD_V1"
+    },
+    "P8": {
+      "status": "complete_and_accepted",
+      "attempt": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+      "prediction_count": 14,
+      "prediction_freeze_seal_sha256": "069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617",
+      "functional_component_behavior_changed": false,
+      "frozen_query_runs": 0,
+      "frozen_gold_accessed": false
+    }
+  },
+  "baseline_findings": {
+    "retrieval": {
+      "hit_at_1": 0.7142857142857143,
+      "hit_at_3": 0.9285714285714286,
+      "hit_at_5": 0.9285714285714286,
+      "hit_at_10": 1.0,
+      "primary_failures": 0
+    },
+    "candidate_builder": {
+      "complete_group_coverage": 0.42857142857142855,
+      "required_span_recall": 0.6538461538461539,
+      "required_aspect_coverage": 0.6071428571428571,
+      "primary_failures": 7
+    },
+    "deterministic_selector": {
+      "bundle_hit": 0.07142857142857142,
+      "complete_group_available_but_not_selected": 5,
+      "required_span_recall": 0.12179487179487179,
+      "required_aspect_coverage": 0.1130952380952381,
+      "primary_failures": 5
+    },
+    "mechanical_gate": {
+      "judge_eligible": 13,
+      "terminal_unverifiable": 1,
+      "invalid_decisions": 0
+    },
+    "primary_failure_distribution": {
+      "candidate_builder_failure": 7,
+      "deterministic_selector_failure": 5,
+      "source_unverifiable": 1,
+      "end_to_end_bundle_hit": 1
+    },
+    "unjudged": {
+      "pairs": 109,
+      "decision_sensitive": 0,
+      "determinate_queries": 14,
+      "indeterminate_queries": 0
+    }
+  },
+  "checkpoint_scope": {
+    "mechanical_and_governance_only": true,
+    "rerun_predictions": false,
+    "rerun_scoring": false,
+    "modify_components": false,
+    "open_frozen_gold": false,
+    "start_f1a": false,
+    "start_f1b": false,
+    "start_stage4a_r": false,
+    "start_stage4b": false
+  },
+  "required_governance_conclusions": {
+    "retrieval_reopen_signal": false,
+    "f1a_entry_signal": true,
+    "f1b_candidate_signal": true,
+    "f1b_direct_authorization": false,
+    "mechanical_gate_repair_signal": false,
+    "next_formal_step": "P9_F1A_CANDIDATE_BUILDER_DECISION"
+  },
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "checkpoint_1_status": "execution_candidate_ready",
+    "P9_ready_for_authorization": true,
+    "F1A_authorized": false,
+    "F1B_authorized": false,
+    "Stage4A_R_authorized": false,
+    "Stage4B_authorized": false
+  }
+}

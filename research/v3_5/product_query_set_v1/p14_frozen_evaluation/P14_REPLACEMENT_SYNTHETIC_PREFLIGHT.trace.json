@@ -1,0 +1,32 @@
+{
+  "completed_at": "2026-07-27T18:37:56.138+00:00",
+  "configuration_hash": "a1c06c31cd20b39c9d5c6113876f785b4a803efad0dff88deaa8f3b175a3fae2",
+  "development_gold_used": false,
+  "frozen_gold_used": false,
+  "frozen_query_used": false,
+  "latency_ms": 24746,
+  "output": {
+    "confidence": 1.0,
+    "conflicts": [],
+    "evidence_ids_used": [
+      "candidate_4a8fe74093ce4f4f02e9a39d8da012dba0214a92523bfe0c854ee4c15693bfee"
+    ],
+    "missing_aspects": [],
+    "query_id": "SYNTHETIC_PROVIDER_PREFLIGHT_ONLY",
+    "reason_codes": [
+      "SJ_ALL_MATERIAL_NEEDS_SUPPORTED"
+    ],
+    "status": "sufficient",
+    "supported_aspects": [
+      "Blue light means ready; amber light means charging."
+    ],
+    "trace_id": "synthetic_trace_931a7c561b7a40a7a65f8a88504d4dc92f7ee498866c8f6013a5023d95302a0e",
+    "verification_blocker": null
+  },
+  "product_capability_scoring": false,
+  "prompt_hash": "e95a9a655f8572d08ff026b3fafd4ae938597c8685394eedae2940ca3f181323",
+  "raw_response_hash": "f7fc1c1aae43f8dbce06ad8e7df5194589a8a64a084aae33ddd7bbd13a8baffb",
+  "request_hash": "f81aed7993eff7bf478a9fd9aef0c1f8c5cefe724bdf39890de3f8565b5648b8",
+  "retry_count": 0,
+  "synthetic_preflight": true
+}

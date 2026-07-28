@@ -1,0 +1,34 @@
+{
+  "builder_freeze_seal_hash": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+  "builder_primary_failures": 12,
+  "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+  "candidate_count_total": 3504,
+  "complete_development_score": true,
+  "complete_group_coverage": {
+    "denominator": 13,
+    "numerator": 0,
+    "rate": 0.0
+  },
+  "development_gold_hashes": {
+    "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+    "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "eval_v1_status": "invalidated_as_algorithm_result_due_to_confirmed_scoring_identity_defect",
+  "existing_six_regressions": [
+    "PQS_V1_Q006",
+    "PQS_V1_Q007",
+    "PQS_V1_Q011",
+    "PQS_V1_Q012",
+    "PQS_V1_Q013",
+    "PQS_V1_Q019"
+  ],
+  "forced_swaps": false,
+  "invalid_candidate_count": 0,
+  "maximum_swap_count_per_query": 4,
+  "required_aspect_coverage": 0.0,
+  "required_span_recall": 0.0,
+  "schema_version": "v3.5-b-f1a-development-eval-v2-v1",
+  "scorer_version": "corrected_identity_bridge_v2"
+}

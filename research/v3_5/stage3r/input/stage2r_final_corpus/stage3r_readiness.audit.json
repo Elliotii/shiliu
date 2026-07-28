@@ -1,0 +1,27 @@
+{
+  "development_corpus_frozen": true,
+  "evidence_closure_valid": true,
+  "further_case_construction_prohibited": true,
+  "human_lineage_valid": true,
+  "insufficient_target_passed": true,
+  "locked_case_count": 31,
+  "locked_corpus_path": "/private/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/corpus_lock/development_gold.executable_31.jsonl",
+  "locked_corpus_sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148",
+  "locked_label_distribution": {
+    "insufficient": 7,
+    "partial": 9,
+    "sufficient": 11,
+    "total": 31,
+    "unverifiable": 4
+  },
+  "next_action": "Stage 3R Expanded Development Re-run",
+  "partial_target_passed": true,
+  "schema_valid": true,
+  "source_integrity_valid": true,
+  "stage3r_entered": false,
+  "stage3r_readiness": "ready",
+  "sufficient_target_passed": true,
+  "total_target_passed": true,
+  "unresolved_gold_failures": 0,
+  "unverifiable_coverage_waiver": true
+}

@@ -1,0 +1,21 @@
+{
+  "Development_inputs_and_Gold_unchanged": true,
+  "Evidence_Identity_Contract_V1_hash_valid": true,
+  "Frozen_Evaluation_accessed": false,
+  "Gate_Freeze_hash_valid": true,
+  "Gate_config_hashes_valid": true,
+  "Gate_source_hashes_valid": true,
+  "Stress_inputs_unchanged": true,
+  "canonical_matcher_hash_valid": true,
+  "contract_schema_hashes_valid": true,
+  "formal_Product_revalidation_run_count": 0,
+  "formal_Stress_revalidation_run_count": 0,
+  "formal_builder_hashes_valid": true,
+  "formal_gate_version": "mechanical-gate-v1-r1",
+  "formal_selector_hashes_valid": true,
+  "gate_freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+  "schema_version": "v3.5-b-stage4a-r-post-freeze-preflight-v1",
+  "semantic_judge_started": false,
+  "status": "pass",
+  "test_hashes_valid": true
+}

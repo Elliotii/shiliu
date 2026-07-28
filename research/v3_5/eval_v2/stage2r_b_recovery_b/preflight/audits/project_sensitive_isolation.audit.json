@@ -1,0 +1,23 @@
+{
+  "project_sensitive_isolation": "required",
+  "project_sensitive_isolation_passed": true,
+  "universal_filesystem_isolation": "best_effort_not_proven",
+  "method": "macOS sandbox-exec read probes against the generated Primary profile",
+  "denied_existing_paths": [
+    "/Users/elliot/new-systems/agent-job-prep",
+    "/Users/elliot/Documents/Shiliu",
+    "/Users/elliot/Library/Application Support/Shiliu",
+    "/Users/elliot/.codex/attachments",
+    "/Users/elliot/.codex/auth.json",
+    "/Users/elliot/.codex/auth.json.bak",
+    "/Users/elliot/.codex/.cockpit_codex_auth.json",
+    "/Users/elliot/.ssh"
+  ],
+  "denied_nonexistent_paths": [
+    "/Users/elliot/.env",
+    "/Users/elliot/.aws",
+    "/Users/elliot/.config/gcloud"
+  ],
+  "universal_non_workspace_read_proof_attempted": false,
+  "container_or_general_sandbox_built": false
+}

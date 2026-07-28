@@ -1,0 +1,38 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "decision_basis": {
+    "addressable_failures": 5,
+    "all_six_builder_failure_eligible": true,
+    "candidate_builder_failure_count": 6,
+    "generic_mechanism": "bounded_candidate_pruning_coverage_gap",
+    "q017_included": false,
+    "supporting_query_ids": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q004",
+      "PQS_V1_Q005",
+      "PQS_V1_Q008",
+      "PQS_V1_Q015",
+      "PQS_V1_Q018"
+    ]
+  },
+  "execution_status": "complete",
+  "f1a_authorized_by_codex": false,
+  "f1a_decision_candidate": "execute",
+  "f1b_authorized": false,
+  "genericity_gate": {
+    "expected_addressable_failures_at_least_two_or_architecture_wide_proof": true,
+    "generic_mechanism_identified": true,
+    "no_case_video_gold_specific_rule": true,
+    "no_heavy_reranker_or_segment_dense_index": true,
+    "no_unbounded_window_expansion": true,
+    "not_retrieval_caused": true,
+    "not_source_or_scoring_defect": true,
+    "one_major_cycle_sufficient_to_test": true,
+    "real_builder_failures_confirmed": true,
+    "single_bounded_design_defined": true,
+    "supported_beyond_single_case": true
+  },
+  "next_stage_started": false,
+  "p9_status": "decision_execution_candidate_ready",
+  "schema_version": "v3.5-b-p9-f1a-restart-decision-v1"
+}

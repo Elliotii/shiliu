@@ -1,0 +1,11 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "component_behavior_changed": false,
+  "execution_status": "complete",
+  "f1a_authorized_by_codex": false,
+  "f1a_decision_candidate": "execute",
+  "f1b_authorized": false,
+  "next_stage_started": false,
+  "p9_status": "decision_execution_candidate_ready",
+  "schema_version": "v3.5-b-p9-f1a-restart-execution-decision-v1"
+}

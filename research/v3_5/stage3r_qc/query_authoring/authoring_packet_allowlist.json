@@ -1,0 +1,23 @@
+{
+  "allowed_fields": [
+    "case_id",
+    "original_query",
+    "query_type",
+    "neutral_topic_terms",
+    "authoring_instruction"
+  ],
+  "forbidden_fields": [
+    "aid",
+    "bvid",
+    "gold_quote",
+    "gold_segment_id",
+    "gold_timestamp",
+    "missing_aspects",
+    "q0_retrieval_result",
+    "sufficiency_label",
+    "supported_aspects",
+    "target_video_id",
+    "target_video_title"
+  ],
+  "neutral_topic_term_source": "original_query_only"
+}

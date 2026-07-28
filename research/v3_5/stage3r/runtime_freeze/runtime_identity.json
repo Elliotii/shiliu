@@ -1,0 +1,6 @@
+{
+  "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+  "normalization_policy_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+  "runtime_identity_sha256": "780efbb6ca5238f7923431ebf896b7293d6b422c487746e5ed79f13d050d2f41",
+  "selector_version": "v3.5-deterministic-fine-selector-v1"
+}

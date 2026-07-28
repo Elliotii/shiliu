@@ -1,0 +1,42 @@
+{
+  "execution": {
+    "silently_skipped_cases": 0,
+    "track_a_all_terminal": true,
+    "track_a_cases": 31,
+    "track_b_all_applicable_terminal": true,
+    "untyped_failures": 0
+  },
+  "execution_projection": {
+    "runtime_gold_leakage": 0,
+    "runtime_projection_complete": true,
+    "scoring_projection_complete": true
+  },
+  "input_identity": {
+    "corpus_hash_verified": true,
+    "final_corpus_31_verified": true
+  },
+  "integrity": {
+    "evidence_reference_closure": false,
+    "runtime_files_unchanged": true,
+    "source_integrity": true,
+    "timeline_integrity": true
+  },
+  "isolation": {
+    "heldout_accessed": false,
+    "prediction_frozen_before_gold_scoring": true,
+    "predictions_modified_after_freeze": false
+  },
+  "reporting": {
+    "evidence_bearing_metrics_complete": false,
+    "failure_attribution_complete": false,
+    "insufficient_diagnostics_complete": false,
+    "old_stage_comparison_complete": true,
+    "track_a_metrics_complete": false,
+    "track_b_metrics_complete": false,
+    "unverifiable_diagnostics_complete": false
+  },
+  "stage3r_decision": "stage3r_blocked_scoring_identity_mapping_invalid",
+  "blocking_reason": "Gold logical segment IDs (BV..._seg_NNNNNN) were compared directly with frozen Runtime physical segment IDs (segment_<sha256>); deterministic ordinal/timeline identity mapping was not applied before scoring.",
+  "predictions_accepted": false,
+  "requires_rerun": true
+}

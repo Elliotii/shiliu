@@ -1,0 +1,76 @@
+{
+  "schema_version": "v3.5-b-f1a-exact-path-resolution-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "status": "complete",
+  "repository_root": "/Users/elliot/new-systems/agent-job-prep/Shiliu",
+  "builder_source_paths": [
+    "src/shiliu/evidence/stage3a.py"
+  ],
+  "builder_config_paths": [
+    "research/v3_5/stage3b/stage3b_run_manifest.json"
+  ],
+  "builder_test_paths": [
+    "tests/test_v3_5_stage3b_selector.py",
+    "tests/test_v3_5_evidence_stage3a.py",
+    "tests/test_v3_5_stage3a_reachability.py",
+    "tests/test_product_search_api.py",
+    "tests/test_stage3r_track_a_auto_refresh_contracts.py",
+    "tests/test_pqs_v1_p8_product_initial_baseline_contract.py",
+    "tests/test_v3_5_f1a_adaptive_bounded_coverage_swap.py",
+    "tests/test_v3_5_f1a_major_cycle_contract.py"
+  ],
+  "p8_frozen_retrieval_input_paths": [
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.input_manifest.json",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.predictions.jsonl",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.traces/",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.prediction_freeze.seal.json"
+  ],
+  "development_gold_identity_paths": [
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.seal.json",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.manifest.json",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.audit.json"
+  ],
+  "development_gold_semantic_scoring_paths": [
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/sealed/product_retrieval_gold.development.v1.sealed.jsonl",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/sealed/product_evidence_gold.development.v1.sealed.jsonl",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/sealed/product_sufficiency_gold.development.v1.sealed.jsonl",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/sealed/reviewed_case_status.development.v1.sealed.jsonl"
+  ],
+  "development_gold_semantic_access_phase": "after_implementation_freeze_seal_only",
+  "stress_before_exact_paths": [
+    "research/v3_5/stage3r/input/stage2r_final_corpus/development_gold.executable_31.manifest.json",
+    "research/v3_5/stage3r/input/stage2r_final_corpus/development_gold.executable_31.jsonl",
+    "research/v3_5/stage3r_qc/track_a_auto_refresh/stage3r_track_a_auto_refresh_manifest.json",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/stress_regression/stress_set_v2_regression.initial_product_baseline.json"
+  ],
+  "output_root": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/",
+  "resolution_record_root": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1_recovery/",
+  "forbidden_path_check": {
+    "patterns_checked": [
+      "**/frozen_guarded/**",
+      "**/internal_protected/**",
+      "**/reviewed_gold_candidate/**",
+      "**/frozen_cycle_v1/sealed/**",
+      "**/*FROZEN_GOLD*",
+      "**/*frozen_gold*"
+    ],
+    "resolved_path_pattern_match_count": 0,
+    "all_resolved_paths_allowed": true
+  },
+  "access_audit": {
+    "repository_recursive_search_count": 0,
+    "forbidden_path_touch_count": 0,
+    "guessed_path_count": 0,
+    "development_gold_semantic_access_before_freeze": false
+  },
+  "builder_identity_correction": {
+    "src/shiliu/evidence/stage3b.py": "structured_selector_excluded",
+    "src/shiliu/evidence/stage3a.py": "candidate_builder_authorized"
+  },
+  "raw_source_resolution": {
+    "authorization": "F1A Frozen Raw Source Authorization and Implementation Resume",
+    "method": "existing_raw_source_resolver",
+    "allowlist_path": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1_recovery/f1a_raw_source_allowlist.json",
+    "semantic_access_allowed_after_allowlist_passes": true
+  }
+}

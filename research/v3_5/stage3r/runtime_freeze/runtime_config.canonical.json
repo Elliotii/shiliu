@@ -1,0 +1,68 @@
+{
+  "candidate_builder": {
+    "acronym_anchor_weight": 3.5,
+    "acronym_equal_length_only": true,
+    "acronym_max_length": 8,
+    "acronym_max_substitution_distance": 1,
+    "acronym_min_length": 2,
+    "asr_acronym_anchor_enabled": true,
+    "candidate_generation_policy_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+    "config_id": "stage3b-acronym-w3.5-v1",
+    "hard_max_characters": 500,
+    "hard_max_duration_seconds": 60.0,
+    "max_segments_per_candidate": 6,
+    "near_duplicate_jaccard_threshold": 0.75,
+    "per_anchor_window_max_segments": 6,
+    "preferred_characters": [
+      100,
+      350
+    ],
+    "preferred_duration_seconds": [
+      10.0,
+      45.0
+    ],
+    "within_video_max_candidates": 32,
+    "within_video_max_total_characters": 6000,
+    "within_video_max_total_union_duration_seconds": 600.0
+  },
+  "search": {
+    "dense_provider_version": "v3-qwen3-embedding-provider-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "grouping_policy": "v3-temporal-consolidation-v1",
+    "lexical_provider_version": "v3-stage1-lexical-v1",
+    "max_windows_per_video": 2,
+    "per_channel_limit": 50,
+    "presentation_policy": "v3-product-presentation-v1",
+    "request_defaults": {
+      "filters": {},
+      "mode": "lexical",
+      "scope": "all"
+    },
+    "requested_limit": 10,
+    "retrieval_router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "trace_policy": {
+      "persistence": "disabled",
+      "version": "v3.5-search-trace-policy-v1"
+    }
+  },
+  "selector": {
+    "bundle_candidate_count_penalty": 0.04,
+    "bundle_duration_penalty": 0.0005,
+    "config_id": "stage3a-selector-default-v1",
+    "entity_overlap_weight": 1.0,
+    "exact_phrase_weight": 2.0,
+    "length_penalty_weight": 0.15,
+    "locality_weight": 0.4,
+    "marginal_coverage_weight": 0.75,
+    "max_candidates_per_bundle": 6,
+    "ngram_weight": 1.25,
+    "overlap_penalty_weight": 0.8,
+    "parent_rank_weight": 0.35,
+    "query_coverage_weight": 2.0,
+    "token_overlap_weight": 1.25
+  },
+  "structured_llm_selector": {
+    "disposition": "rejected_after_stage3b",
+    "enabled": false
+  }
+}

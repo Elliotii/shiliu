@@ -1,0 +1,84 @@
+{
+  "schema_version": "v3.5-stage5-current-integration-live-smoke-results-v1",
+  "timestamp": "2026-07-27T17:37:42Z",
+  "product_live_runtime": {
+    "corpus_identity": "shiliu-live-current",
+    "normal_search": {
+      "status": "pass",
+      "query": "AI",
+      "returned_group_count": 10,
+      "trace_id": "0b3a72db-4485-480f-80df-e176a615c8da"
+    },
+    "uploader_exact_full_name": {
+      "status": "pass",
+      "uploader": "晓辉博士",
+      "returned_group_count": 4,
+      "trace_id": "88aedafc-cf24-4d01-8995-1708e2e6401d"
+    },
+    "uploader_exact_partial_name": {
+      "status": "pass",
+      "uploader": "晓辉",
+      "returned_group_count": 0,
+      "trace_id": "3f80fb00-042f-4522-8594-28c2d9f7a9fe"
+    },
+    "uploader_contains_partial_name": {
+      "status": "pass",
+      "uploader_contains": "晓辉",
+      "returned_group_count": 4,
+      "trace_id": "6a00322c-9957-43c5-b810-3e2c6e891f89"
+    }
+  },
+  "stage5_pipeline": {
+    "source_unverifiable_bypass": {
+      "status": "pass",
+      "trace_id": "stage5_trace_434da7d202ce06630694a346a2b32e3bc154eace1568934c34d65ed8dc2e1135",
+      "mechanical_status": "source_unverifiable",
+      "judge_required": false,
+      "sufficiency_decision": null,
+      "required_stage_spans_present": true
+    },
+    "synthetic_invalid_bypass": {
+      "status": "pass",
+      "execution": "focused current-code regression",
+      "judge_calls": 0
+    },
+    "judge_eligible": {
+      "status": "pass",
+      "query": "AI",
+      "trace_id": "stage5_trace_4caa20d399dec2a8b49894dc3117ba6798d518fd62adf963ac750ec2d4a92acf",
+      "mechanical_status": "judge_eligible",
+      "semantic_status": "sufficient",
+      "provider": "openai-codex-cli",
+      "model": "gpt-5.6-terra",
+      "temperature": 0,
+      "policy_version": "v3.5-semantic-sufficiency-policy-v1",
+      "prompt_version": "v3.5-semantic-judge-prompt-v1",
+      "parse_status": "valid",
+      "retry_count": 0,
+      "total_latency_ms": 39908,
+      "judge_latency_ms": 38137,
+      "raw_response_hash": "ce352e981b0fea1ef0123b6b2c0bb8516cffdfce7775fcb7ee405f2d45d68d5b",
+      "error_count": 0
+    }
+  },
+  "frozen_eval_guard": {
+    "live_current_rejected": true,
+    "missing_or_mismatched_hash_rejected": true,
+    "sync_enabled_rejected": true,
+    "sealed_synthetic_fixture_preflight_passes": true,
+    "Frozen_Evaluation_content_opened": false
+  },
+  "ui_browser_smoke": {
+    "page": "/search",
+    "current_product_runtime_loaded": true,
+    "uploader_contains_field_present": true,
+    "legacy_uploader_field_absent_from_product_ui": true,
+    "normal_search_rendered": true,
+    "contains_filter_rendered_four_matching_results": true,
+    "evidence_text_safe_rendering": true,
+    "Stage5_status_and_limitations_present": true,
+    "console_errors": 0,
+    "screenshot_required": false
+  },
+  "Frozen_Evaluation_content_accessed": false
+}

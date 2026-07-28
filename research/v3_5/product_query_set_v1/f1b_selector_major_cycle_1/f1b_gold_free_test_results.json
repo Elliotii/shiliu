@@ -1,0 +1,39 @@
+{
+  "schema_version": "v3.5-b-f1b-gold-free-test-results-v1",
+  "status": "pass",
+  "pytest_command": ".venv/bin/python -m pytest -q tests/test_v3_5_f1b_greedy_marginal_selector.py tests/test_v3_5_stage3b_selector.py research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_evidence_identity_contract_v1.py research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_scorer_v4_projection.py",
+  "pytest_tests_passed": 37,
+  "pytest_tests_failed": 0,
+  "selector_v1_frozen_replay_exact": {
+    "cases": 6,
+    "candidate_ids": true,
+    "bundle_id": true,
+    "score": true,
+    "trace_id": true
+  },
+  "selector_v2_development_runtime_stability": {
+    "cases": 6,
+    "deterministic": true,
+    "budget_valid": true,
+    "bundle_validation_passed": true,
+    "formal_after_scores_generated": false
+  },
+  "coverage": {
+    "complementary_segment_beats_redundant_higher_local_score_when_margin_is_positive": true,
+    "new_temporal_region_can_complete_bundle_information": true,
+    "query_anchor_novelty_can_break_relevance_only_local_trap": true,
+    "deterministic_same_input_same_bundle": true,
+    "six_candidate_budget_never_exceeded": true,
+    "identity_and_timeline_fields_preserved": true,
+    "unrelated_low_score_candidate_not_selected_only_for_novelty": true,
+    "overlapping_duplicate_windows_penalized": true,
+    "wrong_video_not_selected_only_because_of_local_high_score_when_bundle_evidence_is_weak": true,
+    "missing_or_invalid_identity_never_selected_as_valid_evidence": true,
+    "Candidate_ID_not_used_as_semantic_signal": true,
+    "Gold_fields_not_available_to_runtime_selector": true,
+    "Evidence_Identity_Contract_V1": true,
+    "F1B_specific_projection": true
+  },
+  "Development_Gold_accessed_for_after_scoring": false,
+  "Frozen_Evaluation_accessed": false
+}

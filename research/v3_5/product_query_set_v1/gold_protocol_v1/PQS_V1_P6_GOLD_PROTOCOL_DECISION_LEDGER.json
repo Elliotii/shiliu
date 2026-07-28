@@ -1,0 +1,406 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 P6 Three-layer Gold Protocol Decision",
+  "schema_version": "v3.5-pqs-v1-p6-gold-protocol-decision-v1",
+  "decision_date": "2026-07-26",
+  "decision_authority": {
+    "protocol_owner": "V3.5-B",
+    "human_decision_authority": "user",
+    "implementation_support": "Codex"
+  },
+  "current_state": {
+    "version": "Shiliu V3.5-B",
+    "stage": "Stage 3-R",
+    "p3_status": "accepted",
+    "p4_status": "accepted",
+    "p5_status": "accepted",
+    "product_query_count": 24,
+    "development_count": 14,
+    "frozen_evaluation_count": 10,
+    "formal_gold_annotation_started": false
+  },
+  "input_identity": {
+    "p4_canonical_content_sha256": "fadf21c1992d848f2904192af479f6720a059c9aeb772ccfc4cee3b220942825",
+    "p4_locked_jsonl_sha256": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c",
+    "p5_canonical_split_assignment_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+    "p5_development_jsonl_sha256": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935",
+    "p5_frozen_jsonl_sha256": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+    "p5_frozen_access_guard_status": "sealed_before_formal_evaluation"
+  },
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "protocol_scope": {
+    "freeze_retrieval_gold_definition": true,
+    "freeze_evidence_gold_definition": true,
+    "freeze_sufficiency_gold_definition": true,
+    "freeze_review_and_adjudication": true,
+    "freeze_frozen_gold_isolation": true,
+    "freeze_reason_code_namespaces": true,
+    "perform_annotation": false,
+    "read_raw_transcripts": false,
+    "read_existing_gold": false,
+    "run_system_pipeline": false
+  },
+  "separation_contract": {
+    "retrieval_gold_must_not_contain": [
+      "evidence_spans",
+      "required_aspects",
+      "sufficiency_status",
+      "builder_output",
+      "selector_output",
+      "system_rank",
+      "expected_failure"
+    ],
+    "evidence_gold_must_not_contain": [
+      "sufficiency_status",
+      "system_prediction",
+      "builder_miss",
+      "selector_miss",
+      "expected_failure"
+    ],
+    "sufficiency_gold_must_not_contain": [
+      "system_prediction",
+      "system_rank",
+      "builder_miss",
+      "selector_miss",
+      "judge_prediction",
+      "expected_failure"
+    ],
+    "system_failure_attribution_is_separate_from_gold": true
+  },
+  "retrieval_gold": {
+    "evaluation_model": "bounded_pooled_judgment",
+    "exhaustive": false,
+    "known_relevant_video_ids": {
+      "meaning": "Seed positives known through human corpus review before pooled addenda.",
+      "constraint": "Must be a subset of acceptable_video_ids after final adjudication."
+    },
+    "acceptable_video_ids": {
+      "meaning": "All videos explicitly judged capable of materially helping answer the query.",
+      "constraint": "May contain multiple acceptable alternatives; no single target video is privileged."
+    },
+    "hard_negative_video_ids": {
+      "meaning": "Explicitly reviewed near-miss videos that are topically plausible but materially fail relevance.",
+      "constraint": "Must never be inferred merely from absence in the positive pool."
+    },
+    "relevance_review_scope": {
+      "required": true,
+      "minimum_fields": [
+        "pool_version",
+        "reviewed_video_ids",
+        "pool_construction_method",
+        "review_authority",
+        "review_timestamp"
+      ]
+    },
+    "unjudged_policy": {
+      "non_pool_return": "unjudged",
+      "automatic_negative": false,
+      "required_action": "human_relevance_adjudication",
+      "prediction_must_be_frozen_before_addendum": true
+    },
+    "development_pool_addendum": {
+      "allowed": true,
+      "versioned": true,
+      "may_add_new_acceptables": true,
+      "may_delete_existing_positive_to_improve_metric": false,
+      "requires_independent_relevance_judgment": true
+    },
+    "relevance_definition": {
+      "relevant": "The video contains authoritative content that materially supports at least one required aspect or is an acceptable navigation source to such authoritative content.",
+      "acceptable_for_retrieval_metric": "The video materially contributes toward answering the user query, even if another video is also acceptable.",
+      "hard_negative": "Topically close or lexically matching but materially unable to support any required aspect."
+    }
+  },
+  "evidence_gold": {
+    "authority": {
+      "authoritative_sources": [
+        "official_subtitle",
+        "asr_transcript"
+      ],
+      "navigation_only_sources": [
+        "title",
+        "description",
+        "ai_summary",
+        "ai_chapter"
+      ],
+      "navigation_only_may_be_gold_evidence": false,
+      "full_raw_transcript_review_required": true
+    },
+    "required_aspects": {
+      "required": true,
+      "fields": [
+        "aspect_id",
+        "description",
+        "materiality",
+        "query_text_basis"
+      ],
+      "materiality_values": [
+        "material",
+        "supporting"
+      ],
+      "default_materiality": "material"
+    },
+    "aspect_evidence_options": {
+      "meaning": "For each aspect, alternative evidence sets are OR; spans inside one set are AND.",
+      "required_for_supported_aspect": true
+    },
+    "acceptable_evidence_groups": {
+      "between_groups": "OR",
+      "within_group_required_span_sets": "AND",
+      "may_span_multiple_videos": true,
+      "may_combine_multiple_transcript_regions": true,
+      "builder_output_may_limit_gold": false,
+      "retrieval_output_may_limit_gold": false
+    },
+    "span_contract": {
+      "required_fields": [
+        "span_id",
+        "video_id",
+        "segment_ids",
+        "start_time",
+        "end_time",
+        "quote_text",
+        "source_language",
+        "source_type",
+        "source_version",
+        "timeline_run_id",
+        "segment_identity_version"
+      ],
+      "time_must_be_replayable": true,
+      "segment_ids_must_be_replayable": true,
+      "quote_must_be_verbatim_source_text": true,
+      "translation_may_replace_source_text": false,
+      "translated_gloss_optional": true
+    },
+    "required_spans": {
+      "meaning": "Spans necessary for an aspect or complete acceptable evidence group.",
+      "optional_context_may_replace_required_span": false
+    },
+    "optional_context_spans": {
+      "meaning": "Helpful context that improves interpretation but is not necessary for support.",
+      "may_determine_sufficiency_alone": false
+    },
+    "cross_language_policy": {
+      "allowed": true,
+      "source_language_preserved": true,
+      "source_text_preserved": true,
+      "translation_pipeline_required": false
+    },
+    "source_quality_flags": [
+      "clean",
+      "minor_asr_noise",
+      "severe_asr_noise",
+      "timeline_uncertain",
+      "source_incomplete",
+      "source_unavailable"
+    ]
+  },
+  "sufficiency_gold": {
+    "allowed_statuses": [
+      "sufficient",
+      "partial",
+      "insufficient",
+      "unverifiable"
+    ],
+    "decision_order": [
+      "Determine whether authoritative material is reviewable enough to make a reliable content judgment.",
+      "Determine support for each material required aspect.",
+      "Apply sufficient / partial / insufficient; use unverifiable only when reliable review itself is not possible."
+    ],
+    "definitions": {
+      "sufficient": {
+        "meaning": "Every material required aspect is reliably supported by at least one acceptable evidence construction.",
+        "supported_aspects": "All material aspects.",
+        "missing_aspects": "None of the material aspects."
+      },
+      "partial": {
+        "meaning": "At least one material required aspect is reliably supported, while at least one other material aspect is missing, unresolved, or blocked by source limitations.",
+        "supported_aspects": "Non-empty material subset.",
+        "missing_aspects": "Non-empty material subset."
+      },
+      "insufficient": {
+        "meaning": "Authoritative source material is reviewable, but it provides no usable support for a meaningful material subset of the query.",
+        "supported_aspects": "Empty, or only non-material/supporting details.",
+        "missing_aspects": "All material aspects."
+      },
+      "unverifiable": {
+        "meaning": "Authoritative source material is missing, damaged, inaccessible, identity-uncertain, or otherwise not reliably reviewable enough to make a content judgment.",
+        "supported_aspects": "May be empty; any incidental support is not reliable enough for a Gold judgment.",
+        "missing_aspects": "Unresolved because source authority or reviewability failed."
+      }
+    },
+    "mixed_source_rule": {
+      "some_material_aspects_reliably_supported_and_others_source_blocked": "partial",
+      "no_material_aspect_reliably_judgable_due_to_source_failure": "unverifiable",
+      "all_sources_reviewable_but_no_material_support": "insufficient"
+    },
+    "required_fields": [
+      "query_id",
+      "status",
+      "supported_aspects",
+      "missing_aspects",
+      "reason_codes",
+      "evidence_group_ids_used",
+      "gold_policy_version"
+    ],
+    "confidence_is_not_a_label_substitute": true
+  },
+  "reason_code_registry": {
+    "namespaces": {
+      "retrieval_gold_state": [
+        "RG_KNOWN_RELEVANT",
+        "RG_ACCEPTABLE_ALTERNATIVE",
+        "RG_HARD_NEGATIVE_EXPLICIT",
+        "RG_UNJUDGED_OUTSIDE_POOL"
+      ],
+      "evidence_gold_state": [
+        "EG_COMPLETE_ACCEPTABLE_GROUP",
+        "EG_MATERIAL_ASPECT_SUPPORTED",
+        "EG_MATERIAL_ASPECT_MISSING",
+        "EG_MULTI_VIDEO_COMBINATION",
+        "EG_CROSS_LANGUAGE_SOURCE",
+        "EG_ASR_QUALITY_DEGRADED",
+        "EG_SOURCE_IDENTITY_UNCERTAIN",
+        "EG_SOURCE_UNAVAILABLE"
+      ],
+      "sufficiency_gold_state": [
+        "SG_ALL_MATERIAL_ASPECTS_SUPPORTED",
+        "SG_MEANINGFUL_MATERIAL_SUBSET_SUPPORTED",
+        "SG_MATERIAL_ASPECTS_MISSING",
+        "SG_NO_USABLE_MATERIAL_SUPPORT",
+        "SG_AUTHORITY_NOT_RELIABLY_REVIEWABLE",
+        "SG_SOURCE_LIMITATION_BLOCKS_REMAINDER"
+      ],
+      "downstream_failure_attribution": [
+        "RET_NO_ACCEPTABLE_VIDEO_RETRIEVED",
+        "RET_UNJUDGED_RETURN_REQUIRES_REVIEW",
+        "BLD_GOLD_SOURCE_NOT_IN_CANDIDATE_SET",
+        "BLD_REQUIRED_REGION_NOT_IN_CANDIDATE_SET",
+        "SEL_ACCEPTABLE_GROUP_AVAILABLE_NOT_SELECTED",
+        "SEL_REQUIRED_ASPECT_AVAILABLE_NOT_SELECTED",
+        "GATE_INVALID_EVIDENCE_IDENTITY_ACCEPTED",
+        "GATE_VALID_EVIDENCE_IDENTITY_REJECTED",
+        "JDG_FALSE_SUFFICIENT",
+        "JDG_FALSE_PARTIAL",
+        "JDG_FALSE_INSUFFICIENT",
+        "JDG_FALSE_UNVERIFIABLE",
+        "SRC_AUTHORITY_MISSING",
+        "SRC_TIMELINE_OR_SEGMENT_IDENTITY_FAILURE"
+      ]
+    },
+    "gold_objects_may_use_downstream_failure_codes": false,
+    "downstream_comparison_may_reference_gold_and_prediction": true
+  },
+  "review_policy": {
+    "normal_case_route": [
+      "initial_annotation",
+      "independent_review"
+    ],
+    "high_risk_case_route": [
+      "initial_annotation",
+      "independent_review",
+      "second_independent_review_or_user_adjudication"
+    ],
+    "high_risk_triggers": [
+      "no_answer_or_library_gap",
+      "partial_status",
+      "multi_video_evidence",
+      "cross_language_evidence",
+      "severe_asr_noise",
+      "source_authority_instability",
+      "reviewer_disagreement",
+      "multiple_acceptable_relevant_videos",
+      "required_spans_far_apart",
+      "unverifiable_status"
+    ],
+    "independence_rules": {
+      "reviewer_must_not_see_system_prediction": true,
+      "reviewer_must_not_use_majority_vote_as_default": true,
+      "reviewer_must_review_full_authoritative_transcript_for_evidence_gold": true
+    },
+    "decision_authority": {
+      "routine_agreement": "accepted after initial annotation plus independent review",
+      "unresolved_disagreement": "user adjudication",
+      "final_human_decision": "user"
+    },
+    "review_outcomes": [
+      "agree",
+      "revise_gold",
+      "escalate",
+      "blocked_by_source"
+    ]
+  },
+  "frozen_evaluation_isolation": {
+    "v3_5_b_may_know": [
+      "construction_status",
+      "case_count",
+      "schema_version",
+      "file_hashes",
+      "unresolved_case_count",
+      "mechanical_validation_status"
+    ],
+    "v3_5_b_may_not_know_before_formal_frozen_run": [
+      "relevant_or_acceptable_video_ids",
+      "hard_negative_video_ids",
+      "required_aspects",
+      "evidence_groups",
+      "required_spans",
+      "sufficiency_status",
+      "reason_codes",
+      "expected_failure"
+    ],
+    "construction_route": [
+      "guarded_packet_export",
+      "independent_annotation",
+      "independent_review",
+      "user_adjudication_if_required",
+      "mechanical_validation",
+      "seal"
+    ],
+    "access_requirements": {
+      "explicit_future_task_contract": true,
+      "purpose_limited": true,
+      "access_logged": true,
+      "content_not_returned_to_v3_5_b": true
+    }
+  },
+  "versioning_and_amendment": {
+    "protocol_after_acceptance": "immutable",
+    "mechanical_nonsemantic_correction": {
+      "method": "versioned_amendment",
+      "must_preserve_prior_artifact": true,
+      "requires_hash_and_supersession_record": true
+    },
+    "semantic_change": {
+      "method": "new_protocol_version",
+      "affected_cases_require_reannotation": true
+    },
+    "development_retrieval_pool_addendum": {
+      "allowed": true,
+      "must_not_change_query_or_prediction": true,
+      "must_be_versioned": true,
+      "may_add_new_judged_acceptables": true,
+      "may_remove_positive_to_improve_metric": false
+    },
+    "frozen_gold_change_after_seal": {
+      "allowed_only_for_proven_annotation_or_identity_defect": true,
+      "requires_independent_adjudication": true,
+      "requires_new_gold_version": true,
+      "must_not_be_driven_by_system_result": true
+    }
+  },
+  "annotation_platform_policy": {
+    "new_platform_required": false,
+    "preferred_workflow": "file_based_minimal_workflow",
+    "if_file_based_workflow_is_infeasible": "block_and_escalate_to_main_session"
+  },
+  "acceptance_gate": {
+    "three_schemas_mechanically_separate": true,
+    "retrieval_exhaustive_false": true,
+    "evidence_gold_independent_of_builder": true,
+    "four_statuses_non_overlapping": true,
+    "review_and_adjudication_complete": true,
+    "frozen_isolation_complete": true,
+    "reason_codes_cover_retrieval_builder_selector_gate_judge_source": true,
+    "formal_annotation_started": false
+  }
+}

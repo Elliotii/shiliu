@@ -1,0 +1,11 @@
+{
+  "counts": {
+    "multi_span_distant_regions": 14,
+    "multi_span_same_region": 16,
+    "multiple_alternative_groups": 4,
+    "no_positive_gold_group": 7,
+    "single_span": 6,
+    "source_authority_unavailable": 4
+  },
+  "total": 51
+}

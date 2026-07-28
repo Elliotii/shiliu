@@ -1,0 +1,53 @@
+{
+  "candidate_counts": {
+    "dense": 0,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": null,
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": false,
+    "normalized_query": "SFT completion-only NEFTune",
+    "planned_mode": "lexical",
+    "query_type": "exact_entity",
+    "raw_query": "SFT completion-only NEFTune",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "short_ascii_entity",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [],
+  "results": [],
+  "timing": {
+    "product": {
+      "anchor_ms": 0.0,
+      "chapter_ms": 0.0,
+      "grouping_ms": 0.003,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 1.37,
+      "total_ms": 1.377
+    },
+    "raw": {
+      "dense_ms": 0.0,
+      "fusion_ms": 0.0,
+      "lexical_ms": 1.037,
+      "planning_ms": 0.02,
+      "total_ms": 1.34
+    }
+  },
+  "trace_id": "748575d4-2ce7-494b-89fd-6df93ffa8ba9",
+  "trace_persisted": false
+}

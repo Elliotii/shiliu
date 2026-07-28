@@ -1,0 +1,41 @@
+{
+  "evidence_bearing_cases": 9,
+  "insufficient_diagnostic_cases": 1,
+  "label_distribution": {
+    "insufficient": 1,
+    "partial": 7,
+    "sufficient": 2
+  },
+  "query_type_distribution": {
+    "actual_result_verification": 2,
+    "advanced_evidence_audit": 1,
+    "comparison": 2,
+    "definition": 1,
+    "how_to_or_process": 1,
+    "natural_multi_aspect": 1,
+    "purpose_or_use_case": 2
+  },
+  "required_query_types_covered": [
+    "actual_result_verification",
+    "advanced_evidence_audit",
+    "comparison",
+    "definition",
+    "how_to_or_process",
+    "natural_multi_aspect",
+    "purpose_or_use_case"
+  ],
+  "selected_case_ids": [
+    "C2C_16019b3c36a8945b",
+    "C2C_a1c0207a1bc56a91",
+    "C2C_ee3fac675fc7d408",
+    "C3C_56b2c368638a31c3",
+    "C3C_98e93af3d9519c76",
+    "V2C_C0C_0492bb2ae33b5cec",
+    "V2C_C0C_185d322d5f9a00b3",
+    "V2C_C0C_958161474678bd3f",
+    "V2C_C0C_9618a83c9df4f059",
+    "V2C_C0C_9a49204f52a114c8"
+  ],
+  "selection_used_expected_recovery_difficulty": false,
+  "total_cases": 10
+}

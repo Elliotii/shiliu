@@ -1,0 +1,14 @@
+{
+  "request_built_locally": true,
+  "request_sent": false,
+  "configured_model": "deepseek-v4-pro",
+  "configured_reasoning_strength": "max",
+  "thinking": {"type": "enabled"},
+  "provider_usage": "annotation_secondary_review",
+  "request_model_confirmed": true,
+  "request_reasoning_strength_confirmed": true,
+  "authorization_persisted": false,
+  "provider_response_model": null,
+  "actual_call_success": false,
+  "blocking_reason": "session-level Safe Projection no-read boundary was violated by an accidentally included legacy regression before model invocation"
+}

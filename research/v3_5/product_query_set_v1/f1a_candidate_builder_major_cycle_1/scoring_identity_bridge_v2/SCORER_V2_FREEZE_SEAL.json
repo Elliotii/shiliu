@@ -1,0 +1,36 @@
+{
+  "builder_behavior_change_allowed": false,
+  "builder_freeze_seal_hash": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+  "development_gold_hashes": {
+    "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+    "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "identity_bridge_helper_hashes": {
+    "src/shiliu/eval_v3_5/scoring_identity_bridge.py": "ca5a7aa4c1a8d827467dc3a519e736473cb2a5337aea65289b97a473b3f3fc08"
+  },
+  "identity_schema_hashes": {
+    "development_evidence_gold_schema": "c6d065464e833d1eb36b27c2247e9362ab0040b10cd590451c6c8cdd22eb5947",
+    "src/shiliu/evidence/contracts.py": "8417574849f0f36450f455dfc9ba00b6457762d7acee739fc5c271f9569f23b7"
+  },
+  "query_specific_rules": 0,
+  "schema_version": "v3.5-b-f1a-scorer-v2-freeze-seal-v1",
+  "scorer_behavior_change_allowed_after_seal": false,
+  "scorer_source_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/run_f1a_scored_regressions.py": "b9e9caedfcabecbd0fe60a5ac5b2344d9e278e20e1603087716f0e22665844af",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/run_f1a_scoring_identity_bridge_v2.py": "c69e4e0da04b59a50880c44bb1a2c0f5883a3f9c420387c77e2263074ba9b97b"
+  },
+  "scorer_version": "corrected_identity_bridge_v2",
+  "stress_input_hashes": {
+    "research/v3_5/stage3r/execution_manifest/development_runtime_input.31_cases.jsonl": "0be574af5ffd20fe147aa350fbf176904dfa98d27d5c0b3ea37b30f13c741fdc",
+    "research/v3_5/stage3r/scoring/development_scoring_projection.31_cases.jsonl": "0da94d77a0d5affccab08553231d3517c1d5e67204e0e887816fe67eaf302a09",
+    "research/v3_5/stage3r_s1/identity_mapping/gold_segment_identity_projection.jsonl": "18d2a8b7cf5ae87659780d45f2e222a9ca9491f83402d20c79f5464959159dab"
+  },
+  "test_behavior_change_allowed_after_seal": false,
+  "test_hashes": {
+    "tests/test_f1a_scoring_identity_bridge.py": "346649e36e355a36da17a9cc8d082f09b4d9601cc5423aa82a1c5cdf7bb1f13b",
+    "tests/test_v3_5_f1a_evaluation_harness_recovery.py": "764cacd1257d7be3f2972e801d8d6d612fcf8988381aca188adda06288092bd0",
+    "tests/test_v3_5_f1a_major_cycle_contract.py": "cc41c10090ab38ca839fd8f09bd633df9c891875ec9c7000cf47a4413043ba40"
+  }
+}

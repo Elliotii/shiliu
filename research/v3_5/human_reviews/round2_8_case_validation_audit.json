@@ -1,0 +1,220 @@
+{
+  "alternative_or_group_cases": [],
+  "canonical_output_path": "research/v3_5/human_reviews/review_decisions.round2.8_cases.validated.jsonl",
+  "canonical_output_sha256": "9c2a8ac2feb9d18fb7bac0f68b196192b8a22fac4948b0a4351b263b74fb16bb",
+  "case_ids": [
+    "CASE_002",
+    "CASE_004",
+    "CASE_005",
+    "CASE_006",
+    "CASE_011",
+    "CASE_014",
+    "CASE_016",
+    "CASE_018"
+  ],
+  "case_validation": [
+    {
+      "case_id": "CASE_002",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 1035,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_004",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 32,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "asr",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_005",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 42,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "asr",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_006",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 394,
+      "segments": "passed",
+      "source_language": "en",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_011",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 66,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "human",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_014",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 54,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_016",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 0,
+      "segments": "passed",
+      "source_language": null,
+      "source_state": "title_only",
+      "source_type": "title_only",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_018",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 0,
+      "segments": "passed",
+      "source_language": null,
+      "source_state": "query_corpus",
+      "source_type": "query_corpus",
+      "source_version": "passed",
+      "timeline": "passed"
+    }
+  ],
+  "cases_with_gold_evidence_groups": 4,
+  "errors": [],
+  "four_state_invariant_result": "passed",
+  "group_durations": [
+    {
+      "case_id": "CASE_002",
+      "duration_seconds": 63.73,
+      "group_id": "G1",
+      "span_count": 1
+    },
+    {
+      "case_id": "CASE_004",
+      "duration_seconds": 9.75,
+      "group_id": "G1",
+      "span_count": 1
+    },
+    {
+      "case_id": "CASE_005",
+      "duration_seconds": 151.62,
+      "group_id": "G1",
+      "span_count": 4
+    },
+    {
+      "case_id": "CASE_011",
+      "duration_seconds": 26.51,
+      "group_id": "G1",
+      "span_count": 2
+    }
+  ],
+  "input_files": [
+    {
+      "case_ids": [
+        "CASE_002",
+        "CASE_004",
+        "CASE_005",
+        "CASE_006",
+        "CASE_011",
+        "CASE_014",
+        "CASE_016",
+        "CASE_018"
+      ],
+      "filename": "round2_primary_cases_002_004_005_006_011_014_016_018.completed.jsonl",
+      "record_count": 8,
+      "sha256": "036fad9aa0d2bc4c437fb31fbfa86ab07e1694554f804e66ba8feeab3dabf73e"
+    }
+  ],
+  "input_sha256": "036fad9aa0d2bc4c437fb31fbfa86ab07e1694554f804e66ba8feeab3dabf73e",
+  "label_distribution": {
+    "insufficient": 3,
+    "partial": 1,
+    "sufficient": 3,
+    "unverifiable": 1
+  },
+  "language_distribution": {
+    "en": 1,
+    "none": 2,
+    "zh": 5
+  },
+  "longest_gold_group": {
+    "case_id": "CASE_005",
+    "duration_seconds": 151.62,
+    "group_id": "G1",
+    "span_count": 4
+  },
+  "multi_span_group_cases": [
+    "CASE_005",
+    "CASE_011"
+  ],
+  "needs_second_review_cases": [
+    "CASE_004"
+  ],
+  "packet_validation_result": "passed",
+  "schema_validation_result": "passed",
+  "segment_validation_result": "passed",
+  "source_type_distribution": {
+    "ai": 3,
+    "asr": 2,
+    "human": 1,
+    "query_corpus": 1,
+    "title_only": 1
+  },
+  "source_version_validation_result": "passed",
+  "timeline_validation_result": "passed",
+  "transcript_error_flag_cases": [
+    "CASE_002",
+    "CASE_004",
+    "CASE_005"
+  ],
+  "validated_at": "2026-07-21T03:44:47.527472+00:00",
+  "validator_version": "v3.5-round2-intake-validator-v1",
+  "warnings": []
+}

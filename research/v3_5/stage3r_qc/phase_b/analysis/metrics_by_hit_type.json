@@ -1,0 +1,20 @@
+{
+  "q0": {
+    "both_video_and_chunk_hit": 0,
+    "target_video_miss": 9,
+    "transcript_chunk_hit": 0,
+    "video_level_only_hit": 0
+  },
+  "q1": {
+    "both_video_and_chunk_hit": 0,
+    "target_video_miss": 9,
+    "transcript_chunk_hit": 0,
+    "video_level_only_hit": 0
+  },
+  "q2": {
+    "both_video_and_chunk_hit": 0,
+    "target_video_miss": 9,
+    "transcript_chunk_hit": 0,
+    "video_level_only_hit": 0
+  }
+}

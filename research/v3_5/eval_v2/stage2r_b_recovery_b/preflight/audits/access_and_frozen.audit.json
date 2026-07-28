@@ -1,0 +1,15 @@
+{
+  "heldout_accessed": false,
+  "gold_accessed": false,
+  "review_or_adjudication_assets_accessed": false,
+  "eval_queries_candidate_opened": false,
+  "eval_queries_locked_opened": false,
+  "safe_projection_query_accessed": true,
+  "safe_projection_exposed_to_reviewer": false,
+  "safe_projection_access_details": "The first test command accidentally included the legacy clean-restart test file. Its safe-projection hash/schema test opened the Safe Projection and manifest. No reviewer had been invoked and those assets were not copied to the external workspace.",
+  "eval_v1_modified_by_this_session": false,
+  "frozen_v3_modified_by_this_session": false,
+  "preexisting_dirty_worktree_preserved": true,
+  "canonical_annotation_review_v2_schema_modified": false,
+  "canonical_annotation_review_v2_schema_sha256": "bd7506c823ed06ddf024a4ed0aa143e4fc671df3689af80ca32ffef8418be24b"
+}

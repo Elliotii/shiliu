@@ -1,0 +1,169 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 P7A Gold Packet Export and Workflow Lock",
+  "schema_version": "v3.5-pqs-v1-p7a-packet-export-decision-v1",
+  "decision_date": "2026-07-26",
+  "decision_authority": "V3.5-B",
+  "human_final_authority": "user",
+  "current_state": {
+    "version": "Shiliu V3.5-B",
+    "stage": "Stage 3-R",
+    "p3_status": "accepted",
+    "p4_status": "accepted",
+    "p5_status": "accepted",
+    "p6_status": "accepted",
+    "p7_status": "started",
+    "p7_step": "P7A_packet_export_and_workflow_lock",
+    "real_gold_annotation_started": false
+  },
+  "input_identity": {
+    "p4_canonical_content_sha256": "fadf21c1992d848f2904192af479f6720a059c9aeb772ccfc4cee3b220942825",
+    "p4_locked_jsonl_sha256": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c",
+    "p5_canonical_split_assignment_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+    "p5_development_jsonl_sha256": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935",
+    "p5_frozen_jsonl_sha256": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+    "gold_protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+    "gold_protocol_md_sha256": "1da2fd575a091ac5adff7e823080b8d90564fbf912abdb3cc5ee409599886e06",
+    "retrieval_schema_sha256": "6017dc5eaabae1be34701e0a4941ed205ce0e16a7db3885b431d665366b397c0",
+    "evidence_schema_sha256": "c6d065464e833d1eb36b27c2247e9362ab0040b10cd590451c6c8cdd22eb5947",
+    "sufficiency_schema_sha256": "56054395bb3ab1997bc58474ad34759026c9f4bc774f9164dbe66aedffa638f3",
+    "review_policy_sha256": "45514dffb722b4c64c410b00980021889d4f869a827fef2d469c7a0f6538e545",
+    "frozen_isolation_contract_sha256": "d0c3edaa60762432b84e918e958fa3e981677fe4795ca5a38a6a854e96ab5fd6",
+    "protocol_validator_sha256": "c2e61bb73cfb29193a983229019032f17ef0cfd37fedf79699df2029af1a7103"
+  },
+  "p7_route": {
+    "P7A": "packet_export_and_workflow_lock",
+    "P7B": "development_initial_annotation",
+    "P7C": "development_independent_review_and_adjudication",
+    "P7D": "frozen_guarded_annotation_review_and_user_adjudication",
+    "P7E": "gold_validation_hashing_and_sealing"
+  },
+  "role_separation": {
+    "packet_exporter": "current_codex_executor",
+    "initial_annotator": "new_independent_codex_or_webgpt_session",
+    "independent_reviewer": "different_independent_session",
+    "final_disagreement_authority": "user",
+    "validator_and_sealer": "codex_mechanical_only",
+    "same_session_may_annotate_and_review_same_case": false,
+    "packet_exporter_may_create_gold": false
+  },
+  "development_batches": {
+    "DEV_BATCH_01": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q005"
+    ],
+    "DEV_BATCH_02": [
+      "PQS_V1_Q004",
+      "PQS_V1_Q006"
+    ],
+    "DEV_BATCH_03": [
+      "PQS_V1_Q007",
+      "PQS_V1_Q008"
+    ],
+    "DEV_BATCH_04": [
+      "PQS_V1_Q011",
+      "PQS_V1_Q012"
+    ],
+    "DEV_BATCH_05": [
+      "PQS_V1_Q014",
+      "PQS_V1_Q015"
+    ],
+    "DEV_BATCH_06": [
+      "PQS_V1_Q017",
+      "PQS_V1_Q018"
+    ],
+    "DEV_BATCH_07": [
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ]
+  },
+  "frozen_batches": {
+    "FROZEN_BATCH_01": [
+      "PQS_V1_Q001",
+      "PQS_V1_Q024"
+    ],
+    "FROZEN_BATCH_02": [
+      "PQS_V1_Q009",
+      "PQS_V1_Q010"
+    ],
+    "FROZEN_BATCH_03": [
+      "PQS_V1_Q002",
+      "PQS_V1_Q016"
+    ],
+    "FROZEN_BATCH_04": [
+      "PQS_V1_Q020",
+      "PQS_V1_Q021"
+    ],
+    "FROZEN_BATCH_05": [
+      "PQS_V1_Q022",
+      "PQS_V1_Q023"
+    ]
+  },
+  "batch_policy": {
+    "queries_per_batch": 2,
+    "development_batch_count": 7,
+    "frozen_batch_count": 5,
+    "reason": "Limit context size while keeping related Leakage Groups together where practical.",
+    "cross_batch_context_carryover_required": false
+  },
+  "packet_neutrality": {
+    "may_include": [
+      "locked query record",
+      "protocol and schema references",
+      "neutral library inventory",
+      "metadata, summaries and chapters as navigation-only material",
+      "authoritative transcript path and identity catalog",
+      "blank annotation templates",
+      "mechanical validation commands"
+    ],
+    "must_not_include": [
+      "target video",
+      "preselected relevant video",
+      "predicted sufficiency label",
+      "suggested evidence span",
+      "builder or selector output",
+      "system ranking or score",
+      "expected failure",
+      "existing gold"
+    ],
+    "transcript_content_in_packet": "not required; provide authoritative local paths and identity hashes",
+    "annotator_must_review_full_authoritative_transcript_for_selected_evidence_sources": true
+  },
+  "development_visibility": {
+    "v3_5_b_may_receive_gold_after_sealing": true,
+    "development_gold_may_support_later_debugging": true
+  },
+  "frozen_visibility": {
+    "v3_5_b_may_receive": [
+      "construction status",
+      "batch and case counts",
+      "schema and protocol versions",
+      "artifact hashes",
+      "unresolved case count",
+      "mechanical validation result"
+    ],
+    "v3_5_b_may_not_receive": [
+      "relevant or acceptable video ids",
+      "hard negative video ids",
+      "required aspects",
+      "evidence groups or spans",
+      "sufficiency labels",
+      "reason codes",
+      "expected failures"
+    ],
+    "gold_content_handoff_destination": "guarded independent frozen annotation/review sessions only"
+  },
+  "p7a_acceptance_gate": {
+    "all_24_queries_packetized_exactly_once": true,
+    "development_batches": 7,
+    "frozen_batches": 5,
+    "neutral_corpus_navigation_ready": true,
+    "authoritative_transcript_identity_catalog_ready": true,
+    "blank_templates_validate_against_p6_schemas": true,
+    "independent_annotator_prompt_ready": true,
+    "independent_reviewer_prompt_ready": true,
+    "user_adjudication_template_ready": true,
+    "frozen_completion_only_response_template_ready": true,
+    "real_gold_records_created": false,
+    "system_pipeline_called": false
+  }
+}

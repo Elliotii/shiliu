@@ -1,0 +1,17 @@
+{
+  "answerability_checked": false,
+  "candidate_builder_calls": 0,
+  "codex_generated_queries": 0,
+  "embedding_calls": 0,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "generated_at_utc": "2026-07-24T19:10:15+00:00",
+  "heldout_accessed": false,
+  "human_decisions_filled": 0,
+  "retrieval_calls": 0,
+  "runner_version": "v3.5-product-query-set-phase-a-r-v1",
+  "selector_calls": 0,
+  "sufficiency_judge_calls": 0,
+  "system_results_used": false,
+  "video_or_transcript_viewed": false
+}

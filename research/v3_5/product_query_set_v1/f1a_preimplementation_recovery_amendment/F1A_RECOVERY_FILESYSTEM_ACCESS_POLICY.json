@@ -1,0 +1,65 @@
+{
+  "policy_name": "F1A Major Cycle Recovery Filesystem Access Policy",
+  "version": "v1",
+  "default": "deny",
+  "new_session_required": true,
+  "allowed_seed_paths_relative_to_repo_root": [
+    "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+    "V3_5_CURRENT_STATE.md",
+    "02_PRODUCT_QUERY_SET_AND_REMAINING_V3_5_PLAN.md",
+    "STAGE3R_F1A_CANDIDATE_BUILDER_IMPLEMENTATION_TASK.md",
+    "V3_5_F1A_CANDIDATE_BUILDER_IMPLEMENTATION_LEDGER.json",
+    "F1A_CANDIDATE_BUILDER_BLOCKING_REPORT.md",
+    "V3_5_F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_LEDGER.json",
+    "F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_TASK.md"
+  ],
+  "transitive_access_rule": {
+    "allowed": true,
+    "condition": "The exact file or directory path must be explicitly referenced by an already allowed authority file and must be required by the F1A task.",
+    "directory_listing": "Only the exact referenced directory may be listed non-recursively.",
+    "recursive_search": false,
+    "parent_directory_listing": false,
+    "path_inference_or_guessing": false
+  },
+  "permitted_operations": [
+    "read an exact allowed file",
+    "list an exact allowed directory non-recursively",
+    "hash an exact allowed file",
+    "run tests using exact test paths",
+    "write only under the authorized F1A major-cycle output root",
+    "modify only exact Builder implementation/test files resolved by authority"
+  ],
+  "forbidden_operations": [
+    "rg from repository root",
+    "find from repository root",
+    "grep -R from repository root",
+    "git grep over the repository",
+    "recursive globbing from the repository root",
+    "whole-repository indexing",
+    "opening or listing any frozen_guarded tree",
+    "opening or listing internal_protected",
+    "opening or listing reviewed_gold_candidate",
+    "opening Frozen Gold sealed JSONL",
+    "reading files merely to determine whether they match a search"
+  ],
+  "forbidden_path_patterns": [
+    "**/frozen_guarded/**",
+    "**/internal_protected/**",
+    "**/reviewed_gold_candidate/**",
+    "**/frozen_cycle_v1/sealed/**",
+    "**/*FROZEN_GOLD*",
+    "**/*frozen_gold*"
+  ],
+  "development_gold_rule": {
+    "allowed": true,
+    "exact_paths_only": true,
+    "purpose": "Development scoring only after Implementation Freeze Seal",
+    "parent_directory_listing_forbidden": true
+  },
+  "failure_behavior": {
+    "missing_exact_path": "block",
+    "ambiguous_authority": "block",
+    "need_for_repository_search": "block",
+    "frozen_path_touched": "block_and_close_session"
+  }
+}

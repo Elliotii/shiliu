@@ -1,0 +1,109 @@
+{
+  "active_reserve_count": 0,
+  "development": {
+    "case_count": 8,
+    "case_ids": [
+      "CASE_001",
+      "CASE_002",
+      "CASE_003",
+      "CASE_005",
+      "CASE_012",
+      "CASE_013",
+      "CASE_015",
+      "CASE_017"
+    ],
+    "distributions": {
+      "labels": {
+        "insufficient": 3,
+        "sufficient": 4,
+        "unverifiable": 1
+      },
+      "query_languages": {
+        "en": 4,
+        "mixed": 3,
+        "zh": 1
+      },
+      "source_languages": {
+        "none": 1,
+        "query_corpus": 1,
+        "zh": 6
+      },
+      "sources": {
+        "ai": 4,
+        "asr": 1,
+        "human": 1,
+        "query_corpus": 1,
+        "title_only": 1
+      }
+    }
+  },
+  "development_only_cases": [
+    "CASE_012"
+  ],
+  "excluded_cases": [
+    "CASE_019",
+    "CASE_020"
+  ],
+  "heldout": {
+    "case_count": 10,
+    "case_ids": [
+      "CASE_004",
+      "CASE_006",
+      "CASE_007",
+      "CASE_008",
+      "CASE_009",
+      "CASE_010",
+      "CASE_011",
+      "CASE_014",
+      "CASE_016",
+      "CASE_018"
+    ],
+    "distributions": {
+      "labels": {
+        "insufficient": 3,
+        "partial": 1,
+        "sufficient": 5,
+        "unverifiable": 1
+      },
+      "query_languages": {
+        "en": 2,
+        "mixed": 8
+      },
+      "source_languages": {
+        "en": 1,
+        "none": 1,
+        "query_corpus": 1,
+        "zh": 7
+      },
+      "sources": {
+        "ai": 6,
+        "asr": 1,
+        "human": 1,
+        "query_corpus": 1,
+        "title_only": 1
+      }
+    }
+  },
+  "known_limitation": "Development contains no real Human-approved partial Case.",
+  "leakage_groups": {
+    "LG_MCP": [
+      "CASE_001",
+      "CASE_003",
+      "CASE_012"
+    ],
+    "LG_MEMORYOS": [
+      "CASE_002",
+      "CASE_013"
+    ],
+    "LG_PI_AGENT": [
+      "CASE_011",
+      "CASE_016"
+    ],
+    "LG_RAG_OPTIMIZATION": [
+      "CASE_007",
+      "CASE_014"
+    ]
+  },
+  "split_version": "v3.5-development-heldout-split-v1",
+  "status": "locked"
+}

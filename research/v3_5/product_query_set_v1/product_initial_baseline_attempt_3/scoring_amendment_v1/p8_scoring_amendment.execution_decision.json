@@ -1,0 +1,22 @@
+{
+  "Checkpoint_1_amendment": {
+    "status": "execution_candidate_ready"
+  },
+  "F1A_authorized": false,
+  "F1A_entry_signal": true,
+  "F1B_authorized": false,
+  "P8_prediction_set": {
+    "status": "valid_and_frozen"
+  },
+  "P8_scoring_amendment": {
+    "status": "execution_candidate_ready"
+  },
+  "P9": {
+    "restart_readiness": true,
+    "restarted": false,
+    "status": "blocked_pending_v3_5_b_acceptance"
+  },
+  "Stage4_started": false,
+  "acceptance_status": "pending_v3_5_b_review",
+  "execution_status": "complete"
+}

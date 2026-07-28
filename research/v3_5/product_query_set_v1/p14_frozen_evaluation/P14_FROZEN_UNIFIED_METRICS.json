@@ -1,0 +1,469 @@
+{
+  "diagnostic_metrics": {
+    "evidence_resolution": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_EVIDENCE_METRICS.json",
+    "mechanical_gate": {
+      "invalid_count": 0,
+      "judge_eligible_count": 5,
+      "routing_accuracy": 0.5,
+      "schema_version": "v3.5-mechanical-gate-metrics-v1",
+      "source_unverifiable_count": 5,
+      "unhandled_exception_count": 0
+    },
+    "retrieval": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_RETRIEVAL_METRICS.json",
+    "semantic_sufficiency": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_SUFFICIENCY_METRICS.json"
+  },
+  "per_case_joint_results": [
+    {
+      "actual_result": "unverifiable",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q001",
+      "concise_reason": "mechanical_source_unverifiable",
+      "evidence_ids": [],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "source_unverifiable",
+        "correct": false,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "mechanical_source_unverifiable",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "unverifiable",
+        "called": false,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_502fc416845b7ec7cd91ea6151cf41293f8ce795f25f3570690d1a4c13bfea8c"
+    },
+    {
+      "actual_result": "unverifiable",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q002",
+      "concise_reason": "mechanical_source_unverifiable",
+      "evidence_ids": [],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "source_unverifiable",
+        "correct": false,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "mechanical_source_unverifiable",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "unverifiable",
+        "called": false,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_2b5fdad6ead5f6b9ee41195afd08333cfacce9e6c2b12eca74734f026c44cc7a"
+    },
+    {
+      "actual_result": "unverifiable",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q009",
+      "concise_reason": "mechanical_source_unverifiable",
+      "evidence_ids": [],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "source_unverifiable",
+        "correct": false,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "mechanical_source_unverifiable",
+      "retrieval_outcome": {
+        "Hit_at_1": false,
+        "Hit_at_10": true,
+        "Hit_at_3": false,
+        "Hit_at_5": false,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 8
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "unverifiable",
+        "called": false,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_9dc6d1146184221aa6aef9910b3793424acd0eeeedf92255d04f7a9ad7df856a"
+    },
+    {
+      "actual_result": "partial",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.6666666666666666,
+        "required_span_recall": 0.7142857142857143
+      },
+      "case_id": "PQS_V1_Q010",
+      "concise_reason": "builder_incomplete",
+      "evidence_ids": [
+        "candidate_fa04e56279b282c0497bf49e6abc1334f9943b6f1609d8235d027c8e68775ae1",
+        "candidate_6fff884d85f91852017cae2572d6d1af591face0c0ec1ce015eeb8e9bf5459b2",
+        "candidate_d74c8401fe6e1c5984ef7d4738484e9d1a4c15eceba86d9b9d02d76cd719da41"
+      ],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "judge_eligible",
+        "correct": true,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "builder_incomplete",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "partial",
+        "called": true,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_073e9baf1087ddcc4272425342418e47f812d49930aec4fab26ddc7826c875ba"
+    },
+    {
+      "actual_result": "sufficient",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.3333333333333333,
+        "required_span_recall": 0.3333333333333333
+      },
+      "case_id": "PQS_V1_Q016",
+      "concise_reason": "builder_incomplete",
+      "evidence_ids": [
+        "candidate_bcdd89a80558fa16f6164e41a641d701a05a82c287ae3fc1f6fdfd5d26ba9938",
+        "candidate_553b41d7abadf5859cf578203d32d2ddd3492db23035d8b9ee46fc5f404ed8b3",
+        "candidate_f23aa7596c9c404084116ef6a16006167118921c337c3cbb6c3aea431e4f1278",
+        "candidate_525427228407ceaa7f0ece8aa1352223f5bc87caf47cc9cf1a9186381c639a52",
+        "candidate_d26d4a0a5eebe8966f89a26184f315799555db84b75d3be9ff1e4928d9d358eb"
+      ],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "judge_eligible",
+        "correct": true,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "builder_incomplete",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "sufficient",
+        "called": true,
+        "correct": true,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_5909261ccd3527370dc968e2ec97ec80c96736268ae3ebdc1091cc4ab8adef54"
+    },
+    {
+      "actual_result": "sufficient",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.25
+      },
+      "case_id": "PQS_V1_Q020",
+      "concise_reason": "builder_incomplete",
+      "evidence_ids": [
+        "candidate_e08106ac4ddea6836ac2623b32f2c258233d80a06c261e7a16d600e1331c0b23",
+        "candidate_e0547320d365572036bd68e71e811339e289756ebc546f2ef2267c6f1ec1089e",
+        "candidate_f43e0c746d9e21a32a7e48653f17656b9f0c9faae7281f6791c0089e66c82891",
+        "candidate_bb369d25093e932022ad861cb82e05c82ee47e14310b06e5a1934fbce16b58fc"
+      ],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "judge_eligible",
+        "correct": true,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "builder_incomplete",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.25
+      },
+      "semantic_judge_outcome": {
+        "actual": "sufficient",
+        "called": true,
+        "correct": true,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_a55162c5846eadc1b17c1092251efcf029bd4acff338c913f19e5d6f7e5847fb"
+    },
+    {
+      "actual_result": "insufficient",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q021",
+      "concise_reason": "builder_incomplete",
+      "evidence_ids": [
+        "candidate_3fd4b2e592002c1ccf8310bcd4cdfb0b3104f125c37b982280dee1efc931737d",
+        "candidate_122e7e0c6ae27d5988a68b2c22e0416e5cba194723d77b25fd195817ab9d1236",
+        "candidate_f527da167d15c7a2e681b1453687019973d47b851cb6c7a6b7968671c117c03a"
+      ],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "judge_eligible",
+        "correct": true,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "builder_incomplete",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "insufficient",
+        "called": true,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_2ce237e0cab36c2fe9cd97e15d4f5de009ab8f3f6ddfa3805748c78403e27d9d"
+    },
+    {
+      "actual_result": "unverifiable",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q022",
+      "concise_reason": "mechanical_source_unverifiable",
+      "evidence_ids": [],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "source_unverifiable",
+        "correct": false,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "mechanical_source_unverifiable",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "unverifiable",
+        "called": false,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_55ec268fe4e5d676f13e9c174c0813d4505b5c9a4e3f47abaaa89bad0fcb96f7"
+    },
+    {
+      "actual_result": "partial",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.6666666666666666,
+        "required_span_recall": 0.3333333333333333
+      },
+      "case_id": "PQS_V1_Q023",
+      "concise_reason": "builder_incomplete",
+      "evidence_ids": [
+        "candidate_7427f4bd390617e6f634976a81d41acbd9ca918e63b3782ae4613ec4518ebbc0",
+        "candidate_b76ca359a0dcb60d1b35d53779e3c8b9f2811485d86f070e50e6ba347b1c38e7",
+        "candidate_6c473a44924363f7de5ccf3a612966775c9e53f253841497e6f6cea654c2d6cc",
+        "candidate_c8ae0a4b0802c890125722255b89b22a5887ae4387d42494b44d4bc1dd8d5df4"
+      ],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "judge_eligible",
+        "correct": true,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "builder_incomplete",
+      "retrieval_outcome": {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 1
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "partial",
+        "called": true,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_479c8056bc5f4ecae3fd8c21723a2e092967bc35ddc5913948cb7bf2c7e50d9b"
+    },
+    {
+      "actual_result": "unverifiable",
+      "builder_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q024",
+      "concise_reason": "mechanical_source_unverifiable",
+      "evidence_ids": [],
+      "frozen_expected_result": "sufficient",
+      "mechanical_gate_outcome": {
+        "actual": "source_unverifiable",
+        "correct": false,
+        "expected": "judge_eligible"
+      },
+      "primary_failure_layer": "mechanical_source_unverifiable",
+      "retrieval_outcome": {
+        "Hit_at_1": false,
+        "Hit_at_10": true,
+        "Hit_at_3": false,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "first_acceptable_rank": 5
+      },
+      "secondary_failure_layers": [],
+      "selector_outcome": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "semantic_judge_outcome": {
+        "actual": "unverifiable",
+        "called": false,
+        "correct": false,
+        "expected": "sufficient"
+      },
+      "trace_id": "stage4a_trace_a2ac6fe4f963bd2cde1d1dd738ca4ee277bb9a0d14448a4f980e7bb63290819b"
+    }
+  ],
+  "product_authority": {
+    "source": "full_Frozen_end_to_end_pipeline"
+  },
+  "schema_version": "v3.5-p14-unified-frozen-result-v1",
+  "unified": {
+    "completed_predictions": 10,
+    "component_failure_attribution_counts": {
+      "builder_incomplete": 5,
+      "mechanical_source_unverifiable": 5
+    },
+    "end_to_end_accuracy_or_formal_existing_metric": {
+      "reason": "No pre-frozen unified Accuracy contract exists; component-joint outcomes are reported without creating a new promotion metric.",
+      "status": "not_applicable"
+    },
+    "end_to_end_correct_cases": 0,
+    "runtime_error_cases": 0,
+    "total_cases": 10
+  }
+}

@@ -1,0 +1,478 @@
+{
+  "manifest_version": "v3.5-pqs-v1-p7a-packet-export-manifest-v1",
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "packet_validator": {
+    "path": "scripts/validate_p7a_gold_packet.py",
+    "sha256": "010b1923530465aec9e16502fcce8956bb55dc370bf06ba6557b28874d3b0200"
+  },
+  "source_hashes": {
+    "research/v3_5/product_query_set_v1/freeze/product_query_set_v1.locked.jsonl": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c",
+    "research/v3_5/product_query_set_v1/split_v1/product_query_development_v1.locked.jsonl": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935",
+    "research/v3_5/product_query_set_v1/split_v1/frozen_locked/product_query_frozen_evaluation_v1.locked.jsonl": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/PRODUCT_QUERY_GOLD_PROTOCOL_V1.md": "1da2fd575a091ac5adff7e823080b8d90564fbf912abdb3cc5ee409599886e06",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_retrieval_gold.schema.json": "6017dc5eaabae1be34701e0a4941ed205ce0e16a7db3885b431d665366b397c0",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_evidence_gold.schema.json": "c6d065464e833d1eb36b27c2247e9362ab0040b10cd590451c6c8cdd22eb5947",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_sufficiency_gold.schema.json": "56054395bb3ab1997bc58474ad34759026c9f4bc774f9164dbe66aedffa638f3",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_gold_review_policy.json": "45514dffb722b4c64c410b00980021889d4f869a827fef2d469c7a0f6538e545",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_frozen_evaluation_isolation_contract.md": "d0c3edaa60762432b84e918e958fa3e981677fe4795ca5a38a6a854e96ab5fd6",
+    "scripts/validate_product_gold_protocol_v1.py": "c2e61bb73cfb29193a983229019032f17ef0cfd37fedf79699df2029af1a7103",
+    "research/v3_5/product_query_set_v1/freeze/product_query_set_v1.manifest.json": "eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb",
+    "research/v3_5/product_query_set_v1/split_v1/product_query_split_v1.locked.json": "3191bbe3bad682966a0f4c865510c86ac3cbdec933da298cc1bb0cafa2f0d09b",
+    "research/v3_5/product_query_set_v1/split_v1/product_query_split_v1.manifest.json": "34d3ecdb79dfa86d9ac43f48a6a245ab4c996004cacb4191a637798ec1f85ec3",
+    "research/v3_5/product_query_set_v1/split_v1/frozen_locked/FROZEN_EVALUATION_ACCESS_GUARD.json": "6a1363a7799e625fa0b976030a5e08f7d454bca7745166c55d281b54453a1d53",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_gold_reason_code_registry.json": "7d759383aeb20aa2730254e2785ac8fc867ef5ecaf8fbcd42909cdf0c83ca50b",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_gold_protocol_v1.manifest.json": "cf998e8d9b5562ff3b8018795582d89a6fd0d0ecf7ab707454a071ad0f7fe396",
+    "research/v3_5/product_query_set_v1/gold_protocol_v1/product_gold_protocol_v1.audit.json": "d0176c30a683226072e08c049ff6690cc137ff98777d5e8ac93b47717aa88996"
+  },
+  "decision_ledger_sha256": "81b420d739641e7b6020cd6519022d4c24a83abf02a6620149d2533fefbb59f7",
+  "query_batch_mapping": {
+    "PQS_V1_Q001": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_01"
+    },
+    "PQS_V1_Q002": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_03"
+    },
+    "PQS_V1_Q003": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_01"
+    },
+    "PQS_V1_Q004": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_02"
+    },
+    "PQS_V1_Q005": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_01"
+    },
+    "PQS_V1_Q006": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_02"
+    },
+    "PQS_V1_Q007": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_03"
+    },
+    "PQS_V1_Q008": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_03"
+    },
+    "PQS_V1_Q009": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_02"
+    },
+    "PQS_V1_Q010": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_02"
+    },
+    "PQS_V1_Q011": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_04"
+    },
+    "PQS_V1_Q012": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_04"
+    },
+    "PQS_V1_Q013": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_07"
+    },
+    "PQS_V1_Q014": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_05"
+    },
+    "PQS_V1_Q015": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_05"
+    },
+    "PQS_V1_Q016": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_03"
+    },
+    "PQS_V1_Q017": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_06"
+    },
+    "PQS_V1_Q018": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_06"
+    },
+    "PQS_V1_Q019": {
+      "split": "development",
+      "batch_id": "DEV_BATCH_07"
+    },
+    "PQS_V1_Q020": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_04"
+    },
+    "PQS_V1_Q021": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_04"
+    },
+    "PQS_V1_Q022": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_05"
+    },
+    "PQS_V1_Q023": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_05"
+    },
+    "PQS_V1_Q024": {
+      "split": "frozen_evaluation",
+      "batch_id": "FROZEN_BATCH_01"
+    }
+  },
+  "development_query_count": 14,
+  "frozen_query_count": 10,
+  "development_batch_count": 7,
+  "frozen_batch_count": 5,
+  "neutral_library_item_count": 147,
+  "authoritative_transcript_source_count": 131,
+  "authoritative_segment_count": 65872,
+  "shared_bundle_hashes": {
+    "shared/annotation_field_guide.md": "cfb1de6e63eb0ee9d9816c9a10d39392fcd2a59d6d29bd6d487d0cfe72018d1b",
+    "shared/authoritative_transcript_identity_catalog.jsonl": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4",
+    "shared/mechanical_validation_guide.md": "2e7baea1568d652b7ea0eae6a79ce11ca08db2e937d4221193d42f6730b6c119",
+    "shared/neutral_library_navigation_index.jsonl": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "shared/protocol_reference_manifest.json": "87ec9a9e34e8545c731e14c49e5393f6d7b6631854efb4a96c429823b4959688",
+    "shared/source_type_policy.json": "95fd381f165c8ec8701c9673c4b86795dd65fab0a18ae80a775bfd4133f988e4"
+  },
+  "packet_hashes": {
+    "development": {
+      "DEV_BATCH_01": {
+        "path": "development/batches/DEV_BATCH_01",
+        "query_ids": [
+          "PQS_V1_Q003",
+          "PQS_V1_Q005"
+        ],
+        "packet_content_sha256": "a11ba8b56b80d255ddc10296bd4d4f0f762aa0d5240de855e035d6e398c1b0be",
+        "batch_manifest_sha256": "d0fc86288ecc57980994d3401ca63c3d467f7ca27a070773b0f98eed3a0b1de3"
+      },
+      "DEV_BATCH_02": {
+        "path": "development/batches/DEV_BATCH_02",
+        "query_ids": [
+          "PQS_V1_Q004",
+          "PQS_V1_Q006"
+        ],
+        "packet_content_sha256": "3a391ea2deb717aa4534434653ad06699740bdad346f84ef14038bea9f7f4ac1",
+        "batch_manifest_sha256": "5c59d87ce4eabcabe8644514ca9afe10b90af93654efe9693947c7a67726574c"
+      },
+      "DEV_BATCH_03": {
+        "path": "development/batches/DEV_BATCH_03",
+        "query_ids": [
+          "PQS_V1_Q007",
+          "PQS_V1_Q008"
+        ],
+        "packet_content_sha256": "190b2a4cf7912142273d3532e0cdf17fa8a86d2c2124e7c5b5d097da56c94bdc",
+        "batch_manifest_sha256": "2b7d3cd5b01ed5fcb13e6c923db09da1634b541452842c99610d9282a7a52097"
+      },
+      "DEV_BATCH_04": {
+        "path": "development/batches/DEV_BATCH_04",
+        "query_ids": [
+          "PQS_V1_Q011",
+          "PQS_V1_Q012"
+        ],
+        "packet_content_sha256": "33bb6b8d9d8a8d4854d719e40dbbf6849cd8e8b64e4edc6270ca5d253d3f8947",
+        "batch_manifest_sha256": "be25286e708ac295555659e0278f8e596fb2b5ac72520d1b983d0d3fbe2eb433"
+      },
+      "DEV_BATCH_05": {
+        "path": "development/batches/DEV_BATCH_05",
+        "query_ids": [
+          "PQS_V1_Q014",
+          "PQS_V1_Q015"
+        ],
+        "packet_content_sha256": "a56e0ab0bde3f063c6840ba26585285529ca98d85581faa88009bac75b11754a",
+        "batch_manifest_sha256": "29ea33744ac7cc4874545803e0f6738007cfdcdf6576d10e9365ef2662c31867"
+      },
+      "DEV_BATCH_06": {
+        "path": "development/batches/DEV_BATCH_06",
+        "query_ids": [
+          "PQS_V1_Q017",
+          "PQS_V1_Q018"
+        ],
+        "packet_content_sha256": "bcd0d26d576c61be1ee2dd947aba625ea082644d4e8014df06829f6320bcb3ec",
+        "batch_manifest_sha256": "eed54c8b6fb592e9d02d5ab26a470c956eba43088a15200377537bf0acbfbad0"
+      },
+      "DEV_BATCH_07": {
+        "path": "development/batches/DEV_BATCH_07",
+        "query_ids": [
+          "PQS_V1_Q013",
+          "PQS_V1_Q019"
+        ],
+        "packet_content_sha256": "3e372db2ba8cd8c84728bdceec761cdc88aba15da997875e8561559547877a48",
+        "batch_manifest_sha256": "8053c0c3c21dfb5792c7e34ef0a615c95a3480ac593778cacfd15a7c28592345"
+      }
+    },
+    "frozen_guarded": {
+      "FROZEN_BATCH_01": {
+        "path": "frozen_guarded/batches/FROZEN_BATCH_01",
+        "query_ids": [
+          "PQS_V1_Q001",
+          "PQS_V1_Q024"
+        ],
+        "packet_content_sha256": "4b79c03468be6f334e0ec0a1faed26198189ed3d327379ceac0b3fbc8b5bcdd7",
+        "batch_manifest_sha256": "bd6430cab07c76e04bac1b9b1a0fdaea133f3936d102bc56afaa3530db8629e6"
+      },
+      "FROZEN_BATCH_02": {
+        "path": "frozen_guarded/batches/FROZEN_BATCH_02",
+        "query_ids": [
+          "PQS_V1_Q009",
+          "PQS_V1_Q010"
+        ],
+        "packet_content_sha256": "7d081983d4f303a47bf2ded1696b551cc8a529b5166c2cd133e9188d1b2e7a7f",
+        "batch_manifest_sha256": "ac4c4fca327b1bc297acd647d969c40aed74db1e8513674cc489a90244f18cf3"
+      },
+      "FROZEN_BATCH_03": {
+        "path": "frozen_guarded/batches/FROZEN_BATCH_03",
+        "query_ids": [
+          "PQS_V1_Q002",
+          "PQS_V1_Q016"
+        ],
+        "packet_content_sha256": "c74f4e1fea97532629af236a9dcfe59dc07f18bd10847e183723fe42498c5bd3",
+        "batch_manifest_sha256": "86dc7daa55417f0e44767dff3291d795bfeb89ba47ffbdc0a2848f6ebdd2c867"
+      },
+      "FROZEN_BATCH_04": {
+        "path": "frozen_guarded/batches/FROZEN_BATCH_04",
+        "query_ids": [
+          "PQS_V1_Q020",
+          "PQS_V1_Q021"
+        ],
+        "packet_content_sha256": "d263b720fa14e528a170d134f4986d80c4fd139eb403c03394ad977771066e92",
+        "batch_manifest_sha256": "bd9ecedcef48bdfebb1530815c05fde46935eeeeee284dee37678b0b86f6bcaa"
+      },
+      "FROZEN_BATCH_05": {
+        "path": "frozen_guarded/batches/FROZEN_BATCH_05",
+        "query_ids": [
+          "PQS_V1_Q022",
+          "PQS_V1_Q023"
+        ],
+        "packet_content_sha256": "4aa54ce3114522699a49dc4cbd5400ebc6efa944ed8750f346c958f1d739ed6d",
+        "batch_manifest_sha256": "77d967dd3c7f2d312296ed5e6b2fd7f1e431d33eadc3fbca5cad993b2f6325f2"
+      }
+    }
+  },
+  "prompt_and_template_hashes": {
+    "development/batches/DEV_BATCH_01/evidence_gold.template.jsonl": "06afca897ac7ae946c029379ac58ff7bac0afc1a082422475cf29e421aac3e1f",
+    "development/batches/DEV_BATCH_01/independent_review_decision.template.jsonl": "cc30ca423adfb6717c48f43370fc717993ac401e3fa42f1fe9e6470603cffc40",
+    "development/batches/DEV_BATCH_01/initial_annotation_decision.template.jsonl": "84e6e4ca161aee525a68d7aee3b06a068a11ddaa3bd02aec6ff4ab28547235f6",
+    "development/batches/DEV_BATCH_01/retrieval_gold.template.jsonl": "18d75532ddf8c26925c70373ddc039821f67109550fe8930a201e1ef8adb6d73",
+    "development/batches/DEV_BATCH_01/sufficiency_gold.template.jsonl": "925e2495442724dc1023ab33b0156a09d6d0366109b0063a713ce62ed5053b34",
+    "development/batches/DEV_BATCH_01/user_adjudication_decision.template.jsonl": "3092d46c08d6cebaed16b29e1ea61b5c10f129ae2dc59ee823cf3eeb0f92a72f",
+    "development/batches/DEV_BATCH_02/evidence_gold.template.jsonl": "a0d259df78ea041438ff01c2b528757eca5d026b809027148a2e9d8e389bc8f7",
+    "development/batches/DEV_BATCH_02/independent_review_decision.template.jsonl": "d6f943dde39b2103f2234916b5afc208a5ca1f0cf5c3fdaf0794ccb74f0e46db",
+    "development/batches/DEV_BATCH_02/initial_annotation_decision.template.jsonl": "d413f20f8cbe61d8068ccce5684c601266e8bc9b04a6e461b114c7909b650e93",
+    "development/batches/DEV_BATCH_02/retrieval_gold.template.jsonl": "76e51cfa6a28def2ab2a281208ec69c0d900a220e53ca459c9eecc2e93212399",
+    "development/batches/DEV_BATCH_02/sufficiency_gold.template.jsonl": "94a429296c553bd9c074b1427249bafe76620d8039185dd2cd5ec10ae4610404",
+    "development/batches/DEV_BATCH_02/user_adjudication_decision.template.jsonl": "d267f2e43189a775ec72fa9211395c521b6b77b4eb17b796862800b44a8b922d",
+    "development/batches/DEV_BATCH_03/evidence_gold.template.jsonl": "742e83bc09433c84a9f323816cebad3d972e701358e49ec5e1e80a47a13ed9d5",
+    "development/batches/DEV_BATCH_03/independent_review_decision.template.jsonl": "22e148c7ff1f5c6d4e00b2de7414bb695713e813177fc19795bcffbefd242d4d",
+    "development/batches/DEV_BATCH_03/initial_annotation_decision.template.jsonl": "4a2248a9928fd4525976e090376ab0020ad459c0ed3edc1654f11bdee2ba7db4",
+    "development/batches/DEV_BATCH_03/retrieval_gold.template.jsonl": "bd4eb1f49b409068904d9a6e4f53fb61028fafdc8ec5d4e60630f20fd84b83dd",
+    "development/batches/DEV_BATCH_03/sufficiency_gold.template.jsonl": "318e47059ff1014da507c5f80c95170ed45b704422f250aae735c9cef84392a0",
+    "development/batches/DEV_BATCH_03/user_adjudication_decision.template.jsonl": "cd6eb4a24673cebb6f1984ebe0f204cb78509bdf05864543b7b6263aaebf92df",
+    "development/batches/DEV_BATCH_04/evidence_gold.template.jsonl": "d4b0defa3cbd85dc2aaa91707439bebe35188f50a6dbf1f2202254fb32409383",
+    "development/batches/DEV_BATCH_04/independent_review_decision.template.jsonl": "cf2ad052d286a0bb38fcb8c6bd00d1823e26af11e7cb821af5ab9c865241393e",
+    "development/batches/DEV_BATCH_04/initial_annotation_decision.template.jsonl": "b7994b650821bacf24cfecc32f60db7f558c67ee4811f86a8f914ec0c5627369",
+    "development/batches/DEV_BATCH_04/retrieval_gold.template.jsonl": "3d90ebb849690a3c4fe485e1623d055d96912599985e346744ce299ecd2f5033",
+    "development/batches/DEV_BATCH_04/sufficiency_gold.template.jsonl": "1e48f4005b5e8e8eba4dde035f80a348a6a573aeb0453990d05e0a5a4b284123",
+    "development/batches/DEV_BATCH_04/user_adjudication_decision.template.jsonl": "fbc512ac7ea764128b01d7da7703f39eb54cbde0fa3244e7c5e33a1c597285b6",
+    "development/batches/DEV_BATCH_05/evidence_gold.template.jsonl": "4b217ec63110bd3fe0059a2ac6070789aa95db8a23ca2ae3b8a0b788aceb191e",
+    "development/batches/DEV_BATCH_05/independent_review_decision.template.jsonl": "dae4bd903de0b88da2226ee83986bc5dd658de28278b344a268b0cf58f3afe9e",
+    "development/batches/DEV_BATCH_05/initial_annotation_decision.template.jsonl": "ce8c8b663c9e205f8719dcdd6586b3ed33cda46650a0a39b2305daf97a0062dd",
+    "development/batches/DEV_BATCH_05/retrieval_gold.template.jsonl": "4f89c93edc0d75c9c29a5e12273360d3c565b5a0ebdb8b19e87c2ad24b093e91",
+    "development/batches/DEV_BATCH_05/sufficiency_gold.template.jsonl": "6622e0a38dcd7619c0ca2a8300f8de627821c8a73e90b0a94b7b84ba72ddac7e",
+    "development/batches/DEV_BATCH_05/user_adjudication_decision.template.jsonl": "7a0c836938607b14b44cdcab0d93b117d6167d8829899e1adb7699633666b58f",
+    "development/batches/DEV_BATCH_06/evidence_gold.template.jsonl": "b0492bbd7e718cdce88ecd0f64a22262c4270023b1d36e67425c7eb514143398",
+    "development/batches/DEV_BATCH_06/independent_review_decision.template.jsonl": "af2e74fd53ea88f13cd5599752c63496d238adab0e2dde8b5fd0b9e036a290e4",
+    "development/batches/DEV_BATCH_06/initial_annotation_decision.template.jsonl": "9aa0458c0935637e40b49e836c2c481e550fba7d9f95bc1043ff021e65822202",
+    "development/batches/DEV_BATCH_06/retrieval_gold.template.jsonl": "1d0f4a8a1fbe779799247a9fdefd239a3bad2efe8741ee12d92c1a121b411208",
+    "development/batches/DEV_BATCH_06/sufficiency_gold.template.jsonl": "613b42c10c6508f83b103a73ca2ead6f9f302cd4018dc10d04d9353b7f2d0b48",
+    "development/batches/DEV_BATCH_06/user_adjudication_decision.template.jsonl": "e730dc295b653c6d084680cd57bf039bcb4505b4a7aa973a401c609752c963d6",
+    "development/batches/DEV_BATCH_07/evidence_gold.template.jsonl": "1420e192741eaaf23e36506525e2fa5b23a782536f54251df7c9145e64503850",
+    "development/batches/DEV_BATCH_07/independent_review_decision.template.jsonl": "6dd8a9861a02f11865d90208ab40a3bb61205bff7216c5388aff70a958e643d6",
+    "development/batches/DEV_BATCH_07/initial_annotation_decision.template.jsonl": "3d8b214dcd32e9bbe76bac2e10856893e09e3c247344cecd66c8d783d0af2b78",
+    "development/batches/DEV_BATCH_07/retrieval_gold.template.jsonl": "d26462511f7149a7070feff434b73886ecb84b20bf16320bcbecbdc2b90423e6",
+    "development/batches/DEV_BATCH_07/sufficiency_gold.template.jsonl": "b9e44822af22b88a5fff571d630134a304569ff8e58969ef970901fe3e44394f",
+    "development/batches/DEV_BATCH_07/user_adjudication_decision.template.jsonl": "58c541d7bef5c1fe3b8d4ba3d650962bb5442d797da3feeb8f2b937cc42258cb",
+    "frozen_guarded/batches/FROZEN_BATCH_01/evidence_gold.template.jsonl": "d217bca60577ae79c7e939718241e3dc210396a12f964d163de740ac0fcf1e4f",
+    "frozen_guarded/batches/FROZEN_BATCH_01/independent_review_decision.template.jsonl": "e52decf7c51771252ada195e0453fb3cfcc74526466ace4752b719fb36633ddb",
+    "frozen_guarded/batches/FROZEN_BATCH_01/initial_annotation_decision.template.jsonl": "8d9a34c76b8f740556daac0dd00e6fa22380d4b8e7ed39d6c16d5557beb59be7",
+    "frozen_guarded/batches/FROZEN_BATCH_01/retrieval_gold.template.jsonl": "9ff5b05320fe58b4438e0058d6cefe0149df16eb842460549a693d3d1a9860ea",
+    "frozen_guarded/batches/FROZEN_BATCH_01/sufficiency_gold.template.jsonl": "a4eaf165e4f65cbd29793f67763aa6703a3671374b8dd1d59244e128033af591",
+    "frozen_guarded/batches/FROZEN_BATCH_01/user_adjudication_decision.template.jsonl": "90b1045cec804538976080a6cc83bfe65f0d5f1a5f092d17bf6fc01bad6e79ed",
+    "frozen_guarded/batches/FROZEN_BATCH_02/evidence_gold.template.jsonl": "fe068630edad4ee06988ef4befe20418c4173748c83c79828b2203138eeb610c",
+    "frozen_guarded/batches/FROZEN_BATCH_02/independent_review_decision.template.jsonl": "f19bef0f54a3b3fdc140cb202f1a45aa2bb8bf2751c84f38be33a90cdd825ed6",
+    "frozen_guarded/batches/FROZEN_BATCH_02/initial_annotation_decision.template.jsonl": "d4080fb51281fac47e841c63542dd0aa3228cce7945e8883f4d33b6cb30abacf",
+    "frozen_guarded/batches/FROZEN_BATCH_02/retrieval_gold.template.jsonl": "b5936b8a432212428dd7d5ca969cb264b4053bae54646ee1728cff3c69ba6b0d",
+    "frozen_guarded/batches/FROZEN_BATCH_02/sufficiency_gold.template.jsonl": "1a95a46eb3a88af00299a707b9332c9f71914f93a9bd711877840a341e1a8c5f",
+    "frozen_guarded/batches/FROZEN_BATCH_02/user_adjudication_decision.template.jsonl": "c22b0ec4ef73914c3a74746890079815bd7d99964f043ae5957660f05676ebd7",
+    "frozen_guarded/batches/FROZEN_BATCH_03/evidence_gold.template.jsonl": "c80236465ff09bd49e9591ea9a2441bddc02043912106fbffb0e1b1452a97def",
+    "frozen_guarded/batches/FROZEN_BATCH_03/independent_review_decision.template.jsonl": "7d0469d0a53f1e13cf9a0dba1d6810de28bf2505c58074f347ecbcb75e7be499",
+    "frozen_guarded/batches/FROZEN_BATCH_03/initial_annotation_decision.template.jsonl": "09def9ef975879edde12d8311e6db65b0ca94c74dd6ea242d13acf65a7739813",
+    "frozen_guarded/batches/FROZEN_BATCH_03/retrieval_gold.template.jsonl": "21217402c41599ce58008b3ea3d163301beb9ddb3934e674d3a75f10a41dd907",
+    "frozen_guarded/batches/FROZEN_BATCH_03/sufficiency_gold.template.jsonl": "bb50db95f6f7efd8921bb3bf31443ea10240270d8dc4d5c5b3f56134a96b16d1",
+    "frozen_guarded/batches/FROZEN_BATCH_03/user_adjudication_decision.template.jsonl": "98100179962ca65d97754d943cc31f3090b3049e12e4c1ae6a6d3c3a4901b163",
+    "frozen_guarded/batches/FROZEN_BATCH_04/evidence_gold.template.jsonl": "0d7d52ed6d8ded50247c31ffbce6482e7d3c9083a9be2a85fa6032f15f4e5f1e",
+    "frozen_guarded/batches/FROZEN_BATCH_04/independent_review_decision.template.jsonl": "8f2137c06e1b0f823c8bf7ceaea47e7448833ad353aac687264d6c46969a5419",
+    "frozen_guarded/batches/FROZEN_BATCH_04/initial_annotation_decision.template.jsonl": "b8f1a1d27050c9ff03b8e6940f9e1a22a657460f280e61b16dd60d636eb445b6",
+    "frozen_guarded/batches/FROZEN_BATCH_04/retrieval_gold.template.jsonl": "05f58e482ab328d4368f9c7419469c02326f73b703df247ac127af13a10ce53b",
+    "frozen_guarded/batches/FROZEN_BATCH_04/sufficiency_gold.template.jsonl": "d42210331ffa5fb3ac1f88d3f9894801fd45eb3d76faf257eb177b8878144711",
+    "frozen_guarded/batches/FROZEN_BATCH_04/user_adjudication_decision.template.jsonl": "c14621110e60d4bf78891d6b5007ca2076724f7dcf2fa03f7a0c622e51b28045",
+    "frozen_guarded/batches/FROZEN_BATCH_05/evidence_gold.template.jsonl": "2850762d07ba0d80ef9679020d8e43f70510df068f3c26a17531a94e93d7725f",
+    "frozen_guarded/batches/FROZEN_BATCH_05/independent_review_decision.template.jsonl": "499928847cd04b8179c45bfb473efa6e6af0b19bc5d3a3ea873415c0c438bc92",
+    "frozen_guarded/batches/FROZEN_BATCH_05/initial_annotation_decision.template.jsonl": "d28039f0d6d177504d7e7899b6ff4aadae5474b36dec8b52370a0f5159b455bc",
+    "frozen_guarded/batches/FROZEN_BATCH_05/retrieval_gold.template.jsonl": "0e7635120bf8687ddb0eb22ce7192e79fd2c8c61224d1195a54e1e33555bf86c",
+    "frozen_guarded/batches/FROZEN_BATCH_05/sufficiency_gold.template.jsonl": "1c3777f6ab22010ccaff721984098ff017d187cbcd2fb32845b543174cbd8f78",
+    "frozen_guarded/batches/FROZEN_BATCH_05/user_adjudication_decision.template.jsonl": "dfa6eb1e32b45ac244d7b88681f743c779fcbe134b5ebb465bbebd622c69a696",
+    "prompts/DEVELOPMENT_INDEPENDENT_REVIEWER_PROMPT.md": "fad3077abf402dfb89f0607ecc91d8b40b865487112f409a2d46da94d1fa7d3c",
+    "prompts/DEVELOPMENT_INITIAL_ANNOTATOR_PROMPT.md": "48345d9904c18dcf71a1a3036dd6822cca698ba34d2acdcce93f32e5d3828f85",
+    "prompts/DEVELOPMENT_USER_ADJUDICATION_PROMPT.md": "9433948143700fe8cd98829932d4639ba0d83e76b7ba53dc4381921e8770645f",
+    "prompts/FROZEN_COMPLETION_ONLY_RESPONSE_TEMPLATE.md": "2bf6644f1f32ec6e3f3cc8e620b5a798e069bfa59bb8287379409fc93f27e13b",
+    "prompts/FROZEN_INDEPENDENT_REVIEWER_PROMPT.md": "e190bafba9b290b886d506c790a80e5a7966646514ab3e941f07594054811735",
+    "prompts/FROZEN_INITIAL_ANNOTATOR_PROMPT.md": "16eaddfa36ce3d92d7b4acec5f07a9f53f84649c483e7697b0313da5ade35c31",
+    "prompts/FROZEN_USER_ADJUDICATION_PROMPT.md": "cbc5a3de45baba514fffd6276789122918edc05db2b24cb98986a82e79656bd3"
+  },
+  "frozen_guard_sha256": "aad5e437cb49ccae62b9a72ccd706da827a6235089c045ef2688fe4bbe8c7f10",
+  "artifact_hashes": {
+    "PQS_V1_P7A_PACKET_EXPORT_DECISION_LEDGER.json": "81b420d739641e7b6020cd6519022d4c24a83abf02a6620149d2533fefbb59f7",
+    "development/batch_manifest.json": "29244dfb7a4f951e20858e330138aa92eb3684c68a04b252bdf65248d69611ba",
+    "development/batches/DEV_BATCH_01/README.md": "f4ec1b4415e4d940aacee037e87f849e37048e76f319507179b387d5f336d998",
+    "development/batches/DEV_BATCH_01/annotation_assignment.json": "2c00556714121e41f7da62caa93db59aec0da42464aebc10ce33d30d7b187efc",
+    "development/batches/DEV_BATCH_01/batch_manifest.json": "d0fc86288ecc57980994d3401ca63c3d467f7ca27a070773b0f98eed3a0b1de3",
+    "development/batches/DEV_BATCH_01/evidence_gold.template.jsonl": "06afca897ac7ae946c029379ac58ff7bac0afc1a082422475cf29e421aac3e1f",
+    "development/batches/DEV_BATCH_01/independent_review_decision.template.jsonl": "cc30ca423adfb6717c48f43370fc717993ac401e3fa42f1fe9e6470603cffc40",
+    "development/batches/DEV_BATCH_01/initial_annotation_decision.template.jsonl": "84e6e4ca161aee525a68d7aee3b06a068a11ddaa3bd02aec6ff4ab28547235f6",
+    "development/batches/DEV_BATCH_01/query_records.locked.jsonl": "614420eb01e96163b96c609fbd6a22a62bd4b5b810535966bfde6bc406d9369e",
+    "development/batches/DEV_BATCH_01/retrieval_gold.template.jsonl": "18d75532ddf8c26925c70373ddc039821f67109550fe8930a201e1ef8adb6d73",
+    "development/batches/DEV_BATCH_01/sufficiency_gold.template.jsonl": "925e2495442724dc1023ab33b0156a09d6d0366109b0063a713ce62ed5053b34",
+    "development/batches/DEV_BATCH_01/user_adjudication_decision.template.jsonl": "3092d46c08d6cebaed16b29e1ea61b5c10f129ae2dc59ee823cf3eeb0f92a72f",
+    "development/batches/DEV_BATCH_02/README.md": "94bc5d4926ffa43b9ef1da718edac66ead4f5793f1e7d6b5108694a2dc036d5c",
+    "development/batches/DEV_BATCH_02/annotation_assignment.json": "80fc830909e3b941aee63311cd9e061972eba536c548467b1fb7006f11ece90b",
+    "development/batches/DEV_BATCH_02/batch_manifest.json": "5c59d87ce4eabcabe8644514ca9afe10b90af93654efe9693947c7a67726574c",
+    "development/batches/DEV_BATCH_02/evidence_gold.template.jsonl": "a0d259df78ea041438ff01c2b528757eca5d026b809027148a2e9d8e389bc8f7",
+    "development/batches/DEV_BATCH_02/independent_review_decision.template.jsonl": "d6f943dde39b2103f2234916b5afc208a5ca1f0cf5c3fdaf0794ccb74f0e46db",
+    "development/batches/DEV_BATCH_02/initial_annotation_decision.template.jsonl": "d413f20f8cbe61d8068ccce5684c601266e8bc9b04a6e461b114c7909b650e93",
+    "development/batches/DEV_BATCH_02/query_records.locked.jsonl": "bcbdb6e14929fc9934f5c0ee1b9d4bbff52e3c5a4e757a5cc1b223074ca7bf13",
+    "development/batches/DEV_BATCH_02/retrieval_gold.template.jsonl": "76e51cfa6a28def2ab2a281208ec69c0d900a220e53ca459c9eecc2e93212399",
+    "development/batches/DEV_BATCH_02/sufficiency_gold.template.jsonl": "94a429296c553bd9c074b1427249bafe76620d8039185dd2cd5ec10ae4610404",
+    "development/batches/DEV_BATCH_02/user_adjudication_decision.template.jsonl": "d267f2e43189a775ec72fa9211395c521b6b77b4eb17b796862800b44a8b922d",
+    "development/batches/DEV_BATCH_03/README.md": "4a76372a08f2843f316f9a827532548d448685d374b94d885ff1ebc12bac8107",
+    "development/batches/DEV_BATCH_03/annotation_assignment.json": "65d502dee9ddc80cf89f6b19d6d520a7d72f926a2557082b88caa04c299fb9b3",
+    "development/batches/DEV_BATCH_03/batch_manifest.json": "2b7d3cd5b01ed5fcb13e6c923db09da1634b541452842c99610d9282a7a52097",
+    "development/batches/DEV_BATCH_03/evidence_gold.template.jsonl": "742e83bc09433c84a9f323816cebad3d972e701358e49ec5e1e80a47a13ed9d5",
+    "development/batches/DEV_BATCH_03/independent_review_decision.template.jsonl": "22e148c7ff1f5c6d4e00b2de7414bb695713e813177fc19795bcffbefd242d4d",
+    "development/batches/DEV_BATCH_03/initial_annotation_decision.template.jsonl": "4a2248a9928fd4525976e090376ab0020ad459c0ed3edc1654f11bdee2ba7db4",
+    "development/batches/DEV_BATCH_03/query_records.locked.jsonl": "f5222907b33cf2dd6088005833ce7dd2f5795d459118fe5d40d70354116ac4e7",
+    "development/batches/DEV_BATCH_03/retrieval_gold.template.jsonl": "bd4eb1f49b409068904d9a6e4f53fb61028fafdc8ec5d4e60630f20fd84b83dd",
+    "development/batches/DEV_BATCH_03/sufficiency_gold.template.jsonl": "318e47059ff1014da507c5f80c95170ed45b704422f250aae735c9cef84392a0",
+    "development/batches/DEV_BATCH_03/user_adjudication_decision.template.jsonl": "cd6eb4a24673cebb6f1984ebe0f204cb78509bdf05864543b7b6263aaebf92df",
+    "development/batches/DEV_BATCH_04/README.md": "272a3ca73c690fe43f9a71453451e0ead29e3b7207e99cf9e709f59bc0eee8d2",
+    "development/batches/DEV_BATCH_04/annotation_assignment.json": "722d2f9467fd84c367a8fdb3ae2487e7b88660b66d0dd7d451fe6b773617f456",
+    "development/batches/DEV_BATCH_04/batch_manifest.json": "be25286e708ac295555659e0278f8e596fb2b5ac72520d1b983d0d3fbe2eb433",
+    "development/batches/DEV_BATCH_04/evidence_gold.template.jsonl": "d4b0defa3cbd85dc2aaa91707439bebe35188f50a6dbf1f2202254fb32409383",
+    "development/batches/DEV_BATCH_04/independent_review_decision.template.jsonl": "cf2ad052d286a0bb38fcb8c6bd00d1823e26af11e7cb821af5ab9c865241393e",
+    "development/batches/DEV_BATCH_04/initial_annotation_decision.template.jsonl": "b7994b650821bacf24cfecc32f60db7f558c67ee4811f86a8f914ec0c5627369",
+    "development/batches/DEV_BATCH_04/query_records.locked.jsonl": "c5f13141fb64c47804598a475cf79a80ba94d34ac9f3c3ba1a726a9702421ab5",
+    "development/batches/DEV_BATCH_04/retrieval_gold.template.jsonl": "3d90ebb849690a3c4fe485e1623d055d96912599985e346744ce299ecd2f5033",
+    "development/batches/DEV_BATCH_04/sufficiency_gold.template.jsonl": "1e48f4005b5e8e8eba4dde035f80a348a6a573aeb0453990d05e0a5a4b284123",
+    "development/batches/DEV_BATCH_04/user_adjudication_decision.template.jsonl": "fbc512ac7ea764128b01d7da7703f39eb54cbde0fa3244e7c5e33a1c597285b6",
+    "development/batches/DEV_BATCH_05/README.md": "b6b933e51f5994c1502eec8d8e96bd6a9eb40131be8c9a00c7a38b9ae359a627",
+    "development/batches/DEV_BATCH_05/annotation_assignment.json": "ab84f581b69a6a0c622583cd95c1f4530dfcce5e8d126d528ba942b2b47a49ad",
+    "development/batches/DEV_BATCH_05/batch_manifest.json": "29ea33744ac7cc4874545803e0f6738007cfdcdf6576d10e9365ef2662c31867",
+    "development/batches/DEV_BATCH_05/evidence_gold.template.jsonl": "4b217ec63110bd3fe0059a2ac6070789aa95db8a23ca2ae3b8a0b788aceb191e",
+    "development/batches/DEV_BATCH_05/independent_review_decision.template.jsonl": "dae4bd903de0b88da2226ee83986bc5dd658de28278b344a268b0cf58f3afe9e",
+    "development/batches/DEV_BATCH_05/initial_annotation_decision.template.jsonl": "ce8c8b663c9e205f8719dcdd6586b3ed33cda46650a0a39b2305daf97a0062dd",
+    "development/batches/DEV_BATCH_05/query_records.locked.jsonl": "6b230f251618034acd9075ba4c363bd2ebec0b85d62f4f8f52ca05942bcc1c25",
+    "development/batches/DEV_BATCH_05/retrieval_gold.template.jsonl": "4f89c93edc0d75c9c29a5e12273360d3c565b5a0ebdb8b19e87c2ad24b093e91",
+    "development/batches/DEV_BATCH_05/sufficiency_gold.template.jsonl": "6622e0a38dcd7619c0ca2a8300f8de627821c8a73e90b0a94b7b84ba72ddac7e",
+    "development/batches/DEV_BATCH_05/user_adjudication_decision.template.jsonl": "7a0c836938607b14b44cdcab0d93b117d6167d8829899e1adb7699633666b58f",
+    "development/batches/DEV_BATCH_06/README.md": "277a8142b8fa351280af25bd985e7275e399f20e9e27ce45ce76ce3cc55997b5",
+    "development/batches/DEV_BATCH_06/annotation_assignment.json": "051add3270025e866238ea81317b8b368049160c2e0ee3fb2e767ad9fca6fb9c",
+    "development/batches/DEV_BATCH_06/batch_manifest.json": "eed54c8b6fb592e9d02d5ab26a470c956eba43088a15200377537bf0acbfbad0",
+    "development/batches/DEV_BATCH_06/evidence_gold.template.jsonl": "b0492bbd7e718cdce88ecd0f64a22262c4270023b1d36e67425c7eb514143398",
+    "development/batches/DEV_BATCH_06/independent_review_decision.template.jsonl": "af2e74fd53ea88f13cd5599752c63496d238adab0e2dde8b5fd0b9e036a290e4",
+    "development/batches/DEV_BATCH_06/initial_annotation_decision.template.jsonl": "9aa0458c0935637e40b49e836c2c481e550fba7d9f95bc1043ff021e65822202",
+    "development/batches/DEV_BATCH_06/query_records.locked.jsonl": "a78256d585658b3da54697d5de452f464e7b8e5569655e3613c0f0205ffa4d01",
+    "development/batches/DEV_BATCH_06/retrieval_gold.template.jsonl": "1d0f4a8a1fbe779799247a9fdefd239a3bad2efe8741ee12d92c1a121b411208",
+    "development/batches/DEV_BATCH_06/sufficiency_gold.template.jsonl": "613b42c10c6508f83b103a73ca2ead6f9f302cd4018dc10d04d9353b7f2d0b48",
+    "development/batches/DEV_BATCH_06/user_adjudication_decision.template.jsonl": "e730dc295b653c6d084680cd57bf039bcb4505b4a7aa973a401c609752c963d6",
+    "development/batches/DEV_BATCH_07/README.md": "a06efaa0d7c440ee1d4576bc849bf2e37c4e4a19e9cc7e6d82cacff0f71c39f9",
+    "development/batches/DEV_BATCH_07/annotation_assignment.json": "4ad932220ac822e8797d74476746d148d9781cb33ec6620746f5b5b243a5ad5b",
+    "development/batches/DEV_BATCH_07/batch_manifest.json": "8053c0c3c21dfb5792c7e34ef0a615c95a3480ac593778cacfd15a7c28592345",
+    "development/batches/DEV_BATCH_07/evidence_gold.template.jsonl": "1420e192741eaaf23e36506525e2fa5b23a782536f54251df7c9145e64503850",
+    "development/batches/DEV_BATCH_07/independent_review_decision.template.jsonl": "6dd8a9861a02f11865d90208ab40a3bb61205bff7216c5388aff70a958e643d6",
+    "development/batches/DEV_BATCH_07/initial_annotation_decision.template.jsonl": "3d8b214dcd32e9bbe76bac2e10856893e09e3c247344cecd66c8d783d0af2b78",
+    "development/batches/DEV_BATCH_07/query_records.locked.jsonl": "d37796c8016a322a7856e62a025cb784555485eed1c5451d9a7a2b5f84431835",
+    "development/batches/DEV_BATCH_07/retrieval_gold.template.jsonl": "d26462511f7149a7070feff434b73886ecb84b20bf16320bcbecbdc2b90423e6",
+    "development/batches/DEV_BATCH_07/sufficiency_gold.template.jsonl": "b9e44822af22b88a5fff571d630134a304569ff8e58969ef970901fe3e44394f",
+    "development/batches/DEV_BATCH_07/user_adjudication_decision.template.jsonl": "58c541d7bef5c1fe3b8d4ba3d650962bb5442d797da3feeb8f2b937cc42258cb",
+    "frozen_guarded/FROZEN_PACKET_ACCESS_GUARD.json": "aad5e437cb49ccae62b9a72ccd706da827a6235089c045ef2688fe4bbe8c7f10",
+    "frozen_guarded/batch_manifest.json": "a640859210c21e4e4bd14a6a0ea65960d1b267b53a734c294fc6390be7fa739a",
+    "frozen_guarded/batches/FROZEN_BATCH_01/README.md": "39ef2108d14df07e72acaaf8a590988dafd974ee9960f9db2b4e977f6a94b281",
+    "frozen_guarded/batches/FROZEN_BATCH_01/annotation_assignment.json": "5957b11d43e5be778cc89e973226baa6507df120a1a223fcf04afebcf75c9f20",
+    "frozen_guarded/batches/FROZEN_BATCH_01/batch_manifest.json": "bd6430cab07c76e04bac1b9b1a0fdaea133f3936d102bc56afaa3530db8629e6",
+    "frozen_guarded/batches/FROZEN_BATCH_01/evidence_gold.template.jsonl": "d217bca60577ae79c7e939718241e3dc210396a12f964d163de740ac0fcf1e4f",
+    "frozen_guarded/batches/FROZEN_BATCH_01/independent_review_decision.template.jsonl": "e52decf7c51771252ada195e0453fb3cfcc74526466ace4752b719fb36633ddb",
+    "frozen_guarded/batches/FROZEN_BATCH_01/initial_annotation_decision.template.jsonl": "8d9a34c76b8f740556daac0dd00e6fa22380d4b8e7ed39d6c16d5557beb59be7",
+    "frozen_guarded/batches/FROZEN_BATCH_01/query_records.locked.jsonl": "6b5126f642b95c6387ece534525f0bf7cf7412f957d4c38ca3d7d61c34457cc6",
+    "frozen_guarded/batches/FROZEN_BATCH_01/retrieval_gold.template.jsonl": "9ff5b05320fe58b4438e0058d6cefe0149df16eb842460549a693d3d1a9860ea",
+    "frozen_guarded/batches/FROZEN_BATCH_01/sufficiency_gold.template.jsonl": "a4eaf165e4f65cbd29793f67763aa6703a3671374b8dd1d59244e128033af591",
+    "frozen_guarded/batches/FROZEN_BATCH_01/user_adjudication_decision.template.jsonl": "90b1045cec804538976080a6cc83bfe65f0d5f1a5f092d17bf6fc01bad6e79ed",
+    "frozen_guarded/batches/FROZEN_BATCH_02/README.md": "1cc4d177575fd7304abaad0a1a26b976527eb88aff9c14a0ebccf9d999dfdac4",
+    "frozen_guarded/batches/FROZEN_BATCH_02/annotation_assignment.json": "bd41f3daca09e9e6d0edc1ebb7bfaaf412c67cf314b1b7bc40fcac36018ef307",
+    "frozen_guarded/batches/FROZEN_BATCH_02/batch_manifest.json": "ac4c4fca327b1bc297acd647d969c40aed74db1e8513674cc489a90244f18cf3",
+    "frozen_guarded/batches/FROZEN_BATCH_02/evidence_gold.template.jsonl": "fe068630edad4ee06988ef4befe20418c4173748c83c79828b2203138eeb610c",
+    "frozen_guarded/batches/FROZEN_BATCH_02/independent_review_decision.template.jsonl": "f19bef0f54a3b3fdc140cb202f1a45aa2bb8bf2751c84f38be33a90cdd825ed6",
+    "frozen_guarded/batches/FROZEN_BATCH_02/initial_annotation_decision.template.jsonl": "d4080fb51281fac47e841c63542dd0aa3228cce7945e8883f4d33b6cb30abacf",
+    "frozen_guarded/batches/FROZEN_BATCH_02/query_records.locked.jsonl": "adf85e1f56a1c542d1bab2191488f3a5e8bebde56d840ec5743b0bbc2f871e36",
+    "frozen_guarded/batches/FROZEN_BATCH_02/retrieval_gold.template.jsonl": "b5936b8a432212428dd7d5ca969cb264b4053bae54646ee1728cff3c69ba6b0d",
+    "frozen_guarded/batches/FROZEN_BATCH_02/sufficiency_gold.template.jsonl": "1a95a46eb3a88af00299a707b9332c9f71914f93a9bd711877840a341e1a8c5f",
+    "frozen_guarded/batches/FROZEN_BATCH_02/user_adjudication_decision.template.jsonl": "c22b0ec4ef73914c3a74746890079815bd7d99964f043ae5957660f05676ebd7",
+    "frozen_guarded/batches/FROZEN_BATCH_03/README.md": "f77d9d13b33ecb3241db8ae60ff3e00cc192be555109c1495737ae16380f9359",
+    "frozen_guarded/batches/FROZEN_BATCH_03/annotation_assignment.json": "a14f2581aed2122f839221e8c976b3544e4d58d5b6fdde62630aee1864a3a805",
+    "frozen_guarded/batches/FROZEN_BATCH_03/batch_manifest.json": "86dc7daa55417f0e44767dff3291d795bfeb89ba47ffbdc0a2848f6ebdd2c867",
+    "frozen_guarded/batches/FROZEN_BATCH_03/evidence_gold.template.jsonl": "c80236465ff09bd49e9591ea9a2441bddc02043912106fbffb0e1b1452a97def",
+    "frozen_guarded/batches/FROZEN_BATCH_03/independent_review_decision.template.jsonl": "7d0469d0a53f1e13cf9a0dba1d6810de28bf2505c58074f347ecbcb75e7be499",
+    "frozen_guarded/batches/FROZEN_BATCH_03/initial_annotation_decision.template.jsonl": "09def9ef975879edde12d8311e6db65b0ca94c74dd6ea242d13acf65a7739813",
+    "frozen_guarded/batches/FROZEN_BATCH_03/query_records.locked.jsonl": "eb2cf41899f7902edd905ccbc119a4c1eb557e535306ff6f1ccccf1a368f087e",
+    "frozen_guarded/batches/FROZEN_BATCH_03/retrieval_gold.template.jsonl": "21217402c41599ce58008b3ea3d163301beb9ddb3934e674d3a75f10a41dd907",
+    "frozen_guarded/batches/FROZEN_BATCH_03/sufficiency_gold.template.jsonl": "bb50db95f6f7efd8921bb3bf31443ea10240270d8dc4d5c5b3f56134a96b16d1",
+    "frozen_guarded/batches/FROZEN_BATCH_03/user_adjudication_decision.template.jsonl": "98100179962ca65d97754d943cc31f3090b3049e12e4c1ae6a6d3c3a4901b163",
+    "frozen_guarded/batches/FROZEN_BATCH_04/README.md": "202679c7776b0b8d6cafa7f99df0e99a227e06734ee3a42dd2c5d7e27226cfec",
+    "frozen_guarded/batches/FROZEN_BATCH_04/annotation_assignment.json": "0063a19bfba6ad096392eb09e30ab1a40c007cf7af2f1becc18febd7edb41377",
+    "frozen_guarded/batches/FROZEN_BATCH_04/batch_manifest.json": "bd9ecedcef48bdfebb1530815c05fde46935eeeeee284dee37678b0b86f6bcaa",
+    "frozen_guarded/batches/FROZEN_BATCH_04/evidence_gold.template.jsonl": "0d7d52ed6d8ded50247c31ffbce6482e7d3c9083a9be2a85fa6032f15f4e5f1e",
+    "frozen_guarded/batches/FROZEN_BATCH_04/independent_review_decision.template.jsonl": "8f2137c06e1b0f823c8bf7ceaea47e7448833ad353aac687264d6c46969a5419",
+    "frozen_guarded/batches/FROZEN_BATCH_04/initial_annotation_decision.template.jsonl": "b8f1a1d27050c9ff03b8e6940f9e1a22a657460f280e61b16dd60d636eb445b6",
+    "frozen_guarded/batches/FROZEN_BATCH_04/query_records.locked.jsonl": "2fcaf15bd9aa585eee3ffd3457cfe610af02338893b50f60d0553d82353dbb6f",
+    "frozen_guarded/batches/FROZEN_BATCH_04/retrieval_gold.template.jsonl": "05f58e482ab328d4368f9c7419469c02326f73b703df247ac127af13a10ce53b",
+    "frozen_guarded/batches/FROZEN_BATCH_04/sufficiency_gold.template.jsonl": "d42210331ffa5fb3ac1f88d3f9894801fd45eb3d76faf257eb177b8878144711",
+    "frozen_guarded/batches/FROZEN_BATCH_04/user_adjudication_decision.template.jsonl": "c14621110e60d4bf78891d6b5007ca2076724f7dcf2fa03f7a0c622e51b28045",
+    "frozen_guarded/batches/FROZEN_BATCH_05/README.md": "ce25d2b8ce75ee29539d679bbb472f2b2e8fa62644a8283e9f9d6e17a5694950",
+    "frozen_guarded/batches/FROZEN_BATCH_05/annotation_assignment.json": "c750df7f3359cf5a66479341d46cf42a3a846b8f1371cd0ba2740c4845415e29",
+    "frozen_guarded/batches/FROZEN_BATCH_05/batch_manifest.json": "77d967dd3c7f2d312296ed5e6b2fd7f1e431d33eadc3fbca5cad993b2f6325f2",
+    "frozen_guarded/batches/FROZEN_BATCH_05/evidence_gold.template.jsonl": "2850762d07ba0d80ef9679020d8e43f70510df068f3c26a17531a94e93d7725f",
+    "frozen_guarded/batches/FROZEN_BATCH_05/independent_review_decision.template.jsonl": "499928847cd04b8179c45bfb473efa6e6af0b19bc5d3a3ea873415c0c438bc92",
+    "frozen_guarded/batches/FROZEN_BATCH_05/initial_annotation_decision.template.jsonl": "d28039f0d6d177504d7e7899b6ff4aadae5474b36dec8b52370a0f5159b455bc",
+    "frozen_guarded/batches/FROZEN_BATCH_05/query_records.locked.jsonl": "738fe4ad9e84edf435ef9dbeeb79df57bced8766d8d05866ee7f34f7b48dc040",
+    "frozen_guarded/batches/FROZEN_BATCH_05/retrieval_gold.template.jsonl": "0e7635120bf8687ddb0eb22ce7192e79fd2c8c61224d1195a54e1e33555bf86c",
+    "frozen_guarded/batches/FROZEN_BATCH_05/sufficiency_gold.template.jsonl": "1c3777f6ab22010ccaff721984098ff017d187cbcd2fb32845b543174cbd8f78",
+    "frozen_guarded/batches/FROZEN_BATCH_05/user_adjudication_decision.template.jsonl": "dfa6eb1e32b45ac244d7b88681f743c779fcbe134b5ebb465bbebd622c69a696",
+    "prompts/DEVELOPMENT_INDEPENDENT_REVIEWER_PROMPT.md": "fad3077abf402dfb89f0607ecc91d8b40b865487112f409a2d46da94d1fa7d3c",
+    "prompts/DEVELOPMENT_INITIAL_ANNOTATOR_PROMPT.md": "48345d9904c18dcf71a1a3036dd6822cca698ba34d2acdcce93f32e5d3828f85",
+    "prompts/DEVELOPMENT_USER_ADJUDICATION_PROMPT.md": "9433948143700fe8cd98829932d4639ba0d83e76b7ba53dc4381921e8770645f",
+    "prompts/FROZEN_COMPLETION_ONLY_RESPONSE_TEMPLATE.md": "2bf6644f1f32ec6e3f3cc8e620b5a798e069bfa59bb8287379409fc93f27e13b",
+    "prompts/FROZEN_INDEPENDENT_REVIEWER_PROMPT.md": "e190bafba9b290b886d506c790a80e5a7966646514ab3e941f07594054811735",
+    "prompts/FROZEN_INITIAL_ANNOTATOR_PROMPT.md": "16eaddfa36ce3d92d7b4acec5f07a9f53f84649c483e7697b0313da5ade35c31",
+    "prompts/FROZEN_USER_ADJUDICATION_PROMPT.md": "cbc5a3de45baba514fffd6276789122918edc05db2b24cb98986a82e79656bd3",
+    "shared/annotation_field_guide.md": "cfb1de6e63eb0ee9d9816c9a10d39392fcd2a59d6d29bd6d487d0cfe72018d1b",
+    "shared/authoritative_transcript_identity_catalog.jsonl": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4",
+    "shared/mechanical_validation_guide.md": "2e7baea1568d652b7ea0eae6a79ce11ca08db2e937d4221193d42f6730b6c119",
+    "shared/neutral_library_navigation_index.jsonl": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "shared/protocol_reference_manifest.json": "87ec9a9e34e8545c731e14c49e5393f6d7b6631854efb4a96c429823b4959688",
+    "shared/source_type_policy.json": "95fd381f165c8ec8701c9673c4b86795dd65fab0a18ae80a775bfd4133f988e4"
+  },
+  "artifact_hash_scope": "all P7A substantive files; governance self-references excluded",
+  "real_gold_annotation_started": false
+}

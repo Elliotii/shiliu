@@ -1,0 +1,9 @@
+{"path":"research/v3_5/checkpoints/checkpoint_1/CHECKPOINT_1_REPORT.md","sha256":"fc806effb0183daf6fe37b64d995c979694c23a6111c1d615cd93a8fbcae43ec"}
+{"path":"research/v3_5/checkpoints/checkpoint_1/checkpoint_1.manifest.json","sha256":"0d804e8af1cf76c79b455da1b251147327ce4411fbaa08a6248c90aec2fd5248"}
+{"path":"research/v3_5/checkpoints/checkpoint_1/checkpoint_1.audit.json","sha256":"4febfc1dd067342d97b2c7bb09600f2a21e36d1e6fcf9ae4fc3f24e51478ed08"}
+{"path":"research/v3_5/checkpoints/checkpoint_1/checkpoint_1.execution_decision.json","sha256":"f21b95575047ea1ceb499f53ac71392f6faf01dcbf7c8b052ec6a0ff40bd3ccc"}
+{"path":"research/v3_5/checkpoints/checkpoint_1/V3_5_CHECKPOINT_1_DECISION_LEDGER.json","sha256":"b24882b24707b454796a681896024adc55ab3c5563ec0999a2c6880a26f5f3e2"}
+{"path":"V3_5_CURRENT_STATE.md","sha256":"b49a256bc9007eec06744bba65894595b00d09191c82a1d8be2da8597d20ec86"}
+{"path":"03_V3_5_DECISION_AND_ARTIFACT_INDEX.md","sha256":"f6b64bc900e0d664e8f2a4c38a0789441ae5cdfc7aa09882178c38a4807f9d42"}
+{"path":"02_PRODUCT_QUERY_SET_AND_REMAINING_V3_5_PLAN.md","sha256":"65e1fd9ae3c17655108851dd88ffacaae9171790f294b4ee4425473abab71777"}
+{"path":"tests/test_v3_5_checkpoint_1_contract.py","sha256":"32255f046058cb63ff6d0c2d902b3e14b8b77c421821eff18d6a9717d08ce9e6"}

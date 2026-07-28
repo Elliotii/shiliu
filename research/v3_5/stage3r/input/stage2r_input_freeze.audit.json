@@ -1,0 +1,7 @@
+{
+  "byte_identical": true,
+  "frozen_corpus_sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148",
+  "provided_path": "/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/corpus_lock/development_gold.executable_31.jsonl",
+  "resolved_realpath": "/private/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/corpus_lock/development_gold.executable_31.jsonl",
+  "source_corpus_sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148"
+}

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 import json
+import math
 import time
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
 
 from shiliu.db import Database
 from shiliu.retrieval.consolidation import (
@@ -20,21 +22,75 @@ from shiliu.retrieval.enrichment import (
     EvidenceEnricher,
 )
 from shiliu.retrieval.orchestrator import SearchOrchestrator
+from shiliu.retrieval.orchestrator import RawSearchResponse
 from shiliu.retrieval.planner import SearchFilterRequest, SearchMode, Scope, SearchRequest
 
 
 PRESENTATION_VERSION = "v3-product-presentation-v1"
+PRODUCT_SEARCH_DEFAULT_MODE: SearchMode = "auto"
+PRODUCT_DEFAULT_WIRING_VERSION = "v3-product-search-default-auto-v1"
+EXISTING_AUTO_ROUTER_VERSION = "v3-search-planner-auto-v1"
+
+
+class ProductSearchFilterRequest(SearchFilterRequest):
+    """Product-only additive filters; frozen Raw Search keeps its exact contract."""
+
+    uploader_contains: str | None = Field(default=None, max_length=200)
+
+    @field_validator("uploader_contains")
+    @classmethod
+    def normalize_optional_contains(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.split())
+        return normalized or None
+
+    @model_serializer(mode="wrap")
+    def serialize_compatibly(self, handler):
+        """Keep pre-Stage-5 frozen requests byte-compatible when the new filter is unused."""
+        value = handler(self)
+        if self.uploader_contains is None:
+            value.pop("uploader_contains", None)
+        return value
+
+    def retrieval_filters(self):
+        return replace(
+            super().retrieval_filters(),
+            uploader_contains=self.uploader_contains,
+        )
 
 
 class ProductSearchRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     query: str
-    mode: SearchMode = "lexical"
+    mode: SearchMode = PRODUCT_SEARCH_DEFAULT_MODE
     scope: Scope = "all"
     result_limit: int = Field(default=10, ge=1, le=20)
     max_windows_per_video: int = Field(default=2, ge=1, le=5)
-    filters: SearchFilterRequest = Field(default_factory=SearchFilterRequest)
+    filters: ProductSearchFilterRequest = Field(
+        default_factory=ProductSearchFilterRequest
+    )
+
+    @field_validator("filters", mode="before")
+    @classmethod
+    def promote_raw_filter_contract(
+        cls, value: object
+    ) -> object:
+        if isinstance(value, SearchFilterRequest) and not isinstance(
+            value, ProductSearchFilterRequest
+        ):
+            return value.model_dump(mode="python")
+        return value
+
+    @property
+    def default_applied(self) -> bool:
+        """Whether the Product API supplied its configured mode default."""
+        return "mode" not in self.model_fields_set
+
+    @property
+    def original_requested_mode(self) -> SearchMode | None:
+        return None if self.default_applied else self.mode
 
 
 @dataclass(frozen=True)
@@ -56,8 +112,14 @@ class ProductVideoResult:
     bvid: str
     title: str
     uploader: str
+    cover_url: str | None
     video_url: str
+    detail_url: str
     duration: float | None
+    reading_state: str
+    marked: bool
+    folder_names: tuple[str, ...]
+    match_excerpt: str
     best_rank: int
     best_score: float
     best_unit_id: str
@@ -74,6 +136,7 @@ class ProductVideoResult:
     def as_dict(self) -> dict[str, object]:
         value = asdict(self)
         value["retrieval_methods"] = list(self.retrieval_methods)
+        value["folder_names"] = list(self.folder_names)
         value["windows"] = list(self.windows)
         return value
 
@@ -138,12 +201,15 @@ class ProductSearchService:
         raw_search: SearchOrchestrator,
         consolidator: SearchResultConsolidator,
         enricher: EvidenceEnricher,
+        persist_trace: bool = True,
     ) -> None:
         self.db = db
         self.raw_search = raw_search
         self.consolidator = consolidator
         self.enricher = enricher
-        self.initialize_schema()
+        self.persist_trace = persist_trace
+        if self.persist_trace:
+            self.initialize_schema()
 
     def initialize_schema(self) -> None:
         with self.db.connect() as connection:
@@ -179,14 +245,51 @@ class ProductSearchService:
                     status TEXT NOT NULL,
                     error_stage TEXT,
                     error_message TEXT,
-                    group_summary_json TEXT NOT NULL DEFAULT '[]'
+                    group_summary_json TEXT NOT NULL DEFAULT '[]',
+                    product_default_wiring_version TEXT,
+                    requested_mode TEXT,
+                    default_applied INTEGER NOT NULL DEFAULT 0,
+                    configured_default_mode TEXT,
+                    router_invoked INTEGER NOT NULL DEFAULT 0,
+                    router_version TEXT,
+                    router_decision TEXT,
+                    effective_mode TEXT,
+                    router_reason_codes_json TEXT NOT NULL DEFAULT '[]',
+                    embedding_invoked INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE INDEX IF NOT EXISTS idx_retrieval_presentations_created
                     ON retrieval_search_presentations(created_at DESC, trace_id);
                 """
             )
+            existing_columns = {
+                str(row["name"])
+                for row in connection.execute(
+                    "PRAGMA table_info(retrieval_search_presentations)"
+                )
+            }
+            for name, definition in (
+                ("product_default_wiring_version", "TEXT"),
+                ("requested_mode", "TEXT"),
+                ("default_applied", "INTEGER NOT NULL DEFAULT 0"),
+                ("configured_default_mode", "TEXT"),
+                ("router_invoked", "INTEGER NOT NULL DEFAULT 0"),
+                ("router_version", "TEXT"),
+                ("router_decision", "TEXT"),
+                ("effective_mode", "TEXT"),
+                ("router_reason_codes_json", "TEXT NOT NULL DEFAULT '[]'"),
+                ("embedding_invoked", "INTEGER NOT NULL DEFAULT 0"),
+            ):
+                if name not in existing_columns:
+                    connection.execute(
+                        f"ALTER TABLE retrieval_search_presentations ADD COLUMN {name} {definition}"
+                    )
 
     def search(self, request: ProductSearchRequest) -> ProductSearchResponse:
+        return self.search_with_raw(request)[1]
+
+    def search_with_raw(
+        self, request: ProductSearchRequest
+    ) -> tuple[RawSearchResponse, ProductSearchResponse]:
         started = time.monotonic()
         raw_top_k = min(100, max(50, request.result_limit * 5))
         raw_started = time.monotonic()
@@ -199,6 +302,7 @@ class ProductSearchService:
                 filters=request.filters,
             )
         )
+        product_plan = _product_plan(raw, request)
         raw_ms = _milliseconds(raw_started)
         try:
             grouping_started = time.monotonic()
@@ -210,8 +314,16 @@ class ProductSearchService:
                 query_type=raw.plan.query_type,
             )
             selected = consolidated.groups[: request.result_limit]
+            display_metadata = self._display_metadata(
+                [group.video_id for group in selected]
+            )
             results = tuple(
-                _product_result(group, request.max_windows_per_video) for group in selected
+                _product_result(
+                    group,
+                    request.max_windows_per_video,
+                    display_metadata.get(group.video_id, {}),
+                )
+                for group in selected
             )
         except Exception as exc:
             raise ProductSearchError(
@@ -239,7 +351,7 @@ class ProductSearchService:
             trace_error=raw.trace_error,
             presentation_trace_persisted=False,
             presentation_trace_error=None,
-            plan=raw.plan.as_dict(),
+            plan=product_plan,
             executed_mode=raw.executed_mode,
             fallback=raw.fallback,
             fallback_reason=raw.fallback_reason,
@@ -257,6 +369,8 @@ class ProductSearchService:
             warnings=tuple(warnings),
             timing=provisional_timing,
         )
+        if not self.persist_trace:
+            return raw, response
         trace_started = time.monotonic()
         try:
             self._persist_presentation(
@@ -268,20 +382,58 @@ class ProductSearchService:
             )
         except Exception as exc:
             trace_ms = _milliseconds(trace_started)
-            return _replace_response_timing(
-                response,
-                started=started,
-                trace_ms=trace_ms,
-                persisted=False,
-                error={
-                    "code": "presentation_trace_persistence_failed",
-                    "message": f"{type(exc).__name__}: {exc}"[:300],
-                },
+            return raw, _replace_response_timing(
+                response, started=started, trace_ms=trace_ms, persisted=False,
+                error={"code": "presentation_trace_persistence_failed",
+                       "message": f"{type(exc).__name__}: {exc}"[:300]},
             )
         trace_ms = _milliseconds(trace_started)
-        return _replace_response_timing(
+        return raw, _replace_response_timing(
             response, started=started, trace_ms=trace_ms, persisted=True, error=None
         )
+
+    def _display_metadata(
+        self, video_ids: list[int]
+    ) -> dict[int, dict[str, object]]:
+        if not video_ids:
+            return {}
+        placeholders = ",".join("?" for _ in video_ids)
+        with self.db.connect() as connection:
+            rows = connection.execute(
+                f"""
+                SELECT v.id, v.cover_url, v.cover_path, v.reading_state, v.is_marked,
+                       s.folder_title
+                FROM videos v
+                LEFT JOIN video_source_memberships m
+                  ON m.video_id=v.id AND m.removed_at IS NULL
+                LEFT JOIN favorite_sources s ON s.id=m.source_id
+                WHERE v.id IN ({placeholders})
+                ORDER BY v.id, s.sort_order, s.id
+                """,
+                video_ids,
+            ).fetchall()
+        result: dict[int, dict[str, object]] = {}
+        for row in rows:
+            video_id = int(row["id"])
+            value = result.setdefault(
+                video_id,
+                {
+                    "cover_url": (
+                        f"/media/{video_id}/cover"
+                        if row["cover_path"]
+                        else _absolute_cover_url(row["cover_url"])
+                    ),
+                    "detail_url": f"/videos/{video_id}/transcript",
+                    "reading_state": str(row["reading_state"] or "unread"),
+                    "marked": bool(row["is_marked"]),
+                    "folder_names": [],
+                },
+            )
+            title = str(row["folder_title"] or "").strip()
+            folders = value["folder_names"]
+            if title and isinstance(folders, list) and title not in folders:
+                folders.append(title)
+        return result
 
     def get_presentation(self, trace_id: str) -> dict[str, object] | None:
         with self.db.connect() as connection:
@@ -293,6 +445,11 @@ class ProductSearchService:
             return None
         result = dict(row)
         result["group_summary"] = json.loads(str(result.pop("group_summary_json")))
+        result["router_reason_codes"] = json.loads(
+            str(result.pop("router_reason_codes_json"))
+        )
+        for name in ("default_applied", "router_invoked", "embedding_invoked"):
+            result[name] = bool(result[name])
         return result
 
     def _persist_presentation(
@@ -337,14 +494,37 @@ class ProductSearchService:
             None,
             None,
             json.dumps(summary, ensure_ascii=False),
+            PRODUCT_DEFAULT_WIRING_VERSION,
+            response.plan["requested_mode"],
+            int(bool(response.plan["default_applied"])),
+            response.plan["configured_default_mode"],
+            int(bool(response.plan["router_invoked"])),
+            response.plan["router_version"],
+            response.plan["router_decision"],
+            response.plan["effective_mode"],
+            json.dumps(response.plan["router_reason_codes"], ensure_ascii=False),
+            int(bool(response.plan["embedding_invoked"])),
         )
         trace_started = time.monotonic()
         with self.db.connect() as connection:
             connection.execute(
                 """
-                INSERT INTO retrieval_search_presentations VALUES(
-                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-                )
+                INSERT INTO retrieval_search_presentations(
+                    trace_id, presentation_version, consolidation_version,
+                    jump_anchor_version, chapter_enrichment_version, created_at,
+                    requested_result_limit, max_windows_per_video, raw_top_k,
+                    merge_gap_seconds, raw_hit_count, unique_video_count,
+                    duplicate_raw_hit_count, duplicate_occupancy_count,
+                    duplicate_occupancy_rate, group_count_before_limit,
+                    returned_group_count, total_window_count, returned_window_count,
+                    anchored_window_count, chapter_enriched_count, grouping_ms,
+                    anchor_ms, chapter_ms, presentation_total_ms,
+                    presentation_trace_ms, status, error_stage, error_message,
+                    group_summary_json, product_default_wiring_version,
+                    requested_mode, default_applied, configured_default_mode,
+                    router_invoked, router_version, router_decision, effective_mode,
+                    router_reason_codes_json, embedding_invoked
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 values,
             )
@@ -355,16 +535,65 @@ class ProductSearchService:
             )
 
 
-def _product_result(group: VideoResultGroupDraft, max_windows: int) -> ProductVideoResult:
-    displayed = tuple(window.as_dict() for window in group.windows[:max_windows])
+def _product_plan(raw: RawSearchResponse, request: ProductSearchRequest) -> dict[str, object]:
+    """Expose Product-request provenance alongside the existing resolved raw plan."""
+    plan = raw.plan.as_dict()
+    router_invoked = request.mode == "auto"
+    plan.update(
+        {
+            "requested_mode": request.original_requested_mode,
+            "resolved_requested_mode": request.mode,
+            "default_applied": request.default_applied,
+            "configured_default_mode": (
+                PRODUCT_SEARCH_DEFAULT_MODE if request.default_applied else None
+            ),
+            "router_invoked": router_invoked,
+            "router_version": EXISTING_AUTO_ROUTER_VERSION if router_invoked else None,
+            "router_decision": raw.plan.planned_mode if router_invoked else None,
+            "effective_mode": raw.executed_mode,
+            "router_reason_codes": [raw.plan.routing_reason] if router_invoked else [],
+            "embedding_invoked": raw.executed_mode in {"dense", "hybrid"},
+            "product_default_wiring_version": PRODUCT_DEFAULT_WIRING_VERSION,
+        }
+    )
+    return plan
+
+
+def _product_result(
+    group: VideoResultGroupDraft,
+    max_windows: int,
+    display_metadata: dict[str, object],
+) -> ProductVideoResult:
+    displayed_values: list[dict[str, object]] = []
+    for window in group.windows[:max_windows]:
+        value = window.as_dict()
+        value["jump_url"] = build_bilibili_jump_url(
+            group.video_url, group.bvid, window.jump_time
+        )
+        displayed_values.append(value)
+    displayed = tuple(displayed_values)
     chunks = [hit for hit in group.hits if hit.unit_type == "transcript_chunk"]
     return ProductVideoResult(
         video_id=group.video_id,
         bvid=group.bvid,
         title=group.title,
         uploader=group.uploader,
+        cover_url=(
+            str(display_metadata["cover_url"])
+            if display_metadata.get("cover_url")
+            else None
+        ),
         video_url=group.video_url,
+        detail_url=str(
+            display_metadata.get("detail_url") or f"/videos/{group.video_id}/transcript"
+        ),
         duration=group.duration,
+        reading_state=str(display_metadata.get("reading_state") or "unread"),
+        marked=bool(display_metadata.get("marked")),
+        folder_names=tuple(
+            str(value) for value in display_metadata.get("folder_names", ())
+        ),
+        match_excerpt=group.best_hit.excerpt[:300],
         best_rank=group.best_hit.rank,
         best_score=group.best_hit.score,
         best_unit_id=group.best_hit.unit_id,
@@ -378,6 +607,39 @@ def _product_result(group: VideoResultGroupDraft, max_windows: int) -> ProductVi
         additional_window_count=max(0, len(group.windows) - len(displayed)),
         unwindowed_chunk_count=group.unwindowed_chunk_count,
     )
+
+
+def build_bilibili_jump_url(
+    video_url: str | None, bvid: str | None, jump_time: float | int | None
+) -> str | None:
+    """Return a stable Bilibili URL with an integer-second ``t`` parameter."""
+    base = str(video_url or "").strip()
+    identity = str(bvid or "").strip()
+    if not base and identity:
+        base = f"https://www.bilibili.com/video/{identity}"
+    if base.startswith("//"):
+        base = "https:" + base
+    if not base:
+        return None
+    try:
+        seconds = max(0, math.floor(float(jump_time or 0)))
+    except (TypeError, ValueError, OverflowError):
+        seconds = 0
+    parsed = urlsplit(base)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    query = [(key, value) for key, value in parse_qsl(parsed.query, keep_blank_values=True) if key != "t"]
+    query.append(("t", str(seconds)))
+    return urlunsplit(
+        (parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment)
+    )
+
+
+def _absolute_cover_url(value: object) -> str | None:
+    url = str(value or "").strip()
+    if url.startswith("//"):
+        return "https:" + url
+    return url or None
 
 
 def _trace_group(group: ProductVideoResult) -> dict[str, object]:

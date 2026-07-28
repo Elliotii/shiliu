@@ -1,0 +1,63 @@
+{
+  "access_attestation": {
+    "authorized_development_batches_opened": [
+      "DEV_BATCH_02",
+      "DEV_BATCH_04",
+      "DEV_BATCH_06"
+    ],
+    "existing_gold_opened": false,
+    "frozen_packet_opened": false,
+    "historical_target_opened": false,
+    "initial_annotations_opened": false,
+    "orchestrator_semantic_input_received": false,
+    "other_annotator_or_reviewer_outputs_opened": false,
+    "prediction_opened": false,
+    "product_pipeline_calls": 0
+  },
+  "batch_query_mapping": {
+    "DEV_BATCH_02": [
+      "PQS_V1_Q004",
+      "PQS_V1_Q006"
+    ],
+    "DEV_BATCH_04": [
+      "PQS_V1_Q011",
+      "PQS_V1_Q012"
+    ],
+    "DEV_BATCH_06": [
+      "PQS_V1_Q017",
+      "PQS_V1_Q018"
+    ]
+  },
+  "comparison_phase_started": false,
+  "independent_draft_file_sha256": {
+    "DEV_BATCH_02/evidence_gold.independent.jsonl": "f2153731403879c523fab3cc3f5741fea9f7643675c5d0ff764fbbbf0d6d963f",
+    "DEV_BATCH_02/file_hash_manifest.jsonl": "b78b60f5a7df0a58d98c70660c917af8e09888683a656c79bd87245b0331437e",
+    "DEV_BATCH_02/independent_draft_report.md": "de821819b420da19bb71f4cd2d595a8dfd66726340c487b7bd9d80800fad9b5f",
+    "DEV_BATCH_02/retrieval_gold.independent.jsonl": "5b5db4b5d47eb109553ba870f1dc2e0c50e47b531d7ae5e6d86990ea102c8a03",
+    "DEV_BATCH_02/sufficiency_gold.independent.jsonl": "dd9f157a5a7c442d7ec3f8b79ccf2d6cf6d2c7b69457605da05b1af0580ff667",
+    "DEV_BATCH_04/evidence_gold.independent.jsonl": "7f97b187f6ade3b44426fe65ba040ba34996690cc8e567bd0138d2e4e4954f27",
+    "DEV_BATCH_04/file_hash_manifest.jsonl": "5ef7a46c400c25f0c036eed42acdd44fdd12077a6758434d9b2ed6d4548cea42",
+    "DEV_BATCH_04/independent_draft_report.md": "449dbc9233d2a56e9bd5908011b866b0b83f26765fc2277b3ad44e82f8ca6ef7",
+    "DEV_BATCH_04/retrieval_gold.independent.jsonl": "9256c1bde5bb42181d33129fcb86f060a26933519c24d509b6c23010f1f75f50",
+    "DEV_BATCH_04/sufficiency_gold.independent.jsonl": "f231171d13e55acb7b2f86c671804c32891e28ffc8ce79558f2f8c059f9c393e",
+    "DEV_BATCH_06/evidence_gold.independent.jsonl": "3681abff22275e725cb72cf3c24f454ca59eae29226459b774e425571be5078f",
+    "DEV_BATCH_06/file_hash_manifest.jsonl": "82b9464ae66803c8b63e4b848cdbceb4777f34c91cef0fac1dbb33ae35d6f100",
+    "DEV_BATCH_06/independent_draft_report.md": "9bb9be2efaee349e5a2935cb78c9da13c0f7cbaea7d7753fa311e16527afa5bb",
+    "DEV_BATCH_06/retrieval_gold.independent.jsonl": "f22c18f63371e3a2523b43e8c5a7b5a005085865be7f56dd4b538fa01761f8ac",
+    "DEV_BATCH_06/sufficiency_gold.independent.jsonl": "5bb69f62a9b7701d4d827a175107ce668c05368e17e6a7db6df0a169e5054621"
+  },
+  "initial_annotation_opened": false,
+  "phase": "independent_draft_phase",
+  "sealed_at_utc": "2026-07-26T12:51:48.178070Z",
+  "unit_id": "reviewer_A",
+  "validation": {
+    "downstream_failure_codes_in_gold": false,
+    "exact_quote_replay": "passed",
+    "navigation_sources_used_as_gold_evidence": false,
+    "p6_three_layer_validator": "passed",
+    "segment_identity_replay": "passed",
+    "source_file_hash_replay": "passed",
+    "timeline_identity_replay": "passed",
+    "validated_query_count": 6
+  }
+}

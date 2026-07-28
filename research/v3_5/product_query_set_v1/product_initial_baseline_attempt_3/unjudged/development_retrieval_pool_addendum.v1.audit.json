@@ -1,0 +1,16 @@
+{
+  "automatically_treated_as_negative": false,
+  "base_gold_modified": false,
+  "evidence_gold_modified": false,
+  "existing_positive_deletions": 0,
+  "outcomes": {
+    "remain_unjudged_semantic_boundary": 108,
+    "remain_unjudged_source_blocked": 1
+  },
+  "pair_count": 109,
+  "prediction_rerun": false,
+  "query_modified": false,
+  "sufficiency_gold_modified": false,
+  "unresolved_items_may_remain_explicitly_unjudged": true,
+  "version": "development_retrieval_pool_addendum.v1"
+}

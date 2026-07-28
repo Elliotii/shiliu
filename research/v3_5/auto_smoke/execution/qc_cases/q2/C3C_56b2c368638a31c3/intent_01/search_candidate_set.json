@@ -1,0 +1,1925 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "OpenSpec 使用流程",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "OpenSpec 使用流程",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.7406935095787048,
+      "end_time": 578.75,
+      "excerpt": "合并到open spec space主规范目录里 第二呢就是会移动归档目录 它会把完整的变更文件夹移动到ARCAVE目录下 第三呢就是会更新主规范 现在open spec specks目录中会包含评论系统的完整规范 这就是open spec的知识沉淀机制 每次归档都会让open spec的spec更加完整 随着项目的演进 这个目录就会逐渐成为我们系统的完整 功能手册 新加入的团队 开发成员都可以直接去读这个目录 然后理解系统都做了些什么事情 这就是open spec的基本工作流 提案执行归档 这三部工作流已经足以应对绝大多数的场景 每一步都有明确的产物 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 460.78,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_579f2d528a6a5753842642f9d37e6da7",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.7110137939453125,
+      "end_time": null,
+      "excerpt": "[Title] 先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04 [Uploader] Web3布道师Noah [Description] AI编程实战系列第四期！用AI写代码最崩溃的不是它写不出来，而是写出来的跟你想的完全不一样。这期我会介绍SDD生态中另一个强大工具——OpenSpec，演示如何用propose→apply→archive三步工作流，在已有项目上精准落地新功能。 你将学到： ✅ OpenSpec vs Spec Kit：流动式 vs 门控式的设计哲学差异 ✅ 从变更提案→规范审查→执行实现→归档沉淀的完整流",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "video:bilibili:BV1hYwDzSE7A:p1",
+      "unit_type": "video",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.6760392785072327,
+      "end_time": 235.48,
+      "excerpt": "随时都可以修改它 但是整体的结构始终是清晰的 安装open spec也非常的简单 你只需要运行一行命令 npm install杠G后面是他的仓库名和版本号 安装之后 我们就可以运行另一行命令去验证这个命令 就是open spec version 初始化项目也非常简单 在项目的根目录中去运行office spec in it 然后去选择cloud code作为AI编程工具就可以了 当然它也支持其他的编程工具 这里是可以自己选择的 由于我的环境已经安装过了 这里就不再去安装了 现在我们直接进入到开发阶段 首先第一步呢就是初始化项目 我们在上一期视频中已经做了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 117.49,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_bad58d536e5aab9157a51f32adeded2c",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.6606184244155884,
+      "end_time": 349.319,
+      "excerpt": "第二个就是common下面的OPSX 这也是它的斜杠命令 我们可以通过这里的斜杠命令 让cloud code去触发工作流 默认呢它也是有四个 它是和scales11对应的 现在我的屏幕上显示有很多个 是因为我开启了它的扩展工作流 好现在我们进行第二步 进入到CD code模式 进入到cloud code之后呢 我们就可以按斜杠去触发它的命令 第一个命令是propose 这个命令也是提出变更提案的命令 也就是我们要做什么 我们可以直接写添加评论系统 因为在昨天的时候是没有评论系统的 在这一步open spec会引导可乐code完成五个工作 第一个工作就是分",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 231.99,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_3a7c2fddb390301e94070a97547b740e",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.6546182632446289,
+      "end_time": 811.77,
+      "excerpt": "在归档之前 我们也可以使用WIFI命令 让cloud code去检查一下 当前的实现是不是满足了规范 WARPER会对照specs和TX 检查代码实现的完整性 在我们归档之前就能发现一些遗漏 接下来我再讲一下open spec的核心设计理念 第一呢就是操作与规范的合并 open spank的规范是使用DOTA的操作来描述变更的 这有点类似于git 但是操作的是需求 而不是代码 归档的时候 这些DOTA会被合并到open spec spec中啊 它有三类 分别是添加修改和删除 添加的部分会新增到主规范中 修改的部分会更新主规范中的对应的段落 删除的部分就是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 694.83,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_42f4cb6ed585f9d60539cf595879c3b9",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.648313045501709,
+      "end_time": 696.09,
+      "excerpt": "explore的价值在于 我们做出承诺之前充分的理解选项 它不会产生任何的规范文件 只是一次非常具有深度的技术对话 比如说我们可以向他提问一些搜索相关的内容 比如说我们的博客系统目前没有搜索功能 我不确定是用全文搜索还是简单的like查询 也不确定是在前端做还是后端做 让他去帮我们分析 然后呢 他就会去查看我们项目的结构和数据模型啊 分析完之后 它会基于分析的结果给我们几个选项 第二个呢就是new命令 它可以配合FF来实现精细化的控制啊 我们之前使用的propose 它是一个一步到位的命令 它会同时创建很多的目录和所有的规划产物 但是有些时候我们想更加精",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 577.15,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_871a8e9a1524972cf5438c2b9b5e7f19",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.6439552903175354,
+      "end_time": 464.19,
+      "excerpt": "看一下我们有没有遗漏或者多余的内容 第二个呢就是在specks目录下面啊 我们要看一下需求描述 是不是符合完整的场景覆盖 第三呢就是在design md里面 我们要看一下技术方案是不是合理的 是不是复用了项目现有的模式 第四呢就是在tasks md里面 我们要看一下任务分解的是否足够的清晰 足够的细依赖顺序是不是正确的 如果在这个过程中发现有任何的问题 我们可以直接告诉cloud code 让他去修改open spec的流动式工作流 意味着我们可以随时修改任何的产物 不需要有回退的阶段 那cloud code会根据我们的反馈更新相关的文件 第四步呢就是执",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 346.159,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_fa0042f666c6a1cdef61ccd2f1429eeb",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.6072063446044922,
+      "end_time": 119.01,
+      "excerpt": "用AI写代码最令人崩溃的事情是什么 不是他写不出来 而是他写出来的东西 跟你想要的是完全不一样的 你改一版 它又偏了 再改一版 他又把之前对的地方也改坏了 这个问题的根源只有一个 就是你从来没有和AI真正对齐过意图 今天我介绍的这个工具opens spec 就是专门解决这件事情的 嗨你好 我是NOA 这是AI编程实战系列的第四期 这期视频我会给大家分享一下 SDD的另一个工具open spec 这个系列中的所有代码提示词 模板和项目源码我都整理放在了开源仓库里 链接会放在评论区置顶 欢迎大家去star 关于SDD我们在上期视频中已经讲过了 这里就不多做介",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 0.22,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_2a7a612b3f7e0222bf023c051356deae",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.5979745388031006,
+      "end_time": 903.02,
+      "excerpt": "可以去适应不同团队的工作文化 而不是强迫所有的团队都使用头晕套的规则 最后我再来分享一下最佳实践 第一个最佳实践就是保持变更力度适中 一个变更应该是可以在一个pr中完成的 功能单元太大的变更会让规范失去焦点 太小的变更会产生不必要的管理开销 第二就是认真的对待审查环节 open spec的价值在于先对其需求再动手开发 但如果我们跳过了审查环节 就直接失去了规范驱动的意义 我们可以花5分钟去审查规范 就有可能省下两个小时的反攻时间 第三个最佳时间就是及时的归档 当我们完成一个变更之后 需要尽快的归档 积压的未归档会让office spec变得更加混乱 也会",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 809.33,
+      "subtitle_source": "ai",
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_6ae75e79b38c0dc21847cdfb362675b5",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3布道师Noah",
+      "video_id": 68
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.5883386731147766,
+      "end_time": 352.27,
+      "excerpt": "然后他给你生成一个这样子的一个呃小视频 然后你把它拖到那个剪映里面 就可以直接在视频的上方 或者说下方有一个进度条一样的东西 接下来就带大家讲一下 spike驱动具体是怎么做的 这里我们用一个开源项目叫做 大家猜一下叫什么叫做open spec 就是用这一个开源项目来给大家讲解一下 什么叫spec驱动 这里可以看到它的那个是怎么样运作的 其核心就是指你第一步呃 先把自己的开发需求告诉AI 然后再循环的让AI去生成一些任务 按照特殊的规范去生成一些任务 然后直到他把这一个需求描述清楚了 然后再让AI去开发 让大家更方便的理解 我可以用比较通俗易懂的语言来给",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 233.2,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.5422393679618835,
+      "end_time": 693.08,
+      "excerpt": "平台上的这个某一个AI模型 比如说呢我们接入的就是这个呃这个dah scope 就是这个阿里的百炼平台上提供的 不同的这个这个AI大模型 比如说我们用到的是千问的这个max和千问的turbo 两个不同的AI模型 那这个呃OS是比较复杂 那么简单的东西呢就是一个hp里面的token 这个token呢就是在这个HTP的header哈的头部 或者是他的URL里面呢植入一段这个一段字符串 这就叫token 那这个比如说哈我们去访问这个open cloud 它的控制台的时候 使用的方式就是一个这个呃网站的链接 加上在这个链接这个尾部 再加上这个token就这么简单",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 573.63,
+      "subtitle_source": "ai",
+      "title": "Openclaw Channel",
+      "unit_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_6e19861217e04463887cdc96987aac54",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 94
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.5420891046524048,
+      "end_time": 1051.029,
+      "excerpt": "是专门的去进行一些double check 因为执行的时候有的时候他在执行 它是一个自测 但是有一个专门的一个环节 去进行一些质量的把关 我认为他可能测的会更加好 所以有一个专门的test ten的一个阶段 也是符合我们的一个预期的 然后test完成了以后呢 他就会告诉我们一个最终结果 然后进入到checkpoint的环节 所以checkpoint的环节其实我也告诉他了 是有一个user user的一个trick 你看他也确实是主动停下来了 为什么呢 因为在这个他他已经告诉我们了 所有的一个工作 他完成了什么 这个需要是人为的一个验收 所以这个时候我们去",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 933.95,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_402ee0c228fe0f507be629517c56cc48",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.542033851146698,
+      "end_time": 2557.9,
+      "excerpt": "但那只就比如说这个测试 你该用那个该用什么呢 该用这个选型 用用呃 RESEARSHARE还是用mario dB 这个都是有一个印现好的框架 写好了就在代码里面 然后你的过程里面只是写 我现在有哪些API要做测试 它的字段是什么 这个他写API测试的方案是依据什么呢 是依据我的API设计 在这过程方API设计的这个规格 就比如说我有多少个字段 这状态是啥这样的一个逻辑过程 方案里面只是标定了 你哪要标明你哪些需要测试 至于你是走单侧还是还是走这种 是不是在这里面定义的是吧 对 就不用在这个方案布置方案里面 大家得会在方案里面去写一下 提一下 但是具体的技",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 2441.34,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_47e8f6045785edbb72ed7b3a886dbcfb",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.5386966466903687,
+      "end_time": 236.86,
+      "excerpt": "一个勉强可用的代码 这就属于介于la和HG之间的NPC 的一种使用方法 这也是我相信大多数人的呃使用方法 今天呢我们其实核心就是想要介绍一下呃 spec驱动 spec驱动呢也是我个人认为最夯的一种 是使用code agent的方式 那么它这里的核心区别是 我们要先把自己的需求完全说清楚 然后再让模型去做开发 我们要一次性把我们的需求和设计文档 以及任务文档都生成出来 然后再让模型去做生成 这样才能产生出企业级的代码 否则我们只能采用最后一种拉中拉的方法去 只能生产这种呃贪吃蛇小游戏 最后来暂停 看一下大家用的是哪一种方法 然后呢 我就会带大家用IFOCL",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 118.15,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_a22f9d1961c82a67919a6c9355da478e",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.5156337022781372,
+      "end_time": 234.9,
+      "excerpt": "那我同样可以去配置它的直接卷 他主要做什么 就比如说这个阅读的探索的A卷 特就是在我们用5.5去做项目的时候 呃 我们恰好这个时候想确认一个项目文件 在什么位置 或者确认一个项目文件的结构 这个时候如果我们也去让5.5去干这个事情 其实是有点浪费的 那我们就可以去用这种子agent的 去探索这个项目到底有什么东西的时候 其实是用不到这么强的模型的 所以我配置的这种子agent用的就是dev sic的 V4的flash模型 那这个探索一次是几乎 反正我们几乎是看不到他的损耗的 那这种搭配的下来 一方面可以保证这个主agent的上下文的纯净 而另一方面是可以",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 116.729,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_734d56dcb761b16c0559a8ede5f5597c",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.5126010775566101,
+      "end_time": null,
+      "excerpt": "[Title] CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP [Uploader] 袁朝发 [Description] 项目地址： https://github.com/bbruceyuan/auto-chapter-bar https://auto-chapter-bar.vercel.app/ [Summary Conclusion] 使用SPEC驱动方式，通过先明确需求、设计文档和任务分解再让AI编码，可以大幅提升Code Agent",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "video:bilibili:BV13pqGB2E2G:p1",
+      "unit_type": "video",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.4980034828186035,
+      "end_time": 356.6,
+      "excerpt": "只要把额外的AGENTS.md TOOLS.md这类文件一起带入上下文 但是又不想改工作区根目录 那就用它 然后是command-logger 它是记录你执行过的命令 方便排查问题 把所有的命令 事件记录到一个统一的日志文件里 session-memory 保存会话记忆 就是让它记住 这次运行中的一些上下文 当你发出/new指令的时候 它会把当前会话的上下文保存进memory 通俗点说 当你打开一个新的会话时 会把旧的会话存档 那这些都是一些基础的Hook 大家可以根据自己的需求去选 不选也可以 我们这里可以选择勾选上回车 OK 这就已经就绪了 这一步是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 247.7,
+      "subtitle_source": "human",
+      "title": "龙虾退散潮，我做了一期OpenClaw理性入门教程｜下",
+      "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_aa06623d716ec159a326acc11df7d557",
+      "unit_type": "transcript_chunk",
+      "uploader": "不正经的前端啊",
+      "video_id": 88
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.49435126781463623,
+      "end_time": 239.28,
+      "excerpt": "但因为这个接口不统一的问题 导致了这个社区无法去壮大 所以说呢 我就用了八天时间来设计了一个世界模型 的一个所谓接口规范 然后包括了这个12个模型 相当于在这八天内设计结构规范 开发前程页面复现12个模型 将这12个模型集成到我的统一前端框架 这就是我做的事情 但是呃我只花费了八天 然后右边是我的code x用量 可以看到12345678 然后第九天可能做了一些get it和宣传的工作 然后又来是我小红书帖子 反正这这是在刚好发出来一个小时之后截的 有772赞和收藏53评论 可以说是也是受到社区的一定关注吧 OK这个是我做的这个工作 然后我是怎么去一步一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 120.61,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_ba0b79f99afddc4fd8f4016ff13d6026",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.48497146368026733,
+      "end_time": 2906.92,
+      "excerpt": "只有团就有自己的团队 他才能去维护这个东西啊 但是如果如果你用个开源的对吧 那开源的其实是集体的 就是整个开源社区维护这个东西 如果如果跟自己差异不是很大的话对吧 优势问题就在于差异太大了啊 我我这边也想说一下 就是用那个super power 我一开始也是直接用的 就这一次的项目后面我发现它里面有很多东西 你一旦进入了他那个阶段 就要一直走下去 我认为对我来说 它有一些阶段是多余的 所以说我就废弃了他这个东西是的 然后比如说还有一些项目 是每个人都那里面搞一套 比如说一个人用super power 一个人用这个trailers 一个人用什么open s",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 2787.379,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6d144395a7a22f1f76b5e1cf1387b3b2",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.4810848832130432,
+      "end_time": 666.666,
+      "excerpt": "OK 接下来先不着急 我们先来了解一下OpenClaw的目录结构 首先你一定要知道一个目录点 OpenClaw我们使用cd命令 来进入到OpenClaw的根目录 然后输入ls 看一下根目录下都有什么文件 openclaw.json 这是OpenClaw的主要配置文件 相当于总控面板 大多数的核心设置都在这里 以后也少不了和它打交道 我们刚刚在引导配置中的 绝大多数内容 最终都落到了这个文件里 那这个文件还有一些后面带bak 然后bak.1这是配置文件的备份 当我们执行一些修改操作时 OpenClaw就会帮我们把之前的内容 存一个备份 避免我们改坏了回不去",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 567.4,
+      "subtitle_source": "human",
+      "title": "龙虾退散潮，我做了一期OpenClaw理性入门教程｜下",
+      "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_dc85e8895ef202737b4deb6d05968651",
+      "unit_type": "transcript_chunk",
+      "uploader": "不正经的前端啊",
+      "video_id": 88
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.4802108705043793,
+      "end_time": null,
+      "excerpt": "[Title] 使用AI+SPEC+SKILL，2天写完一个Agent项目 [Uploader] 骑猪撞宝马71 [Description] 项目主要是写好了SPEC，定义了具体执行策略，后面完全由AI来完成。 视频展示了如何做到的这一点。 [Favorite Folders] 2026找工作学习",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "video:bilibili:BV1ixAVz9EaQ:p1",
+      "unit_type": "video",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.47873950004577637,
+      "end_time": 2443.26,
+      "excerpt": "也不可能要求这个团队中每个人都按这个严格 这个流程走 人人都是偷懒的 所以你可能会零零碎碎做一些修改 但它不会反映在这个过程方案里面 甚至不会反映在feature里面 所以你去看所有的软件项目都是这样的呃 就比如说你可能代码里面有一些功能 它可能从来不会出现在PRD里 但是你那个测试不是依 就是依靠那个过程方案写的吗 你这不是测的过程方案的那个测试 他他那个40分不一样 他怎么通过测试呢 不是它它方案里面只是方案 但实现后和方案不一定会发生完全一样 所以他他最后然后我我本思就是过程方案 它是一个切片 就比如举个例子 我现在项目里面有登录注册两个功能 我这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 2323.979,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_80b4ed9d38b16857faeb786c0d5148bc",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.47797489166259766,
+      "end_time": 460.62,
+      "excerpt": "那这个channel与open cloud gateway 的这个第二种通讯方式呢是这个HTTPSSHTTP 那比如说刚才我们讲在discord里面 你的通讯方式除了用自然语言问他 问他话以外呢 你还可以啊 比如斜杠这个呢和自然语言的对话不太一样 是说呢直接调用预设的某一个函数命令 所以呢这种slash 后面命令呢是不能错一个字的 自然语言是可以可以写错别字的啊 所以呢第二种方式呢就是HTP 它主要是用来支持这种slash命令的 这个open cloud gateway 除了跟各种即时通讯 比如说这个微信啊 钉钉啊等等啊 那其实呢他还有其他的这种沟通的方",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 347.1,
+      "subtitle_source": "ai",
+      "title": "Openclaw Channel",
+      "unit_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_a2539c80f24cf200ec3a6638221c6126",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 94
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.4775466322898865,
+      "end_time": 581.49,
+      "excerpt": "而且呢这个经常情况下呢 这个open cloud跟人类用户在这个channel里面对话的时候 他不是一问一答 而是多轮问答 所以呢他的这个workflow呢它不是一次性的 而是一个循环语句 执行完上一轮的对话 就进入下一轮的对话 所以它是一个loop 所以呢它是一个工作 一个循环往复的工作流程哈 workflow这个loop 那具体来讲呢 他这个loop里面呢就像个引擎一样 它是由五个冲层来构成的 那第一个冲程呢是接收用户的请求 这个用户请求里面的这个名称呢呃有点错乱啊 他经常会说呢叫做user query请求 那也有时候会说这个user request",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 462.59,
+      "subtitle_source": "ai",
+      "title": "PI: pi-ai & pi-agent-core",
+      "unit_id": "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_537aaeea13d658af1063c2231a1cb8e9",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 109
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.4764343202114105,
+      "end_time": 698.38,
+      "excerpt": "填上校验码就登录完成了 然后我们可以使用这个命令查看一下open cloud上面的医术列表 或者使用这个命令给我自己创建一个新的仓库 我们看到这里仓库就创建出来了 更多命令的是使用方法 可以参考GITHUB官方CLI的文档 后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说 MCP就是AA大模型的标准化工具箱 大模型可以利用这些工具与外界互动获取信息 并且完成具体任务 不过由于MCP协议设计之初存在的一些问题 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 比如AI搜索巨头PROPLEXITY在2026年3月宣布",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 579.04,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.4743134379386902,
+      "end_time": 249.533,
+      "excerpt": "那我们这里用GPT-5.4 回车 OK，刚刚我们回车之后 它自己做了验证 那如果你的填写有误 这块会验证失败 那接下来是填的自定义厂商名字 接下来是模型别名 我们直接回车即可 不用填 然后就开始配置聊天频道了 就是你要在哪个应用上 跟你的虾子聊天 就选哪个 那我的建议是能用Telegram、Discord 就用它们 用不了的话 国内最合适的就是飞书 那飞书国内版 目前也已经内置在OpenClaw包里边了 既然配置麻烦了点 目前最简单的消息频道配置是QQ 但它最多只支持5个机器人 还容易被屏蔽一些消息 那微信的话 想要接入就只能走企微了 那更麻烦 最近腾讯",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 139.733,
+      "subtitle_source": "human",
+      "title": "龙虾退散潮，我做了一期OpenClaw理性入门教程｜下",
+      "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652",
+      "unit_type": "transcript_chunk",
+      "uploader": "不正经的前端啊",
+      "video_id": 88
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.4698624312877655,
+      "end_time": 1153.94,
+      "excerpt": "简单来说就是刚才我说的feature gate里面要排序 并且工具尽量要固定顺序 因为你固定顺序跟系统提示词这个prompt catch也有关系 并且工具呃其实有很长的描述 描述部分都不放在里头 描述部分放在另外一个地方 给的是工具名字和一句的简单的介绍 然后把这些东西20多个 你想想30多个工具嗯 名字加介绍加起来 这个大概比如说几百个token 那20多个工具 几千个token了对吧 所以呢呃就不能太大的 就30多个工具 几千个token了 所以他放的给系统提示词里面放的是这样的一些东西啊 然后是关于如何去呃 orchestra就是编排这些工具 就是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 1034.55,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_50e4b2781a6a4d369820cbb90ca4c4f4",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.46941524744033813,
+      "end_time": 141.333,
+      "excerpt": "如果你实在想体验一把 我们可以花二三十刀 也就是100来块钱 购买一台2核2G的VPS就可以了 如果你觉得你会长期使用 从而装很多东西 那就买一台4核4G的VPS 大概是40刀到60刀左右 哦对，我说的是一年的价格 非常便宜 那我目前这台VPS 应该是一个3核4G加100G的磁盘配置 使用的是Ubuntu 24系统 不是他必须得这个配置 而是我目前只有这样一台闲置的VPS 来做演示了 那我之前一直在使用的OpenClaw服务 其实是部署在一台2核2G的VPS上 也没有问题 基本够用的 也装了很多额外的扩展 那目前这台机器的内存占用是40% 磁盘大约用了有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 34.5,
+      "subtitle_source": "human",
+      "title": "龙虾退散潮，我做了一期OpenClaw理性入门教程｜下",
+      "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4663104e3d41678abeacfd59a7d13825",
+      "unit_type": "transcript_chunk",
+      "uploader": "不正经的前端啊",
+      "video_id": 88
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.4662824869155884,
+      "end_time": 119.87,
+      "excerpt": "上一讲呢我们讲了一下这个open cloud 整个的整个的这个教材的他的overview 或者说讲了一下目录吧 那么我们今天讲第二讲啊 今天的主题呢是讲这个open cloud channels 我们人类用户用这个open cloud主要的方式啊 是通过即时通讯 比如说国内的QQ啊 这个微信啊 钉钉啊飞书 那国外的话呢这个open cloud出厂的时候呢 主要是这个具备了呃 美国那边比较流行的 what's up telegram啊 discord等等哈 然后呢 我们现在中国的几个比较主要的 这个即时通讯啊 包括微信啊 QQ啊 钉钉啊 飞速啊都已经接入了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 0.58,
+      "subtitle_source": "ai",
+      "title": "Openclaw Channel",
+      "unit_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_3d68c6b869c29678aae745a045bba5e0",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 94
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.46572408080101013,
+      "end_time": 900.44,
+      "excerpt": "但他们有网络搜索工具和抓取工具 抓取工具的作用就是接收你给他的任何网络URL 抓取它 并给你返回该网页的LOLM可读的markdown 所以这只是让我的模型 拥有良好的网络搜索工具 而无需所有操作都依赖curl flow title 只是为了获得那种好看的自定义派标题 OC是为了给他完整的上下文和指令 教他如何连接并配合我的open code实例工作 因为我所有的管理工作都通过智能体完成 因为那是最好的方式 我的Mac mini就在那 我通过tale scale SSH连接进去 我只是在告诉智能体该怎么做 所以如果我想把一个项目发过去 在后台运行 或者我",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 788.85,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_e8759aa50d1fe7373ae89d354a832e92",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.46299105882644653,
+      "end_time": 1745.62,
+      "excerpt": "再一条连连调一遍时候真遇到新的问题 但是他发现这个问题好像不是很重要 然后解 然后解决完之后 第二天连面联调通成功之后 然后跟我说成功在这个过程中的话再重复一遍 这个话就是一句from 就可以看到cos的像一个专业程序员一样 耐心地解决每一个问题 这是cos的非常惊艳的一点 所以我也非常去建议大家使用code x OK接着呢就是进行一些暴论 谈一谈意open cell和未来可能的科研范式 其实我从很早开始 1月中旬就甚至或者下旬嘛可能就开 1月下旬对25号就开始使用open cloud 但是可能还没有那么的火 然后配通了一些功能 其实当时对我来说还是非常",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 1626.49,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_40857307e84b1cb0132a348e08c235b0",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.4629340171813965,
+      "end_time": 825.21,
+      "excerpt": "就是可能在公司内部 也有人已经做了类似的这种这种实验 或者这种demo 只是可能并没有作为一个呃产品 去很认真的宣发 然后把它打磨 然后发出去对 然后当事实情况就是你去看这个open cloud 最早版本的GITHUB的那个code 其实那个code也就呃从某种意义上来说 写的也不是特别的干净 但是我觉得他很重要的事是 他呃给大家展示了这种可能性 嗯那可能展示这种可能性之后 未来呃想当欧呃open好好作 作者自己也加入楼盘 然后那可能就是这些呃模型的的实验室 或者说一些呃大一点创业公司会很快跟上 然后把这东西打磨成一个真正可用的产品 嗯对所以我理解其实在",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 706.3,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_1ba612132380d20e4c1bca6dafe33e63",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.4613383412361145,
+      "end_time": 576.76,
+      "excerpt": "叫SHCLOUD总结这个啊 rebel对吧 对比一下谁呢 对比一下open cloud好 这个可能是个比较长的一个任务 我们让他在这待着嗯 也是一样 就是这个是第二轮对话了 虽然说跟第一轮没关系 你看他就是调用了工具了 file read啊 Read me 点MD 这个时候呢相当于这我把这句话丢给模型 然后模型返回了一个工具 叫做用请用file read来读文件 读哪些文件呢 嗯读read me和一些比较重要的这个呃 比如说cloud md等等 这是模型选择的 他已经能读我当前文件夹下所有的文件了 然后他用了一个web search的一个工具去搜open",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 462.11,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_941778e77da44f9f290be7c7b66d22f8",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.4607381224632263,
+      "end_time": 811.38,
+      "excerpt": "他是为这个长期陪伴型的数字AI员工来设计的 他的这个记忆包括短期上下文 其实就是当前对话消息 这个很简单 还有就是向量检索和全文检索嗯 大家如果去了解rag的话 会对这一块比较熟悉一点 可以粗暴的理解成精确检索就是关键词搜索 而向量检索就是模糊化搜索 比如说你用海绵宝宝去搜索黄色方块 这个是能搜到的 第七点 hermiss agent呢 相对来说它还有一个优势 就是它其实更适合需要长期运行的复杂的项目 好了 我们接下来来讲一下这个open cloud的 对不起 hermes agent的本地丛林部署 以及基于open call进行迁移的流程 我们先打开终",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 691.8,
+      "subtitle_source": "ai",
+      "title": "Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1oKdxBzEVz:p1:chunk_38acbadc76d383b3a527f4cd95949b9c",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 95
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.4583812355995178,
+      "end_time": 4766.37,
+      "excerpt": "我还没有看到一个我我自己觉得呃 呃至少在改一性的框架本身 我觉得你这种产品你至少要去迭代框架本身吧 还没有看到一个比open CD开源社区进步更快的 因为open cl下开源社区进步太快了 然后我还没有看到比这个开源社区进步的更快 的这样一个A型的框架 或者说产品出现我还没看到 所以我宁愿用最新的open co嗯 你看嗯open cloud嗯 不久之后就卖给了open i 你觉得是为什么呀 为什么 就是这种非常不错的产品公司 最后还是呃并给了模型公司 这是不是说明没有模型做产品还是比较难的 对 觉得呃就是就这两个 应该是一定要也要深度耦合的一个事情 然后",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 4648.6,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_002c6fbc443e57c249b4fe95abca14d9",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.4582957625389099,
+      "end_time": 696.51,
+      "excerpt": "网页是这个样子的 就是这个DMG麦克就可以直接装 演示一下这个OMLX怎么用啊 这个直接拖进去就行了 我是因为装好了 装好了之后呢 在第一次启动的时候啊 它会弹一个welcome string 这个里头有几个重要的点 就是你需要指定一它的base directory 然后这个比较重要 就是它的模型存哪 然后端口和API key你随便指定一个自己喜欢的 然后点这个start 它就启动起来了好吧 然后这个时候它就会有一个面板给大家看一下 这个面板啊有一个小bug 就是它这个中文支持就每次都保存不上 所以我们每次进来如果要用中文的话 把它点一下 它就变成中文了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 577.71,
+      "subtitle_source": "ai",
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_614333a32c11295db65ad422f1bf024c",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 119
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.4577714502811432,
+      "end_time": 1854.159,
+      "excerpt": "他其实也就是访问这个端口 然后来进行一个调试 其实只要你用skills就可以实现 然后如果说有人会对他的记忆记记忆是很惊艳 其实这也就是普的工程 你使用它的code 也可以让他一会往memory里输出点东西 记住你干了啥 当然各种skills更是从cloud code里出来的 然后open cloud是复用的 所以说呢有些人会说啊 cloud com cloud可以操作操作cos x v cloud code 但是你cos x和cos code也可以操作opp cloud对吧 所以说呢对于我来说 open cloud意义其实就是有一套开源可通讯code ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 1744.1,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_be27facba3ab55f7f6dda62e7b815ff7",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.45755600929260254,
+      "end_time": null,
+      "excerpt": "[Title] Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程 [Uploader] 堂吉诃德拉曼查的英豪 [Description] 飞书文档：https://oigi8odzc5w.feishu.cn/wiki/NtOrwxnyWirN3ykWSoncFRr5nGc?from=from_copylink 文档 GitHub 地址：https://github.com/huangyf2013320506/bilibili_repository/tree/master/20260419_Hermes_Agent [",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程",
+      "unit_id": "video:bilibili:BV1oKdxBzEVz:p1",
+      "unit_type": "video",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 95
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.456402063369751,
+      "end_time": 3606.88,
+      "excerpt": "再比如这个人cos用oppo code cloud也无所谓的 但是你这套DOS这套standards和features和这个呃 大家统一的就可以了啊 要统一可了 然后有这个有按照这些模式做一个下限 只能做这种下限的管理 我后来我就今天晚上这个大家老老师 我我还打打扰一下 我还有个问题啊 就是说其实刚才你爷说的 就是说那过程中的文档 比如说你的plan 还有那个你前面那个是丢弃 我们现在也是计划丢弃 但丢弃完之后合入对吧 合入到那个你那个整体的一个文档里面去对吧 合入这块东西 你那你们那边操作是有没什么问题 我们现在用AI合的时候 其实也没有一个 现在我们",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 3488.689,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.4556916356086731,
+      "end_time": 350.74,
+      "excerpt": "这就是留初级优化集 用来让系统提出改动流 初级只负责检查这个改动 在没见过的样例上还能不能成立 六部里另一个容易忽略的是第六部 人工审核流 初级能告诉你改动有没有通过更多样例 但他不一定能告诉你改动适不适合上线 有些指令虽然能涨分 但写的过度 具体只服务某个样例 放到生产里会浪费上下文窗口 人工审核就是检查分数上涨之后 产品体验有没有真的变好 流出及防作弊 人工审核防上线翻车 两道关卡各管一件事 流程讲完了 回到一个更根本的问题 这套流程能跑起来 全靠evil提供方向 evil在这里的角色 跟机器学习里的训练数据很像 训练数据里的每个样例会给模型一个梯度",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 231.77,
+      "subtitle_source": "ai",
+      "title": "LangChain:基于评测的Harness优化方法 自动优化真正难的，是设计评价信号",
+      "unit_id": "transcript_chunk:bilibili:BV1sudwBnEoP:p1:chunk_0a07ae5a3a6d6761ddac058c134d950a",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 55
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.4535030722618103,
+      "end_time": 3374.6,
+      "excerpt": "这个事情还是需要高级工程师来实现 当前未来之后 我觉得这个不好说 对对对对 所以现在就是这样 现在就是这个我这里不是一张图吗 我这给你看张图对 其实其实刚才我也非常认可你 你说这一块东西是我们这个团队呢 是偏这个西方 因为我们老板是西偏欧美的这个 所以我们呢一直是TDD这种模式 我们的测试用例 基本现在API我们基本上没有什么测试测试 就是上页面上点一点 我们基本上依赖AAPI 所以我们跑这个AI跑起来之后基本差不多 但是呢大家用的有人用JVM 有人用的COSER 有人用GPT 就这里面内部有些不同的团队 不同的组 就他的这技术站用的方法不一样 我觉得这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 3256.16,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_dfd7756040a4051a00978ce0aea1fcd3",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.45124250650405884,
+      "end_time": 463.86,
+      "excerpt": "稍微改动一下就可以直接使用了 把一个需要在UI上操作的软件变成了对AI更友好的命令行工具 AI agent就可以借助这些命令行帮我们进行全自动的画图 非常的方便 我们可以使用命令把开源软件从零开始进行CLI化 CLI anything这个项目里面也提供了一些作者已经写好了的CLI工具 我们只需要找到对应的目录 比如OBABS这个这个OBS点MD介绍了这个CLA是怎么使用的 直接把这个文件夹下载下来 AI就可以使用命令行来操作OBS了 我们来看下一个开源软件open c li 它可以把任意的网站或者electron应用变成命令行工具 我们看到作者已经把它接",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 345.56,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6f4a016cf99b0c3dc803486dee0f0aea",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.450508177280426,
+      "end_time": 582.78,
+      "excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 464.17,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.44944286346435547,
+      "end_time": 467.01,
+      "excerpt": "但是我还是忍不住的去看几眼这个工具 最终我还是深度的使用了几天 这第一个就是他没有open co 把这个toy给渲染的那么好 所以它可以是直接点文件的 那open code是不支持的 这是第一个 它可以快捷的直接点开这个文件 然后再有他的所有能力 就刚刚提到的这些东西 他其实是不是不提供 而是他不内置在他的这个框架里面 就通过我们可以去通过我们的拓展 或者说去这个package里面去下载对应的这个包 就可以了 比如说这个子agent啊 它也会有一些什么play模式 这里面都有 只是它不内置到它的这个包里面了 然后大家也可以看到这个数量其实还是蛮多的 这生",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 348.75,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_be80a63dff932f9335e083ee6cab94f2",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.44864553213119507,
+      "end_time": 811.12,
+      "excerpt": "然后刷刷出来 最近是一行一行一行给我们往外刷 所以他先是API的流式输出啊 就是那个SIC嗯 Server side event s c 然后呢检查这个工具使用 然后工具使用结果的回填 这个是主循环所反映的 跟我当前所展示的这个差不多 检查工具工具循环啊 然后再回来看看结果 这个就是张老师的cloud code所给你的输出啊 当然了 没有打磨也不太好看 但是一样的哎 这个是删cloud是什么东西啊 是一个go的CRA客户端啊 他能做什么什么什么什么什么 然后呢open cloud啊 什么什么什么什么 主要看这个对话这个表格核心差异语言 Go node j",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 691.919,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_77bdde695c7283776ce8117d99eca818",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.44732367992401123,
+      "end_time": 347.54,
+      "excerpt": "在deep sick选择非常多 甚至可以运行你的open code son或opencode go plan 另外我知道open router也很流行 但要连接LOLM提供商 只需要运行LOGMEI 然后选择你想用的那个 我们这里选订阅选项 在这里显示登录成功凭证已保存 在我们测试一下 输入hello看看 但他回复了说明连接成功 但以上就是第三节关于连接LOLM提供商的内容 但导航这里有一些非常实用的命令值得你记住 因为你在使用pi时 几乎每天都会用到 CTRL可以让你选择模型 CTRLP可以让你循环切换模型 那shift tab可以改变思考级别 我不会",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 228.38,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_86379bdf6842ce67d592a99928e3febf",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.4471477270126343,
+      "end_time": 576.33,
+      "excerpt": "tie scale的 他这里面支持的通讯协议呢只有两种 web socket和这个HTP 那为什么经常在这个open cloud里面会提到SSH 和这个tale scale呢 实际上是组网 如果你的open cloud不是部署在你的本地电脑里面 而是部署在比如说阿里云的云主机里面 你这个访问他的网页的时候 它必须是这个这个local local host 然后什么呃 187981871892这种端口哈 如果你想用公网去访问他的话呢 是不可以直接访问的 因为不安全 因为里面要用了token 这个token是可能会被真亲的 被侦听完了之后就可能会被劫持 那怎",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 459.139,
+      "subtitle_source": "ai",
+      "title": "Openclaw Channel",
+      "unit_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_9bdef4514ad21663a60a9d81fa208188",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 94
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.446929931640625,
+      "end_time": 821.159,
+      "excerpt": "然后他检查了实际的 因为A1是要完成线目录 他检查了实际的目录确实没有 所以做了一个总结 做了一个总结 他发现确实实际情况和表写的是一致的 然后他认为当前的任务是A1 所以他就开始要去执行 然后我我其实在显示里写了这块 有一个用户确认 所以他确实停下来问我好 那我们就确认它就会执行A1 理论上它就会进入第三个implement 这阶段 所以在implement的阶段呢 其实我们写了非常多的一个原则 也就是让他去啊查对应的spec 找到对应的一些设计原则 比如说啊要改哪些文件 因为根据SSKILLS去去读 我告诉他了一些系统的架构 他应该先去先去想要怎么样",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 702.94,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_928004e26de0b2c0eed60bb98b353279",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.4464927315711975,
+      "end_time": 1046.29,
+      "excerpt": "就是叫呃HAER吧 就是这个特殊的一个助手 让他去调A的大模型 然后去也可以集成到这个E图一里面 但是用视觉方式去做啊 这是一个一个方式额 那么完成了这些之后呢 啊可以看一眼这个 比如说比如write这个一对一测试 它其实就用这个类似于这个TS这种语法 它不需要其他的这些框架 也不需要COCUMBER 也不需要其他的Python啊 乱七八糟的 就用纯的PREWRITE就可以了 然后这个有一个有一个方法 就是啊超级路口这个路况呢 呃它的过程大概是这样 就是你可以先plan plan完之后 你把这段 我的这这段这个指令放到这个agent点MD里面 让他告诉我",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 927.19,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_8defb686c619676239e0612ca441faeb",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.4454917013645172,
+      "end_time": 1279.65,
+      "excerpt": "ABS是有两种情况 这种起床是那种跟你的框架没有关系 你的代码框架没有关系的这种测试 就比如说用那个swagger的测试 用这个布拉O这测试 他是个独立于你的技术站之外的 但是它的缺点有非常明显 这个缺点是什么呢 是比如说要去做一些work克 或者做一些这个数据的清理或者数据的准备 用BROWO这种方式不是很好做 非常不好做 后来我为什么把他放弃了 我只在做这种大型的数据的迁移 或者啊项目的这种迁移过程中 用那个bra o 但实际上最后我还是回到用那个restless share 在jd java里面去写这个Rest share这种API测试 那么这种测",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 1160.2,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_75057558960a104cea963d98967360c4",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_579f2d528a6a5753842642f9d37e6da7",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1hYwDzSE7A",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/13dd67989b396a27125437f402c92c89b2d25bed.jpg",
+      "detail_url": "/videos/68/transcript",
+      "duration": 904.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "合并到open spec space主规范目录里 第二呢就是会移动归档目录 它会把完整的变更文件夹移动到ARCAVE目录下 第三呢就是会更新主规范 现在open spec specks目录中会包含评论系统的完整规范 这就是open spec的知识沉淀机制 每次归档都会让open spec的spec更加完整 随着项目的演进 这个目录就会逐渐成为我们系统的完整 功能手册 新加入的团队 开发成员都可以直接去读这个目录 然后理解系统都做了些什么事情 这就是open spec的基本工作流 提案执行归档 这三部工作流已经足以应对绝大多数的场景 每一步都有明确的产物 ",
+      "matched_unit_count": 9,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 8,
+      "title": "先对齐意图再写代码！OpenSpec让AI编程不再翻车｜AI编程实战 #04",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Web3布道师Noah",
+      "video_id": 68,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1hYwDzSE7A",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_579f2d528a6a5753842642f9d37e6da7",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 510.86,
+            "source": "ai_summary",
+            "start_time": 257.5,
+            "summary": "详细介绍 propose（生成提案、规格、设计和任务）、审查规范、apply（按序实现）、验证效果、archive（合并归档）的完整流程，体现先对齐意图再编码的核心价值。",
+            "title": "基本工作流：从提案到归档"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_579f2d528a6a5753842642f9d37e6da7",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_bad58d536e5aab9157a51f32adeded2c",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_3a7c2fddb390301e94070a97547b740e",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_42f4cb6ed585f9d60539cf595879c3b9",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_871a8e9a1524972cf5438c2b9b5e7f19",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_fa0042f666c6a1cdef61ccd2f1429eeb",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_2a7a612b3f7e0222bf023c051356deae",
+            "transcript_chunk:bilibili:BV1hYwDzSE7A:p1:chunk_6ae75e79b38c0dc21847cdfb362675b5"
+          ],
+          "component_hit_count": 8,
+          "component_raw_ranks": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration": 902.8,
+          "excerpt": "合并到open spec space主规范目录里 第二呢就是会移动归档目录 它会把完整的变更文件夹移动到ARCAVE目录下 第三呢就是会更新主规范 现在open spec specks目录中会包含评论系统的完整规范 这就是open spec的知识沉淀机制 每次归档都会让open spec的spec更加完整 随着项目的演进 这个目录就会逐渐成为我们系统的完整 功能手册 新加入的团队 开发成员都可以直接去读这个目录 然后理解系统都做了些什么事情 这就是open spec的基本工作流 提案执行归档 这三部工作流已经足以应对绝大多数的场景 每一步都有明确的产物 ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 460.78,
+          "jump_url": "https://www.bilibili.com/video/BV1hYwDzSE7A?t=460",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 903.02,
+          "window_start": 0.22
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV13pqGB2E2G",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/ece16845e9a7cdca9dd8f6cb967b2b4c6693d698.jpg",
+      "detail_url": "/videos/22/transcript",
+      "duration": 847.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "然后他给你生成一个这样子的一个呃小视频 然后你把它拖到那个剪映里面 就可以直接在视频的上方 或者说下方有一个进度条一样的东西 接下来就带大家讲一下 spike驱动具体是怎么做的 这里我们用一个开源项目叫做 大家猜一下叫什么叫做open spec 就是用这一个开源项目来给大家讲解一下 什么叫spec驱动 这里可以看到它的那个是怎么样运作的 其核心就是指你第一步呃 先把自己的开发需求告诉AI 然后再循环的让AI去生成一些任务 按照特殊的规范去生成一些任务 然后直到他把这一个需求描述清楚了 然后再让AI去开发 让大家更方便的理解 我可以用比较通俗易懂的语言来给",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "袁朝发",
+      "video_id": 22,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV13pqGB2E2G",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 248.36,
+            "source": "ai_summary",
+            "start_time": 173.07,
+            "summary": "介绍iFlow CLI这款免费免翻墙的终端Agent，展示用它开发的auto chapter bar工具——通过上传字幕即可生成视频进度条小视频。",
+            "title": "介绍 iFlow CLI 与 auto chapter bar 项目"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+            "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_a22f9d1961c82a67919a6c9355da478e"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            10,
+            14
+          ],
+          "duration": 234.11999999999998,
+          "excerpt": "然后他给你生成一个这样子的一个呃小视频 然后你把它拖到那个剪映里面 就可以直接在视频的上方 或者说下方有一个进度条一样的东西 接下来就带大家讲一下 spike驱动具体是怎么做的 这里我们用一个开源项目叫做 大家猜一下叫什么叫做open spec 就是用这一个开源项目来给大家讲解一下 什么叫spec驱动 这里可以看到它的那个是怎么样运作的 其核心就是指你第一步呃 先把自己的开发需求告诉AI 然后再循环的让AI去生成一些任务 按照特殊的规范去生成一些任务 然后直到他把这一个需求描述清楚了 然后再让AI去开发 让大家更方便的理解 我可以用比较通俗易懂的语言来给",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 233.2,
+          "jump_url": "https://www.bilibili.com/video/BV13pqGB2E2G?t=233",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 352.27,
+          "window_start": 118.15
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_6e19861217e04463887cdc96987aac54",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV13UZ1B8EDU",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/b7f381f26e1e54d9d762c5edf0e46650095cdbb5.jpg",
+      "detail_url": "/videos/94/transcript",
+      "duration": 694.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "平台上的这个某一个AI模型 比如说呢我们接入的就是这个呃这个dah scope 就是这个阿里的百炼平台上提供的 不同的这个这个AI大模型 比如说我们用到的是千问的这个max和千问的turbo 两个不同的AI模型 那这个呃OS是比较复杂 那么简单的东西呢就是一个hp里面的token 这个token呢就是在这个HTP的header哈的头部 或者是他的URL里面呢植入一段这个一段字符串 这就叫token 那这个比如说哈我们去访问这个open cloud 它的控制台的时候 使用的方式就是一个这个呃网站的链接 加上在这个链接这个尾部 再加上这个token就这么简单",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "Openclaw Channel",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "邓侃AI",
+      "video_id": 94,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV13UZ1B8EDU",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_6e19861217e04463887cdc96987aac54",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 694.0,
+            "source": "ai_summary",
+            "start_time": 541.0,
+            "summary": "OAuth2.0、HTTP token、API key/secret、DM pairing 四种鉴权方式的适用场景和注意事项。",
+            "title": "鉴权方式"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_6e19861217e04463887cdc96987aac54",
+            "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_a2539c80f24cf200ec3a6638221c6126",
+            "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_9bdef4514ad21663a60a9d81fa208188"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            11,
+            23,
+            47
+          ],
+          "duration": 345.98,
+          "excerpt": "平台上的这个某一个AI模型 比如说呢我们接入的就是这个呃这个dah scope 就是这个阿里的百炼平台上提供的 不同的这个这个AI大模型 比如说我们用到的是千问的这个max和千问的turbo 两个不同的AI模型 那这个呃OS是比较复杂 那么简单的东西呢就是一个hp里面的token 这个token呢就是在这个HTP的header哈的头部 或者是他的URL里面呢植入一段这个一段字符串 这就叫token 那这个比如说哈我们去访问这个open cloud 它的控制台的时候 使用的方式就是一个这个呃网站的链接 加上在这个链接这个尾部 再加上这个token就这么简单",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 573.63,
+          "jump_url": "https://www.bilibili.com/video/BV13UZ1B8EDU?t=573",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 693.08,
+          "window_start": 347.1
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_3d68c6b869c29678aae745a045bba5e0",
+          "best_rank": 29,
+          "best_score": 0.011235955056179775,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV13UZ1B8EDU:p1:chunk_3d68c6b869c29678aae745a045bba5e0"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            29
+          ],
+          "duration": 119.29,
+          "excerpt": "上一讲呢我们讲了一下这个open cloud 整个的整个的这个教材的他的overview 或者说讲了一下目录吧 那么我们今天讲第二讲啊 今天的主题呢是讲这个open cloud channels 我们人类用户用这个open cloud主要的方式啊 是通过即时通讯 比如说国内的QQ啊 这个微信啊 钉钉啊飞书 那国外的话呢这个open cloud出厂的时候呢 主要是这个具备了呃 美国那边比较流行的 what's up telegram啊 discord等等哈 然后呢 我们现在中国的几个比较主要的 这个即时通讯啊 包括微信啊 QQ啊 钉钉啊 飞速啊都已经接入了",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.58,
+          "jump_url": "https://www.bilibili.com/video/BV13UZ1B8EDU?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 119.87,
+          "window_start": 0.58
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_402ee0c228fe0f507be629517c56cc48",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ixAVz9EaQ",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/62cba1443965a26a70d29b74399a2748f8eee475.jpg",
+      "detail_url": "/videos/113/transcript",
+      "duration": 1178.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "是专门的去进行一些double check 因为执行的时候有的时候他在执行 它是一个自测 但是有一个专门的一个环节 去进行一些质量的把关 我认为他可能测的会更加好 所以有一个专门的test ten的一个阶段 也是符合我们的一个预期的 然后test完成了以后呢 他就会告诉我们一个最终结果 然后进入到checkpoint的环节 所以checkpoint的环节其实我也告诉他了 是有一个user user的一个trick 你看他也确实是主动停下来了 为什么呢 因为在这个他他已经告诉我们了 所有的一个工作 他完成了什么 这个需要是人为的一个验收 所以这个时候我们去",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_402ee0c228fe0f507be629517c56cc48",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_402ee0c228fe0f507be629517c56cc48"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            12
+          ],
+          "duration": 117.07899999999995,
+          "excerpt": "是专门的去进行一些double check 因为执行的时候有的时候他在执行 它是一个自测 但是有一个专门的一个环节 去进行一些质量的把关 我认为他可能测的会更加好 所以有一个专门的test ten的一个阶段 也是符合我们的一个预期的 然后test完成了以后呢 他就会告诉我们一个最终结果 然后进入到checkpoint的环节 所以checkpoint的环节其实我也告诉他了 是有一个user user的一个trick 你看他也确实是主动停下来了 为什么呢 因为在这个他他已经告诉我们了 所有的一个工作 他完成了什么 这个需要是人为的一个验收 所以这个时候我们去",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 933.95,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=933",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1051.029,
+          "window_start": 933.95
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_928004e26de0b2c0eed60bb98b353279",
+          "best_rank": 48,
+          "best_score": 0.009259259259259259,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_928004e26de0b2c0eed60bb98b353279"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            48
+          ],
+          "duration": 118.21899999999994,
+          "excerpt": "然后他检查了实际的 因为A1是要完成线目录 他检查了实际的目录确实没有 所以做了一个总结 做了一个总结 他发现确实实际情况和表写的是一致的 然后他认为当前的任务是A1 所以他就开始要去执行 然后我我其实在显示里写了这块 有一个用户确认 所以他确实停下来问我好 那我们就确认它就会执行A1 理论上它就会进入第三个implement 这阶段 所以在implement的阶段呢 其实我们写了非常多的一个原则 也就是让他去啊查对应的spec 找到对应的一些设计原则 比如说啊要改哪些文件 因为根据SSKILLS去去读 我告诉他了一些系统的架构 他应该先去先去想要怎么样",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 702.94,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=702",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 821.159,
+          "window_start": 702.94
+        }
+      ]
+    },
+    {
+      "additional_window_count": 4,
+      "best_rank": 13,
+      "best_score": 0.0136986301369863,
+      "best_unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_47e8f6045785edbb72ed7b3a886dbcfb",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1atjU6KEJF",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/de1c269ba79e6a0b85c91daffcf945af32ab8a2e.jpg",
+      "detail_url": "/videos/12/transcript",
+      "duration": 4118.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "但那只就比如说这个测试 你该用那个该用什么呢 该用这个选型 用用呃 RESEARSHARE还是用mario dB 这个都是有一个印现好的框架 写好了就在代码里面 然后你的过程里面只是写 我现在有哪些API要做测试 它的字段是什么 这个他写API测试的方案是依据什么呢 是依据我的API设计 在这过程方API设计的这个规格 就比如说我有多少个字段 这状态是啥这样的一个逻辑过程 方案里面只是标定了 你哪要标明你哪些需要测试 至于你是走单侧还是还是走这种 是不是在这里面定义的是吧 对 就不用在这个方案布置方案里面 大家得会在方案里面去写一下 提一下 但是具体的技",
+      "matched_unit_count": 7,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 7,
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "total_window_count": 6,
+      "unwindowed_chunk_count": 0,
+      "uploader": "少个分号",
+      "video_id": 12,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1atjU6KEJF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_47e8f6045785edbb72ed7b3a886dbcfb",
+          "best_rank": 13,
+          "best_score": 0.0136986301369863,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_47e8f6045785edbb72ed7b3a886dbcfb",
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_80b4ed9d38b16857faeb786c0d5148bc"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            13,
+            22
+          ],
+          "duration": 233.92100000000028,
+          "excerpt": "但那只就比如说这个测试 你该用那个该用什么呢 该用这个选型 用用呃 RESEARSHARE还是用mario dB 这个都是有一个印现好的框架 写好了就在代码里面 然后你的过程里面只是写 我现在有哪些API要做测试 它的字段是什么 这个他写API测试的方案是依据什么呢 是依据我的API设计 在这过程方API设计的这个规格 就比如说我有多少个字段 这状态是啥这样的一个逻辑过程 方案里面只是标定了 你哪要标明你哪些需要测试 至于你是走单侧还是还是走这种 是不是在这里面定义的是吧 对 就不用在这个方案布置方案里面 大家得会在方案里面去写一下 提一下 但是具体的技",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2441.34,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=2441",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2557.9,
+          "window_start": 2323.979
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6d144395a7a22f1f76b5e1cf1387b3b2",
+          "best_rank": 19,
+          "best_score": 0.012658227848101266,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6d144395a7a22f1f76b5e1cf1387b3b2"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            19
+          ],
+          "duration": 119.54100000000017,
+          "excerpt": "只有团就有自己的团队 他才能去维护这个东西啊 但是如果如果你用个开源的对吧 那开源的其实是集体的 就是整个开源社区维护这个东西 如果如果跟自己差异不是很大的话对吧 优势问题就在于差异太大了啊 我我这边也想说一下 就是用那个super power 我一开始也是直接用的 就这一次的项目后面我发现它里面有很多东西 你一旦进入了他那个阶段 就要一直走下去 我认为对我来说 它有一些阶段是多余的 所以说我就废弃了他这个东西是的 然后比如说还有一些项目 是每个人都那里面搞一套 比如说一个人用super power 一个人用这个trailers 一个人用什么open s",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2787.379,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=2787",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2906.92,
+          "window_start": 2787.379
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 15,
+      "best_score": 0.013333333333333334,
+      "best_unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_734d56dcb761b16c0559a8ede5f5597c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1gPGE6iELk",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c61f55a4ed65d11e87074c2f72667fd7b69ea1fe.jpg",
+      "detail_url": "/videos/56/transcript",
+      "duration": 824.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "那我同样可以去配置它的直接卷 他主要做什么 就比如说这个阅读的探索的A卷 特就是在我们用5.5去做项目的时候 呃 我们恰好这个时候想确认一个项目文件 在什么位置 或者确认一个项目文件的结构 这个时候如果我们也去让5.5去干这个事情 其实是有点浪费的 那我们就可以去用这种子agent的 去探索这个项目到底有什么东西的时候 其实是用不到这么强的模型的 所以我配置的这种子agent用的就是dev sic的 V4的flash模型 那这个探索一次是几乎 反正我们几乎是看不到他的损耗的 那这种搭配的下来 一方面可以保证这个主agent的上下文的纯净 而另一方面是可以",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "老山贼",
+      "video_id": 56,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1gPGE6iELk",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_734d56dcb761b16c0559a8ede5f5597c",
+          "best_rank": 15,
+          "best_score": 0.013333333333333334,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 279.88,
+            "source": "ai_summary",
+            "start_time": 48.63,
+            "summary": "分析Codex的封闭生态和OpenCode的文件识别缺陷与维护成本，说明为何寻找替代工具。",
+            "title": "现有AI工具的问题：Codex与Open Code"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_734d56dcb761b16c0559a8ede5f5597c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            15
+          ],
+          "duration": 118.171,
+          "excerpt": "那我同样可以去配置它的直接卷 他主要做什么 就比如说这个阅读的探索的A卷 特就是在我们用5.5去做项目的时候 呃 我们恰好这个时候想确认一个项目文件 在什么位置 或者确认一个项目文件的结构 这个时候如果我们也去让5.5去干这个事情 其实是有点浪费的 那我们就可以去用这种子agent的 去探索这个项目到底有什么东西的时候 其实是用不到这么强的模型的 所以我配置的这种子agent用的就是dev sic的 V4的flash模型 那这个探索一次是几乎 反正我们几乎是看不到他的损耗的 那这种搭配的下来 一方面可以保证这个主agent的上下文的纯净 而另一方面是可以",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 116.729,
+          "jump_url": "https://www.bilibili.com/video/BV1gPGE6iELk?t=116",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 234.9,
+          "window_start": 116.729
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+          "best_rank": 43,
+          "best_score": 0.009708737864077669,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 489.91,
+            "source": "ai_summary",
+            "start_time": 279.88,
+            "summary": "说明Pi结合Warp终端的优势，以及通过扩展和自定义脚本实现高度贴合个人工作流的能力。",
+            "title": "转向Pi的原因：结合Warp与可定制性"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_be80a63dff932f9335e083ee6cab94f2"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            43,
+            44
+          ],
+          "duration": 234.02999999999997,
+          "excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 464.17,
+          "jump_url": "https://www.bilibili.com/video/BV1gPGE6iELk?t=464",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 582.78,
+          "window_start": 348.75
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 17,
+      "best_score": 0.012987012987012988,
+      "best_unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_aa06623d716ec159a326acc11df7d557",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1TxwQz5E4B",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/b20ba49827211ba69bec1ab0825bfcab222ec852.jpg",
+      "detail_url": "/videos/88/transcript",
+      "duration": 2768.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "只要把额外的AGENTS.md TOOLS.md这类文件一起带入上下文 但是又不想改工作区根目录 那就用它 然后是command-logger 它是记录你执行过的命令 方便排查问题 把所有的命令 事件记录到一个统一的日志文件里 session-memory 保存会话记忆 就是让它记住 这次运行中的一些上下文 当你发出/new指令的时候 它会把当前会话的上下文保存进memory 通俗点说 当你打开一个新的会话时 会把旧的会话存档 那这些都是一些基础的Hook 大家可以根据自己的需求去选 不选也可以 我们这里可以选择勾选上回车 OK 这就已经就绪了 这一步是",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "龙虾退散潮，我做了一期OpenClaw理性入门教程｜下",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "不正经的前端啊",
+      "video_id": 88,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1TxwQz5E4B",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_aa06623d716ec159a326acc11df7d557",
+          "best_rank": 17,
+          "best_score": 0.012987012987012988,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_aa06623d716ec159a326acc11df7d557",
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652",
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4663104e3d41678abeacfd59a7d13825"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            17,
+            26,
+            28
+          ],
+          "duration": 322.1,
+          "excerpt": "只要把额外的AGENTS.md TOOLS.md这类文件一起带入上下文 但是又不想改工作区根目录 那就用它 然后是command-logger 它是记录你执行过的命令 方便排查问题 把所有的命令 事件记录到一个统一的日志文件里 session-memory 保存会话记忆 就是让它记住 这次运行中的一些上下文 当你发出/new指令的时候 它会把当前会话的上下文保存进memory 通俗点说 当你打开一个新的会话时 会把旧的会话存档 那这些都是一些基础的Hook 大家可以根据自己的需求去选 不选也可以 我们这里可以选择勾选上回车 OK 这就已经就绪了 这一步是",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 247.7,
+          "jump_url": "https://www.bilibili.com/video/BV1TxwQz5E4B?t=247",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "human"
+          ],
+          "window_end": 356.6,
+          "window_start": 34.5
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_dc85e8895ef202737b4deb6d05968651",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_dc85e8895ef202737b4deb6d05968651"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            20
+          ],
+          "duration": 99.26600000000008,
+          "excerpt": "OK 接下来先不着急 我们先来了解一下OpenClaw的目录结构 首先你一定要知道一个目录点 OpenClaw我们使用cd命令 来进入到OpenClaw的根目录 然后输入ls 看一下根目录下都有什么文件 openclaw.json 这是OpenClaw的主要配置文件 相当于总控面板 大多数的核心设置都在这里 以后也少不了和它打交道 我们刚刚在引导配置中的 绝大多数内容 最终都落到了这个文件里 那这个文件还有一些后面带bak 然后bak.1这是配置文件的备份 当我们执行一些修改操作时 OpenClaw就会帮我们把之前的内容 存一个备份 避免我们改坏了回不去",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 567.4,
+          "jump_url": "https://www.bilibili.com/video/BV1TxwQz5E4B?t=567",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "human"
+          ],
+          "window_end": 666.666,
+          "window_start": 567.4
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 18,
+      "best_score": 0.01282051282051282,
+      "best_unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_ba0b79f99afddc4fd8f4016ff13d6026",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15CwBzsEmt",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/3923bf10820d7ed27cf2a2686d608dcb42f77389.jpg",
+      "detail_url": "/videos/114/transcript",
+      "duration": 2379.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "但因为这个接口不统一的问题 导致了这个社区无法去壮大 所以说呢 我就用了八天时间来设计了一个世界模型 的一个所谓接口规范 然后包括了这个12个模型 相当于在这八天内设计结构规范 开发前程页面复现12个模型 将这12个模型集成到我的统一前端框架 这就是我做的事情 但是呃我只花费了八天 然后右边是我的code x用量 可以看到12345678 然后第九天可能做了一些get it和宣传的工作 然后又来是我小红书帖子 反正这这是在刚好发出来一个小时之后截的 有772赞和收藏53评论 可以说是也是受到社区的一定关注吧 OK这个是我做的这个工作 然后我是怎么去一步一",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "NextTryTV",
+      "video_id": 114,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15CwBzsEmt",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_ba0b79f99afddc4fd8f4016ff13d6026",
+          "best_rank": 18,
+          "best_score": 0.01282051282051282,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_ba0b79f99afddc4fd8f4016ff13d6026"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            18
+          ],
+          "duration": 118.67,
+          "excerpt": "但因为这个接口不统一的问题 导致了这个社区无法去壮大 所以说呢 我就用了八天时间来设计了一个世界模型 的一个所谓接口规范 然后包括了这个12个模型 相当于在这八天内设计结构规范 开发前程页面复现12个模型 将这12个模型集成到我的统一前端框架 这就是我做的事情 但是呃我只花费了八天 然后右边是我的code x用量 可以看到12345678 然后第九天可能做了一些get it和宣传的工作 然后又来是我小红书帖子 反正这这是在刚好发出来一个小时之后截的 有772赞和收藏53评论 可以说是也是受到社区的一定关注吧 OK这个是我做的这个工作 然后我是怎么去一步一",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 120.61,
+          "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=120",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 239.28,
+          "window_start": 120.61
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_40857307e84b1cb0132a348e08c235b0",
+          "best_rank": 31,
+          "best_score": 0.01098901098901099,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_40857307e84b1cb0132a348e08c235b0",
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_be27facba3ab55f7f6dda62e7b815ff7"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            31,
+            37
+          ],
+          "duration": 227.6690000000001,
+          "excerpt": "再一条连连调一遍时候真遇到新的问题 但是他发现这个问题好像不是很重要 然后解 然后解决完之后 第二天连面联调通成功之后 然后跟我说成功在这个过程中的话再重复一遍 这个话就是一句from 就可以看到cos的像一个专业程序员一样 耐心地解决每一个问题 这是cos的非常惊艳的一点 所以我也非常去建议大家使用code x OK接着呢就是进行一些暴论 谈一谈意open cell和未来可能的科研范式 其实我从很早开始 1月中旬就甚至或者下旬嘛可能就开 1月下旬对25号就开始使用open cloud 但是可能还没有那么的火 然后配通了一些功能 其实当时对我来说还是非常",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1626.49,
+          "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=1626",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1854.159,
+          "window_start": 1626.49
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 24,
+      "best_score": 0.011904761904761904,
+      "best_unit_id": "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_537aaeea13d658af1063c2231a1cb8e9",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1wBfvBnEkY",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/7053e0299780aac43e75a6737061df318b3dd87e.jpg",
+      "detail_url": "/videos/109/transcript",
+      "duration": 940.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "而且呢这个经常情况下呢 这个open cloud跟人类用户在这个channel里面对话的时候 他不是一问一答 而是多轮问答 所以呢他的这个workflow呢它不是一次性的 而是一个循环语句 执行完上一轮的对话 就进入下一轮的对话 所以它是一个loop 所以呢它是一个工作 一个循环往复的工作流程哈 workflow这个loop 那具体来讲呢 他这个loop里面呢就像个引擎一样 它是由五个冲层来构成的 那第一个冲程呢是接收用户的请求 这个用户请求里面的这个名称呢呃有点错乱啊 他经常会说呢叫做user query请求 那也有时候会说这个user request",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "PI: pi-ai & pi-agent-core",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "邓侃AI",
+      "video_id": 109,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1wBfvBnEkY",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_537aaeea13d658af1063c2231a1cb8e9",
+          "best_rank": 24,
+          "best_score": 0.011904761904761904,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 480.0,
+            "source": "ai_summary",
+            "start_time": 361.0,
+            "summary": "进入第二层 Pi-agent-core，介绍其定位：在模型调用基础上集成本地工具，并组织为循环工作流。",
+            "title": "3. Layer-2. Pi-agent-core"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_537aaeea13d658af1063c2231a1cb8e9"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            24
+          ],
+          "duration": 118.90000000000003,
+          "excerpt": "而且呢这个经常情况下呢 这个open cloud跟人类用户在这个channel里面对话的时候 他不是一问一答 而是多轮问答 所以呢他的这个workflow呢它不是一次性的 而是一个循环语句 执行完上一轮的对话 就进入下一轮的对话 所以它是一个loop 所以呢它是一个工作 一个循环往复的工作流程哈 workflow这个loop 那具体来讲呢 他这个loop里面呢就像个引擎一样 它是由五个冲层来构成的 那第一个冲程呢是接收用户的请求 这个用户请求里面的这个名称呢呃有点错乱啊 他经常会说呢叫做user query请求 那也有时候会说这个user request",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 462.59,
+          "jump_url": "https://www.bilibili.com/video/BV1wBfvBnEkY?t=462",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 581.49,
+          "window_start": 462.59
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 25,
+      "best_score": 0.011764705882352941,
+      "best_unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1G29EBGE8b",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/fb141e539232315a1d9cc60e22d1e4ed73dde37a.jpg",
+      "detail_url": "/videos/78/transcript",
+      "duration": 832.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "填上校验码就登录完成了 然后我们可以使用这个命令查看一下open cloud上面的医术列表 或者使用这个命令给我自己创建一个新的仓库 我们看到这里仓库就创建出来了 更多命令的是使用方法 可以参考GITHUB官方CLI的文档 后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说 MCP就是AA大模型的标准化工具箱 大模型可以利用这些工具与外界互动获取信息 并且完成具体任务 不过由于MCP协议设计之初存在的一些问题 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 比如AI搜索巨头PROPLEXITY在2026年3月宣布",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "技术爬爬虾",
+      "video_id": 78,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1G29EBGE8b",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+          "best_rank": 25,
+          "best_score": 0.011764705882352941,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 600.0,
+            "source": "ai_summary",
+            "start_time": 362.0,
+            "summary": "演示 OpenCLI 操作网站、搜索职位等，并展示通过 AI 编程工具为 OpenCLI 二次开发新命令。",
+            "title": "OpenCLI 项目演示与二次开发"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            25
+          ],
+          "duration": 119.34000000000003,
+          "excerpt": "填上校验码就登录完成了 然后我们可以使用这个命令查看一下open cloud上面的医术列表 或者使用这个命令给我自己创建一个新的仓库 我们看到这里仓库就创建出来了 更多命令的是使用方法 可以参考GITHUB官方CLI的文档 后续我们的视频里面还会介绍更多好用的官方CLI工具 MCP全称是模型上下文协议 简单来说 MCP就是AA大模型的标准化工具箱 大模型可以利用这些工具与外界互动获取信息 并且完成具体任务 不过由于MCP协议设计之初存在的一些问题 越来越多的公司开源社区开始放弃MCP转而拥抱CLI 比如AI搜索巨头PROPLEXITY在2026年3月宣布",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 579.04,
+          "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=579",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 698.38,
+          "window_start": 579.04
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6f4a016cf99b0c3dc803486dee0f0aea",
+          "best_rank": 42,
+          "best_score": 0.00980392156862745,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 362.0,
+            "source": "ai_summary",
+            "start_time": 121.0,
+            "summary": "讲解 CLI Anything 的工作原理，演示对 draw.io 进行 CLI 化并让 AI 自动画图的全过程。",
+            "title": "CLI Anything 项目实测"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6f4a016cf99b0c3dc803486dee0f0aea"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            42
+          ],
+          "duration": 118.30000000000001,
+          "excerpt": "稍微改动一下就可以直接使用了 把一个需要在UI上操作的软件变成了对AI更友好的命令行工具 AI agent就可以借助这些命令行帮我们进行全自动的画图 非常的方便 我们可以使用命令把开源软件从零开始进行CLI化 CLI anything这个项目里面也提供了一些作者已经写好了的CLI工具 我们只需要找到对应的目录 比如OBABS这个这个OBS点MD介绍了这个CLA是怎么使用的 直接把这个文件夹下载下来 AI就可以使用命令行来操作OBS了 我们来看下一个开源软件open c li 它可以把任意的网站或者electron应用变成命令行工具 我们看到作者已经把它接",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 345.56,
+          "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=345",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 463.86,
+          "window_start": 345.56
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 90.481,
+      "chapter_ms": 0.595,
+      "grouping_ms": 0.066,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 72.793,
+      "total_ms": 166.18
+    },
+    "raw": {
+      "dense_ms": 65.656,
+      "fusion_ms": 5.309,
+      "lexical_ms": 0.96,
+      "planning_ms": 0.018,
+      "total_ms": 72.751
+    }
+  },
+  "trace_id": "d5f6ea74-de6a-4afe-80c8-52af1207cd00",
+  "trace_persisted": false
+}

@@ -1,0 +1,19 @@
+{
+  "Development_Gold_opened_for_after_scoring": false,
+  "Frozen_Evaluation_accessed": false,
+  "Gate_Freeze_hash_valid": true,
+  "Gold_and_inputs_unchanged": true,
+  "Selector_v2_Seal_valid": true,
+  "bundle_budget": 6,
+  "bundle_budget_unchanged": true,
+  "candidate_replay_started": false,
+  "formal_Product_After_run_count": 0,
+  "formal_Stress_After_run_count": 0,
+  "formal_builder_unchanged": true,
+  "identity_contract_unchanged": true,
+  "schema_version": "v3.5-b-f1b-post-freeze-preflight-v1",
+  "seal_schema_version": "v3.5-b-f1b-selector-v2-freeze-seal-v1",
+  "selector_v2_seal_sha256": "4eeef5b26c28c9ebaae95bdd4cf2a5afe936c31d1e7c1e5d61d3408c48ac64fe",
+  "selector_version": "v3.5-deterministic-fine-selector-v2",
+  "status": "pass"
+}

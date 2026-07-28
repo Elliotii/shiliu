@@ -1,0 +1,72 @@
+{
+  "actual_result_verification": {
+    "case_count": 2,
+    "classifications": {
+      "persistent_retrieval_gap": 2
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  },
+  "advanced_evidence_audit": {
+    "case_count": 1,
+    "classifications": {
+      "persistent_retrieval_gap": 1
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  },
+  "comparison": {
+    "case_count": 2,
+    "classifications": {
+      "persistent_retrieval_gap": 2
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  },
+  "definition": {
+    "case_count": 1,
+    "classifications": {
+      "persistent_retrieval_gap": 1
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  },
+  "how_to_or_process": {
+    "case_count": 1,
+    "classifications": {
+      "persistent_retrieval_gap": 1
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  },
+  "natural_multi_aspect": {
+    "case_count": 1,
+    "classifications": {
+      "persistent_retrieval_gap": 1
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  },
+  "purpose_or_use_case": {
+    "case_count": 2,
+    "classifications": {
+      "persistent_retrieval_gap": 2
+    },
+    "q0_hits": 0,
+    "q1_hits": 0,
+    "q2_hits": 0,
+    "small_sample_no_significance_claim": true
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "authorized_fallback_recommendation": null,
+  "auto_q0_q1_q2_completed": true,
+  "auto_router_invoked": true,
+  "exact_entity_regression_completed": true,
+  "failure_class": null,
+  "frozen_inputs_verified": true,
+  "human_review_required": true,
+  "product_default_modified": false,
+  "product_default_wiring_authorized": false,
+  "recorded_at": "2026-07-23T22:21:56+00:00",
+  "release_gate": "passed",
+  "retrieval_configuration_modified": false,
+  "router_decisions_audited": true,
+  "router_modified": false,
+  "runner_version": "v3.5-frozen-auto-smoke-v1",
+  "session_may_close": true,
+  "stage": "V3.5 Frozen Auto Smoke Validation",
+  "status": "complete"
+}

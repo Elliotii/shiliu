@@ -1,0 +1,41 @@
+{
+  "formal_development_eval_runs": 0,
+  "formal_stress_eval_runs": 0,
+  "negative_cases": {
+    "AI_generated_summary_vs_raw_subtitle_evidence": "pass",
+    "different_video": "pass",
+    "missing_required_identity_component": "pass",
+    "overlapping_time_but_different_segment_identity": "pass",
+    "same_video_and_timeline_wrong_segment": "pass",
+    "same_video_wrong_timeline": "pass",
+    "unknown_or_ambiguous_video_mapping": "pass"
+  },
+  "positive_cases": {
+    "equivalent_normalized_time_representation": "pass",
+    "same_segment_represented_by_single_or_split_preserved_spans": "pass",
+    "same_timeline_and_same_segment": "pass",
+    "same_underlying_raw_subtitle_but_selector_method_ai": "pass",
+    "same_video_BVID_vs_numeric_id": "pass"
+  },
+  "policy_cases": {
+    "builder_version_only_changes_identity": false,
+    "candidate_id_only_sufficient": false,
+    "selector_method_only_changes_identity": false,
+    "source_version_is_exact_namespace": true,
+    "unknown_mapping_result": "unverifiable"
+  },
+  "python_command": "python3 research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_evidence_identity_contract_v1.py -v",
+  "schema_version": "v3.5-b-evidence-identity-contract-v1-test-results-v1",
+  "six_preserved_evidence": {
+    "PQS_V1_Q006": "pass",
+    "PQS_V1_Q007": "pass",
+    "PQS_V1_Q011": "pass",
+    "PQS_V1_Q012": "pass",
+    "PQS_V1_Q013": "pass",
+    "PQS_V1_Q019": "pass",
+    "all_six_fixture_identity_consistency": "pass",
+    "same_preserved_evidence_same_identity": true
+  },
+  "status": "pass",
+  "test_count": 17
+}

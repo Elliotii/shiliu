@@ -1,0 +1,24 @@
+{
+  "annotation_state": "initial_annotation_complete",
+  "batch_count": 5,
+  "case_count": 10,
+  "gold_layer_record_counts": {
+    "evidence_gold": 10,
+    "retrieval_gold": 10,
+    "sufficiency_gold": 10
+  },
+  "manifest_version": "FROZEN_INITIAL_ANNOTATION_MANIFEST_V1",
+  "neutral_navigation_sha256": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+  "opaque_batch_artifact_count": 5,
+  "opaque_batch_artifact_hashes": {
+    "opaque_batch_01.jsonl": "bec4a38f32b3d4a88dd4233373ff36e71f185ac2557d6443571fdb4c7e3c9360",
+    "opaque_batch_02.jsonl": "da28a6f5d96f1aafef3195f3fa2a22f7212354a99c90ebfc853ad42e3cc372ae",
+    "opaque_batch_03.jsonl": "4aea94b63f67f686d1e2051aa58149bf3e1c2696e6c8bb7063a66a22ddc2f267",
+    "opaque_batch_04.jsonl": "198f26e7d4829545d07fb919373645332b4693b0ab1e9f91e8a4647d305c2cc6",
+    "opaque_batch_05.jsonl": "9ed509e9bd87ed7747bc4d3dbe99f9383fd02c84a12c7c33870a78c3e65b9e4b"
+  },
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "query_identity_set_sha256": "2b0dcd397e94bdfe5f8f080fc5b1ddb78e641bc97cd1ecd58abefcc1a409c5d4",
+  "source_identity_catalog_sha256": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4",
+  "unit_id": "frozen_annotator_A"
+}

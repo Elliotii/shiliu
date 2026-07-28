@@ -1,0 +1,18 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "checkpoint_1_authorized": false,
+  "component_behavior_changed": false,
+  "development_gold_opened_only_after_prediction_freeze": true,
+  "execution_status": "complete",
+  "f1a_authorized": false,
+  "f1b_authorized": false,
+  "frozen_gold_accessed": false,
+  "p8_status": "product_initial_baseline_execution_candidate_ready",
+  "prediction_set_frozen": true,
+  "unjudged": {
+    "blocked_P8": false,
+    "decision_sensitive_count": 0,
+    "resolved_count": 0,
+    "unresolved_count": 109
+  }
+}

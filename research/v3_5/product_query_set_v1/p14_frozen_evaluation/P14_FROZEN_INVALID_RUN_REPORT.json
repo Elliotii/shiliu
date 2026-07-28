@@ -1,0 +1,73 @@
+{
+  "schema_version": "v3.5-b-p14-frozen-invalid-run-report-v1",
+  "outcome": "p14_frozen_evaluation_invalid",
+  "status": "blocked_pending_main_session",
+  "rerun_authorized": false,
+  "run_id": "P14_FROZEN_EVALUATION_20260727T181722Z",
+  "formal_prediction_run_count": 1,
+  "unique_formal_run_consumed": true,
+  "entry_gate_passed": true,
+  "runtime_seal_valid": true,
+  "formal_manifest_valid": true,
+  "Frozen_Query_opened": true,
+  "Frozen_Gold_opened": false,
+  "predictions_generated": false,
+  "predictions_freeze_exists": false,
+  "result_freeze_exists": false,
+  "trace_files_persisted": 0,
+  "failure_stage": "semantic_judge_provider_initialization",
+  "failure_class": "unhandled_infrastructure_failure",
+  "typed_error": {
+    "provider": "openai-codex-cli",
+    "model": "gpt-5.6-terra",
+    "semantic_status": null,
+    "error_type": "RuntimeError",
+    "message": "semantic judge provider failed before producing any provider output",
+    "root_cause": "Codex CLI could not initialize its in-process app-server client because its state database was read-only in the current execution environment.",
+    "observed_diagnostics": [
+      "failed to open state DB: attempt to write a readonly database",
+      "failed to initialize in-process app-server client: Operation not permitted"
+    ]
+  },
+  "run_progress_before_failure": {
+    "frozen_query_case_count_loaded": 10,
+    "frozen_retrieval_executed_in_memory_for_all_cases": true,
+    "candidate_builder_executed_in_memory_for_all_cases": true,
+    "selector_executed_in_memory_for_all_cases": true,
+    "mechanical_gate_executed_in_memory_for_all_cases": true,
+    "semantic_judge_provider_output_received": false,
+    "per_case_predictions_persisted": false,
+    "in_memory_intermediate_results_recoverable": false
+  },
+  "evaluation_validity": {
+    "status": "invalid",
+    "entry_gate_passed": true,
+    "runtime_seal_valid": true,
+    "manifest_valid": true,
+    "predictions_freeze_valid": false,
+    "formal_prediction_run_count_is_one": true,
+    "case_count_is_ten": true,
+    "component_hashes_unchanged": true,
+    "runtime_hashes_unchanged": true,
+    "Gold_opened_only_after_prediction_freeze": true,
+    "scorer_and_projection_valid": "not_reached",
+    "unhandled_infrastructure_failure_absent": false
+  },
+  "governance_disposition": {
+    "prediction_rerun_performed": false,
+    "semantic_judge_recall_performed": false,
+    "permission_escalation_after_failure_performed": false,
+    "timeout_or_environment_modified_for_retry": false,
+    "component_or_configuration_modified": false,
+    "Gold_opened_for_diagnosis": false,
+    "required_action": "stop_and_escalate_to_main_session"
+  },
+  "artifact_hashes": {
+    "entry_gate": "fd4add3d2b3d76c33397e6d92f327a8b3709224ff4680711f041eb5111821bb8",
+    "runtime_seal": "65ebb99d53c6025d63177e5c0c131ee35f7f5a987de0e42ec8db7ab79dc6dbb4",
+    "formal_run_manifest": "83c7265c32e86fb4b311e604be1545c55a05627817ea265b5c8d97fc46bc2101",
+    "formal_executor": "94748013de4902472d295e13d727eeaf6ad2f8bee9d06b96da06763030fdc52e"
+  },
+  "P15_V3_5_Final_Closeout_started": false,
+  "created_at": "2026-07-27T18:19:10Z"
+}

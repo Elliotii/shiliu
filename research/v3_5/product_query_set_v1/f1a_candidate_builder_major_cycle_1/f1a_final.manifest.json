@@ -1,0 +1,54 @@
+{
+  "schema_version": "v3.5-b-f1a-final-manifest-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "status": "complete",
+  "outcome_candidate": "rejected_keep_existing_builder",
+  "final_builder_candidate": "stage3b-acronym-w3.5-v1",
+  "frozen_f1a_builder": "stage3b-adaptive-swap-w3.5-v1",
+  "builder_freeze_seal": {
+    "path": "f1a_implementation_freeze_seal.json",
+    "sha256": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b"
+  },
+  "evaluation_runner_freeze_seal": {
+    "path": "f1a_evaluation_runner_freeze_seal.json",
+    "sha256": "86392cfb08f2e252aa408d89992cd5fd49f72babaa236242800493f53d4db168"
+  },
+  "required_outputs": [
+    "F1A_EVALUATION_HARNESS_RECOVERY_REPORT.md",
+    "f1a_evaluation_runner_freeze_seal.json",
+    "f1a_gold_free_development_dry_run.json",
+    "f1a_gold_free_stress_dry_run.json",
+    "f1a_development_final_metrics.json",
+    "f1a_development_final_per_query.jsonl",
+    "f1a_stress_final_metrics.json",
+    "f1a_final_acceptance_gate.json",
+    "f1a_final_execution_decision.json",
+    "f1a_final.audit.json",
+    "f1a_final.manifest.json",
+    "f1a_final.file_hash_manifest.jsonl"
+  ],
+  "preserved_prior_outputs": [
+    "F1A_CANDIDATE_BUILDER_MAJOR_CYCLE_BLOCKING_REPORT.md",
+    "f1a.audit.json",
+    "f1a.execution_decision.json",
+    "f1a.manifest.json",
+    "f1a.file_hash_manifest.jsonl",
+    "f1a_swap_traces"
+  ],
+  "formal_runs": {
+    "development_complete_scored_run_count": 1,
+    "stress_complete_scored_run_count": 1,
+    "prior_incomplete_development_attempt_count": 1,
+    "prior_incomplete_attempt_reused_as_score": false
+  },
+  "cycle": {
+    "builder_major_cycles_used": 1,
+    "builder_major_cycles_remaining": 0,
+    "second_builder_major_cycle_authorized": false
+  },
+  "acceptance_status": "pending_v3_5_b_review",
+  "f1a_closed_by_codex": false,
+  "f1b_started": false,
+  "stage4_started": false,
+  "p10_started": false
+}

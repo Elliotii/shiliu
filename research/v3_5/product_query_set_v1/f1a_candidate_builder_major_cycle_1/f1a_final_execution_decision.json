@@ -1,0 +1,22 @@
+{
+  "schema_version": "v3.5-b-f1a-final-execution-decision-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "status": "complete",
+  "outcome_candidate": "rejected_keep_existing_builder",
+  "final_builder_candidate": "stage3b-acronym-w3.5-v1",
+  "frozen_f1a_builder": "stage3b-adaptive-swap-w3.5-v1",
+  "frozen_f1a_builder_status": "rejected_after_valid_single_major_cycle",
+  "reason": "The complete Development score failed the unchanged product quality and no-regression gates; Stress passed its floor.",
+  "builder_major_cycles_used": 1,
+  "builder_major_cycles_remaining": 0,
+  "second_builder_major_cycle_authorized": false,
+  "complete_development_scored_runs": 1,
+  "complete_stress_scored_runs": 1,
+  "post_runner_freeze_behavior_change": false,
+  "post_builder_freeze_behavior_change": false,
+  "f1a_closed_by_codex": false,
+  "acceptance_status": "pending_v3_5_b_review",
+  "f1b_started": false,
+  "stage4_started": false,
+  "p10_started": false
+}

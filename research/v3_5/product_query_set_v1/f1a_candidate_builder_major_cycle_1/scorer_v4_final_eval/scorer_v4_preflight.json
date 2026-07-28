@@ -1,0 +1,22 @@
+{
+  "acceptance_gates_unchanged": true,
+  "builder_freeze_seal_hash": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+  "builder_freeze_seal_valid": true,
+  "builder_source_and_config_unchanged": true,
+  "candidate_replay_started": false,
+  "canonicalizer_and_matcher_source_hashes_match_freeze_seal": true,
+  "contract_json_hash_matches_freeze_seal": true,
+  "contract_test_results_hash_matches_freeze_seal": true,
+  "development_gold_hashes_unchanged": true,
+  "development_gold_opened_for_scoring": false,
+  "development_inputs_unchanged": true,
+  "formal_development_run_count": 0,
+  "formal_stress_run_count": 0,
+  "schema_version": "v3.5-b-f1a-scorer-v4-preflight-v1",
+  "score_seen": false,
+  "scorer_v4_freeze_seal": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/SCORER_V4_FREEZE_SEAL.json",
+  "scorer_v4_freeze_seal_hash": "e45b4c5604d2de9171086093ad2e26d09dcfd446f233a6397af9f86a4876b669",
+  "scorer_v4_hash_valid": true,
+  "status": "pass",
+  "stress_inputs_unchanged": true
+}

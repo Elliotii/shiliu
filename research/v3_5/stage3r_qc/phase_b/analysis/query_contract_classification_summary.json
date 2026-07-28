@@ -1,0 +1,8 @@
+{
+  "counts": {
+    "persistent_retrieval_gap": 9
+  },
+  "semantic_neighbor_recall": {
+    "status": "not_scored_no_frozen_definition"
+  }
+}

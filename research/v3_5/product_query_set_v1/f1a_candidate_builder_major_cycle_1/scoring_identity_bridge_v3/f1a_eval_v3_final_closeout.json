@@ -1,0 +1,96 @@
+{
+  "F1A_status": "closed_without_valid_algorithm_verdict",
+  "F1B_status": "not_started",
+  "P10_status": "not_started",
+  "Stage4_status": "not_started",
+  "acceptance_gates": {
+    "builder_primary_failures_maximum_4": false,
+    "candidate_cap_32_per_video": true,
+    "complete_group_coverage_minimum_8_of_13": false,
+    "existing_six_builder_hits_regressions_allowed_0": false,
+    "forced_swaps_false": true,
+    "invalid_identity_source_timeline_maximum_0": true,
+    "maximum_swaps_per_query_4": true,
+    "required_aspect_coverage_minimum_69_23_percent": false,
+    "required_span_recall_minimum_69_23_percent": false,
+    "stress_complete_group_coverage_minimum_11_of_20": false
+  },
+  "authoritative_mapping": {
+    "cardinality": 144,
+    "one_to_one": true,
+    "schema_version": "frozen-snapshot-videos-platform-source-id-part-v1",
+    "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "source": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+  },
+  "builder_unchanged": {
+    "freeze_seal_sha256": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+    "source_sha256": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1",
+    "verified": true
+  },
+  "change_status": {
+    "acceptance_gate": false,
+    "builder": false,
+    "development_gold": false,
+    "gate": false,
+    "retrieval": false,
+    "scorer_video_identity_canonicalization": true,
+    "selector": false,
+    "split": false,
+    "stress_inputs": false
+  },
+  "development_eval_v3": {
+    "builder_primary_failures": 12,
+    "complete_group_coverage": "0/13",
+    "existing_six_regressions": [
+      "PQS_V1_Q006",
+      "PQS_V1_Q007",
+      "PQS_V1_Q011",
+      "PQS_V1_Q012",
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ],
+    "required_aspect_coverage": 0.0,
+    "required_span_recall": 0.0
+  },
+  "eval_v1": {
+    "development": "0/13",
+    "status": "invalid_due_to_identity_bridge_defect"
+  },
+  "eval_v2": {
+    "development": "0/13",
+    "status": "invalid_due_to_BVID_numeric_identity_defect"
+  },
+  "eval_v3_valid": false,
+  "eval_v3_validity_reason": {
+    "classification": "new_scoring_defect_exposed_no_fix_or_rerun_allowed",
+    "detail": "The frozen v3 matcher compared source_type in addition to the sole authorized BVID-to-numeric video canonicalization. Stress Gold uses raw_subtitle while the authoritative runtime candidate source label is ai, despite equal video, source_version, timeline, and mapped physical segments. This unauthorized comparison collapsed frozen Stress coverage from v2 14/20 to v3 0/20.",
+    "post_score_scorer_fix": false,
+    "second_development_run": false,
+    "second_stress_run": false
+  },
+  "final_builder": "stage3b-acronym-w3.5-v1",
+  "formal_run_counts": {
+    "development": 1,
+    "stress": 1
+  },
+  "gold_free_tests": {
+    "query_specific_rules": 0,
+    "related_tests_passed": 131,
+    "required_identity_cases_passed": true
+  },
+  "new_builder_algorithm_result": "unresolved",
+  "outcome": "no_promotion_due_to_unresolved_evaluation_infrastructure",
+  "output_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v3/SCORER_V3_FREEZE_SEAL.json": "0dab067ee28569f0fb544f8c2af7fae535ba01013245eeaaaf1b20e293eaac47",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v3/f1a_eval_v3_development_metrics.json": "9998d3a5eb2185df5d7171d921c95e8eb2e6a2960b97894da5b98caf393d78e1",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v3/f1a_eval_v3_development_per_query.jsonl": "a3db235cfc645407caa20cf1da7625ba37fd8c03d86bfde6144d8fcc655523d9",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v3/f1a_eval_v3_stress_metrics.json": "b77e9ff9a4a9b2c7669ab60d297cf0ada3957b6d8e021a4dfbf1bfce50e57f63",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v3/scorer_v3_preflight.json": "10d2e7d796f8888d1738c1597a3d52f5b9f2f80d587327025af80173efed9e95"
+  },
+  "schema_version": "v3.5-b-f1a-scorer-v3-final-closeout-v1",
+  "session_can_be_closed": true,
+  "stress_eval_v3": {
+    "complete_group_coverage": "0/20",
+    "prior_v2_same_frozen_input_coverage": "14/20"
+  }
+}

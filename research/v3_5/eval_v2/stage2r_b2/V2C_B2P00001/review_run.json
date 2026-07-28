@@ -1,0 +1,11 @@
+{
+  "agreement_status": "mandatory_human_review",
+  "candidate_id": "SAFEQ_4c4b6895fe044589f229",
+  "case_id": "V2C_B2P00001",
+  "human_review_required": true,
+  "packet_bytes_equal": true,
+  "packet_sha256": "95077479bb6ee15b4f79fedc21f9c21b589c2df2146418888045dbfe30aada56",
+  "primary_status": "valid",
+  "projection_status": "annotatable",
+  "secondary_status": "valid"
+}

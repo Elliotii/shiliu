@@ -1,0 +1,85 @@
+{
+  "boundary_notes": [],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [
+    {
+      "alternative_expression_notes": "",
+      "required_aspect_indices": [
+        0
+      ],
+      "required_span_indices": [
+        0
+      ]
+    },
+    {
+      "alternative_expression_notes": "",
+      "required_aspect_indices": [
+        1
+      ],
+      "required_span_indices": [
+        1
+      ]
+    },
+    {
+      "alternative_expression_notes": "",
+      "required_aspect_indices": [
+        2
+      ],
+      "required_span_indices": [
+        2
+      ]
+    }
+  ],
+  "missing_aspect_indices": [],
+  "optional_context_spans": [],
+  "reason_codes": [],
+  "required_aspects": [
+    {
+      "text": "戚薇上线了一个名为“大元”的AI助手。"
+    },
+    {
+      "text": "好的想法来源于日常的细碎观察、思考和与人对话。"
+    },
+    {
+      "text": "WAIC大会（世界人工智能大会）于7月17日至19日在上海举行。"
+    }
+  ],
+  "required_spans": [
+    {
+      "segment_ids": [
+        "BV1zDTX6eEGu_seg_000006",
+        "BV1zDTX6eEGu_seg_000007"
+      ],
+      "supported_aspect_indices": [
+        0
+      ]
+    },
+    {
+      "segment_ids": [
+        "BV1zDTX6eEGu_seg_000036",
+        "BV1zDTX6eEGu_seg_000037",
+        "BV1zDTX6eEGu_seg_000038",
+        "BV1zDTX6eEGu_seg_000039"
+      ],
+      "supported_aspect_indices": [
+        1
+      ]
+    },
+    {
+      "segment_ids": [
+        "BV1zDTX6eEGu_seg_000094",
+        "BV1zDTX6eEGu_seg_000095"
+      ],
+      "supported_aspect_indices": [
+        2
+      ]
+    }
+  ],
+  "status": "sufficient",
+  "supported_aspect_indices": [
+    0,
+    1,
+    2
+  ]
+}

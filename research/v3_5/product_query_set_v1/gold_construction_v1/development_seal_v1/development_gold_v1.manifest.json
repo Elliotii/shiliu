@@ -1,0 +1,34 @@
+{
+  "artifact_hashes": {
+    "DEVELOPMENT_GOLD_V1_SEAL_REPORT.md": "776ce87c3a2b6104e510469c05e7b9c0691e50c1fb13a458c071240450275d8b",
+    "PQS_V1_DEVELOPMENT_GOLD_SEAL_DECISION_LEDGER.json": "6caeeb1898e9aef7ed401fba4d5b0285b4c84834b6e5a2416527b74aa9352651",
+    "development_gold_v1.audit.json": "24bf42c63b7c62efe2e8753b33a19e41b2662b8781320da76b2bf4ec10be8451",
+    "development_gold_v1.execution_decision.json": "9c605ab5387717fa3599e9791307e9fc0922cb3ea994f5431eec6fdf91fdf444",
+    "development_gold_v1.seal.json": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "sealed/product_evidence_gold.development.v1.sealed.jsonl": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "sealed/product_retrieval_gold.development.v1.sealed.jsonl": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "sealed/product_sufficiency_gold.development.v1.sealed.jsonl": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+    "sealed/reviewed_case_status.development.v1.sealed.jsonl": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+  },
+  "manifest_version": "v3.5-pqs-v1-development-gold-seal-manifest-v1",
+  "output_root": "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1",
+  "p5_development_locked": {
+    "path": "research/v3_5/product_query_set_v1/split_v1/product_query_development_v1.locked.jsonl",
+    "sha256": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935"
+  },
+  "seal_version": "DEVELOPMENT_GOLD_V1",
+  "sealed_files_byte_identical": true,
+  "semantic_fields_changed": 0,
+  "source_candidate_hashes": {
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/reviewed_gold_candidate/product_evidence_gold.development.reviewed.jsonl": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/reviewed_gold_candidate/product_retrieval_gold.development.reviewed.jsonl": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/reviewed_gold_candidate/product_sufficiency_gold.development.reviewed.jsonl": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/reviewed_gold_candidate/reviewed_case_status.jsonl": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+  },
+  "source_cycle_report": {
+    "path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/DEVELOPMENT_GOLD_CYCLE_REPORT.md",
+    "sha256": "5965d7d728b5f3d98b1b357e0bd79d3ae9394ab9bb94636ce569a5ad8a0e1a62"
+  },
+  "source_root": "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/reviewed_gold_candidate",
+  "status": "sealed_execution_candidate"
+}

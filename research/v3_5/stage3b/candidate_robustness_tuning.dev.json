@@ -1,0 +1,27 @@
+{
+  "experiment_limit": "baseline_plus_two_generic_configurations",
+  "experiments": [
+    {
+      "acronym_anchor_weight": 0.0,
+      "complete_group_coverage": "3/4",
+      "config_id": "stage3a-builder-32-v1",
+      "required_span_coverage": "6/7",
+      "selected": false
+    },
+    {
+      "acronym_anchor_weight": 2.5,
+      "complete_group_coverage": "3/4",
+      "config_id": "stage3b-acronym-w2.5-v1",
+      "required_span_coverage": "6/7",
+      "selected": false
+    },
+    {
+      "acronym_anchor_weight": 3.5,
+      "complete_group_coverage": "3/4",
+      "config_id": "stage3b-acronym-w3.5-v1",
+      "required_span_coverage": "6/7",
+      "selected": true
+    }
+  ],
+  "selection_reason": "No coverage gain; stronger bounded generic anchor retained as the frozen negative robustness result. No further Builder tuning was performed."
+}

@@ -1,0 +1,102 @@
+{
+  "absolute_correct_count": 3,
+  "absolute_incorrect_count": 5,
+  "baseline": "S1_mechanical_gate_only",
+  "confusion_matrix": {
+    "insufficient": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 2,
+      "unverifiable": 1
+    },
+    "partial": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 0,
+      "unverifiable": 0
+    },
+    "sufficient": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 2,
+      "unverifiable": 2
+    },
+    "unverifiable": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 0,
+      "unverifiable": 1
+    }
+  },
+  "false_sufficient_count": 2,
+  "false_sufficient_rate_on_insufficient_plus_unverifiable": 0.5,
+  "insufficient_to_sufficient": 2,
+  "not_product_policy": true,
+  "overall_accuracy": 0.375,
+  "partial_zero_support_warning": "Partial class has zero Development support; any four-class Macro-F1 is descriptive only.",
+  "per_case": [
+    {
+      "case_id": "CASE_001",
+      "gold_status": "sufficient",
+      "prediction": "sufficient"
+    },
+    {
+      "case_id": "CASE_002",
+      "gold_status": "sufficient",
+      "prediction": "sufficient"
+    },
+    {
+      "case_id": "CASE_003",
+      "gold_status": "sufficient",
+      "prediction": "unverifiable"
+    },
+    {
+      "case_id": "CASE_005",
+      "gold_status": "sufficient",
+      "prediction": "unverifiable"
+    },
+    {
+      "case_id": "CASE_012",
+      "gold_status": "insufficient",
+      "prediction": "sufficient"
+    },
+    {
+      "case_id": "CASE_013",
+      "gold_status": "insufficient",
+      "prediction": "sufficient"
+    },
+    {
+      "case_id": "CASE_015",
+      "gold_status": "unverifiable",
+      "prediction": "unverifiable"
+    },
+    {
+      "case_id": "CASE_017",
+      "gold_status": "insufficient",
+      "prediction": "unverifiable"
+    }
+  ],
+  "per_class": {
+    "insufficient": {
+      "precision": null,
+      "recall": 0.0,
+      "support": 3
+    },
+    "partial": {
+      "precision": null,
+      "recall": null,
+      "support": 0
+    },
+    "sufficient": {
+      "precision": 0.5,
+      "recall": 0.5,
+      "support": 4
+    },
+    "unverifiable": {
+      "precision": 0.25,
+      "recall": 1.0,
+      "support": 1
+    }
+  },
+  "unverifiable_to_sufficient": 0
+}

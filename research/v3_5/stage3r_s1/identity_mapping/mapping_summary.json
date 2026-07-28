@@ -1,0 +1,15 @@
+{
+  "ambiguous_mappings": 0,
+  "bridge_version": "v3.5-stage3r-segment-identity-bridge-v1",
+  "cross_source_mappings": 0,
+  "cross_timeline_mappings": 0,
+  "cross_version_mappings": 0,
+  "duplicate_canonical_keys": 0,
+  "exact_identity_matches": 457,
+  "gold_segment_references": 457,
+  "gold_segment_references_present_in_frozen_candidates": 274,
+  "gold_segments_identity_resolved": 457,
+  "missing_gold_identity": 0,
+  "runtime_membership_occurrences": 4503,
+  "runtime_universe_physical_segments": 2667
+}

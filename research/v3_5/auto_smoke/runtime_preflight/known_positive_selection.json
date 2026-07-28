@@ -1,0 +1,20 @@
+{
+  "hybrid": {
+    "expected_auto_branch": "hybrid",
+    "filters": {},
+    "query": "哪个视频解释了 CLI 相比 MCP 的优势？",
+    "query_id": "Q15",
+    "scope": "transcript_chunk",
+    "selection_rule": "first non-held-out frozen Auto result routed hybrid",
+    "source_artifact": "research/v3_eval/eval_per_query_results.jsonl"
+  },
+  "lexical": {
+    "expected_auto_branch": "lexical",
+    "filters": {},
+    "query": "MCP",
+    "query_id": "Q01",
+    "scope": "all",
+    "selection_rule": "first non-held-out frozen Auto result routed lexical",
+    "source_artifact": "research/v3_eval/eval_per_query_results.jsonl"
+  }
+}

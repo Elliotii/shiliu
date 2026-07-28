@@ -1,0 +1,48 @@
+{
+  "all_intents_empty": true,
+  "hit_type": "none",
+  "intent_results": [
+    {
+      "empty_result": true,
+      "intent_index": 1,
+      "query": "OpenSpec 使用流程",
+      "reused_q1_result": false,
+      "target_hit": false,
+      "target_rank": null
+    },
+    {
+      "empty_result": true,
+      "intent_index": 2,
+      "query": "OpenSpec 减少需求返工",
+      "reused_q1_result": false,
+      "target_hit": false,
+      "target_rank": null
+    },
+    {
+      "empty_result": true,
+      "intent_index": 3,
+      "query": "OpenSpec 项目实践",
+      "reused_q1_result": false,
+      "target_hit": false,
+      "target_rank": null
+    }
+  ],
+  "intents": [
+    "OpenSpec 使用流程",
+    "OpenSpec 减少需求返工",
+    "OpenSpec 项目实践"
+  ],
+  "logical_intent_count": 3,
+  "new_retrieval_call_count": 3,
+  "reused_q1_result_count": 0,
+  "target_best_rank": null,
+  "target_hit": false,
+  "target_hit_intents": [],
+  "target_per_intent_ranks": {
+    "1": null,
+    "2": null,
+    "3": null
+  },
+  "union_candidate_video_count": 0,
+  "unique_execution_query_count": 3
+}

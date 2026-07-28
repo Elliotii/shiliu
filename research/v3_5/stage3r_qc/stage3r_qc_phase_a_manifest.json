@@ -1,0 +1,13 @@
+{
+  "anonymized_packet_path": "query_authoring/STAGE3R_QC_ANONYMIZED_QUERY_PACKET.md",
+  "blank_template_path": "query_authoring/stage3r_qc_query_decisions.template.jsonl",
+  "created_at": "2026-07-23T21:00:45+00:00",
+  "identity_preflight_passed": true,
+  "input_stress_set_sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148",
+  "phase_b_run": false,
+  "runner_version": "v3.5-stage3r-qc-phase-a-v1",
+  "selected_cases": 10,
+  "stage": "stage3r_qc_phase_a",
+  "status": "Stage 3R-QC Phase A Complete",
+  "stop_state": "Ready for Human Query Authoring"
+}

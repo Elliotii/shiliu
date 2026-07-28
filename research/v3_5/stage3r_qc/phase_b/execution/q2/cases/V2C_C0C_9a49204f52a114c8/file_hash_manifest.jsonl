@@ -1,0 +1,14 @@
+{"path":"intent_01/request.json","sha256":"8a128f399c8a510c3c2bf5be7342961e494a9e8200fa028c72c640ef22aa5515","size":374}
+{"path":"intent_01/runtime_trace.json","sha256":"e79e6b1bf00740fb7413b613d7df656ca2d096ef614f242a828dcc05faa95301","size":850}
+{"path":"intent_01/runtime_usage.json","sha256":"01b047644cf3a4030c92cb55601ace5d0970f9eccdbce4d3a050d9b9be398573","size":120}
+{"path":"intent_01/search_candidate_set.json","sha256":"267fd4978c82a3dcf5aa4c57549d106c98f4d16c4e8d4c5bdad08d91b6c818f4","size":1115}
+{"path":"intent_02/request.json","sha256":"aa1d5f4860830beec595cd2bcbb3c289f59b4fe828c81c50b886b05a2399f0f7","size":368}
+{"path":"intent_02/runtime_trace.json","sha256":"ef1a1d96e6d93b7ed500d7395917bd80a5ddda6a25bf8c2fe1d6c834e5414740","size":850}
+{"path":"intent_02/runtime_usage.json","sha256":"01b047644cf3a4030c92cb55601ace5d0970f9eccdbce4d3a050d9b9be398573","size":120}
+{"path":"intent_02/search_candidate_set.json","sha256":"36b52866cf52a0b9522e10029903970aec357c11ebf80112cb22447932ba5de3","size":1115}
+{"path":"intent_03/request.json","sha256":"0b2957199e6448f425e98f88e0de3934d0d8a0483f04b55ca4481e1bdab02377","size":374}
+{"path":"intent_03/runtime_trace.json","sha256":"7f71b04282d1aa04eb78605c6694357bfb175af2d0ab9063e053212f19800955","size":850}
+{"path":"intent_03/runtime_usage.json","sha256":"01b047644cf3a4030c92cb55601ace5d0970f9eccdbce4d3a050d9b9be398573","size":120}
+{"path":"intent_03/search_candidate_set.json","sha256":"f6711b759c346d8f4bc764a4e7be51a26ce0555eb1b73efc041beab37cb44338","size":1115}
+{"path":"q2_case_summary.json","sha256":"f78bd666a64dda577bce20fc05d9bdda7cb8227632f5c62903a86b2130c3a15f","size":1081}
+{"path":"q2_union.json","sha256":"1c3ce70c6bceb5a26d3577bc8afda10952c95956388bbc681c682357d07f1244","size":99}

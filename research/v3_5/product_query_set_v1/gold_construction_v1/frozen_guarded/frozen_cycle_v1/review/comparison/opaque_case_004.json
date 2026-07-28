@@ -1,0 +1,23 @@
+{
+  "comparison_record_version": "FROZEN_COMPARISON_RECORD_V1",
+  "opaque_case_ordinal": 4,
+  "opaque_batch_ordinal": 2,
+  "record_ordinal_within_batch": 1,
+  "reviewer_unit_id": "frozen_reviewer_B",
+  "outcome": "agree",
+  "initial_annotation_locator": {
+    "artifact": "opaque_batch_02.jsonl",
+    "record_ordinal": 1,
+    "record_sha256": "ce06725cdc4b47cedaf09230603681ae668efa2e678aa4e005571c372a1b2741"
+  },
+  "independent_draft_locator": {
+    "artifact": "batch_02.independent_draft.jsonl",
+    "record_ordinal": 1,
+    "record_sha256": "00e3dfcb632294c8888d4fd1f09d78fb6facdc977a6bae188fe86c614dad8968"
+  },
+  "opaque_case_identity_sha256": "b6ab0f9c75b6ba4be985ed69f88196d0f6fc54d4a20eea72344ea3c146458b59",
+  "replacement_records_present": false,
+  "replacement_three_layer_complete": false,
+  "replacement_records": null,
+  "comparison_complete": true
+}

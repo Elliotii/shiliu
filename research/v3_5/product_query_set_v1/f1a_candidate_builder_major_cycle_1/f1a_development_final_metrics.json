@@ -1,0 +1,51 @@
+{
+  "schema_version": "v3.5-b-f1a-development-final-metrics-v1",
+  "status": "complete",
+  "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+  "runtime_outputs": "14/14",
+  "builder_eligible_denominator": 13,
+  "complete_development_score": true,
+  "complete_group_coverage": {
+    "numerator": 0,
+    "denominator": 13,
+    "rate": 0.0
+  },
+  "builder_primary_failures": 12,
+  "required_span_recall": 0.0,
+  "required_aspect_coverage": 0.0,
+  "existing_six_regressions": [
+    "PQS_V1_Q006",
+    "PQS_V1_Q007",
+    "PQS_V1_Q011",
+    "PQS_V1_Q012",
+    "PQS_V1_Q013",
+    "PQS_V1_Q019"
+  ],
+  "candidate_count_total": 3504,
+  "invalid_candidate_count": 0,
+  "mean_window_seconds": 14.275712328767124,
+  "builder_latency_ms": {
+    "mean": 2400.0789491193636,
+    "max": 4877.303875051439,
+    "min": 523.702957900241
+  },
+  "swap_count": {
+    "total": 52,
+    "mean": 3.7142857142857144,
+    "max": 4,
+    "zero_swap_query_count": 1
+  },
+  "development_scored_run_count": 1,
+  "runtime_retrieval_calls": 0,
+  "runtime_embedding_calls": 0,
+  "runtime_llm_calls": 0,
+  "development_gold_hashes": {
+    "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+    "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+  },
+  "frozen_evaluation_gold_opened": false,
+  "source_artifact": "f1a_after_metrics.json",
+  "source_artifact_sha256": "fec200ef5252b8d423fbe855c51c39f2e2232836a1f981156004eb439de9db3a"
+}

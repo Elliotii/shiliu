@@ -1,0 +1,8 @@
+{
+  "authorized_fallback_recommendation": null,
+  "failure_class": null,
+  "human_review_required": true,
+  "product_default_wiring_authorized": false,
+  "quality_conclusion_allowed": true,
+  "release_gate": "passed"
+}

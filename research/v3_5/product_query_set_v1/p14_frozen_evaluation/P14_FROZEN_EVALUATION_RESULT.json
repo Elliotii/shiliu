@@ -1,0 +1,84 @@
+{
+  "Frozen_Gold_opened": true,
+  "Frozen_Gold_opened_after_prediction_freeze": true,
+  "Frozen_Query_opened": true,
+  "case_count": 10,
+  "case_recomputation": false,
+  "created_at": "2026-07-27T19:01:32+00:00",
+  "evaluation_validity": "valid",
+  "evidence_metrics": {
+    "candidate_builder_complete_group_availability": 0.0,
+    "evidence_bundle_complete_group_hit": 0.0,
+    "invalid_identity_count": 0,
+    "required_aspect_coverage": {
+      "builder_macro": 0.16666666666666666,
+      "bundle_macro": 0.0
+    },
+    "required_span_recall": {
+      "builder_macro": 0.1630952380952381,
+      "bundle_macro": 0.025
+    },
+    "unverifiable_identity_count": 5
+  },
+  "failure_analysis_count": 10,
+  "formal_prediction_run_count": 1,
+  "mechanical_gate_metrics": {
+    "invalid_count": 0,
+    "judge_eligible_count": 5,
+    "routing_accuracy": 0.5,
+    "schema_version": "v3.5-mechanical-gate-metrics-v1",
+    "source_unverifiable_count": 5,
+    "unhandled_exception_count": 0
+  },
+  "next_stage": "P15_V3_5_Final_Closeout",
+  "outcome": "p14_frozen_evaluation_complete",
+  "post_result_tuning": false,
+  "prediction_modification": false,
+  "provider_recall": false,
+  "replacement_run_id": "P14_REPLACEMENT_FROZEN_EVALUATION_20260727T184443+0000",
+  "result_freeze_seal_hash": "9dfe516c354267edbf69db9470a5048499a034ea5c68c2891ceab2a95970e145",
+  "retrieval_metrics": {
+    "Hit_at_1": 0.8,
+    "Hit_at_10": 1.0,
+    "Hit_at_3": 0.8,
+    "Hit_at_5": 0.9
+  },
+  "schema_version": "v3.5-b-p14-same-run-frozen-evaluation-result-v2",
+  "status": "formally_closed",
+  "sufficiency_metrics": {
+    "evidence_id_validity_rate": 1.0,
+    "exact_four_state_accuracy": 0.2,
+    "schema_validity_rate": 1.0,
+    "severe_false_sufficient_count": 0,
+    "severe_false_unverifiable_count": 5,
+    "trace_completeness_rate": 1.0
+  },
+  "unified_result": {
+    "completed_predictions": 10,
+    "component_failure_attribution_counts": {
+      "builder_incomplete": 5,
+      "mechanical_source_unverifiable": 5
+    },
+    "end_to_end_accuracy_or_formal_existing_metric": {
+      "reason": "No pre-frozen unified Accuracy contract exists; component-joint outcomes are reported without creating a new promotion metric.",
+      "status": "not_applicable"
+    },
+    "end_to_end_correct_cases": 0,
+    "runtime_error_cases": 0,
+    "total_cases": 10
+  },
+  "validity_checks": {
+    "Frozen_Gold_opened_only_after_prediction_freeze": true,
+    "all_ten_original_case_artifacts_reused": true,
+    "configuration_hash_constant": true,
+    "freeze_barrier_correction_orchestration_only": true,
+    "frozen_component_hashes_unchanged": true,
+    "no_case_recomputed": true,
+    "no_prediction_modified": true,
+    "no_provider_recall": true,
+    "original_invalid_run_preserved": true,
+    "predictions_freeze_valid": true,
+    "replacement_run_id_unchanged": true,
+    "scorer_and_projection_hashes_valid": true
+  }
+}

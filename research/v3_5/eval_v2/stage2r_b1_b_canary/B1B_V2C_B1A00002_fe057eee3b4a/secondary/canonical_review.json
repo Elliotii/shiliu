@@ -1,0 +1,86 @@
+{
+  "case_id": "V2C_B1A00002",
+  "review": {
+    "acceptable_evidence_groups": [
+      {
+        "alternative_expression_notes": "",
+        "group_id": "G1",
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "required_span_ids": [
+          "S1"
+        ]
+      }
+    ],
+    "boundary_notes": "",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [],
+    "optional_context_spans": [],
+    "reason_codes": [],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "该视频解释了CLI相比MCP的优势"
+      }
+    ],
+    "required_spans": [
+      {
+        "end_time": 385.35,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000149",
+          "BV1o87764Ebs_seg_000150",
+          "BV1o87764Ebs_seg_000154",
+          "BV1o87764Ebs_seg_000155",
+          "BV1o87764Ebs_seg_000156",
+          "BV1o87764Ebs_seg_000163",
+          "BV1o87764Ebs_seg_000164",
+          "BV1o87764Ebs_seg_000165",
+          "BV1o87764Ebs_seg_000166",
+          "BV1o87764Ebs_seg_000167",
+          "BV1o87764Ebs_seg_000168"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S1",
+        "span_role": "required",
+        "start_time": 340.71,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      }
+    ],
+    "reviewed_full_transcript": true,
+    "status": "sufficient",
+    "supported_aspects": [
+      "A1"
+    ],
+    "transcript_first_segment_id": "BV1o87764Ebs_seg_000001",
+    "transcript_last_segment_id": "BV1o87764Ebs_seg_000374"
+  },
+  "review_metadata": {
+    "case_input_sha256": "fe057eee3b4a5809749a549734ab0915a4868409950f1dbd92ae8c63b8096e6d",
+    "completed_at": "2026-07-22T18:55:37.689427Z",
+    "latency_ms": 92802,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-secondary-reviewer-draft-repair-prompt-v2-query-grounded",
+    "repair_count": 1,
+    "reviewer_model": "deepseek-v4-pro",
+    "reviewer_provider": "deepseek",
+    "reviewer_role": "secondary",
+    "started_at": "2026-07-22T18:54:04.887427Z",
+    "usage": {
+      "cached_tokens": null,
+      "estimated_cost_usd": null,
+      "input_tokens": 52469,
+      "output_tokens": 6019
+    },
+    "validation_status": "valid"
+  }
+}

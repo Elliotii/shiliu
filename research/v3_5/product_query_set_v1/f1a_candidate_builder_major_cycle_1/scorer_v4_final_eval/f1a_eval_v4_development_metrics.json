@@ -1,0 +1,33 @@
+{
+  "builder_freeze_seal_hash": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+  "builder_primary_failures": 5,
+  "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+  "candidate_count_total": 3504,
+  "canonical_match_count": 0,
+  "canonical_non_match_count": 10395,
+  "canonical_unverifiable_comparison_count": 0,
+  "complete_development_score": true,
+  "complete_group_coverage": {
+    "denominator": 13,
+    "numerator": 7,
+    "rate": 0.5384615384615384
+  },
+  "development_gold_hashes": {
+    "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+    "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "existing_six_regressions": [],
+  "forced_swaps": false,
+  "formal_development_run_count": 1,
+  "invalid_candidate_count": 0,
+  "maximum_candidate_count_per_query": 299,
+  "maximum_swap_count_per_query": 4,
+  "required_aspect_coverage": 0.6923076923076923,
+  "required_span_recall": 0.6923076923076923,
+  "schema_version": "v3.5-b-f1a-development-eval-v4-v1",
+  "scorer_v4_freeze_seal_hash": "e45b4c5604d2de9171086093ad2e26d09dcfd446f233a6397af9f86a4876b669",
+  "scorer_version": "scorer_v4_evidence_identity_contract_v1",
+  "unverifiable_scoring_identity_count": 0
+}

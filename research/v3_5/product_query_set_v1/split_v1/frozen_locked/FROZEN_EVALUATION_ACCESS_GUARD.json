@@ -1,0 +1,27 @@
+{
+  "guard_version": "pqs-v1-frozen-evaluation-access-guard-v1",
+  "split_version": "PQS_V1_SPLIT_V1",
+  "status": "sealed_before_formal_evaluation",
+  "protected_file": "research/v3_5/product_query_set_v1/split_v1/frozen_locked/product_query_frozen_evaluation_v1.locked.jsonl",
+  "protected_file_sha256": "faf962049281cba4c8a035e64068ef91b7cfa9159ea438cfe33052a225add44f",
+  "allowed_before_formal_frozen_run": [
+    "identity_hash_verification",
+    "schema_validation",
+    "authorized_gold_construction_under_future_contract",
+    "case_completeness_validation"
+  ],
+  "forbidden_before_formal_frozen_run": [
+    "run_retrieval_for_tuning",
+    "inspect_prediction_failures_for_development",
+    "modify_query_or_split",
+    "move_difficult_queries_to_development",
+    "rerun_until_metrics_improve"
+  ],
+  "future_access_requirement": {
+    "explicit_task_contract": true,
+    "access_logged": true,
+    "purpose_limited": true
+  },
+  "frozen_prediction_created": false,
+  "frozen_gold_created": false
+}

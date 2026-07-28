@@ -1,0 +1,46 @@
+{
+  "input_identity": {
+    "p4_verified": true,
+    "p5_verified": true,
+    "p6_verified": true,
+    "decision_ledger_verified": true
+  },
+  "packetization": {
+    "development_query_count": 14,
+    "frozen_query_count": 10,
+    "development_batch_count": 7,
+    "frozen_batch_count": 5,
+    "all_queries_packetized_once": true,
+    "packet_query_overlap": 0
+  },
+  "neutrality": {
+    "target_video_hints": 0,
+    "relevance_labels": 0,
+    "evidence_suggestions": 0,
+    "sufficiency_suggestions": 0,
+    "system_results_in_packets": 0,
+    "existing_gold_in_packets": 0
+  },
+  "role_separation": {
+    "packet_exporter_is_annotator": false,
+    "packet_exporter_is_reviewer": false,
+    "same_session_annotation_and_review_allowed": false
+  },
+  "scope": {
+    "semantic_transcript_annotation_performed": false,
+    "real_gold_created": false,
+    "product_pipeline_calls": 0,
+    "p7b_started": false,
+    "p7c_started": false,
+    "p7d_started": false,
+    "p7e_started": false,
+    "p8_started": false
+  },
+  "transcript_identity": {
+    "semantic_content_interpreted": false,
+    "identity_catalog_source_count": 131,
+    "segment_count_mechanically_counted": 65872,
+    "all_catalog_sources_hash_bound": true,
+    "all_catalog_timelines_replayable": true
+  }
+}

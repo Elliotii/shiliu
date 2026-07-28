@@ -1,0 +1,10 @@
+{"case_id":"C2C_16019b3c36a8945b","human_notes":"建议稿；仅依据脱敏 Packet。Q1 用于主题发现，Q2 分开覆盖适用任务、异常值/不平衡与选择比较。","q1_discovery_query":"MSE 和交叉熵损失函数","q2_retrieval_intents":["MSE 适用任务和异常值","交叉熵适用任务和类别不平衡","MSE 与交叉熵怎么选"]}
+{"case_id":"C2C_a1c0207a1bc56a91","human_notes":"建议稿；Q1 保留核心概念，Q2 分别覆盖基础区别、运行方式与安全风险。","q1_discovery_query":"终端、命令行和命令的区别","q2_retrieval_intents":["终端和命令行基础","命令行命令怎么运行","命令行误删文件安全"]}
+{"case_id":"C2C_ee3fac675fc7d408","human_notes":"建议稿；Q1 找到 AI 与 Godot 精灵动画导入主题，Q2 区分流程与自动/手工对比。","q1_discovery_query":"AI 自动导入 Godot 精灵动画","q2_retrieval_intents":["Godot 精灵动画自动导入","AI 导入精灵动画流程","自动导入和手工导入对比"]}
+{"case_id":"C3C_56b2c368638a31c3","human_notes":"建议稿；Q1 用宽泛的项目实践表达，Q2 分别覆盖流程、返工影响与实际使用。","q1_discovery_query":"OpenSpec 项目需求管理","q2_retrieval_intents":["OpenSpec 使用流程","OpenSpec 减少需求返工","OpenSpec 项目实践"]}
+{"case_id":"C3C_98e93af3d9519c76","human_notes":"建议稿；保留 Packet 中的 Home Rail 写法，不引入外部名称校正。","q1_discovery_query":"Home Rail 是什么","q2_retrieval_intents":["Home Rail 适用任务","Home Rail 使用限制","Home Rail 后续规划"]}
+{"case_id":"V2C_C0C_0492bb2ae33b5cec","human_notes":"建议稿；定义型问题只需两个互补检索意图，避免人为增加无效多查询。","q1_discovery_query":"Python 数字类型和类型转换","q2_retrieval_intents":["Python 数字类型","Python 类型转换注意事项"]}
+{"case_id":"V2C_C0C_185d322d5f9a00b3","human_notes":"建议稿；Q2 将长链路拆成部署、测试和回滚三个自然方面。","q1_discovery_query":"应用从原型到云部署","q2_retrieval_intents":["应用云部署流程","自动化测试上线流程","云部署回滚机制"]}
+{"case_id":"V2C_C0C_958161474678bd3f","human_notes":"建议稿；Q1 保留三个核心术语，Q2 分开覆盖两个机制及选择问题。","q1_discovery_query":"SFT completion-only NEFTune","q2_retrieval_intents":["completion-only 作用","NEFTune 作用和调参","SFT completion-only 和 NEFTune 怎么选"]}
+{"case_id":"V2C_C0C_9618a83c9df4f059","human_notes":"建议稿；Q2 按评测、触发和文档结构拆分，不引用任何目标视频措辞。","q1_discovery_query":"高质量 Skill 设计","q2_retrieval_intents":["Skill 评测设计","Skill 触发边界","Skill 正文和目录结构"]}
+{"case_id":"V2C_C0C_9a49204f52a114c8","human_notes":"建议稿；Q1 聚焦生产化与评测，Q2 分开覆盖工程、离线和在线评测。","q1_discovery_query":"RAG 生产化和质量评测","q2_retrieval_intents":["RAG 生产工程能力","RAG 离线评测","RAG 在线质量评测"]}

@@ -1,0 +1,16 @@
+{
+  "allowlist_exact_match": true,
+  "leaked_gold_fields": 0,
+  "leaked_runtime_results": 0,
+  "leaked_target_video_fields": 0,
+  "leaked_video_id_values": [],
+  "packet_fields": [
+    "authoring_instruction",
+    "case_id",
+    "neutral_topic_terms",
+    "original_query",
+    "query_type"
+  ],
+  "passed": true,
+  "target_video_titles_read_for_packet": false
+}

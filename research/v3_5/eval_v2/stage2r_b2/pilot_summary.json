@@ -1,0 +1,38 @@
+[
+  {
+    "agreement_status": "mandatory_human_review",
+    "candidate_id": "SAFEQ_4c4b6895fe044589f229",
+    "case_id": "V2C_B2P00001",
+    "evaluation_view": "single_video_topic_evidence",
+    "evidence_question": "该视频的完整原字幕是否实质讨论了 RAG？",
+    "human_review_packet": "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/human_review_packet.md",
+    "original_query": "RAG",
+    "primary_attempt_count": 1,
+    "primary_query_grounding": "valid",
+    "primary_repair_count": 0,
+    "primary_status": "valid",
+    "projection_status": "annotatable",
+    "secondary_attempt_count": 1,
+    "secondary_query_grounding": "valid",
+    "secondary_repair_count": 0,
+    "secondary_status": "valid"
+  },
+  {
+    "agreement_status": "mandatory_human_review",
+    "candidate_id": "SAFEQ_ab03f4a17565fae4de35",
+    "case_id": "V2C_B2P00002",
+    "evaluation_view": "single_video_topic_evidence",
+    "evidence_question": "该视频的完整原字幕是否实质讨论了 vibe coding？",
+    "human_review_packet": "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/human_review_packet.md",
+    "original_query": "vibe coding",
+    "primary_attempt_count": 1,
+    "primary_query_grounding": "valid",
+    "primary_repair_count": 0,
+    "primary_status": "valid",
+    "projection_status": "annotatable",
+    "secondary_attempt_count": 1,
+    "secondary_query_grounding": "valid",
+    "secondary_repair_count": 0,
+    "secondary_status": "valid"
+  }
+]

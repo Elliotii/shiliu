@@ -1,0 +1,10 @@
+{
+  "auto_routed_to_hybrid": 0,
+  "auto_routed_to_lexical": 3,
+  "auto_target_hits": 3,
+  "clear_regression_count": 0,
+  "empty_result_regression_count": 0,
+  "exact_entity_total": 3,
+  "lexical_control_target_hits": 3,
+  "runtime_failure_count": 0
+}

@@ -1,0 +1,13 @@
+{"path":"reviewed_gold_candidate/product_evidence_gold.frozen.v1.reviewed.jsonl","sha256":"b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827"}
+{"path":"reviewed_gold_candidate/product_retrieval_gold.frozen.v1.reviewed.jsonl","sha256":"2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34"}
+{"path":"reviewed_gold_candidate/product_sufficiency_gold.frozen.v1.reviewed.jsonl","sha256":"ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a"}
+{"path":"reviewed_gold_candidate/reviewed_case_status.frozen.v1.jsonl","sha256":"67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259"}
+{"path":"sealed/product_evidence_gold.frozen.v1.sealed.jsonl","sha256":"b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827"}
+{"path":"sealed/product_retrieval_gold.frozen.v1.sealed.jsonl","sha256":"2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34"}
+{"path":"sealed/product_sufficiency_gold.frozen.v1.sealed.jsonl","sha256":"ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a"}
+{"path":"sealed/reviewed_case_status.frozen.v1.sealed.jsonl","sha256":"67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259"}
+{"path":"internal_protected/product_gold_frozen_v1.manifest.json","sha256":"3978a4339f791c0faf102be9b565148f07836317b96df7a6a10116226b7725e9"}
+{"path":"internal_protected/frozen_gold_v1.audit.json","sha256":"b921cef2de6cfe05fbad9979007955b0fc3753f9e694957ae4c9e44772465ac2"}
+{"path":"internal_protected/frozen_gold_v1.execution_decision.json","sha256":"c35b7a12077624da6d094302f83dae8d3177b6a5199a773dd4e8b222aded87a3"}
+{"path":"internal_protected/frozen_gold_v1.seal.json","sha256":"166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8"}
+{"path":"internal_protected/FROZEN_GOLD_V1_INTERNAL_REPORT.md","sha256":"b202178a96cbc885eb0edfccb77e9d3b8999d3a025c2f14b2c2367a80ac5e6eb"}

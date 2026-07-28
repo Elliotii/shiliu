@@ -1,0 +1,4 @@
+{"path": "evidence_gold.independent.jsonl", "sha256": "7f97b187f6ade3b44426fe65ba040ba34996690cc8e567bd0138d2e4e4954f27"}
+{"path": "independent_draft_report.md", "sha256": "449dbc9233d2a56e9bd5908011b866b0b83f26765fc2277b3ad44e82f8ca6ef7"}
+{"path": "retrieval_gold.independent.jsonl", "sha256": "9256c1bde5bb42181d33129fcb86f060a26933519c24d509b6c23010f1f75f50"}
+{"path": "sufficiency_gold.independent.jsonl", "sha256": "f231171d13e55acb7b2f86c671804c32891e28ffc8ce79558f2f8c059f9c393e"}

@@ -1,0 +1,42 @@
+{
+  "confidence": {
+    "meaning": "confidence that the selected four-state boundary is correct",
+    "must_not_substitute_for_status": true,
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  "language": {
+    "judge_query_and_evidence_semantically_across_languages": true,
+    "language_difference_alone_is_not_a_verification_blocker": true
+  },
+  "policy_version": "v3.5-semantic-sufficiency-policy-v1",
+  "reason_codes": [
+    "SJ_ALL_MATERIAL_NEEDS_SUPPORTED",
+    "SJ_AUTHORITATIVE_VERIFICATION_BLOCKED",
+    "SJ_BLOCKING_CONFLICT",
+    "SJ_CROSS_LANGUAGE_SUPPORT",
+    "SJ_MEANINGFUL_SUBSET_WITH_MATERIAL_GAP",
+    "SJ_REVIEWABLE_WITHOUT_USABLE_MAIN_ANSWER"
+  ],
+  "statuses": {
+    "insufficient": {
+      "evidence_reviewable": true,
+      "usable_main_answer_supported": false
+    },
+    "partial": {
+      "material_gap_or_conflict": true,
+      "meaningful_support": true,
+      "usable_but_incomplete_answer_possible": true
+    },
+    "sufficient": {
+      "all_material_needs_supported": true,
+      "blocking_conflict": false,
+      "material_gap": false
+    },
+    "unverifiable": {
+      "explicit_verification_blocker": true
+    }
+  }
+}

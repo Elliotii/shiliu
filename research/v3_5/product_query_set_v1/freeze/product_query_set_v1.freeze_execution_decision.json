@@ -1,0 +1,9 @@
+{
+  "execution_status": "complete",
+  "acceptance_status": "pending_v3_5_b_review",
+  "product_query_set_formally_accepted_by_v3_5_b": false,
+  "p5_authorized": false,
+  "query_count": 24,
+  "canonical_content_sha256": "fadf21c1992d848f2904192af479f6720a059c9aeb772ccfc4cee3b220942825",
+  "locked_jsonl_sha256": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c"
+}

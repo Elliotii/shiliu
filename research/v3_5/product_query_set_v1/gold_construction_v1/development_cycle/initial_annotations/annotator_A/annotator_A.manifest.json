@@ -1,0 +1,66 @@
+{
+  "access_boundary_declaration": {
+    "authorized_development_packets_only": true,
+    "existing_gold_read": false,
+    "frozen_packet_opened": false,
+    "prediction_read": false,
+    "product_pipeline_calls": 0,
+    "reconciliation_performed": false,
+    "review_performed": false,
+    "selected_authoritative_transcripts_fully_reviewed": true
+  },
+  "assigned_batches": [
+    "DEV_BATCH_01",
+    "DEV_BATCH_03",
+    "DEV_BATCH_05",
+    "DEV_BATCH_07"
+  ],
+  "assigned_query_ids": [
+    "PQS_V1_Q003",
+    "PQS_V1_Q005",
+    "PQS_V1_Q007",
+    "PQS_V1_Q008",
+    "PQS_V1_Q014",
+    "PQS_V1_Q015",
+    "PQS_V1_Q013",
+    "PQS_V1_Q019"
+  ],
+  "batch_count": 4,
+  "completed_at": "2026-07-26T12:41:07Z",
+  "file_hashes": {
+    "DEV_BATCH_01/annotation_report.md": "61dcb9409999886f707a9c472cef12b1511ddb5e0a94a843c92b3ae69f07c5f1",
+    "DEV_BATCH_01/evidence_gold.initial.jsonl": "9b2bf811a913ada4b3bd9242acc8f8a2023166043f4349b104fab17a0f38b5a0",
+    "DEV_BATCH_01/file_hash_manifest.jsonl": "459c96285fffa1cc1fd8712f65518c9c85f90d52bd05b375f54f614ee98e6661",
+    "DEV_BATCH_01/initial_annotation_decision.jsonl": "14933e8abf7dfddf490990ae7180e1cafb73c6d9ba322221832a866ba49a79a8",
+    "DEV_BATCH_01/retrieval_gold.initial.jsonl": "27f4d96df7be7b71ab322d56f831d196df8405e022894b582dcd1625aced57c6",
+    "DEV_BATCH_01/sufficiency_gold.initial.jsonl": "801cb5bd775a96380e422618a5f597558d21792a6fbde4591c66ba4c6eae3a6d",
+    "DEV_BATCH_03/annotation_report.md": "186f517e6534d84b70667d55dd07a0ec97a4dc5ac5a6471cd8270addf312a8f9",
+    "DEV_BATCH_03/evidence_gold.initial.jsonl": "7259177a75417fae047bd4bb01bb6ce17be4a2b15198a559080cfb69f7ac2034",
+    "DEV_BATCH_03/file_hash_manifest.jsonl": "dd7da8cb924114f3b7ab03a72ee4cf3980865cedf7c9599c87d9fd4f32be4f2c",
+    "DEV_BATCH_03/initial_annotation_decision.jsonl": "ea17834603481f3f3afd167bb86f08d95f89cc0cb38ae9b9e19532d352261c71",
+    "DEV_BATCH_03/retrieval_gold.initial.jsonl": "3171a2a9282320a2b3f90db19d59c6a63df97df634e5e45bcc5b70ee27b9ff0c",
+    "DEV_BATCH_03/sufficiency_gold.initial.jsonl": "c1dc05e3102c07307dddd4f8b67ff72114ef3ed0bfb9561bbed6683a6425fafc",
+    "DEV_BATCH_05/annotation_report.md": "a8e85c1c02475be1a570bb57d2bc82ea2d42c2335c2ddbe4a38458483ebc5840",
+    "DEV_BATCH_05/evidence_gold.initial.jsonl": "3782cbc1676a06215fbaf19b4a0ef60b84006d352477aad55e35b40fafc18949",
+    "DEV_BATCH_05/file_hash_manifest.jsonl": "4b0d14fbd5a06b0f7c80f13a93dbbfa4747cb2b13fc038739515266a33813516",
+    "DEV_BATCH_05/initial_annotation_decision.jsonl": "5c4bb2e13838366968a5f9324a4257b007e3bda79209c469ee856af490858a7d",
+    "DEV_BATCH_05/retrieval_gold.initial.jsonl": "73fd668b933aad2153b7f253ab7c58e9cf1886fa2a9ec2020517f5a56c712934",
+    "DEV_BATCH_05/sufficiency_gold.initial.jsonl": "94f1f52e8435fa6d62152db6c55643b5dd89978b145681c2863971e26274d3f9",
+    "DEV_BATCH_07/annotation_report.md": "c7694c05ad385ebb7a0107c7a8611c15fada53cc9d424a231df48d69691f3edc",
+    "DEV_BATCH_07/evidence_gold.initial.jsonl": "a881b882dd46aee93bf99e2e16eabbb13995b66b16435494f605f87a2612932c",
+    "DEV_BATCH_07/file_hash_manifest.jsonl": "f4c1833b753416027ee62e18538e0fca960471e97cc6b969fe4739cd52b5edf0",
+    "DEV_BATCH_07/initial_annotation_decision.jsonl": "a5f291cea2f056a84a089faffdc5406249e172fbed6c4ec6a770faba32d72406",
+    "DEV_BATCH_07/retrieval_gold.initial.jsonl": "7afe6a35a90db5028a6dfb9186762a230a988c89476f9f186e88ec71bad74c3d",
+    "DEV_BATCH_07/sufficiency_gold.initial.jsonl": "74b9d520f72dff887737e6f6828e10bb4679032a8a2595439a500b8f966364cd"
+  },
+  "gold_version": "PRODUCT_QUERY_GOLD_V1_INITIAL_ANNOTATOR_A",
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "query_count": 8,
+  "role": "initial_annotator",
+  "unit_id": "annotator_A",
+  "validator": {
+    "name": "scripts/validate_product_gold_protocol_v1.py",
+    "result": "passed",
+    "validated_query_count": 8
+  }
+}

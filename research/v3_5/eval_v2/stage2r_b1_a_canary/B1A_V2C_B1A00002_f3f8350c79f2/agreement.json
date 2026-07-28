@@ -1,0 +1,62 @@
+{
+  "agreement_version": "v3.5-annotation-agreement-v2",
+  "case_id": "V2C_B1A00002",
+  "case_input_sha256": "f3f8350c79f2b1555036117bd57f19ab49329250fdc723d9bf8498c9afe2a008",
+  "confidence_difference": 0,
+  "evidence_group_agreement": {
+    "details": {},
+    "score": 0.0,
+    "state": "disagree"
+  },
+  "human_adjudication_required": true,
+  "label_exact_agreement": true,
+  "mandatory_triggers": [
+    "required_aspect_unresolved",
+    "supported_aspect_disagreement",
+    "evidence_group_disagreement",
+    "multiple_required_spans",
+    "reason_code_disagreement"
+  ],
+  "missing_aspect_agreement": {
+    "details": {},
+    "score": 1.0,
+    "state": "agree"
+  },
+  "reason_code_agreement": {
+    "details": {
+      "boundary_notes_equal": true
+    },
+    "score": 0.0,
+    "state": "disagree"
+  },
+  "required_aspect_agreement": {
+    "details": {
+      "method": "deterministic_token_overlap"
+    },
+    "score": 0.07142857142857142,
+    "state": "unresolved"
+  },
+  "required_span_overlap": {
+    "details": {
+      "optional_context_iou": 1.0,
+      "optional_context_state": "agree",
+      "primary_recall": 0.7,
+      "secondary_recall": 1.0
+    },
+    "score": 0.7,
+    "state": "agree"
+  },
+  "source_agreement": true,
+  "spot_check_status": "not_selected",
+  "status": "mandatory_human_review",
+  "supported_aspect_agreement": {
+    "details": {},
+    "score": 0.0,
+    "state": "disagree"
+  },
+  "time_region_overlap": {
+    "details": {},
+    "score": 1.0,
+    "state": "agree"
+  }
+}

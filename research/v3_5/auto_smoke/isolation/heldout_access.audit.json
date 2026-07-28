@@ -1,0 +1,10 @@
+{
+  "candidate_builder_calls": 0,
+  "external_embedding_calls": 0,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "heldout_accessed": false,
+  "index_rebuild_calls": 0,
+  "product_query_set_started": false,
+  "selector_calls": 0
+}

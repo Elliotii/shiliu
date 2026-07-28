@@ -1,0 +1,141 @@
+{
+  "original_ledger": "research/v3_eval/eval_gold_review.decisions.jsonl",
+  "amended_ledger": "research/v3_eval/eval_gold_review.decisions.amended.jsonl",
+  "original_sha256": "ff14628c2f8daaa1c269e517b398847b66c3c5f7bcabaa06fe911805624bab29",
+  "amended_sha256": "e93fd09bd06151d8665f50a17cc24bc2673105d21886e77b8a4cfa12f7ba0257",
+  "allowed_pairs": [
+    {
+      "query_id": "Q02",
+      "video_id": 3
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 44
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 45
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 93
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 108
+    }
+  ],
+  "actual_changed_pairs": [
+    {
+      "query_id": "Q02",
+      "video_id": 3,
+      "prior_label": "U_title",
+      "amended_label": "R_evidence"
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 45,
+      "prior_label": "U_title",
+      "amended_label": "N"
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 93,
+      "prior_label": "U_title",
+      "amended_label": "R_evidence"
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 108,
+      "prior_label": "U_title",
+      "amended_label": "N"
+    }
+  ],
+  "retained_but_revalidated_pairs": [
+    {
+      "query_id": "Q07",
+      "video_id": 44,
+      "label": "U_title"
+    }
+  ],
+  "five_row_resolutions": [
+    {
+      "query_id": "Q02",
+      "video_id": 3,
+      "bvid": "BV1ToTy6tEyc",
+      "prior_label": "U_title",
+      "amended_label": "R_evidence",
+      "human_reason": "Incremental Stage 6B human re-review: Video 3 moved from U_title to R_evidence. Frozen ASR transcript substantively discusses a multimodal RAG project direction, including unified text/image/video indexing, semantic bridging, and joint reasoning. Supporting transcript chunk 1 covers 104.110–181.980s. No new Gold interval was added.",
+      "supporting_chunk_indices": [
+        1
+      ],
+      "supporting_chunk_ids": [
+        "transcript_chunk:bilibili:BV1ToTy6tEyc:p1:chunk_2f991db2158c86a13785c279becfb40c"
+      ],
+      "optional_interval": null
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 44,
+      "bvid": "BV1ekdhBnEra",
+      "prior_label": "U_title",
+      "amended_label": "U_title",
+      "human_reason": "Authoritative subtitle coverage is partial: 36.680 seconds of a 3,609-second video. The available content is only the introduction.",
+      "supporting_chunk_indices": [],
+      "supporting_chunk_ids": [],
+      "optional_interval": null
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 45,
+      "bvid": "BV1XrEZ6NEuD",
+      "prior_label": "U_title",
+      "amended_label": "N",
+      "human_reason": "The transcript discusses configuration assets but not substantive memory write, recall, persistence, or cross-session mechanisms.",
+      "supporting_chunk_indices": [],
+      "supporting_chunk_ids": [],
+      "optional_interval": null
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 93,
+      "bvid": "BV15HXCBkEKY",
+      "prior_label": "U_title",
+      "amended_label": "R_evidence",
+      "human_reason": "The transcript directly explains local Markdown memory writes, memory.md indexing, abstraction, and memory/context handling.",
+      "supporting_chunk_indices": [
+        2
+      ],
+      "supporting_chunk_ids": [
+        "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_19a3ee676e51c6fa8da4f3e3c3f12c1f"
+      ],
+      "optional_interval": null
+    },
+    {
+      "query_id": "Q07",
+      "video_id": 108,
+      "bvid": "BV1KJ61BBEB1",
+      "prior_label": "U_title",
+      "amended_label": "N",
+      "human_reason": "The transcript is a general installation and usage tutorial without substantive persistent memory mechanisms.",
+      "supporting_chunk_indices": [],
+      "supporting_chunk_ids": [],
+      "optional_interval": null
+    }
+  ],
+  "unexpected_changes": [],
+  "invariant_diffs": [],
+  "original_label_counts": {
+    "N": 335,
+    "R_evidence": 102,
+    "R_title": 6,
+    "U_title": 9
+  },
+  "amended_label_counts": {
+    "N": 337,
+    "R_evidence": 104,
+    "R_title": 6,
+    "U_title": 5
+  },
+  "validation_status": "passed"
+}

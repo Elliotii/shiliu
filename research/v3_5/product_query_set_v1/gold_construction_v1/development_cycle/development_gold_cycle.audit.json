@@ -1,0 +1,93 @@
+{
+  "input_identity": {
+    "task_contract_sha256": "e112266314ce49d4fc86d88f991ebc697765a346a8afe1711f0516297d32fa03",
+    "decision_ledger_sha256": "99cb02349b5a67a9a33ccaaba75bc84d12a6c81be2a37db54fab3cba6c77e1ea",
+    "p7a_decision_ledger_sha256": "81b420d739641e7b6020cd6519022d4c24a83abf02a6620149d2533fefbb59f7",
+    "neutral_index_sha256": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "transcript_catalog_sha256": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4"
+  },
+  "valid_units": {
+    "annotator_A": {
+      "batches": [
+        "DEV_BATCH_01",
+        "DEV_BATCH_03",
+        "DEV_BATCH_05",
+        "DEV_BATCH_07"
+      ]
+    },
+    "annotator_B": {
+      "batches": [
+        "DEV_BATCH_02",
+        "DEV_BATCH_04",
+        "DEV_BATCH_06"
+      ]
+    },
+    "reviewer_A": {
+      "batches": [
+        "DEV_BATCH_02",
+        "DEV_BATCH_04",
+        "DEV_BATCH_06"
+      ],
+      "phase1_seal_sha256": "bf3b540666c92a3d87a29d6bbc547fdfa892fc0128f50b95d78d8045f1baeaeb"
+    },
+    "reviewer_B_replacement": {
+      "batches": [
+        "DEV_BATCH_01",
+        "DEV_BATCH_03",
+        "DEV_BATCH_05",
+        "DEV_BATCH_07"
+      ],
+      "phase1_seal_sha256": "c7ff56f2cc9f0610a9c82430a1afdc5faf207d4fb97323a781918f4cbba8a591"
+    }
+  },
+  "invalidated_attempts": [
+    {
+      "unit": "reviewer_B_original_attempt",
+      "reason": "broad diagnostic read exposed Initial Annotation before independent seal",
+      "independent_drafts_written": 0,
+      "comparison_performed": false,
+      "counted_as_valid_unit": false
+    }
+  ],
+  "assignment": {
+    "development_query_count": 14,
+    "frozen_query_count": 0,
+    "all_queries_assigned_once": true,
+    "cross_reviewer_mapping_correct": true
+  },
+  "independence": {
+    "reviewer_A_draft_before_open": true,
+    "reviewer_B_draft_before_open": true,
+    "reviewer_A_opened_at": "2026-07-26T13:07:48.136846Z",
+    "reviewer_B_opened_at": "2026-07-26T13:07:49Z"
+  },
+  "review_counts": {
+    "agree": 13,
+    "revise_gold": 1,
+    "escalate": 0,
+    "blocked_by_source": 0
+  },
+  "reconciliation": {
+    "cases": 1,
+    "rounds_max_per_case": 1,
+    "agree_reconciled": 1,
+    "still_disagree": 0,
+    "blocked_by_source": 0,
+    "second_round_started": false
+  },
+  "reviewed_candidate": {
+    "case_count": 14,
+    "p6_validator_status": "passed",
+    "evidence_replay_status": "passed",
+    "pending_user_adjudication": 0
+  },
+  "boundary": {
+    "same_unit_annotated_and_reviewed_same_case": false,
+    "orchestrator_made_semantic_decisions": false,
+    "frozen_packet_opened": false,
+    "product_prediction_read": false,
+    "existing_gold_read": false,
+    "product_pipeline_calls": 0,
+    "p8_started": false
+  }
+}

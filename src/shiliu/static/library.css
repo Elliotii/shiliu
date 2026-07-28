@@ -27,6 +27,14 @@
 .note-error { margin: 7px 0 0; color: #a74732; font-size: 11px; }
 .compact-meta, .archive-meta { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 11px; margin-top: 10px; }
 .video-card.is-archived .cover-wrap { aspect-ratio: 2.2/1; }
+.cover-wrap { background: var(--card); }
+.cover-wrap img {
+  object-position: 50% 50%;
+  transform: scale(var(--cover-zoom,1));
+  transform-origin: 50% 50%;
+}
+.cover-wrap.is-portrait-cover img { object-fit: cover; object-position: 50% 50%; }
+.cover-wrap.is-pillarboxed img { transition: transform .18s ease-out; }
 .video-card.is-archived .card-body { display: block; padding: 16px 18px; }
 .video-card.is-archived h2 { font-size: 17px; margin-bottom: 8px; }
 .video-card.is-ignored .source-tags, .video-card.is-ignored .reading-switch { display: none; }

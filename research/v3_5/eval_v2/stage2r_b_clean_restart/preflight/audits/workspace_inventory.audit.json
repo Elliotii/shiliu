@@ -1,0 +1,22 @@
+{
+  "absolute_path": "/private/tmp/shiliu-v3-5-review/stage2r-b-clean-20260723T001500Z/B0_PREFLIGHT_FIXTURE_CALL1",
+  "allowlist_passed": true,
+  "case_id": "V2C_FIXTURE01",
+  "case_input_sha256": "70ad5947169ed782b133c5627a41d59f6aa62d9fbbdc73f6432300954be237c3",
+  "inventory": [
+    "annotation_protocol_excerpt.md",
+    "annotation_review.v2.schema.json",
+    "current_case.packet.json",
+    "output",
+    "primary_reviewer.v2.md",
+    "workspace_manifest.json"
+  ],
+  "repository_copy_present": false,
+  "secret_files_present": false,
+  "workspace_version": "v3.5-primary-reviewer-workspace-v2",
+  "runtime_profile_used": "targeted_sensitive-root-deny",
+  "strict_all-nonworkspace-read-deny_confirmed": false,
+  "repository_parent_read_denied": true,
+  "raw_source_root_read_denied": true,
+  "app_state_root_read_denied": true
+}

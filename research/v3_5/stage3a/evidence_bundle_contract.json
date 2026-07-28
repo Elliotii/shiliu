@@ -1,0 +1,24 @@
+{
+  "contract_version": "v3.5-evidence-bundle-v1",
+  "required_fields": [
+    "bundle_id",
+    "query_id",
+    "video_id",
+    "source_artifact_ids",
+    "source_versions",
+    "timeline_run_ids",
+    "candidate_ids",
+    "normalized_spans",
+    "union_duration",
+    "source_texts",
+    "selection_method",
+    "score",
+    "score_breakdown",
+    "evaluation_track",
+    "end_to_end_claim_eligible",
+    "trace_id",
+    "normalization_status",
+    "validation_errors"
+  ],
+  "union_duration": "sum of merged non-overlapping candidate intervals; never envelope duration"
+}

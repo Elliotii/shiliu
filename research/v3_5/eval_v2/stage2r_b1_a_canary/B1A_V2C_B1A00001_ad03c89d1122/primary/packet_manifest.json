@@ -1,0 +1,20 @@
+{
+  "allowed_top_level_fields": [
+    "annotation_protocol_version",
+    "case_id",
+    "case_input_sha256",
+    "full_raw_transcript",
+    "packet_version",
+    "query",
+    "query_language",
+    "review_output_schema_version",
+    "segment_schema",
+    "source_metadata"
+  ],
+  "forbidden_field_scan": [],
+  "model": "gpt-5.6-terra",
+  "packet_sha256": "a89a2a9142fd5896b0b0c7286d5fc88e4b0f0c3c1105d073f20b31b18973f852",
+  "prompt_version": "v3.5-primary-reviewer-draft-prompt-v2",
+  "provider_id": "openai",
+  "schema_version": "v3.5-reviewer-draft-v1"
+}

@@ -1,0 +1,61 @@
+{
+  "boundary_notes": [
+    "字幕未直接出现“vibe coding”这一术语，但围绕使用 Codex 等 coding agent 进行代码开发、测试和迭代的工作流展开。"
+  ],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [
+    {
+      "alternative_expression_notes": "以 AI/coding agent 参与并自动化代码开发、回归测试和迭代的具体流程，实质性讨论了 vibe coding 相关主题。",
+      "required_aspect_indices": [
+        0
+      ],
+      "required_span_indices": [
+        0
+      ]
+    }
+  ],
+  "missing_aspect_indices": [],
+  "optional_context_spans": [],
+  "reason_codes": [
+    "SUBSTANTIVE_TOPIC_DISCUSSION"
+  ],
+  "required_aspects": [
+    {
+      "query_anchor_texts": [
+        "实质讨论了 vibe coding"
+      ],
+      "text": "视频是否实质讨论了 vibe coding。"
+    }
+  ],
+  "required_spans": [
+    {
+      "segment_ids": [
+        "BV1o87764Ebs_seg_000296",
+        "BV1o87764Ebs_seg_000297",
+        "BV1o87764Ebs_seg_000298",
+        "BV1o87764Ebs_seg_000299",
+        "BV1o87764Ebs_seg_000300",
+        "BV1o87764Ebs_seg_000301",
+        "BV1o87764Ebs_seg_000302",
+        "BV1o87764Ebs_seg_000303",
+        "BV1o87764Ebs_seg_000304",
+        "BV1o87764Ebs_seg_000305",
+        "BV1o87764Ebs_seg_000306",
+        "BV1o87764Ebs_seg_000307",
+        "BV1o87764Ebs_seg_000308",
+        "BV1o87764Ebs_seg_000309",
+        "BV1o87764Ebs_seg_000310",
+        "BV1o87764Ebs_seg_000311",
+        "BV1o87764Ebs_seg_000312"
+      ],
+      "supported_aspect_indices": [
+        0
+      ]
+    }
+  ],
+  "status": "sufficient",
+  "supported_aspect_indices": [
+    0
+  ]
+}

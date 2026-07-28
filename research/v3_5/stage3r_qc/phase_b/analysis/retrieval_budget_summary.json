@@ -1,0 +1,16 @@
+{
+  "q0": {
+    "actual_new_calls": 0,
+    "source": "frozen_stage3r"
+  },
+  "q1": {
+    "actual_new_calls": 10,
+    "logical_queries": 10
+  },
+  "q2": {
+    "actual_new_calls": 29,
+    "logical_intents": 29,
+    "q1_results_reused": 0,
+    "unique_execution_queries": 29
+  }
+}

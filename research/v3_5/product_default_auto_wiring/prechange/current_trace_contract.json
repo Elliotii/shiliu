@@ -1,0 +1,17 @@
+{
+  "audit_date": "2026-07-25",
+  "schema": "retrieval_search_traces linked to retrieval_search_presentations by trace_id",
+  "requested_mode": {
+    "available": true,
+    "field": "raw trace requested_mode",
+    "limitation": "contains the resolved SearchRequest mode; Product API omission is indistinguishable"
+  },
+  "default_applied": {"available": false},
+  "configured_default_mode": {"available": false},
+  "router_invoked": {"available": "inferable from requested_mode == auto"},
+  "router_version": {"available": false},
+  "router_decision": {"available": true, "field": "raw trace planned_mode"},
+  "effective_mode": {"available": true, "field": "raw trace executed_mode"},
+  "router_reason_codes": {"available": true, "field": "raw trace routing_reason"},
+  "embedding_invoked": {"available": "inferable from dense_candidate_count; not a named field"}
+}

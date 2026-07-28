@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "SemanticJudgeOutput": {
+      "additionalProperties": false,
+      "description": "Provider-facing strict output, intentionally free of upstream/Gold fields.",
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "conflicts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicts",
+          "type": "array"
+        },
+        "evidence_ids_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids Used",
+          "type": "array"
+        },
+        "missing_aspects": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Aspects",
+          "type": "array"
+        },
+        "query_id": {
+          "title": "Query Id",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "enum": [
+              "SJ_ALL_MATERIAL_NEEDS_SUPPORTED",
+              "SJ_MEANINGFUL_SUBSET_WITH_MATERIAL_GAP",
+              "SJ_REVIEWABLE_WITHOUT_USABLE_MAIN_ANSWER",
+              "SJ_AUTHORITATIVE_VERIFICATION_BLOCKED",
+              "SJ_BLOCKING_CONFLICT",
+              "SJ_CROSS_LANGUAGE_SUPPORT"
+            ],
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "sufficient",
+            "partial",
+            "insufficient",
+            "unverifiable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "supported_aspects": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supported Aspects",
+          "type": "array"
+        },
+        "trace_id": {
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "verification_blocker": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Verification Blocker"
+        }
+      },
+      "required": [
+        "query_id",
+        "status",
+        "supported_aspects",
+        "missing_aspects",
+        "conflicts",
+        "reason_codes",
+        "confidence",
+        "evidence_ids_used",
+        "verification_blocker",
+        "trace_id"
+      ],
+      "title": "SemanticJudgeOutput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/SemanticJudgeOutput"
+      },
+      "title": "Decisions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "decisions"
+  ],
+  "title": "SemanticJudgeBatchOutput",
+  "type": "object"
+}

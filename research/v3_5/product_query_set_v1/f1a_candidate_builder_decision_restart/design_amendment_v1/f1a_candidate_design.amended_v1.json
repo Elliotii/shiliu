@@ -1,0 +1,160 @@
+{
+  "acceptance_metrics": {
+    "builder_complete_group_coverage": {
+      "before": "6/13",
+      "minimum_after": "8/13"
+    },
+    "builder_primary_failures": {
+      "before": 6,
+      "maximum_after": 4
+    },
+    "existing_builder_hit_regression_allowed": 0,
+    "required_aspect_coverage": {
+      "before": 0.6538,
+      "minimum_after": 0.6923
+    },
+    "required_span_recall": {
+      "before": 0.6538,
+      "minimum_after": 0.6923
+    },
+    "stress_threshold_rule": "max(frozen_implementation_before, accepted_p9_absolute_threshold)"
+  },
+  "active_design": {
+    "candidate_pool": {
+      "outside_pool": "candidates_ranked_after_top_32_from_same_builder_candidate_pool",
+      "selected_set": "original_top_32"
+    },
+    "determinism": {
+      "same_input_produces_same_output": true,
+      "stable_candidate_identity_tiebreaker_required": true
+    },
+    "immutable_budgets": {
+      "candidate_cap": 32,
+      "per_window_character_limit": 500,
+      "per_window_seconds_limit": 60,
+      "per_window_segment_limit": 6,
+      "selector_candidate_count_budget": "unchanged",
+      "total_character_limit": 6000,
+      "total_seconds_limit": 600
+    },
+    "initial_selected_set": {
+      "candidate_cap": 32,
+      "preserve_original_top_32": true,
+      "source": "current_builder_original_ranked_output"
+    },
+    "marginal_coverage_priority": [
+      "new_query_supported_anchor_region_coverage",
+      "new_interval_union_or_segment_coverage",
+      "lower_redundancy_with_selected_set",
+      "higher_original_relevance",
+      "shorter_window_and_lower_noise",
+      "stable_candidate_identity_tiebreaker"
+    ],
+    "name": "adaptive_bounded_coverage_swap_v1",
+    "outside_candidate_eligibility": {
+      "existing_window_and_total_budget_valid": true,
+      "minimum_relevance_or_anchor_support": "reuse_current_builder_admission_signal_or_threshold",
+      "query_supported_anchor_region": [
+        "existing_query_anchor",
+        "existing_acronym_or_entity_anchor",
+        "existing_retrieval_chunk_lineage"
+      ],
+      "retrieval_mapped": true,
+      "source_identity_valid": true,
+      "timeline_valid": true
+    },
+    "runtime_forbidden_signals": [
+      "development_gold_required_aspect",
+      "development_gold_required_span",
+      "development_gold_segment",
+      "query_id_rule",
+      "video_id_rule"
+    ],
+    "status": "implementation_candidate",
+    "swap_rule": {
+      "candidate_cap_after_each_swap": 32,
+      "forced_swaps": false,
+      "maximum_swaps_per_query": 4,
+      "minimum_swaps_per_query": 0,
+      "no_improvement_result": {
+        "final_set_equals_original_top_32": true,
+        "swap_count": 0
+      },
+      "requirements": {
+        "existing_budget_preserved": true,
+        "outside_candidate_is_eligible": true,
+        "query_support_guard_preserved": true,
+        "selected_victim_is_replaceable": true,
+        "set_level_coverage_improves": true
+      },
+      "strict_set_improvement_required": true
+    },
+    "victim_priority": [
+      "higher_redundancy_with_selected_set",
+      "lower_exclusive_interval_or_segment_coverage",
+      "lower_original_relevance",
+      "stable_candidate_identity_tiebreaker"
+    ],
+    "victim_rule": {
+      "fixed_rank_29_to_32_replacement": false,
+      "replaceable_if": [
+        "high_interval_overlap",
+        "high_normalized_text_overlap",
+        "low_exclusive_segment_union_gain"
+      ]
+    }
+  },
+  "addressable_failures": {
+    "count": 5,
+    "ids": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q004",
+      "PQS_V1_Q005",
+      "PQS_V1_Q008",
+      "PQS_V1_Q015"
+    ]
+  },
+  "failure_mechanism": {
+    "primary": "bounded_candidate_pruning_coverage_gap",
+    "secondary": "dedup_below_threshold_leaves_complement_gap"
+  },
+  "major_cycles_max": 1,
+  "non_goal": [
+    "PQS_V1_Q018"
+  ],
+  "p9_decision": "execute",
+  "schema_version": "v3.5-b-p9-adaptive-bounded-coverage-swap-v1",
+  "superseded_design": {
+    "evaluated": false,
+    "implemented": false,
+    "name": "bounded_coverage_reserve_v1",
+    "original_artifact_path": "research/v3_5/product_query_set_v1/f1a_candidate_builder_decision_restart/f1a_candidate_design.json",
+    "reason": "fixed_slot_partition_creates_unnecessary_regression_risk",
+    "status": "superseded_before_implementation"
+  },
+  "trace_contract": {
+    "fields": {
+      "final_candidate_ids": "ordered_candidate_id_list",
+      "no_swap_reason": "stable_enum_or_null",
+      "original_top_32": "ordered_candidate_id_list",
+      "outside_eligible_candidate_ids": "ordered_candidate_id_list",
+      "swap_count": "integer_0_to_4",
+      "swap_iterations": [
+        {
+          "added_candidate_id": "candidate_id",
+          "addition_reason": "structured_lexicographic_reason",
+          "coverage_after": "set_coverage_measurement",
+          "coverage_before": "set_coverage_measurement",
+          "iteration": "one_based_integer",
+          "redundancy_after": "set_redundancy_measurement",
+          "redundancy_before": "set_redundancy_measurement",
+          "removal_reason": "structured_victim_reason",
+          "removed_candidate_id": "candidate_id"
+        }
+      ],
+      "victim_candidates_ranked": "ordered_candidate_id_and_reason_list"
+    },
+    "implementation_status": "contract_only_not_implemented",
+    "required_for_next_implementation_contract": true
+  }
+}

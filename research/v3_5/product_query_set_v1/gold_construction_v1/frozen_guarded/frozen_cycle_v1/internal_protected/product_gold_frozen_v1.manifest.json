@@ -1,0 +1,38 @@
+{
+  "case_count": 10,
+  "guarded_batch_count": 5,
+  "manifest_version": "PRODUCT_GOLD_FROZEN_V1_MANIFEST_V1",
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "resolution_route_counts": {
+    "direct_agree": 10,
+    "reconciled": 0,
+    "user_adjudicated": 0
+  },
+  "review_status_record_count": 10,
+  "reviewed_candidate_hashes": {
+    "product_evidence_gold.frozen.v1.reviewed.jsonl": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+    "product_retrieval_gold.frozen.v1.reviewed.jsonl": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+    "product_sufficiency_gold.frozen.v1.reviewed.jsonl": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a",
+    "reviewed_case_status.frozen.v1.jsonl": "67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259"
+  },
+  "sealed_artifact_hashes": {
+    "product_evidence_gold.frozen.v1.sealed.jsonl": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+    "product_retrieval_gold.frozen.v1.sealed.jsonl": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+    "product_sufficiency_gold.frozen.v1.sealed.jsonl": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a",
+    "reviewed_case_status.frozen.v1.sealed.jsonl": "67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259"
+  },
+  "sealed_files_byte_identical_to_reviewed_candidate": true,
+  "semantic_fields_changed_by_orchestrator": false,
+  "three_layer_record_counts": {
+    "evidence_gold": 10,
+    "retrieval_gold": 10,
+    "sufficiency_gold": 10
+  },
+  "upstream_identity_hashes": {
+    "comparison_audit": "c36c33061b026ce09d90a845e9e0d12e5667a6c231ddb718c1da2c7631eda6b5",
+    "comparison_manifest": "2f0bd8159e7253ed7cf87322b6f35e977b800f34f88fdaecc6c675adfbbb9de4",
+    "frozen_cycle_decision_ledger": "9d37f019ed0ef302c56070e939a024c96546195ebde1236fdb5b30c5d5d78ee8",
+    "independent_draft_seal": "97eff00429cfaa62ca414793d45503149ddeda887c1301ede176081dca77073d",
+    "initial_annotation_seal": "a1815b4c082e4666a4202cd4f8e01427854b947fe2b92cee861d071051a071e2"
+  }
+}

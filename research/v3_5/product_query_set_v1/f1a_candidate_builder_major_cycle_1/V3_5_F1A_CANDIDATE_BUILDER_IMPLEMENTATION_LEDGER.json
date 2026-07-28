@@ -1,0 +1,32 @@
+{
+  "ledger_version": "v3.5-b-f1a-candidate-builder-implementation-ledger-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "active_design": "adaptive_bounded_coverage_swap_v1",
+  "entry_builder": "stage3b-acronym-w3.5-v1",
+  "implementation_candidate": "stage3b-adaptive-swap-w3.5-v1",
+  "status": "blocked_invalid_cycle",
+  "implementation_started": true,
+  "implementation_freeze_seal_generated": true,
+  "development_scored_runs": {
+    "allowed": 1,
+    "attempted": 1,
+    "completed": 0
+  },
+  "stress_scored_runs": {
+    "allowed": 1,
+    "attempted": 0,
+    "completed": 0
+  },
+  "development_gold_accessed": false,
+  "frozen_gold_accessed": false,
+  "post_seal_modification": false,
+  "major_cycles_used": 1,
+  "major_cycles_remaining": 0,
+  "second_major_cycle_allowed": false,
+  "final_builder_candidate": "stage3b-acronym-w3.5-v1",
+  "acceptance_status": "pending_v3_5_b_review",
+  "blocking_code": "sealed_development_runtime_terminal_not_normalized",
+  "f1b_started": false,
+  "stage4_started": false,
+  "p10_entered": false
+}

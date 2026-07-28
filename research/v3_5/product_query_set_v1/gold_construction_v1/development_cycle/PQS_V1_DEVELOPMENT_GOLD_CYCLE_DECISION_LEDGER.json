@@ -1,0 +1,99 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 Development Gold Cycle",
+  "schema_version": "v3.5-pqs-v1-development-gold-cycle-v1",
+  "decision_date": "2026-07-26",
+  "decision_authority": "V3.5-B",
+  "human_final_authority": "user",
+  "current_state": {
+    "stage": "Stage 3-R",
+    "P3": "accepted",
+    "P4": "accepted",
+    "P5": "accepted",
+    "P6": "accepted",
+    "P7A": "accepted",
+    "current_step": "Development Gold Cycle"
+  },
+  "authorized_inputs": {
+    "packet_root": "research/v3_5/product_query_set_v1/gold_construction_v1",
+    "neutral_library_navigation_index_sha256": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "authoritative_transcript_identity_catalog_sha256": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4",
+    "p7a_decision_ledger_sha256": "81b420d739641e7b6020cd6519022d4c24a83abf02a6620149d2533fefbb59f7",
+    "gold_protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1"
+  },
+  "units": {
+    "annotator_A": [
+      "DEV_BATCH_01",
+      "DEV_BATCH_03",
+      "DEV_BATCH_05",
+      "DEV_BATCH_07"
+    ],
+    "annotator_B": [
+      "DEV_BATCH_02",
+      "DEV_BATCH_04",
+      "DEV_BATCH_06"
+    ],
+    "reviewer_A": [
+      "DEV_BATCH_02",
+      "DEV_BATCH_04",
+      "DEV_BATCH_06"
+    ],
+    "reviewer_B": [
+      "DEV_BATCH_01",
+      "DEV_BATCH_03",
+      "DEV_BATCH_05",
+      "DEV_BATCH_07"
+    ]
+  },
+  "batch_assignment": {
+    "DEV_BATCH_01": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q005"
+    ],
+    "DEV_BATCH_02": [
+      "PQS_V1_Q004",
+      "PQS_V1_Q006"
+    ],
+    "DEV_BATCH_03": [
+      "PQS_V1_Q007",
+      "PQS_V1_Q008"
+    ],
+    "DEV_BATCH_04": [
+      "PQS_V1_Q011",
+      "PQS_V1_Q012"
+    ],
+    "DEV_BATCH_05": [
+      "PQS_V1_Q014",
+      "PQS_V1_Q015"
+    ],
+    "DEV_BATCH_06": [
+      "PQS_V1_Q017",
+      "PQS_V1_Q018"
+    ],
+    "DEV_BATCH_07": [
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ]
+  },
+  "independence": {
+    "same_unit_may_annotate_and_review_same_case": false,
+    "reviewer_independent_draft_before_opening_initial_annotation": true,
+    "independent_draft_sha256_logged": true,
+    "isolated_subagents_required": true,
+    "fallback_if_unavailable": "block_and_request_four_separate_sessions"
+  },
+  "resolution": {
+    "agree": "reviewed_candidate",
+    "revise_gold": "one_reconciliation_pass",
+    "still_disagree": "user_adjudication",
+    "escalate": "user_adjudication",
+    "blocked_by_source": "user_adjudication_or_source_block",
+    "automatic_reconciliation_rounds_max": 1,
+    "orchestrator_may_resolve_semantic_disagreement": false
+  },
+  "scope": {
+    "development_queries": 14,
+    "frozen_access": false,
+    "product_pipeline_calls": false,
+    "product_baseline_authorized": false
+  }
+}

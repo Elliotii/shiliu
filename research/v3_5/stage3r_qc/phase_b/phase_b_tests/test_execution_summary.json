@@ -1,0 +1,14 @@
+{
+  "phase_b_and_stage3r_contract_tests": {
+    "passed": 108,
+    "failed": 0
+  },
+  "frozen_retrieval_regression_tests": {
+    "passed": 213,
+    "failed": 0,
+    "warnings": 1,
+    "warning_type": "StarletteDeprecationWarning"
+  },
+  "total_passed": 321,
+  "total_failed": 0
+}

@@ -1,0 +1,18 @@
+{
+  "provider_configured": true,
+  "configured_model": "deepseek-v4-pro",
+  "configured_reasoning_strength": "max",
+  "thinking": {
+    "type": "enabled"
+  },
+  "provider_usage": "annotation_secondary_review",
+  "request_model_confirmed": true,
+  "request_reasoning_strength_confirmed": true,
+  "authorization_persisted": false,
+  "case_packet_sha256": "3e527558f7f3e99dea226d145b147f5ad5fc78bc0c17b6cbf70282fee38f19d2",
+  "logical_invocation_performed": false,
+  "raw_model_calls": 0,
+  "response_model_echo_available": false,
+  "response_reasoning_echo_available": false,
+  "blocked_before_secondary_reason": "primary_invalid_after_one_repair"
+}

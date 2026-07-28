@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "product_retrieval_gold.schema.json",
+  "title": "Product Retrieval Gold v1",
+  "description": "Bounded pooled judgment; outside-pool returns remain unjudged.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query_id",
+    "gold_version",
+    "known_relevant_video_ids",
+    "acceptable_video_ids",
+    "hard_negative_video_ids",
+    "relevance_review_scope",
+    "exhaustive",
+    "unjudged_outside_pool_is_negative",
+    "review_state",
+    "reason_codes"
+  ],
+  "properties": {
+    "query_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gold_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "known_relevant_video_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "acceptable_video_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "hard_negative_video_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "relevance_review_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pool_version",
+        "reviewed_video_ids",
+        "pool_construction_method",
+        "review_authority",
+        "review_timestamp"
+      ],
+      "properties": {
+        "pool_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_video_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "pool_construction_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_authority": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "exhaustive": {
+      "const": false
+    },
+    "unjudged_outside_pool_is_negative": {
+      "const": false
+    },
+    "review_state": {
+      "enum": [
+        "draft",
+        "initial_complete",
+        "independent_review_complete",
+        "adjudication_required",
+        "adjudicated",
+        "blocked_by_source",
+        "sealed"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    }
+  },
+  "x-cross-object-constraints": [
+    "known_relevant_video_ids subset of acceptable_video_ids",
+    "hard_negative_video_ids disjoint from acceptable_video_ids",
+    "hard negatives must be included in relevance_review_scope.reviewed_video_ids"
+  ],
+  "x-development-pool-addendum": {
+    "allowed": true,
+    "versioned": true,
+    "prediction_must_be_frozen_first": true,
+    "independent_relevance_judgment_required": true,
+    "existing_positives_may_be_removed_to_improve_metric": false
+  }
+}

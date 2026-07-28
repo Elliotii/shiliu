@@ -1,0 +1,48 @@
+{
+  "case_id": "V2C_B2P00001",
+  "review": {
+    "acceptable_evidence_groups": [],
+    "boundary_notes": "The transcript discusses AI agent development, testing and verification methodology, but never mentions RAG (Retrieval-Augmented Generation).",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [
+      "A1"
+    ],
+    "optional_context_spans": [],
+    "reason_codes": [
+      "no_mention_of_RAG"
+    ],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "视频原字幕包含对RAG的实质讨论"
+      }
+    ],
+    "required_spans": [],
+    "reviewed_full_transcript": true,
+    "status": "insufficient",
+    "supported_aspects": [],
+    "transcript_first_segment_id": "BV1o87764Ebs_seg_000001",
+    "transcript_last_segment_id": "BV1o87764Ebs_seg_000374"
+  },
+  "review_metadata": {
+    "case_input_sha256": "600a264ef2f305fe948116b736293bf38668ed72e7cf2bd70369a5cf64567445",
+    "completed_at": "2026-07-22T19:40:25.632037Z",
+    "latency_ms": 30524,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-secondary-reviewer-draft-prompt-v2-query-grounded",
+    "repair_count": 0,
+    "reviewer_model": "deepseek-v4-pro",
+    "reviewer_provider": "deepseek",
+    "reviewer_role": "secondary",
+    "started_at": "2026-07-22T19:39:55.108037Z",
+    "usage": {
+      "cached_tokens": null,
+      "estimated_cost_usd": null,
+      "input_tokens": 52461,
+      "output_tokens": 1897
+    },
+    "validation_status": "valid"
+  }
+}

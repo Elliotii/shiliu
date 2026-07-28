@@ -25,6 +25,9 @@ from shiliu.retrieval import (
     SQLiteExactDenseIndex,
 )
 from shiliu.sync import SyncService
+from shiliu.evidence import EvidenceSearchService
+from shiliu.runtime_modes import PRODUCT_RUNTIME_CONFIG
+from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
 from shiliu.taxonomy.controlled_facets import HybridControlledFacetsService
@@ -63,6 +66,8 @@ class Application:
         self._hybrid_retrieval: HybridRetrievalService | None = None
         self._search_orchestrator: SearchOrchestrator | None = None
         self._product_search: ProductSearchService | None = None
+        self._stage5_pipeline: Stage5PipelineService | None = None
+        self.runtime_config = PRODUCT_RUNTIME_CONFIG
         default_cache = (
             self.paths.state_dir / "fastembed-cache"
             if paths is not None
@@ -229,6 +234,23 @@ class Application:
                 enricher=EvidenceEnricher(db=self.db, artifacts=self.artifacts),
             )
         return self._product_search
+
+    @property
+    def stage5_pipeline(self) -> Stage5PipelineService:
+        if self._stage5_pipeline is None:
+            evidence_search = EvidenceSearchService(
+                db=self.db,
+                product_search=self.product_search,
+                authority_mode="live_current_exact_replay",
+                runtime_corpus_identity=self.runtime_config.corpus_identity,
+            )
+            self._stage5_pipeline = Stage5PipelineService(
+                db=self.db,
+                artifacts=self.artifacts,
+                evidence_search=evidence_search,
+                trace_dir=self.paths.logs_dir / "stage5_traces",
+            )
+        return self._stage5_pipeline
 
     def provider(self, role: str = "formal_summary") -> OpenAICompatibleProvider:
         try:

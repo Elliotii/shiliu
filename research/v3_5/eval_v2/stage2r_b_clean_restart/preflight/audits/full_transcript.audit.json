@@ -1,0 +1,17 @@
+{
+  "fixture_classification": "non_formal_preflight_fixture",
+  "not_master_case": true,
+  "not_gold": true,
+  "segment_count": 3,
+  "packet_character_count": 1236,
+  "estimated_input_tokens": 309,
+  "first_segment_id": "seg_1",
+  "last_segment_id": "seg_3",
+  "source_artifact_id": "artifact_fixture",
+  "source_version": "version_fixture",
+  "timeline_run_id": "run_1",
+  "source_language": "en",
+  "source_type": "raw_subtitle",
+  "request_truncated": false,
+  "response_truncated": false
+}

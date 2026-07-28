@@ -1,0 +1,28 @@
+{
+  "auto_router_invoked": true,
+  "case_id": "C2C_ee3fac675fc7d408",
+  "effective_mode": "hybrid",
+  "embedding_cache_hit": false,
+  "embedding_invoked": true,
+  "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+  "embedding_provider": "v3-qwen3-embedding-provider-v1",
+  "empty_result": false,
+  "exact_query_cache_hit": false,
+  "latency_ms": 111.2271249294281,
+  "query": "AI 自动导入 Godot 精灵动画相比手工导入节省多少时间，错误率如何？",
+  "query_id": "C2C_ee3fac675fc7d408:q0",
+  "query_type": "semantic_question",
+  "query_view": "q0",
+  "requested_mode": "auto",
+  "result_count": 10,
+  "router_decision": "hybrid",
+  "router_mode_consistent": true,
+  "router_reason_codes": [
+    "semantic_question_dual_signal"
+  ],
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "runtime_error": false,
+  "runtime_error_type": null,
+  "target_video_best_rank": 1,
+  "target_video_hit": true
+}

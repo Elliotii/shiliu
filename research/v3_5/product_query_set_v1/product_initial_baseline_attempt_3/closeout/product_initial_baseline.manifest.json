@@ -1,0 +1,39 @@
+{
+  "addendum": {
+    "automatically_treated_as_negative": false,
+    "base_gold_modified": false,
+    "outcomes": {
+      "remain_unjudged_semantic_boundary": 108,
+      "remain_unjudged_source_blocked": 1
+    },
+    "pair_count": 109,
+    "prediction_rerun": false,
+    "unresolved_items_may_remain_explicitly_unjudged": true,
+    "version": "development_retrieval_pool_addendum.v1"
+  },
+  "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "development_gold_first_open_at": "2026-07-26T16:16:59.818+00:00",
+  "development_gold_hashes": {
+    "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+    "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "frozen_gold_access": false,
+  "frozen_query_runs": 0,
+  "functional_component_change_count": 0,
+  "metrics_recomputable": true,
+  "p4_p5_p6_p7_identity_verified": true,
+  "prediction_freeze_seal_sha256": "069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617",
+  "primary_attribution_count": 14,
+  "primary_failure_distribution": {
+    "candidate_builder_failure": 7,
+    "deterministic_selector_failure": 5,
+    "end_to_end_bundle_hit": 1,
+    "source_unverifiable": 1
+  },
+  "query_count": 14,
+  "runner_version": "v3.5-pqs-v1-p8-product-initial-baseline-v2-source-terminal",
+  "stress_regression_separate": true,
+  "valid_prediction_run_count": 14
+}

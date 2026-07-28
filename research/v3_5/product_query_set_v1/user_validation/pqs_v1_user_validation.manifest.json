@@ -1,0 +1,32 @@
+{
+  "manifest_version": "v3.5-pqs-user-validation-manifest-v1",
+  "dataset_name": "Shiliu Product Query Set v1",
+  "stage": "P3_user_validation_materialization",
+  "execution_status": "complete",
+  "acceptance_status": "pending_v3_5_b_review",
+  "input_hashes": {
+    "task_contract": "10b20707abad25795507d3bef79a72d915880fc58a37ae699650f70e43c9eb22",
+    "user_decision_ledger": "fa469c47bcb32595f541b83b571ed86977c0233b6fef1458b770f8cc7b4e7bf6",
+    "corpus_candidate_user_review": "f72e92373ed5ed93a9a82a7e5f88597c4f8e2bdca7f7f781f98062fcb2601213",
+    "corpus_candidate_internal_basis": "66ddc96e9484e9080b8df92f3aaf192a5c73cbe126e65cf5bfb69731e3f1b008",
+    "corpus_inventory": "05e71ce08db5dc92e92035fee3e26ce7156ccfacdb40a4a834d857bb229ffe5f",
+    "generation_audit": "5e50946729ec3afd15a114db802142b926be698f9f3d0dc6547a425f6a4f6269",
+    "generation_report": "47e5d40aa8d8f7da99edcab0abb3cbf48f2247b8f8abde8a0beeeb3ab2d317fb",
+    "audit_amendment": "2dcad60f74278d4663491216f85f3464c17c4580654ea480aedfff4574da87a9"
+  },
+  "output_hashes": {
+    "completed_validation": "b66bdd7ae2dd778a629f266aa867330db172f9d63c972768d734ddee6f6f911d",
+    "after_revision_pool": "a0f7748b8dc2eb71d9204e3042558ae615db9d908e693970f4a6654c28afb667",
+    "audit": "0acb8f6b88e5d60579dc03b0808862deff6fccd9611dcaaae79fa12b4622b58e",
+    "report": "823dbfcfb931d5bc8771a2ce598881e1840b7150931ac4a327970728dec849d5"
+  },
+  "counts": {
+    "reviewed": 41,
+    "formal_selected": 24,
+    "reserve": 11,
+    "rejected": 6
+  },
+  "candidate_generation_inputs_unchanged": true,
+  "query_text_changed_by_codex": false,
+  "p4_accepted": false
+}

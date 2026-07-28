@@ -1,0 +1,424 @@
+{
+  "aggregate_evaluation": {
+    "v3": {
+      "classification": "pooled_judged_not_exhaustive",
+      "corpus": {
+        "retrieval_units": 1555,
+        "transcript_chunks": 1412,
+        "videos": 144
+      },
+      "judgment_count": 452,
+      "metrics_source": "research/v3_eval/eval_results.json",
+      "positive_query_count": 22,
+      "query_count": 24
+    },
+    "v3_5": {
+      "aggregate_failure_attribution": {
+        "builder_incomplete": 5,
+        "mechanical_source_unverifiable": 5
+      },
+      "case_level_content_included_in_manifest": false,
+      "development_count": 14,
+      "frozen_count": 10,
+      "frozen_metrics": {
+        "builder_required_span_recall": 0.1630952380952381,
+        "bundle_required_span_recall": 0.025,
+        "candidate_builder_complete_group_availability": 0.0,
+        "case_count": 10,
+        "completed_predictions": 10,
+        "component_joint_correct_cases": 0,
+        "evidence_bundle_complete_group_hit": 0.0,
+        "mechanical_routing_accuracy": 0.5,
+        "primary_failure_attribution": {
+          "builder_incomplete": 5,
+          "mechanical_source_unverifiable": 5
+        },
+        "retrieval_Hit_at_1_3_5_10": [
+          0.8,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "runtime_error_cases": 0,
+        "semantic_four_state_accuracy": 0.2,
+        "semantic_judge_batch_latency_ms": 49088,
+        "severe_false_sufficient_count": 0
+      },
+      "query_count": 24
+    }
+  },
+  "authoritative_documents": [
+    {
+      "authority": "V3 version decision",
+      "path": "SHILIU_V3_VERSION_DECISION.md",
+      "sha256": "fa6d394926d445ecfc5bfe20a6c2f4586c31adcbc9695dca99fdae9f5e993fa3",
+      "status": "archived_external_formal_decision",
+      "supersedes": null
+    },
+    {
+      "authority": "V3 repository closeout",
+      "path": "V3_CLOSEOUT.md",
+      "sha256": "6fb23a639aa50945548d5e3a98413176c6bcc99a002e89d09b0497007488262c",
+      "status": "final",
+      "supersedes": null
+    },
+    {
+      "authority": "V3 formal retrieval evaluation",
+      "path": "V3_STAGE6B_FORMAL_RETRIEVAL_EVAL_AND_EVIDENCE_REPORT.md",
+      "sha256": "80e4abfd1d6b87f50a1c3e905a99af6fcc89d0ed2ce55d85c934f25809be9a75",
+      "status": "final",
+      "supersedes": null
+    },
+    {
+      "authority": "V3.5 formal narrative closeout",
+      "path": "V3_5_FINAL_CLOSEOUT.md",
+      "sha256": "8ff300e13b9cca4283085082d37d0fa32568cb47be0e9086e7875c0da1297df8",
+      "status": "final",
+      "supersedes": null
+    },
+    {
+      "authority": "V3.5 machine-readable closeout",
+      "path": "V3_5_FINAL_CLOSEOUT.json",
+      "sha256": "79e85a945e985ad3e87c464924250f0568a6be4dc7776399b8ab8f3606ab4d38",
+      "status": "final",
+      "supersedes": null
+    },
+    {
+      "authority": "V3.5 readiness record; future-version suggestions not inherited",
+      "path": "V3_5_V4_READINESS_REPORT.md",
+      "sha256": "876a426f1a0108ffd34e7c8bad7192a1c240c35e5fabd04051d53f84f7a846a2",
+      "status": "historical_final_readiness",
+      "supersedes": null
+    },
+    {
+      "authority": "repository-wide V0-V3.5 closeout",
+      "path": "SHILIU_V0_TO_V3_5_FINAL_CLOSEOUT.md",
+      "sha256": "871722800d97e4e5fb29f123c9a923da67c9ef5feea491e09923630427c8804f",
+      "status": "final",
+      "supersedes": null
+    }
+  ],
+  "evaluation_artifacts": [
+    {
+      "authority": "V3 aggregate metrics",
+      "path": "research/v3_eval/eval_results.json",
+      "sha256": "9bf49fe37565bbd8694e4bcd61a2c1126950b3387604797b8936407cd1c3bfbc",
+      "status": "formal_v3_aggregate_result",
+      "supersedes": null
+    },
+    {
+      "access_boundary": "path/hash only in overview documents; no case content reproduced",
+      "authority": "V3 locked query set",
+      "path": "research/v3_eval/eval_queries.locked.jsonl",
+      "sha256": "21382e8ba058cc6e51ea41c776ad216824363090888ee3a5569e36dc971c36ba",
+      "status": "formal_v3_case_level",
+      "supersedes": null
+    },
+    {
+      "access_boundary": "path/hash only in overview documents; no case content reproduced",
+      "authority": "V3 pooled/judged Gold",
+      "path": "research/v3_eval/eval_gold.locked.jsonl",
+      "sha256": "873b5fbf78ba2e8fc90dfb2fca96776e0e703a1c4fedd56dd20a49e43995b300",
+      "status": "formal_v3_case_level",
+      "supersedes": null
+    },
+    {
+      "authority": "Product Query Set v1 identity",
+      "path": "research/v3_5/product_query_set_v1/freeze/product_query_set_v1.manifest.json",
+      "sha256": "eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb",
+      "status": "formal_v3_5_dataset_manifest",
+      "supersedes": null
+    },
+    {
+      "authority": "Development/Frozen split identity",
+      "path": "research/v3_5/product_query_set_v1/split_v1/product_query_split_v1.manifest.json",
+      "sha256": "34d3ecdb79dfa86d9ac43f48a6a245ab4c996004cacb4191a637798ec1f85ec3",
+      "status": "formal_v3_5_split_manifest",
+      "supersedes": null
+    },
+    {
+      "authority": "Development Gold aggregate seal",
+      "path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_seal_v1/development_gold_v1.seal.json",
+      "sha256": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+      "status": "formal_v3_5_development_gold_seal",
+      "supersedes": null
+    },
+    {
+      "access_boundary": "protected Gold; seal/path/hash only in overview documents",
+      "authority": "protected Frozen Gold aggregate seal",
+      "path": "research/v3_5/product_query_set_v1/gold_construction_v1/frozen_guarded/frozen_cycle_v1/internal_protected/frozen_gold_v1.seal.json",
+      "sha256": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+      "status": "formal_v3_5_frozen_gold_seal",
+      "supersedes": null
+    },
+    {
+      "authority": "P14 aggregate result freeze",
+      "path": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_RESULT_FREEZE_SEAL.json",
+      "sha256": "9dfe516c354267edbf69db9470a5048499a034ea5c68c2891ceab2a95970e145",
+      "status": "formal_v3_5_frozen_result_seal",
+      "supersedes": null
+    },
+    {
+      "authority": "replacement formal-run identity",
+      "path": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_FORMAL_RUN_MANIFEST.json",
+      "sha256": "3d09dd34a62bf4470a7d47cdee753fb68507910b5588f056c3cd3f0f51fda9da",
+      "status": "formal_v3_5_run_manifest",
+      "supersedes": null
+    },
+    {
+      "access_boundary": "path/hash only in overview documents; no case content reproduced",
+      "authority": "prediction-before-Gold freeze",
+      "path": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_PREDICTIONS_FREEZE.json",
+      "sha256": "3612c3f6889a9a05c87d507f42bc748888d386547ab0f43eeae15ee2fd920f2e",
+      "status": "formal_v3_5_prediction_freeze",
+      "supersedes": null
+    }
+  ],
+  "excluded_local_artifacts": [
+    {
+      "category": "personal_product_data",
+      "deleted": false,
+      "examples": [
+        "user SQLite databases",
+        "complete favorites data",
+        "content roots"
+      ],
+      "policy": "ignored and retained outside the formal Git baseline"
+    },
+    {
+      "category": "provider_and_runtime_state",
+      "deleted": false,
+      "examples": [
+        "Provider raw logs",
+        "provider state databases",
+        "model caches"
+      ],
+      "policy": "ignored; no credential-dependent state committed"
+    },
+    {
+      "category": "bulk_case_level_traces",
+      "deleted": false,
+      "examples": [
+        "intermediate search traces",
+        "candidate dumps",
+        "incomplete work files"
+      ],
+      "policy": "ignored; formal manifests retain path/hash lineage where required"
+    },
+    {
+      "category": "temporary_and_reproducible",
+      "deleted": false,
+      "examples": [
+        "temporary exports",
+        "tool caches",
+        "compiled files"
+      ],
+      "policy": "ignored and reproducible"
+    }
+  ],
+  "formal_components": [
+    {
+      "authority_hash": null,
+      "name": "retrieval",
+      "note": "No monolithic retrieval hash was asserted by the V3.5 final seal.",
+      "status": "formal_product_path",
+      "version": "v3-product-search-default-auto-v1"
+    },
+    {
+      "authority_hash": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+      "name": "auto_router",
+      "status": "formal",
+      "version": "v3-search-planner-auto-v1"
+    },
+    {
+      "authority_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "name": "evidence_identity",
+      "status": "formal",
+      "version": "V1"
+    },
+    {
+      "authority_hash": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+      "name": "candidate_builder",
+      "status": "formal_retained_after_f1a_rejection",
+      "version": "stage3b-acronym-w3.5-v1"
+    },
+    {
+      "authority_hash": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+      "name": "fine_selector",
+      "status": "formal_retained_after_f1b_rejection",
+      "version": "v3.5-deterministic-fine-selector-v1"
+    },
+    {
+      "authority_hash": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+      "name": "mechanical_gate",
+      "status": "formal",
+      "version": "mechanical-gate-v1-r1"
+    },
+    {
+      "authority_hash": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+      "name": "semantic_sufficiency",
+      "status": "formal_below_target",
+      "version": "v3.5-semantic-sufficiency-policy-v1"
+    },
+    {
+      "authority_hash": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+      "name": "stage5_api_ui_trace",
+      "status": "minimally_product_integrated_limited_pilot",
+      "version": "v3.5-stage5-current-integration-refreeze-seal-v1"
+    }
+  ],
+  "generated_artifact_policy": {
+    "reproducible_and_excluded": [
+      "caches",
+      "temporary exports",
+      "compiled files",
+      "intermediate work directories"
+    ],
+    "retained_locally_not_tracked": [
+      "personal databases and collection content",
+      "provider/runtime state",
+      "bulk unredacted case-level traces"
+    ],
+    "tracked_and_authoritative": [
+      "final closeouts and decisions",
+      "machine-readable aggregate results required by the seal chain",
+      "freeze/refreeze seals and small reproducibility manifests",
+      "minimal deterministic fixtures"
+    ],
+    "unknown_pending_review": []
+  },
+  "generated_at": "2026-07-29",
+  "integrity": {
+    "case_level_content_reproduced_in_manifest": false,
+    "representative_trace_count": 0,
+    "unexplained_test_failures": 0,
+    "unexplained_tracked_changes": 0,
+    "unexplained_untracked_files": 0
+  },
+  "known_limitations": [
+    "V3 retrieval evaluation is pooled/judged, not exhaustive-corpus relevance judgment.",
+    "V3.5 Evidence/Sufficiency is minimally product-integrated, limited-pilot, formally below target, and partial.",
+    "Semantic Judge latency is high and production proxy timeout configuration is external.",
+    "Final Answer generation, Agentic Search, Memory, Harness, and automatic remediation are not implemented.",
+    "Frozen Builder/Selector implementations are historical baselines, not mandatory future hard dependencies."
+  ],
+  "repository": {
+    "branch": "codex/v3-domain-completion",
+    "commit": "CONTENT_BASELINE_COMMIT_PENDING",
+    "commit_date": "2026-07-29T00:00:00+08:00",
+    "commit_role": "content_baseline_parent_of_manifest_packaging_commit",
+    "historical_v3_5_source_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a",
+    "manifest_packaging_commit": "SELF",
+    "working_tree_status": "clean_after_manifest_packaging_commit"
+  },
+  "representative_traces": [],
+  "schema_version": "shiliu-v0-v3.5-final-repository-manifest-v1",
+  "scope": {
+    "early_versions_detail": "concise",
+    "v3_5_detail": "full",
+    "v4_planning_or_implementation_included": false,
+    "versions": "V0-V3.5"
+  },
+  "seals_and_manifests": [
+    {
+      "authority": "V3.5 final seal",
+      "path": "V3_5_FINAL_FREEZE_SEAL.json",
+      "sha256": "6cbb867d4c0b2ac54ae3249ab40c18fe274786063e1da54abe4ed1c853497518",
+      "status": "authoritative_top_level_seal",
+      "supersedes": null
+    },
+    {
+      "authority": "current API/UI/Trace integration",
+      "path": "STAGE5_CURRENT_INTEGRATION_REFREEZE_SEAL.json",
+      "sha256": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+      "status": "authoritative_stage5_refreeze",
+      "supersedes": null
+    },
+    {
+      "authority": "semantic sufficiency policy/implementation",
+      "path": "SUFFICIENCY_JUDGE_FINAL_FREEZE_SEAL.json",
+      "sha256": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+      "status": "authoritative_semantic_judge_seal",
+      "supersedes": null
+    },
+    {
+      "authority": "Mechanical Gate R1",
+      "path": "STAGE4A_R_MECHANICAL_GATE_FREEZE.json",
+      "sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+      "status": "authoritative_mechanical_gate_seal",
+      "supersedes": null
+    },
+    {
+      "authority": "selector-v2 experiment provenance; not formal selector promotion",
+      "path": "SELECTOR_V2_FREEZE_SEAL.json",
+      "sha256": "4eeef5b26c28c9ebaae95bdd4cf2a5afe936c31d1e7c1e5d61d3408c48ac64fe",
+      "status": "historical_rejected_candidate_seal",
+      "supersedes": null
+    }
+  ],
+  "superseded_documents": [
+    {
+      "authority": "historical V3 current-state ledger",
+      "path": "V3_CURRENT_STATE.md",
+      "sha256": "4d478b68fa612c975b84dbb8fbdf5bc65fbb29dc7b188a5798a4f4192f91421f",
+      "status": "superseded_historical",
+      "supersedes": null
+    },
+    {
+      "authority": "historical V3.5 checkpoint ledger",
+      "path": "V3_5_CURRENT_STATE.md",
+      "sha256": "0574a01958a93b3e032e57e0102930f39e0706e08b5d29395300cdf7f4b912d1",
+      "status": "superseded_historical",
+      "supersedes": null
+    },
+    {
+      "authority": "historical A-to-B artifact index",
+      "path": "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+      "sha256": "37d9b1b92bdabc27c193be762dbddc64dc1f53bf641ee6fc586f776bb4a51610",
+      "status": "superseded_historical_handoff_index",
+      "supersedes": null
+    }
+  ],
+  "tests": {
+    "deterministic_core": {
+      "clean_index_export_verified": true,
+      "collection_errors": 0,
+      "command": ".venv/bin/python -m pytest",
+      "deselected": 4,
+      "failed": 0,
+      "passed": 1405
+    },
+    "external_or_environment_dependent": {
+      "default_suite_excludes": true,
+      "markers": [
+        "external_artifact",
+        "live_provider"
+      ],
+      "requirements_documented": true
+    },
+    "historical_failures": [],
+    "key_suites": {
+      "api_stage5": {
+        "failed": 0,
+        "passed": 44,
+        "status": "passed"
+      },
+      "evidence_sufficiency": {
+        "failed": 0,
+        "passed": 61,
+        "status": "passed"
+      },
+      "minimal_smoke": {
+        "failed": 0,
+        "passed": 6,
+        "status": "passed_in_process_no_paid_provider"
+      },
+      "retrieval": {
+        "failed": 0,
+        "passed": 67,
+        "status": "passed"
+      }
+    },
+    "warning": "Starlette/httpx TestClient deprecation; non-failing."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "labels_changed": false,
+  "provider_resampled": false,
+  "reviews": [
+    {
+      "case_id": "V2C_B1A00001",
+      "current_status": "valid",
+      "draft": "B1B_V2C_B1A00001_0b975c6b5eb9/primary/reviewer_draft.initial.json",
+      "findings": [],
+      "label_changed": false,
+      "previous_status": "valid",
+      "role": "primary"
+    },
+    {
+      "case_id": "V2C_B1A00001",
+      "current_status": "valid",
+      "draft": "B1B_V2C_B1A00001_0b975c6b5eb9/secondary/reviewer_draft.initial.json",
+      "findings": [],
+      "label_changed": false,
+      "previous_status": "valid",
+      "role": "secondary"
+    },
+    {
+      "case_id": "V2C_B1A00002",
+      "current_status": "valid",
+      "draft": "B1B_V2C_B1A00002_fe057eee3b4a/primary/reviewer_draft.initial.json",
+      "findings": [],
+      "label_changed": false,
+      "previous_status": "query_grounding_warning",
+      "role": "primary"
+    },
+    {
+      "case_id": "V2C_B1A00002",
+      "current_status": "valid",
+      "draft": "B1B_V2C_B1A00002_fe057eee3b4a/secondary/reviewer_draft.repair.json",
+      "findings": [],
+      "label_changed": false,
+      "previous_status": "valid",
+      "role": "secondary"
+    }
+  ],
+  "validator_policy": "exact anchors plus conservative CLI/command-line lexical association"
+}

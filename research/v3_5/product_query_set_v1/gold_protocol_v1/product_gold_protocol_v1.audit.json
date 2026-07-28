@@ -1,0 +1,34 @@
+{
+  "input_identity": {
+    "p4_hashes_match": true,
+    "p5_hashes_match": true,
+    "decision_ledger_hash_matches": true,
+    "task_contract_hash_matches": true
+  },
+  "protocol": {
+    "retrieval_schema_present": true,
+    "evidence_schema_present": true,
+    "sufficiency_schema_present": true,
+    "three_schemas_mechanically_separate": true,
+    "retrieval_exhaustive_const_false": true,
+    "builder_output_in_evidence_gold_schema": false,
+    "system_failure_codes_allowed_in_gold": false,
+    "four_statuses_non_overlapping": true,
+    "review_policy_complete": true,
+    "frozen_isolation_complete": true
+  },
+  "scope": {
+    "raw_transcripts_read": false,
+    "real_gold_read_or_created": false,
+    "target_videos_read": false,
+    "system_results_read": false,
+    "pipeline_calls": 0,
+    "fixtures_are_synthetic_only": true
+  },
+  "downstream": {
+    "p7_started": false,
+    "product_baseline_started": false,
+    "f1a_or_f1b_started": false,
+    "stage4_started": false
+  }
+}

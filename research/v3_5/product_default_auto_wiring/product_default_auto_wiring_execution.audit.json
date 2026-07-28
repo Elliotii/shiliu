@@ -1,0 +1,28 @@
+{
+  "stage": "3R-QC-W",
+  "execution_date": "2026-07-25",
+  "result": "passed",
+  "prechange_audit_completed": true,
+  "compatibility_review_completed": true,
+  "tests": {
+    "focused_product_default_tests": {"collected": 57, "passed": 57},
+    "targeted_regression": {"collected": 262, "passed": 262},
+    "full_regression": {"collected": 923, "passed": 923}
+  },
+  "compatibility_actions": [
+    {
+      "caller": "src/shiliu/eval_v3_5/stage3a_inputs.py",
+      "classification": "explicit_lexical_required",
+      "action": "historical replay now passes mode=lexical explicitly"
+    }
+  ],
+  "prohibited_work_not_performed": {
+    "router_modified": false,
+    "retrieval_algorithm_modified": false,
+    "index_rebuilt": false,
+    "stress_track_a_run": false,
+    "product_query_set_started": false,
+    "f1a_started": false,
+    "f1b_started": false
+  }
+}

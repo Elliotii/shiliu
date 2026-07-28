@@ -1,0 +1,178 @@
+{
+  "per_case": [
+    {
+      "case_id": "CASE_001",
+      "gate": {
+        "action_family": "none",
+        "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+        "end_to_end_claim_eligible": false,
+        "evaluation_track": "oracle_video_conditional",
+        "evidence_bundle_id": "bundle_577d68ec1e7f37f671d1215489d9c94fbe64ba2a85158371a89e6b13101daccc",
+        "evidence_candidate_set_id": "candidate_set_547051a2b03f6b7b80ef95fd9a425038aca94151f53d81ad1a187995e436225a",
+        "evidence_ids_used": [
+          "candidate_9c5c417f3ba4f2a72d6942f856d3b9c47f78fdf337ae572f9dcf728c0c79163b",
+          "candidate_2ee4819673f1076b0dc4edc4ca62471db9b75551450fa2cf9f3bbb88a77c0ed7",
+          "candidate_a03ca81dde5d8b80a4d4c88450f9f5309d988503d10d3a7fd3540ce0640c2b0f",
+          "candidate_632910ee9b623ccdf0dee18d2fe7b8117a5192d2dfa70a89b5fa2ddfbe52971d",
+          "candidate_6d816f1adc9df7f1ec502ecb9d8e5e8085e27655d4d8cf000bd09326241a06c8",
+          "candidate_d8ce913b9c51cac0aea1c4072066f308d08eeb4a2b9fc226bea80305e96cd676"
+        ],
+        "gate_decision_id": "gate_ee59a3c7873e97465333d692a575b61d9dd8b70f953db7f200f656ab77b26761",
+        "gate_outcome": "judge_eligible",
+        "mechanical_gate_contract_version": "v3.5-mechanical-sufficiency-gate-v1",
+        "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+        "operational_reason_code": null,
+        "query_id": "Q01",
+        "search_candidate_set_id": "5f94b48e019504e751502e3b1fce7bf6ff331a7a6d89d7cede09d6f3d7f2e531",
+        "selector_version": "v3.5-deterministic-fine-selector-v1",
+        "semantic_judge_required": true,
+        "terminal_status": null,
+        "trace_id": "stage4a_trace_c1fce4e38cacf46eca8d2abcce4636513125a89cc23783883a8c8a52b35d5a9a",
+        "validation_errors": []
+      },
+      "terminal_sufficiency_decision": null
+    },
+    {
+      "case_id": "CASE_002",
+      "gate": {
+        "action_family": "none",
+        "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+        "end_to_end_claim_eligible": false,
+        "evaluation_track": "oracle_video_conditional",
+        "evidence_bundle_id": "bundle_8bac6fb7406e31924647f5f58f2f82469913ab6e8931c8817ae0a8181853978b",
+        "evidence_candidate_set_id": "candidate_set_3e31e30eed441b515078dd984928fa5af47045a2e4eee5adc5ba256f6ebc89d8",
+        "evidence_ids_used": [
+          "candidate_fdfbf77fe8070005a1a49ec54e2d87f26a4910b177ee5dbcd61888de47b107c6",
+          "candidate_c3097d3c8057d42c504eaab3cd5ce4e4ed2e2013d34922fbc8f2c3c10441b1d6",
+          "candidate_922c1aaca0570f8b6e373e0f6898d69d4dbbf66aa4c27a973703bd36b49cb520",
+          "candidate_6c43021234fd68f149b9641bf81dd1c61bddf8da8ab4235fbb0b808ffba2ec76",
+          "candidate_c7624fc40fb3403d4042ecdb76f4bdb18d0a722ea22a7509362b58c2272534d8",
+          "candidate_8b207531f182d37ce74b4ca76d8c45713f0a848c3a3c66643987e4522849e944"
+        ],
+        "gate_decision_id": "gate_8a09d60002b8c80e51af8b0040e509773b48b6b145d47943a203a3919f5a057c",
+        "gate_outcome": "judge_eligible",
+        "mechanical_gate_contract_version": "v3.5-mechanical-sufficiency-gate-v1",
+        "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+        "operational_reason_code": null,
+        "query_id": "Q03",
+        "search_candidate_set_id": "36c22f065d5b556472a122e72805b3aebce7b49fad790d97d73e4234e22e7675",
+        "selector_version": "v3.5-deterministic-fine-selector-v1",
+        "semantic_judge_required": true,
+        "terminal_status": null,
+        "trace_id": "stage4a_trace_344120a3cb8861515ec35daebcf28352dbac0862ff64af4776e5e396a99caced",
+        "validation_errors": []
+      },
+      "terminal_sufficiency_decision": null
+    },
+    {
+      "case_id": "CASE_003",
+      "gate": {
+        "action_family": "evidence_resolution_action",
+        "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+        "end_to_end_claim_eligible": false,
+        "evaluation_track": "oracle_video_conditional",
+        "evidence_bundle_id": null,
+        "evidence_candidate_set_id": "candidate_set_fd848edd756be48835c6ae7fbac1bac015efadb4cacc6bb8d35a93c5927afdc8",
+        "evidence_ids_used": [],
+        "gate_decision_id": "gate_c88588bcf6b69c82621aed72e5da5bdd199650619b3d24c088e62b9a7abbcda2",
+        "gate_outcome": "terminal_unverifiable",
+        "mechanical_gate_contract_version": "v3.5-mechanical-sufficiency-gate-v1",
+        "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+        "operational_reason_code": "candidate_generation_failure",
+        "query_id": "Q06",
+        "search_candidate_set_id": "fdbf57364902a87f4e816574a0f577588ba8f05d500917d4862a827aa921bae3",
+        "selector_version": "v3.5-deterministic-fine-selector-v1",
+        "semantic_judge_required": false,
+        "terminal_status": "unverifiable",
+        "trace_id": "stage4a_trace_5a2267eadcfb27b6da830d7e3da8ac593d117e9fae804787e09133f42328ee23",
+        "validation_errors": []
+      },
+      "terminal_sufficiency_decision": {
+        "action_family": "evidence_resolution_action",
+        "confidence": 1.0,
+        "conflicts": [],
+        "decision_id": "decision_ee04b34bc37aa3c70d19fc7c384d1f1d3101464684158a7b128d3f6d1cb2219b",
+        "end_to_end_claim_eligible": false,
+        "evaluation_track": "oracle_video_conditional",
+        "evidence_bundle_id": null,
+        "evidence_ids_used": [],
+        "judge_contract_version": null,
+        "judge_model": null,
+        "judge_prompt_version": null,
+        "mechanical_gate_applied": true,
+        "missing_aspects": [],
+        "operational_reason_code": "candidate_generation_failure",
+        "policy_version": "v3.5-mechanical-gate-policy-v1",
+        "semantic_judge_invoked": false,
+        "semantic_reason_code": null,
+        "status": "unverifiable",
+        "sufficiency_decision_contract_version": "v3.5-sufficiency-decision-v1",
+        "supported_aspects": [],
+        "trace_id": "stage4a_trace_5a2267eadcfb27b6da830d7e3da8ac593d117e9fae804787e09133f42328ee23",
+        "validation_errors": []
+      }
+    },
+    {
+      "case_id": "CASE_005",
+      "gate": {
+        "action_family": "none",
+        "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+        "end_to_end_claim_eligible": false,
+        "evaluation_track": "oracle_video_conditional",
+        "evidence_bundle_id": "bundle_e0aec67042ca4d889a9167b63775ac172960545f325adb115e9215ab22a9ec83",
+        "evidence_candidate_set_id": "candidate_set_5f24b2ae83435c705d3579de712daa8b66954b4de7e88c077951ad6bc7cb6780",
+        "evidence_ids_used": [
+          "candidate_08471c62461ef9e8c4e079df400469aea8d9045ef41d7f9cc19f8a956921850a",
+          "candidate_367ebf094df1c4a0cb7a174fcbc54d40f275690d380e20b22b034c948e344c6b",
+          "candidate_0c0cab5b4a167540be4259cdcc350b2709ed5d8e6f3754c8b3d55e701a394945",
+          "candidate_07b5028c1e9deff3cb16c6f16f9e3d0373295abb68bc7b174fa9b5459e4788c0",
+          "candidate_38194fa82a43d1f3b5aef6f98c994d6312ab5124b2ea2f7ab307190820710669",
+          "candidate_5e52f7955d992a10c087019d3a486fe3105d084b0acb77163d76e11f61e777d7"
+        ],
+        "gate_decision_id": "gate_3997432bd7d0e6e59be23f0bd4a0c99689899d6c400bfa72523529181d0724e0",
+        "gate_outcome": "judge_eligible",
+        "mechanical_gate_contract_version": "v3.5-mechanical-sufficiency-gate-v1",
+        "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+        "operational_reason_code": null,
+        "query_id": "Q16",
+        "search_candidate_set_id": "6353311aa4927863b5092c6234d8d17d42ae99985711b33da07caf7293c700d7",
+        "selector_version": "v3.5-deterministic-fine-selector-v1",
+        "semantic_judge_required": true,
+        "terminal_status": null,
+        "trace_id": "stage4a_trace_2183b51685e2f8a58c178a8d992ff9f12cd2615d61be226c8a8c9090f5bd6fce",
+        "validation_errors": []
+      },
+      "terminal_sufficiency_decision": null
+    }
+  ],
+  "summary": {
+    "data_integrity_action_count": 0,
+    "development_case_count": 4,
+    "evidence_resolution_action_count": 1,
+    "gold_comparison": {
+      "insufficient": {
+        "judge_eligible": 0,
+        "terminal_unverifiable": 0
+      },
+      "partial": {
+        "judge_eligible": 0,
+        "terminal_unverifiable": 0
+      },
+      "sufficient": {
+        "judge_eligible": 3,
+        "terminal_unverifiable": 1
+      },
+      "unverifiable": {
+        "judge_eligible": 0,
+        "terminal_unverifiable": 0
+      }
+    },
+    "invalid_gate_decision_count": 0,
+    "judge_eligible_count": 3,
+    "retrieval_action_count": 0,
+    "selector_recovery_action_count": 0,
+    "source_recovery_action_count": 0,
+    "terminal_unverifiable_count": 1,
+    "unknown_operational_state_count": 0
+  }
+}

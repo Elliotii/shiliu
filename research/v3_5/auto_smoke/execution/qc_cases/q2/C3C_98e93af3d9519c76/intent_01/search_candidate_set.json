@@ -1,0 +1,1889 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "Home Rail 适用任务",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "Home Rail 适用任务",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.5902143716812134,
+      "end_time": null,
+      "excerpt": "[Title] 我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】 [Uploader] 小天fotos [Description] 大家久等了 答应大家的，我的语音多Agent编排系统 开源了 不过改名叫homerail 本期视频聊聊它能干什么不能干什么 以及未来的RoadMap [Summary Conclusion] HomeRail 正式开源，这是一个面向家庭数据中心的语音控制多 Agent 编排系统，目前处于早期阶段，适合有技术能力的用户探索，未来将逐步完善成为家庭 AI 助手。 [Summary Key Points]",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "video:bilibili:BV1cyMi6tEqU:p1",
+      "unit_type": "video",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.5253728032112122,
+      "end_time": 118.71,
+      "excerpt": "朋友们一个月前立的flag今天正式开园了 我的语音控制的多A真的系统 你可以把它想象成 运行在你个人电脑或者NAS上的一个贾维斯 它可以语音交互 可以编排多维人进行复杂的任务 而且它有一个非常不一样的交互界面 这之前看我视频的朋友应该都知道 那今天我就说话算话了 正式开源给大家 那本期视频我就跟大家聊一聊 他打算解决什么样的问题 他对什么样的人群有意义 适合做什么样的任务 以及它未来会朝着什么样的方向发展 同时伴随着开源 我自己也会开始实践一种building public 现在不是流行这个吗 我也会在大家监督下 一边分享着我的领悟 一边去build这个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_ed59af5140b12e6e1837b1b09a1f99fe",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.4637819528579712,
+      "end_time": 2441.46,
+      "excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 2324.32,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.4474852979183197,
+      "end_time": 12782.1,
+      "excerpt": "还有一个就是会不会你的训练跟推理 是在易购的集群上训的 然后所以你你你你你的训练和推的不一致性 我觉得在原来cod跟master的呃 那个reasoning那个范式里边 是不能容忍这个事情的 但现在你必须要容忍这个事情 然后引擎你怎么去做一些 更多的异构资源的调度 比如说现在除了GPU 你还要管CPU 然后你还要管存储对吧 然后所以就是怎么在这种很复杂异构资源里边 把这个模型训起来 然后嗯 就是我觉得这里边需要很多 算法跟工程的一个妥协 嗯中间这个模糊的地带非常多 然后呃所以他对inf尔人的要求的 灵活性的要求 和 这种啊 这种就这跨这两个领域的这样的一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 12662.54,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_24626a52e73695fb8df69cc52308c55d",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.43786048889160156,
+      "end_time": 582.78,
+      "excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 464.17,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.4290960431098938,
+      "end_time": 2326.34,
+      "excerpt": "我觉得就是要要靠啊更多的靠群体的智慧 就你让更多人去用它 然后基于更多人去用的 比如说我们内部会大量去使用哦 我们会让我们这个模型首先在唉公司内部去推 大量去人用 用了过后 然后我们发觉到更广泛的场景 在这个广泛的场景里边 去合成更多的数据来做训练对嗯 然后这里边很关键的一个问题是嗯 你怎么哦还原当时所有人用这个事情的环境 嗯对因为有这个环境 你才能更好的去嗯进行更长城的交互 然后并且呃有了环境过后 你才可以针对这个环境本身去做哦 呃更精准的reword设定对 然后这个事情是比较有难度的 然后我觉得嗯也是我认为在这事上 如果投入的算力足够多的话 研究的时",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 2208.97,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b5788b66b573754236555df1647eab3b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.4283854365348816,
+      "end_time": 1275.32,
+      "excerpt": "互联合网络机柜里有九个nvlinswitch train 还有统揽connect网卡 RUFUDEPU管理网络和本地存储 公开资料 没有逐项价格 按300万总价扣掉super g后 这部分和其他系统件合计大约几10万美元 第三项工程成本 NVL72功耗约120千瓦 重量约1.36吨 你需要液冷供电机轨结构测试和集成 Tom harwin morgan stanley 数据 GB300MBL72的冷却部件 共约4.986万美元 这个数字只代表冷却部件量级 不含机防侧CDU 配电和运维 结论很简单 最大的钱在GPUHBM先进封装和NVLINK生态 第二层是液",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 1172.64,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_a3f45f46338b386888f8a5ee65095e30",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.4225574731826782,
+      "end_time": 1007.4,
+      "excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 927.03,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.4209493100643158,
+      "end_time": 349.68,
+      "excerpt": "先在同一个任务内 把高分轨迹和低分轨迹分组比较 他们从哪个编排决策开始分叉 是拆任务漏了约束还是代理角色不清 还是汇总节点没有校验 然后再把多个任务的诊断合起来 提炼跨任务反复出现的弱点和稳定优势 这些诊断最后怎么变成新的metal skill 反思阶段会形成evidence package 也就是一组有优先级的修复证据优化器 先删掉或改写证据显示无效的旧规则 再给对应模块加入新原则 论文要求保留三模块骨架 而且每个改动都要来自证据 并抽象成通用编排原则 不能写成某道题的补丁 能不能给一个更具体的例子 browse compl的例子很直观 初始流程可能偏",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 230.83,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.4116164445877075,
+      "end_time": 234.86,
+      "excerpt": "他们是反过来先写评测再写skill 评测用例主要来自三类 第一真实用户查询 第二已知失败案例 第三临近领域混淆 临近领域混淆指的是那些看起来很像 但不该加载这个skill的请求 这里最重要的是复利 很多人做skill只会写正例 用户问A要加载这个skill 用户问B也要加载这个skill 但skill最大的风险之一不是不加载 而是乱加载 一旦乱加载 他就把无关内容塞进上下文 影响别的skill 甚至把模型带到错误方向 所以step0的本质是先定义路由边界 再写skill内容 第二步也就是step1写描述description perplexity 说整个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 115.37,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_b5d76e67ddf09b7126285f6832c5b94d",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.4107005000114441,
+      "end_time": 704.72,
+      "excerpt": "因为这是我们自己描述的 如果有对应的一个关键字 它就会触发这个skills 我们来看一下是不是 如果在不支持这种啊skills的AI coding的能力下 你这么写 他也不会处于除法 但是如果真的支持了他 你在这个按照SSKUSE逻辑 而description和mental data写的非常好 你只要写下一阶段 它就能够检验到啊 是一个skills 我们来看一下是不是好 然后我们开始执行 好你看let me roid的skills first 所以他已经发现了 下一阶段就是要去执行这个skills 所以第一步呢 其实是需要去啊激活一个虚拟环境 这是我要写",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 585.23,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_b43fd0b37fe3cafa1f2e28d9812c18f6",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.41025280952453613,
+      "end_time": 11277.46,
+      "excerpt": "我觉得是非常啊是基本上没有的 或者说非常接近 或者说国内的大部型团队在ping train上 结构上是有优势的 呃甚至一度我认为cloud啊 可能嗯在哎过去很长一段时间 做了很多contest engineering 我们都误以为它是因为模型结构不是很先进 然后为了成本而做了一些妥协的设计 但现在回过头来看 可能是有点想的太局限了 然后现在可能你能看到所谓的这些contest 不管他最开始的东西是什么 但最终目前的啊这样的一个状态 是他所谓的这个context的管理 以及搭配的整个SKYFORD或者agent的架构呃 嗯其实是为了啊呃配合模型发挥更强大的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 11159.05,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_2e58861ac65c72c778988956efe81e89",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.4098868668079376,
+      "end_time": 233.37,
+      "excerpt": "这些功能就涉及到tools的注册调用 执行相关的技术 以及怎么把这些tools调用 串成一个可控的执行流程 所以那段时间我就开始系统性的学习 任grave框架 它特别适合用来组织这种多步骤 有状态 还有分支判断的A卷 WARF可以把整个系统的调用 逻辑和状态流转都处理得很好 我一开始看的是line graph的官方文档 这个文档比较适合一开始建立起整体认知 里面讲到rain graph的定位 用官方的话来说 就是它是一个可以构建 long running and stanforagents的底层框架 看了这个文档之后 就能知道这个框架大致是用在什么样的场",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 115.3,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6cfb0d1a909308f49e45ec87d52f65b6",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.40982091426849365,
+      "end_time": 3723.0,
+      "excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 3604.0,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.40743008255958557,
+      "end_time": 1401.12,
+      "excerpt": "我复现的时候是遇到了一点小bug 因为我发现他其实组织形式不是特别的规范 然后后面呢我就运行成功了 运行成功了 主要是运行这个app点PY的代码 当然他写了一个启动脚本 那我们直接运行启动脚本吧 嗯先要退出到那个文件夹目录 Playground 呃然后还要到demo里面 然后BH我们的脚本好 我们就启动我们的脚本了嗯 可能得稍等一小会 好提到好脚本 那我们就进去吧 然后呢我们嗯嗯嗯嗯 然后呢我们把这个user id输一下 随便输 然后open i API t呢 就是我们的轨迹流动的那个app呃 model得改一下 model其实也不一定选这个 大家可以去",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 1283.61,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_1be057fc3b2e8e2be30e10b6df5be297",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.40548521280288696,
+      "end_time": 1161.98,
+      "excerpt": "会去展示他使用了什么技能 他做了什么动作 当然很多时候这个执行不一定会顺利 你也可以PUA他一下 所以在经过了一些困难之后 他最终还是成功生成了这个页面 好吧 这个大家自己去调试 如果效果不好的话 也可以去调整一下模型 这个很重要 接着讲一些深度使用和miss agent的小技巧 比如说你可以去修改so点MD文件 赋予你的这个本地私人小助手一个独特的人格 然后你可以通过这个roll back命令 去回滚他的操作 去按照任务复杂度直接切换模型 那当然这些在常用命令这里都有提到 还有就是查看和管理skill等等 如果大家不习惯用终端来交互的话 可以直接去找到",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 1042.77,
+      "subtitle_source": "ai",
+      "title": "Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1oKdxBzEVz:p1:chunk_a171b09dc3a1927383612d9c4d986797",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 95
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.40481412410736084,
+      "end_time": 336.74,
+      "excerpt": "第二步装agents CLI 这个特别重要 我再强调一下MONICA 他自己不写代码 它依赖你装好的AI agent来实际执行任务 所以你至少得装一个推荐cloud code或者codex 装好之后呢 守护进程会自动找到它们 不需要你手动去注册什么 第三步登录认证 运行monica login浏览器会弹出来让你OSA复登录 如果你在那种没有浏览器的服务器上 用multica login token 可以用token的方式登录 第四步配置工作空间 Montica workspace list 看看你现在有哪些空间 第五步启动守护进程 multica dem",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 223.52,
+      "subtitle_source": "ai",
+      "title": "一人公司神器！Multica零基础搭建AI Agent管理系统",
+      "unit_id": "transcript_chunk:bilibili:BV1DT5y6jEYA:p1:chunk_99fb8c7f0f61cb7723f13bd027d0ecf5",
+      "unit_type": "transcript_chunk",
+      "uploader": "极客魔导师",
+      "video_id": 67
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.40314191579818726,
+      "end_time": 556.68,
+      "excerpt": "让新手朋友能无障碍地使用桌面版 同时把这个manager agent的skill不断优化 让他能够当一个值得信赖的助手 我的中目标会着重放在生成式UI和编排 模板和编排skill的优化上 我自己的观点是这样 人的带宽是有限的 人应该和更容易看得懂的UI来交互 同时后台跑的应该是更加复杂的编排逻辑 人不应该去了解底层的细节 只是在关键的节点 通过生成式的动态UI面板 来了解每个阶段的进度就好了 那长期目标 我希望他能稳定跑在家庭的数据中心里 或者说NAS里 那现在有个趋势啊 NAS的计算性能在不断的增长 他们现在已经不单纯是管理存储的角色 我觉得他们未来很",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 461.46,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_bd67b113b30d3883efb31cfbbdf643eb",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.40078866481781006,
+      "end_time": 232.48,
+      "excerpt": "并且计划他还会有一个review他写的一个计划 那这个计划里面其实是非常详细的 可能有1000多行的一个计划 包含了这个嗯 甚至包含了这个详细的一个代码实现 OK嗯下一步是什么呢 下一步就是我们到了一个执行计划 就是对于我们刚刚所编写的这些计划来进行一个执行 那执行过后啊 就是我们可能要进行一个执行了 那这地方会有一个指就是sub agent的一个开发 那这个人他会有一个规范 啥本写的是什么规范呢 就是两阶段的一个审查 这个审查是一定会有的 就是你在交给萨博engineer来写完代码之后 一定会触发这个space这个review和code review ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 115.62,
+      "subtitle_source": "ai",
+      "title": "superpowers 使用心得分享！竟还能优化？",
+      "unit_id": "transcript_chunk:bilibili:BV1iRXaBnESX:p1:chunk_b4f6c8e3726d42d0fa805c64ae68441a",
+      "unit_type": "transcript_chunk",
+      "uploader": "xhyovo",
+      "video_id": 106
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.3996767997741699,
+      "end_time": 10696.6,
+      "excerpt": "我就觉得啊怎么这么奇怪 就哼看老有这种疑惑 那我也不管他为什么这么奇怪了 反正我就觉得那样不太对 然后就我就不这么做就OK就行了嗯 所以我们外界看到的可能是r one 但是你在内部感知到的是 在这个模型开始训之前的对团队的调整 和组织其实其实就是大家认不认可这个事儿 然后以及我们要以一种什么样的方式 来做这个事 我觉得我是在re的过程中是有非常大的体验的 但最终的那个结果就我我能预知到的是 就我走的时候 R1还已经做到一个light的水平 然后克鲁格mars已经做到了 非常接近于哎那个O1 我以小的那一版嗯的水平 然后嗯那我预已经意识到了 是我觉得cod",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 10577.62,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_1421846a62053e9654995eab62242461",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.3993425667285919,
+      "end_time": 698.55,
+      "excerpt": "而不是被人来迭代的 因此我我给AI实现了一整套基于CLI的编排 构建系统 编排中的agent呀 prompt的片段呀 资源啊 都是可以复用的组合 所以已经跑通的编排就是ORCHESTRATOR的知识库 ORCHESTRATOR处理过更多的任务 他的编排经验就更加的丰富 第三件事 一个task是不是也可以被无数的编排来实现 来完成对吧 那么一个task加一个确定的编排 是不是也可以跑无数次来评估来采样 我把这个叫抽卡式的任务解决 那每个任务你是不是都可以跑好几个副本 择优录取 或者是从众多的跑的结果中 cherry pick出你需要的内容 那么这里产生的数",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 580.91,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_3e28e59f7daba5c5bee38e3f349d4df0",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.39915931224823,
+      "end_time": 561.88,
+      "excerpt": "镜像仓库时必须经历的非常令人头疼的麻烦 你不必为每一次勾肩都痛苦的重复无数次 o as流程 只需在低坡控制面板中登录一次镜像仓库 然后就一劳永逸了 从他们的CI到镜像仓库 再到CII以及更多功能 这也就是你唯一需要操心的全部内容 deep是处理构建的终极平台 链接是DAVIS7点link slash deep 聊聊我是如何定制我的配置 之前 我想简单谈谈我目前的工作流到底是什么样的 一段时间以来 我一直非常喜欢代码智能体的桌面应用 确实自从几个月前codex应用发布以来 我就一直很看好这类应用 后来T3code发布了 有一阵子 我几乎所有工作都在T3co",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 449.98,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_54e9db0bf5e695f1ec1b124e75dc981e",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.3988669216632843,
+      "end_time": 232.29,
+      "excerpt": "广州论文同时给了GITHUB仓库 里面有初始skill预演化后的benchmark skill 演化脚本和demo inference路径 那这份matter skill具体写哪几类东西 它被拆成三块 第一块是task decomposition 回答任务怎么理解 怎么拆 成功标准是什么 第二块是agent engineering 回答需要哪些子代理 每个代理拿什么上下文输出什么格式 第三块是workflow orchestration 回答这些代理是串行并行 层级协作还是待循环反思 只把说明书分成三段 听起来还不算自动优化 他怎么自己变好 关键在闭环 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 113.53,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_44469acfc15ebbf5478133010b94cb4f",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.39818859100341797,
+      "end_time": 236.86,
+      "excerpt": "让我先叠个甲 我先介绍一下他不能干什么以及当前的状态 免得大家期望太高 到时候会失望 首先啊 这个产品不是为了解决软件开发 自动化而设计的 虽然他一定程度上能做这样的任务 但是软件工程大家都知道是个复杂的事儿 不是说开发一两个workflow就能解决质量问题的 所以挺不适合这类任务 我未来也不会朝着这个方向去发展 而且我有一个观点 就是AI现在大部分时间都在创造软件 他也更擅长这个 但软件未必是最终交付成果对吧 比如说我是博主 我交付的最终成果是视频 但生产视频呢可以是软件 所以我只需要确保软件能生产 我需求质量的视频 那就好了 这就是能达到我的质量体系",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 117.27,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_dca5404bea9aa2bb343403379768ae2f",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.3976691961288452,
+      "end_time": 1053.96,
+      "excerpt": "所以更可审计 这其实也是为什么harness engineering比直接改模型 权重更像一个可控的工程方向 如果我们把这篇论文放在更大的脉络里 它的重要性到底在哪儿 我觉得可以用一个三阶段的说法来总结 第一阶段大家意识到光有模型不够系统 外面的harness很重要 第二阶段大家开始手工总结harness经验 什么场景适合检索 什么场景适合memory few short 该怎么摆 agent loop怎么设计 第三阶段也就是这篇mata harness代表的阶段 不只是人类总结harness方法论 而是让AI自己去做harness engineerin",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 935.5,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_4c0fb8a330a262ce7fdf217ec473b51a",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.39669811725616455,
+      "end_time": 524.2,
+      "excerpt": "然后也支持走这个GBT的订阅 如果列表里面没有呢 你就选这个custom自定义接口 这一步呢就跟你配置其他的agent的接口一样 填好base url 填好你的API key 然后点保存就可以了 添加好服务商之后呢 我们在这里选择添加模型 我们填上模型的名字 我们今天用的是GPT5.5啊 最近用5.5实在太爽了 量又大 然后能力又强 这里呢勾选上他的推理模式 然后可以允许图片输入 然后把最强的x hi的这个思考模式选上窗口 我们选择20万 然后这里填个6万4的 这个最高的token输出保存 然后我们来测试一下 发个你好 我们看到模型已经通了 然后呢我发送",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 415.54,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_db2de4bde0c9d77ec3f4ffd39b7971be",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.39664268493652344,
+      "end_time": 350.45,
+      "excerpt": "我还大吃一惊 想说哎你你没有开工具 你怎么知道这个passer点PY的内容 你怎么知道有extract email这个函式 我发现说啊这边题目有讲了 题目有讲extract email的函式 所以他幻想了这个pass点PY 这个档案里面应该长什么样子 他就写了一个自己幻想的档案 然后呢 在幻想说自己verify了这一个幻想的档案 然后就说我做完了 当然这个不是我们人类要还可能想说哇 这个2B的模型果然是不行啊 做不了事情 但是你再仔细想一想 这不是一个愚笨的模型 他是个聪明的模型 他完全知道 pass点PY里面应该要有什么样的东西 他有能力写出一段正确的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 232.05,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_ba90a616b62bf3371419280951b93cc6",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.3957239091396332,
+      "end_time": 1045.45,
+      "excerpt": "然后我们选中非输入arc 点击空格键 选选中或者取消 然后点击回车键确认 这里因为我已经完成配置了 大家可以看一下这个配置过程中的截图 你只要去那个飞出机器人 把他的app id和app secret填进来 然后其他基本上选默认就可以 最后重新在终端命令行里启动一下你的网关 接着启动完成之后 第三步是你要去飞书上 找到你刚才配的这个机器人 随便发一条消息 拿到配对码 然后回到终端去执行他给你的这条命令 那执行完命令之后 如果显示approved 就说明配对成功 你就可以直接和他聊天了 接下来这个是基于open couch进行迁移的流程 就是首先如果你是首",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 926.65,
+      "subtitle_source": "ai",
+      "title": "Hermes Agent 详细讲解 & 本地部署和基于 OpenClaw 迁出的全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1oKdxBzEVz:p1:chunk_8befa34bbe6070f353a4bc94ba906054",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 95
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.3951312303543091,
+      "end_time": null,
+      "excerpt": "[Title] 2026年过半，我是怎样使用 Agent 的？ [Uploader] 卡普迪姆 [Description] 调度 sub-agent 的提示词原图在图文版里，放在公众号：减 AI 其实核心就是让 cc 怎么利用 codex exec 调用便宜的 gpt 5.5 看完视频后，欢迎在评论区交流分享自己的使用心得！ 相关引用： [1]: https://x.com/theo/status/2072482460122964067 [2]: https://github.com/mattpocock/skills/blob/main/skills/",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "2026年过半，我是怎样使用 Agent 的？",
+      "unit_id": "video:bilibili:BV1QnML6pEZr:p1",
+      "unit_type": "video",
+      "uploader": "卡普迪姆",
+      "video_id": 24
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.39428985118865967,
+      "end_time": 582.74,
+      "excerpt": "做不到杠杆 是因为如果你只有cloud code或者是open cloud hermes 你只有这样的框架是不行的 因为真正让模型发挥出优势的是更加复杂的 Harness 是更加合理的分工规划 流程控制 而且是无人值守 高并发全自动端到端的交付 那么简而言之 就是说 除了有模型以及对模型能力边界的极致理解 你还需要一整套的harness来实现这一切 对你需要的不是模型 而是软件 好的就是现在 这是目前AI世界里没有标准答案的地方 也是被迷雾蒙住的一块 也是更有价值的一块 所以每个人都有机会啊对吧 但我敢保证 也就是今年内市场上就不断会有答案产生 说说我自",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 466.23,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.394122838973999,
+      "end_time": 2682.89,
+      "excerpt": "好的 但需要注意这未考虑 推理成本 这简直 如何训练出最佳模型 无论模型有多大 因此这里存在一些限制 但无论如何这对模型开发极为有用 所以在本次任务中这有点像 嗯 你知道挺有趣的 因为我们定义了一个引号 未引号的训练API 你可以用特定超参数进行查询 你需要指定架构、批量大小等 我们会返回一个损失值 你 你的决策将获得 好的 你的任务是 你有一个FLOPs预算 你要尝试训练多个模型 然后收集数据 你需要将收集的数据拟合到缩放定律 然后提交你的预测结果 你知道你会选择什么 超参数 模型规模等 在更大规模下 好的 这里你需要 真的 我们希望让你处于这种位置 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 2564.85,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.39367690682411194,
+      "end_time": 4416.96,
+      "excerpt": "有自己的独立的contest 它会更他会更专注 对专注还是蛮重要的 就你的contest不不被混乱 然后他能完成的更准 然后哦所以就是你可以理解为我们现在去模型 可能需要非常啊抖音发人 然后去啊诶写一套非常好的训练或推理的架构 然后需要他从训嗯推理的视野去倒推跟做哦 能能能懂模型评估呃 呃呃 以及模型训练人 一块去定一个非常好的模型结构 有有这样一个中间的connection的合作 然后这个非常懂模型训练和懂模型评估的人 又要学会去跟嗯做数据的同学去进步的去沟通 说OK我们要赋予模型什么样的能力 我们需要去构造什么样的数据 然后同时呢做数据这一群人 他又",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 4299.58,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_a65921ed2a3951577910bccb8e56de34",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.393324613571167,
+      "end_time": 10809.159,
+      "excerpt": "把呃那个live code bench这些偏code的benchmark 就是思考很久给出一个答案这种 然后把这种嗯呃呃呃呃呃AME 对这些对你可以在这个范式上选择继续生根 你也可以选择我豁去掉 我就不管这些 对我不管这一套范式 然后我就去想下一下嗯 我我可能在车道翻上能够做到六七十分就OK了 其实M1做到60分就六七十分 就表示这个链路你已经走通了 但是你你你是不是可以就可能比较聪明的团队 我觉得25年年中就会全面拥抱 去佛新的一技能架构去做事情 而这是你的选择 me max是已经转过来了 me master我觉得算是转的最早的 MMAX是国内转的最早",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 10692.44,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_5f5fd340617360f702880a2d9c527333",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.3932534158229828,
+      "end_time": 2213.16,
+      "excerpt": "它就为长上下文的能力和效率 效率很关键 效率我们待会再谈 就长上下文的能力和效率 已经做好了充分的准备 这个是在我们没有去受到这么大冲击的事情 之前已经做了的 但是呃春节后做的事情是 你怎么去激发这样一个大的模型的潜力 从code出发到外延到其他场景 因为其他场景是你训了他会更稳定嗯 但你没训它 它它能被泛化 只是说他没有那么稳定 而一个顶尖模型的水平 一定是要在更广泛的场景里边更稳定 对所以代扣的是拉他的上限 然后你去其他领域是保他的下限 我我是这么认为嗯 然后所 所所以就是你首先要把code做的code的这种 长城任务做的更多样性 嗯嗯所以你为什么软",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 2094.89,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e3ecad1fff51d2458ecfebe28dbdbe96",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.3919839859008789,
+      "end_time": 1524.8,
+      "excerpt": "就是你在设计自己的项目的时候 你如果A证项目没做 我建议你结合coder code成本控制 我们去讲的 他是怎么设计成本的 你自己设计你的ACENT 你也要引入成本监控 然后以及你自己做项目的时候 你要大概注意一下你的项目啊 用了多少偷看 这是我给他的一些建议 大家第7.1呢用了哪个模型 其实我也有给大家去总结 在模型的选择里 我专门给大家总结了一个模板 就通过场景能力模型这三个维度啊 场景能力 场景能力模型这三个维度来去分析 你模型应该去选择那样的一个 你的项目应该选择哪样一个模型 包括我结合我们自己的项目 去套用这样的一个模板 来大概的去分析我们建议",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 1407.36,
+      "subtitle_source": "ai",
+      "title": "最新字节大模型开发暑期实习一面面试精讲",
+      "unit_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_9cb18447d3e3ff2a98b226f65769ed13",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 73
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.3917911648750305,
+      "end_time": 579.98,
+      "excerpt": "skill mess的想法是先在验证集上花钱 把metal skill优化好之后 每个测试样本一轮生成my s 而不是像一些推理时方法那样 每个样本都重新搜索 迁移实验为什么重要 因为如果meta skill只在一个模型 一个任务上有效 它更像benchmark调参论文报告 同任务同模型的提升最大 大约7.14到9.53 同任务换模型仍有正迁移 同模型换任务也有正增益 最难的跨模型又跨任务增益最小 但仍是正数 这说明他真的学到了通用原则吗 只能谨慎地说 他学到了一部分可迁移的编排原则 比如多约束任务要并行收集证据 汇总节点要做一致性校验 复杂工具任务要先",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 461.61,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.3916366398334503,
+      "end_time": 1033.08,
+      "excerpt": "你需要耗费一番心力才能够得到 那接下来呢我简短的跟大家介绍一下什么是cargo 让大家对卡go有一个基本的概念 我们等一下讲解本课程相关的规则的时候 你比较能够进入状况 那等一下有关cargo的规则 如果你一下子听得没有很明白也没有关系 我们在每一个作业都还会再反复强调 而什么是cargo呢 ko啊是一个线上的平台 跟资料科学有关的比赛 有一些比赛呢甚至是有奖金的 那这门课很多作业呢我们会把它当作是一个课堂内的竞赛 你可以有一些作业呢就是在cargo上举办的一个小型的课堂内竞赛 所以你要做这个作业 你要参加这个课堂内竞赛 你必须要注册一个cargo的账号",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 913.94,
+      "subtitle_source": "ai",
+      "title": "李宏毅《机器学习/深度学习》2021课程（国语版本，已授权）",
+      "unit_id": "transcript_chunk:bilibili:BV1JA411c7VT:p1:chunk_38bc250de17b8ee057d63dd3c3612400",
+      "unit_type": "transcript_chunk",
+      "uploader": "二次元的Datawhale",
+      "video_id": 120
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.3916051387786865,
+      "end_time": 585.86,
+      "excerpt": "进入第一个实验文本分类 这里他到底学出了什么样的harness 论文发现了一类很有代表性的memory based harness 核心共同点是不是固定few short 而是围绕当前样本动态查memory 动态组织证据 其中有两个很值得讲的代表 先讲第一个 第一个叫draft verification 流程是两步 第一步先从memory里取 和当前输入最相似的五个已标注样本 让模型给一个初步标签 第二步不直接结束 而是围绕这个draft label 再做一次更有针对性的检索 找五个支持当前标签的例子 再找五个不支持当前标签的challenges 然后让",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 466.36,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_f31ba479c01debec0820c50fb8f7613e",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.39159542322158813,
+      "end_time": 676.72,
+      "excerpt": "我就会打开that或其他什么编辑器 直接在里面操作 最终我可能会想办法回到 更专注于桌面应用的工作方式 我真的很希望能以一等公民的方式 将pi集成到T3code中 让他直接在里面跑起来 挺容易的 我已经弄好了 但要让他真正地运行起来 让斜杠命令能用 扩展也能用 这是一种超级一流的PI体验 嗯这还需要一点工作量 所以我打算去搞清楚 并真正把这件事做好 一旦完成 我可能会回到那个方案 但目前这是一种很好的做事方式 特别是考虑到我现在喜欢 配合GBT5.5的工作方式 总是以低推理模式使用它 因为这个模型开箱即用就非非常出色 我基本上会在不同的pi实例中 针对同",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 560.16,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_0c0b109bf2ba7ee48b4b3c0abf94c98e",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.3913290500640869,
+      "end_time": 463.52,
+      "excerpt": "沉淀成skill 然后投入到日常的生产开发中 这个过程给我的最大感受是 团队级别的skill和个人web coding完全不是一回事 个人web coding的时候其实容错率是很高的 你可以临时补充上下文 看到结果不对之后 立马去修改PRT 也可以不断重试 一直到他给你一个满意的结果 但是在团队生产环境里面 skill本身就要承担更多的责任 尽量让不同的人在使用的时候 产出的结果是稳定的 这里面就会遇到很多边界问题 比如一个很经典的问题就是上下文膨胀 如果你把所有的流程约束都写在一个print里面 整个上下文就会变得非常长 模型的注意力就会被稀释 大模型",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 346.87,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.3899877369403839,
+      "end_time": 1160.99,
+      "excerpt": "所以这个是2023年的时候 用AI来这个运行NPC的一个实验 其实后来还有更大规模的实验 有人把MINECRAFT中的NPC通通换成AI的NPC 那我就把相关的影片连接留在这个投影片上面 那根据这个影片连接的描述 就说啊这些AI很厉害 他们组织了自己的呃交易的金融体系 然后还组织了自己的政府 自己管理自己哦 不知道是真的还是假的啦 这个是这个影片说的 刚才讲的那些游戏 你可能比较不容易接触到它 对现实世界可能也没什么影响 那今天也许你马上就会接触到的AI agent 就是让AI来真正使用电脑哦 虽然虽然这个听起来有点吊诡 AI本身也就是一个电脑 但他现在",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 1041.87,
+      "subtitle_source": "ai",
+      "title": "LLM大模型入门！一口气带你学完AI agent、transformer、LangChain 、RAG 等大模型核心知识点！简直不要太爽！",
+      "unit_id": "transcript_chunk:bilibili:BV11nSjB2ErQ:p1:chunk_c9a1e223975badd2642373c13eb41db8",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅-机器学习课堂",
+      "video_id": 124
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.3899573087692261,
+      "end_time": 3490.2,
+      "excerpt": "这个model参数量 可能至少我希望我觉得至少1T以上吧 对只要有这样的一个呃入场券的人 基本都处于同一水平线去做这个事情 嗯当然我索比肯定是走到前面了 我只是说呃目前呃上一个时代的成功 并不意味着下一个时代的领先 现在基本上大家在同一水平线 这是一个什么样的时代 agent的时代怎么定义 它就是我觉得就是生产力加速变革的时代 对近年生产力会爆发对吧 呃对从最的就这就是大家会觉得很多工作嗯 不需要自己做了 这是最直接的一个感受 从只要你接触到这个事情过后 你会发现你的好多工作都会被替代掉 那么呃这个时候人更应该去思考 就是说到底自己的意义和价值是什么 嗯",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 3370.5,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_8241fe68e93eb75b033e62f48e51d256",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.3899327516555786,
+      "end_time": 310.44,
+      "excerpt": "但是这个派agent就是你自己的agent 这句话呢就是最精确地表达了 他这个PAGENT的设计的这个基本的理念 上面我提到了好几次 这个skill skill具体是什么东西呢 就是一份给agent的说明书 一份给agent的操作手册 agent读完之后呢 他就知道怎么来具体的干活了 我们看啊 他底座保持极简能力呢 就是你可以按需去安装 这就是派的设计思路 说到这里呢 可能有些朋友也会好奇啊 就是说你这个差别到底能有多大呢 听起来好像也差不多嘛 我给你举一个具体的例子 如果你平时去用cloud code1条 你好发一条hello 这个系统提示词呢就会占到",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 205.98,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_440aec9e373c2484571282a1453ecd89",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.38993069529533386,
+      "end_time": 812.349,
+      "excerpt": "它的输出质量相对来说还没有稳定到 有比如说有cloud code或者说open code这样的一个程度 它还是容易漂移 虽然说我们说这个派的宣传的理念是说是说 现在的这个AI模型的能力越来越强了 我们其实不需要那么多的题约束 去保证AI的质量 但是那些事情它并也并不是说完全没有价值 比如说我们现在的这个AI的模型 已经能够达到60分的能力 那那些东西 他可能说可以把这个模型的能力 提升到65分或者是70分 但是我认为他也没有把这模型能力能提升到 90分那么多 但是它确确实实有 给这个模型带来更稳定的一个输出质量 这个肯定还是有的 那派减轻了这个之后 就他",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 692.569,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_ff5c75df79558a393da2247cd7cb8248",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.38989314436912537,
+      "end_time": 6398.7,
+      "excerpt": "1T的模型可能是未来竞争的一个入场券 是这样吗 是agent的 你要做到接近cloud4.6 office的水平的这样一个入场券 你当时立项的时候还没有这个模型对吧 为什么你当时就已经觉得一定要是1T的嗯 就首先我训过DPCV3这么大小600多 600多700B的模型 你不会再想去训一个同样的模型 对就肯定还是继续往下一步skinny嘛 所以EET是一个嗯在我们当时已有的卡的讯 已有的卡的数量情况下 的一个比较极限的一个区间对 嗯是多少卡 几千卡 反正训这个模型是几千卡 但实际上我们要投入大量的卡去做研究 所以其实实际上的研究的卡 会是实际训练卡的几倍训",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 6280.01,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_4ebfacc5a8e74219a642e593c1834a3d",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.3898066580295563,
+      "end_time": 3835.14,
+      "excerpt": "用户支持和assistant的支持 最后我们把它把这些问题都组装起来 接下来我们的system prom怎么写的呢 就是角色设定和助手知识 所以我们会发现这个角色设定助手知识呢 这一部分其实也是有一点长期记忆的内容了 然后我们再把这个user prompt呢 就是通过我们的短期记忆的拼接 然后加中继器的检索 再加一些背景知识 就是再加上我们的一个问题 就是query 用户的这个query组装成一个合并的form 然后我们找这个合合并的prompt 会给我们的大模型来生成响应 最后就得到我们用户想要的一个结果啦 也满足我们的记忆了 当然我们不仅仅是做完一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 3715.78,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_3a98c3e11bfab6d2d6c930c56766d26d",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.3894461989402771,
+      "end_time": 1011.86,
+      "excerpt": "VR slim就你要懂它里边那个推理的框架 还有training的框架 FSDP麦克TRA 然后可能很很重要的就是分布式训练哈 数据并行 张量并行 流水线并行 序列并行和专家并行 还有你要去关注一些training的一个projects 比如这个很很重要的事情 数据从哪里来 数据呃 creation的一个过程 还有这个ftwin fan training和这个post training 以及那个air training的这样多阶段的一个训练啊 对这是整体的 我大概也哈拉了一些重点哈 就是我目前其实大家也可以就留意到了哈 我始终在我就是我基本上所有的系列视",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 905.93,
+      "subtitle_source": "ai",
+      "title": "[说说心里话] [2026-春] 人机协作的视角，AI 时代的学习指南与焦虑缓解",
+      "unit_id": "transcript_chunk:bilibili:BV12nw4z6Eoa:p1:chunk_0e8d2099f8516957adf602dfa0883235",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 98
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.3893621563911438,
+      "end_time": 1160.999,
+      "excerpt": "所以这个是2023年的时候 用AI来这个运行NPC的一个实验 其实后来还有更大规模的实验 有人把MINECRAFT中的NPC通通换成AI的NPC 那我就把相关的影片连接留在这个投影片上面 那根据这个影片连接的描述 就说啊这些AI很厉害 他们组织了自己的呃交易的金融体系 然后还组织了自己的政府 自己管理自己哦 不知道是真的还是假的啦 这个是这个影片说的 刚才讲的那些游戏 你可能比较不容易接触到它 对现实世界可能也没什么影响 那今天也许你马上就会接触到的AI agent 就是让AI来真正使用电脑哦 虽然虽然这个听起来有点吊诡 AI本身也就是一个电脑 但他现在",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 1041.87,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_88614d594495315d4a1d809c72cf2c43",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.3893245458602905,
+      "end_time": 1512.67,
+      "excerpt": "你要从一个harness运作改呃 移植到另外一个harness 其实是举手之劳而已 好那agent点MD这样子的档案呢 过去呢大家就是凭着直觉随便设一设 到底有没有发挥作用 也没有太多系统性的研究 不过从今年开始 我看到好些paper开始系统性的研究 agent点MD对模型造成的影响 它开始变成了一个科学 要系统化的去研究这个档案 到底对A卷的行为造成多大的影响 比如说这边引用的是一篇今年1月的paper 他做的事情 就是他去GITHUB上面找了大量有agent点MD的rapper 然后呢就把那些城市拿出来 然后看说假设有AG卷点NB的时候 执行起来是什",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 1395.08,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_5509c986508d65dbaac603204f79ec64",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.3879278898239136,
+      "end_time": 1743.73,
+      "excerpt": "那那个答案就像是一个百科全书 里面包含了所有模型需要知道的事情 脚像叫他每次在做任何行为之前 都一定要把六法全书通通翻阅一遍 然后再开始做事 这样你就可以避免做出犯法的行为 但他们发现说 如果给模型一个百科全书式的agents点ND 他的表现会是非常差的 因为光是那个百科全书 六法全书就已经占掉模型多数的contact 让他根本没有办法做其他的事情 所以他们有强调说呢 agents点MD呢要像是一张地图里面 主要是告诉模型 如果你想知道什么事情应该去哪里找 而不是把所有的内容统统塞到agents点MD里面好 那刚才讲的呢是有关认知框架的部分 接下来我们来",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 1625.32,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_8fed1b70aadc20d95c8aec4e9539afc4",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "video:bilibili:BV1cyMi6tEqU:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1cyMi6tEqU",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/2f73b7639223c8d164918338372df7a797cfb900.jpg",
+      "detail_url": "/videos/13/transcript",
+      "duration": 557.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "[Title] 我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】 [Uploader] 小天fotos [Description] 大家久等了 答应大家的，我的语音多Agent编排系统 开源了 不过改名叫homerail 本期视频聊聊它能干什么不能干什么 以及未来的RoadMap [Summary Conclusion] HomeRail 正式开源，这是一个面向家庭数据中心的语音控制多 Agent 编排系统，目前处于早期阶段，适合有技术能力的用户探索，未来将逐步完善成为家庭 AI 助手。 [Summary Key Points]",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "小天fotos",
+      "video_id": 13,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1cyMi6tEqU",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 73.33,
+          "anchor_segment_start": 71.69,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_ed59af5140b12e6e1837b1b09a1f99fe",
+          "best_rank": 2,
+          "best_score": 0.016129032258064516,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 114.13,
+            "source": "ai_summary",
+            "start_time": 54.7,
+            "summary": "解释改名 HomeRail 的原因：Home 代表家庭数据中心，Rail 象征可动态调整的 Agent 运行轨道，并提及代码仓库已公开。",
+            "title": "产品命名与设计理念"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_ed59af5140b12e6e1837b1b09a1f99fe",
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_dca5404bea9aa2bb343403379768ae2f"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            2,
+            24
+          ],
+          "duration": 236.86,
+          "excerpt": "所以就先把名字改了 新的名字叫home real 也描述了我到底想要他做一个什么",
+          "jump_source": "exact_entity_term",
+          "jump_time": 71.69,
+          "jump_url": "https://www.bilibili.com/video/BV1cyMi6tEqU?t=71",
+          "matched_terms": [
+            "Home"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 236.86,
+          "window_start": 0.0
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_bd67b113b30d3883efb31cfbbdf643eb",
+          "best_rank": 18,
+          "best_score": 0.01282051282051282,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 525.759,
+            "source": "ai_summary",
+            "start_time": 432.48,
+            "summary": "阐述产品定位是可通过手机、平板、电视等操控的语音 Agent，并介绍短、中、长期目标，最终愿景是成为运行在 NAS 上的家庭 AI 中心。",
+            "title": "未来发展规划与愿景"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_bd67b113b30d3883efb31cfbbdf643eb"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            18
+          ],
+          "duration": 95.21999999999997,
+          "excerpt": "让新手朋友能无障碍地使用桌面版 同时把这个manager agent的skill不断优化 让他能够当一个值得信赖的助手 我的中目标会着重放在生成式UI和编排 模板和编排skill的优化上 我自己的观点是这样 人的带宽是有限的 人应该和更容易看得懂的UI来交互 同时后台跑的应该是更加复杂的编排逻辑 人不应该去了解底层的细节 只是在关键的节点 通过生成式的动态UI面板 来了解每个阶段的进度就好了 那长期目标 我希望他能稳定跑在家庭的数据中心里 或者说NAS里 那现在有个趋势啊 NAS的计算性能在不断的增长 他们现在已经不单纯是管理存储的角色 我觉得他们未来很",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 461.46,
+          "jump_url": "https://www.bilibili.com/video/BV1cyMi6tEqU?t=461",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 556.68,
+          "window_start": 461.46
+        }
+      ]
+    },
+    {
+      "additional_window_count": 5,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1iVoVBgERD",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d9c8cb358259ceb896a07e588506abee526dbc6f.jpg",
+      "detail_url": "/videos/90/transcript",
+      "duration": 12879.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+      "matched_unit_count": 10,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 10,
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "total_window_count": 7,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1iVoVBgERD",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b5788b66b573754236555df1647eab3b",
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e3ecad1fff51d2458ecfebe28dbdbe96"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            3,
+            6,
+            34
+          ],
+          "duration": 346.57000000000016,
+          "excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2324.32,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=2324",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2441.46,
+          "window_start": 2094.89
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_24626a52e73695fb8df69cc52308c55d",
+          "best_rank": 4,
+          "best_score": 0.015625,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_24626a52e73695fb8df69cc52308c55d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            4
+          ],
+          "duration": 119.55999999999949,
+          "excerpt": "还有一个就是会不会你的训练跟推理 是在易购的集群上训的 然后所以你你你你你的训练和推的不一致性 我觉得在原来cod跟master的呃 那个reasoning那个范式里边 是不能容忍这个事情的 但现在你必须要容忍这个事情 然后引擎你怎么去做一些 更多的异构资源的调度 比如说现在除了GPU 你还要管CPU 然后你还要管存储对吧 然后所以就是怎么在这种很复杂异构资源里边 把这个模型训起来 然后嗯 就是我觉得这里边需要很多 算法跟工程的一个妥协 嗯中间这个模糊的地带非常多 然后呃所以他对inf尔人的要求的 灵活性的要求 和 这种啊 这种就这跨这两个领域的这样的一",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 12662.54,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=12662",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 12782.1,
+          "window_start": 12662.54
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1gPGE6iELk",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c61f55a4ed65d11e87074c2f72667fd7b69ea1fe.jpg",
+      "detail_url": "/videos/56/transcript",
+      "duration": 824.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "老山贼",
+      "video_id": 56,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1gPGE6iELk",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 489.91,
+            "source": "ai_summary",
+            "start_time": 279.88,
+            "summary": "说明Pi结合Warp终端的优势，以及通过扩展和自定义脚本实现高度贴合个人工作流的能力。",
+            "title": "转向Pi的原因：结合Warp与可定制性"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            5
+          ],
+          "duration": 118.60999999999996,
+          "excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 464.17,
+          "jump_url": "https://www.bilibili.com/video/BV1gPGE6iELk?t=464",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 582.78,
+          "window_start": 464.17
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_ff5c75df79558a393da2247cd7cb8248",
+          "best_rank": 44,
+          "best_score": 0.009615384615384616,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 824.0,
+            "source": "ai_summary",
+            "start_time": 672.11,
+            "summary": "指出Pi在简单配置下输出稳定性不足的问题，建议生产环境做好备份、版本管理或安装更全面的插件。",
+            "title": "Pi的不足与使用建议"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_ff5c75df79558a393da2247cd7cb8248"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            44
+          ],
+          "duration": 119.78000000000009,
+          "excerpt": "它的输出质量相对来说还没有稳定到 有比如说有cloud code或者说open code这样的一个程度 它还是容易漂移 虽然说我们说这个派的宣传的理念是说是说 现在的这个AI模型的能力越来越强了 我们其实不需要那么多的题约束 去保证AI的质量 但是那些事情它并也并不是说完全没有价值 比如说我们现在的这个AI的模型 已经能够达到60分的能力 那那些东西 他可能说可以把这个模型的能力 提升到65分或者是70分 但是我认为他也没有把这模型能力能提升到 90分那么多 但是它确确实实有 给这个模型带来更稳定的一个输出质量 这个肯定还是有的 那派减轻了这个之后 就他",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 692.569,
+          "jump_url": "https://www.bilibili.com/video/BV1gPGE6iELk?t=692",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 812.349,
+          "window_start": 692.569
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_a3f45f46338b386888f8a5ee65095e30",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15wGR6CEhY",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/a1f0e2359f13f1ce90fcd7a9d7b3e0ae3beea4c1.jpg",
+      "detail_url": "/videos/54/transcript",
+      "duration": 1278.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "互联合网络机柜里有九个nvlinswitch train 还有统揽connect网卡 RUFUDEPU管理网络和本地存储 公开资料 没有逐项价格 按300万总价扣掉super g后 这部分和其他系统件合计大约几10万美元 第三项工程成本 NVL72功耗约120千瓦 重量约1.36吨 你需要液冷供电机轨结构测试和集成 Tom harwin morgan stanley 数据 GB300MBL72的冷却部件 共约4.986万美元 这个数字只代表冷却部件量级 不含机防侧CDU 配电和运维 结论很简单 最大的钱在GPUHBM先进封装和NVLINK生态 第二层是液",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15wGR6CEhY",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_a3f45f46338b386888f8a5ee65095e30",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 1215.0,
+            "source": "ai_summary",
+            "start_time": 1015.0,
+            "summary": "利用所有已安装 Skill，对英伟达 GB200 NVL72 成本进行调研，并自动生成带配音、图片和动画的完整演讲视频。",
+            "title": "综合案例：制作行业调研视频"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_a3f45f46338b386888f8a5ee65095e30"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 102.67999999999984,
+          "excerpt": "互联合网络机柜里有九个nvlinswitch train 还有统揽connect网卡 RUFUDEPU管理网络和本地存储 公开资料 没有逐项价格 按300万总价扣掉super g后 这部分和其他系统件合计大约几10万美元 第三项工程成本 NVL72功耗约120千瓦 重量约1.36吨 你需要液冷供电机轨结构测试和集成 Tom harwin morgan stanley 数据 GB300MBL72的冷却部件 共约4.986万美元 这个数字只代表冷却部件量级 不含机防侧CDU 配电和运维 结论很简单 最大的钱在GPUHBM先进封装和NVLINK生态 第二层是液",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1172.64,
+          "jump_url": "https://www.bilibili.com/video/BV15wGR6CEhY?t=1172",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1275.32,
+          "window_start": 1172.64
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_db2de4bde0c9d77ec3f4ffd39b7971be",
+          "best_rank": 26,
+          "best_score": 0.011627906976744186,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 481.0,
+            "source": "ai_summary",
+            "start_time": 404.0,
+            "summary": "在 Web 应用中添加模型服务商和 API Key，选用 GPT-5.5 模型，测试对话与本地文件读取功能。",
+            "title": "配置模型与基础功能测试"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_db2de4bde0c9d77ec3f4ffd39b7971be"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            26
+          ],
+          "duration": 108.66000000000003,
+          "excerpt": "然后也支持走这个GBT的订阅 如果列表里面没有呢 你就选这个custom自定义接口 这一步呢就跟你配置其他的agent的接口一样 填好base url 填好你的API key 然后点保存就可以了 添加好服务商之后呢 我们在这里选择添加模型 我们填上模型的名字 我们今天用的是GPT5.5啊 最近用5.5实在太爽了 量又大 然后能力又强 这里呢勾选上他的推理模式 然后可以允许图片输入 然后把最强的x hi的这个思考模式选上窗口 我们选择20万 然后这里填个6万4的 这个最高的token输出保存 然后我们来测试一下 发个你好 我们看到模型已经通了 然后呢我发送",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 415.54,
+          "jump_url": "https://www.bilibili.com/video/BV15wGR6CEhY?t=415",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 524.2,
+          "window_start": 415.54
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 8,
+      "best_score": 0.014705882352941176,
+      "best_unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1kMVt6mEgr",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/d4d4dc2efa2b64eccf435a169c108df95f59cf01.jpg",
+      "detail_url": "/videos/47/transcript",
+      "duration": 2020.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "pi世界",
+      "video_id": 47,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1kMVt6mEgr",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 2020.0,
+            "source": "ai_summary",
+            "start_time": 854.32,
+            "summary": "介绍扩展点（工具、命令、拦截事件等），并列出 Pi 缺省支持的常见功能，推荐访问包库。",
+            "title": "扩展方式与缺失功能"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            8
+          ],
+          "duration": 80.37,
+          "excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 927.03,
+          "jump_url": "https://www.bilibili.com/video/BV1kMVt6mEgr?t=927",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1007.4,
+          "window_start": 927.03
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV16GjU6jEdP",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/ce4f324e747cd9cd99459f2d943ea2a785c10094.jpg",
+      "detail_url": "/videos/35/transcript",
+      "duration": 639.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "先在同一个任务内 把高分轨迹和低分轨迹分组比较 他们从哪个编排决策开始分叉 是拆任务漏了约束还是代理角色不清 还是汇总节点没有校验 然后再把多个任务的诊断合起来 提炼跨任务反复出现的弱点和稳定优势 这些诊断最后怎么变成新的metal skill 反思阶段会形成evidence package 也就是一组有优先级的修复证据优化器 先删掉或改写证据显示无效的旧规则 再给对应模块加入新原则 论文要求保留三模块骨架 而且每个改动都要来自证据 并抽象成通用编排原则 不能写成某道题的补丁 能不能给一个更具体的例子 browse compl的例子很直观 初始流程可能偏",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV16GjU6jEdP",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 473.26,
+            "source": "ai_summary",
+            "start_time": 224.26,
+            "summary": "反思阶段对比同一任务高低分轨迹，定位编排决策分叉点，跨任务提炼 evidence package；Skill optimizer 依据证据修改对应模块并抽象为通用原则。",
+            "title": "反思诊断与证据驱动的优化"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_44469acfc15ebbf5478133010b94cb4f"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            9,
+            23
+          ],
+          "duration": 236.15,
+          "excerpt": "先在同一个任务内 把高分轨迹和低分轨迹分组比较 他们从哪个编排决策开始分叉 是拆任务漏了约束还是代理角色不清 还是汇总节点没有校验 然后再把多个任务的诊断合起来 提炼跨任务反复出现的弱点和稳定优势 这些诊断最后怎么变成新的metal skill 反思阶段会形成evidence package 也就是一组有优先级的修复证据优化器 先删掉或改写证据显示无效的旧规则 再给对应模块加入新原则 论文要求保留三模块骨架 而且每个改动都要来自证据 并抽象成通用编排原则 不能写成某道题的补丁 能不能给一个更具体的例子 browse compl的例子很直观 初始流程可能偏",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 230.83,
+          "jump_url": "https://www.bilibili.com/video/BV16GjU6jEdP?t=230",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 349.68,
+          "window_start": 113.53
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+          "best_rank": 36,
+          "best_score": 0.010416666666666666,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 473.26,
+            "source": "ai_summary",
+            "start_time": 224.26,
+            "summary": "反思阶段对比同一任务高低分轨迹，定位编排决策分叉点，跨任务提炼 evidence package；Skill optimizer 依据证据修改对应模块并抽象为通用原则。",
+            "title": "反思诊断与证据驱动的优化"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            36
+          ],
+          "duration": 118.37,
+          "excerpt": "skill mess的想法是先在验证集上花钱 把metal skill优化好之后 每个测试样本一轮生成my s 而不是像一些推理时方法那样 每个样本都重新搜索 迁移实验为什么重要 因为如果meta skill只在一个模型 一个任务上有效 它更像benchmark调参论文报告 同任务同模型的提升最大 大约7.14到9.53 同任务换模型仍有正迁移 同模型换任务也有正增益 最难的跨模型又跨任务增益最小 但仍是正数 这说明他真的学到了通用原则吗 只能谨慎地说 他学到了一部分可迁移的编排原则 比如多约束任务要并行收集证据 汇总节点要做一致性校验 复杂工具任务要先",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 461.61,
+          "jump_url": "https://www.bilibili.com/video/BV16GjU6jEdP?t=461",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 579.98,
+          "window_start": 461.61
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_b5d76e67ddf09b7126285f6832c5b94d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1rb5y6wEJV",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/6b6201f83e3ae75605abd9a61da5d0d0d861a642.jpg",
+      "detail_url": "/videos/61/transcript",
+      "duration": 554.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "他们是反过来先写评测再写skill 评测用例主要来自三类 第一真实用户查询 第二已知失败案例 第三临近领域混淆 临近领域混淆指的是那些看起来很像 但不该加载这个skill的请求 这里最重要的是复利 很多人做skill只会写正例 用户问A要加载这个skill 用户问B也要加载这个skill 但skill最大的风险之一不是不加载 而是乱加载 一旦乱加载 他就把无关内容塞进上下文 影响别的skill 甚至把模型带到错误方向 所以step0的本质是先定义路由边界 再写skill内容 第二步也就是step1写描述description perplexity 说整个",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "慢学AI",
+      "video_id": 61,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1rb5y6wEJV",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_b5d76e67ddf09b7126285f6832c5b94d",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 159.0,
+            "source": "ai_summary",
+            "start_time": 108.0,
+            "summary": "强调评测优先，利用负例防止误加载，定义清晰的路由边界。",
+            "title": "Step0：先写评测，定义路由边界"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_b5d76e67ddf09b7126285f6832c5b94d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 119.49000000000001,
+          "excerpt": "他们是反过来先写评测再写skill 评测用例主要来自三类 第一真实用户查询 第二已知失败案例 第三临近领域混淆 临近领域混淆指的是那些看起来很像 但不该加载这个skill的请求 这里最重要的是复利 很多人做skill只会写正例 用户问A要加载这个skill 用户问B也要加载这个skill 但skill最大的风险之一不是不加载 而是乱加载 一旦乱加载 他就把无关内容塞进上下文 影响别的skill 甚至把模型带到错误方向 所以step0的本质是先定义路由边界 再写skill内容 第二步也就是step1写描述description perplexity 说整个",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 115.37,
+          "jump_url": "https://www.bilibili.com/video/BV1rb5y6wEJV?t=115",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 234.86,
+          "window_start": 115.37
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_b43fd0b37fe3cafa1f2e28d9812c18f6",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ixAVz9EaQ",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/62cba1443965a26a70d29b74399a2748f8eee475.jpg",
+      "detail_url": "/videos/113/transcript",
+      "duration": 1178.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "因为这是我们自己描述的 如果有对应的一个关键字 它就会触发这个skills 我们来看一下是不是 如果在不支持这种啊skills的AI coding的能力下 你这么写 他也不会处于除法 但是如果真的支持了他 你在这个按照SSKUSE逻辑 而description和mental data写的非常好 你只要写下一阶段 它就能够检验到啊 是一个skills 我们来看一下是不是好 然后我们开始执行 好你看let me roid的skills first 所以他已经发现了 下一阶段就是要去执行这个skills 所以第一步呢 其实是需要去啊激活一个虚拟环境 这是我要写",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_b43fd0b37fe3cafa1f2e28d9812c18f6",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_b43fd0b37fe3cafa1f2e28d9812c18f6"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            11
+          ],
+          "duration": 119.49000000000001,
+          "excerpt": "因为这是我们自己描述的 如果有对应的一个关键字 它就会触发这个skills 我们来看一下是不是 如果在不支持这种啊skills的AI coding的能力下 你这么写 他也不会处于除法 但是如果真的支持了他 你在这个按照SSKUSE逻辑 而description和mental data写的非常好 你只要写下一阶段 它就能够检验到啊 是一个skills 我们来看一下是不是好 然后我们开始执行 好你看let me roid的skills first 所以他已经发现了 下一阶段就是要去执行这个skills 所以第一步呢 其实是需要去啊激活一个虚拟环境 这是我要写",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 585.23,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=585",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 704.72,
+          "window_start": 585.23
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 13,
+      "best_score": 0.0136986301369863,
+      "best_unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6cfb0d1a909308f49e45ec87d52f65b6",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1co9yBhEvW",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/95412e13ce98a90ea8d053ed266fadaed9171290.jpg",
+      "detail_url": "/videos/71/transcript",
+      "duration": 925.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "这些功能就涉及到tools的注册调用 执行相关的技术 以及怎么把这些tools调用 串成一个可控的执行流程 所以那段时间我就开始系统性的学习 任grave框架 它特别适合用来组织这种多步骤 有状态 还有分支判断的A卷 WARF可以把整个系统的调用 逻辑和状态流转都处理得很好 我一开始看的是line graph的官方文档 这个文档比较适合一开始建立起整体认知 里面讲到rain graph的定位 用官方的话来说 就是它是一个可以构建 long running and stanforagents的底层框架 看了这个文档之后 就能知道这个框架大致是用在什么样的场",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "polebug23",
+      "video_id": 71,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1co9yBhEvW",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6cfb0d1a909308f49e45ec87d52f65b6",
+          "best_rank": 13,
+          "best_score": 0.0136986301369863,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6cfb0d1a909308f49e45ec87d52f65b6"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            13
+          ],
+          "duration": 118.07000000000001,
+          "excerpt": "这些功能就涉及到tools的注册调用 执行相关的技术 以及怎么把这些tools调用 串成一个可控的执行流程 所以那段时间我就开始系统性的学习 任grave框架 它特别适合用来组织这种多步骤 有状态 还有分支判断的A卷 WARF可以把整个系统的调用 逻辑和状态流转都处理得很好 我一开始看的是line graph的官方文档 这个文档比较适合一开始建立起整体认知 里面讲到rain graph的定位 用官方的话来说 就是它是一个可以构建 long running and stanforagents的底层框架 看了这个文档之后 就能知道这个框架大致是用在什么样的场",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 115.3,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=115",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 233.37,
+          "window_start": 115.3
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+          "best_rank": 40,
+          "best_score": 0.01,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 360.32,
+            "source": "ai_summary",
+            "start_time": 120.9,
+            "summary": "介绍按工作需求驱动的学习顺序，从LangGraph搭建Agent Workflow到Tool Calling、持久化，推荐官方文档、视频课程及OpenAI/Anthropic最佳实践。",
+            "title": "转AI方向学习路径：Agent Workflow与Tool Calling"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            40
+          ],
+          "duration": 116.64999999999998,
+          "excerpt": "沉淀成skill 然后投入到日常的生产开发中 这个过程给我的最大感受是 团队级别的skill和个人web coding完全不是一回事 个人web coding的时候其实容错率是很高的 你可以临时补充上下文 看到结果不对之后 立马去修改PRT 也可以不断重试 一直到他给你一个满意的结果 但是在团队生产环境里面 skill本身就要承担更多的责任 尽量让不同的人在使用的时候 产出的结果是稳定的 这里面就会遇到很多边界问题 比如一个很经典的问题就是上下文膨胀 如果你把所有的流程约束都写在一个print里面 整个上下文就会变得非常长 模型的注意力就会被稀释 大模型",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 346.87,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=346",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 463.52,
+          "window_start": 346.87
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 14,
+      "best_score": 0.013513513513513514,
+      "best_unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1atjU6KEJF",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/de1c269ba79e6a0b85c91daffcf945af32ab8a2e.jpg",
+      "detail_url": "/videos/12/transcript",
+      "duration": 4118.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "少个分号",
+      "video_id": 12,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1atjU6KEJF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            14
+          ],
+          "duration": 119.0,
+          "excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3604.0,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3604",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3723.0,
+          "window_start": 3604.0
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 49.281,
+      "chapter_ms": 0.689,
+      "grouping_ms": 0.068,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 57.56,
+      "total_ms": 110.558
+    },
+    "raw": {
+      "dense_ms": 51.821,
+      "fusion_ms": 4.358,
+      "lexical_ms": 0.836,
+      "planning_ms": 0.018,
+      "total_ms": 57.524
+    }
+  },
+  "trace_id": "41d1be83-74d5-4e4b-9595-edcebb1aee24",
+  "trace_persisted": false
+}

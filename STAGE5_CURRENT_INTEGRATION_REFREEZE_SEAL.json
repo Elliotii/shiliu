@@ -1,0 +1,119 @@
+{
+  "schema_version": "v3.5-stage5-current-integration-refreeze-seal-v1",
+  "refrozen_at": "2026-07-27T17:43:00Z",
+  "outcome": "stage5_post_freeze_repair_and_refreeze_pass_with_limitations",
+  "original_stage5_freeze": {
+    "path": "STAGE5_INTEGRATION_FREEZE_SEAL.json",
+    "status": "valid_historical_snapshot"
+  },
+  "current_integration": {
+    "status": "revalidated_and_refrozen"
+  },
+  "Stage5_algorithmic_reopen": {
+    "occurred": false
+  },
+  "next_stage": "Pre_Frozen_Checklist",
+  "parent_stage5_freeze_seal_hash": "c65b77dfb8fbce546e8054ec9d57af682db9b8be1c725f1d2b138326ee9d9461",
+  "post_freeze_delta_audit_hash": "757f07294e75e35834c8457743307c194a2e0e62c3a8413e65c05ab5cd71609f",
+  "uploader_exact_contract_hash": "e22698e5c75c8c5902a8fe4d7abf3552839c0b2f6c25c79a69ba1d4aebcce4d8",
+  "uploader_contains_contract_hash": "e22698e5c75c8c5902a8fe4d7abf3552839c0b2f6c25c79a69ba1d4aebcce4d8",
+  "live_runtime_config_hash": "07bba7a046400720a46d04de3ef0f71cd676beacdf02f2bf8f4c299957ff30cd",
+  "frozen_eval_runtime_guard_hash": "65386280d9b8958f024fcd5eb172a1ab94a2f6abf588d125283dea282feaef4c",
+  "API_route_hashes": {
+    "src/shiliu/web.py": "60bc93d5798f85591a22b44d27f1484665ef4170a50a2a5db81ad5be59fa674d"
+  },
+  "service_adapter_hashes": {
+    "src/shiliu/app.py": "7a67ace1161ec624c73d59e4d329ecb1e7c6e9a873fa51dc49cc27c60bdc37a7",
+    "src/shiliu/stage5.py": "06cf6ece4ad28e0a6830d5041b6aec7a9c744129578a2bc6ff35b8740f7eb5d2",
+    "src/shiliu/retrieval/models.py": "875103be49b65f204060b39546a69efb4bf486f1b837b5aaa5def8c40e0726fa",
+    "src/shiliu/retrieval/product_search.py": "b9652529f384830dc7b9666f8683c1187e2e0b772a17cc0e10515a96a1a2cd66",
+    "src/shiliu/retrieval/service.py": "9a5240ed2d18224084d01c4cc7c0a6a4f0e6b2c298b48a4883ffe0fa01f4a562",
+    "src/shiliu/retrieval/planner.py": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e"
+  },
+  "frozen_eval_runner_hashes": {
+    "src/shiliu/eval_v3_5/runtime_guard.py": "65386280d9b8958f024fcd5eb172a1ab94a2f6abf588d125283dea282feaef4c",
+    "src/shiliu/eval_v3_5/frozen_auto_smoke.py": "173d342c77af9939139e9dd0bf16b7d5b5707ac5e72ad9369db5a8c93f99b0c3",
+    "research/scripts/run_frozen_auto_smoke.py": "ce8a8040c6b85f53736a41df9ef700f036a4d259133e3af6d9f4cebf0b115327"
+  },
+  "UI_component_hashes": {
+    "src/shiliu/templates/search.html": "09ec49b8950518c302fd085e2f91e09d3f338cd9899861dbb0792bd787f10209",
+    "src/shiliu/static/search.js": "5c65baf7b85fd40fc8296ba05a9eca52db0a3c7b947a79864c7998521c07f5c6",
+    "src/shiliu/static/search.css": "728203039aad22d3e219bfbd7b55c848aef7ef33cd7298295a4d7f18d11dd95c",
+    "src/shiliu/templates/base.html": "1a77257d006c63885f5b292f990ce251d6fe82dbdd002639d8e862885d54dd7d",
+    "src/shiliu/static/app.js": "2d66379757081cedd1ea7ac64df71a7d1ee2099b21f4c9c32aefa82b7e02fee4",
+    "src/shiliu/static/library.css": "acb64749e37c875e86d98527b393791fd893b3d8af122975be4610012dbe3ebe"
+  },
+  "trace_contract_hashes": {
+    "STAGE5_TRACE_CONTRACT.md": "4ccd0716bda3ea40f5d3ea90829d766969e8e0f0fb53ff72137e2e09a78bde8c",
+    "trace_contract_version": "v3.5-stage5-root-trace-v1"
+  },
+  "sync_behavior_hashes": {
+    "src/shiliu/sync.py": "d37b638f662c7d19fe5ab76ec3ec9ffc0067e776cc3f27483d1c685f4874931f",
+    "tests/test_database_and_sync.py": "c7fff744c32897a4d7986eb7ba8fb41c0b73f2064c252f85da3dfaf78e3c8f0d"
+  },
+  "test_hashes": {
+    "STAGE5_CURRENT_INTEGRATION_TEST_RESULTS.json": "7dfba4a97039495371bc2473dd423a046f2c1e28a044ab0e9bb266a8af04383f",
+    "STAGE5_CURRENT_INTEGRATION_LIVE_SMOKE_RESULTS.json": "ddb9508b162c41e80407728df4294bba51a185cba2e3837b9e6fa4405d28efac",
+    "tests/test_stage5_integration.py": "c395eaa88c886e5d14b2f1154e4283b81921de7368aebecd8a03695f5b393d4e",
+    "tests/test_stage5_runtime_isolation.py": "4c3a5e8e9214c5cfcbbe1bf8e10863f4dde35cbf5464baafe9af1765b05e83b2",
+    "tests/test_search_page.py": "5ea322a5b6568a4311eea5c29d61a96afc257b93b0d3361aa995302c4ae83a3c",
+    "tests/test_product_search_api.py": "2ea1f1f1dae3e4be30dc3d0bdfd052ebc9e8d5edae5588fb5d666665d6ff2f2d",
+    "tests/test_retrieval.py": "c822eb1112082e5837ee9fa74d3ddea817b0ede3ebc055998900973b5ab5a2b5",
+    "tests/test_dense_retrieval.py": "dac58f01a54ff30dc6115b1beabed63111f1cf54cc55f37ea0f265d3b728f24a",
+    "tests/test_search_planner.py": "7291af7bd8d4055d3e24c859f95f73db69464a139f4813a4f2efb739cc544890",
+    "focused_contract_regression_passed": 139,
+    "focused_contract_regression_failed": 0,
+    "safe_repository_passed": 948,
+    "safe_repository_failed_non_blocking": 6
+  },
+  "repository_failure_triage_hash": "ccd3e43e23c2c5c0dbad984750e83334c907c9ace162ef99cfd4fd34756166ef",
+  "formal_component_hashes": {
+    "formal_builder_root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "formal_selector_root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+    "Evidence_Identity_Contract_V1_sha256": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "Stage4A_R_freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "SufficiencyRequest_current_canonical_schema_sha256": "93ff095b2d01062194c1a663e06bd37ae57dd9f3e3fa5edda11c18db4a0a594c",
+    "SufficiencyDecision_current_canonical_schema_sha256": "cf23071972bb34580dfe3ed075697f689b0dbeb67b3d0468df9d9141cc3477aa",
+    "semantic_judge_implementation_sha256": "55cd6811b0bb4e801a4f499ea0ea3b965db33323f7b2740f0ebb237d6aa687c9",
+    "semantic_judge_prompt_sha256": "4d87dd06ab3362ae7ffdeae2b4d82e2accc0d10db8dd69cdeb3928f9000f898c",
+    "semantic_judge_policy_sha256": "7bbed36f11ff5d7d0978db039d7471b1028b813da26aec05c4c094ee84b64042"
+  },
+  "Semantic_Judge_Final_Freeze_Seal_hash": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+  "live_smoke_trace_ids": [
+    "0b3a72db-4485-480f-80df-e176a615c8da",
+    "88aedafc-cf24-4d01-8995-1708e2e6401d",
+    "3f80fb00-042f-4522-8594-28c2d9f7a9fe",
+    "6a00322c-9957-43c5-b810-3e2c6e891f89",
+    "stage5_trace_434da7d202ce06630694a346a2b32e3bc154eace1568934c34d65ed8dc2e1135",
+    "stage5_trace_4caa20d399dec2a8b49894dc3117ba6798d518fd62adf963ac750ec2d4a92acf"
+  ],
+  "acceptance": {
+    "old_uploader_exact_semantics_restored": true,
+    "uploader_contains_available": true,
+    "UI_uses_uploader_contains": true,
+    "product_uses_live_current": true,
+    "frozen_eval_rejects_live_current": true,
+    "sync_disabled_in_frozen_eval": true,
+    "sealed_snapshot_and_index_hash_required": true,
+    "Builder_unchanged": true,
+    "Selector_unchanged": true,
+    "Mechanical_Gate_unchanged": true,
+    "Semantic_Judge_unchanged": true,
+    "Identity_Contract_unchanged": true,
+    "API_tests_pass": true,
+    "UI_tests_pass": true,
+    "Trace_tests_pass": true,
+    "Sync_regressions_pass": true,
+    "Live_smokes_pass": true,
+    "unhandled_exception_count": 0,
+    "all_formal_path_failures_resolved_or_proven_non_blocking": true
+  },
+  "documented_limitations": [
+    "Six historical non-blocking tests remain red in the no-Frozen-content repository test scope.",
+    "One historical authoring-packet test dependency is missing and non-blocking.",
+    "Production proxy timeout configuration remains outside this repository."
+  ],
+  "Frozen_Evaluation_content_accessed": false,
+  "Final_Answer_added": false,
+  "Agentic_Search_added": false
+}

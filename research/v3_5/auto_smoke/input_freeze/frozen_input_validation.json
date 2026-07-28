@@ -1,0 +1,13 @@
+{
+  "approved_query_path": "research/v3_5/stage3r_qc/phase_b/input_freeze/approved_query_decisions.jsonl",
+  "approved_query_sha256": "d8e60a5525556a02b454508bc8a6f0915fd6402724713389e7a2d34264484f9a",
+  "approved_query_sha256_match": true,
+  "case_count": 10,
+  "case_ids_match_phase_a": true,
+  "evidence_bearing_count": 9,
+  "exact_entity_count": 3,
+  "insufficient_diagnostic_count": 1,
+  "q1_modified": false,
+  "q2_modified": false,
+  "queries_modified": false
+}

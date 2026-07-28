@@ -1,0 +1,63 @@
+{
+  "active_reserve_count": 0,
+  "all_decisions_completed": true,
+  "all_input_hashes_verified": true,
+  "asset_hashes": {
+    "adjudicated_ledger": "340e90bdd078e9b9a7aeac2bd98245b22d0e0b1f6d04812c675805996ad1fc09",
+    "development_gold": "5693830749e3fba38dd35fc143988fb615ae48bf0f02b7344c8b03ce4a1d90d0",
+    "development_heldout_split": "fc3ff77b7d22668b5a7e555e8db44abdec1ce856c0b629f80327145831b7731c",
+    "eval_protocol": "01f1dd8d6f26bd68962ccb42b489f5be3d086cef2ed0fe90616cb9d3e43db90f",
+    "gold_granularity_audit": "8ba9c4bbc11aa3bb1243ce189d75bf35bb07e18ad3a5fccd100ae3ba3ed45aef",
+    "heldout_gold": "6b7d06a6a0f3eeb61a9bc542ee8c2a8d12fc6d52fbb6576f64eff72d0d662789",
+    "heldout_isolation_contract": "faeccb772dd624775e58b55e8614af836fb64d102e7762244b3869767641f18e",
+    "master_gold": "340e90bdd078e9b9a7aeac2bd98245b22d0e0b1f6d04812c675805996ad1fc09",
+    "master_membership": "e95e23e6f9d4043b01d43e04c7a53ed56fe7577d2a1bcfc0b7b8996d12d60a93",
+    "reason_registry": "6725bd1a55457319557e83b350aae50145ccb3a912d3070b4d95e859aa80f0fc"
+  },
+  "audit_version": "v3.5-gold-lock-audit-v1",
+  "audited_at": "2026-07-21T04:14:19.046075+00:00",
+  "case004_adjudication_validated": true,
+  "case004_changed_fields": [
+    "conflict_notes",
+    "needs_second_review",
+    "primary_reason_codes",
+    "reviewed_at",
+    "reviewer_flags",
+    "support_notes"
+  ],
+  "development_heldout_disjoint": true,
+  "development_heldout_union_equals_master": true,
+  "errors": [],
+  "excluded_case_count": 2,
+  "four_state_invariants_valid": true,
+  "granularity_audit_result": "passed",
+  "heldout_class_coverage": [
+    "sufficient",
+    "partial",
+    "insufficient",
+    "unverifiable"
+  ],
+  "heldout_source_coverage": [
+    "ai",
+    "asr",
+    "human",
+    "title_only",
+    "query_corpus"
+  ],
+  "leakage_group_result": "passed",
+  "lock_version": "v3.5-gold-lock-v1",
+  "manifest_sha256": "268d9b68e29cc7f242375ba108d9d99ef536e2f413c3747d9f95f7ab97588075",
+  "master_membership_result": "passed",
+  "needs_second_review_count": 0,
+  "only_case004_changed_from_provisional": true,
+  "other_17_records_value_identical": true,
+  "reason_registry_result": "locked",
+  "schema_valid_count": 18,
+  "segment_ids_valid": true,
+  "source_versions_valid": true,
+  "split_result": "passed",
+  "timeline_runs_valid": true,
+  "warnings": [
+    "Development contains no real Human-approved partial Case."
+  ]
+}

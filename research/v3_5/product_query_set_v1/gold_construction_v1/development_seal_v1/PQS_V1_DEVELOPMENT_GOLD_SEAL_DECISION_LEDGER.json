@@ -1,0 +1,61 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 Development Gold Mechanical Seal Decision",
+  "schema_version": "v3.5-pqs-v1-development-gold-seal-v1",
+  "decision_date": "2026-07-26",
+  "decision_authority": "V3.5-B",
+  "current_state": {
+    "version": "Shiliu V3.5-B",
+    "stage": "Stage 3-R",
+    "p3": "accepted",
+    "p4": "accepted",
+    "p5": "accepted",
+    "p6": "accepted",
+    "p7a": "accepted",
+    "development_gold_cycle": "accepted",
+    "development_gold_semantic_state": "reviewed_candidate_ready",
+    "development_gold_formally_sealed": false,
+    "frozen_gold_cycle_started": false,
+    "p8_started": false
+  },
+  "source_candidate": {
+    "root": "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/reviewed_gold_candidate",
+    "query_count": 14,
+    "review_outcomes": {
+      "direct_agree": 13,
+      "agree_reconciled": 1,
+      "pending_user_adjudication": 0,
+      "blocked_by_source": 0
+    },
+    "expected_hashes": {
+      "product_retrieval_gold.development.reviewed.jsonl": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+      "product_evidence_gold.development.reviewed.jsonl": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+      "product_sufficiency_gold.development.reviewed.jsonl": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+      "reviewed_case_status.jsonl": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+      "DEVELOPMENT_GOLD_CYCLE_REPORT.md": "5965d7d728b5f3d98b1b357e0bd79d3ae9394ab9bb94636ce569a5ad8a0e1a62"
+    },
+    "validation_evidence": {
+      "development_cycle_tests": "15/15 passed",
+      "upstream_regression": "120/120 passed",
+      "p6_three_layer_validation": "passed",
+      "evidence_spans_replayed": 41
+    }
+  },
+  "seal_policy": {
+    "seal_version": "DEVELOPMENT_GOLD_V1",
+    "semantic_re_review_allowed": false,
+    "semantic_change_allowed": false,
+    "source_candidate_files_must_remain_unchanged": true,
+    "sealed_gold_files_must_be_byte_identical_to_reviewed_candidate_files": true,
+    "mechanical_validation_only": true,
+    "on_mechanical_failure": "block_without_semantic_edit",
+    "on_semantic_issue_suspected": "block_and_request_versioned_amendment",
+    "post_seal_rule": "Any semantic change requires a versioned Gold amendment or a new Development Gold version."
+  },
+  "completion_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "development_gold_formally_sealed": false,
+    "frozen_gold_cycle_authorized": false,
+    "p8_authorized": false
+  }
+}

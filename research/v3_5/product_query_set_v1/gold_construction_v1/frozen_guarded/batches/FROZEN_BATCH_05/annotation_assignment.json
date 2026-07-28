@@ -1,0 +1,17 @@
+{
+  "batch_id": "FROZEN_BATCH_05",
+  "split": "frozen_evaluation",
+  "query_ids": [
+    "PQS_V1_Q022",
+    "PQS_V1_Q023"
+  ],
+  "packet_exporter": "current_codex_executor",
+  "initial_annotator": "new_independent_session",
+  "independent_reviewer": "different_independent_session",
+  "user_adjudicator": "user_if_required",
+  "packet_exporter_may_annotate": false,
+  "packet_exporter_may_review": false,
+  "same_session_annotation_and_review_allowed": false,
+  "workflow_status": "not_started",
+  "stop_after_role_output": true
+}

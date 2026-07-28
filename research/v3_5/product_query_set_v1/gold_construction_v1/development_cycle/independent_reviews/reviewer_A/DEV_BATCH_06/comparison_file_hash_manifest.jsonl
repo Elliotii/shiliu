@@ -1,0 +1,6 @@
+{"path": "independent_review_report.md", "sha256": "adc1fad4f33fd33e7a267fc19a541c4b3d103348b5b9441a2fe277145176270d"}
+{"path": "layer_comparison.jsonl", "sha256": "031617ffec873d7331100e32c31b70b498a0fe3d439e0c2bc69bb1abf8f6ed08"}
+{"path": "proposed_revisions/PQS_V1_Q017/evidence_gold.replacement.json", "sha256": "4f7168328f07cd08466b63f3fd761f65bfa160338afd87928711fc03a25a121f"}
+{"path": "proposed_revisions/PQS_V1_Q017/retrieval_gold.replacement.json", "sha256": "f42c0eaf5690b4ddb6e770de01ce0bb4eec029ba7291310d496e0abeed54d14c"}
+{"path": "proposed_revisions/PQS_V1_Q017/sufficiency_gold.replacement.json", "sha256": "ae0b3141cfd4c4b5722b009f3058e605e1afdf97fcec7299093aad33172c8a0c"}
+{"path": "review_decision.jsonl", "sha256": "2da0d551f82bcfaaf1fb0c3a9ded0edeb8736d59407add381edcd50175a2d19c"}

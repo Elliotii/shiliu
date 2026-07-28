@@ -1,0 +1,32 @@
+{
+  "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "component_versions": {
+    "auto_router": "v3-search-planner-auto-v1",
+    "candidate_builder": "stage3b-acronym-w3.5-v1",
+    "deterministic_selector": "v3.5-deterministic-fine-selector-v1",
+    "mechanical_gate": "v3.5-mechanical-sufficiency-gate-v1",
+    "product_default_wiring": "v3-product-search-default-auto-v1"
+  },
+  "development_gold_opened": false,
+  "frozen_gold_opened": false,
+  "harness_identity": {
+    "component_functional_behavior_changed": false,
+    "evaluation_serialization_changed": true,
+    "module_path": "src/shiliu/eval_v3_5/p8_product_initial_baseline.py",
+    "module_sha256": "fa0b6e2e5e0c604df188e792df21df3679e558e1acdeb2d0c351a04d34459886",
+    "script_path": "scripts/run_p8_product_initial_baseline.py",
+    "script_sha256": "edde96225b7e5a142be79391c195c5ebbcd8ea6149aaf9235f12bfd4d40e3570",
+    "terminal_outcome_handling_changed": true,
+    "version": "v3.5-pqs-v1-p8-product-initial-baseline-v2-source-terminal"
+  },
+  "immutable_after_seal": true,
+  "input_manifest_sha256": "c5316a7451ac2a0b9e63d77b4c2e42dadb0886bd24fd477ef69c5462028dcc53",
+  "prediction_hash_manifest_sha256": "ebd861570355624f17606271595efb23675646358dff64a75f784b027675dd29",
+  "prediction_record_count": 14,
+  "predictions_sha256": "b34f173ac99208f4adb72966880ab7e9cf97d3e27157084792502f103e709038",
+  "query_count": 14,
+  "sealed_at": "2026-07-26T16:16:32.152+00:00",
+  "status": "sealed_before_gold_scoring",
+  "trace_count": 14,
+  "trace_root_sha256": "f8636d55680e4e3ef72b196f31afe8743c692d48c66ed0a647443679e7353071"
+}

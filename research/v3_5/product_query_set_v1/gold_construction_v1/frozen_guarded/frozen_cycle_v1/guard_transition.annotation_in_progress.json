@@ -1,0 +1,8 @@
+{
+  "previous_guard_sha256": "aad5e437cb49ccae62b9a72ccd706da827a6235089c045ef2688fe4bbe8c7f10",
+  "previous_status": "packetized_not_annotated",
+  "new_guard_sha256": "5850331890d8dfdb0736ff6236d864aa158a1e0f477b46de387a5dfd7d75f533",
+  "new_status": "annotation_in_progress",
+  "reason": "V3.5-B authorized Frozen Gold Cycle Phase 1A",
+  "transitioned_at_utc": "2026-07-26T14:08:48Z"
+}

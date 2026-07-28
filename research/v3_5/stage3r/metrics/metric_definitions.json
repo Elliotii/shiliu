@@ -1,0 +1,9 @@
+{
+  "gold_group_semantics": {
+    "across_groups": "OR",
+    "within_group": "AND"
+  },
+  "insufficient_excluded_from_span_recall": true,
+  "unverifiable_excluded_from_span_recall": true,
+  "version": "v3.5-stage3r-gold-group-and-or-v1"
+}

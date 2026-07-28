@@ -1,0 +1,102 @@
+{
+  "split": "development",
+  "batch_count": 7,
+  "query_count": 14,
+  "queries_per_batch": 2,
+  "batch_assignments": {
+    "DEV_BATCH_01": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q005"
+    ],
+    "DEV_BATCH_02": [
+      "PQS_V1_Q004",
+      "PQS_V1_Q006"
+    ],
+    "DEV_BATCH_03": [
+      "PQS_V1_Q007",
+      "PQS_V1_Q008"
+    ],
+    "DEV_BATCH_04": [
+      "PQS_V1_Q011",
+      "PQS_V1_Q012"
+    ],
+    "DEV_BATCH_05": [
+      "PQS_V1_Q014",
+      "PQS_V1_Q015"
+    ],
+    "DEV_BATCH_06": [
+      "PQS_V1_Q017",
+      "PQS_V1_Q018"
+    ],
+    "DEV_BATCH_07": [
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ]
+  },
+  "packets": {
+    "DEV_BATCH_01": {
+      "path": "development/batches/DEV_BATCH_01",
+      "query_ids": [
+        "PQS_V1_Q003",
+        "PQS_V1_Q005"
+      ],
+      "packet_content_sha256": "a11ba8b56b80d255ddc10296bd4d4f0f762aa0d5240de855e035d6e398c1b0be",
+      "batch_manifest_sha256": "d0fc86288ecc57980994d3401ca63c3d467f7ca27a070773b0f98eed3a0b1de3"
+    },
+    "DEV_BATCH_02": {
+      "path": "development/batches/DEV_BATCH_02",
+      "query_ids": [
+        "PQS_V1_Q004",
+        "PQS_V1_Q006"
+      ],
+      "packet_content_sha256": "3a391ea2deb717aa4534434653ad06699740bdad346f84ef14038bea9f7f4ac1",
+      "batch_manifest_sha256": "5c59d87ce4eabcabe8644514ca9afe10b90af93654efe9693947c7a67726574c"
+    },
+    "DEV_BATCH_03": {
+      "path": "development/batches/DEV_BATCH_03",
+      "query_ids": [
+        "PQS_V1_Q007",
+        "PQS_V1_Q008"
+      ],
+      "packet_content_sha256": "190b2a4cf7912142273d3532e0cdf17fa8a86d2c2124e7c5b5d097da56c94bdc",
+      "batch_manifest_sha256": "2b7d3cd5b01ed5fcb13e6c923db09da1634b541452842c99610d9282a7a52097"
+    },
+    "DEV_BATCH_04": {
+      "path": "development/batches/DEV_BATCH_04",
+      "query_ids": [
+        "PQS_V1_Q011",
+        "PQS_V1_Q012"
+      ],
+      "packet_content_sha256": "33bb6b8d9d8a8d4854d719e40dbbf6849cd8e8b64e4edc6270ca5d253d3f8947",
+      "batch_manifest_sha256": "be25286e708ac295555659e0278f8e596fb2b5ac72520d1b983d0d3fbe2eb433"
+    },
+    "DEV_BATCH_05": {
+      "path": "development/batches/DEV_BATCH_05",
+      "query_ids": [
+        "PQS_V1_Q014",
+        "PQS_V1_Q015"
+      ],
+      "packet_content_sha256": "a56e0ab0bde3f063c6840ba26585285529ca98d85581faa88009bac75b11754a",
+      "batch_manifest_sha256": "29ea33744ac7cc4874545803e0f6738007cfdcdf6576d10e9365ef2662c31867"
+    },
+    "DEV_BATCH_06": {
+      "path": "development/batches/DEV_BATCH_06",
+      "query_ids": [
+        "PQS_V1_Q017",
+        "PQS_V1_Q018"
+      ],
+      "packet_content_sha256": "bcd0d26d576c61be1ee2dd947aba625ea082644d4e8014df06829f6320bcb3ec",
+      "batch_manifest_sha256": "eed54c8b6fb592e9d02d5ab26a470c956eba43088a15200377537bf0acbfbad0"
+    },
+    "DEV_BATCH_07": {
+      "path": "development/batches/DEV_BATCH_07",
+      "query_ids": [
+        "PQS_V1_Q013",
+        "PQS_V1_Q019"
+      ],
+      "packet_content_sha256": "3e372db2ba8cd8c84728bdceec761cdc88aba15da997875e8561559547877a48",
+      "batch_manifest_sha256": "8053c0c3c21dfb5792c7e34ef0a615c95a3480ac593778cacfd15a7c28592345"
+    }
+  },
+  "all_annotation_status": "not_started"
+}

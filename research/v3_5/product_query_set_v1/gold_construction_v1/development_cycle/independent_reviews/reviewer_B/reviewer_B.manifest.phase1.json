@@ -1,0 +1,33 @@
+{
+  "manifest_schema_version": "development-independent-review-phase1-manifest-v1",
+  "role": "reviewer_B",
+  "unit_id": "reviewer_B_replacement",
+  "phase": "independent_draft",
+  "phase_status": "sealed",
+  "sealed_at": "2026-07-26T13:05:08Z",
+  "assigned_batches": ["DEV_BATCH_01", "DEV_BATCH_03", "DEV_BATCH_05", "DEV_BATCH_07"],
+  "assigned_query_ids": [
+    "PQS_V1_Q003",
+    "PQS_V1_Q005",
+    "PQS_V1_Q007",
+    "PQS_V1_Q008",
+    "PQS_V1_Q014",
+    "PQS_V1_Q015",
+    "PQS_V1_Q013",
+    "PQS_V1_Q019"
+  ],
+  "batch_count": 4,
+  "query_count": 8,
+  "three_layer_record_count": 8,
+  "independent_draft_seal": {
+    "path": "independent_draft_seal.json",
+    "sha256": "c7ff56f2cc9f0610a9c82430a1afdc5faf207d4fb97323a781918f4cbba8a591",
+    "size_bytes": 4114
+  },
+  "p6_validator_status": "pass",
+  "evidence_replay_status": "pass",
+  "catalog_identity_status": "pass",
+  "initial_annotation_opened": false,
+  "comparison_started": false,
+  "review_outcome_emitted": false
+}

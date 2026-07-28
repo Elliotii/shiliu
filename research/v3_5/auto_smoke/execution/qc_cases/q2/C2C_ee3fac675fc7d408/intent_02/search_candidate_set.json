@@ -1,0 +1,1775 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "AI 导入精灵动画流程",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "AI 导入精灵动画流程",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.7455576658248901,
+      "end_time": 118.7,
+      "excerpt": "哈喽大家好 我是饼干 做上述分游戏啊 精灵动画是一定是绕不开的 一路在GODOT中通常有两种做法 一种是将SPRIT2D加载图集 然后切片通过enemy player中进行逐帧的控制 第二个呢就是使用enemy spit to d来驱动播放 创建thread frames的资源 不管哪一种方式 都需要大量的手动设置 导入一次还行 导入20次 那这种纯重复劳动 纯粹是在消耗我们的创作热情 那么如果说这整个过程都可以用AI自动完成的 今天我们来使用cloud code导入我们的精灵动画 我们可以看一下我们的演示素材 我们的演示素材是这一组 就是在网上之前很有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87",
+      "unit_type": "transcript_chunk",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.6861077547073364,
+      "end_time": null,
+      "excerpt": "[Title] 一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！ [Uploader] 像素夹心饼干 [Description] 大家好，我是饼干 🍪。 做像素风游戏，精灵动画的导入是一个极其枯燥的环节。一个角色可能有 10-20 个动画序列，传统流程需要逐个手动配置 SpriteFrames，重复劳动让人崩溃。 这一期，我用 Claude Code 实现了动画资源的自动化导入。只要素材命名规范、规格标准化，AI 就能帮你一键完成从切片到 SpriteFrames 配置的全过程。 核心思路只有一个：用 AI 解放游戏开发中每一个重复的卡点。 🔑 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "video:bilibili:BV1kqAUzAEho:p1",
+      "unit_type": "video",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.67631995677948,
+      "end_time": 234.45,
+      "excerpt": "这里呢就开始各种规划了 我们就等待一会让他去进行处理 这里他给了几个实现方式啊 一种是做一个脚本 然后来扫描 然后来解析宽度 生成帧数来导入 另一种呢是这种纯静态的资源文件 然后这个是给我们这个读取图片尺寸生成 用Python的形式 这些这三种方式其实都是可以的 我们这里让他纯手写就行了 如果大家觉得这个东西有必要去封装的话 是可以去进行封装的 按照动画类型判断去它是否循环 修改现有的场景 就可这里就给了我们一个完整的计划 我们可以看到这里面30个动画 有128个帧 然后他将这些都列举了进来 work的是要循环的 掉落的是要循环的 idol是要循环的 跑",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 115.34,
+      "subtitle_source": "ai",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_71a62bb31963f7def9acb05534a09fae",
+      "unit_type": "transcript_chunk",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.6669825911521912,
+      "end_time": 300.26,
+      "excerpt": "这里应该是有一个调试方法的 它这个调试方法我看写在哪 应该是写在这个里面 然后对应到这里面了 我们来it it for death No moment death 还有不少类似于jump啊 jump for之类的是没有做那个自动的 但是我觉得不重要 可以看到所有动画都已经自动创建好了 这个过程中我一直都挂机 在这个页面没有手动点过一下 但是呢这个也是有一些问题的 那是什么呢 我们自动化的前提 一定是要有一个标准化的一个素材 就是我们的素材要命名清晰 而且有意义 每一个帧动作要统一一致 而且要尽量的去按动作去分文件 如果我们的这个是没有办法统一的话 那AI",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 232.81,
+      "subtitle_source": "ai",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_9b7a7f4c5fefc119af1bda226852e661",
+      "unit_type": "transcript_chunk",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.5765979290008545,
+      "end_time": 352.27,
+      "excerpt": "然后他给你生成一个这样子的一个呃小视频 然后你把它拖到那个剪映里面 就可以直接在视频的上方 或者说下方有一个进度条一样的东西 接下来就带大家讲一下 spike驱动具体是怎么做的 这里我们用一个开源项目叫做 大家猜一下叫什么叫做open spec 就是用这一个开源项目来给大家讲解一下 什么叫spec驱动 这里可以看到它的那个是怎么样运作的 其核心就是指你第一步呃 先把自己的开发需求告诉AI 然后再循环的让AI去生成一些任务 按照特殊的规范去生成一些任务 然后直到他把这一个需求描述清楚了 然后再让AI去开发 让大家更方便的理解 我可以用比较通俗易懂的语言来给",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 233.2,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.5520751476287842,
+      "end_time": 466.76,
+      "excerpt": "针对于呃Mac用户可以直接一键安装 然后我是一个Mac用户 然后直接复制到这里 但是我已经我已经安装过了呃 安装完了之后他就直接登录了 就是长这个样子 刚刚跟大家讲过了 其实我们最终的目的 就是想要生成三个需求文件 来告诉AI我们的详细的需求是什么样子的 然后以及我们的架构选型要怎么样做 然后以及把任务拆解的更开 能够让AI更好的执行 这里其实说白了就是要给AI更好的上下文 然后能够让帮助他执行的更好 所以这里我们用那个i flow CLI来演示一下 我具体是怎么样跟AI做对话的 然后生成出来的结果具体是长什么样子的 这里我们用左右两边的屏幕来演示看一下",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 349.23,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_bf2d577376c48cbe022f893d22d2d0fc",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.5447382926940918,
+      "end_time": 1062.469,
+      "excerpt": "而是先让agent写一个带动画的HTML网页 HTML因为是代码组成的 所以它生成的时候非常稳定 又可编辑 可预览 然后呢再逐帧去渲染成一个完整的视频 而且对你来说啊 完全不需要去懂HTML里面的代码是什么意思 你只要告诉他你想要什么 结果好 安装好之后呢 我们来先跑一个比较小的demo 新开一个对话框 用hyper frames做一个20秒的动画 解释什么是agent 只生成HTML 不需要去渲染视频 我们来看结果 你看它生成好了 他能做标题 然后转场图形动画字幕的节奏 这个东西呢你继续加上一些语音 加上一些图片 其实就能变成一条完整的视频 我们给拍a",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 946.42,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_894041966393f157e350d365372169ff",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.5432997345924377,
+      "end_time": 353.47,
+      "excerpt": "那第二个前提呢就是说啊因为让AI去写嘛 那之前其实skills没出来的 之前我可能还想不到非常好的方法 就是你能够让AI能够完全知道 你当前处在哪一步 然后当前的目标是什么 当前的你你要实现代代码的这个架构 设计是什么 能够让你比如说你第一天写完了两个步骤 然后明天接着写 第三个步骤 他能够马上就知道哦 我完成了前两个步骤 我现在要进行第三个步骤 第三个步骤去是实现这个分割器 那分割器啊 那大概要按照什么方法 它有一些什么样的原则 然后我我这一步有哪些呃 标输入输出的一个标准 以及如何测试 我还不知道你有哪一套逻辑 可以完全的让AI能够这样子去去去写 但",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 233.51,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.5336624383926392,
+      "end_time": 353.89,
+      "excerpt": "最后生成的东西 未给TM会增加几个数值来维持住他的生活 争取能够让这个team活 我们当时设计的是活多久来着 好像只要活两三个小时就差不多了 所以那个游戏其实挺从数值上来讲挺容易的 我们整这个活主要也是技术验证 看看AI是个什么样的情况好 那先说一下我们最开始想做的吧 首先玩家有打开这个花花面板以后 我要不要再把那个游戏的画面剪进来算了 你们自己去看我那个大号的视频好不好 玩家在画板上面画完以后呢 生成的物品首先是由AI识别你画的是个什么 这个是交由AI的 我们原先还想做AI给你画的这张图上色 原因很简单 因为我觉得还要让玩家自己上色比较痛苦 并不是每一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 234.54,
+      "subtitle_source": "ai",
+      "title": "2026年，将AI作为游戏玩法的技术瓶颈",
+      "unit_id": "transcript_chunk:bilibili:BV11N7s6oEtb:p1:chunk_dd7be8fc2f8d2c45e6975103d9be4795",
+      "unit_type": "transcript_chunk",
+      "uploader": "赛博阿牛",
+      "video_id": 31
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.5308626890182495,
+      "end_time": 463.88,
+      "excerpt": "比如说你做视频吧 你需要f m pg 那你就可以让AI制呢帮你去构建一个镜像 然后编排的时候就可以指定这个镜像来使用 哎我这个是在安装完了之后 会自动build一个默认的经验 但是你也可以做很多定制化的 然后桌面版现在也是一定程度可用的 桌面版有一个manager agent 来负责扮演coding agent的这个角色 他可以创建编排 也可以接受各种模型 当然我现在觉得体验比较好的是codex 只要你本机有codex登录 它就可以直接可以用 如果你有小米MIO的APIKE 你可以用他们家的ASR和TDS 再给manager agent配置一个模型 就可",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 352.22,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_86a072f4b520ca3c73d31009acfec8cc",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.5298808217048645,
+      "end_time": 350.59,
+      "excerpt": "我建议是最好要在菲格玛丽有基础的原型稿 这样对自己的需求也会更清晰 如果纯自然语言去给AI生成前端的话 我觉得就会比较被动 推荐两个好用的图片背景消除工具remove和adobe xxpress 哈喽新的一周 早上好 最近每天都在游泳或者健身 早上上班前来游泳 人很少 非常爽 周一下班回家了 好喜欢蓝调时刻的阳台 接着埋头顶天 这里相机放太远了 我已经忘了做到什么程度了 这里陆续尝试了google stitch 还有IMPACCABLE这些UI生成工具 下载了google font里需要用到的字体导入到叉code里 到这里就是差不多完成了用户引导的页面啦",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 232.329,
+      "subtitle_source": "ai",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+      "unit_type": "transcript_chunk",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.5199477672576904,
+      "end_time": 2376.12,
+      "excerpt": "第二个呢take个位就是如果你有个idea的话 先让deep research看看相关工作 然后确认自己不是一时嗨了 然后此处应该有一个那个停车的表情包 希望大家自己回顾一下 然后take kv3 就是说模型图用nano banana系列画的蛮不错的 但是呢作为科研学术的规范 记得重新绘制成PDF 第四点呢 就是说把复杂任务拆分成易于完成的子任务 逐步完成 中间进行校验 自己写代码呃 对中间进行校验 你自己写代码就是这样 web coding也是这样 我觉得这是最考验程序员功力 或者说是编程思维的部分 这也就是所谓的一个算法思想 这才是程序员修炼到最后的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 2310.65,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_fcc262f7a16c52b66aa109926df43d3a",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.5161709189414978,
+      "end_time": 587.07,
+      "excerpt": "一些原则呀 然后包括你用什么样的方式去写代码呀 包括遵循我们遵循我们的scale的一个定呃 SPECT的定义是最重要的一件事 就是第三步 它不光要执行 还要搞清楚 通过斯spike 搞清楚他的一个要求和期预期的输入输出 然后最后就是进行一个测试 然后去进行一个迭代 如果测试通过了以后 第五个就是check point 然后把对最易近的一个节点去进行一个一个最 最最就是这一步的工作去做做一个总结 然后让用户去确认 如果确认OK了 那它就会自动的去帮我更新那个排期表 并且提交一些抗me的一个信息 然后甚至是帮我直接commit 这个就是他一个整整个的一个逻辑",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 468.34,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_cc752528c971ccfd483528d3405e31b9",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.5157549977302551,
+      "end_time": 443.76,
+      "excerpt": "可能你就会在这个过程中去debug很多次 再一个就是这里我总结了一些小经验 就是当你有了一个基础的FIGMA的UI稿或者是原型稿 哪怕是一个截图 就嗯想让COSER去跑代码之前 先让他设计一个这样的design system 就是这个文案的话可以参考这个 也可以让GPT或者cloud 就是让AI去给你生成一个其实都大差不差 它主要就是包含一些像色系色调组件 按钮大小间距等等 就是阴影啊什么的 这些UI设计相关的一些统一的定义 就是一开始就做好 这样的话后续不容易乱 哪怕你后面要改也是比较好改的 然后这个设计规范的话也是AI生成的 我不知道 就是因为我自己",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 347.42,
+      "subtitle_source": "ai",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ccf70a1a96c008a6c83d4a54e0c543da",
+      "unit_type": "transcript_chunk",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.5121176242828369,
+      "end_time": 1007.4,
+      "excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 927.03,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.5119616985321045,
+      "end_time": 119.26,
+      "excerpt": "Hello 朋友们 好久不见 我是泡爸 很久没有更新视频了 前段时间我也收到了很多朋友的留言 问我怎么不更新了 在忙些什么 这半年其实发生了一个比较大的转变 就是我从web3的后端开发 转到了AI这个方向上了 换了方向之后呢 不管是平时的工作内容还是要学习的东西 都和以前很不一样了 所以这段时间我也非常沉迷于web coding 和AI相关的东西 我其实积攒了很多想要分享的话题 那今天的话呢就打算先录一期关于AI的分享 跟大家聊聊我在转方向这个过程中 分别学了哪些AI相关的东西 以及我的工作内容发生了哪些转变 最后是我对与AI焦虑的一些看法 如果你对这些",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_ccfbbedcad4185c4a92a5b11f130af23",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.5099490880966187,
+      "end_time": 353.34,
+      "excerpt": "第四就是当前它的最佳使用形态 不是用UI 而是用coding agent 直接去通过内设的CLI去调用 后端的agent的编排 比如说我就经常用codex去控制体验就很好 完全不需要使用前端 最后前端的体验 其实现在也还没有达到我的预期吧 现在他的概念就是有大量的生成式UI 但是这个这个生成式的东西还太少 也不好看 也不够高效 所以还需要一定时间去摸索 让生成式的UI更加匹配具体的任务 OK叠甲就叠到这里啊 我是希望劝退那些希望开箱即用产品的朋友 你稍微降低一点预期 也给我一点时间 那接下来我们聊一下他现阶段他能干什么 首先啊现在发布的版本是各个平台 它",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 234.06,
+      "subtitle_source": "ai",
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_f6dc1c68da54aad61de1b7070ac498fe",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 13
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.5086616277694702,
+      "end_time": null,
+      "excerpt": "[Title] 使用AI+SPEC+SKILL，2天写完一个Agent项目 [Uploader] 骑猪撞宝马71 [Description] 项目主要是写好了SPEC，定义了具体执行策略，后面完全由AI来完成。 视频展示了如何做到的这一点。 [Favorite Folders] 2026找工作学习",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "video:bilibili:BV1ixAVz9EaQ:p1",
+      "unit_type": "video",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.5070110559463501,
+      "end_time": 3142.39,
+      "excerpt": "所以在这个里面 AI编程里面最大的问题就是这个你那个plan啊 它它它都是plan 但是他你你你做出普兰后 我做出来 然后我怎么去判断他这个东西好还是不好 这个是我们团队上也有人就问我这个问题 为啥你说你的这个plan 为啥最后他的这个比如说这个结果 他思路就很清晰 不然我这个总是没有把它想明白 这个我也很难去解释 就是这个同样的这个plan 但是不同的人他plan出来的 他可能经验多一点的人 他可能他想的更加全面 或者这个逻辑更加合理啊之类的对吧 这个是可能就跟我们以前系统设计的一些 那个功底得得得有区别了 那我给你举个例子 比如说我我做了一个事 就比",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 3022.79,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_d03c2924a8e94771cf24c86d9da32f5f",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.5046759247779846,
+      "end_time": 234.41,
+      "excerpt": "帕AI呢他做什么事情呢 就是专门用来这个调用各种AI大模型的 然后他第一个要做的事情呢就是他要统一名称 因为他的这个输入啊 他的API啊 这个每一个这个AI大模型的名称不太一样 所以呢他要统一一下 听起来不太难啊 然后呢第二个呢它的这个各个大模型呢 它的输入中间还有一些参数 比如说这个temperature 他这个参数呢它刻度呢 它每一个模型呢它不太一样 所以呢我们要对齐它的这个输入 它的参数 这是输入部分都不太难哈 然后第二部分呢稍微麻烦一点 它的输出就是每家AI大模型的输出呢 基本上来说包含三样东西 那第一部分内容呢是它的深度思考 这个深入思考呢 他",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 114.54,
+      "subtitle_source": "ai",
+      "title": "PI: pi-ai & pi-agent-core",
+      "unit_id": "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_b094ca14946c26682ee4537541118be1",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 109
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.5045764446258545,
+      "end_time": 582.74,
+      "excerpt": "做不到杠杆 是因为如果你只有cloud code或者是open cloud hermes 你只有这样的框架是不行的 因为真正让模型发挥出优势的是更加复杂的 Harness 是更加合理的分工规划 流程控制 而且是无人值守 高并发全自动端到端的交付 那么简而言之 就是说 除了有模型以及对模型能力边界的极致理解 你还需要一整套的harness来实现这一切 对你需要的不是模型 而是软件 好的就是现在 这是目前AI世界里没有标准答案的地方 也是被迷雾蒙住的一块 也是更有价值的一块 所以每个人都有机会啊对吧 但我敢保证 也就是今年内市场上就不断会有答案产生 说说我自",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 466.23,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_5f7bf2c882a60c9b806a35140aba0687",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.5028889179229736,
+      "end_time": 468.56,
+      "excerpt": "那么它可能是很容易的 但是呢如果我去测一些一些视觉的 就比如说有SUV机渲染一些图表 渲染这些图表 那么它在这个过程中其实不是特别的的油耗 那么我后来用这个方案 是通过一个大模型去去截图 通过一个大模型方式去截图 截图完了之后呢 他帮你去分析这个图里的内容 然后去进行断言判断 我这个测试通过还是不通过 这是一种方式 那么这个是大概的一个一个一个场景 然后我跳过来到这里的话啊 就是我们的一些测试 然后这里就是这里 如果我们通过研发自测的一个loop 然后我也剪了一张图啊 大家如果要截图的话也可以啊 可以可以看或者有什么问题 然后我会这个是大概我原来用用AP",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 350.479,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_4ac67f2d5074fd99d3e23b7f63cdd4f5",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.5024937391281128,
+      "end_time": 4399.99,
+      "excerpt": "这个call call呢它是可以直接去改open coud的城市的 因为他看得到open cloud的城市 他看得到他的hobby 他可以直接去改他的hobby 逼他上传哦 呃那个但是那个coco呢没有这么做 他当他一开始发现那个open power 没有把影片上传的时候 他的反应居然就是等他上传 这样他就一直等着说 怎么影片还没有上传 怎么影片还没有上传 怎么样 影片还没有上传 就从昨天晚上一直到今天晚上足足15个小时 他而他很厉害 他自己设了一个排程 那排程是他自己设 他自己设了一个5分钟一次的排程 5分钟检查一次影片有没有被上传 而且这个排程呢就重",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 4281.68,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_23667d76219e2236f21959ec6fcc5ad9",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.5023254156112671,
+      "end_time": 347.48,
+      "excerpt": "核心功能 在这个文件夹里面里面存放的是AI编写的Python代码 项目原理很简单 当我们运行命令的时候 其实就是运行了这些Python代码 Python代码可以按照重点IO的文件标准来读写DRA点IO的工程文件 这样同一份文件可以被照点IO软件和CLI两种方式进行读写 这里我们根据read me里面列出的使用范例来测试一下 首先第一步把AA编写的Python包来安装一下 这里我们在项目目录里面执行一下安装命令 安装好以后 我们就可以使用下面这些命令行了 比如第一个命令是创建一个重点AO的项目 这里项目文件就被创建出来了 接下来我们可以创建图形 使用这个命",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 232.2,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_7589f5411f36bb831692b46c7416cfa5",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.5013870000839233,
+      "end_time": 700.24,
+      "excerpt": "你可以看到他的那个设计文档 其实比我们自己写的还要相对来说更清晰 然后他还是按模块划分的 这样子对于他后续的开发来说 就反攻的情况就会变得很少 可以看一下它的设计 它设计真的非常的好 我觉得比大多数算法工程师 比如说以我为例的算法工程师 其实他都是做的要更好的 然后他还把你的包管理依赖工具相关的一些呃 怎么使用啊 巴拉巴拉的一系列的东西都写的很清楚 然后再去做开发 这样会事半功倍 把这一个design文档输出出来了之后 我们接下来要做的是什么 我们接下来就是让他不要修改任何的代码 还是说我们要去生成这样一个task任务 去把任务肢解 然后他也是同样的去读",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 581.54,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4f0023f2abe4c6521c8b01092776c491",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.5012595653533936,
+      "end_time": 469.5,
+      "excerpt": "他的一个相当于只是是指的skill 它这个是干什么呢 就是说因为所有的MD文档 就是我们最终的一个核心 所以当你修改了一个MD的时候 他你在跑这个脚本 它也能够及时的把这个MD文件去进行一个处理 处理了 完完了以后切成多一个小块 然后有一个索引 让这个AI能够根据这个索引动态的去找到 他当前步骤要的一个内容 所以就是同步文档 这是最重要的 你可以去改文档 然后它每一次执行的时候都可以生效 具体的定义其实就写在skilled的spec sync的skill m d下 第二呢就是prograss truck 那当他完成了文档的设计以后 他要判断当前 文档当前",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 349.93,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.5011351108551025,
+      "end_time": 235.6,
+      "excerpt": "他们是用网盘的分发方式 但是我觉得网盘这种分发方式不灵活 有些朋友也玩不了 不好下载 如果更新个版本 我得重新上传网盘 各位重新下载覆盖安装 我觉得就很不便利 所以就有了一个上steam的游戏啊 就至少依托于steam的在线分发 我们更新了上传一版 各位原地在线更新就可以了 本来就是整活是吧 还付出了100美元的成本 这个其实也也挺难过的 还是我自己掏的钱 因为这个steam还在国外 他没有发票 你知道吧 没有发票就没有办法找公司报销 太讨厌了 我们还继续努力 还是希望能找到一个比较便利的开发方式 一个游戏上线了以后 大家有什么意见建议 或者说要修改的地",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 117.69,
+      "subtitle_source": "ai",
+      "title": "2026年，将AI作为游戏玩法的技术瓶颈",
+      "unit_id": "transcript_chunk:bilibili:BV11N7s6oEtb:p1:chunk_fd7344d6f81289a58ba88ea161156ed8",
+      "unit_type": "transcript_chunk",
+      "uploader": "赛博阿牛",
+      "video_id": 31
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.5010107755661011,
+      "end_time": null,
+      "excerpt": "[Title] 6月13日 [Uploader] LucianAIAgent干中学 [Description] 我入职 AIAgent 研发岗学了哪些内容？学习路线？学习方法？一个视频全都奉上！ [Summary Conclusion] 入职 AI 应用开发岗的关键在于先写目标岗位简历，再用 AI 生成项目并吃透每个要点，然后通过多次面试与复盘快速补漏，不要陷入漫无目的地学透语言和框架每个 API 的误区。 [Summary Key Points] 语言和框架的学习重点不是掌握每一个 API，而是理解底层思想与设计逻辑，能看懂 AI 写的代码即可。 以入",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "6月13日",
+      "unit_id": "video:bilibili:BV1sNJW6dE54:p1",
+      "unit_type": "video",
+      "uploader": "LucianAIAgent干中学",
+      "video_id": 134
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.5007665157318115,
+      "end_time": 228.16,
+      "excerpt": "验收标准最重要的是具体能对照 比如能量化的地方直接给出具体数字 可能蒙混的地方一定要明确写出判定方法 还有一点特别重要 一定要让AI提供测试通过的证据 在源头上杜绝AI偷懒 那到了这里 honeys的基本框架就搭建好了 但不知道大家有没有发现不对劲的地方 就是AI既写代码又当测试 最后还要验收开发成果 你就猜他会不会偷懒吧 这个时候如果直接让AI开干 你会发现不到十几分钟 AI就告诉你任务完成了 但产出质量却一塌糊涂 说白了不能让AI既当运动员又当裁判 必须让一群AI分工合作 怎么做呢 手动创建子代理 然后编排他们的工作是一种方法 不过这有一点麻烦 我们",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 116.92,
+      "subtitle_source": "ai",
+      "title": "Harness engineering 实操干货教程！",
+      "unit_id": "transcript_chunk:bilibili:BV1hi7w6ME4Q:p1:chunk_45a834b6b846fdda035b3e93fdbf8830",
+      "unit_type": "transcript_chunk",
+      "uploader": "是花子呀_",
+      "video_id": 36
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.49854403734207153,
+      "end_time": 76.98,
+      "excerpt": "话不多说 进入主题 我自己写了一个A键工具框架 Chat dam 这个框架就一个作用 拆分几个字 角色对修出不断进行自选核 通过不断修订 让修出尽可能满足用户要求 并减少错误 接下来请看具体流程 可以看到本框架可以让AI生成机器部分亮色 细节的结构 非常适合对AI输出要求有严格标准的程度 这个框架目前还在开发中 未来准备进行开源 大家可以期待一下 待会",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 0.08,
+      "subtitle_source": "ai",
+      "title": "我开发了最严苛的Agent框架工具：Chat Dam",
+      "unit_id": "transcript_chunk:bilibili:BV1ffMh6kEHD:p1:chunk_eee38b5acecd89d92afb0848ce13c0a9",
+      "unit_type": "transcript_chunk",
+      "uploader": "DaVinci-2nd",
+      "video_id": 8
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.4980607032775879,
+      "end_time": 817.13,
+      "excerpt": "一共有五个人点了四大呃 这个是上个月生成的 然后这些所有的内容都是用AI生成的 然后主要的方法就是采用了i flow呃 CLI用spark驱动的方式去做代码的生成 然后可以看到这样一个auto chapter bar的一个能力 大家可以去呃上传自己的一个字幕文件 然后去做那个chapter bar的生成 最终生成一个类似于这样子的小视频 这个大家自己去体验就好了 然后除了这个 就是昨天我又基于spike驱动的原则 去开发了一款工具 就是做英语学习的 就比如说我经常会问AI说 诶这个东西用英语怎么说 这个用于这个东西用英语怎么说 然后呃但是每次说完之后我就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 697.96,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_32622c932652433c6f3b7a4d878898be",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.4980545938014984,
+      "end_time": 929.64,
+      "excerpt": "然后后来就在国内的话 我就找了一下质朴也是可以的 质朴的一个模型也是可以做这个事的 然后还有一个就是computer use 这个是它把整个电脑的 就是把你的整个屏幕啊 怎么我就击打的好了好听 打这个还是这个比较好吧 大家静音一下吧 我来静音了 然后这个computer use子也是你 大家可以搜一下这个computer use 它就是把这个屏幕啊去截图 然后去AI去识别这个里面的元素 然后去按照坐标去点 但这个我暂时用不到呃 按照某种程度上其实是可以去用的 如果后面 但是我没有去很研究到computer的u er这个程度 我去研研究到computer ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 810.52,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_0c27edff83c389a221716d136c871e6e",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.49610090255737305,
+      "end_time": null,
+      "excerpt": "[Title] 10分钟app开发全流程 [Uploader] 英雄哪里出来 [Description] 8000 点赞达成以后， 该视频对应的游戏源码会在 __https://github.com/WhereIsHeroFrom/zhiyuan__ 开放下载； 30000 点赞达成以后，文字版教程可以在B站关注后私信回复 VC 获取； 80000 点赞达成以后，提示词(附专有名词解释)会在 _____________ 开放下载； 高考又结束了，接下来就是志愿填报。所以我搓了一个报志愿的app，作为准大学生填报志愿的参考。我可以做，你也可以，因为全程没有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "10分钟app开发全流程",
+      "unit_id": "video:bilibili:BV1Tejc6oEik:p1",
+      "unit_type": "video",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.4958513379096985,
+      "end_time": 2906.92,
+      "excerpt": "只有团就有自己的团队 他才能去维护这个东西啊 但是如果如果你用个开源的对吧 那开源的其实是集体的 就是整个开源社区维护这个东西 如果如果跟自己差异不是很大的话对吧 优势问题就在于差异太大了啊 我我这边也想说一下 就是用那个super power 我一开始也是直接用的 就这一次的项目后面我发现它里面有很多东西 你一旦进入了他那个阶段 就要一直走下去 我认为对我来说 它有一些阶段是多余的 所以说我就废弃了他这个东西是的 然后比如说还有一些项目 是每个人都那里面搞一套 比如说一个人用super power 一个人用这个trailers 一个人用什么open s",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 2787.379,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6d144395a7a22f1f76b5e1cf1387b3b2",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.4957636296749115,
+      "end_time": 431.22,
+      "excerpt": "Bilibili spat out a ton—hey, not bad! It drew me an architecture diagram! Then, start generating docs—here are the prompts for querying the AI. Docs cover tech stack, architecture design, DB design, and security—making it easy for backend newcomers, even total newbies, to chat wi",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 395.91,
+      "subtitle_source": "ai",
+      "title": "10分钟app开发全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_32038eda66fa616f00ab4dbf8b3fbd0c",
+      "unit_type": "transcript_chunk",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.49534106254577637,
+      "end_time": 2093.98,
+      "excerpt": "就是通过chat的这个模式 然后把这个把排查里面 所有需要的信息都跟跟大家聊清楚 然后让它保存到一个是的 都都在plan里面 是的 因为原来我也有SD框架的时候 我一直把SDD框架用不起来 就是因为他他就是就是这个问题 就是我直到这个卡拉尼克老哥给我讲讲 他讲了个新因子工程之后 我才把这个事彻底把这套东西弄明白 就是很非常重要的一个东西 就是一个过程方案和事实方案 这个东西你如果没想明白 这个plan就写不好 就是这个就是什么是过程方案和知识方案 就是如果我们以前有时候 比如说我举个例子 我写了一个用户中心 它有登录和注册 然后呢编或者是他会给你 就是说",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 1974.06,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_f4709acc7f5b8e28f624faa2cd0c1889",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.49499085545539856,
+      "end_time": 350.78,
+      "excerpt": "让AI的每一次改动都可以被验证 那么我具体是怎么基于我们自己的AI agent 把这件事情做出来的呢 第一步可能跟你想的有点不太一样啊 我要做的第一件事不是写测试 而是把我们的AI agent改造成一个 对别的AI agent友好的系统 我解释一下 我手上其实有两套系统 一个是我们自己写的那个AI agent 另一套呢是我用来写代码的coding工具 比如说codex啊 那我之前测试为什么那么痛苦 因为我那套系统的入口是一个网页 是一个UI 是给人用的 要测它就得有个人在那点一下梳一下是吧 那从第一天起 他就是为人的眼睛和手去设计的 现在大家都在讲面向A",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 232.51,
+      "subtitle_source": "ai",
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_eb4fe4e3ac04e312f5a457f784c79282",
+      "unit_type": "transcript_chunk",
+      "uploader": "数字黑魔法",
+      "video_id": 6
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.49260377883911133,
+      "end_time": 236.129,
+      "excerpt": "但这都开始web coding了 我自己也还是有一点心急的 一个页面 出了简单的需求就发给AI去做这样子 但这样其实会有点踩坑 我后面会提到 我发现figa make做页面框架还行 但是他不能指望给你很好看的插图icon的 因为我对这方面还是有点要求 所以其实还需要花时间自己去找素材 中午去山姆超市买了蓝莓蛋糕哦 这个只能去线下买 当时看到图就觉得这个肯定爆炸好吃 比我想象的还要厚 开始吃播啦 吃饱了才有力气大周末的干活 好香啊 里面的果酱稍微有一点点甜 我觉得里面的蓝莓一点都不酸 我本来买的时候看评价说里面的蓝莓会有点酸 还有一点担心 但真的很甜 接着",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 116.65,
+      "subtitle_source": "ai",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_b39ad59de7a795add0457f007bc97f57",
+      "unit_type": "transcript_chunk",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.4925399720668793,
+      "end_time": 8352.34,
+      "excerpt": "可能花了四五个月的样子吧 嗯对就是从你刚进去 就是从开始大家做为了这个事儿做做研究 那可能花了两三个月 然后后来开始训练到训练结束 中间磕磕绊绊 很多事情要处理啊 然后有很多新的基础设施 其实基础设施真的很重要 很花时间 然后又可能花了可能两两个月 这样子你在其中做的重要的工作是什么啊 我觉得我也没什么重要的哈哈 我觉得我我对我个人的贡献 我觉得我觉得我对个人 我个人对任何一个模型的贡献 我的我的陈述都是 我觉得我自己对那个事没那么重要 我觉得我更多的是我很幸运 有机会在那个时候加入了一个重要的项目 做了一些事 嗯嗯因为从某种意义上来说 我觉得AI在现在",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 8236.2,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_47230c2acd2d35ac83a0324507391b34",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.49148744344711304,
+      "end_time": 803.42,
+      "excerpt": "然后人去解决的 假设未来有一天能从这个AI 某一天能发展到这个位置 那它其实也是到最后他只是说以一个brunch 然后呢给出brunch假设啊 假设未来某一天agent的 然后给到brunch 然后人去merge 那也应该是这样 一定是人审核了之后再merge 就是怎么说呢 就是避免这个agent他做一些问题 就是出一些问题 OK这个是未来的一个线啊 那我们给他表一个虚设啊 那还有一个问题就是什么呢 就是说我们的这个bug修复 就为什么我们不让agent在这里 就是他分析完了 他直接解决 一个是我们希望有人去进行一个审核和处理 第二个呢他有可能跨repo",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 713.83,
+      "subtitle_source": "ai",
+      "title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+      "unit_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_863d876cf3b4e79aca1cbf3245dfa289",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3SecAnalysisT",
+      "video_id": 29
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.48948246240615845,
+      "end_time": 237.6,
+      "excerpt": "所以要完成这一点呢 有两件非常核心的一个要素 第一个要素呢 就是你需要有一个非常非常详细的一个def back 就是你的设计文档 我们来看一下我写的这一份 我不能说它非常就完全能够达到这个标准 但我能说它是比较详细的 1111部一个文档 为什么这么说 你你其实可以看到这个具体的概述 到具体的核心 其实我之前在笔记中都给大家讲讲了 然后包括具体的技术选型怎么样实现呢 用哪一个框架啊 其实我都写的非常非常的清楚了 就是啊包括你选择哪一个库 然后我们可以看一下这个系统 包括测试的方案 我们可以看一下系统的这个模块嗯 架系系系统架构的这个模块 就不光有完整的一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 119.71,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_50acf6f4e318a0142a4567ca59948bc2",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.4893760681152344,
+      "end_time": 2673.64,
+      "excerpt": "或者是上次是你分享的对啊 哦是的是的能听到吗 是的是的哦 然后我这边其实啊也说一下 就是上一次分享的 其实是基于一个项目进行重构的嘛 然后那个项目相对来说是 你对一些需求是相对比较清晰的 然后可能会用的约束比较多 然后这一次啊我在这边新的公司做的项目 可能啊他会要求比较灵活一点 就有很多需求可能都不是那么清晰的情况下啊 这个时候我尝试用类似的输入来做 我发现效果不太好 一开始约束太多 反而限制了发挥 后面我就自己搭建了一套啊 比较灵活一点的那个啊体系 然后就区别于以前那一套 然后这一次的话就充分的发挥这个AI的 这个啊创造性 然后啊我总体看下来感 感觉比",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 2554.619,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_03c383a2769c7374ed062fb2f5659461",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.48840999603271484,
+      "end_time": 1859.619,
+      "excerpt": "我自己如果超出我的认知范围了 就是这个plan的质量取决于你的经验 以及你能不能做好的判断 能展开一下普兰网 听前你做的更简单 对我现在做的更简单啊 做做做做 做的非常简 做的简单很多 因为那个CD那个呃他做的太美好 但是我根本就用不起来啊 这是一个 然后呢我可以给大家看一下 比如说一个例子 我的一个代码当中 我今天搞了一个例子 比如举个例子 啊因为我的项目都在内网啊 就是有些东西不能够就看不到 然后这个比如DOS里面就是按上次呃的一个例子 就是这个比如说design把API全都放在这了对吧 他就这个design是一个事实事实方案 就这个描述的是这个系统",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 1741.67,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_2da13eea92f7f41f3b300f179dddb268",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.4881362318992615,
+      "end_time": 949.94,
+      "excerpt": "像我跑任务啊这么长一段的这工具调用跟执行 大概花费呢是0.3 按美元的额度 但实际支出要低得多 因为订阅一个200美元的套餐 你就能用一个月5000到1万美元的 这样API的额度 更关键的是啊 派其实他的上下文提示词很短 token消耗呢比其他代码智能提要低很多很多 第四个功能啊 我们给派来增加这个生成图片的功能 接下来呢我们就来安装这个 现在的最强的深度模型g p t image two 好安装好了 这个skill的原理啊 其实是调用codex里面的g p t image to来生图 如果你订阅了g p t plus或者pro 就可以把生图能力也交给派",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 839.74,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_8deadcad810cd128fbf64605eba4f220",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.4866015911102295,
+      "end_time": 821.159,
+      "excerpt": "然后他检查了实际的 因为A1是要完成线目录 他检查了实际的目录确实没有 所以做了一个总结 做了一个总结 他发现确实实际情况和表写的是一致的 然后他认为当前的任务是A1 所以他就开始要去执行 然后我我其实在显示里写了这块 有一个用户确认 所以他确实停下来问我好 那我们就确认它就会执行A1 理论上它就会进入第三个implement 这阶段 所以在implement的阶段呢 其实我们写了非常多的一个原则 也就是让他去啊查对应的spec 找到对应的一些设计原则 比如说啊要改哪些文件 因为根据SSKILLS去去读 我告诉他了一些系统的架构 他应该先去先去想要怎么样",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 702.94,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_928004e26de0b2c0eed60bb98b353279",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.4847946763038635,
+      "end_time": 3938.44,
+      "excerpt": "所以可以想象说 从2026年 很多人装了open号 或者是未来有其他的AI agent的harness之后 这些AI agent可能就会伴随着那些人 永远的一直走下去 他们变成了一辈子的伙伴 或换句话说 现在这些模型他不再当工具 他要跟你组一辈子的乐团 好 但是因为今天这些AI agent 想要跟你组一辈子的乐团 所以他们就有新的挑战 你就需要新的honeys 让这一些AI agent可以跟你在一起一辈子 举例来说 这个call扣啊就有一个隐藏的功能叫做auto dream 所以它是隐藏的功能 是因为大家知道说 前几周不是靠后的城市马外泄吗 所以让大家知",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 3819.62,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_a15b6ac0da2b884bdffa37267793bb64",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.4846673607826233,
+      "end_time": 3723.0,
+      "excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 3604.0,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.48437684774398804,
+      "end_time": 193.987,
+      "excerpt": "Switch back to the prior Workspace and hit Send! It’ll link up to Ardor on its own and build out the UI step by step. Whoa—these results are pretty neat! The prototype diagrams will generate page by page—just wait a few minutes, and the full set for the app will be done! Plus, it",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 153.54,
+      "subtitle_source": "ai",
+      "title": "10分钟app开发全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1Tejc6oEik:p1:chunk_6aebe953adeaa98076356d606e0113d2",
+      "unit_type": "transcript_chunk",
+      "uploader": "英雄哪里出来",
+      "video_id": 37
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.4830158054828644,
+      "end_time": 118.499,
+      "excerpt": "Hello 大家好 相信大家日常生活中经常听到web coding啊 这些词汇 其实这代表着当今开发模式的变化 我们已经从自己一行一行去写代码 变成了让AI去写代码 比如这里我跟入code进行交互 我让入code实现一个hello world的Python程序 这是一个最简单的任务 并跑起来是吧 你可以看到这个agent不再是一个 仅仅能跟你聊天的工具 他会真的去生成一个Python文件 并把它抛起来 他甚至自己知道切换到code的mode去create 去创建和run这个Python程序哦 如果人来写的话 呃当然也很快 这是一个很简单的例子 但是我相信",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 0.94,
+      "subtitle_source": "ai",
+      "title": "【Learn Claude Code 源码详解】- 本地启动 Agent",
+      "unit_id": "transcript_chunk:bilibili:BV1mcAfzqEnE:p1:chunk_9f8ac681f8f6d616e0f5d8d1ce224b40",
+      "unit_type": "transcript_chunk",
+      "uploader": "开发实战分享屋",
+      "video_id": 97
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.4819597601890564,
+      "end_time": 1166.62,
+      "excerpt": "把我们A1标记成已完成了 看一下是不是OK对 他确实在这里把A1标记为已完成 并且这个进度进度一栏变成了切断一 变成了33% 最后还有一个commit ment message 然后其实也是我设的 我就不讲了 我让他我让他总结 按照我的标准去总结总结subject和description 如如果我需要可以一键commit 然后commit的名字呢 每一个我我预期每一个节点呢就是A1A2 A 3a4 这样大家看起来也比较轻 也也比较清楚 然后具体回回溯到哪一块也比较清楚 所以你其实看下来 这个AI完全follow了我们的一个逻辑 这整套的逻辑都是我们定的 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 1048.34,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_e118f408900b6f4c0850f73c2a33ad4a",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1kqAUzAEho",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/ef070459b1221c2a345eeaada8acfcefb007d832.jpg",
+      "detail_url": "/videos/79/transcript",
+      "duration": 302.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "哈喽大家好 我是饼干 做上述分游戏啊 精灵动画是一定是绕不开的 一路在GODOT中通常有两种做法 一种是将SPRIT2D加载图集 然后切片通过enemy player中进行逐帧的控制 第二个呢就是使用enemy spit to d来驱动播放 创建thread frames的资源 不管哪一种方式 都需要大量的手动设置 导入一次还行 导入20次 那这种纯重复劳动 纯粹是在消耗我们的创作热情 那么如果说这整个过程都可以用AI自动完成的 今天我们来使用cloud code导入我们的精灵动画 我们可以看一下我们的演示素材 我们的演示素材是这一组 就是在网上之前很有",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "像素夹心饼干",
+      "video_id": 79,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1kqAUzAEho",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 34.76,
+          "anchor_segment_start": 29.83,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 115.34,
+            "source": "ai_summary",
+            "start_time": 29.83,
+            "summary": "演示如何使用 Claude Code 读取标准化素材，通过自然语言指令一键完成动画导入与 SpriteFrames 配置。",
+            "title": "使用 AI 自动导入精灵动画"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87",
+            "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_71a62bb31963f7def9acb05534a09fae",
+            "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_9b7a7f4c5fefc119af1bda226852e661"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            1,
+            3,
+            4
+          ],
+          "duration": 300.26,
+          "excerpt": "纯粹是在消耗我们的创作热情 那么如果说这整个过程都可以用AI自动完成的 今天我们来使用cloud code导入我们的精灵动画",
+          "jump_source": "exact_entity_term",
+          "jump_time": 29.83,
+          "jump_url": "https://www.bilibili.com/video/BV1kqAUzAEho?t=29",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 300.26,
+          "window_start": 0.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV13pqGB2E2G",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/ece16845e9a7cdca9dd8f6cb967b2b4c6693d698.jpg",
+      "detail_url": "/videos/22/transcript",
+      "duration": 847.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "然后他给你生成一个这样子的一个呃小视频 然后你把它拖到那个剪映里面 就可以直接在视频的上方 或者说下方有一个进度条一样的东西 接下来就带大家讲一下 spike驱动具体是怎么做的 这里我们用一个开源项目叫做 大家猜一下叫什么叫做open spec 就是用这一个开源项目来给大家讲解一下 什么叫spec驱动 这里可以看到它的那个是怎么样运作的 其核心就是指你第一步呃 先把自己的开发需求告诉AI 然后再循环的让AI去生成一些任务 按照特殊的规范去生成一些任务 然后直到他把这一个需求描述清楚了 然后再让AI去开发 让大家更方便的理解 我可以用比较通俗易懂的语言来给",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "袁朝发",
+      "video_id": 22,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV13pqGB2E2G",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 268.1,
+          "anchor_segment_start": 265.38,
+          "best_chunk_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 393.46,
+            "source": "ai_summary",
+            "start_time": 248.36,
+            "summary": "讲解Open Spec开源项目的SPEC驱动核心流程：输入需求，AI整理并澄清，生成requirements、design和task三个文档，再让AI执行开发。",
+            "title": "SPEC 驱动的核心流程：Open Spec"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4847763c9acd01cb9190793b9f665a28",
+            "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_bf2d577376c48cbe022f893d22d2d0fc"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            5,
+            6
+          ],
+          "duration": 233.56,
+          "excerpt": "其核心就是指你第一步呃 先把自己的开发需求告诉AI 然后再循环的让AI去生成一些任务",
+          "jump_source": "exact_entity_term",
+          "jump_time": 265.38,
+          "jump_url": "https://www.bilibili.com/video/BV13pqGB2E2G?t=265",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 466.76,
+          "window_start": 233.2
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 645.94,
+          "anchor_segment_start": 642.82,
+          "best_chunk_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4f0023f2abe4c6521c8b01092776c491",
+          "best_rank": 25,
+          "best_score": 0.011764705882352941,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 733.17,
+            "source": "ai_summary",
+            "start_time": 620.4,
+            "summary": "让AI不修改代码，仅读取需求和设计文档，生成详细的任务分解，将开发拆分为8个阶段32个任务，便于逐步实现。",
+            "title": "生成任务分解（task）"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_4f0023f2abe4c6521c8b01092776c491",
+            "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_32622c932652433c6f3b7a4d878898be"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            25,
+            31
+          ],
+          "duration": 235.59000000000003,
+          "excerpt": "这样子的话 每一次我们就可以让AI去只做一个任务 就每一次开发只开发一小个步骤",
+          "jump_source": "exact_entity_term",
+          "jump_time": 642.82,
+          "jump_url": "https://www.bilibili.com/video/BV13pqGB2E2G?t=642",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 817.13,
+          "window_start": 581.54
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_894041966393f157e350d365372169ff",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15wGR6CEhY",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/a1f0e2359f13f1ce90fcd7a9d7b3e0ae3beea4c1.jpg",
+      "detail_url": "/videos/54/transcript",
+      "duration": 1278.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "而是先让agent写一个带动画的HTML网页 HTML因为是代码组成的 所以它生成的时候非常稳定 又可编辑 可预览 然后呢再逐帧去渲染成一个完整的视频 而且对你来说啊 完全不需要去懂HTML里面的代码是什么意思 你只要告诉他你想要什么 结果好 安装好之后呢 我们来先跑一个比较小的demo 新开一个对话框 用hyper frames做一个20秒的动画 解释什么是agent 只生成HTML 不需要去渲染视频 我们来看结果 你看它生成好了 他能做标题 然后转场图形动画字幕的节奏 这个东西呢你继续加上一些语音 加上一些图片 其实就能变成一条完整的视频 我们给拍a",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15wGR6CEhY",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 883.28,
+          "anchor_segment_start": 881.08,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_894041966393f157e350d365372169ff",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 930.0,
+            "source": "ai_summary",
+            "start_time": 859.0,
+            "summary": "安装 GPT Image 2 Skill，结合新闻内容生成短视频封面图，并提醒 Windows 下可能需要修复脚本。",
+            "title": "图片生成Skill：GPT Image 2"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_894041966393f157e350d365372169ff",
+            "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_8deadcad810cd128fbf64605eba4f220"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            7,
+            44
+          ],
+          "duration": 222.72900000000004,
+          "excerpt": "我们还是给刚刚我们生成的这个新闻啊来配图 根据这个文件的第一条AI新闻 用g p t image two生成一张适合短视频封面的图片",
+          "jump_source": "exact_entity_term",
+          "jump_time": 881.08,
+          "jump_url": "https://www.bilibili.com/video/BV15wGR6CEhY?t=881",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1062.469,
+          "window_start": 839.74
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 8,
+      "best_score": 0.014705882352941176,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ixAVz9EaQ",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/62cba1443965a26a70d29b74399a2748f8eee475.jpg",
+      "detail_url": "/videos/113/transcript",
+      "duration": 1178.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "那第二个前提呢就是说啊因为让AI去写嘛 那之前其实skills没出来的 之前我可能还想不到非常好的方法 就是你能够让AI能够完全知道 你当前处在哪一步 然后当前的目标是什么 当前的你你要实现代代码的这个架构 设计是什么 能够让你比如说你第一天写完了两个步骤 然后明天接着写 第三个步骤 他能够马上就知道哦 我完成了前两个步骤 我现在要进行第三个步骤 第三个步骤去是实现这个分割器 那分割器啊 那大概要按照什么方法 它有一些什么样的原则 然后我我这一步有哪些呃 标输入输出的一个标准 以及如何测试 我还不知道你有哪一套逻辑 可以完全的让AI能够这样子去去去写 但",
+      "matched_unit_count": 7,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 6,
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 209.13,
+          "anchor_segment_start": 204.73,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eb227cf95d57a6e8a37f9ddbead041a",
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_cc752528c971ccfd483528d3405e31b9",
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_50acf6f4e318a0142a4567ca59948bc2"
+          ],
+          "component_hit_count": 4,
+          "component_raw_ranks": [
+            8,
+            13,
+            26,
+            41
+          ],
+          "duration": 467.36000000000007,
+          "excerpt": "所以所以整个文档写的非常详细 就是我们要让AI完全完全让AI能够实现 我们项目的第一个前提就是非常的详细",
+          "jump_source": "exact_entity_term",
+          "jump_time": 204.73,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=204",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 587.07,
+          "window_start": 119.71
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_928004e26de0b2c0eed60bb98b353279",
+          "best_rank": 45,
+          "best_score": 0.009523809523809525,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_928004e26de0b2c0eed60bb98b353279"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            45
+          ],
+          "duration": 118.21899999999994,
+          "excerpt": "然后他检查了实际的 因为A1是要完成线目录 他检查了实际的目录确实没有 所以做了一个总结 做了一个总结 他发现确实实际情况和表写的是一致的 然后他认为当前的任务是A1 所以他就开始要去执行 然后我我其实在显示里写了这块 有一个用户确认 所以他确实停下来问我好 那我们就确认它就会执行A1 理论上它就会进入第三个implement 这阶段 所以在implement的阶段呢 其实我们写了非常多的一个原则 也就是让他去啊查对应的spec 找到对应的一些设计原则 比如说啊要改哪些文件 因为根据SSKILLS去去读 我告诉他了一些系统的架构 他应该先去先去想要怎么样",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 702.94,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=702",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 821.159,
+          "window_start": 702.94
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV11N7s6oEtb:p1:chunk_dd7be8fc2f8d2c45e6975103d9be4795",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV11N7s6oEtb",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/e71b58d783c602264f5b70a41fb11f449b6dcc03.jpg",
+      "detail_url": "/videos/31/transcript",
+      "duration": 920.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "最后生成的东西 未给TM会增加几个数值来维持住他的生活 争取能够让这个team活 我们当时设计的是活多久来着 好像只要活两三个小时就差不多了 所以那个游戏其实挺从数值上来讲挺容易的 我们整这个活主要也是技术验证 看看AI是个什么样的情况好 那先说一下我们最开始想做的吧 首先玩家有打开这个花花面板以后 我要不要再把那个游戏的画面剪进来算了 你们自己去看我那个大号的视频好不好 玩家在画板上面画完以后呢 生成的物品首先是由AI识别你画的是个什么 这个是交由AI的 我们原先还想做AI给你画的这张图上色 原因很简单 因为我觉得还要让玩家自己上色比较痛苦 并不是每一",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "2026年，将AI作为游戏玩法的技术瓶颈",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "赛博阿牛",
+      "video_id": 31,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV11N7s6oEtb",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 198.22,
+          "anchor_segment_start": 192.44,
+          "best_chunk_id": "transcript_chunk:bilibili:BV11N7s6oEtb:p1:chunk_dd7be8fc2f8d2c45e6975103d9be4795",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 254.0,
+            "source": "ai_summary",
+            "start_time": 187.44,
+            "summary": "介绍基于影视飓风直播玩法复刻的AI识别画作游戏，作为技术验证案例。",
+            "title": "本期主题与AI游戏实践案例"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV11N7s6oEtb:p1:chunk_dd7be8fc2f8d2c45e6975103d9be4795",
+            "transcript_chunk:bilibili:BV11N7s6oEtb:p1:chunk_fd7344d6f81289a58ba88ea161156ed8"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            9,
+            27
+          ],
+          "duration": 236.2,
+          "excerpt": "2026年 如果AI作为一个游戏玩法加入到了游戏里面 有一些什么样的阻碍",
+          "jump_source": "exact_entity_term",
+          "jump_time": 192.44,
+          "jump_url": "https://www.bilibili.com/video/BV11N7s6oEtb?t=192",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 353.89,
+          "window_start": 117.69
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_86a072f4b520ca3c73d31009acfec8cc",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1cyMi6tEqU",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/2f73b7639223c8d164918338372df7a797cfb900.jpg",
+      "detail_url": "/videos/13/transcript",
+      "duration": 557.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "比如说你做视频吧 你需要f m pg 那你就可以让AI制呢帮你去构建一个镜像 然后编排的时候就可以指定这个镜像来使用 哎我这个是在安装完了之后 会自动build一个默认的经验 但是你也可以做很多定制化的 然后桌面版现在也是一定程度可用的 桌面版有一个manager agent 来负责扮演coding agent的这个角色 他可以创建编排 也可以接受各种模型 当然我现在觉得体验比较好的是codex 只要你本机有codex登录 它就可以直接可以用 如果你有小米MIO的APIKE 你可以用他们家的ASR和TDS 再给manager agent配置一个模型 就可",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "我的贾维斯开源了，可以语音交互，控制多Agent编排【B站AI创造公开赛】",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "小天fotos",
+      "video_id": 13,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1cyMi6tEqU",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 325.44,
+          "anchor_segment_start": 321.43,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_86a072f4b520ca3c73d31009acfec8cc",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 432.48,
+            "source": "ai_summary",
+            "start_time": 276.51,
+            "summary": "说明各平台部署要求，强调应让 coding agent 读取代码库并负责部署和编排，桌面版支持语音和文字交互，并可查看 DAG 调试流程，还展示了 PS5 手柄控制。",
+            "title": "当前核心功能与使用方式"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_86a072f4b520ca3c73d31009acfec8cc",
+            "transcript_chunk:bilibili:BV1cyMi6tEqU:p1:chunk_f6dc1c68da54aad61de1b7070ac498fe"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            10,
+            17
+          ],
+          "duration": 229.82,
+          "excerpt": "也就是整个这个开源的系统的最核心的部分 我建议大家是直接让AI agent的直接读代码库 让他去理解",
+          "jump_source": "exact_entity_term",
+          "jump_time": 321.43,
+          "jump_url": "https://www.bilibili.com/video/BV1cyMi6tEqU?t=321",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 463.88,
+          "window_start": 234.06
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1fRSfBWE5X",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/5a9a59925461a139602705ef37eb287496c278ed.jpg",
+      "detail_url": "/videos/34/transcript",
+      "duration": 520.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": true,
+      "match_excerpt": "我建议是最好要在菲格玛丽有基础的原型稿 这样对自己的需求也会更清晰 如果纯自然语言去给AI生成前端的话 我觉得就会比较被动 推荐两个好用的图片背景消除工具remove和adobe xxpress 哈喽新的一周 早上好 最近每天都在游泳或者健身 早上上班前来游泳 人很少 非常爽 周一下班回家了 好喜欢蓝调时刻的阳台 接着埋头顶天 这里相机放太远了 我已经忘了做到什么程度了 这里陆续尝试了google stitch 还有IMPACCABLE这些UI生成工具 下载了google font里需要用到的字体导入到叉code里 到这里就是差不多完成了用户引导的页面啦",
+      "matched_unit_count": 3,
+      "reading_state": "read",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "chocpink_AI版",
+      "video_id": 34,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1fRSfBWE5X",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 125.89,
+          "anchor_segment_start": 122.47,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 191.92,
+            "source": "ai_summary",
+            "start_time": 41.689,
+            "summary": "进行竞品分析和市场调研，使用Figma和GPT梳理需求并制作初步原型，发现Figma Make在UI素材上的不足。",
+            "title": "市场调研与原型设计"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+            "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ccf70a1a96c008a6c83d4a54e0c543da",
+            "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_b39ad59de7a795add0457f007bc97f57"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            11,
+            14,
+            38
+          ],
+          "duration": 327.11,
+          "excerpt": "一个页面 出了简单的需求就发给AI去做这样子 但这样其实会有点踩坑",
+          "jump_source": "exact_entity_term",
+          "jump_time": 122.47,
+          "jump_url": "https://www.bilibili.com/video/BV1fRSfBWE5X?t=122",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 443.76,
+          "window_start": 116.65
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_fcc262f7a16c52b66aa109926df43d3a",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15CwBzsEmt",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/3923bf10820d7ed27cf2a2686d608dcb42f77389.jpg",
+      "detail_url": "/videos/114/transcript",
+      "duration": 2379.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "第二个呢take个位就是如果你有个idea的话 先让deep research看看相关工作 然后确认自己不是一时嗨了 然后此处应该有一个那个停车的表情包 希望大家自己回顾一下 然后take kv3 就是说模型图用nano banana系列画的蛮不错的 但是呢作为科研学术的规范 记得重新绘制成PDF 第四点呢 就是说把复杂任务拆分成易于完成的子任务 逐步完成 中间进行校验 自己写代码呃 对中间进行校验 你自己写代码就是这样 web coding也是这样 我觉得这是最考验程序员功力 或者说是编程思维的部分 这也就是所谓的一个算法思想 这才是程序员修炼到最后的",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "NextTryTV",
+      "video_id": 114,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15CwBzsEmt",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 2357.41,
+          "anchor_segment_start": 2354.41,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_fcc262f7a16c52b66aa109926df43d3a",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_fcc262f7a16c52b66aa109926df43d3a"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            12
+          ],
+          "duration": 65.4699999999998,
+          "excerpt": "以上即为我今天内容 然后也是我个人AI工作流的一些总结吧 然后我很希望看到有其他人",
+          "jump_source": "exact_entity_term",
+          "jump_time": 2354.41,
+          "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=2354",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2376.12,
+          "window_start": 2310.65
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 15,
+      "best_score": 0.013333333333333334,
+      "best_unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1kMVt6mEgr",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/d4d4dc2efa2b64eccf435a169c108df95f59cf01.jpg",
+      "detail_url": "/videos/47/transcript",
+      "duration": 2020.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "pi世界",
+      "video_id": 47,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1kMVt6mEgr",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+          "best_rank": 15,
+          "best_score": 0.013333333333333334,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 2020.0,
+            "source": "ai_summary",
+            "start_time": 854.32,
+            "summary": "介绍扩展点（工具、命令、拦截事件等），并列出 Pi 缺省支持的常见功能，推荐访问包库。",
+            "title": "扩展方式与缺失功能"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            15
+          ],
+          "duration": 80.37,
+          "excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 927.03,
+          "jump_url": "https://www.bilibili.com/video/BV1kMVt6mEgr?t=927",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1007.4,
+          "window_start": 927.03
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 16,
+      "best_score": 0.013157894736842105,
+      "best_unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_ccfbbedcad4185c4a92a5b11f130af23",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1co9yBhEvW",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/95412e13ce98a90ea8d053ed266fadaed9171290.jpg",
+      "detail_url": "/videos/71/transcript",
+      "duration": 925.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "Hello 朋友们 好久不见 我是泡爸 很久没有更新视频了 前段时间我也收到了很多朋友的留言 问我怎么不更新了 在忙些什么 这半年其实发生了一个比较大的转变 就是我从web3的后端开发 转到了AI这个方向上了 换了方向之后呢 不管是平时的工作内容还是要学习的东西 都和以前很不一样了 所以这段时间我也非常沉迷于web coding 和AI相关的东西 我其实积攒了很多想要分享的话题 那今天的话呢就打算先录一期关于AI的分享 跟大家聊聊我在转方向这个过程中 分别学了哪些AI相关的东西 以及我的工作内容发生了哪些转变 最后是我对与AI焦虑的一些看法 如果你对这些",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "polebug23",
+      "video_id": 71,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1co9yBhEvW",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 17.099,
+          "anchor_segment_start": 15.059,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_ccfbbedcad4185c4a92a5b11f130af23",
+          "best_rank": 16,
+          "best_score": 0.013157894736842105,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_ccfbbedcad4185c4a92a5b11f130af23"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            16
+          ],
+          "duration": 119.26,
+          "excerpt": "就是我从web3的后端开发 转到了AI这个方向上了 换了方向之后呢",
+          "jump_source": "exact_entity_term",
+          "jump_time": 15.059,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=15",
+          "matched_terms": [
+            "AI"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 119.26,
+          "window_start": 0.0
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 30.381,
+      "chapter_ms": 1.347,
+      "grouping_ms": 0.068,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 64.552,
+      "total_ms": 98.021
+    },
+    "raw": {
+      "dense_ms": 58.597,
+      "fusion_ms": 4.378,
+      "lexical_ms": 1.027,
+      "planning_ms": 0.019,
+      "total_ms": 64.516
+    }
+  },
+  "trace_id": "c459fade-d110-4fd3-bce3-4bd6d3ca7525",
+  "trace_persisted": false
+}

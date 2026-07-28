@@ -1,0 +1,478 @@
+{
+  "active_components": {
+    "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+    "canonical_segment_identity": "source_artifact_id + source_version + timeline_run_id + segment_ordinal",
+    "canonical_segment_identity_version": "v3.5-stage3r-segment-identity-bridge-v1",
+    "deterministic_selector_version": "v3.5-deterministic-fine-selector-v1",
+    "normalization_version": "v3.5-stage3b-asr-acronym-anchor-v1"
+  },
+  "corrected_stress_track_a": {
+    "bundle_hit_case_ids": [
+      "V2C_C0C_9618a83c9df4f059"
+    ],
+    "metrics": {
+      "bundle_hit": {
+        "denominator": 20,
+        "numerator": 1,
+        "rate": 0.05
+      },
+      "complete_gold_group_candidate_coverage": {
+        "denominator": 20,
+        "numerator": 11,
+        "rate": 0.55
+      },
+      "conditional_builder_coverage_given_target_video_retrieved": {
+        "denominator": 20,
+        "numerator": 11,
+        "rate": 0.55
+      },
+      "conditional_bundle_hit_given_complete_candidate_group": {
+        "denominator": 11,
+        "numerator": 1,
+        "rate": 0.09090909090909091
+      },
+      "empty_result_count": 0,
+      "evidence_bearing_cases": 20,
+      "failure_attribution": {
+        "blocked_identity_or_runtime_failure": 0,
+        "candidate_builder_failure": 9,
+        "deterministic_selector_failure": 10,
+        "end_to_end_bundle_hit": 1,
+        "retrieval_failure": 0
+      },
+      "router_distribution": {
+        "dense": 0,
+        "hybrid": 20,
+        "lexical": 0,
+        "other": 0
+      },
+      "router_miss_case_ids": [],
+      "router_miss_count": 0,
+      "target_video_rank": {
+        "miss": 0,
+        "rank_1": 15,
+        "rank_1_to_10": 0,
+        "rank_1_to_3": 4,
+        "rank_1_to_5": 1
+      },
+      "target_video_recall": {
+        "denominator": 20,
+        "numerator": 20,
+        "rate": 1.0
+      }
+    }
+  },
+  "current_state": {
+    "after_sha256": "29c9b3c951c1ca5d504e2fbc5bbd2055c5cfd75b75b67cc83d141c8cf118134f",
+    "before_sha256": "b9f14c8817d10fc19b4133911791cb1720d0a71b239764932fd7c61077b82bcc",
+    "r2_after_sha256": "115bad56457cc53e40b03640a66f34d51cbbf3fc586a7bc31a043c282b2f8597",
+    "r2_before_sha256": "29c9b3c951c1ca5d504e2fbc5bbd2055c5cfd75b75b67cc83d141c8cf118134f",
+    "updated": true
+  },
+  "current_state_audit": {
+    "audited_after_h0_r_update": true,
+    "historical_aliases_preserved": true,
+    "incorrectly_marks_b0_complete": false,
+    "incorrectly_marks_v3_5_complete": false,
+    "marks_f1a_f1b_paused": true,
+    "marks_product_query_set_not_frozen": true,
+    "records_b0_execution_candidate_as_unreviewed": true,
+    "records_corrected_auto_20_20_to_11_20_to_1_20": true,
+    "records_product_default_auto": true,
+    "records_wiring_version": true,
+    "required_final_patch_fields": [],
+    "status": "current",
+    "uses_frozen_evaluation_set_as_active_term": true
+  },
+  "document_status": "corrected_fact_freeze_r2",
+  "eval_v1": {
+    "active_handoff_term": "frozen_evaluation_set",
+    "development": 8,
+    "frozen_evaluation": 10,
+    "frozen_evaluation_accessed": false,
+    "historical_term": "held_out",
+    "master_cases": 18
+  },
+  "frozen_evaluation_policy": {
+    "accessed": false,
+    "formally_run": false
+  },
+  "generated_for": "v3_5_a_handoff_package",
+  "historical_components": {
+    "mechanical_gate": {
+      "requires_stage4a_r": true,
+      "version": "v3.5-mechanical-sufficiency-gate-v1"
+    },
+    "phase_a_r": {
+      "final_product_query_set": false,
+      "historical_search_log": false,
+      "legacy_candidates": 40,
+      "single_summary_document_contribution": 32
+    }
+  },
+  "metadata_consistency": {
+    "status": "passed"
+  },
+  "not_started_work": {
+    "frozen_evaluation": "formally_not_run",
+    "stage4b": "not_started"
+  },
+  "oracle_video_track_b": {
+    "bundle_hit": {
+      "denominator": 20,
+      "excluded_cases": [
+        "V2C_C0C_5b3932df62f1ca76",
+        "C2C_0371a3c17753fda6",
+        "C2C_ee3fac675fc7d408",
+        "C2C_9ccf0f6c9e3d2f01",
+        "C3C_e3a6085ddf6c6b60",
+        "C3C_213343d4c5fab153",
+        "C3C_58fa1788f33d747e"
+      ],
+      "numerator": 2,
+      "rate": 0.1
+    },
+    "bundle_hit_case_ids": [
+      "V2C_C0C_5725899059df795c",
+      "V2C_C0C_8228254ff69d7b3b"
+    ],
+    "complete_candidate_group_coverage": {
+      "denominator": 20,
+      "excluded_cases": [
+        "V2C_C0C_5b3932df62f1ca76",
+        "C2C_0371a3c17753fda6",
+        "C2C_ee3fac675fc7d408",
+        "C2C_9ccf0f6c9e3d2f01",
+        "C3C_e3a6085ddf6c6b60",
+        "C3C_213343d4c5fab153",
+        "C3C_58fa1788f33d747e"
+      ],
+      "numerator": 11,
+      "rate": 0.55
+    },
+    "conditional_bundle_hit": {
+      "denominator": 11,
+      "excluded_cases": [
+        "V2C_C0C_5b3932df62f1ca76",
+        "C2C_0371a3c17753fda6",
+        "C2C_ee3fac675fc7d408",
+        "C2C_9ccf0f6c9e3d2f01",
+        "C3C_e3a6085ddf6c6b60",
+        "C3C_213343d4c5fab153",
+        "C3C_58fa1788f33d747e",
+        "V2C_C0C_a48a04ab33a1ad95",
+        "V2C_C0C_958161474678bd3f",
+        "V2C_C0C_593dade03883828e",
+        "V2C_C0C_9618a83c9df4f059",
+        "V2C_C0C_9d9b5b9460d0ce51",
+        "V2C_C0C_185d322d5f9a00b3",
+        "C3C_62e28b33eec87c37",
+        "C3C_56b2c368638a31c3",
+        "C3C_98e93af3d9519c76"
+      ],
+      "numerator": 2,
+      "rate": 0.18181818181818182
+    },
+    "status": "historical_conditional_diagnostic"
+  },
+  "paused_work": {
+    "f1a": "paused",
+    "f1b": "paused"
+  },
+  "previous_current_state_audit": {
+    "audited_before_h0_r_update": true,
+    "marks_f1a_f1b_paused": false,
+    "marks_product_query_set_not_frozen": false,
+    "mixes_held_out_and_frozen_evaluation_terms": true,
+    "records_corrected_auto_20_20_to_11_20_to_1_20": false,
+    "records_product_default_auto": false,
+    "records_wiring_version": false,
+    "required_final_patch_fields": [
+      "Product Default Auto wiring/version",
+      "corrected Auto Track A metrics",
+      "F1A/F1B paused status",
+      "Product Query Set not frozen",
+      "Frozen Evaluation terminology",
+      "B0 historical conflict"
+    ],
+    "status": "stale_requires_update"
+  },
+  "product_query_set": {
+    "final_set_frozen": false,
+    "phase_a_r": "historical_reference"
+  },
+  "product_search": {
+    "default_mode": "auto",
+    "retrieval_modified": false,
+    "router_modified": false,
+    "wiring_version": "v3-product-search-default-auto-v1"
+  },
+  "rejected_components": {
+    "structured_llm_selector_v1": {
+      "initial_valid": "0/5",
+      "invalid_after_repair": "2/5",
+      "preferred_selector": "deterministic",
+      "source": "V3_5_STAGE3B_STRUCTURED_FINE_SELECTOR_REPORT.md",
+      "status": "rejected",
+      "valid_after_repair": "3/5"
+    }
+  },
+  "stage3r_pqs_b0": {
+    "acceptance": {
+      "accepted": false,
+      "owner": "v3_5_b",
+      "status": "unreviewed_execution_candidate"
+    },
+    "execution_candidate": {
+      "exists": true,
+      "report_claim": "complete",
+      "report_path": "research/v3_5/product_query_set_v1/authoring_packet/V3_5_PRODUCT_QUERY_SET_V1_AUTHORING_PACKET_REPORT.md"
+    },
+    "h0_r_executed_b0": false,
+    "task_contract": {
+      "repository_path": "research/v3_5/product_query_set_v1/authoring_packet/STAGE3R_PQS_B0_NEUTRAL_AUTHORING_PACKET_EXPORT_TASK.md",
+      "sha256": "2e2eea765e7400141b715cea77c89e0e88f98ef3f9d1f69b468110acf8dc1cc0",
+      "status": "accepted_task_contract"
+    },
+    "v3_5_a_reviews_after_handoff": false
+  },
+  "stress_set_v2": {
+    "canonical_corpus_content_sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148",
+    "hash_scope": "canonical corpus content identity recorded by current manifest; not a local corpus file hash",
+    "labels": {
+      "insufficient": 7,
+      "partial": 9,
+      "sufficient": 11,
+      "unverifiable": 4
+    },
+    "total": 31
+  },
+  "supersedes": [
+    "handoff_fact_freeze.r1.json"
+  ],
+  "track_b_vs_auto_difference": {
+    "auto_track_a_only_hits": {
+      "case_ids": [
+        "V2C_C0C_9618a83c9df4f059"
+      ]
+    },
+    "corrected_auto_track_a_bundle_hits": {
+      "case_ids": [
+        "V2C_C0C_9618a83c9df4f059"
+      ]
+    },
+    "difference": [
+      {
+        "affected_case_id": "V2C_C0C_5725899059df795c",
+        "confidence": "high: case-level scoring and execution assets agree",
+        "corrected_auto_track_a": {
+          "bundle_hit": false,
+          "candidate_builder_failure_reason": null,
+          "classification": "deterministic_selector_failure",
+          "complete_gold_group_available": true,
+          "evidence_bundle_id": "bundle_c28df546c6a6de32a0da043acb1554724ded249a451c5c91e6003e69550867cd",
+          "gold_segments_present_count": 9,
+          "gold_segments_total_count": 9,
+          "primary_failure_attribution": "deterministic_selector_failure",
+          "selected_evidence_ids": [
+            "candidate_6ab4bf29be3e808cbe3cec43c2909bea72532d1e0c79554962b4513a26040217",
+            "candidate_b74fdcb00c5d61e4642fffeb536541666eb51fdda87a48d5332513c7b867d025",
+            "candidate_ca09f4fbf225cc3e2f01193677eff9f4a756cc2fb7dfd9221e57404b511553f2",
+            "candidate_dd0bd50b8cb3743635c21052e8ff2576d2ab78d8a04d426495ccaf0bc8e7452a",
+            "candidate_ac17851445f6736e065387675ebd45d13bcf714b1e4495daa7cf650382fc7551",
+            "candidate_2383ac8c11191bbea2887c6ae08fe9556fadfc4fdb9ea97e9e3108278797b826"
+          ],
+          "selector_failure_reason": "complete_gold_group_available_but_not_selected",
+          "target_video_rank": 1
+        },
+        "exact_reason": "Both runs have a complete Gold group, but Oracle Track B selected a bundle hit while corrected Auto selected a non-hit bundle. The persisted Auto selector attribution is 'complete_gold_group_available_but_not_selected'.",
+        "gold_group_ids": [
+          "G1"
+        ],
+        "original_query": "Cursor 的 RAG 式代码检索与 Claude Code 的命令式探索各自怎样工作、代价是什么？",
+        "supporting_artifact_paths": [
+          "research/v3_5/stage3r/input/stage2r_final_corpus/development_gold.executable_31.jsonl",
+          "research/v3_5/stage3r_s1/rescore/track_b_case_scores.jsonl",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_5725899059df795c/runtime_input.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_5725899059df795c/builder_output.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_5725899059df795c/selector_output.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_5725899059df795c/evidence_bundle.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_5725899059df795c/terminal_state.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_5725899059df795c/trace.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/product_request.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/routing_trace.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/search_candidate_set.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/candidate_set.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/selector_input.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/evidence_bundle.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_5725899059df795c/scoring.json"
+        ],
+        "track_b": {
+          "bundle_hit": true,
+          "candidate_count": 9,
+          "complete_gold_group_available": true,
+          "evidence_bundle_id": "bundle_13dba9b01825dd057c1a7e90321439be448798be9c2e8bcf0e9746390b8c8079",
+          "selected_evidence_ids": [
+            "candidate_8f8f51e9b65a57638b6b0d4a740657879fb45ec73a02fd7f39039d3b3bd488fb",
+            "candidate_8f180ba21471cc02b64b026c07ea73b2d20d13f3fee937421acc6b58b686f842",
+            "candidate_a56df616205fe07c265647a932877e71cb593ac4fee6450e7ef2455657eff4d2",
+            "candidate_d30eb6e9c0a0c7df09f7ae65def327bbf09bf3c6cacba468b3ac9d27d7c28bc0",
+            "candidate_7c076ce9fe786045a4fb481c8ee48e667f254ef14ae60d2f391e8ca522ceb3c4",
+            "candidate_678177b440bb7587b5cfd1dcf2ad817cbf05e9d9e1d8f61ec0a0855f7876aa58"
+          ],
+          "target_video_source": "BV18NLx6fEAq",
+          "terminal_state": "bundle_created"
+        }
+      },
+      {
+        "affected_case_id": "V2C_C0C_8228254ff69d7b3b",
+        "confidence": "high: case-level scoring and execution assets agree",
+        "corrected_auto_track_a": {
+          "bundle_hit": false,
+          "candidate_builder_failure_reason": "target_video_retrieved_without_complete_gold_group",
+          "classification": "candidate_builder_failure",
+          "complete_gold_group_available": false,
+          "evidence_bundle_id": "bundle_857ce42005f61bf00d9346f02b99c2a163f8591f185ddbdf476320c813d65364",
+          "gold_segments_present_count": 7,
+          "gold_segments_total_count": 8,
+          "primary_failure_attribution": "candidate_builder_failure",
+          "selected_evidence_ids": [
+            "candidate_5f4e8d7927d41b91ffa9f4d20f67876dfe10ddc397385db86e2c565ff032a3f2",
+            "candidate_b96abda6627903aae557cec2c97a2a85359579a5ec90e0dde46543877ad03cae",
+            "candidate_d9aff514b7a3dd2e7e04580facb55fcbc02961a23eae6dc16deeceb90733285a",
+            "candidate_1e73d5f85bb9274696afa35c6fec02a3b2f27c6ab56709cf8000ee60293ecb3f",
+            "candidate_859491826abf535d1a6e89f75ff39eeed3214ea703f040aa54349617df616f4e",
+            "candidate_4631229d0c451d7233486535a23b67b632a45d3f65f61c5ca5a908c2babdf532"
+          ],
+          "selector_failure_reason": "selector_not_reachable_due_to_builder_miss",
+          "target_video_rank": 1
+        },
+        "exact_reason": "The Oracle Track B authorized source produced a complete Gold group and the deterministic selector selected a bundle hit; corrected Auto did not. Auto classification is candidate_builder_failure with builder reason 'target_video_retrieved_without_complete_gold_group'.",
+        "gold_group_ids": [
+          "G1"
+        ],
+        "original_query": "怎样区分 Agent 的能力上限与稳定性，如何把两类指标用于开发和发布门槛，并怎样设计无歧义且含正反例的测试集？",
+        "supporting_artifact_paths": [
+          "research/v3_5/stage3r/input/stage2r_final_corpus/development_gold.executable_31.jsonl",
+          "research/v3_5/stage3r_s1/rescore/track_b_case_scores.jsonl",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_8228254ff69d7b3b/runtime_input.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_8228254ff69d7b3b/builder_output.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_8228254ff69d7b3b/selector_output.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_8228254ff69d7b3b/evidence_bundle.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_8228254ff69d7b3b/terminal_state.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_8228254ff69d7b3b/trace.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/product_request.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/routing_trace.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/search_candidate_set.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/candidate_set.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/selector_input.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/evidence_bundle.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_8228254ff69d7b3b/scoring.json"
+        ],
+        "track_b": {
+          "bundle_hit": true,
+          "candidate_count": 14,
+          "complete_gold_group_available": true,
+          "evidence_bundle_id": "bundle_0178fea8457313873cc18ecad61319fc62c6e4190c9e62ca345d9467c0cb97f0",
+          "selected_evidence_ids": [
+            "candidate_08471c62461ef9e8c4e079df400469aea8d9045ef41d7f9cc19f8a956921850a",
+            "candidate_19ceb5f072e368bb0248d4ef0bf368b0b622fd271bb53705c1611ef9125eb43c",
+            "candidate_e36d2a31fe8baf7a60cfe4a08756b499671d70b0f643a8cda7e0b2817d156472",
+            "candidate_825d93378e29417e00940d0b42721edc9b9f8db859d5e22eac8be83eb6f5ac34",
+            "candidate_63f6c82142aba22b9c5ee04bce6f2d71d13239df365e4086c858159fc511431a",
+            "candidate_6ee80b34fa1bcab0c5fc6ff86700b258b01f4cbb9fdb6638cbf6596c48d4a16e"
+          ],
+          "target_video_source": "BV1qhE26VEbS",
+          "terminal_state": "bundle_created"
+        }
+      },
+      {
+        "affected_case_id": "V2C_C0C_9618a83c9df4f059",
+        "confidence": "high: case-level scoring and execution assets agree",
+        "corrected_auto_track_a": {
+          "bundle_hit": true,
+          "candidate_builder_failure_reason": null,
+          "classification": "end_to_end_bundle_hit",
+          "complete_gold_group_available": true,
+          "evidence_bundle_id": "bundle_007656b041d4755459acf4f08f2d5cd89ba3b84eed18d4e5b80248e6d7437725",
+          "gold_segments_present_count": 46,
+          "gold_segments_total_count": 80,
+          "primary_failure_attribution": "end_to_end_bundle_hit",
+          "selected_evidence_ids": [
+            "candidate_caa57d781e5704e5fa7531bd1029fe6da4afc9c03c046fa09258d0eab606df55",
+            "candidate_3a110cad1775f3cf3079c5a91e4c52cc3055120ab3921b1c3ad43d2bae36aba0",
+            "candidate_e68f85ccba4a11f0c680939438b2c1921ceb9cd52294d0409679f8b27034ca88",
+            "candidate_5ff6caa633b2ed8285e174a1a22e7a5da16a86e97c2de10ba59608ebc43d0825",
+            "candidate_89e919d14e437781c5307de04af2ea56e9280d847bb7bfb18d75a9271633ab1e",
+            "candidate_7982c7204c9e5287c9e120b67a1aef6f9d1e5300c5b9e6ba8ba4c94508a637fa"
+          ],
+          "selector_failure_reason": null,
+          "target_video_rank": 1
+        },
+        "exact_reason": "Corrected Auto produced a complete Gold group and deterministic bundle hit; the historical Oracle Track B rescore does not have complete Gold-group candidate coverage for this case.",
+        "gold_group_ids": [
+          "G1",
+          "G2",
+          "G3",
+          "G4"
+        ],
+        "original_query": "一个高质量 Skill 在上线前应该怎样设计评测、触发边界、正文和目录结构？",
+        "supporting_artifact_paths": [
+          "research/v3_5/stage3r/input/stage2r_final_corpus/development_gold.executable_31.jsonl",
+          "research/v3_5/stage3r_s1/rescore/track_b_case_scores.jsonl",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_9618a83c9df4f059/runtime_input.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_9618a83c9df4f059/builder_output.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_9618a83c9df4f059/selector_output.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_9618a83c9df4f059/evidence_bundle.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_9618a83c9df4f059/terminal_state.json",
+          "research/v3_5/stage3r/track_b/cases/V2C_C0C_9618a83c9df4f059/trace.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/product_request.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/routing_trace.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/search_candidate_set.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/candidate_set.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/selector_input.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/evidence_bundle.json",
+          "research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/V2C_C0C_9618a83c9df4f059/scoring.json"
+        ],
+        "track_b": {
+          "bundle_hit": false,
+          "candidate_count": 32,
+          "complete_gold_group_available": false,
+          "evidence_bundle_id": "bundle_f7d9475c3b228060055a4908ce69df0c2828776b2f65d4057c5ac673168aaac5",
+          "selected_evidence_ids": [
+            "candidate_816f0b092e0712ea20120f2a732b0a3c456dec93047a357ec0b91b4a47d4797f",
+            "candidate_54d8d0fd292eb11e7964c3990bc015a2aa87fbfbacc060827ae8ad138869c7c0",
+            "candidate_15c3759461772082531ee42cbf595aedb3007ad35947e3cd8d75dc1643c38d46",
+            "candidate_f51779d5c5344cdc2a8f9aa6eaf52f0c2ce964639593fae7c590ad583758fe72",
+            "candidate_2b90c593846429467d51b752f230c515c7daaa27b8f66509c6a4e9abc3eea679",
+            "candidate_202ad7312ebea6a9d5a130fa19821184dcbe7cecc2f844afcb6f65e6f6061ece"
+          ],
+          "target_video_source": "BV1rb5y6wEJV",
+          "terminal_state": "bundle_created"
+        }
+      }
+    ],
+    "intersection": {
+      "case_ids": []
+    },
+    "oracle_video_track_b_bundle_hits": {
+      "case_ids": [
+        "V2C_C0C_5725899059df795c",
+        "V2C_C0C_8228254ff69d7b3b"
+      ]
+    },
+    "status": "resolved",
+    "track_b_only_hits": {
+      "case_ids": [
+        "V2C_C0C_5725899059df795c",
+        "V2C_C0C_8228254ff69d7b3b"
+      ]
+    }
+  },
+  "unresolved_facts": [],
+  "version_state": {
+    "next_version_owner": "v3_5_b",
+    "v3_5_a_session_closeout_approved": true,
+    "v3_5_version_closeout": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "action_family": "retrieval_action",
+  "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+  "evaluation_track": "frozen_v3_end_to_end",
+  "evidence_bundle_identity": null,
+  "evidence_candidate_set_identity": "candidate_set_7712fa6b8ce269a31339e00c7775cd9af3518dcee53725788bb7d4040cf519b3",
+  "evidence_resolution_status": "failed",
+  "failure_attribution": "upstream_retrieval_failure",
+  "gate_outcome": "terminal_unverifiable",
+  "gold_opened_after_prediction": true,
+  "judge_input_adequate": null,
+  "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+  "operational_reason": "upstream_retrieval_failure",
+  "query_identity": "Q16",
+  "search_candidate_set_identity": "6353311aa4927863b5092c6234d8d17d42ae99985711b33da07caf7293c700d7",
+  "selector_version": "v3.5-deterministic-fine-selector-v1",
+  "semantic_judge_required": false,
+  "terminal_sufficiency_decision_id": "decision_1752b90549acc6c0bcc5e25926eb285d7954aeacb30497a4b2ee9c951fbd7423"
+}

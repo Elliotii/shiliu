@@ -1,0 +1,147 @@
+{
+  "case_id": "V2C_B1A00001",
+  "review": {
+    "acceptable_evidence_groups": [
+      {
+        "alternative_expression_notes": "",
+        "group_id": "G1",
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "required_span_ids": [
+          "S1"
+        ]
+      },
+      {
+        "alternative_expression_notes": "",
+        "group_id": "G2",
+        "required_aspect_ids": [
+          "A2"
+        ],
+        "required_span_ids": [
+          "S2"
+        ]
+      },
+      {
+        "alternative_expression_notes": "",
+        "group_id": "G3",
+        "required_aspect_ids": [
+          "A3"
+        ],
+        "required_span_ids": [
+          "S3"
+        ]
+      }
+    ],
+    "boundary_notes": "",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [],
+    "optional_context_spans": [],
+    "reason_codes": [],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "戚薇上线了一个名为“大元”的AI助手。"
+      },
+      {
+        "aspect_id": "A2",
+        "description": "好的想法来源于日常的细碎观察、思考和与人对话。"
+      },
+      {
+        "aspect_id": "A3",
+        "description": "WAIC大会（世界人工智能大会）于7月17日至19日在上海举行。"
+      }
+    ],
+    "required_spans": [
+      {
+        "end_time": 14.539,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1zDTX6eEGu_seg_000006",
+          "BV1zDTX6eEGu_seg_000007"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1zDTX6eEGu:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:f8e66789b120495738e2d0c9223107ffea348b70f0882a6f5f2c4ae27600361a",
+        "span_id": "S1",
+        "span_role": "required",
+        "start_time": 9.65,
+        "timeline_run_id": "timeline_f8e66789b1204957",
+        "video_id": "BV1zDTX6eEGu"
+      },
+      {
+        "end_time": 100.83,
+        "required_aspect_ids": [
+          "A2"
+        ],
+        "segment_ids": [
+          "BV1zDTX6eEGu_seg_000036",
+          "BV1zDTX6eEGu_seg_000037",
+          "BV1zDTX6eEGu_seg_000038",
+          "BV1zDTX6eEGu_seg_000039"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1zDTX6eEGu:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:f8e66789b120495738e2d0c9223107ffea348b70f0882a6f5f2c4ae27600361a",
+        "span_id": "S2",
+        "span_role": "required",
+        "start_time": 90.09,
+        "timeline_run_id": "timeline_f8e66789b1204957",
+        "video_id": "BV1zDTX6eEGu"
+      },
+      {
+        "end_time": 253.57,
+        "required_aspect_ids": [
+          "A3"
+        ],
+        "segment_ids": [
+          "BV1zDTX6eEGu_seg_000094",
+          "BV1zDTX6eEGu_seg_000095"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1zDTX6eEGu:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:f8e66789b120495738e2d0c9223107ffea348b70f0882a6f5f2c4ae27600361a",
+        "span_id": "S3",
+        "span_role": "required",
+        "start_time": 248.88,
+        "timeline_run_id": "timeline_f8e66789b1204957",
+        "video_id": "BV1zDTX6eEGu"
+      }
+    ],
+    "reviewed_full_transcript": true,
+    "status": "sufficient",
+    "supported_aspects": [
+      "A1",
+      "A2",
+      "A3"
+    ],
+    "transcript_first_segment_id": "BV1zDTX6eEGu_seg_000001",
+    "transcript_last_segment_id": "BV1zDTX6eEGu_seg_000106"
+  },
+  "review_metadata": {
+    "case_input_sha256": "ad03c89d1122e45bf48487a7311d59d688186627af261bf425a768d6dec16ae7",
+    "completed_at": "2026-07-22T18:09:56.293244Z",
+    "latency_ms": 66991,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-secondary-reviewer-draft-prompt-v1",
+    "repair_count": 0,
+    "reviewer_model": "deepseek-v4-pro",
+    "reviewer_provider": "deepseek",
+    "reviewer_role": "secondary",
+    "started_at": "2026-07-22T18:08:49.302244Z",
+    "usage": {
+      "cached_tokens": null,
+      "estimated_cost_usd": null,
+      "input_tokens": 15946,
+      "output_tokens": 5913
+    },
+    "validation_status": "valid"
+  }
+}

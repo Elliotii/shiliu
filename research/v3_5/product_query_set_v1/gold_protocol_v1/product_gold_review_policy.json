@@ -1,0 +1,50 @@
+{
+  "policy_version": "PRODUCT_QUERY_GOLD_REVIEW_POLICY_V1",
+  "normal_case_route": [
+    "initial_annotation",
+    "independent_review"
+  ],
+  "high_risk_case_route": [
+    "initial_annotation",
+    "independent_review",
+    "second_independent_review_or_user_adjudication"
+  ],
+  "high_risk_triggers": [
+    "no_answer_or_library_gap",
+    "partial_status",
+    "multi_video_evidence",
+    "cross_language_evidence",
+    "severe_asr_noise",
+    "source_authority_instability",
+    "reviewer_disagreement",
+    "multiple_acceptable_relevant_videos",
+    "required_spans_far_apart",
+    "unverifiable_status"
+  ],
+  "independence_rules": {
+    "reviewer_must_not_see_system_prediction": true,
+    "reviewer_must_not_use_majority_vote_as_default": true,
+    "reviewer_must_review_full_authoritative_transcript_for_evidence_gold": true
+  },
+  "decision_authority": {
+    "routine_agreement": "accepted after initial annotation plus independent review",
+    "unresolved_disagreement": "user adjudication",
+    "final_human_decision": "user"
+  },
+  "review_outcomes": [
+    "agree",
+    "revise_gold",
+    "escalate",
+    "blocked_by_source"
+  ],
+  "review_states": [
+    "draft",
+    "initial_complete",
+    "independent_review_complete",
+    "adjudication_required",
+    "adjudicated",
+    "blocked_by_source",
+    "sealed"
+  ],
+  "unresolved_disagreement_final_authority": "user"
+}

@@ -1,0 +1,26 @@
+{
+  "candidate_builder_calls": 0,
+  "embedding_calls": 0,
+  "final_answer_calls": 0,
+  "generated_at_utc": "2026-07-24T19:39:08+00:00",
+  "gold_read_for_authoring": false,
+  "heldout_accessed": false,
+  "human_decisions_filled": 0,
+  "legacy_queries_rewritten_by_codex": 0,
+  "navigation_material_types": [
+    "metadata",
+    "title",
+    "description",
+    "subtitle_language",
+    "subtitle_source"
+  ],
+  "new_product_queries_generated_by_codex": 0,
+  "product_search_calls": 0,
+  "raw_transcript_read_for_authoring": false,
+  "retrieval_calls": 0,
+  "runner_version": "v3.5-product-query-set-authoring-packet-v1",
+  "selector_calls": 0,
+  "stress_results_read_for_topic_prioritization": false,
+  "sufficiency_judge_calls": 0,
+  "system_performance_used": false
+}

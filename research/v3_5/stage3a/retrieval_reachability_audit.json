@@ -1,0 +1,645 @@
+{
+  "audit_version": "v3.5-stage3a-retrieval-reachability-audit-v1",
+  "case_002_video_level_analysis": {
+    "bounded_input": [
+      "original query: MemoryOS",
+      "V3 recalled video_id: 40",
+      "frozen Raw Transcript for BV1oa6uBXE8J"
+    ],
+    "product_only_projection": false,
+    "product_video_present": true,
+    "raw_transcript": {
+      "present": true,
+      "segment_count": 1035,
+      "snapshot_retrieval_chunk_count": 23,
+      "source_type": "ai",
+      "source_version": "5b3f6473760e29bce827e3f8d1df65c89f94f0d5faa70c9497c9d3740a3e41ac",
+      "source_version_verified": true,
+      "timeline_run_id": "timeline_run_1bc8e33b91d8842cff3eae7c5d8b96625265a3f1c7a5689df875afc2b1a248de",
+      "timeline_status": "valid_single_run"
+    },
+    "raw_video_unit_present": true,
+    "target_bvid": "BV1oa6uBXE8J",
+    "target_video_id": 40,
+    "transcript_chunk_recalled": false,
+    "why_no_transcript_chunk": "The frozen lexical request matched only two metadata Video units; no Transcript Chunk unit matched the full query within raw_top_k 50. The manifest did not drop chunks.",
+    "within_video_path_authorized": true
+  },
+  "comparison_note": "For non-empty cases, direct Python equality is false because dataclass tuples serialize as JSON arrays. The one-time replay recorded identical counts, ordered unit/video identities, target reachability, request, index, and snapshot identity; the pre-existing locked projection audit separately proves canonical two-generation byte equality. No Projection or Serialization loss was found.",
+  "integrity": {
+    "gold_modified": false,
+    "raw_artifacts_modified": false,
+    "snapshot_modified": false,
+    "stage3b_authorized": false,
+    "v3_retrieval_remains_frozen": true
+  },
+  "manifest_generation_provenance": {
+    "fallback": "not allowed for explicit lexical mode",
+    "filters": {},
+    "generation_entry_evidence": "tests/test_v3_5_stage3a_input_projection.py:test_two_independent_generations_are_byte_identical_and_do_not_write_snapshot",
+    "generator": "src/shiliu/eval_v3_5/stage3a_inputs.py:write_projection_assets -> generate_manifest -> EvidenceSearchService.search_library",
+    "grouping": "v3-temporal-consolidation-v1",
+    "index_version": "v3-stage1-lexical-v1",
+    "inputs": [
+      "development_gold.8_cases.locked.jsonl membership only",
+      "master_case_candidates.jsonl case/query/target metadata (projection session only)",
+      "eval_queries.locked.jsonl exact query identity (projection session only)",
+      "frozen snapshot DB copy",
+      "frozen artifact manifest and snapshot Raw Artifacts"
+    ],
+    "presentation": "v3-product-presentation-v1",
+    "raw_top_k": 50,
+    "router": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "scope": "all",
+    "search_mode": "lexical",
+    "serialization": "Both ordered raw_unit_candidates and ordered video_candidates are retained; empty arrays remain empty arrays.",
+    "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "snapshot_id": "20260720T094346Z_c7663365",
+    "top_k": 10,
+    "trace_mode": "disabled"
+  },
+  "manifest_sha256": "ef08e5c262d9fc885ab38d81c90f10ce4be6820c31d931c03f0ecdcfe71a534e",
+  "manifest_v2_created": false,
+  "manifest_version": "v1",
+  "per_case": [
+    {
+      "actual_frozen_search_result": {
+        "contract_version": "v3.5-search-candidate-v1",
+        "executed_mode": "lexical",
+        "fallback_state": {
+          "fallback": false,
+          "fallback_reason": null
+        },
+        "gold_segment_count": 5,
+        "gold_segments_recalled": 5,
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "ordered_unit_identities": [
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b054f1bd553c27a5e404f8c761765571",
+          "video:bilibili:BV1G29EBGE8b:p1",
+          "video:bilibili:BV1k6E167Ext:p1",
+          "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+          "transcript_chunk:bilibili:BV1k6E167Ext:p1:chunk_a474278e9d6c5fe406492fc6b64f3ef6",
+          "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_bd38bab47f32c042b83c8b1730d5d526",
+          "video:bilibili:BV1AuzkBREhx:p1",
+          "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_23cc21a944d69097885b473a86f84e34",
+          "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_f3e426c077b67e235b6a4c30bea4ab6f",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_2a4f02bb7201e42859fabb15324ea8fb",
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_09db47653d9082ab4dbb23c9887824e4",
+          "video:bilibili:BV13MQQB8ERn:p1",
+          "video:bilibili:BV1co9yBhEvW:p1",
+          "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0bffaa55a2081928f2cc898e542e8c78",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_8d5eec8be978921bf9a64a5388531a4b",
+          "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+          "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_9096426df09a76b637f54ee323c74a21",
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+          "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_66a23e51c93b56c062fb8a83a9eedeab",
+          "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_2d0dfcfbb38d2c73666cc484839ca91b",
+          "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad",
+          "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_485cbdbc90f38f1e3d484d410badacbe",
+          "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652",
+          "video:bilibili:BV1qTYizcEN3:p1",
+          "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373",
+          "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_b8d8c71b78d9c2d7ac1ce63aa09247bb",
+          "transcript_chunk:bilibili:BV1mcAfzqEnE:p1:chunk_9f8ac681f8f6d616e0f5d8d1ce224b40",
+          "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6294255f1520d80ab3d7993ecceabf08",
+          "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_a94915c2a501a556904e52797a2e0e99",
+          "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_7f0576ba55fd367e4dd516cec6243034",
+          "video:bilibili:BV14fTc6TEi5:p1",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_402aa3d310caef4231f5aa99a7909a91",
+          "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_eb4fe4e3ac04e312f5a457f784c79282",
+          "transcript_chunk:bilibili:BV1zYLD62EPe:p1:chunk_c616f4456f3438d87def8f0d0b7dc299",
+          "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f",
+          "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_b999dc1c7020c99274802185b244624f",
+          "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_c5a14b028b3f15d4d9b1266c2a22b34b",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_beb8f45eab8efd241aea93433e9f53cb",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+          "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_2fd5e43130b1dc7b689b17e959f45184",
+          "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_9c14d416279e62128e90c4c7089fa4c7",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_d9c7cf8fe5cdba5cc23feb3744b53f45",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_e8ae88efd1f16d1b6339394e7814fd8c",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1",
+          "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+          "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_033400d2416f01fb98e970ccf5645a22",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_28e8b55fe2d288c00d74981635e3baa3",
+          "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_121244e7dac1515d418359ca7d49b7f4",
+          "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6"
+        ],
+        "ordered_video_identities": [
+          78,
+          43,
+          71,
+          80,
+          7,
+          47,
+          39,
+          99,
+          83,
+          111
+        ],
+        "presentation_trace_persisted": false,
+        "product_video_count": 10,
+        "raw_unit_count": 50,
+        "target_product_video_present": true,
+        "target_raw_video_present": true,
+        "target_transcript_chunk_present": true,
+        "trace_persisted": false,
+        "transcript_chunk_count": 43,
+        "video_unit_count": 7
+      },
+      "case_id": "CASE_001",
+      "classification": "none",
+      "comparison": {
+        "canonical_historical_two_generation_bytes_equal": true,
+        "mismatch": [
+          {
+            "actual": "dataclass tuple containers",
+            "field": "in_memory_candidate_payload_equality",
+            "meaning": "representation-only trigger; current replay counts/order/target facts match, while the locked projection audit independently proves two canonical generations were byte-identical",
+            "serialized": "JSON array containers"
+          }
+        ],
+        "python_object_candidate_payload_equal": false,
+        "request_payload_equal": true,
+        "structural_identity_equal": true
+      },
+      "evidence": {
+        "gold_segment_count": 5,
+        "gold_segments_recalled": 5,
+        "target_bvid": "BV1G29EBGE8b",
+        "target_video_id": 78
+      },
+      "frozen_request": {
+        "fallback_allowed": false,
+        "filter": {
+          "archived": null,
+          "favorite_time_from": null,
+          "favorite_time_to": null,
+          "folder_id": null,
+          "ignored": false,
+          "marked": null,
+          "reading_state": null,
+          "source_db_id": null,
+          "uploader": null
+        },
+        "grouping": "v3-temporal-consolidation-v1",
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "mode": "lexical",
+        "presentation": "v3-product-presentation-v1",
+        "query": "MCP",
+        "raw_top_k": 50,
+        "router": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+        "scope": "all",
+        "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+        "snapshot_id": "20260720T094346Z_c7663365",
+        "top_k": 10
+      },
+      "impact": "Track A target video, target transcript chunks, and all five Gold target segments are reachable.",
+      "recommendation": "Preserve Manifest v1 and use the frozen SearchCandidateSet in Track A.",
+      "serialized_manifest_result": {
+        "candidate_count": 50,
+        "ordered_candidate_identities": [
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_6c982f17915950d79bd4ab0f296e00ee",
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b054f1bd553c27a5e404f8c761765571",
+          "video:bilibili:BV1G29EBGE8b:p1",
+          "video:bilibili:BV1k6E167Ext:p1",
+          "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_2161f52c75ef74ca992bfc3ee8595b6a",
+          "transcript_chunk:bilibili:BV1k6E167Ext:p1:chunk_a474278e9d6c5fe406492fc6b64f3ef6",
+          "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_bd38bab47f32c042b83c8b1730d5d526",
+          "video:bilibili:BV1AuzkBREhx:p1",
+          "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_23cc21a944d69097885b473a86f84e34",
+          "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_f3e426c077b67e235b6a4c30bea4ab6f",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_2a4f02bb7201e42859fabb15324ea8fb",
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_09db47653d9082ab4dbb23c9887824e4",
+          "video:bilibili:BV13MQQB8ERn:p1",
+          "video:bilibili:BV1co9yBhEvW:p1",
+          "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0bffaa55a2081928f2cc898e542e8c78",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_8d5eec8be978921bf9a64a5388531a4b",
+          "transcript_chunk:bilibili:BV1fRSfBWE5X:p1:chunk_ff0a40869b801c74029888ac42fed336",
+          "transcript_chunk:bilibili:BV1KJ61BBEB1:p1:chunk_9096426df09a76b637f54ee323c74a21",
+          "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+          "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_66a23e51c93b56c062fb8a83a9eedeab",
+          "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_2d0dfcfbb38d2c73666cc484839ca91b",
+          "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad",
+          "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_485cbdbc90f38f1e3d484d410badacbe",
+          "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652",
+          "video:bilibili:BV1qTYizcEN3:p1",
+          "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373",
+          "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_b8d8c71b78d9c2d7ac1ce63aa09247bb",
+          "transcript_chunk:bilibili:BV1mcAfzqEnE:p1:chunk_9f8ac681f8f6d616e0f5d8d1ce224b40",
+          "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_6294255f1520d80ab3d7993ecceabf08",
+          "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_a94915c2a501a556904e52797a2e0e99",
+          "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_7f0576ba55fd367e4dd516cec6243034",
+          "video:bilibili:BV14fTc6TEi5:p1",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_402aa3d310caef4231f5aa99a7909a91",
+          "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_eb4fe4e3ac04e312f5a457f784c79282",
+          "transcript_chunk:bilibili:BV1zYLD62EPe:p1:chunk_c616f4456f3438d87def8f0d0b7dc299",
+          "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f",
+          "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_b999dc1c7020c99274802185b244624f",
+          "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_c5a14b028b3f15d4d9b1266c2a22b34b",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_beb8f45eab8efd241aea93433e9f53cb",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+          "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_2fd5e43130b1dc7b689b17e959f45184",
+          "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_9c14d416279e62128e90c4c7089fa4c7",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_d9c7cf8fe5cdba5cc23feb3744b53f45",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_e8ae88efd1f16d1b6339394e7814fd8c",
+          "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_e2bddbc2e1e85022febc33bb02cdbaf1",
+          "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+          "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_033400d2416f01fb98e970ccf5645a22",
+          "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_28e8b55fe2d288c00d74981635e3baa3",
+          "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_121244e7dac1515d418359ca7d49b7f4",
+          "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_3a95d60cd7a4e592225b3abb272ac4c6"
+        ],
+        "ordered_video_identities": [
+          78,
+          43,
+          71,
+          80,
+          7,
+          47,
+          39,
+          99,
+          83,
+          111
+        ],
+        "raw_video_unit_count": 7,
+        "target_product_video_present": true,
+        "target_raw_video_present": true,
+        "target_transcript_chunk_present": true,
+        "transcript_chunk_count": 43,
+        "video_candidate_count": 10
+      }
+    },
+    {
+      "actual_frozen_search_result": {
+        "contract_version": "v3.5-search-candidate-v1",
+        "executed_mode": "lexical",
+        "fallback_state": {
+          "fallback": false,
+          "fallback_reason": null
+        },
+        "gold_segment_count": 23,
+        "gold_segments_recalled": 0,
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "ordered_unit_identities": [
+          "video:bilibili:BV1oa6uBXE8J:p1",
+          "video:bilibili:BV1hr6EBBEhM:p1"
+        ],
+        "ordered_video_identities": [
+          40,
+          39
+        ],
+        "presentation_trace_persisted": false,
+        "product_video_count": 2,
+        "raw_unit_count": 2,
+        "target_product_video_present": true,
+        "target_raw_video_present": true,
+        "target_transcript_chunk_present": false,
+        "trace_persisted": false,
+        "transcript_chunk_count": 0,
+        "video_unit_count": 2
+      },
+      "case_id": "CASE_002",
+      "classification": "video_level_candidate",
+      "comparison": {
+        "canonical_historical_two_generation_bytes_equal": true,
+        "mismatch": [
+          {
+            "actual": "dataclass tuple containers",
+            "field": "in_memory_candidate_payload_equality",
+            "meaning": "representation-only trigger; current replay counts/order/target facts match, while the locked projection audit independently proves two canonical generations were byte-identical",
+            "serialized": "JSON array containers"
+          }
+        ],
+        "python_object_candidate_payload_equal": false,
+        "request_payload_equal": true,
+        "structural_identity_equal": true
+      },
+      "evidence": {
+        "gold_segment_count": 23,
+        "gold_segments_recalled": 0,
+        "target_bvid": "BV1oa6uBXE8J",
+        "target_video_id": 40
+      },
+      "frozen_request": {
+        "fallback_allowed": false,
+        "filter": {
+          "archived": null,
+          "favorite_time_from": null,
+          "favorite_time_to": null,
+          "folder_id": null,
+          "ignored": false,
+          "marked": null,
+          "reading_state": null,
+          "source_db_id": null,
+          "uploader": null
+        },
+        "grouping": "v3-temporal-consolidation-v1",
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "mode": "lexical",
+        "presentation": "v3-product-presentation-v1",
+        "query": "MemoryOS",
+        "raw_top_k": 50,
+        "router": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+        "scope": "all",
+        "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+        "snapshot_id": "20260720T094346Z_c7663365",
+        "top_k": 10
+      },
+      "impact": "Track A reaches the target video only; bounded within-video generation is required to reach fine evidence.",
+      "recommendation": "Authorize only original query + recalled video_id 40 + its frozen Raw Transcript for bounded within-video generation.",
+      "serialized_manifest_result": {
+        "candidate_count": 2,
+        "ordered_candidate_identities": [
+          "video:bilibili:BV1oa6uBXE8J:p1",
+          "video:bilibili:BV1hr6EBBEhM:p1"
+        ],
+        "ordered_video_identities": [
+          40,
+          39
+        ],
+        "raw_video_unit_count": 2,
+        "target_product_video_present": true,
+        "target_raw_video_present": true,
+        "target_transcript_chunk_present": false,
+        "transcript_chunk_count": 0,
+        "video_candidate_count": 2
+      }
+    },
+    {
+      "actual_frozen_search_result": {
+        "contract_version": "v3.5-search-candidate-v1",
+        "executed_mode": "lexical",
+        "fallback_state": {
+          "fallback": false,
+          "fallback_reason": null
+        },
+        "gold_segment_count": 19,
+        "gold_segments_recalled": 0,
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "ordered_unit_identities": [],
+        "ordered_video_identities": [],
+        "presentation_trace_persisted": false,
+        "product_video_count": 0,
+        "raw_unit_count": 0,
+        "target_product_video_present": false,
+        "target_raw_video_present": false,
+        "target_transcript_chunk_present": false,
+        "trace_persisted": false,
+        "transcript_chunk_count": 0,
+        "video_unit_count": 0
+      },
+      "case_id": "CASE_003",
+      "classification": "true_v3_retrieval_miss",
+      "comparison": {
+        "canonical_historical_two_generation_bytes_equal": true,
+        "mismatch": "none",
+        "python_object_candidate_payload_equal": true,
+        "request_payload_equal": true,
+        "structural_identity_equal": true
+      },
+      "evidence": {
+        "gold_segment_count": 19,
+        "gold_segments_recalled": 0,
+        "target_bvid": "BV1qTYizcEN3",
+        "target_video_id": 83
+      },
+      "frozen_request": {
+        "fallback_allowed": false,
+        "filter": {
+          "archived": null,
+          "favorite_time_from": null,
+          "favorite_time_to": null,
+          "folder_id": null,
+          "ignored": false,
+          "marked": null,
+          "reading_state": null,
+          "source_db_id": null,
+          "uploader": null
+        },
+        "grouping": "v3-temporal-consolidation-v1",
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "mode": "lexical",
+        "presentation": "v3-product-presentation-v1",
+        "query": "MCP 与 Function Calling 的区别",
+        "raw_top_k": 50,
+        "router": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+        "scope": "all",
+        "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+        "snapshot_id": "20260720T094346Z_c7663365",
+        "top_k": 10
+      },
+      "impact": "Track A stops at upstream_retrieval_failure; Track B may evaluate within-video capability independently.",
+      "recommendation": "Preserve the empty frozen result and record upstream_retrieval_miss; do not retune or inject the target.",
+      "serialized_manifest_result": {
+        "candidate_count": 0,
+        "ordered_candidate_identities": [],
+        "ordered_video_identities": [],
+        "raw_video_unit_count": 0,
+        "target_product_video_present": false,
+        "target_raw_video_present": false,
+        "target_transcript_chunk_present": false,
+        "transcript_chunk_count": 0,
+        "video_candidate_count": 0
+      }
+    },
+    {
+      "actual_frozen_search_result": {
+        "contract_version": "v3.5-search-candidate-v1",
+        "executed_mode": "lexical",
+        "fallback_state": {
+          "fallback": false,
+          "fallback_reason": null
+        },
+        "gold_segment_count": 25,
+        "gold_segments_recalled": 0,
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "ordered_unit_identities": [],
+        "ordered_video_identities": [],
+        "presentation_trace_persisted": false,
+        "product_video_count": 0,
+        "raw_unit_count": 0,
+        "target_product_video_present": false,
+        "target_raw_video_present": false,
+        "target_transcript_chunk_present": false,
+        "trace_persisted": false,
+        "transcript_chunk_count": 0,
+        "video_unit_count": 0
+      },
+      "case_id": "CASE_005",
+      "classification": "true_v3_retrieval_miss",
+      "comparison": {
+        "canonical_historical_two_generation_bytes_equal": true,
+        "mismatch": "none",
+        "python_object_candidate_payload_equal": true,
+        "request_payload_equal": true,
+        "structural_identity_equal": true
+      },
+      "evidence": {
+        "gold_segment_count": 25,
+        "gold_segments_recalled": 0,
+        "target_bvid": "BV1qhE26VEbS",
+        "target_video_id": 51
+      },
+      "frozen_request": {
+        "fallback_allowed": false,
+        "filter": {
+          "archived": null,
+          "favorite_time_from": null,
+          "favorite_time_to": null,
+          "folder_id": null,
+          "ignored": false,
+          "marked": null,
+          "reading_state": null,
+          "source_db_id": null,
+          "uploader": null
+        },
+        "grouping": "v3-temporal-consolidation-v1",
+        "index_identity": {
+          "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+          "fusion_version": null,
+          "input_policy_version": "v3-qwen-input-512-v1",
+          "lexical_index_version": "v3-stage1-lexical-v1",
+          "model_id": "Qwen/Qwen3-Embedding-0.6B",
+          "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "projection_version": "v3-dense-projection-qwen-v1",
+          "provider_version": "v3-qwen3-embedding-provider-v1",
+          "query_instruction_version": "v3-qwen-query-instruction-v1"
+        },
+        "mode": "lexical",
+        "presentation": "v3-product-presentation-v1",
+        "query": "哪些内容讨论了 Agent 评测信号设计？",
+        "raw_top_k": 50,
+        "router": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+        "scope": "all",
+        "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+        "snapshot_id": "20260720T094346Z_c7663365",
+        "top_k": 10
+      },
+      "impact": "Track A stops at upstream_retrieval_failure; Track B may evaluate within-video capability independently.",
+      "recommendation": "Preserve the empty frozen result and record upstream_retrieval_miss; do not retune or inject the target.",
+      "serialized_manifest_result": {
+        "candidate_count": 0,
+        "ordered_candidate_identities": [],
+        "ordered_video_identities": [],
+        "raw_video_unit_count": 0,
+        "target_product_video_present": false,
+        "target_raw_video_present": false,
+        "target_transcript_chunk_present": false,
+        "transcript_chunk_count": 0,
+        "video_candidate_count": 0
+      }
+    }
+  ],
+  "projection_fix_required": false,
+  "result": "Accepted with True V3 Retrieval Misses Candidate",
+  "scope_case_ids": [
+    "CASE_001",
+    "CASE_002",
+    "CASE_003",
+    "CASE_005"
+  ],
+  "single_replay": {
+    "executed_once_per_case": {
+      "CASE_001": 1,
+      "CASE_002": 1,
+      "CASE_003": 1,
+      "CASE_005": 1
+    },
+    "single_replay_enforced": true,
+    "snapshot_sha256_after": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "snapshot_sha256_before": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "snapshot_unchanged": true,
+    "trace_persistence_disabled": true
+  },
+  "track_a": {
+    "CASE_003": "upstream_retrieval_failure",
+    "CASE_005": "upstream_retrieval_failure",
+    "input": "Frozen V3 SearchCandidateSet"
+  },
+  "track_b": {
+    "development_only": true,
+    "input_fields": [
+      "case_id",
+      "original_query",
+      "oracle_target_video_id",
+      "raw_transcript_path",
+      "raw_transcript_sha256"
+    ],
+    "status": "contract and runner boundary frozen; Candidate Builder not implemented"
+  },
+  "true_v3_retrieval_misses": [
+    "CASE_003",
+    "CASE_005"
+  ]
+}

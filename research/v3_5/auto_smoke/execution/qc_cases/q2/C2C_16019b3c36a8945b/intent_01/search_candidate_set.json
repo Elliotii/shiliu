@@ -1,0 +1,1904 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "MSE 适用任务和异常值",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "MSE 适用任务和异常值",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.5595333576202393,
+      "end_time": 232.09,
+      "excerpt": "就是获取平均的一个误差 在回归任务中呢 比如说预测房价也好啊 啊预测股票具体数值啊 当然可以使用刚刚的四项啊 就用这个标准答案减去预测答案的方式 来计算误差 因为回归是将预测具体到一个数值上 但是为什么这个均方误差 损失函数需要平方一下呢 有三种原因 一种是从直观上来看 可以放大偏差啊 惩罚极端错误 比如说当你的误差较小的时候 比如误差为一啊 平方时候仍然就会比较小 对总损失的影响就有限 但是当误差较大的时候啊 平方就会啊嘎嘎猛增 这种特性呢就会迫使模型优先降低大的误差啊 避免出现这种极端离谱的预测 二呢就是它可以消除正负抵消啊 如果不平方 假设一个批次",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 114.87,
+      "subtitle_source": "ai",
+      "title": "别死记公式！8分钟带你通透损失函数本质！",
+      "unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_d8a7bf25a28e378102f907e6a5d6e6dc",
+      "unit_type": "transcript_chunk",
+      "uploader": "算法魔法师",
+      "video_id": 116
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.5147638916969299,
+      "end_time": null,
+      "excerpt": "[Title] 别死记公式！8分钟带你通透损失函数本质！ [Uploader] 算法魔法师 [Description] 如果这期视频对你有帮助的话，麻烦长按点赞一键三连加关注呀呀，感谢支持！ 三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连三连",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "别死记公式！8分钟带你通透损失函数本质！",
+      "unit_id": "video:bilibili:BV1GHS1BzE6J:p1",
+      "unit_type": "video",
+      "uploader": "算法魔法师",
+      "video_id": 116
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.46573108434677124,
+      "end_time": 820.44,
+      "excerpt": "判断失败发生在什么阶段 是探索环境太慢 命令策略不对 上下文装载不足还是终止判断有问题 然后再提出针对性的结构修改 能举个最直观的例子吗 最直观的一个就是他在igetic coding 任务里学出的改进 先别急着干活 先把运行环境看清楚 mata harness继承了已有强baseline的主体 但自动加入了一段environment bootstrapping 一上来先收集当前目录 斜杠app文件语言和版本包管理器内存等信息 再把这些塞进起始上下文 这样模型就不用花前几轮在黑箱里摸索 我到底在哪儿 环境是什么 可以更快进入真正的问题求解 这真挺像一个有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 701.21,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_e9039f78142c86a6e293cfc0cdb9a97e",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.44394955039024353,
+      "end_time": 585.86,
+      "excerpt": "进入第一个实验文本分类 这里他到底学出了什么样的harness 论文发现了一类很有代表性的memory based harness 核心共同点是不是固定few short 而是围绕当前样本动态查memory 动态组织证据 其中有两个很值得讲的代表 先讲第一个 第一个叫draft verification 流程是两步 第一步先从memory里取 和当前输入最相似的五个已标注样本 让模型给一个初步标签 第二步不直接结束 而是围绕这个draft label 再做一次更有针对性的检索 找五个支持当前标签的例子 再找五个不支持当前标签的challenges 然后让",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 466.36,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_f31ba479c01debec0820c50fb8f7613e",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.438199907541275,
+      "end_time": 1053.96,
+      "excerpt": "所以更可审计 这其实也是为什么harness engineering比直接改模型 权重更像一个可控的工程方向 如果我们把这篇论文放在更大的脉络里 它的重要性到底在哪儿 我觉得可以用一个三阶段的说法来总结 第一阶段大家意识到光有模型不够系统 外面的harness很重要 第二阶段大家开始手工总结harness经验 什么场景适合检索 什么场景适合memory few short 该怎么摆 agent loop怎么设计 第三阶段也就是这篇mata harness代表的阶段 不只是人类总结harness方法论 而是让AI自己去做harness engineerin",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 935.5,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_4c0fb8a330a262ce7fdf217ec473b51a",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.4304429292678833,
+      "end_time": 2441.46,
+      "excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 2324.32,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.4177776575088501,
+      "end_time": 2682.89,
+      "excerpt": "好的 但需要注意这未考虑 推理成本 这简直 如何训练出最佳模型 无论模型有多大 因此这里存在一些限制 但无论如何这对模型开发极为有用 所以在本次任务中这有点像 嗯 你知道挺有趣的 因为我们定义了一个引号 未引号的训练API 你可以用特定超参数进行查询 你需要指定架构、批量大小等 我们会返回一个损失值 你 你的决策将获得 好的 你的任务是 你有一个FLOPs预算 你要尝试训练多个模型 然后收集数据 你需要将收集的数据拟合到缩放定律 然后提交你的预测结果 你知道你会选择什么 超参数 模型规模等 在更大规模下 好的 这里你需要 真的 我们希望让你处于这种位置 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 2564.85,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.4121197462081909,
+      "end_time": 468.52,
+      "excerpt": "分数或summary文件只占很小一部分 这个比例很能说明问题 他真正在读的不是几行结论 而是代码和过程 这个数字很关键 意思是proposer不只是看LEADERBOARD 而是在翻事故档案 对特别像一个资深工程师 接手遗留系统时会干的事儿 先看旧代码 再看失败日志 再对照表现差异 最后推断这次退化到底是因为检索召回差了 还是上下文组织顺序变坏了 还是某个stop condition 过早触发了mata harness的独特之处 就在这儿 他把优化问题从给分数条文本 变成了读工程证据 做因果诊断再写新程序 那论文有没有直接比较 只给分数和给完整历史的差别",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 349.14,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_a2c57c0ebf197a1251aa9d9e823da6c3",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.41061297059059143,
+      "end_time": 3374.6,
+      "excerpt": "这个事情还是需要高级工程师来实现 当前未来之后 我觉得这个不好说 对对对对 所以现在就是这样 现在就是这个我这里不是一张图吗 我这给你看张图对 其实其实刚才我也非常认可你 你说这一块东西是我们这个团队呢 是偏这个西方 因为我们老板是西偏欧美的这个 所以我们呢一直是TDD这种模式 我们的测试用例 基本现在API我们基本上没有什么测试测试 就是上页面上点一点 我们基本上依赖AAPI 所以我们跑这个AI跑起来之后基本差不多 但是呢大家用的有人用JVM 有人用的COSER 有人用GPT 就这里面内部有些不同的团队 不同的组 就他的这技术站用的方法不一样 我觉得这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 3256.16,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_dfd7756040a4051a00978ce0aea1fcd3",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.4104290008544922,
+      "end_time": 6627.2,
+      "excerpt": "我只能说mouse 然后应该更主要挑战是 你在遇到遇在训练的历程当中遇到问题的时候 你怎么去去 我觉得第一步是你要发现问题对 就比如说很多团队会把lost bike 当做一个很正常的事情 但是我们可能会尽量的让他没有lost spike 对我们认为有loss back肯定会导致某一步的更新 嗯特别的不稳定 某些数值就异常值很大 就直接把某些参数 或者说某些expert给他给他打死 就是打死 就是参数更新过后 后面再也不会有export送到了 而再也不会有token送到expert上 所以那你中间就有需要很严密的监控的系统 就是你要去洞察这个模型 参数内部",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 6509.16,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_52af97b9babeecd2a1709f4a0aa51611",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.40694528818130493,
+      "end_time": 514.78,
+      "excerpt": "因为最终我们要去评估这个效果嘛 就是我们引入了一个方法 我们要评估这个方法引入的代价和效率 在在这里面 还有一个很重要的就是一个跨report的分析呃 这个是什么意思呢 就是说如果说这个项目 它只是一个额很小的一个项目 假如他只是一个仓库的项目 那你就所有东西都在这个仓库里面 但事实上现在很多服务它都是要分 比如说呃call最简单的嘛 你可能要分个前后端嘛是吧 你一个问题它可能是前端后端串起来的 那你这里面本质上你是一个跨report的一个分析 那你在这个跨report的情况下 那issue里面本质上就是做这个工具 我们里面涉及到的数据结构里面 就需要把",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 409.01,
+      "subtitle_source": "ai",
+      "title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+      "unit_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_1ab58e5eea618386e4b0120400e72f96",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3SecAnalysisT",
+      "video_id": 29
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.40462857484817505,
+      "end_time": 579.98,
+      "excerpt": "skill mess的想法是先在验证集上花钱 把metal skill优化好之后 每个测试样本一轮生成my s 而不是像一些推理时方法那样 每个样本都重新搜索 迁移实验为什么重要 因为如果meta skill只在一个模型 一个任务上有效 它更像benchmark调参论文报告 同任务同模型的提升最大 大约7.14到9.53 同任务换模型仍有正迁移 同模型换任务也有正增益 最难的跨模型又跨任务增益最小 但仍是正数 这说明他真的学到了通用原则吗 只能谨慎地说 他学到了一部分可迁移的编排原则 比如多约束任务要并行收集证据 汇总节点要做一致性校验 复杂工具任务要先",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 461.61,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.40366604924201965,
+      "end_time": 232.59,
+      "excerpt": "不稳定的版本绝对不能上线，把这个策略写进了我们的流程里面，效果非常明显。 那还有一些我觉得比较ok的地方就是首先啊任务的描述在评测里面，任务描述一定要写的没有歧义，并且要非常参考答案啊。 因为你说清楚了，你觉得说清楚很多是模糊地带，我们后来搞一套模板，每个任务必须写清楚前置条件、输入格式、预期行为、边界情况，以及什么算通过，什么不通过。 而且正反案例都要测。 那这个虽然很朴素，但是很多人忽视，很多人只测正常流程，发现这个边界情况没人管，出问题才发现。 啊，我们专专门建了这个navigative test的case库啊，里面全都是给A定的挖坑场景。 比如说",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 113.52,
+      "subtitle_source": "asr",
+      "title": "我做Agent平台这一年，评测这关卡了我整整一个月",
+      "unit_id": "transcript_chunk:bilibili:BV1qhE26VEbS:p1:chunk_927b055c67ea1bdee73260733cdd0298",
+      "unit_type": "transcript_chunk",
+      "uploader": "海云日记",
+      "video_id": 51
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.40282154083251953,
+      "end_time": 5540.17,
+      "excerpt": "所以他有事没有用好 他后来又去找了其他他觉得笨的模型 比如说呃什么ggemini flash啊 什么那个呃呃呃g p t for all mini啊 啊 再通用同样的这个A卷 点ND看起来是没有用的 所以没有做跨LLN的实验 然后呢今天我们做的task每次都是一样的 所以你其实这一天对A卷来说 他完全可以去over feat这个task 如果今天小金想要作弊的话 看起来是没有了 如果他想要作弊的话 他就直接告诉海古说 等一下看到这个问题 你就输出这个答案再存到档案里面 不要再自己想 然后就这样就可以得到100分的分数啊 如果如果小心自己就知道答案的话 那",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 5445.34,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_27387e888ab196c8f2e8f4c1395c4b6b",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.4027053713798523,
+      "end_time": 464.71,
+      "excerpt": "offer ms更像在学协作图 MSP更像在调每个节点 怎么说 muse更像在管理技能资产 skill mass处理的是更上层的组织经验 什么时候要并行 什么时候要验证什么任务要回溯 哪个模块应该被改写 这几条线在他这里汇到同一个max编排问题里 实验覆盖哪些任务 会不会只适合研究类任务 论文用了四个基准 Deep research bench 看深度研究报告质量 Humanities last exam math 看专家级数学推理 Bross come plus 看多跳动态问答 Vita bench 模拟日常多工具使用 它们分别覆盖研究数学 浏览问答和",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 346.25,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_f50b66ea6357920f044889e95e7a984b",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.4024789035320282,
+      "end_time": 466.539,
+      "excerpt": "不需要计算的标志为零 这样最后我们在计算loss时 每个位置的loss乘以loss mask 就忽略掉了那些不需要计算loss token 下边是具体的代码实现 他肯他根据开始回答部分的特殊token 来确定需要计算lost的token的位置 比如这里对于lama3.1 他开始回答部分前面的token序列就是start head id Assistant End head id 两个换行符 根据这个to特殊的token序列 就可以找到维达的起始位置 西数位置后面的都是需要计算loss的token loss mask为一 前面的都是不需要计算loss的 t",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 349.33,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.40209656953811646,
+      "end_time": 350.74,
+      "excerpt": "这就是留初级优化集 用来让系统提出改动流 初级只负责检查这个改动 在没见过的样例上还能不能成立 六部里另一个容易忽略的是第六部 人工审核流 初级能告诉你改动有没有通过更多样例 但他不一定能告诉你改动适不适合上线 有些指令虽然能涨分 但写的过度 具体只服务某个样例 放到生产里会浪费上下文窗口 人工审核就是检查分数上涨之后 产品体验有没有真的变好 流出及防作弊 人工审核防上线翻车 两道关卡各管一件事 流程讲完了 回到一个更根本的问题 这套流程能跑起来 全靠evil提供方向 evil在这里的角色 跟机器学习里的训练数据很像 训练数据里的每个样例会给模型一个梯度",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 231.77,
+      "subtitle_source": "ai",
+      "title": "LangChain:基于评测的Harness优化方法 自动优化真正难的，是设计评价信号",
+      "unit_id": "transcript_chunk:bilibili:BV1sudwBnEoP:p1:chunk_0a07ae5a3a6d6761ddac058c134d950a",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 55
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.40192532539367676,
+      "end_time": 2342.08,
+      "excerpt": "就是模型他有时候会在训练的时候 怀疑自己在被evaluate 虽然这不是我们前面提到的situational awareness的 虽然这不是我们前面提到的严格意义上的situational awareness 他的至少模型会开始有意识的去猜测 比如说这里用户给了一个问题 然后模型在这里开始进行反思 在他反思这个讨论的本身的性质的时候 其中有一点他就提到有可能是有些人在测试他的能力边界 这是Opus 4.6模型 另外一个就是对于那些特别难的问题 模型有的时候会怀疑这个问题可能是无法解决的 没有答案的 比如说在某个问题的时候 Opus就会说人类提供的这个d",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 2223.92,
+      "subtitle_source": "human",
+      "title": "AI学会了装傻和欺骗！现有Safety Evaluation体系为何已经跟不上大模型发展？",
+      "unit_id": "transcript_chunk:bilibili:BV19BGD6aEb8:p1:chunk_a89e68ad4e8140129fb4299144083e69",
+      "unit_type": "transcript_chunk",
+      "uploader": "EZ-Encoder",
+      "video_id": 48
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.4017287492752075,
+      "end_time": 1713.139,
+      "excerpt": "然后呢呃以上就算是我没有想到的 用任何的方法来增加上传的次数都是不允许的 所以你的作业的结果是机器产生的 不要用人工的力量去产生你的答案哦 不是工人智慧 你不要用人的力量去产生答案 或者是用任何其他机器以外的方法去产生答案哦 那其实这门课所用的哦 作业里面所有的资料 你很有可能都可以在网络上找到 因为这门课我们这个作业的资料要给这么多修课的同学 那我们会用open data 如果我们今天是用哪一种呃 不能够试出的 那我们还要请大家来签呃一些保密协定 那这个太麻烦了 我们不会这么做 所以我们用的资料都是公开的资料 那公开的资料意味着你也许有办法自己找到作业",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 1593.88,
+      "subtitle_source": "ai",
+      "title": "李宏毅《机器学习/深度学习》2021课程（国语版本，已授权）",
+      "unit_id": "transcript_chunk:bilibili:BV1JA411c7VT:p1:chunk_e8258a3b178ada8929e86e9b4ed0425b",
+      "unit_type": "transcript_chunk",
+      "uploader": "二次元的Datawhale",
+      "video_id": 120
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.3987269997596741,
+      "end_time": 3723.0,
+      "excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 3604.0,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.3986707627773285,
+      "end_time": 119.739,
+      "excerpt": "诶你好 各位听众 今天咱们来聊一篇很新的论文 题目叫mata harness End to end optimizations of model Harnesses 先用一句人话说他到底在做什么 一句话讲 他想自动化模型外面那层系统代码的设计 作者把这层代码叫做harness 也就是包在大模型外面的那层程序 决定要存什么历史 怎么检索 什么时候把哪些内容拼进上下文 怎么组织多轮交互 怎么判断任务完成 论文的核心观点是很多 系统表现的差异不止来自模型 权重 还来自这层HARN 既然如此 那就不该只卷模型 也要开始系统地搜索 Harness 论文是2026年",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 0.34,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_76b348fbe675899287c903c85e90f4c0",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.39747828245162964,
+      "end_time": 485.68,
+      "excerpt": "然后请列出可缺失的这些边界条件等等 你要让它窄化 窄化完了之后呢 它模型关注的这个内容的焦点呢就变得不同了 但是呢也不是说 我们使用了前边的几种评估策略之后 我们就不用人去看了 其实人依然要去看呃 整个的重要的代码 比如说支付的环节 你做的对不对啊 然后让模型呢评估一些风险的地方 有风险的地方 那我们人也要去嗯看一下这些代码 然后包括整个的架构啊 可维护性啊 然后这些东西都是人还是需要去看 所以说我们后边再去做AIA制的产品也好 比如说去年我就在跟大家讲说 你即使做RG的话 你也是有评估体系的 那我们现在在做哈尼 哈尼斯其实也是要有评估体系的 我们的AI",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 379.56,
+      "subtitle_source": "ai",
+      "title": "构建可交付的AI Agent系统",
+      "unit_id": "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_e7641bbfea4bf1b9f029247574ae00c1",
+      "unit_type": "transcript_chunk",
+      "uploader": "雷哥AI",
+      "video_id": 50
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.39658331871032715,
+      "end_time": 1871.84,
+      "excerpt": "一些科学的假设没有做对 就说你选什么样的token horizon 就是每每一个大小的模型 选什么样的这个这个期待的训练的数据量 然后怎么这个数据量呃 是呃这个数据是从哪里选 然后额有可能是这些比较科学的选择 没有选清楚是一种可能性 但我觉得还有一种可能性就是纯粹有个bug 这个其实在业界我觉得也不惊奇 很多时候修好一个bug 带来的进展是远大于一些很很神奇的技巧的 对哦 然后呃当然还有另外的的情况 我就我就刚才改给的这两种例子 反正是我见到过比较比较多的情况 那你们的bug怎么办 你们怎么解决bug问题的 我觉得我感觉这更像是一个信念的问题 因为当你遇",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 1752.02,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5eaaf1fd99a5457f5a48870c8b126e7a",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.396297812461853,
+      "end_time": 2202.27,
+      "excerpt": "现在口喷都有点懒了 已经额交付的速度非常快 所以说重要不值钱的代码就变得不值钱嗯 测试变得也不值钱 因为你循环的非常快 值钱的是经验 值钱的是你愿意花的时间去读 去研究别人东西 这个时间是变成值钱了 同样的一个东西出来 这个开源代码出来了 我相信现在很多人都在看 让不同的人看有不同的结果 有的人可能马上上来 我要给我AI分析一下 然后跟我代码互动 这个对比一下 改一下等等 那其实我第一步先画图 我画图画出来了啊 模块分析出来了 针对每一块我可以让他继续画图 对不对 那么我现在有的是什么他没有的 他有什么我没有的 我需要改的 这个就非常这个呃循序渐进啊 你",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 2084.35,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_e840baa35a5e839e74c4312fe411d8d5",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.395748496055603,
+      "end_time": 570.24,
+      "excerpt": "还有就是MQAJQAMLA 对吧 就类似这种的 而除了这些这些是一些基础的模块嘛对吧 那我们其实还有一些其他的模块 比如说我们现在是有ME的 ME的一些优化 然后呢以及它整体还有其他的这种 比如说flash的attention 还有online的soft max 当然了就是还会有些其他的一些融合的算子 核心思想呢都是从这里面延续下来的 而你比如说对于他而言 那我们常见的会手撕的一些东西 其实就是以attention家族要写个手办MHA对吧 然后以及它的一些变体变体 就是MQA啊什么这些的 这个是一大系列就会考你手撕的 有的会考你decode layer的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 453.74,
+      "subtitle_source": "ai",
+      "title": "llm氪普课-ai infra入门所需知识完整梳理",
+      "unit_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_6628e791ee2cd9da91bcf8a2e29880e9",
+      "unit_type": "transcript_chunk",
+      "uploader": "llm氪ke普课",
+      "video_id": 76
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.39545270800590515,
+      "end_time": 2326.579,
+      "excerpt": "没有测试这个东西保护呢 然后你就录补不起来 然后然后然后我不是在批评大家啊 这是这是软件工程的一个现状 哎除了外企 外企会会会看测试 然后国内的国内国内的这种软件公司 它其实比较呃故功利 他这个功力会表现出一种呃叫啥来着 买毒还珠的一种意味 就比如说举个例子 他看到super power 他觉得这个super好牛逼 然后我们就推 然后呢他看SD也很牛逼 然后TRALO很牛逼 然后很就说这东西写代码很牛逼 然后呢 然后跑下来发现其实你项目里面没有测试保护 你项目根本就做不到几个迭代 然后就就崩溃了 然后我的工作就是去隔段时间 去治理这样的一个团队 OK如果",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 2206.64,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_876b16706b61a178b88f23c7ac5bf66e",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.39503490924835205,
+      "end_time": 581.849,
+      "excerpt": "我们要开始构建测试 说穿了它就是一个回归测试啊 regression test概念不复杂 复杂的是 怎么样为一个不确定的系统去构建它啊 在这个地方我就拿我们给AIASION加功能来举例 当我想要给AI agent新加一个工具的时候 我心里其实是有一个明确的预期的 比如说在什么条件下啊 这个工具会被触发 触发之后啊 整个AI的工作流我又应该怎么走啊 那这个我期待他怎么走的路径 我们把它叫做快乐路线啊 happy path它就是一个新功能的验收标准 从架构上来说 我们要先解决一个棘手的问题 谁来当裁判 A阵的输出是一大段自然语言啊 是一条运行的路径 它不是一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 463.94,
+      "subtitle_source": "ai",
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_c1c4a5c3e55adcfccc0b07ad333a9dae",
+      "unit_type": "transcript_chunk",
+      "uploader": "数字黑魔法",
+      "video_id": 6
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.39461836218833923,
+      "end_time": 1976.14,
+      "excerpt": "但有些用例 有些用例你想用这个视觉的方法的时候 他就去调这个hipper 然后去测 就比如说去调这个 我用那个质朴的API 然后去去去把这个图传给他 先把这个图传来了 图传来了之后 他去分析这个图有没有有没有呃 内容去分析那个图内容 看他有没有判断这个用例能不能通过 OK那大概这 嗯这个问题是啥 最后一个问题 KSDD场景下各类文档信息混合 为什么不通过严格的设定各类文件模板来解决 不是这个混合的问题 而是它最终在plan的时 最终在执行的时候 他还是需要前面的呃 啥信息 它还是需要他还是需要前面的需求的信息 需要前面的呃 技术规格进行 需要这个plan",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 1858.639,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_92d2323f150f8cfb368bfe46f2b48a4a",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.3936484158039093,
+      "end_time": 10696.6,
+      "excerpt": "我就觉得啊怎么这么奇怪 就哼看老有这种疑惑 那我也不管他为什么这么奇怪了 反正我就觉得那样不太对 然后就我就不这么做就OK就行了嗯 所以我们外界看到的可能是r one 但是你在内部感知到的是 在这个模型开始训之前的对团队的调整 和组织其实其实就是大家认不认可这个事儿 然后以及我们要以一种什么样的方式 来做这个事 我觉得我是在re的过程中是有非常大的体验的 但最终的那个结果就我我能预知到的是 就我走的时候 R1还已经做到一个light的水平 然后克鲁格mars已经做到了 非常接近于哎那个O1 我以小的那一版嗯的水平 然后嗯那我预已经意识到了 是我觉得cod",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 10577.62,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_1421846a62053e9654995eab62242461",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.3936067819595337,
+      "end_time": 5354.04,
+      "excerpt": "确实是一个非常优秀的模型结构 嗯因为他啊 而甚至它对于常温来说 也算是一个还不错的模型结构 因为它大量去减少了kv cash 然后对于常规来说 你的QQ卡就很宝贵 然后嗯嗯但是他有一个哦 呃我认为是嗯不那么去适合A证的呃 这个范式的一个呃 最根本性的几几个几个要点嗯 第一个就是嗯嗯他其实是呃呃 因为MA在设计之初 是为了去达到很好的访存跟计算的一个比例 在哎当前的当时的HH系列的芯片上 为了呃实现一个更高的一个就是 我既不浪费我的算力 又不浪费我的呃 又要把那个呃仿存的瓶颈给打破 所以是在这样一个架构下设计的 然后在这样架构下设计出来的模型架构 它没有任",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 5234.479,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_54604a4b89daf174bb7cb91f01320007",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.3931869864463806,
+      "end_time": 937.13,
+      "excerpt": "那快呢 这一点也特别关键 这是matt harness很亮眼但容易被忽略的一点 项目页明确写道 在文本分类实验中 matt harness只用四次完整评估 就追上了open evolve和ttt discovered 各自最终达到的准确率 而这两个方法要到40次完整评估左右 才到自己的终点 换句话说 它不只是终点更高 到达同等水平的搜索成本大概低了十倍 这个就很能说明完整历史到底值不值对 因为作者给出的解释正是 mata harness之所以收敛更快 不是因为外循环更复杂 而是因为proposal有能力读历史 trace做更精准的失败定位 所以每一轮改动",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 819.12,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_3fdabc234219601bbe8c7df692ff9ace",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.3900822699069977,
+      "end_time": 353.6,
+      "excerpt": "最后呢一次做了很多工程化的实现 包括MCP 包括这个网页的部署 包括配置文模型以及往上走的话 它还集成了一个docker呃 然后集成了一个向量数据库 实现更快的一个记忆检索 然后我们可以看一下这个 MEMOROS的支持列表啊 然后你可以发现它支持了很多的模型 支持了一些客户端呃 其中模型呢它主要支持的是这个open i的API接口 其次呢它支持了两个框架吧 一个是VOM 一个是la factory 主要用于一个是用于推理本地的推理 一个是本地的一个微调以及部署好 然后我们就进入到了整个的核心环节 但是在讲这个之前 因为大家是要去复现一个项目 对不对 所以",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 234.16,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_28e8b55fe2d288c00d74981635e3baa3",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.3893789052963257,
+      "end_time": 11840.22,
+      "excerpt": "其实每一个系统 就每一个评价框架都是很容易被hack的 所以你总可以做一些事 让你的指标看起来很好很好看 但是一个可一个值得信赖或者踏实的人 他其实是会想自己做的这件事 如果效果好的话 是不是真的 比如说在大的手装上效果好 是不是我中间漏了哪些因素对 所以说其实其实把事做系统听起来是一一句话 但真正做起来是很复杂的事 就是有很多细节 有很多阻力 会因为他其实是违不违违背人性的 因为每个人个人的人性 可能都是 为了让我自己做的东西能够体现的更好 但是对于一个公司或者说一个组织来说 最有利的事 是把整个公司的系统系统性做的非常非常扎实 非常严谨 这个能不能举",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 11721.85,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_f7c57fdb12b3d79d9eb3c5345ccf402f",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.3891639709472656,
+      "end_time": 10809.159,
+      "excerpt": "把呃那个live code bench这些偏code的benchmark 就是思考很久给出一个答案这种 然后把这种嗯呃呃呃呃呃AME 对这些对你可以在这个范式上选择继续生根 你也可以选择我豁去掉 我就不管这些 对我不管这一套范式 然后我就去想下一下嗯 我我可能在车道翻上能够做到六七十分就OK了 其实M1做到60分就六七十分 就表示这个链路你已经走通了 但是你你你是不是可以就可能比较聪明的团队 我觉得25年年中就会全面拥抱 去佛新的一技能架构去做事情 而这是你的选择 me max是已经转过来了 me master我觉得算是转的最早的 MMAX是国内转的最早",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 10692.44,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_5f5fd340617360f702880a2d9c527333",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.38618797063827515,
+      "end_time": 1047.19,
+      "excerpt": "这啥意思啊 就是说这个模型的总参数量是32B 但是每次只会去对于每个token 只会去激活3B的激活值 这里就有个大坑了 一个超大的坑 你不能说它显存占用 直接从32B砍到3B了哈 为什么 因为所你某个token 可能是走这三个币的专家通路 但是其他token可能会走其他通路呀 也就是说所有32B的参数都得待命状态 只不过对于某些特定的token 我只计算了3B的参数 这是MOE的优势 MOE的优势 就是说我原本有32B的参数要计算 现在我只计算了三遍 我计算量是1/10 但是我这32B的东西 还是得老老实实在我的显存里面待命的 所以说MOE模型 他不会",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 928.53,
+      "subtitle_source": "ai",
+      "title": "面试中容易露馅的问题：大模型的训练和推理吃多少显存？",
+      "unit_id": "transcript_chunk:bilibili:BV1aawjzpEmS:p1:chunk_022efda6653499529b646875d6f1eb66",
+      "unit_type": "transcript_chunk",
+      "uploader": "作者武辰",
+      "video_id": 115
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.38536494970321655,
+      "end_time": 740.86,
+      "excerpt": "得到大部分的收益好 那最后我们来看HC和M HC在某种意义上实际上把残差流做的很复杂 残差流很复杂 它可能就违背了原本的初衷 那么attention residuals呢 它是把模型的深度 这个维度呢也变成了一个attention的轴 我们就可以看到诶 这个是传统的参差连接标准参差连接 这个是full attention residuals 那这个呢是块级的 一块一块的DN减一块D第二块块级的好 以上就是我们关于KIMI这篇呃 新论文的这个技术报告的解读 谢谢大家",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 698.0,
+      "subtitle_source": "ai",
+      "title": "【注意力残差】10分钟看懂 马斯克盛赞的Kimi最新技术",
+      "unit_id": "transcript_chunk:bilibili:BV1fNw9ziEYk:p1:chunk_1064388165c1774f654c3073dd88d843",
+      "unit_type": "transcript_chunk",
+      "uploader": "东川路第一可爱猫猫虫",
+      "video_id": 118
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.38529694080352783,
+      "end_time": 697.77,
+      "excerpt": "变成和它相近的token 这样就相当于增加了你样本的丰富度 从而最终提高模型的精度和泛化性 它的实现很简单 首先有一个噪声系数阿尔法 它可以调节增加噪声的强度 然后对input id进行引MBEDDING 计算序列的维度 就是序列的长度乘以每个token的维度 然后用噪音系数阿尔法除以序列维度的开方 这里为什么要除以序列维度的开方呢 你可以理解为 最终是计算一个序列和加了噪音的序列 它们在空间里的欧式距离 而这个空间就是由序列维度构成的 除以序列维度的开方 就是为了让不同序列长度的文本 它们和自己加了噪声的样本的欧式距离 都是一样的 不会因为序列的长度不",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 579.909,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_3ee8d51177255e543443e166ef022416",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.38465040922164917,
+      "end_time": 201.06,
+      "excerpt": "小团队没有问题 然后稍微大一点的团队 我们有一些自动化的API测试的结果 然后报上去 或者说我的自动化的e to enter 吞的的这种测试结果 然后发现报上去 然后报上去了之后 然后这个issue里面这个worker 就是我们所说的这个小工具的worker 他就会检测到这个issue 检测到了这个英雄呢 他就负责什么 他可能会去负责调度对吧 他会调度一个这种对应的code n 这个code agent 比如code x啊 或者cloud code 然后让这个机器这个这个agent呢 它去与呃去下载对应的源代码 对应版本对应的仓库 然后再来他还会去下载对",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 100.819,
+      "subtitle_source": "ai",
+      "title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+      "unit_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_0e3be5817a92c406de65cfb69468f1aa",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3SecAnalysisT",
+      "video_id": 29
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.3843110203742981,
+      "end_time": 3600.91,
+      "excerpt": "可能没有替代大模型训练的办法 所以今天的情况是 至少对于前沿实验室来说 它们正面临数据约束 这很有趣，因为我认为设计决策将会彻底改变 我意思是计算资源永远重要 但我认为设计决策会改变 例如 你知道的 只用一个epoch训练数据 这似乎没什么意义 如果你有更多的计算资源 为什么不至少多跑几个epoch 或者做更智能的事情 或许会有不同的架构设计 例如 因为Transformer最初的设计动机 你知道的 是为了计算效率 嗯 这是值得思考的问题 依然围绕效率展开 但设计决策反映所处阶段 现在我要深入第一个单元 呃，这个单元 你知道的 在那之前 有没有问题 你们",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 3482.93,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.3829811215400696,
+      "end_time": 411.69,
+      "excerpt": "我们肯定要去监听这个issue嘛 那我们怎么监听呢 我们首先有几种方案嘛 就第一个方案就是web hook方案嘛 就是我们的项目 然后比如说get get lab github或者GERA 他都有这种相关的hook 然后我们去配置这个hook 然后我这个啊系统就能被notified 然后就可以处理 这个是大家有外部URL的情况下 那假设大家没有web u i l 那我们可以通过这种反向的 WEBSOCKET的长链接去处理啊 就比如说你跟这个server发起长链接 然后server收到消息了 通知后 通过这个WEBSOCKET通知你 那这种大家平常用的这种",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 307.04,
+      "subtitle_source": "ai",
+      "title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+      "unit_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_647e4b62ec23d788650b66e47eb61344",
+      "unit_type": "transcript_chunk",
+      "uploader": "Web3SecAnalysisT",
+      "video_id": 29
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.38272905349731445,
+      "end_time": 790.0,
+      "excerpt": "而你在这里一个参数都没传好 这样他就能够基于现有的信息能够进行判案了 能够判断这个病情到底是在哪里了 OK这个时候他就会给我们返回 实际的问题的解决结果 讲道理来说应该就是这样的 我们来看一下它最终的返回结果 好我们来复制粘贴进来 你看已经找到问题了 问题是什么 怎么怎么解决 OKOK这就是这1234条请求 就是完整的color code和大模型的一个交互的过程 OKOK如果说你接下来你就可以继续说帮我修复 这样子 你就可以进一步的观察到 这个color code是怎么去修复这个问题的 对那么感兴趣的同学可以自己去试一下 我这里面只是告诉大家它整个的一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 698.8,
+      "subtitle_source": "ai",
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "unit_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373",
+      "unit_type": "transcript_chunk",
+      "uploader": "鲁班大叔_007",
+      "video_id": 80
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.3808765113353729,
+      "end_time": 348.49,
+      "excerpt": "让你来判断这个句子是消极的还是积极的 你怎样来计算图或者画跟标签的差值呢 这样再使用这个MISE是不是就不太合适了 所以就引出了第二个全素参数标叉商 想要弄清楚它呢 就得先说说什么是信息量 在信息论里头呢 一件事情发生的概率越低 它一旦发生包含的信息量就越大 也就越让人惊讶 比如说不过我告诉你啊 明天的太阳从东边升起啊 你肯定毫无波澜 因为概率几乎是一 这句话的信息量接近于零 如果我告诉你 奥运会中国乒乓球连预选赛都没挤进啊 你肯定惊掉下巴 因为这事的概率极低 所以它包含的信息量就贼大 那我们要用什么数学公式来模拟这种情况呢 当当当啊 有没有发现 log",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 229.77,
+      "subtitle_source": "ai",
+      "title": "别死记公式！8分钟带你通透损失函数本质！",
+      "unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_711b011d4cba546c1c9b9e0a2b52cc03",
+      "unit_type": "transcript_chunk",
+      "uploader": "算法魔法师",
+      "video_id": 116
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.38059061765670776,
+      "end_time": 1864.71,
+      "excerpt": "好的 将字符串序列分词为整数序列后 现在我们定义模型架构处理这些序列 因此这里的起点是原始Transformer模型 这就是所有模型的基础 基本上所有前沿模型 嗯 这里有一个架构图 我们不会深入细节 但呃 有一个注意力机制 你懂的组件 然后是MLP层 你懂的带有某些 你懂的 归一化处理 嗯 实际上从2017年以来发生了很大变化 没错 我认为Transformer的发明具有某种意义 然后大家都在使用Transformer 从初步来看这是事实 我们仍在使用相同配方 但许多小改进确实产生显著影响 当所有改进叠加起来 例如 存在激活函数 你懂的 非线性激活函数 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 1746.05,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_be5dfbbe5448c0508a3dcd19f4f82fde",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.38029301166534424,
+      "end_time": 7446.06,
+      "excerpt": "就是有很多量化指标 但是我我去跟她聊天 我能直接感受到 就是能sense到 对你们在这个1T的模型的训练有失败吗 还是一次就成功了 嗯就是嗯就是看怎么定义失败 就比如说你训训到呃 loss直接飘了这种 那那那那那应该中途还是发生过那么几次的 几次几次我现在都不知道几次了 反正几两三次总是有的对 就弄死直接飞了 然后哦但是他训呃呃 比如说呃训训了几百步又回来了 嗯那你说这种情况你是应该停下来解决 还是应该继续往前续呢 解决我们认为是应该要解决 就应该停下来解决这个问题对嗯 他他其实呃就这样翘上去啊 基本不维护 然后又这样下来 那就这嗯我们认为应该停下解决 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 7326.88,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_67fa84b8ca521aa8084c02f2f3460994",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.3791709542274475,
+      "end_time": 349.68,
+      "excerpt": "先在同一个任务内 把高分轨迹和低分轨迹分组比较 他们从哪个编排决策开始分叉 是拆任务漏了约束还是代理角色不清 还是汇总节点没有校验 然后再把多个任务的诊断合起来 提炼跨任务反复出现的弱点和稳定优势 这些诊断最后怎么变成新的metal skill 反思阶段会形成evidence package 也就是一组有优先级的修复证据优化器 先删掉或改写证据显示无效的旧规则 再给对应模块加入新原则 论文要求保留三模块骨架 而且每个改动都要来自证据 并抽象成通用编排原则 不能写成某道题的补丁 能不能给一个更具体的例子 browse compl的例子很直观 初始流程可能偏",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 230.83,
+      "subtitle_source": "ai",
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.37904322147369385,
+      "end_time": 4631.09,
+      "excerpt": "右上角这一篇paper就做了一个实验啊 这个实验是这样子的 他们说如果你今天叫语言模型写一封信啊 然后呢他就写了一封信 然后接下来你给他feedback说 哎这封信呢不能这样写 你要写的更正式 看起来更professional 如果你给他这个FEB 然后接下来你把这个feedback放到前面去 大家注意哦 这个feedback是放到前面去之后 再看看他输出的这个句子 每一个token有什么样的变化 他发现把这个FEB放到前面去 当做一个后见之明 这一些套红色的token它的几率就下降哦 当我们要求模型要写一封信 写的更professional 写的更正式",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 4512.49,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_bbe669eb2027f657878775d2a6e62b2c",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.37880808115005493,
+      "end_time": 1670.82,
+      "excerpt": "他们用了supervised fine-tuning rl以及adversarial training 所谓的adversarial training就是用这种red teaming的方法 red teaming就是蓝队和红队 蓝队是防守 红队是攻击 所以红队会尝试去攻击这个模型 找出一些模型展现出不好的行为的一些例子 然后这些例子被拿过来当做adversarial training 加到这些方法的训练集里面 这个就叫做adversarial training 然后作者就发现一个 很重要的现象就是 哪怕经过了这个第二阶段的safety training ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 1558.5,
+      "subtitle_source": "human",
+      "title": "AI学会了装傻和欺骗！现有Safety Evaluation体系为何已经跟不上大模型发展？",
+      "unit_id": "transcript_chunk:bilibili:BV19BGD6aEb8:p1:chunk_3aab0ee70bec2532fed82466dd3c05b8",
+      "unit_type": "transcript_chunk",
+      "uploader": "EZ-Encoder",
+      "video_id": 48
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.37877270579338074,
+      "end_time": 929.64,
+      "excerpt": "然后后来就在国内的话 我就找了一下质朴也是可以的 质朴的一个模型也是可以做这个事的 然后还有一个就是computer use 这个是它把整个电脑的 就是把你的整个屏幕啊 怎么我就击打的好了好听 打这个还是这个比较好吧 大家静音一下吧 我来静音了 然后这个computer use子也是你 大家可以搜一下这个computer use 它就是把这个屏幕啊去截图 然后去AI去识别这个里面的元素 然后去按照坐标去点 但这个我暂时用不到呃 按照某种程度上其实是可以去用的 如果后面 但是我没有去很研究到computer的u er这个程度 我去研研究到computer ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 810.52,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_0c27edff83c389a221716d136c871e6e",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.3768448233604431,
+      "end_time": 119.58,
+      "excerpt": "Hello 大家好啊 我统计了一下我最近做AIA证开发的时间 结果发现了一件不太对劲的事情 我真正花在写代码 做设计上的时间只有10% 剩下的90%全都耗在了同样一件事情上 手动测试啊 我得点开网页 输入想要测的数据集 盯着A卷一步一步的跑 然后用人脑去判断 这一次他到底是变好了还是变坏了 而且这还不是最麻烦的 最麻烦的是AI agent 这个系统本身就不确定是吧 我有的时候只想改一个很小的行为 结果改了一句prompt 他就崩掉了 更让人没底的是 很多时候我连他到底有没有真的坏 都没有办法一眼看出来 那我只能再跑一遍 再跑一遍再跑一遍 然后感觉他到底是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 0.06,
+      "subtitle_source": "ai",
+      "title": "我做 AI Agent 一年,90% 在做表面功夫——直到我换了思路",
+      "unit_id": "transcript_chunk:bilibili:BV1o87764Ebs:p1:chunk_11ba986e8e262b050dc0698b7eff2873",
+      "unit_type": "transcript_chunk",
+      "uploader": "数字黑魔法",
+      "video_id": 6
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.37587738037109375,
+      "end_time": 6859.71,
+      "excerpt": "可能会觉得挺个呃 223周去排一个问题 这个问题还不知道是不是个问题 会不会对模模型之中训练产生影响啊 嗯可能是一个不太能接受的事情 但是在我们这我们认为它就是一个问题 我们就应该去解决它 因为我们没有那么清晰的一个说 我要发布的一个目标 你们没有带来 我没有没有带来 就我们觉得模型训好了 我们再发对呃 没有公司来的压力吗 没有 因为你们确实不是一个创业公司对吧 不会不是个创业团队 但实际上他就是个创业团队 我觉得嗯MIO和还有包括米克尔呃 呃能做成 其实都是以创业的方式在运作的 所以他才能做成嗯训一个1T的模型 对你的管理难度是不是指数性指数性的上升 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 6739.74,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_c104753c786dc27cc8bb19961f892aa5",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_d8a7bf25a28e378102f907e6a5d6e6dc",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1GHS1BzE6J",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/7cb4d3e78b3f6f72a7276b89a299bcdbc35fb62c.jpg",
+      "detail_url": "/videos/116/transcript",
+      "duration": 463.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "就是获取平均的一个误差 在回归任务中呢 比如说预测房价也好啊 啊预测股票具体数值啊 当然可以使用刚刚的四项啊 就用这个标准答案减去预测答案的方式 来计算误差 因为回归是将预测具体到一个数值上 但是为什么这个均方误差 损失函数需要平方一下呢 有三种原因 一种是从直观上来看 可以放大偏差啊 惩罚极端错误 比如说当你的误差较小的时候 比如误差为一啊 平方时候仍然就会比较小 对总损失的影响就有限 但是当误差较大的时候啊 平方就会啊嘎嘎猛增 这种特性呢就会迫使模型优先降低大的误差啊 避免出现这种极端离谱的预测 二呢就是它可以消除正负抵消啊 如果不平方 假设一个批次",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "别死记公式！8分钟带你通透损失函数本质！",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "算法魔法师",
+      "video_id": 116,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1GHS1BzE6J",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 223.76,
+          "anchor_segment_start": 221.7,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_d8a7bf25a28e378102f907e6a5d6e6dc",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 422.46,
+            "source": "ai_summary",
+            "start_time": 221.7,
+            "summary": "指出分类任务输出概率不宜用MSE，引入信息量的负对数概念，详细推导二分类交叉熵公式，并解释其如何根据真实标签分别惩罚预测概率。",
+            "title": "分类任务与交叉熵"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_d8a7bf25a28e378102f907e6a5d6e6dc",
+            "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_711b011d4cba546c1c9b9e0a2b52cc03"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            1,
+            42
+          ],
+          "duration": 233.62,
+          "excerpt": "而分类任务 为什么不能使用刚刚的这个MSE呢 很简单",
+          "jump_source": "exact_entity_term",
+          "jump_time": 221.7,
+          "jump_url": "https://www.bilibili.com/video/BV1GHS1BzE6J?t=221",
+          "matched_terms": [
+            "MSE"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 348.49,
+          "window_start": 114.87
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_e9039f78142c86a6e293cfc0cdb9a97e",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1rQ9JBoECh",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/48577666212277ddbe221199dfb838084b75fee7.jpg",
+      "detail_url": "/videos/103/transcript",
+      "duration": 1112.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "判断失败发生在什么阶段 是探索环境太慢 命令策略不对 上下文装载不足还是终止判断有问题 然后再提出针对性的结构修改 能举个最直观的例子吗 最直观的一个就是他在igetic coding 任务里学出的改进 先别急着干活 先把运行环境看清楚 mata harness继承了已有强baseline的主体 但自动加入了一段environment bootstrapping 一上来先收集当前目录 斜杠app文件语言和版本包管理器内存等信息 再把这些塞进起始上下文 这样模型就不用花前几轮在黑箱里摸索 我到底在哪儿 环境是什么 可以更快进入真正的问题求解 这真挺像一个有",
+      "matched_unit_count": 6,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 6,
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1rQ9JBoECh",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_e9039f78142c86a6e293cfc0cdb9a97e",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_e9039f78142c86a6e293cfc0cdb9a97e",
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_4c0fb8a330a262ce7fdf217ec473b51a",
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_3fdabc234219601bbe8c7df692ff9ace"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            3,
+            5,
+            31
+          ],
+          "duration": 352.75,
+          "excerpt": "判断失败发生在什么阶段 是探索环境太慢 命令策略不对 上下文装载不足还是终止判断有问题 然后再提出针对性的结构修改 能举个最直观的例子吗 最直观的一个就是他在igetic coding 任务里学出的改进 先别急着干活 先把运行环境看清楚 mata harness继承了已有强baseline的主体 但自动加入了一段environment bootstrapping 一上来先收集当前目录 斜杠app文件语言和版本包管理器内存等信息 再把这些塞进起始上下文 这样模型就不用花前几轮在黑箱里摸索 我到底在哪儿 环境是什么 可以更快进入真正的问题求解 这真挺像一个有",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 701.21,
+          "jump_url": "https://www.bilibili.com/video/BV1rQ9JBoECh?t=701",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1053.96,
+          "window_start": 701.21
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_f31ba479c01debec0820c50fb8f7613e",
+          "best_rank": 4,
+          "best_score": 0.015625,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_f31ba479c01debec0820c50fb8f7613e",
+            "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_a2c57c0ebf197a1251aa9d9e823da6c3"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            4,
+            8
+          ],
+          "duration": 236.72000000000003,
+          "excerpt": "进入第一个实验文本分类 这里他到底学出了什么样的harness 论文发现了一类很有代表性的memory based harness 核心共同点是不是固定few short 而是围绕当前样本动态查memory 动态组织证据 其中有两个很值得讲的代表 先讲第一个 第一个叫draft verification 流程是两步 第一步先从memory里取 和当前输入最相似的五个已标注样本 让模型给一个初步标签 第二步不直接结束 而是围绕这个draft label 再做一次更有针对性的检索 找五个支持当前标签的例子 再找五个不支持当前标签的challenges 然后让",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 466.36,
+          "jump_url": "https://www.bilibili.com/video/BV1rQ9JBoECh?t=466",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 585.86,
+          "window_start": 349.14
+        }
+      ]
+    },
+    {
+      "additional_window_count": 4,
+      "best_rank": 6,
+      "best_score": 0.015151515151515152,
+      "best_unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1iVoVBgERD",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d9c8cb358259ceb896a07e588506abee526dbc6f.jpg",
+      "detail_url": "/videos/90/transcript",
+      "duration": 12879.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+      "matched_unit_count": 7,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 7,
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "total_window_count": 6,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1iVoVBgERD",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+          "best_rank": 6,
+          "best_score": 0.015151515151515152,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            6
+          ],
+          "duration": 117.13999999999987,
+          "excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2324.32,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=2324",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2441.46,
+          "window_start": 2324.32
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_52af97b9babeecd2a1709f4a0aa51611",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_52af97b9babeecd2a1709f4a0aa51611"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 118.03999999999996,
+          "excerpt": "我只能说mouse 然后应该更主要挑战是 你在遇到遇在训练的历程当中遇到问题的时候 你怎么去去 我觉得第一步是你要发现问题对 就比如说很多团队会把lost bike 当做一个很正常的事情 但是我们可能会尽量的让他没有lost spike 对我们认为有loss back肯定会导致某一步的更新 嗯特别的不稳定 某些数值就异常值很大 就直接把某些参数 或者说某些expert给他给他打死 就是打死 就是参数更新过后 后面再也不会有export送到了 而再也不会有token送到expert上 所以那你中间就有需要很严密的监控的系统 就是你要去洞察这个模型 参数内部",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 6509.16,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=6509",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 6627.2,
+          "window_start": 6509.16
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1T21PBqErg",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c778e7f134bcef6ff0be47bf490738884124f86f.jpg",
+      "detail_url": "/videos/123/transcript",
+      "duration": 80139.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "好的 但需要注意这未考虑 推理成本 这简直 如何训练出最佳模型 无论模型有多大 因此这里存在一些限制 但无论如何这对模型开发极为有用 所以在本次任务中这有点像 嗯 你知道挺有趣的 因为我们定义了一个引号 未引号的训练API 你可以用特定超参数进行查询 你需要指定架构、批量大小等 我们会返回一个损失值 你 你的决策将获得 好的 你的任务是 你有一个FLOPs预算 你要尝试训练多个模型 然后收集数据 你需要将收集的数据拟合到缩放定律 然后提交你的预测结果 你知道你会选择什么 超参数 模型规模等 在更大规模下 好的 这里你需要 真的 我们希望让你处于这种位置 ",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "吴恩达大模型",
+      "video_id": 123,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1T21PBqErg",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b506429fe664d7aa444d0b5417a4e74f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 118.03999999999996,
+          "excerpt": "好的 但需要注意这未考虑 推理成本 这简直 如何训练出最佳模型 无论模型有多大 因此这里存在一些限制 但无论如何这对模型开发极为有用 所以在本次任务中这有点像 嗯 你知道挺有趣的 因为我们定义了一个引号 未引号的训练API 你可以用特定超参数进行查询 你需要指定架构、批量大小等 我们会返回一个损失值 你 你的决策将获得 好的 你的任务是 你有一个FLOPs预算 你要尝试训练多个模型 然后收集数据 你需要将收集的数据拟合到缩放定律 然后提交你的预测结果 你知道你会选择什么 超参数 模型规模等 在更大规模下 好的 这里你需要 真的 我们希望让你处于这种位置 ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2564.85,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=2564",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2682.89,
+          "window_start": 2564.85
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c",
+          "best_rank": 39,
+          "best_score": 0.010101010101010102,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_6664696d6f642fb2360310ed2632c01c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            39
+          ],
+          "duration": 117.98000000000002,
+          "excerpt": "可能没有替代大模型训练的办法 所以今天的情况是 至少对于前沿实验室来说 它们正面临数据约束 这很有趣，因为我认为设计决策将会彻底改变 我意思是计算资源永远重要 但我认为设计决策会改变 例如 你知道的 只用一个epoch训练数据 这似乎没什么意义 如果你有更多的计算资源 为什么不至少多跑几个epoch 或者做更智能的事情 或许会有不同的架构设计 例如 因为Transformer最初的设计动机 你知道的 是为了计算效率 嗯 这是值得思考的问题 依然围绕效率展开 但设计决策反映所处阶段 现在我要深入第一个单元 呃，这个单元 你知道的 在那之前 有没有问题 你们",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3482.93,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=3482",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3600.91,
+          "window_start": 3482.93
+        }
+      ]
+    },
+    {
+      "additional_window_count": 3,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_dfd7756040a4051a00978ce0aea1fcd3",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1atjU6KEJF",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/de1c269ba79e6a0b85c91daffcf945af32ab8a2e.jpg",
+      "detail_url": "/videos/12/transcript",
+      "duration": 4118.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "这个事情还是需要高级工程师来实现 当前未来之后 我觉得这个不好说 对对对对 所以现在就是这样 现在就是这个我这里不是一张图吗 我这给你看张图对 其实其实刚才我也非常认可你 你说这一块东西是我们这个团队呢 是偏这个西方 因为我们老板是西偏欧美的这个 所以我们呢一直是TDD这种模式 我们的测试用例 基本现在API我们基本上没有什么测试测试 就是上页面上点一点 我们基本上依赖AAPI 所以我们跑这个AI跑起来之后基本差不多 但是呢大家用的有人用JVM 有人用的COSER 有人用GPT 就这里面内部有些不同的团队 不同的组 就他的这技术站用的方法不一样 我觉得这",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "total_window_count": 5,
+      "unwindowed_chunk_count": 0,
+      "uploader": "少个分号",
+      "video_id": 12,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1atjU6KEJF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_dfd7756040a4051a00978ce0aea1fcd3",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_dfd7756040a4051a00978ce0aea1fcd3"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            9
+          ],
+          "duration": 118.44000000000005,
+          "excerpt": "这个事情还是需要高级工程师来实现 当前未来之后 我觉得这个不好说 对对对对 所以现在就是这样 现在就是这个我这里不是一张图吗 我这给你看张图对 其实其实刚才我也非常认可你 你说这一块东西是我们这个团队呢 是偏这个西方 因为我们老板是西偏欧美的这个 所以我们呢一直是TDD这种模式 我们的测试用例 基本现在API我们基本上没有什么测试测试 就是上页面上点一点 我们基本上依赖AAPI 所以我们跑这个AI跑起来之后基本差不多 但是呢大家用的有人用JVM 有人用的COSER 有人用GPT 就这里面内部有些不同的团队 不同的组 就他的这技术站用的方法不一样 我觉得这",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3256.16,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3256",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3374.6,
+          "window_start": 3256.16
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_796808c59d72ba8890b8b1a134464c5d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            20
+          ],
+          "duration": 119.0,
+          "excerpt": "我觉得就是过程中把它当成一个任务 任务执行完就丢弃就行了 我最终我看我用那个的目的 只是为了让我去跑一个一一整夜 一稳定的去跑一个一一整夜的任务 能不能稳定的输出 他用跑完我就估计丢弃掉了 因为我有可能会有一些at hook 零碎的一些修改啊 比如说调整啊 这个东西我是个很懒惰的人 我自然自己都很懒惰 做不到这种很强的约束 这个事情没不可能要让人去维护 这维护这没意义啊 因为什么你下次的需求跟这个东西 我觉得可能没有直接关系 顶多是这个模板 比如12345步对吧 你第一步是放那个一些需求啊 要不放一些编程规范等这些东西 可能我们要去慢慢去沉淀一些东西 就",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3604.0,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3604",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3723.0,
+          "window_start": 3604.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_1ab58e5eea618386e4b0120400e72f96",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ffTL6YEXj",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/cc9e3dd6b1abf9881d6fb53187509b6917b5e394.jpg",
+      "detail_url": "/videos/29/transcript",
+      "duration": 805.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "因为最终我们要去评估这个效果嘛 就是我们引入了一个方法 我们要评估这个方法引入的代价和效率 在在这里面 还有一个很重要的就是一个跨report的分析呃 这个是什么意思呢 就是说如果说这个项目 它只是一个额很小的一个项目 假如他只是一个仓库的项目 那你就所有东西都在这个仓库里面 但事实上现在很多服务它都是要分 比如说呃call最简单的嘛 你可能要分个前后端嘛是吧 你一个问题它可能是前端后端串起来的 那你这里面本质上你是一个跨report的一个分析 那你在这个跨report的情况下 那issue里面本质上就是做这个工具 我们里面涉及到的数据结构里面 就需要把",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Web3SecAnalysisT",
+      "video_id": 29,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1ffTL6YEXj",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_1ab58e5eea618386e4b0120400e72f96",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 696.42,
+            "source": "ai_summary",
+            "start_time": 279.02,
+            "summary": "深入实现细节：Issue监听方案、跨仓库分析、Agent环境与权限、效率评估指标与反馈机制。",
+            "title": "实现重点梳理"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_1ab58e5eea618386e4b0120400e72f96",
+            "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_647e4b62ec23d788650b66e47eb61344"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            11,
+            40
+          ],
+          "duration": 207.73999999999995,
+          "excerpt": "因为最终我们要去评估这个效果嘛 就是我们引入了一个方法 我们要评估这个方法引入的代价和效率 在在这里面 还有一个很重要的就是一个跨report的分析呃 这个是什么意思呢 就是说如果说这个项目 它只是一个额很小的一个项目 假如他只是一个仓库的项目 那你就所有东西都在这个仓库里面 但事实上现在很多服务它都是要分 比如说呃call最简单的嘛 你可能要分个前后端嘛是吧 你一个问题它可能是前端后端串起来的 那你这里面本质上你是一个跨report的一个分析 那你在这个跨report的情况下 那issue里面本质上就是做这个工具 我们里面涉及到的数据结构里面 就需要把",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 409.01,
+          "jump_url": "https://www.bilibili.com/video/BV1ffTL6YEXj?t=409",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 514.78,
+          "window_start": 307.04
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_0e3be5817a92c406de65cfb69468f1aa",
+          "best_rank": 38,
+          "best_score": 0.01020408163265306,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 279.02,
+            "source": "ai_summary",
+            "start_time": 91.53,
+            "summary": "详细讲解端到端流程：从Issue发现、Worker监听调度Agent分析、到人工审核确认并最终修复的完整步骤。",
+            "title": "系统架构与流程"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ffTL6YEXj:p1:chunk_0e3be5817a92c406de65cfb69468f1aa"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            38
+          ],
+          "duration": 100.241,
+          "excerpt": "小团队没有问题 然后稍微大一点的团队 我们有一些自动化的API测试的结果 然后报上去 或者说我的自动化的e to enter 吞的的这种测试结果 然后发现报上去 然后报上去了之后 然后这个issue里面这个worker 就是我们所说的这个小工具的worker 他就会检测到这个issue 检测到了这个英雄呢 他就负责什么 他可能会去负责调度对吧 他会调度一个这种对应的code n 这个code agent 比如code x啊 或者cloud code 然后让这个机器这个这个agent呢 它去与呃去下载对应的源代码 对应版本对应的仓库 然后再来他还会去下载对",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 100.819,
+          "jump_url": "https://www.bilibili.com/video/BV1ffTL6YEXj?t=100",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 201.06,
+          "window_start": 100.819
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV16GjU6jEdP",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/ce4f324e747cd9cd99459f2d943ea2a785c10094.jpg",
+      "detail_url": "/videos/35/transcript",
+      "duration": 639.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "skill mess的想法是先在验证集上花钱 把metal skill优化好之后 每个测试样本一轮生成my s 而不是像一些推理时方法那样 每个样本都重新搜索 迁移实验为什么重要 因为如果meta skill只在一个模型 一个任务上有效 它更像benchmark调参论文报告 同任务同模型的提升最大 大约7.14到9.53 同任务换模型仍有正迁移 同模型换任务也有正增益 最难的跨模型又跨任务增益最小 但仍是正数 这说明他真的学到了通用原则吗 只能谨慎地说 他学到了一部分可迁移的编排原则 比如多约束任务要并行收集证据 汇总节点要做一致性校验 复杂工具任务要先",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "[多Agent编排Skill自进化] 蚂蚁爆火论文-Skill-MAS：把多 Agent 编排能力写成可自动进化的 Meta-Skill",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 35,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV16GjU6jEdP",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 473.26,
+            "source": "ai_summary",
+            "start_time": 224.26,
+            "summary": "反思阶段对比同一任务高低分轨迹，定位编排决策分叉点，跨任务提炼 evidence package；Skill optimizer 依据证据修改对应模块并抽象为通用原则。",
+            "title": "反思诊断与证据驱动的优化"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_d351db7eb4a7611ecab15828cf5bd12c",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_f50b66ea6357920f044889e95e7a984b",
+            "transcript_chunk:bilibili:BV16GjU6jEdP:p1:chunk_93e1fdef81f943a02d48d87209b8637d"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            12,
+            15,
+            45
+          ],
+          "duration": 349.15,
+          "excerpt": "skill mess的想法是先在验证集上花钱 把metal skill优化好之后 每个测试样本一轮生成my s 而不是像一些推理时方法那样 每个样本都重新搜索 迁移实验为什么重要 因为如果meta skill只在一个模型 一个任务上有效 它更像benchmark调参论文报告 同任务同模型的提升最大 大约7.14到9.53 同任务换模型仍有正迁移 同模型换任务也有正增益 最难的跨模型又跨任务增益最小 但仍是正数 这说明他真的学到了通用原则吗 只能谨慎地说 他学到了一部分可迁移的编排原则 比如多约束任务要并行收集证据 汇总节点要做一致性校验 复杂工具任务要先",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 461.61,
+          "jump_url": "https://www.bilibili.com/video/BV16GjU6jEdP?t=461",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 579.98,
+          "window_start": 230.83
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 13,
+      "best_score": 0.0136986301369863,
+      "best_unit_id": "transcript_chunk:bilibili:BV1qhE26VEbS:p1:chunk_927b055c67ea1bdee73260733cdd0298",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1qhE26VEbS",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/9063f464caa9dd7a996ab0cb1052ff250a0b3072.jpg",
+      "detail_url": "/videos/51/transcript",
+      "duration": 265.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "不稳定的版本绝对不能上线，把这个策略写进了我们的流程里面，效果非常明显。 那还有一些我觉得比较ok的地方就是首先啊任务的描述在评测里面，任务描述一定要写的没有歧义，并且要非常参考答案啊。 因为你说清楚了，你觉得说清楚很多是模糊地带，我们后来搞一套模板，每个任务必须写清楚前置条件、输入格式、预期行为、边界情况，以及什么算通过，什么不通过。 而且正反案例都要测。 那这个虽然很朴素，但是很多人忽视，很多人只测正常流程，发现这个边界情况没人管，出问题才发现。 啊，我们专专门建了这个navigative test的case库啊，里面全都是给A定的挖坑场景。 比如说",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "我做Agent平台这一年，评测这关卡了我整整一个月",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "海云日记",
+      "video_id": 51,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1qhE26VEbS",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qhE26VEbS:p1:chunk_927b055c67ea1bdee73260733cdd0298",
+          "best_rank": 13,
+          "best_score": 0.0136986301369863,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 123.0,
+            "source": "ai_summary",
+            "start_time": 61.0,
+            "summary": "对比Pass k与Pass@k，前者测能力上限，后者测稳定性，通过知识问答案例说明两者差异巨大，并分享日常迭代与版更流程中如何使用双指标。",
+            "title": "评测指标：Pass k vs Pass@k"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qhE26VEbS:p1:chunk_927b055c67ea1bdee73260733cdd0298"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            13
+          ],
+          "duration": 119.07000000000001,
+          "excerpt": "不稳定的版本绝对不能上线，把这个策略写进了我们的流程里面，效果非常明显。 那还有一些我觉得比较ok的地方就是首先啊任务的描述在评测里面，任务描述一定要写的没有歧义，并且要非常参考答案啊。 因为你说清楚了，你觉得说清楚很多是模糊地带，我们后来搞一套模板，每个任务必须写清楚前置条件、输入格式、预期行为、边界情况，以及什么算通过，什么不通过。 而且正反案例都要测。 那这个虽然很朴素，但是很多人忽视，很多人只测正常流程，发现这个边界情况没人管，出问题才发现。 啊，我们专专门建了这个navigative test的case库啊，里面全都是给A定的挖坑场景。 比如说",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 113.52,
+          "jump_url": "https://www.bilibili.com/video/BV1qhE26VEbS?t=113",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "asr"
+          ],
+          "window_end": 232.59,
+          "window_start": 113.52
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 14,
+      "best_score": 0.013513513513513514,
+      "best_unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_27387e888ab196c8f2e8f4c1395c4b6b",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1nkdqByEtR",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/299e5ac9fcbae732dbdaa65cad78b61fe3a3e8df.jpg",
+      "detail_url": "/videos/96/transcript",
+      "duration": 5541.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "所以他有事没有用好 他后来又去找了其他他觉得笨的模型 比如说呃什么ggemini flash啊 什么那个呃呃呃g p t for all mini啊 啊 再通用同样的这个A卷 点ND看起来是没有用的 所以没有做跨LLN的实验 然后呢今天我们做的task每次都是一样的 所以你其实这一天对A卷来说 他完全可以去over feat这个task 如果今天小金想要作弊的话 看起来是没有了 如果他想要作弊的话 他就直接告诉海古说 等一下看到这个问题 你就输出这个答案再存到档案里面 不要再自己想 然后就这样就可以得到100分的分数啊 如果如果小心自己就知道答案的话 那",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1nkdqByEtR",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_27387e888ab196c8f2e8f4c1395c4b6b",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_27387e888ab196c8f2e8f4c1395c4b6b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            14
+          ],
+          "duration": 94.82999999999993,
+          "excerpt": "所以他有事没有用好 他后来又去找了其他他觉得笨的模型 比如说呃什么ggemini flash啊 什么那个呃呃呃g p t for all mini啊 啊 再通用同样的这个A卷 点ND看起来是没有用的 所以没有做跨LLN的实验 然后呢今天我们做的task每次都是一样的 所以你其实这一天对A卷来说 他完全可以去over feat这个task 如果今天小金想要作弊的话 看起来是没有了 如果他想要作弊的话 他就直接告诉海古说 等一下看到这个问题 你就输出这个答案再存到档案里面 不要再自己想 然后就这样就可以得到100分的分数啊 如果如果小心自己就知道答案的话 那",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 5445.34,
+          "jump_url": "https://www.bilibili.com/video/BV1nkdqByEtR?t=5445",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 5540.17,
+          "window_start": 5445.34
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_bbe669eb2027f657878775d2a6e62b2c",
+          "best_rank": 46,
+          "best_score": 0.009433962264150943,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_bbe669eb2027f657878775d2a6e62b2c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            46
+          ],
+          "duration": 118.60000000000036,
+          "excerpt": "右上角这一篇paper就做了一个实验啊 这个实验是这样子的 他们说如果你今天叫语言模型写一封信啊 然后呢他就写了一封信 然后接下来你给他feedback说 哎这封信呢不能这样写 你要写的更正式 看起来更professional 如果你给他这个FEB 然后接下来你把这个feedback放到前面去 大家注意哦 这个feedback是放到前面去之后 再看看他输出的这个句子 每一个token有什么样的变化 他发现把这个FEB放到前面去 当做一个后见之明 这一些套红色的token它的几率就下降哦 当我们要求模型要写一封信 写的更professional 写的更正式",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 4512.49,
+          "jump_url": "https://www.bilibili.com/video/BV1nkdqByEtR?t=4512",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 4631.09,
+          "window_start": 4512.49
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 16,
+      "best_score": 0.013157894736842105,
+      "best_unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1gmWDeLEMZ",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d17a8f57b7e50a3f5f3d8283139aabb6909d6b3f.jpg",
+      "detail_url": "/videos/32/transcript",
+      "duration": 803.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "不需要计算的标志为零 这样最后我们在计算loss时 每个位置的loss乘以loss mask 就忽略掉了那些不需要计算loss token 下边是具体的代码实现 他肯他根据开始回答部分的特殊token 来确定需要计算lost的token的位置 比如这里对于lama3.1 他开始回答部分前面的token序列就是start head id Assistant End head id 两个换行符 根据这个to特殊的token序列 就可以找到维达的起始位置 西数位置后面的都是需要计算loss的token loss mask为一 前面的都是不需要计算loss的 t",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "RethinkFun",
+      "video_id": 32,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc",
+          "best_rank": 16,
+          "best_score": 0.013157894736842105,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 505.0,
+            "source": "ai_summary",
+            "start_time": 279.0,
+            "summary": "阐述Completions Only的原理、loss mask生成方法及完整训练代码实现。",
+            "title": "仅对回答部分计算损失（Completions Only）"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            16
+          ],
+          "duration": 117.209,
+          "excerpt": "不需要计算的标志为零 这样最后我们在计算loss时 每个位置的loss乘以loss mask 就忽略掉了那些不需要计算loss token 下边是具体的代码实现 他肯他根据开始回答部分的特殊token 来确定需要计算lost的token的位置 比如这里对于lama3.1 他开始回答部分前面的token序列就是start head id Assistant End head id 两个换行符 根据这个to特殊的token序列 就可以找到维达的起始位置 西数位置后面的都是需要计算loss的token loss mask为一 前面的都是不需要计算loss的 t",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 349.33,
+          "jump_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ?t=349",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 466.539,
+          "window_start": 349.33
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_3ee8d51177255e543443e166ef022416",
+          "best_rank": 37,
+          "best_score": 0.010309278350515464,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 698.0,
+            "source": "ai_summary",
+            "start_time": 505.0,
+            "summary": "介绍NEFTune的思想、数学实现和实验效果，展示代码集成方式。",
+            "title": "NEFTune：向Embedding添加噪声的微调方法"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_3ee8d51177255e543443e166ef022416"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            37
+          ],
+          "duration": 117.86099999999999,
+          "excerpt": "变成和它相近的token 这样就相当于增加了你样本的丰富度 从而最终提高模型的精度和泛化性 它的实现很简单 首先有一个噪声系数阿尔法 它可以调节增加噪声的强度 然后对input id进行引MBEDDING 计算序列的维度 就是序列的长度乘以每个token的维度 然后用噪音系数阿尔法除以序列维度的开方 这里为什么要除以序列维度的开方呢 你可以理解为 最终是计算一个序列和加了噪音的序列 它们在空间里的欧式距离 而这个空间就是由序列维度构成的 除以序列维度的开方 就是为了让不同序列长度的文本 它们和自己加了噪声的样本的欧式距离 都是一样的 不会因为序列的长度不",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 579.909,
+          "jump_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ?t=579",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 697.77,
+          "window_start": 579.909
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 41.313,
+      "chapter_ms": 1.234,
+      "grouping_ms": 0.067,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 74.727,
+      "total_ms": 119.494
+    },
+    "raw": {
+      "dense_ms": 68.448,
+      "fusion_ms": 4.934,
+      "lexical_ms": 0.771,
+      "planning_ms": 0.018,
+      "total_ms": 74.69
+    }
+  },
+  "trace_id": "08e7106e-465d-494d-b7a6-2f04a6dc0c3c",
+  "trace_persisted": false
+}

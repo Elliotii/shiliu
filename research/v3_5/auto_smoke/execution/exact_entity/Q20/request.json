@@ -1,0 +1,10 @@
+{
+  "filters": {
+    "marked": true
+  },
+  "max_windows_per_video": 2,
+  "mode": "auto",
+  "query": "vibe coding",
+  "result_limit": 10,
+  "scope": "all"
+}

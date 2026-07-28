@@ -1,0 +1,28 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "active_candidate_design": "adaptive_bounded_coverage_swap_v1",
+  "authority_updates": [
+    "V3_5_CURRENT_STATE.md",
+    "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+    "02_PRODUCT_QUERY_SET_AND_REMAINING_V3_5_PLAN.md"
+  ],
+  "execution_status": "complete",
+  "input_identity": {
+    "amendment_ledger_sha256": "a35df94c09e6d7d2be7363b21ed999007a735ff449b71b1e21575bc040ac93f4",
+    "amendment_task_sha256": "a650b92b3cde973ebbec78ccf315e1e14077192d22fa0c6c9d5a5ef4e242a162",
+    "original_candidate_design_sha256": "8e591d14163178bb5ab6ad4c446324c7baaa9184773709403c20dbe409f7bad7",
+    "p9_completion_response_sha256": "b71a3b1d4fdebb036e6421bdb5e1be68b82732a5e6d5e15b7d05f77b6649616c",
+    "p9_decision_sha256": "98561230262305f6a5972412d610ad115d03e74c722bfc6181e885bf2762dfe4",
+    "p9_hash_manifest_sha256": "ca62384ef3bef10953195198497c226299cb49351cd1a780d282d847b075c3f0"
+  },
+  "outputs": [
+    "P9_CANDIDATE_DESIGN_AMENDMENT_REPORT.md",
+    "p9_candidate_design_amendment.json",
+    "f1a_candidate_design.amended_v1.json",
+    "p9_candidate_design_amendment.audit.json",
+    "p9_candidate_design_amendment.execution_decision.json",
+    "V3_5_P9_CANDIDATE_DESIGN_AMENDMENT_LEDGER.json"
+  ],
+  "p9_candidate_design_amendment_status": "execution_candidate_ready",
+  "schema_version": "v3.5-b-p9-candidate-design-amendment-manifest-v1"
+}

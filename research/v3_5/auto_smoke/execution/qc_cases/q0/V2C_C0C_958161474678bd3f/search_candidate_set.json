@@ -1,0 +1,1854 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "SFT 中 completion-only 和 NEFTune 各有什么作用,选择与调参时有哪些风险?",
+    "planned_mode": "hybrid",
+    "query_type": "semantic_question",
+    "raw_query": "SFT 中 completion-only 和 NEFTune 各有什么作用，选择与调参时有哪些风险？",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "semantic_question_dual_signal",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.6678212285041809,
+      "end_time": null,
+      "excerpt": "[Title] 大模型微调看这个视频就够了 SFT NEFTune [Uploader] RethinkFun [Description] 大模型微调看这个视频就够了。包含ChatTempate，Completion Only，NEFTune，SFTTrainer的讲解和代码实现。 视频代码：https://github.com/RethinkFun/sft/tree/main [Summary Conclusion] 本视频系统讲解了大模型指令微调（SFT）的核心技术：保持Chat Template一致性、仅对回答部分计算损失（Completions ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "video:bilibili:BV1gmWDeLEMZ:p1",
+      "unit_type": "video",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.6521039009094238,
+      "end_time": 119.31,
+      "excerpt": "今天我们来讨论一下大模型的质量微调 或者叫做监督微调 supervised的FTWING 我会讲以下三个方面的内容 1chat template对话模板 2completions only 只针对回答的微调 3n e f tune给embedding增加噪音的微调 最后我会讲 如何利用TRL库里面的s f t trainer类 来对大模型进行微调 指令微调是在大模型预训练之后的微调过程 大模型几乎所有的能力都是在预训练时获得的 但是预训练后的模型 还不知道如何表达自己的知识 他只会根据你提供的上文继续续写下文 比如你问他中国的首都在哪里 他可能接着续写美",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_042a1c9a7eb102f8e51b2f742253789c",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.5944404602050781,
+      "end_time": 351.59,
+      "excerpt": "那么它就会生成如下的token 它会在后面加上标记为蓝色的这一部分 让大模型来生成接下来的答案 最终大模型输出答案和序列终止符 好的 我们来看一下最简单的指令微调的代码实现 首先加载TOGANIZER和model 定义优化器 然后生成一个对话数据 通过TOORGANIZER应用chat template 设置label等于input 然后模型前向传播 获取loss 反向传播优化参数 保存模型 指令微调的第二个技巧是completions only 我们输入给大模型的是整个对话 他会对整个对话的文本进行学习 刚才简单的训练过程 他会对每个输出的token计",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 232.04,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_386e070db10447e2292db10d43dbbd41",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.5893794894218445,
+      "end_time": 802.76,
+      "excerpt": "后面的代码基本不变 上边讲了这么多 是为了让你了解大模型SFT的原理 实际上你并不要写 并不需要写这么多的代码 alin face的TRL库里面集成了SFTTRAINA 它集成了这些功能 你只需要通过简单的配置就可以实现 并且能够适配accelerator进行分布式训练 我们来看一下代码 首先我们需要准备好数据 s f t china默认支持的数据格式是字典格式 其中有两个元素 一个是prompt 一个是completion 我们需要将我们的数据改成这种格式 然后构建一个DATASET这样的数据 它在进行训练时 s f t train呢会自动利用toke",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 695.04,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea1132e1cb8fec6a416cf9a5e4f392ae",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.5873823761940002,
+      "end_time": 119.23,
+      "excerpt": "在大模型应用中 我们经常会听到一个词微调 那什么是模型微调呢 简单来说就是在一个已经训练好的大模型上 用新的数据继续训练 让他获得新的能力或者新的行为方式 模型微调可以大致分为两类 继续训练和行为微调 继续训练主要是让模型掌握新的领域知识 而行为微调则更关注模型怎么做事 他改进的是模型的行为和能力 让他在执行任务时更加稳定可靠 或者符合特定风格 本期视频我们来聚焦其中 最基础也是最常用的一种行为微调 Supervise fine tuning s f t 帮助模型学会用动漫角色的语气风格 来回答问题 我们整个开发过程会在英博云平台上完成 让贫穷的up主也",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 0.34,
+      "subtitle_source": "ai",
+      "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+      "unit_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_38fa385b0e719013d011da1b64dc1a51",
+      "unit_type": "transcript_chunk",
+      "uploader": "认真工作的JIA",
+      "video_id": 117
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.574233889579773,
+      "end_time": 581.829,
+      "excerpt": "然后按照我们刚才讲过的方法生成loss mask 然后进入训练循环 从data loadad里加载的数据 它包含输入的input 同时包含输出token的lost mask 这里得到模型输出的log 因为对于最后一个位置的输出 我们没有label 所以去掉它 input左移移位 得到label 然后计算loss 计算出loss后乘以los mask 求loss的均值 得到最终的loss反向传播优化参数 关于指令微调 我们再讲最后一个知识点 那就是n e f tn 也就是noisy embedding ftwing 在计算机视觉领域 数据增强是一个很重要的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 462.419,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_3b019dfd346fab225f55c7e91cd6a59a",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.5689386129379272,
+      "end_time": 7674.97,
+      "excerpt": "我们希望它模型在skinning它的它的水平的上限 所以我们是比较去控制住这个效率本身的 但控制住效率本身 后面在建的时代 也有一个更更有价值的一个事情 就是那既然与这个更大模型 它的常温效率很高 对吧哈 那我就可以塞更多的上下文 然后他就又更强 对 所以大概就是呃一个这样的一个 一个决策的一个背景 对于这个ET的某基座 你们的几个决策 第一个是混合助力机制 刚才我们聊过了呃 然后再就是em的上下文窗口 这个在做的时候是否有丢失的情况 呃YM他是要还是要训的 就是长沙新闻他还是要训练的 就问题有关键是你从哪儿真的去搞到 在一兆的上下文的窗口里边儿去嗯 有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 7555.33,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_592c2ff84a1fdd3fbf36ddd9c5aaa35b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.5595289468765259,
+      "end_time": 12665.52,
+      "excerpt": "去找到一种可skin的方式 去把他这个嗯这个边界给补充回来 有可能是呃呃去构造一批更强的数据诶 以及更强的环境 让它能够嗷嗷训练起来 然后呃有可能是for for bug到预训练的某个环节 可能这批数据没做好 我给我把这个数据给他补上 这一类的数据给它补上 那么可能我下次去模型的时候会更好 总之就是呃更在乎模型体验的人 更跟模型交互的频次更高的人 嗯嗯他会非常适应这个范式 因为因为我我我觉得这个迭代是有价值的 就如尤其是那些维护了自己 很多私有的测试库的人 然后他疯狂去测不同模型的边界 然后呃呃突然发现某个模型嗯强了 然后呃然后分享出来自己这种独特体验的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 12546.51,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_376887816e2330393e358602187165dc",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.54793781042099,
+      "end_time": 6627.2,
+      "excerpt": "我只能说mouse 然后应该更主要挑战是 你在遇到遇在训练的历程当中遇到问题的时候 你怎么去去 我觉得第一步是你要发现问题对 就比如说很多团队会把lost bike 当做一个很正常的事情 但是我们可能会尽量的让他没有lost spike 对我们认为有loss back肯定会导致某一步的更新 嗯特别的不稳定 某些数值就异常值很大 就直接把某些参数 或者说某些expert给他给他打死 就是打死 就是参数更新过后 后面再也不会有export送到了 而再也不会有token送到expert上 所以那你中间就有需要很严密的监控的系统 就是你要去洞察这个模型 参数内部",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 6509.16,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_52af97b9babeecd2a1709f4a0aa51611",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.5466185212135315,
+      "end_time": 224.96,
+      "excerpt": "你所以说你的硬般马提示词没有用，就是我们在A的回答中加个自检步骤，对吧？ 他需要计算当前轮次和用户轮次的语义向上距离，如果说超过阈值就触发自纠偏，嗯，然后呢这个细节这个阈值怎么弄？ 非常敏感。 如果说他聊着被截断了，没有旧偏对吧？ 那我让这个A键自己去调自调参的路谱，就是让他在物触发力不超百分5前下把漂移纠正其10。 那这个其实上线之后，我们跑这个基本上收敛的非常的真实了。 啊，第三个时间就是说我们在内容生成A进的绘画一致性的可控啊嗯就说agent内容生成的agent它可能性格就会避致，比如说他回答用户的一个非常专业的这种问题。 对吧？ 下然后。 如果再",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 112.52,
+      "subtitle_source": "asr",
+      "title": "Loop Engineering开发实践，我和团队是怎么在工作中落地的",
+      "unit_id": "transcript_chunk:bilibili:BV1xQ7K6CESQ:p1:chunk_a77256356674cf34926acb59edc8977b",
+      "unit_type": "transcript_chunk",
+      "uploader": "海云日记",
+      "video_id": 141
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.5464640855789185,
+      "end_time": 2772.97,
+      "excerpt": "这样子的工作流程呢比较适合cloud sony 因为他们说sn cloud sony呢有上下文焦虑 那这是一个很拟人化的讲法啦 他们说这SONY这个模型呢 当他发现他的contest window快用尽的时候 他就展现出一种焦虑的情绪 他就开始发疯 事情乱做 想要尽快结束手上的工作 所以你需要用这样子的工作流程 来确保他现在的输入不会太接近他的context window 但是后来cow有了比较强的模型 就是opus s 他们就说如果是opus s的话 他们就可以把上面这种工作流程丢掉 可以一路莽下去 一路做下去哦 所以其实honeys啊并不是一个固定不",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 2656.78,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_03ff5272f8b466a53c170980ff476464",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.5456944704055786,
+      "end_time": 235.05,
+      "excerpt": "test是parameter efficient ftining的缩写 我们微调要用到的LAURA就是来自这个库 TRL是专门用于大模型微调的工具库 让我们可以更方便的做指令微调 accelerate就用管理多GPU或混合精度训练 让模型训练更高效 安装完成 我们就可以正式开始加载模型和数据了 还记得我们刚才复制的模型路径吗 我们直接从这个路径来加载预制好的模型 Metro chib and struck 这会花一点时间 我们稍微加速一下 加载完成 我们先简单测试一下 比如问他 who are you可以看到模型 回答a miral an languag",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 115.87,
+      "subtitle_source": "ai",
+      "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+      "unit_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_85bdf23bc67aee619f26c2a49953d21e",
+      "unit_type": "transcript_chunk",
+      "uploader": "认真工作的JIA",
+      "video_id": 117
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.5451170206069946,
+      "end_time": 4631.09,
+      "excerpt": "右上角这一篇paper就做了一个实验啊 这个实验是这样子的 他们说如果你今天叫语言模型写一封信啊 然后呢他就写了一封信 然后接下来你给他feedback说 哎这封信呢不能这样写 你要写的更正式 看起来更professional 如果你给他这个FEB 然后接下来你把这个feedback放到前面去 大家注意哦 这个feedback是放到前面去之后 再看看他输出的这个句子 每一个token有什么样的变化 他发现把这个FEB放到前面去 当做一个后见之明 这一些套红色的token它的几率就下降哦 当我们要求模型要写一封信 写的更professional 写的更正式",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 4512.49,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_bbe669eb2027f657878775d2a6e62b2c",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.54319828748703,
+      "end_time": 5820.81,
+      "excerpt": "理解更多contest的时候 那么你的潜力就越高 这个跟原来差的的这个方式是完全不一样 因为全原来差的方式 他的contest就是人输的 人输的就是很短 所以他纯靠这个预训练 但是ASIAN这个范式他他就是很很吃post train嗯 你对框架理解对 对于怎么去呃 呃所有多一些的写作啊 乱七八糟也好 反正反正他他他他你可以理解为 就是我们在post tra上要去投入的 算你嗯会可能跟培训是相当的 所以你这个时间周期再拉长 那么呃在一个呃呃 你比如说你post train要做半年或一年的场景下 那么你前半年去假定了非常多的东西 它可能是失效的 嗯就你假定要",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 5701.61,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_3f0b6ce253001cf55bb6e5783dec10fa",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.5431783199310303,
+      "end_time": 5540.17,
+      "excerpt": "所以他有事没有用好 他后来又去找了其他他觉得笨的模型 比如说呃什么ggemini flash啊 什么那个呃呃呃g p t for all mini啊 啊 再通用同样的这个A卷 点ND看起来是没有用的 所以没有做跨LLN的实验 然后呢今天我们做的task每次都是一样的 所以你其实这一天对A卷来说 他完全可以去over feat这个task 如果今天小金想要作弊的话 看起来是没有了 如果他想要作弊的话 他就直接告诉海古说 等一下看到这个问题 你就输出这个答案再存到档案里面 不要再自己想 然后就这样就可以得到100分的分数啊 如果如果小心自己就知道答案的话 那",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 5445.34,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_27387e888ab196c8f2e8f4c1395c4b6b",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.5407190322875977,
+      "end_time": 6283.09,
+      "excerpt": "嗯也不早起 我们我们训了就发了 所以你们看到的时候也就是我们呵嗯对嗯 没没有规划 很早 我们基本上大部分的模型的训练 都是在下半夜进行的 对嗯去年的下半年对嗯嗯从flash到pro 你对pro的预期是什么样的 嗯哦当然那是同一时间 嗯对就是两个模型同步训练 我们相信这一代的架构是没问题的 只是我们在训pro的中组的过程中 去解决了非常多的呃 比如说训练数值的不稳定性 对啊这个是训跟ET参数量级的模型 通常会遇到的很struggle的问题 对你老老训着训着lose back 脑顺手顺着OK哎某个激活值很大 然后那你要考虑怎么去呃 呃或者说某些expert呃",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 6163.21,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_093107d767effbced5a78270d960d279",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.5401862859725952,
+      "end_time": 1871.84,
+      "excerpt": "一些科学的假设没有做对 就说你选什么样的token horizon 就是每每一个大小的模型 选什么样的这个这个期待的训练的数据量 然后怎么这个数据量呃 是呃这个数据是从哪里选 然后额有可能是这些比较科学的选择 没有选清楚是一种可能性 但我觉得还有一种可能性就是纯粹有个bug 这个其实在业界我觉得也不惊奇 很多时候修好一个bug 带来的进展是远大于一些很很神奇的技巧的 对哦 然后呃当然还有另外的的情况 我就我就刚才改给的这两种例子 反正是我见到过比较比较多的情况 那你们的bug怎么办 你们怎么解决bug问题的 我觉得我感觉这更像是一个信念的问题 因为当你遇",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 1752.02,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5eaaf1fd99a5457f5a48870c8b126e7a",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.5393478274345398,
+      "end_time": 815.1,
+      "excerpt": "他更像是一个产品 他懂得好多呀 然后设置这里啊 模型设置就是设模型参数 这你们研究一下 如果你只是本地用 你就选这个 如果你希望在局域网里还给别人用 那你就选这个0.0.0对吧 然后模型目录你可以改 然后这个很关键 就是你的这个冷存储现在是设能设置多少 根据你的SID的大小吧 然后热缓存限制就是内存缓存 我现在是不限的 然后你的内存总量的限制 我现在开到80% 如果你的内存大一点 你这可以再给他更充裕一点 然后接下来我给大家讲一个特别 我觉得特别好的 就是基准 这啥基准呢 就是它是一个做测评的 它能测评这个模型的多并发 还有它不同上下文的生成速度 哎我觉",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 695.39,
+      "subtitle_source": "ai",
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_5dd638a3ef57765fce39a0a4f469db91",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 119
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.5378230810165405,
+      "end_time": 463.52,
+      "excerpt": "沉淀成skill 然后投入到日常的生产开发中 这个过程给我的最大感受是 团队级别的skill和个人web coding完全不是一回事 个人web coding的时候其实容错率是很高的 你可以临时补充上下文 看到结果不对之后 立马去修改PRT 也可以不断重试 一直到他给你一个满意的结果 但是在团队生产环境里面 skill本身就要承担更多的责任 尽量让不同的人在使用的时候 产出的结果是稳定的 这里面就会遇到很多边界问题 比如一个很经典的问题就是上下文膨胀 如果你把所有的流程约束都写在一个print里面 整个上下文就会变得非常长 模型的注意力就会被稀释 大模型",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 346.87,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.5339846611022949,
+      "end_time": 919.01,
+      "excerpt": "就比如说kv cash相关的对吧 一些常见的配置attention啊 然后REDATTENTION啊 还有prefix ication啊 对吧 常见的一些考点 然后还有server部分呢 SL部分的话 其实一部分就是continue speching 还有一些类似于像trunk trunk的PREFAIL 我这里面简单说一下 我就防止有的宝子可能没听过 continuous spin的意思 就是说嗯它是和静态的批处理相对应的 我们普通人叫static batching 就是static batch的意思 就是说我们会收集固定数量的请求 组成批次对吧 然后",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 801.0,
+      "subtitle_source": "ai",
+      "title": "llm氪普课-ai infra入门所需知识完整梳理",
+      "unit_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_371f3db93a08310a5f77a29aa6a9ad16",
+      "unit_type": "transcript_chunk",
+      "uploader": "llm氪ke普课",
+      "video_id": 76
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.5335626602172852,
+      "end_time": 3263.97,
+      "excerpt": "示例就足以让基础模型获得指令遵循能力 优质基础模型 好的 这部分其实非常 简单易懂 和预训练其实没有太大区别 因为只是处理文本 并最大化文本概率 嗯 所以第二阶段从算法角度看 更有趣 嗯 从算法视角 即使经过SF阶段 模型也会表现不错 现在如何进一步提升呢 可以获取更多SFC数据 但这成本很高 因为需要 知道 让人手动标注数据 因此反馈学习的目标是 利用更轻量的标注形式 嗯 让算法承担更多工作 好的 一种可学习的数据类型是偏好数据 这里会为给定提示生成多个响应 如A或B 让用户判断A或B哪个更好 然后根据用户评分进行学习 因此数据可能看起来就像它生成了 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 3144.93,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_3d16fa460eb363360ce7211059265e45",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.5312469005584717,
+      "end_time": 698.48,
+      "excerpt": "因为你这样的方式去调用是非常自由的 你的提示词想怎么写都行 这个调用指令的格式以及函数描述的格式 都是由开发者自己去设计的 如果说开发者对于大模型并不太熟悉的话 很有可能它的这个提示词的效果并不是很好 但其实这个问题也有办法去解决呀 如果大家都有这个function calling的共性的需求 那么能不能把这些事情都交给 大模型的提供商去兜底 比如说我直接在系统内部去写死一些 function calling的提示词等等 最后一个问题就是你这样去调用 你每次都要传这个system prompt 并且你为了保证逻辑正确 你往往还需要在这里附加很多很多的说明",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 580.36,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_0774408f25e6712282104cb9db8923e3",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.5310549139976501,
+      "end_time": 699.3,
+      "excerpt": "adapter model和adapter config 其中adapter model里存放的就是我们训练得到的 LAURA参数 adapter config则保存了NOVA的配置信息 确保后续加载时 可以正确的把adapter重新挂载到基础模型上 这样在未来使用时只需要加载原始模型 再加载这个ADAPTOR 就可以直接得到训练后的动漫人格版本了 而不需要重新去训练整个模型 下面我们来测试一下模型的效果 我们还是问同一个问题 Tell me with gravity 为了方便测试 我们定义一个函数 Chat with personality 来自动把人",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 581.099,
+      "subtitle_source": "ai",
+      "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+      "unit_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_0e63daefe0a1c5027e5ca756a4dc6700",
+      "unit_type": "transcript_chunk",
+      "uploader": "认真工作的JIA",
+      "video_id": 117
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.5308965444564819,
+      "end_time": 2432.41,
+      "excerpt": "给他正面的例子比给他负面的例子要好 也就是说具体而言 提供给他过去哪些类似的问题得到正确答案 被B提供给他过去哪些问题得到错误的答案 还更有效 还更能引导模型得到正确的答案好 那这边是真正的实验 结果做在好几个不同的data set上面 string bench里面本来就包含了好几个不同的data set 那这个纵轴呢零代表完全没有做 完全没有根据经验调整行为 然后蓝色代表说 不管是正面还是负面的例子都用 如果不管正面还是负面的例子 都用在多数情况下 模型都可以表现的比较好 当然有一些例外 但是如果只用负面的例子呢 如果只用负面的例子 基本上是没有帮助 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 2314.87,
+      "subtitle_source": "ai",
+      "title": "LLM大模型入门！一口气带你学完AI agent、transformer、LangChain 、RAG 等大模型核心知识点！简直不要太爽！",
+      "unit_id": "transcript_chunk:bilibili:BV11nSjB2ErQ:p1:chunk_4687a4ac47444823f5a77befe98650d5",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅-机器学习课堂",
+      "video_id": 124
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.5279837846755981,
+      "end_time": 469.11,
+      "excerpt": "就不要让模型每次重新发明 比如解析日志 检查文件格式 转换数据 生成固定结构 跑验证脚本 一句话给模型可组合的代码 不要让它每次重建代码 references放重型知识 比如API错误码 行业规则合规说明 但不要让模型一上来全读 例如如果API返回非200再读API杠errors点MD 这叫条件加载assets 放模板和schema 他们可以把输出结构固定住 减少生成漂移 Config jason 放首次运行的用户设置 比如默认频道 默认项目 默认仓库 第一次问保存以后复用 所以skill层级结构不是文件整理 它是在设计模型的导航路径 什么信息必须马上给",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 350.02,
+      "subtitle_source": "ai",
+      "title": "Perplexity：你这样写 Skill，就是造垃圾——精读perplexity《Designing, Refining…Skills…》②",
+      "unit_id": "transcript_chunk:bilibili:BV1rb5y6wEJV:p1:chunk_82d00595f918c9e800a71fe526aaae55",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 61
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.5279527902603149,
+      "end_time": null,
+      "excerpt": "[Title] 【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格 [Uploader] 认真工作的JIA [Description] 这期视频，我们用 12 分钟完整跑了一遍大模型的微调流程：通过 SFT + LoRA 给大语言模型注入动漫人格，让模型学会用傲娇、病娇、元气、笨蛋娇等不同角色语气回答问题。从模型加载、数据准备、LoRA 参数配置到实际训练和效果测试，全流程实战演示，带你快速理解如何定制 LLM 的行为风格。 [Summary Conclusion] 通过SFT（监督微调）配合LoRA（低秩适配），",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+      "unit_id": "video:bilibili:BV1UaPmzrESw:p1",
+      "unit_type": "video",
+      "uploader": "认真工作的JIA",
+      "video_id": 117
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.5276707410812378,
+      "end_time": 821.01,
+      "excerpt": "他这个意思表达够不够明确 包括ogenttic rag中 他如果检索到的呛可回答的那种并不全面 还会做多次检索 生成多个query 就是更加灵活的一个rag 当然它可能会升牺牲一些实操性 但是它会能极大的保证那种正确知识的命中率 下面是一个系统中的取舍嘶 其次就是模型微调呃 这一块就是其实呃 比方说你的查询重写模块一般都是用一个小一 一般都是用一个小模型去做这样一个事情 而这样一个小模型 他的那种评测集和结果一般都是可以打标 打的比较固定的 就是你希望什么样的query 去命中什么样的chunk 和命中什么样的这种问子问题 这种情况就他的数据集比较确定的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 702.51,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_d72012964d580f8b66161fb429d0e849",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.5271873474121094,
+      "end_time": 697.77,
+      "excerpt": "变成和它相近的token 这样就相当于增加了你样本的丰富度 从而最终提高模型的精度和泛化性 它的实现很简单 首先有一个噪声系数阿尔法 它可以调节增加噪声的强度 然后对input id进行引MBEDDING 计算序列的维度 就是序列的长度乘以每个token的维度 然后用噪音系数阿尔法除以序列维度的开方 这里为什么要除以序列维度的开方呢 你可以理解为 最终是计算一个序列和加了噪音的序列 它们在空间里的欧式距离 而这个空间就是由序列维度构成的 除以序列维度的开方 就是为了让不同序列长度的文本 它们和自己加了噪声的样本的欧式距离 都是一样的 不会因为序列的长度不",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 579.909,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_3ee8d51177255e543443e166ef022416",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.5264112949371338,
+      "end_time": 2441.46,
+      "excerpt": "而且他的训练效率太低了 就是你要训练完嗯 一兆你要root完一整个trajectory 一兆的trajectory它非常慢 哪怕我们现在TPS能做到80~100 像在MEMOVIPRO上能做到80~100的TP 你要揉完一兆上下也是需要需要时间 需要可能12分钟的时间了 所以呃呃所以所 所以其实真实的训练 不会在这么长长的任务上去训 嗯嗯但是当你有在一兆的contest bu去训过一呃 预训练过 并且诶后训练有对应的任务 稍微激活它一下 它通常就能在一教的看完S边 具备这样的一个稳能力 但是我们需要再提升 对需要再提升 所以你看现在cloud呃 在我觉得",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 2324.32,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_14ba730b56016b672221af71a685985c",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.5253193378448486,
+      "end_time": 354.43,
+      "excerpt": "我也发消息 为什么有的人他拿到的这个输出的结果质量就更好呢 这个就涉及到提示词工程的艺术 大家感兴趣的话 可以看一下这篇关于提示词工程的博客 这篇我非常非常喜欢 当然我呃这个提示词工程它并不是那么的简单 就是语言的艺术 真正调过PE的朋友都知道非常非常痛苦 而且涉及到很多的一些技术的手段和技巧 像比如说比较经典的这个few shot少样本提示 就是你在提示词中注入少量的这个答案的标准 答案的示例就可以给模型的输出质量带来非常好的提升 而且能够有效的约束大模型 按照我们期望的格式来输出 当然提示子工程它只能说是帮你优化一下输出的质量 但是它仍然是非常局限的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 234.61,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_964a90300cd8ed410e60643c3b99864c",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.5251705646514893,
+      "end_time": 4747.44,
+      "excerpt": "自动identify出具有feedback的内容 然后用这些feedback内容 真的去让语言模型的参数持续微调好 那这边以这一篇引用的论文呢 他就展示了说 他们用这种verbalized feedback的方式 通过verbalized feedback来调整语言模型的参数 然后他们的横轴是人类跟语言模型互动的次数 总共互动了1500轮语言模型行为的变化 然后呢在前500轮 500~1000轮 还有1000轮之后 他们给语言模型的feedback是不一样的 代表人类有不同的关注的重点 在前面500轮呢 人类关注的重点是 希望他在说话的时候不要加上emo",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 4628.06,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_0f12bc55acf207f34c4c1ca6b76fc629",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.5241839289665222,
+      "end_time": 1035.78,
+      "excerpt": "所以说每次的话就是传统的 相当于把多个用户请求就凑成一个批次 一定要一起处理 那我必须得等这批次里的所有请求都做完 我才能处理下一个批次 这个车必须所有人都上完之后 我才能把他开了 然后再弄下一辆 但是我的continuous的话 相当于是嗯这个最大的问题是 如果有一个请求很长 所以其他短的请求也得等他 所以说导致你会有大量的空闲时间 嗯简而言之就是如果有人迟到的话 那一车人都等他们对吧 就像老师说的 你一人浪费一分钟 你就浪费了我们60分钟呃 所以说你这样子的话 就是其他短的请求 麻利的人也得等这个迟到的人 所以说你的这个就会有大量的这种空闲时间 而c",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 916.27,
+      "subtitle_source": "ai",
+      "title": "llm氪普课-ai infra入门所需知识完整梳理",
+      "unit_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_735a242ec9f7a99fab52517bfdc0525d",
+      "unit_type": "transcript_chunk",
+      "uploader": "llm氪ke普课",
+      "video_id": 76
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.524042010307312,
+      "end_time": 2430.13,
+      "excerpt": "让他能够调整他行为的时候 给他正面的例子比给他负面的例子要好 也就是说具体而言 提供给他过去哪些类似的问题得到正确答案 被比提供给他过去哪些问题得到错误的答案 还更有效 还更能引导模型得到正确的答案好 那这边是真正的实验 结果做在好几个不同的data set上面 string bench里面本来就包含了好几个不同的data set 那这个纵轴呢零代表完全没有做 完全没有根据经验调整行为 然后蓝色代表说 不管是正面还是负面的例子都用 如果不管正面还是负面的例子 都用在多数情况下 模型都可以表现的比较好 当然有一些例外 但是如果只用负面的例子呢 如果只用负面",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 2312.17,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_62ffc7288aec9a880cfc5c153a0ba69b",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.5218952298164368,
+      "end_time": 8485.18,
+      "excerpt": "我觉得TTS就是一个 就我觉得我们做DTS冬极 是我们想用我们自己认为一套优雅的架构 去做一个 大家都去都都用一个传统的架构 做起来很容易的一个事情哦 其实你在试这个事 对对对对对 然后呃但是呃我们在这个事做完过后 我们发现用用把它把嗯追求一个离散化 同LAZER在万亿一小时的呃 不在那个呃上上千小时的数据集上啊 进行训练过后 然后嗯 嗯我们发现这个模型的泛化率是非常好的 但是但是我没有办法去对比说 我们去训一个很小的模型 它方法率是不是不是真的没有这个好 至少我们目前得到这个模型 大家能看到它嗯 你再给他输入很多风格化 多样的风格化了标签的时候哦 就不",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 8365.239,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_040df6bf0f2d3e1a0a049029e32fb287",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.5217859745025635,
+      "end_time": 3149.65,
+      "excerpt": "但此时得到的模型只能 完成下一个token 这被称为基础模型 我认为这就像一个拥有巨大潜力的模型 但它需要对齐或进行调整 对齐就是使其变得有用的过程 对齐涵盖了诸多方面 但我觉得它包含三点 就是让语言模型遵循指令 完成下一个token并不等同于遵循指令 只是完成指令 或模型认为符合指令的内容 嗯 当你到达这里 指定生成风格 是否需要长或短 是否使用列表项 是否希望它机智或具备saas风格 当你调整时 比如chgbt与摇滚 你会看到不同的对齐效果 然后还有安全性 其中一个关键点是这些模型能够拒绝 回答 那些可能有害的内容 这就是对齐机制发挥作用的地方 通常",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 3029.71,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_a1d5b19e2b6ab43971a42ec9e0948884",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.5204831957817078,
+      "end_time": 815.089,
+      "excerpt": "比如说千万4再除以个27B 那这种能力的杠杆效应会越来越强 好了说了这么多 我自己的东西 你们可能要问 那我们大家应该怎么办呢 那我就给三个建议 首先第一的就是开始尽可能地使用小模型 你别整天就是你订阅了cloud max 你就觉得天下无敌了 但实际上一点意义都没有 你应该想的是 怎么样用更小的成本能摸到它的模型的边界 或者你就直接用deep sk v4pro加flash组合就行了 我给你们教一个技巧啊 如果你用cloud code 你知道怎么样改环境变量对吧 把sonnet和high库的模型设置为deep sk v4flash 四模型配置为V4pro ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 695.83,
+      "subtitle_source": "ai",
+      "title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+      "unit_id": "transcript_chunk:bilibili:BV1TfRfBJEZw:p1:chunk_3cab54ef52ee04bfbc3ee0f5bf120047",
+      "unit_type": "transcript_chunk",
+      "uploader": "小天fotos",
+      "video_id": 92
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.5203326940536499,
+      "end_time": 1979.56,
+      "excerpt": "还有低维版本如GQA和MLA 我们稍后会说到这一点，或者可能不会 但会在未来的课程中讲到 然后你知道最核心的 也许最激进的方法是其他替代方案，比如 Transformer 比如状态空间模型 比如Hyena模型 它们并不采用 你知道的注意力机制 而是使用其他类型的运算 有时通过结合两者 你知道的 混合构建结合这些与Transformer的混合模型 嗯，好的 一旦定义了架构 就需要进行训练 所以有一个 你知道的 设计决策包括优化器 所以是AdamW，这是Adam的变体 本质上Adam改进版仍然非常流行 所以我们主要使用这个 但值得一提的是还有更新的优化器 比",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 1859.74,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_ac4e5bd92080510b7b9aa7cf73483696",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.5200480222702026,
+      "end_time": 3482.029,
+      "excerpt": "比如说CHEGBT 多数的模型都是文字模型 它没有办法真正读懂语音 所以怎么办呢 当你问他一个问题 说这边有段声音 那你觉得这个人他心情怎么样 他讲了什么 根据背景杂性 你觉得他在哪里 如果你不做特别的处理 文字模型是完全没有办法回答的 但这边你可以让文字模型使用工具啊 你可以告诉他这边有一堆跟语音相关的工具 有语音辨识的工具 有这个语音侦测的工具 有情绪辨识的工具 有各式各样的工具 那可能会需要写些叙述 告诉他每一个工具是做什么用的 把这些资料都丢给选GPT 然后呢他就会自己写一段程序 在这些城市里面 他想办法去呼叫这些工具 他呼叫了语音辨识的工具 呼",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 3362.03,
+      "subtitle_source": "ai",
+      "title": "LLM大模型入门！一口气带你学完AI agent、transformer、LangChain 、RAG 等大模型核心知识点！简直不要太爽！",
+      "unit_id": "transcript_chunk:bilibili:BV11nSjB2ErQ:p1:chunk_7f6ad4fef4ea1f181f2927c844d510d4",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅-机器学习课堂",
+      "video_id": 124
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.5195534229278564,
+      "end_time": 2448.73,
+      "excerpt": "通常这是理想的工作状态 因为可以并行化 天然具备并行性 主要受限于计算能力 这就是推理 我觉得这很特别且困难 这是自回归解码吗 你需要逐个生成token并结束 很难充分利用所有GPU 然后就会变得 你知道的 内存受限 因为你一直在 不断移动数据 我们将会讨论几种加速模型的方法 提升推理速度 可以使用更便宜的模型 你可以使用这个 呃 一种名为推测解码的酷炫技术 用更便宜的模型预先生成多个token 如果这些token符合某种 在某种定义下是好的 可以让完整模型 只需 你知道的 并行评分并接受所有结果 嗯 还有一些系统优化方法 好的 在系统层面之后 哦好的 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 2330.24,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_0397130322bfb36a9313eabf18833f9e",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.519277811050415,
+      "end_time": 10912.189,
+      "excerpt": "他也嗯不错 那google是这种自下而上的 它依然是自下而上的是吗 他比以前肯定要更自上而下了哦 比起最早的时候 但是他比嗯曹北来说还是更自洽上了一些 就好像不同的文化都可以是吗 对就是对模型的训练 就是我觉得大公司有大公司的打法 startup有STARUP的打法 所以大公司是 你刚刚也说他是一个完全不一样的趋势 它是一个不一样的呃方法 google是什么方法 现在我觉得google更多的说说 是像这种比较确定性的事 比如像预训练已经是一个比较确定性的范式了 那可能姑姑就会更像把它做成一个工程项目 然后工程google的工程管理能力很强 所以说他就能慢",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 10795.02,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_f3bd32ec7a22dba56d1d8b97733ec357",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.5191065073013306,
+      "end_time": 9985.889,
+      "excerpt": "有科学问题也有工程问题 我觉得他科学问题更多的是呃 怎么把不同的方案尝试一下 以和以更以更科学的方式尝试之 后来呃找到一条最后我们要走的走的这个方案 这个有哪些方式呃 我可能不太太太说 说的太细了 但粗的来说 从有一些方案是从呃普train的角度 从预训练角度来说 有一些方案就是类似于这种稀疏的attention Spart attention 那这个比如deep sick也有一些工作 然后学界也有很多工作 然后从后训练的角度也有后训练的方案 比如说像呃外界 比如说你每天用什么cursor这些 他们就是很强的context management 管理这个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 9866.42,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_24335aca1533a71b552d1df1855c1b35",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.5182920694351196,
+      "end_time": 2565.52,
+      "excerpt": "盲目 好的 所以第三单元是嗯 缩放定律 嗯，这里的目的是 你想在小规模进行实验并解决问题 然后预测大规模的超参数和损失 这里有一个基本问题 所以嗯 如果我给你一个FLOPs预算 你应该使用多大的模型规模 如果使用更大模型 意味着可以使用更少的数据 如果使用更小模型 可以使用更多数据 这里的平衡点在哪里 这个问题已被广泛研究 并通过OpenAI和DeepMind的一系列论文得出 所以当你听到'Chinchilla最优'这个术语 这就是指的这个 核心思想是对于每个计算预算 你可以调整模型的参数数量 好的，然后测量模型性能 对于每个计算量级 都能得到最优参数规",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 2447.57,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_d82100f0c1492f1d13c7691d323b9bc5",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.5182569026947021,
+      "end_time": 5934.21,
+      "excerpt": "去把他的这个算力给他呃啊更充分的利用对 然后也可以是后边儿 你甚至于针对已经训练好的一个HABA结构 去增大啊 spas或fl的比例等等 反正就我觉得在这样一个更简洁的呃 架架构上的时候 其实你A真能发挥的空间 反而在后续点发挥的空间反而会更大 嗯成本下降是MTP给next token protection 带来的优势吗 嗯MTP是如果它的命中率非常高的话 那么它是可以带来成本的下降的 嗯相对于他在唉更短的时间内突出了更多token 所以他把GPU的利用率打的更高 所以它本质上是在呃降低单token的生成的成本 你刚刚说了MTP的很多好处啊 那它会相应的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 5815.94,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_21ee2a926f110c15d48827dd80f3cb37",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.5169947147369385,
+      "end_time": 585.81,
+      "excerpt": "让限制这个token id 比如说嗯他的方案是便利这3000个词 3000个常用词 然后用我原始的图片来着去切分这3000个词 得到一个合法的token id 那么我们每次生成只允许我们的模型 从这个盒粉的token id里面采样 这其实是会有问题的 举个最简单的例子 比如apple跟people对吧 呃写这个吧 比如apple 再比如people 这两个词对吧 是常用词 然后我通过我们的token anizer对吧 切分就切成了APPLE和这个POPLE好 这个时候会有一个什么问题呢 那么我们限制相当于是我们这token id的集合 就包括了APEPL",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 467.94,
+      "subtitle_source": "ai",
+      "title": "我做了个 AI 面试官，专练大厂 Vibe Coding 题",
+      "unit_id": "transcript_chunk:bilibili:BV1V39eBHERZ:p1:chunk_422f2daadfb381bf6e61ec358f78937a",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 75
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.516498327255249,
+      "end_time": 471.13,
+      "excerpt": "就是它需要GPU 需要卡 需要成本成本很高 然后微调的这个耗时耗时周期也比较长 他需要投入人力去准备数据集 去清洗数据 去跑模型去训练 这个就造成了微调它的这个迭代周期比较长 成本比较高的这样的一个问题 还有一个点就在于说大家会发现就是最近这几年 这个基座大模型的迭代实在是太快了 经常有一种情况 就是当你还拿着上一个版本的这个基座大模型去做微调 调了几个月 结果人家反手出了一个新的一个SOTA的版本 在你的这个想要微调的细分领域也干掉了你 然后在其他的这些领域也干掉了你 很悲伤对 但这就是这两年经常发生的事情 所以假设我想要让模型拥有一些我私有的知识 那",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 352.93,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_2368fb184fc7ae2f1b13c629a8bd1415",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.5164294838905334,
+      "end_time": 1670.82,
+      "excerpt": "他们用了supervised fine-tuning rl以及adversarial training 所谓的adversarial training就是用这种red teaming的方法 red teaming就是蓝队和红队 蓝队是防守 红队是攻击 所以红队会尝试去攻击这个模型 找出一些模型展现出不好的行为的一些例子 然后这些例子被拿过来当做adversarial training 加到这些方法的训练集里面 这个就叫做adversarial training 然后作者就发现一个 很重要的现象就是 哪怕经过了这个第二阶段的safety training ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 1558.5,
+      "subtitle_source": "human",
+      "title": "AI学会了装傻和欺骗！现有Safety Evaluation体系为何已经跟不上大模型发展？",
+      "unit_id": "transcript_chunk:bilibili:BV19BGD6aEb8:p1:chunk_3aab0ee70bec2532fed82466dd3c05b8",
+      "unit_type": "transcript_chunk",
+      "uploader": "EZ-Encoder",
+      "video_id": 48
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.5155798196792603,
+      "end_time": 2660.4,
+      "excerpt": "然后他先产生第一个版本的输出 但这边重点是语言模型的输出需要得到回馈 也就是刚才的generator跟evaluator的概念 所以你把语言模型的输出 丢给某一个负责做evaluation的module 让它产生fib 那这个evaluation的module不一定要是个语言模型 它可以甚至就是一个compiler 或者是一个可以执行城市码的工具 把城市码真的执行了 看看得到什么样的error message 那这个error message就是给language model的feedback好了 这个feedback呢再丢给语言模型啊 然后呢语言模型就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 2542.59,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_35d89bb918f7c6990e08fc148e6a5a2a",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.5152373313903809,
+      "end_time": 2326.34,
+      "excerpt": "我觉得就是要要靠啊更多的靠群体的智慧 就你让更多人去用它 然后基于更多人去用的 比如说我们内部会大量去使用哦 我们会让我们这个模型首先在唉公司内部去推 大量去人用 用了过后 然后我们发觉到更广泛的场景 在这个广泛的场景里边 去合成更多的数据来做训练对嗯 然后这里边很关键的一个问题是嗯 你怎么哦还原当时所有人用这个事情的环境 嗯对因为有这个环境 你才能更好的去嗯进行更长城的交互 然后并且呃有了环境过后 你才可以针对这个环境本身去做哦 呃更精准的reword设定对 然后这个事情是比较有难度的 然后我觉得嗯也是我认为在这事上 如果投入的算力足够多的话 研究的时",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 2208.97,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_b5788b66b573754236555df1647eab3b",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.5147703886032104,
+      "end_time": 2320.14,
+      "excerpt": "这个检索的模组只从过去所有的经验中检索出 跟现在要回答的问题有关系的经验 然后呢语言模型只根据这些有关系的经验 还有现在的问题来进行回答 来产生他的行动 来产生他的答案好那这一招有没有用呢 这一招其实非常的有用 那在这一页图里面 横轴啊 他这边的用词是tie step 但其实指的就是一格一格的问题 总共有1750几个问题 那纵轴指的是平均的正确率 那在这个图上面呢 最低的这条灰色线指的是说 假设没有让模型做任何学习 他回答每一个问题都是independent的 回答问题间没有任何的关联 他完全没有调整他的行为 那你得到的正确率是灰色的 这一条线是最低的 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 2201.43,
+      "subtitle_source": "ai",
+      "title": "LLM大模型入门！一口气带你学完AI agent、transformer、LangChain 、RAG 等大模型核心知识点！简直不要太爽！",
+      "unit_id": "transcript_chunk:bilibili:BV11nSjB2ErQ:p1:chunk_15f0e563b3a7f0ce15a49ddb997bd104",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅-机器学习课堂",
+      "video_id": 124
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.5147408246994019,
+      "end_time": 1385.98,
+      "excerpt": "就是权限最这个最紧的那个人会赢 他这个propermission mode要要要踹很多地方 比如说你当前运行的模式 你是plan模式啊 还是auto模式 还是bypass permission模式对吧 这个时候涉及到权限的确认 然后呢有的时候你在hook里面呃 会设置权限 然后classifier这个是它内部定义好了 就是要用用模型来分析某些工具是不是需要人类确认 是不是需要全信确认 所以这两个完全来路不同 然后第三个呢是bash classifier 就是最危险的是bash命令 也就是说你在命令行里面 其实它可以运行任何的这种batch命令对吧 它可以",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 1267.17,
+      "subtitle_source": "ai",
+      "title": "Claude Code 源码分析与复刻实现",
+      "unit_id": "transcript_chunk:bilibili:BV15HXCBkEKY:p1:chunk_1db9841940bf824e9e9dc5dcf50caab3",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM张老师",
+      "video_id": 93
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 1,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "video:bilibili:BV1gmWDeLEMZ:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1gmWDeLEMZ",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d17a8f57b7e50a3f5f3d8283139aabb6909d6b3f.jpg",
+      "detail_url": "/videos/32/transcript",
+      "duration": 803.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "[Title] 大模型微调看这个视频就够了 SFT NEFTune [Uploader] RethinkFun [Description] 大模型微调看这个视频就够了。包含ChatTempate，Completion Only，NEFTune，SFTTrainer的讲解和代码实现。 视频代码：https://github.com/RethinkFun/sft/tree/main [Summary Conclusion] 本视频系统讲解了大模型指令微调（SFT）的核心技术：保持Chat Template一致性、仅对回答部分计算损失（Completions ",
+      "matched_unit_count": 6,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "RethinkFun",
+      "video_id": 32,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_042a1c9a7eb102f8e51b2f742253789c",
+          "best_rank": 2,
+          "best_score": 0.016129032258064516,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 29.0,
+            "source": "ai_summary",
+            "start_time": 0.0,
+            "summary": "介绍视频将涵盖Chat Template、Completions Only、NEFTune和SFT Trainer三大技术内容。",
+            "title": "课程内容概览"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_042a1c9a7eb102f8e51b2f742253789c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            2
+          ],
+          "duration": 119.27,
+          "excerpt": "今天我们来讨论一下大模型的质量微调 或者叫做监督微调",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.04,
+          "jump_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 119.31,
+          "window_start": 0.04
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_386e070db10447e2292db10d43dbbd41",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 279.0,
+            "source": "ai_summary",
+            "start_time": 85.0,
+            "summary": "详细说明Chat Template的作用、结构和代码使用方法，演示Llama 3.1的模板处理流程。",
+            "title": "对话模板（Chat Template）"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_386e070db10447e2292db10d43dbbd41"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            3
+          ],
+          "duration": 119.54999999999998,
+          "excerpt": "并且在生成聊天模板时 将ADD generation prompt设置为true 那么它就会生成如下的token",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 232.04,
+          "jump_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ?t=232",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 351.59,
+          "window_start": 232.04
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_38fa385b0e719013d011da1b64dc1a51",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1UaPmzrESw",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/17ecbb6d486323099ee8e9b3d536597f70fe36ca.jpg",
+      "detail_url": "/videos/117/transcript",
+      "duration": 735.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "在大模型应用中 我们经常会听到一个词微调 那什么是模型微调呢 简单来说就是在一个已经训练好的大模型上 用新的数据继续训练 让他获得新的能力或者新的行为方式 模型微调可以大致分为两类 继续训练和行为微调 继续训练主要是让模型掌握新的领域知识 而行为微调则更关注模型怎么做事 他改进的是模型的行为和能力 让他在执行任务时更加稳定可靠 或者符合特定风格 本期视频我们来聚焦其中 最基础也是最常用的一种行为微调 Supervise fine tuning s f t 帮助模型学会用动漫角色的语气风格 来回答问题 我们整个开发过程会在英博云平台上完成 让贫穷的up主也",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "认真工作的JIA",
+      "video_id": 117,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1UaPmzrESw",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_38fa385b0e719013d011da1b64dc1a51",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 122.41,
+            "source": "ai_summary",
+            "start_time": 0.34,
+            "summary": "介绍模型微调的分类，本次演示专注于通过SFT实现动漫人格注入的行为微调，并在英博云平台进行。",
+            "title": "微调简介与项目目标"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_38fa385b0e719013d011da1b64dc1a51",
+            "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_85bdf23bc67aee619f26c2a49953d21e"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            5,
+            12
+          ],
+          "duration": 234.71,
+          "excerpt": "在大模型应用中 我们经常会听到一个词微调",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.34,
+          "jump_url": "https://www.bilibili.com/video/BV1UaPmzrESw?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 235.05,
+          "window_start": 0.34
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_0e63daefe0a1c5027e5ca756a4dc6700",
+          "best_rank": 23,
+          "best_score": 0.012048192771084338,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 600.69,
+            "source": "ai_summary",
+            "start_time": 480.23,
+            "summary": "设定训练超参数，使用SFTrainer进行3 epoch训练，保存LoRA adapter权重和配置。",
+            "title": "训练执行与模型保存"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_0e63daefe0a1c5027e5ca756a4dc6700"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            23
+          ],
+          "duration": 118.20099999999991,
+          "excerpt": "把LAURA的权重保存到指定目录 这里主要保存的是两个文件 adapter model和adapter config",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 581.099,
+          "jump_url": "https://www.bilibili.com/video/BV1UaPmzrESw?t=581",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 699.3,
+          "window_start": 581.099
+        }
+      ]
+    },
+    {
+      "additional_window_count": 5,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_592c2ff84a1fdd3fbf36ddd9c5aaa35b",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1iVoVBgERD",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d9c8cb358259ceb896a07e588506abee526dbc6f.jpg",
+      "detail_url": "/videos/90/transcript",
+      "duration": 12879.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "我们希望它模型在skinning它的它的水平的上限 所以我们是比较去控制住这个效率本身的 但控制住效率本身 后面在建的时代 也有一个更更有价值的一个事情 就是那既然与这个更大模型 它的常温效率很高 对吧哈 那我就可以塞更多的上下文 然后他就又更强 对 所以大概就是呃一个这样的一个 一个决策的一个背景 对于这个ET的某基座 你们的几个决策 第一个是混合助力机制 刚才我们聊过了呃 然后再就是em的上下文窗口 这个在做的时候是否有丢失的情况 呃YM他是要还是要训的 就是长沙新闻他还是要训练的 就问题有关键是你从哪儿真的去搞到 在一兆的上下文的窗口里边儿去嗯 有",
+      "matched_unit_count": 9,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 9,
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "total_window_count": 7,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1iVoVBgERD",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_592c2ff84a1fdd3fbf36ddd9c5aaa35b",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_592c2ff84a1fdd3fbf36ddd9c5aaa35b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 119.64000000000033,
+          "excerpt": "但是它的pro的智能水平是提升了的 所以我们希望在一个长文的效率相当的情况下 我们希望它模型在skinning它的它的水平的上限",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 7555.33,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=7555",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 7674.97,
+          "window_start": 7555.33
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_376887816e2330393e358602187165dc",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_376887816e2330393e358602187165dc"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            8
+          ],
+          "duration": 119.01000000000022,
+          "excerpt": "他才知道每个模型能力的边界在哪 然后嗯他才会会去想要哦 去找到一种可skin的方式",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 12546.51,
+          "jump_url": "https://www.bilibili.com/video/BV1iVoVBgERD?t=12546",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 12665.52,
+          "window_start": 12546.51
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "transcript_chunk:bilibili:BV1xQ7K6CESQ:p1:chunk_a77256356674cf34926acb59edc8977b",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1xQ7K6CESQ",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/02ef39452052f08d378c461554b164203782d949.jpg",
+      "detail_url": "/videos/141/transcript",
+      "duration": 243.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "你所以说你的硬般马提示词没有用，就是我们在A的回答中加个自检步骤，对吧？ 他需要计算当前轮次和用户轮次的语义向上距离，如果说超过阈值就触发自纠偏，嗯，然后呢这个细节这个阈值怎么弄？ 非常敏感。 如果说他聊着被截断了，没有旧偏对吧？ 那我让这个A键自己去调自调参的路谱，就是让他在物触发力不超百分5前下把漂移纠正其10。 那这个其实上线之后，我们跑这个基本上收敛的非常的真实了。 啊，第三个时间就是说我们在内容生成A进的绘画一致性的可控啊嗯就说agent内容生成的agent它可能性格就会避致，比如说他回答用户的一个非常专业的这种问题。 对吧？ 下然后。 如果再",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "Loop Engineering开发实践，我和团队是怎么在工作中落地的",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "海云日记",
+      "video_id": 141,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1xQ7K6CESQ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1xQ7K6CESQ:p1:chunk_a77256356674cf34926acb59edc8977b",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 146.0,
+            "source": "ai_summary",
+            "start_time": 88.0,
+            "summary": "说明在AI回答中增加语义距离自检，并由AI自动调整触发阈值，在控制误触发率的前提下有效纠正六轮以上对话的话题偏移。",
+            "title": "多轮对话话题漂移自纠偏"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1xQ7K6CESQ:p1:chunk_a77256356674cf34926acb59edc8977b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            10
+          ],
+          "duration": 112.44000000000001,
+          "excerpt": "就直接就流失用户。 以前这个问题没法修，因为你不是说每一轮对话它都会偏移，它是有概率的。 你所以说你的硬般马提示词没有用，就是我们在A的回答中加个自检步骤，对吧？",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 112.52,
+          "jump_url": "https://www.bilibili.com/video/BV1xQ7K6CESQ?t=112",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "asr"
+          ],
+          "window_end": 224.96,
+          "window_start": 112.52
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_03ff5272f8b466a53c170980ff476464",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1nkdqByEtR",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/299e5ac9fcbae732dbdaa65cad78b61fe3a3e8df.jpg",
+      "detail_url": "/videos/96/transcript",
+      "duration": 5541.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "这样子的工作流程呢比较适合cloud sony 因为他们说sn cloud sony呢有上下文焦虑 那这是一个很拟人化的讲法啦 他们说这SONY这个模型呢 当他发现他的contest window快用尽的时候 他就展现出一种焦虑的情绪 他就开始发疯 事情乱做 想要尽快结束手上的工作 所以你需要用这样子的工作流程 来确保他现在的输入不会太接近他的context window 但是后来cow有了比较强的模型 就是opus s 他们就说如果是opus s的话 他们就可以把上面这种工作流程丢掉 可以一路莽下去 一路做下去哦 所以其实honeys啊并不是一个固定不",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1nkdqByEtR",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_03ff5272f8b466a53c170980ff476464",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_03ff5272f8b466a53c170980ff476464",
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_35d89bb918f7c6990e08fc148e6a5a2a"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            11,
+            47
+          ],
+          "duration": 230.37999999999965,
+          "excerpt": "然后有错再改掉哦 所以你给语言模型一个任务 然后他先产生第一个版本的输出",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2656.78,
+          "jump_url": "https://www.bilibili.com/video/BV1nkdqByEtR?t=2656",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2772.97,
+          "window_start": 2542.59
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_bbe669eb2027f657878775d2a6e62b2c",
+          "best_rank": 13,
+          "best_score": 0.0136986301369863,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_bbe669eb2027f657878775d2a6e62b2c",
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_0f12bc55acf207f34c4c1ca6b76fc629"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            13,
+            31
+          ],
+          "duration": 234.94999999999982,
+          "excerpt": "feedback的资讯 真的能够做到这样子吗 右上角这一篇paper就做了一个实验啊",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 4512.49,
+          "jump_url": "https://www.bilibili.com/video/BV1nkdqByEtR?t=4512",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 4747.44,
+          "window_start": 4512.49
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 17,
+      "best_score": 0.012987012987012988,
+      "best_unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5eaaf1fd99a5457f5a48870c8b126e7a",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1YR5E6EE9o",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/72e478e6353621d08b32d644a5e58378a68058e6.jpg",
+      "detail_url": "/videos/91/transcript",
+      "duration": 13681.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "一些科学的假设没有做对 就说你选什么样的token horizon 就是每每一个大小的模型 选什么样的这个这个期待的训练的数据量 然后怎么这个数据量呃 是呃这个数据是从哪里选 然后额有可能是这些比较科学的选择 没有选清楚是一种可能性 但我觉得还有一种可能性就是纯粹有个bug 这个其实在业界我觉得也不惊奇 很多时候修好一个bug 带来的进展是远大于一些很很神奇的技巧的 对哦 然后呃当然还有另外的的情况 我就我就刚才改给的这两种例子 反正是我见到过比较比较多的情况 那你们的bug怎么办 你们怎么解决bug问题的 我觉得我感觉这更像是一个信念的问题 因为当你遇",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1YR5E6EE9o",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5eaaf1fd99a5457f5a48870c8b126e7a",
+          "best_rank": 17,
+          "best_score": 0.012987012987012988,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_5eaaf1fd99a5457f5a48870c8b126e7a"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            17
+          ],
+          "duration": 119.81999999999994,
+          "excerpt": "我觉得呃bug是有很多种可能性的 比如说一种可能性是你skin lag做的时候 一些科学的假设没有做对",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1752.02,
+          "jump_url": "https://www.bilibili.com/video/BV1YR5E6EE9o?t=1752",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1871.84,
+          "window_start": 1752.02
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_f3bd32ec7a22dba56d1d8b97733ec357",
+          "best_rank": 40,
+          "best_score": 0.01,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_f3bd32ec7a22dba56d1d8b97733ec357"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            40
+          ],
+          "duration": 117.16899999999987,
+          "excerpt": "对 通过ANTHROPIC这种自上而下的管理 他也嗯不错",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 10795.02,
+          "jump_url": "https://www.bilibili.com/video/BV1YR5E6EE9o?t=10795",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 10912.189,
+          "window_start": 10795.02
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 18,
+      "best_score": 0.01282051282051282,
+      "best_unit_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_5dd638a3ef57765fce39a0a4f469db91",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV19pPSzsEXv",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/c88d972f8c3d394b78696d6d401ed8eae86d7541.jpg",
+      "detail_url": "/videos/119/transcript",
+      "duration": 881.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "他更像是一个产品 他懂得好多呀 然后设置这里啊 模型设置就是设模型参数 这你们研究一下 如果你只是本地用 你就选这个 如果你希望在局域网里还给别人用 那你就选这个0.0.0对吧 然后模型目录你可以改 然后这个很关键 就是你的这个冷存储现在是设能设置多少 根据你的SID的大小吧 然后热缓存限制就是内存缓存 我现在是不限的 然后你的内存总量的限制 我现在开到80% 如果你的内存大一点 你这可以再给他更充裕一点 然后接下来我给大家讲一个特别 我觉得特别好的 就是基准 这啥基准呢 就是它是一个做测评的 它能测评这个模型的多并发 还有它不同上下文的生成速度 哎我觉",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "逆天！丐版Mac Mini本地模型十倍提速，多开爽玩Openclaw",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "小天fotos",
+      "video_id": 119,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV19pPSzsEXv",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_5dd638a3ef57765fce39a0a4f469db91",
+          "best_rank": 18,
+          "best_score": 0.01282051282051282,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 721.0,
+            "source": "ai_summary",
+            "start_time": 482.0,
+            "summary": "手把手演示 oMLX 的安装、启动与配置，展示中文界面、缓存机制、Claude Code 启动命令生成、基准测试工具等，强调其轻量且性能优化的特点。",
+            "title": "oMLX 使用演示与核心功能"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV19pPSzsEXv:p1:chunk_5dd638a3ef57765fce39a0a4f469db91"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            18
+          ],
+          "duration": 119.71000000000004,
+          "excerpt": "这个作者是真的懂用户 特别有不像是一个传统的程序员 他更像是一个产品",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 695.39,
+          "jump_url": "https://www.bilibili.com/video/BV19pPSzsEXv?t=695",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 815.1,
+          "window_start": 695.39
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 19,
+      "best_score": 0.012658227848101266,
+      "best_unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1co9yBhEvW",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/95412e13ce98a90ea8d053ed266fadaed9171290.jpg",
+      "detail_url": "/videos/71/transcript",
+      "duration": 925.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "沉淀成skill 然后投入到日常的生产开发中 这个过程给我的最大感受是 团队级别的skill和个人web coding完全不是一回事 个人web coding的时候其实容错率是很高的 你可以临时补充上下文 看到结果不对之后 立马去修改PRT 也可以不断重试 一直到他给你一个满意的结果 但是在团队生产环境里面 skill本身就要承担更多的责任 尽量让不同的人在使用的时候 产出的结果是稳定的 这里面就会遇到很多边界问题 比如一个很经典的问题就是上下文膨胀 如果你把所有的流程约束都写在一个print里面 整个上下文就会变得非常长 模型的注意力就会被稀释 大模型",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "polebug23",
+      "video_id": 71,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1co9yBhEvW",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902",
+          "best_rank": 19,
+          "best_score": 0.012658227848101266,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 360.32,
+            "source": "ai_summary",
+            "start_time": 120.9,
+            "summary": "介绍按工作需求驱动的学习顺序，从LangGraph搭建Agent Workflow到Tool Calling、持久化，推荐官方文档、视频课程及OpenAI/Anthropic最佳实践。",
+            "title": "转AI方向学习路径：Agent Workflow与Tool Calling"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_0be4e86f39950c441a880730f814e902"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            19
+          ],
+          "duration": 116.64999999999998,
+          "excerpt": "比如说前段时间我在做某个业务开发的AI提效 需要把团队过去积累的一些开发经验 沉淀成skill",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 346.87,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=346",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 463.52,
+          "window_start": 346.87
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 20,
+      "best_score": 0.0125,
+      "best_unit_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_371f3db93a08310a5f77a29aa6a9ad16",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1BxL561EaF",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/7d4f4f3832e288fc46427ddeb6f11690e20d43b8.jpg",
+      "detail_url": "/videos/76/transcript",
+      "duration": 1493.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "就比如说kv cash相关的对吧 一些常见的配置attention啊 然后REDATTENTION啊 还有prefix ication啊 对吧 常见的一些考点 然后还有server部分呢 SL部分的话 其实一部分就是continue speching 还有一些类似于像trunk trunk的PREFAIL 我这里面简单说一下 我就防止有的宝子可能没听过 continuous spin的意思 就是说嗯它是和静态的批处理相对应的 我们普通人叫static batching 就是static batch的意思 就是说我们会收集固定数量的请求 组成批次对吧 然后",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "llm氪普课-ai infra入门所需知识完整梳理",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "llm氪ke普课",
+      "video_id": 76,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1BxL561EaF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_371f3db93a08310a5f77a29aa6a9ad16",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_371f3db93a08310a5f77a29aa6a9ad16",
+            "transcript_chunk:bilibili:BV1BxL561EaF:p1:chunk_735a242ec9f7a99fab52517bfdc0525d"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            20,
+            32
+          ],
+          "duration": 234.77999999999997,
+          "excerpt": "就会更常见 或者说一些面经中会更常见 就比如说kv cash相关的对吧",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 801.0,
+          "jump_url": "https://www.bilibili.com/video/BV1BxL561EaF?t=801",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1035.78,
+          "window_start": 801.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 21,
+      "best_score": 0.012345679012345678,
+      "best_unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_3d16fa460eb363360ce7211059265e45",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1T21PBqErg",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c778e7f134bcef6ff0be47bf490738884124f86f.jpg",
+      "detail_url": "/videos/123/transcript",
+      "duration": 80139.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "示例就足以让基础模型获得指令遵循能力 优质基础模型 好的 这部分其实非常 简单易懂 和预训练其实没有太大区别 因为只是处理文本 并最大化文本概率 嗯 所以第二阶段从算法角度看 更有趣 嗯 从算法视角 即使经过SF阶段 模型也会表现不错 现在如何进一步提升呢 可以获取更多SFC数据 但这成本很高 因为需要 知道 让人手动标注数据 因此反馈学习的目标是 利用更轻量的标注形式 嗯 让算法承担更多工作 好的 一种可学习的数据类型是偏好数据 这里会为给定提示生成多个响应 如A或B 让用户判断A或B哪个更好 然后根据用户评分进行学习 因此数据可能看起来就像它生成了 ",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "吴恩达大模型",
+      "video_id": 123,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1T21PBqErg",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_3d16fa460eb363360ce7211059265e45",
+          "best_rank": 21,
+          "best_score": 0.012345679012345678,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_3d16fa460eb363360ce7211059265e45",
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_a1d5b19e2b6ab43971a42ec9e0948884"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            21,
+            35
+          ],
+          "duration": 234.25999999999976,
+          "excerpt": "现在 你可以真正训练模型 但此时得到的模型只能",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3144.93,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=3144",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3263.97,
+          "window_start": 3029.71
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_ac4e5bd92080510b7b9aa7cf73483696",
+          "best_rank": 37,
+          "best_score": 0.010309278350515464,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_ac4e5bd92080510b7b9aa7cf73483696"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            37
+          ],
+          "duration": 119.81999999999994,
+          "excerpt": "滑动窗口注意力和线性注意力 这些都在防止二次方爆炸 还有低维版本如GQA和MLA",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1859.74,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=1859",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1979.56,
+          "window_start": 1859.74
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 90.526,
+      "chapter_ms": 0.688,
+      "grouping_ms": 0.066,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 67.903,
+      "total_ms": 162.055
+    },
+    "raw": {
+      "dense_ms": 60.975,
+      "fusion_ms": 5.046,
+      "lexical_ms": 1.176,
+      "planning_ms": 0.042,
+      "total_ms": 67.852
+    }
+  },
+  "trace_id": "828d5f41-63a0-4950-b1d7-fc8eb2ebc5e4",
+  "trace_persisted": false
+}

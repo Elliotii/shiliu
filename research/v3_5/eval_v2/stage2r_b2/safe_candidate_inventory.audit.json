@@ -1,0 +1,14 @@
+{
+  "additional_query_pool_accessed": false,
+  "previously_reviewed_candidate_ids": [
+    "SAFEQ_3722c739c07887747c70",
+    "SAFEQ_b74c117c857397e307df"
+  ],
+  "remaining_candidate_count": 2,
+  "remaining_candidate_ids": [
+    "SAFEQ_4c4b6895fe044589f229",
+    "SAFEQ_ab03f4a17565fae4de35"
+  ],
+  "safe_projection_count": 4,
+  "safe_projection_sha256": "2c2fd3e0d06452201119f22ab3b68dcdfc738f91d19a916e50dbb9fd2051b564"
+}

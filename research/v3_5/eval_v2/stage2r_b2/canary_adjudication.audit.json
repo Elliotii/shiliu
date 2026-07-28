@@ -1,0 +1,15 @@
+{
+  "adjudication_reason_unchanged": true,
+  "automatic_decision_used": false,
+  "canonical_reconstruction_passed": true,
+  "case_count": 2,
+  "human_action_unchanged": true,
+  "human_authored": true,
+  "model_calls": 0,
+  "source_bundle_sha256": "00137397059ab02e0155c4b1af94e239e7f591c830319c3a0ebe6975495de356",
+  "user_decision_file_sha256": "cc8d437e65d55ff361593e63959aa51d1b3a42a69efcddc3092e61a254c6a14f",
+  "validated_case_ids": [
+    "V2C_B1A00001",
+    "V2C_B1A00002"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "abstain": null,
+  "candidate_budget": 2945,
+  "candidate_builder_policy_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+  "candidate_count": 14,
+  "candidate_ids": [
+    "candidate_08471c62461ef9e8c4e079df400469aea8d9045ef41d7f9cc19f8a956921850a",
+    "candidate_367ebf094df1c4a0cb7a174fcbc54d40f275690d380e20b22b034c948e344c6b",
+    "candidate_07b5028c1e9deff3cb16c6f16f9e3d0373295abb68bc7b174fa9b5459e4788c0",
+    "candidate_38194fa82a43d1f3b5aef6f98c994d6312ab5124b2ea2f7ab307190820710669",
+    "candidate_5e52f7955d992a10c087019d3a486fe3105d084b0acb77163d76e11f61e777d7",
+    "candidate_cd799550fbd7687c360bcade8671160334b2f33958dc9c5ae84bad0cc7f84064",
+    "candidate_a9fdd3c499a293dc66e9de55b07ff7e2bef5489cf3a67b9e8f684216958a4f67",
+    "candidate_0c0cab5b4a167540be4259cdcc350b2709ed5d8e6f3754c8b3d55e701a394945",
+    "candidate_8b2e6e4f89b22cd5d6c1c61cc729d9f8300dc0a65b2ce8498e08d17f4f1e5bdb",
+    "candidate_9bcd56b4db1bce0719c25a1da7be3856ccd18d4b53d22c8b2917c87ef7c10f83",
+    "candidate_c65437b5b5e8898baca81ecd436ee893a3e7bde9ff9c5cd1687103d482915f2f",
+    "candidate_eec30e13163961418faea685d309191e42349877b2fa61aba358537145ac87d1",
+    "candidate_0b2740bd42ff3385c553f65346bbdcabac3d574a3f7527344c3cdc1796139d45",
+    "candidate_bd4be3bd81fcf4dfd864a9dbfc9944c104da66404a5881cc84de80caa1a4dbe1"
+  ],
+  "candidate_set_identity": "5f24b2ae83435c705d3579de712daa8b66954b4de7e88c077951ad6bc7cb6780",
+  "case_correlation_id": "CASE_005",
+  "evaluation_track": "oracle_video_conditional",
+  "gold_after_prediction": {
+    "failure_attribution": "repair_attempt_exhausted",
+    "hit": null
+  },
+  "model_identity": "deepseek-v4-pro",
+  "prompt_version": "v3.5-structured-fine-selector-prompt-v1",
+  "query_identity": "Q16",
+  "raw_normalization_result": null,
+  "reconstructed_bundle_id": null,
+  "repair_attempt": null,
+  "request_hash": null,
+  "response_hash": null,
+  "schema_validation": "repair_attempt_exhausted",
+  "selected_candidate_ids": [],
+  "selector_contract_version": "v3.5-structured-fine-selector-v1",
+  "selector_type": "structured_llm"
+}

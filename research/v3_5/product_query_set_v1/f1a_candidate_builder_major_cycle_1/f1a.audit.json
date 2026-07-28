@@ -1,0 +1,82 @@
+{
+  "schema_version": "v3.5-b-f1a-audit-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "identity": {
+    "active_design": "adaptive_bounded_coverage_swap_v1",
+    "p8_retrieval_inputs_unchanged": true,
+    "development_gold_unchanged": true,
+    "frozen_evaluation_gold_opened": false
+  },
+  "filesystem": {
+    "seed_manifest_hash_matches": true,
+    "exact_path_resolution_created_before_implementation_access": true,
+    "raw_source_allowlist_passed": true,
+    "repository_recursive_search_count": 0,
+    "forbidden_path_touch_count": 0,
+    "guessed_path_count": 0
+  },
+  "implementation": {
+    "builder_source": "src/shiliu/evidence/stage3a.py",
+    "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+    "original_top_32_preserved_as_initial_set": true,
+    "swap_count_range": "0_to_4",
+    "forced_swaps": false,
+    "candidate_and_window_budgets_unchanged": true,
+    "retrieval_router_changed": false,
+    "selector_gate_changed": false,
+    "query_split_gold_changed": false,
+    "llm_calls": 0,
+    "new_embedding_calls": 0,
+    "runtime_gold_signals": 0
+  },
+  "unscored_verification": {
+    "direct_tests_passed": 51,
+    "direct_tests_failed": 0,
+    "gold_free_p8_replay_completed": true,
+    "candidate_count_total": 3504,
+    "invalid_candidate_count": 0,
+    "maximum_swap_count_per_query": 4,
+    "pytest_unavailable": true,
+    "fastapi_dependency_unavailable": true
+  },
+  "cycle": {
+    "implementation_freeze_before_scoring": true,
+    "implementation_freeze_seal_sha256": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+    "development_scored_run_attempt_count": 1,
+    "development_scored_run_completed_count": 0,
+    "stress_scored_run_attempt_count": 0,
+    "stress_scored_run_completed_count": 0,
+    "post_score_behavior_change": false,
+    "major_cycles_used": 1,
+    "second_major_cycle_authorized": false
+  },
+  "blocking_event": {
+    "query_id": "PQS_V1_Q014",
+    "exception_type": "EvidenceContractError",
+    "exception_code": "no_supported_subtitle",
+    "phase": "sealed_development_runtime_replay_before_gold_open",
+    "partial_swap_trace_query_ids": [
+      "PQS_V1_Q003",
+      "PQS_V1_Q004",
+      "PQS_V1_Q005",
+      "PQS_V1_Q006",
+      "PQS_V1_Q007",
+      "PQS_V1_Q008",
+      "PQS_V1_Q011",
+      "PQS_V1_Q012",
+      "PQS_V1_Q013"
+    ],
+    "retry_performed": false,
+    "reason_for_stop": "The Implementation Freeze contract forbids repairing or retrying the sealed scorer."
+  },
+  "recovery": {
+    "previous_attempt_assets_reused_as_formal_cycle_assets": false,
+    "restart_is_second_cycle": false
+  },
+  "downstream": {
+    "f1a_closed_by_codex": false,
+    "f1b_started": false,
+    "stage4_started": false,
+    "p10_entered": false
+  }
+}

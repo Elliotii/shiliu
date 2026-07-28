@@ -1,0 +1,1912 @@
+{
+  "artifact_manifest": {
+    "expected_sha256": "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f",
+    "observed_sha256": "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f",
+    "path": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_eval/artifact_manifest.jsonl"
+  },
+  "duplicate_source_identity_count": 0,
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "forbidden_path_count": 0,
+  "forbidden_video_ids": [],
+  "hash_mismatch_count": 0,
+  "hash_mismatch_video_ids": [],
+  "raw_source_count": 87,
+  "recognized_source_terminals": [
+    {
+      "admitted_to_raw_allowlist": false,
+      "authorized_input_id": "PQS_V1_Q014",
+      "authorized_input_origin": "p8_attempt_3",
+      "raw_source_identity_present": false,
+      "source_id": "BV1ZA93BtEKW",
+      "terminal_code": "no_supported_subtitle",
+      "video_id": 137
+    }
+  ],
+  "records": [
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "24e91c64283dbd9d11e01d54edc0b0c18039aa655a6f919a0e36dbfb6758078c",
+      "hash_matches": true,
+      "observed_sha256": "24e91c64283dbd9d11e01d54edc0b0c18039aa655a6f919a0e36dbfb6758078c",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1FPTT6uEd2/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_7ab6cc62c5d3bf12382ffa1fc20a89cd601b7cc548d60bae13a2c6e595d174ea",
+      "source_version": "24e91c64283dbd9d11e01d54edc0b0c18039aa655a6f919a0e36dbfb6758078c",
+      "timeline_run_ids": [
+        "timeline_run_e3e5d4914847c8c20ea789c0285b208f90a971015ebc8cc36cffeb1151b3ecdb"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1FPTT6uEd2",
+        "video_id": 4
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "c2928145f2f1394392778962f1ac9aaff82cf19bd803933569e5aeea56083f44",
+      "hash_matches": true,
+      "observed_sha256": "c2928145f2f1394392778962f1ac9aaff82cf19bd803933569e5aeea56083f44",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1vQwJzTEdz/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_06a063c5280e4427a798c10297afaa47a981a95d71a01b8ceeaaf4d29324025a",
+      "source_version": "c2928145f2f1394392778962f1ac9aaff82cf19bd803933569e5aeea56083f44",
+      "timeline_run_ids": [
+        "timeline_run_6b8a0258a37f58848d5d29acf181b2320670a9321cc7e196234719393d1dfcbf"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1vQwJzTEdz",
+        "video_id": 5
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+      "hash_matches": true,
+      "observed_sha256": "087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1o87764Ebs/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_3039d8a06ed1cf965c01701d361bbe89fc679aad29a94a7841149310ac7a1719",
+      "source_version": "087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+      "timeline_run_ids": [
+        "timeline_run_952562099c8923d96bdc31cca843918017bbcd59d3fb63cd69e1cfd6d4d6e010"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1o87764Ebs",
+        "video_id": 6
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "109008378f297d24b85b1000da66a84f5527550ffab21da6e78887d9e907293d",
+      "hash_matches": true,
+      "observed_sha256": "109008378f297d24b85b1000da66a84f5527550ffab21da6e78887d9e907293d",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV14fTc6TEi5/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_0555d6395ac7a10eeb037d270afb840d4cf4956b56bbc18139c1ef704074cb37",
+      "source_version": "109008378f297d24b85b1000da66a84f5527550ffab21da6e78887d9e907293d",
+      "timeline_run_ids": [
+        "timeline_run_4710467381f877b30a31cabc9f41746ea398f5765578802365c652ad551d08ca"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV14fTc6TEi5",
+        "video_id": 7
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "61ceeebc9b4e985b39baab9f4047cc3894f483bbbd68f936401693a44a48e1cb",
+      "hash_matches": true,
+      "observed_sha256": "61ceeebc9b4e985b39baab9f4047cc3894f483bbbd68f936401693a44a48e1cb",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1zqjP6HEJo/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_adeddefdb1656a4e54a74311ab371e4f4588c9afa7e8238e3788dd958452c8ec",
+      "source_version": "61ceeebc9b4e985b39baab9f4047cc3894f483bbbd68f936401693a44a48e1cb",
+      "timeline_run_ids": [
+        "timeline_run_20e4c78df929d3ffce9d155039ca739f220122050c737274292f6cf2608b9466"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1zqjP6HEJo",
+        "video_id": 10
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "a512e7a59462b9707a9f34c2cc9dd4f57533b241fbe86f898eb7a5bb3958e56d",
+      "hash_matches": true,
+      "observed_sha256": "a512e7a59462b9707a9f34c2cc9dd4f57533b241fbe86f898eb7a5bb3958e56d",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1Pujj6FEke/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_1bb7a9783ba488da66891d3a9216f1157134af4e30707863ab717978989dc58e",
+      "source_version": "a512e7a59462b9707a9f34c2cc9dd4f57533b241fbe86f898eb7a5bb3958e56d",
+      "timeline_run_ids": [
+        "timeline_run_c3f384887beb7c471125cdb4adab1aff1c977f285e306cef4747881c63000ca9"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1Pujj6FEke",
+        "video_id": 11
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "5f0adec45e42f33077cff2d9c8b9b51ffd4b1251875c52575488ca8f81a860af",
+      "hash_matches": true,
+      "observed_sha256": "5f0adec45e42f33077cff2d9c8b9b51ffd4b1251875c52575488ca8f81a860af",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1atjU6KEJF/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_8e1178565c57bc76a5038ffbf0fe49d1e7a03dca93efda471220c92b64e1e4f8",
+      "source_version": "5f0adec45e42f33077cff2d9c8b9b51ffd4b1251875c52575488ca8f81a860af",
+      "timeline_run_ids": [
+        "timeline_run_157cf990a791b08eb15a2946c4f425a4feb40ba63b7ab927448d5b63886f06e1"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1atjU6KEJF",
+        "video_id": 12
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "1aa4e130c5b8092844edf7bd7145c5487e13911071d895f426faeecf08d78290",
+      "hash_matches": true,
+      "observed_sha256": "1aa4e130c5b8092844edf7bd7145c5487e13911071d895f426faeecf08d78290",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1cyMi6tEqU/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_dd6749b67582e1dfb52f32c99ad789fa1d0c161a0ab2ea57ad52cf85e8c17a24",
+      "source_version": "1aa4e130c5b8092844edf7bd7145c5487e13911071d895f426faeecf08d78290",
+      "timeline_run_ids": [
+        "timeline_run_35f426545decec7a0205fd1a5e57ced222546b73d88f14ba47b6e8ea9cda259c"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1cyMi6tEqU",
+        "video_id": 13
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "03c2cdecf00a7066a975c9ac330424e43119e7bb4a9a029b8bd01974c0e593e4",
+      "hash_matches": true,
+      "observed_sha256": "03c2cdecf00a7066a975c9ac330424e43119e7bb4a9a029b8bd01974c0e593e4",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1pUMh6JEmy/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_7d612c2e35fcf6737c6c9703a02676891c26eb6e2068fa38c8d5287c57737554",
+      "source_version": "03c2cdecf00a7066a975c9ac330424e43119e7bb4a9a029b8bd01974c0e593e4",
+      "timeline_run_ids": [
+        "timeline_run_e18409700314f5547ac6ad32f7622ecaaee38aa3a8d9cc5ed369bde838c6c861"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1pUMh6JEmy",
+        "video_id": 14
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "a2b5d0027ad689465a35adb35657946da80899c037301a2c792dd4aa4edf9598",
+      "hash_matches": true,
+      "observed_sha256": "a2b5d0027ad689465a35adb35657946da80899c037301a2c792dd4aa4edf9598",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1c6Mw6AE6X/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_968566dcb0e859e7661fc4d306899c79d8a502c0105166683fad78367708194f",
+      "source_version": "a2b5d0027ad689465a35adb35657946da80899c037301a2c792dd4aa4edf9598",
+      "timeline_run_ids": [
+        "timeline_run_f2056461ef9ef0e6e072ad5040dc35ed69fc07b02d03591621f88e1355952fef"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1c6Mw6AE6X",
+        "video_id": 15
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "168c86a01453655dcf00911d9bde349c46ce2a2fc7dda4c385d2ac04fa8fafda",
+      "hash_matches": true,
+      "observed_sha256": "168c86a01453655dcf00911d9bde349c46ce2a2fc7dda4c385d2ac04fa8fafda",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1nfjE6YEyK/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_dfd1fb87fc832abb7a277ad88176d71b536d910e1b5d4e246acf74d6c63dd301",
+      "source_version": "168c86a01453655dcf00911d9bde349c46ce2a2fc7dda4c385d2ac04fa8fafda",
+      "timeline_run_ids": [
+        "timeline_run_92341663a783c8fa4cfba1320484696df85cdd15fe74957bf2ead9290b53dc5f"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1nfjE6YEyK",
+        "video_id": 17
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "21e473457b95ce2fe9d706310c64e89447cc3db10ef44d18aa00536790cce716",
+      "hash_matches": true,
+      "observed_sha256": "21e473457b95ce2fe9d706310c64e89447cc3db10ef44d18aa00536790cce716",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1w7Nj6eEBh/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_662ff614258db48d8a88dba03bdcb39755a6d143a4f218ca71c02714d4a236c2",
+      "source_version": "21e473457b95ce2fe9d706310c64e89447cc3db10ef44d18aa00536790cce716",
+      "timeline_run_ids": [
+        "timeline_run_c49080c28022d463ecd507627e116b525e67db641b936eb89a617eb8bbfbfb60"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1w7Nj6eEBh",
+        "video_id": 20
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "b32aea7fdba684603afbdbbcd6c86de8cf5124667272df92f289e871abe143b1",
+      "hash_matches": true,
+      "observed_sha256": "b32aea7fdba684603afbdbbcd6c86de8cf5124667272df92f289e871abe143b1",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV13pqGB2E2G/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_eeb238849b96823a82e8ba5fdda17da6547dd205d19eee83f5f49e19363abc38",
+      "source_version": "b32aea7fdba684603afbdbbcd6c86de8cf5124667272df92f289e871abe143b1",
+      "timeline_run_ids": [
+        "timeline_run_5cd38857aa5c9d687485a40b711aa2d1095b112f13078a4c48167cf3034aa5e2"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV13pqGB2E2G",
+        "video_id": 22
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "f2dd8fab0aaf8b462f5c74463f09aa836c1bfb3c812bec02ef4a7e0761fb29b9",
+      "hash_matches": true,
+      "observed_sha256": "f2dd8fab0aaf8b462f5c74463f09aa836c1bfb3c812bec02ef4a7e0761fb29b9",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1QnML6pEZr/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_18bcf72c90054aaf77bfa7b5753b5aeeca4715ad9026fc2fe2c134e37f08e73e",
+      "source_version": "f2dd8fab0aaf8b462f5c74463f09aa836c1bfb3c812bec02ef4a7e0761fb29b9",
+      "timeline_run_ids": [
+        "timeline_run_388ae2a7dc2222415dba32bb3adc970f3055073806d200e05da26ba1b20921f2"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1QnML6pEZr",
+        "video_id": 24
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "b644fca800574683afb259e408b00382ff5a7d7a20c0a3a3e3e93bbfbaff432d",
+      "hash_matches": true,
+      "observed_sha256": "b644fca800574683afb259e408b00382ff5a7d7a20c0a3a3e3e93bbfbaff432d",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV19EJJ68EoJ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_53b48bdf696a5937d780f12d1c9169a33b686ce6fbe054f93c95b54809dcd72f",
+      "source_version": "b644fca800574683afb259e408b00382ff5a7d7a20c0a3a3e3e93bbfbaff432d",
+      "timeline_run_ids": [
+        "timeline_run_eab1f991306626ee6acdc8910371601f6a386436e1cb13aa320b713cfa61cf78"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV19EJJ68EoJ",
+        "video_id": 25
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "9273e01f1f8a9c90cf12ae9b46b29de8a085846db87714a1d573d13d4de37779",
+      "hash_matches": true,
+      "observed_sha256": "9273e01f1f8a9c90cf12ae9b46b29de8a085846db87714a1d573d13d4de37779",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1wMQjBCEpZ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_6e67f36a26fdbae6cbb21b01ecfe376f3455f36909cdbad25913b98cb212e27a",
+      "source_version": "9273e01f1f8a9c90cf12ae9b46b29de8a085846db87714a1d573d13d4de37779",
+      "timeline_run_ids": [
+        "timeline_run_cda718e7de8d05d20e7173c98218d1ada52efaeff742bb9bb16172d0728fd763"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1wMQjBCEpZ",
+        "video_id": 26
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "de8a766844c2621401bae27767e286e91e1e2e1ad14f96aee42f13b21bbddcea",
+      "hash_matches": true,
+      "observed_sha256": "de8a766844c2621401bae27767e286e91e1e2e1ad14f96aee42f13b21bbddcea",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1ffTL6YEXj/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_be5f90b465d547e372b53785139a995063f5920cde95f97ba52849ccc1d05746",
+      "source_version": "de8a766844c2621401bae27767e286e91e1e2e1ad14f96aee42f13b21bbddcea",
+      "timeline_run_ids": [
+        "timeline_run_1b1ee2496262e71e803303191e828ee86da95b7be13943c9031dd7bfc1aeed53"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1ffTL6YEXj",
+        "video_id": 29
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "cc48edb617e0e9ce77dc0b466a6b2a41d6a44ba4fc771cc92aa4d838952be47f",
+      "hash_matches": true,
+      "observed_sha256": "cc48edb617e0e9ce77dc0b466a6b2a41d6a44ba4fc771cc92aa4d838952be47f",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV11wEb6uEwB/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_5961808be3b996fabfed73f98bdd493db10a31c9274578b7d3126354cdf7d7d1",
+      "source_version": "cc48edb617e0e9ce77dc0b466a6b2a41d6a44ba4fc771cc92aa4d838952be47f",
+      "timeline_run_ids": [
+        "timeline_run_fcf5a6ac56526280d8d23af00f22aa2dfa93d5107a4dc827ebf1f9d3d94fc1d4"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV11wEb6uEwB",
+        "video_id": 30
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "11476324697d19114fcb6eb81062adf8269f132ed44b6c7846696c3c3eea9470",
+      "hash_matches": true,
+      "observed_sha256": "11476324697d19114fcb6eb81062adf8269f132ed44b6c7846696c3c3eea9470",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1gmWDeLEMZ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_04defbd8299f7d01c0f8bfb0e357c9d74bb68c242c53ea46568f97a139990786",
+      "source_version": "11476324697d19114fcb6eb81062adf8269f132ed44b6c7846696c3c3eea9470",
+      "timeline_run_ids": [
+        "timeline_run_8cae60d5fd014fadb538713c065f3122dbef83332fbf633891b473fb56473cc2"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1gmWDeLEMZ",
+        "video_id": 32
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "f28a31351b19918fca37204a197bfb4e8aeb19b85fe7d5f3afc352be64b58d35",
+      "hash_matches": true,
+      "observed_sha256": "f28a31351b19918fca37204a197bfb4e8aeb19b85fe7d5f3afc352be64b58d35",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1SrLG6oEax/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_be2824e0e1f1d5e10d698af0515c5d894f3444ef1d6c2233c0dfc29b151cf6cf",
+      "source_version": "f28a31351b19918fca37204a197bfb4e8aeb19b85fe7d5f3afc352be64b58d35",
+      "timeline_run_ids": [
+        "timeline_run_18f4160633fbaf88a79c9ec7030374a8a67232f7f7de4eed0a379dc778ff03bd"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1SrLG6oEax",
+        "video_id": 33
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "2ed668a11a21a37ae91299c229331d97cd9f84914d94545d36faf6c78dc86951",
+      "hash_matches": true,
+      "observed_sha256": "2ed668a11a21a37ae91299c229331d97cd9f84914d94545d36faf6c78dc86951",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1fRSfBWE5X/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_1ffc01e9d033a0a02da2fb93782ab32cfdc33d599c4d052dcc1ecc7ae01997e5",
+      "source_version": "2ed668a11a21a37ae91299c229331d97cd9f84914d94545d36faf6c78dc86951",
+      "timeline_run_ids": [
+        "timeline_run_d7f90a80bb1e84d302e69aaf99cc04ee8642dbe705386582a8875a1a7dc7dae3"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1fRSfBWE5X",
+        "video_id": 34
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "4bc2b41fce36e07a8534b0315e289e7c6f7ec1d76dda8b633b6eacf3592a3b1c",
+      "hash_matches": true,
+      "observed_sha256": "4bc2b41fce36e07a8534b0315e289e7c6f7ec1d76dda8b633b6eacf3592a3b1c",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV16GjU6jEdP/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_2170ebe80b844fd01b64a9bc9ca44d38dc79259b109665a0b614e904f17ac0ea",
+      "source_version": "4bc2b41fce36e07a8534b0315e289e7c6f7ec1d76dda8b633b6eacf3592a3b1c",
+      "timeline_run_ids": [
+        "timeline_run_7c07f618fa47c6a521d897c96c9d562aa226a1d764e6eaa80731e386870f5ff9"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV16GjU6jEdP",
+        "video_id": 35
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "2280150e5560bd13bd11895e02eb95b67c98f3054993776ca1ae7c1911f86686",
+      "hash_matches": true,
+      "observed_sha256": "2280150e5560bd13bd11895e02eb95b67c98f3054993776ca1ae7c1911f86686",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1hi7w6ME4Q/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_6a9124f5b1472c5242e620e581711cf62d96276143ec129911b8a9e0c91bfe4f",
+      "source_version": "2280150e5560bd13bd11895e02eb95b67c98f3054993776ca1ae7c1911f86686",
+      "timeline_run_ids": [
+        "timeline_run_ff4905367998957f27a4ccf81e8120781ccdeab11fc2db4f51ede6f58eb0a3eb"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1hi7w6ME4Q",
+        "video_id": 36
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "04058a17ed890a434b23d98c2d98a1daaaadaeec7e013c2426a258ffddb66e80",
+      "hash_matches": true,
+      "observed_sha256": "04058a17ed890a434b23d98c2d98a1daaaadaeec7e013c2426a258ffddb66e80",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1Tejc6oEik/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_4f4468bc132eafb955833444c91242e568e3226b179d9d275256c61b099b61e2",
+      "source_version": "04058a17ed890a434b23d98c2d98a1daaaadaeec7e013c2426a258ffddb66e80",
+      "timeline_run_ids": [
+        "timeline_run_30b51cab4ba8189a49b0783e1d18e46eed2cfd3cdcbe3ad63410aefcc1c01633"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1Tejc6oEik",
+        "video_id": 37
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "3fb99a1776b497db69c4af5b15b52b95d30b832b9ad0e74ab035ab07cc510761",
+      "hash_matches": true,
+      "observed_sha256": "3fb99a1776b497db69c4af5b15b52b95d30b832b9ad0e74ab035ab07cc510761",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1z6SXBzEYh/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_f6ed3df72e3d7b2454f4b2931f12fe22cd4948dc05ad67bf1b526a29ac02d31c",
+      "source_version": "3fb99a1776b497db69c4af5b15b52b95d30b832b9ad0e74ab035ab07cc510761",
+      "timeline_run_ids": [
+        "timeline_run_aae180d86daa09dce1c3ca8b72affd7a1972dbe661ed05966da9c8f4bdfe2508"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1z6SXBzEYh",
+        "video_id": 38
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "a71269e88ec7d3423de263048b18de2583958015bac691978a151b3439c52867",
+      "hash_matches": true,
+      "observed_sha256": "a71269e88ec7d3423de263048b18de2583958015bac691978a151b3439c52867",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1hr6EBBEhM/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_609fddaa8b2a05050a89d39a3cbb4f96d84d7bf884ff7196011051db5a7f5754",
+      "source_version": "a71269e88ec7d3423de263048b18de2583958015bac691978a151b3439c52867",
+      "timeline_run_ids": [
+        "timeline_run_0162693cbdc301e9f50af9743243e29472a1675e2dcf70a5118422cea80945c2"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1hr6EBBEhM",
+        "video_id": 39
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "5b3f6473760e29bce827e3f8d1df65c89f94f0d5faa70c9497c9d3740a3e41ac",
+      "hash_matches": true,
+      "observed_sha256": "5b3f6473760e29bce827e3f8d1df65c89f94f0d5faa70c9497c9d3740a3e41ac",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1oa6uBXE8J/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_4213f9dd38f2dedfa5714b19b959c7c96f048d858cf8d18d2647deb02cedd2ce",
+      "source_version": "5b3f6473760e29bce827e3f8d1df65c89f94f0d5faa70c9497c9d3740a3e41ac",
+      "timeline_run_ids": [
+        "timeline_run_1bc8e33b91d8842cff3eae7c5d8b96625265a3f1c7a5689df875afc2b1a248de"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1oa6uBXE8J",
+        "video_id": 40
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "86c45b6b32e980ed313d8ed1d056d88984c5055b4638134e0c4af58c860972c4",
+      "hash_matches": true,
+      "observed_sha256": "86c45b6b32e980ed313d8ed1d056d88984c5055b4638134e0c4af58c860972c4",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1XrEZ6NEuD/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_0cd6e27b601944c9450b5d135b1ae3ba9c95945dd31dbaa7ca31b6f2317e6921",
+      "source_version": "86c45b6b32e980ed313d8ed1d056d88984c5055b4638134e0c4af58c860972c4",
+      "timeline_run_ids": [
+        "timeline_run_33c4c3cd9ffc6587b0ed093373cb37936df52a57c77bb945a3db45e98317cd1f"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1XrEZ6NEuD",
+        "video_id": 45
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "d35413f30924e78824b854d7202492a65eccaf8ed54b603b11fd7cb3932ed68f",
+      "hash_matches": true,
+      "observed_sha256": "d35413f30924e78824b854d7202492a65eccaf8ed54b603b11fd7cb3932ed68f",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1kMVt6mEgr/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_65601dac481f4e49abf2565560442c12af35c7bd257431e110b39e26c131f44f",
+      "source_version": "d35413f30924e78824b854d7202492a65eccaf8ed54b603b11fd7cb3932ed68f",
+      "timeline_run_ids": [
+        "timeline_run_6e703a0d439509f7278350f9a12251f6646051c5c35536383ebf8e49adefe9d7"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1kMVt6mEgr",
+        "video_id": 47
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "59ac40d9ba56d02b5cb60f14349e0cea6bc500e614479f315e4baae951869541",
+      "hash_matches": true,
+      "observed_sha256": "59ac40d9ba56d02b5cb60f14349e0cea6bc500e614479f315e4baae951869541",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV19BGD6aEb8/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_5e6ab4e1551d076468623d403b61daca8300753f062c7c2839c86a90e5e9af6a",
+      "source_version": "59ac40d9ba56d02b5cb60f14349e0cea6bc500e614479f315e4baae951869541",
+      "timeline_run_ids": [
+        "timeline_run_de649e21a0ce67ed0cc21e61d576b9c21012d7030deda37bbbb89897c63bb18d"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV19BGD6aEb8",
+        "video_id": 48
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "2798ac42a685f830eb6ce7129e7d0a7c5b1331494be5f00beb2fbcc610945bbc",
+      "hash_matches": true,
+      "observed_sha256": "2798ac42a685f830eb6ce7129e7d0a7c5b1331494be5f00beb2fbcc610945bbc",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1GqV16QESu/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_e382b1369b2ccec2f5afed0a40f095803cd7fb710a4ffca4bdbf3c977375fc85",
+      "source_version": "2798ac42a685f830eb6ce7129e7d0a7c5b1331494be5f00beb2fbcc610945bbc",
+      "timeline_run_ids": [
+        "timeline_run_e7621a0bb3a887852625e84fedb981a6fd796eca8193d959db2b796152428bf7"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1GqV16QESu",
+        "video_id": 50
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "49d36c9f837d144bb00760a41ea84204defddf89f174a45ddb5d486a0b71a338",
+      "hash_matches": true,
+      "observed_sha256": "49d36c9f837d144bb00760a41ea84204defddf89f174a45ddb5d486a0b71a338",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1qhE26VEbS/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_5d8f70d93d3e156fd71543d631c201ea5fc347b0ad78278952ebaa9a3cdecf60",
+      "source_version": "49d36c9f837d144bb00760a41ea84204defddf89f174a45ddb5d486a0b71a338",
+      "timeline_run_ids": [
+        "timeline_run_e2cc938370396dc4eb7cac939fb4e6a37df508e9ef93ea963a3c5028469c49be"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1qhE26VEbS",
+        "video_id": 51
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "caf412c7e352408231c9c8f8d87621d234459bec128cd93362bff41f86079116",
+      "hash_matches": true,
+      "observed_sha256": "caf412c7e352408231c9c8f8d87621d234459bec128cd93362bff41f86079116",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV15wGR6CEhY/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_bb75105700cde90d575434b65b517eccc78d6a4cbffbd2997925d08b1fe561e5",
+      "source_version": "caf412c7e352408231c9c8f8d87621d234459bec128cd93362bff41f86079116",
+      "timeline_run_ids": [
+        "timeline_run_8d691df7c62e9ecfeb502ef5e607331bee67da9f8bdc8745c3eea3e2e16ee0bb"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV15wGR6CEhY",
+        "video_id": 54
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "62067591ebf1e24a694f2ae4e058857787f4fadbc15d97cf898068d42d498cb5",
+      "hash_matches": true,
+      "observed_sha256": "62067591ebf1e24a694f2ae4e058857787f4fadbc15d97cf898068d42d498cb5",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1sudwBnEoP/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_076f2adc4c4028009e8b564e20e62e6ebfbd9fcc82113cea57f4946fd270433a",
+      "source_version": "62067591ebf1e24a694f2ae4e058857787f4fadbc15d97cf898068d42d498cb5",
+      "timeline_run_ids": [
+        "timeline_run_c960e16025ab070a6c7b3230076a57219dd10384d21dee2f1cf473d10cc1c875"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1sudwBnEoP",
+        "video_id": 55
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "8398501743be9b0f9f97e99746221fc52f4a8b5843e7c4cc50a751237c7e3cde",
+      "hash_matches": true,
+      "observed_sha256": "8398501743be9b0f9f97e99746221fc52f4a8b5843e7c4cc50a751237c7e3cde",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1gPGE6iELk/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_6e0f74eebc73e27e677d6c6cfedb6239b3e6dc228c73bead5dfb2a663a3c7a64",
+      "source_version": "8398501743be9b0f9f97e99746221fc52f4a8b5843e7c4cc50a751237c7e3cde",
+      "timeline_run_ids": [
+        "timeline_run_28c02f93506a167164bbed291517742153f33e36dd842cb76ef3541038bfb315"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1gPGE6iELk",
+        "video_id": 56
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "7501324bf48ca624cc99ae516f5d5b796f554adf8dfcc27705838544b6e6402f",
+      "hash_matches": true,
+      "observed_sha256": "7501324bf48ca624cc99ae516f5d5b796f554adf8dfcc27705838544b6e6402f",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV19XvDBQE6y/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_4289b1556119d9fe0e632bcfde71753263b3c5e08c37716963fad4c00a9c32c4",
+      "source_version": "7501324bf48ca624cc99ae516f5d5b796f554adf8dfcc27705838544b6e6402f",
+      "timeline_run_ids": [
+        "timeline_run_df49f227bda09ef18406013618ea086b03b64a1fe17d5bdf79656be88168aeef"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV19XvDBQE6y",
+        "video_id": 57
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "c1d59ac61c09fd898c08839c2d83f86789694bc6672b99ab73fc52e81863b5e1",
+      "hash_matches": true,
+      "observed_sha256": "c1d59ac61c09fd898c08839c2d83f86789694bc6672b99ab73fc52e81863b5e1",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1FMGJ6XE8c/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_a05fc5805b029f1e62bd6086564ed509f1f1bae077639583849c5b6dcc71b7f3",
+      "source_version": "c1d59ac61c09fd898c08839c2d83f86789694bc6672b99ab73fc52e81863b5e1",
+      "timeline_run_ids": [
+        "timeline_run_8f904dadb3fdd0ed28d91a94428b80d6dbb5100028112ea1d895057acbe58242"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1FMGJ6XE8c",
+        "video_id": 58
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "2721c28d53c3b6058dc97e4eed9acc924e0d6906898f73502f923b110f3e14a3",
+      "hash_matches": true,
+      "observed_sha256": "2721c28d53c3b6058dc97e4eed9acc924e0d6906898f73502f923b110f3e14a3",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1pCGJ6ZEDH/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_5e521ac3925196a92dc0b6e0f278b05f88bafc55e832e4826df3cfce3ef9b6c5",
+      "source_version": "2721c28d53c3b6058dc97e4eed9acc924e0d6906898f73502f923b110f3e14a3",
+      "timeline_run_ids": [
+        "timeline_run_bee1e312373248baccf6d018ac286822cc3e95a2d097311781ed41aaa248c948"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1pCGJ6ZEDH",
+        "video_id": 59
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "a8dd8a5d5a0f4ea3dfe0a0c95d8d3baada8369e4087b2f63819eef2db4937bc0",
+      "hash_matches": true,
+      "observed_sha256": "a8dd8a5d5a0f4ea3dfe0a0c95d8d3baada8369e4087b2f63819eef2db4937bc0",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV15J5u6HEP4/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_2abf5c91725d15d64402e40eb9f74486fb72db319644a0d1b1926d449d6c64a9",
+      "source_version": "a8dd8a5d5a0f4ea3dfe0a0c95d8d3baada8369e4087b2f63819eef2db4937bc0",
+      "timeline_run_ids": [
+        "timeline_run_5f6d7680b4a33b8ea6fb6aee8a6677efb9212216b48063f49a7e31dfaf89763f"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV15J5u6HEP4",
+        "video_id": 60
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "ba8704ef3434ae0bbfa525a2b74880a744f1b819481798eeaea5ac0a4b5581bd",
+      "hash_matches": true,
+      "observed_sha256": "ba8704ef3434ae0bbfa525a2b74880a744f1b819481798eeaea5ac0a4b5581bd",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1rb5y6wEJV/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_082bd181d8432164dc4dadb7ee1ec20223e9e1217364317419f3fc700cee8e69",
+      "source_version": "ba8704ef3434ae0bbfa525a2b74880a744f1b819481798eeaea5ac0a4b5581bd",
+      "timeline_run_ids": [
+        "timeline_run_ee1f6d5eb3bd0e277c87a520edba766e44a49869530ed752523082d7311da66e"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1rb5y6wEJV",
+        "video_id": 61
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "50c88399b4a072c5ff9094daffb15bbacf7b0bce499ec19bf711e041e2bcbbc3",
+      "hash_matches": true,
+      "observed_sha256": "50c88399b4a072c5ff9094daffb15bbacf7b0bce499ec19bf711e041e2bcbbc3",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1dw526tEMA/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_0169e3c29c6992955feb26c33d85ef6b7d982341521b91161e985b5b394e35d2",
+      "source_version": "50c88399b4a072c5ff9094daffb15bbacf7b0bce499ec19bf711e041e2bcbbc3",
+      "timeline_run_ids": [
+        "timeline_run_a96b82bbf8a9393c70aaccc937f7aac4d9b5a3989543909c768b9977f1d6184e"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1dw526tEMA",
+        "video_id": 62
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "59fb03ee13f3d711f9a9fab7774579c36818c467f1eb2df621a8140f2c733f49",
+      "hash_matches": true,
+      "observed_sha256": "59fb03ee13f3d711f9a9fab7774579c36818c467f1eb2df621a8140f2c733f49",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1M15Q6eEhL/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_3d6f7afa1888e6f27837ad6032d170fff6ab47f78c4683b0cd2eb507a729aa23",
+      "source_version": "59fb03ee13f3d711f9a9fab7774579c36818c467f1eb2df621a8140f2c733f49",
+      "timeline_run_ids": [
+        "timeline_run_6bd8f11d11236f829a6dd95305509bfa0e8ba342ba5b1d899584191e84c8f259"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1M15Q6eEhL",
+        "video_id": 64
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "6767c30380e6d20b95790cf1aa4fef0db01ff6ec4d3aa10dfaf57fefeabcafd2",
+      "hash_matches": true,
+      "observed_sha256": "6767c30380e6d20b95790cf1aa4fef0db01ff6ec4d3aa10dfaf57fefeabcafd2",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV18NLx6fEAq/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_01b6714a4c036cfb65db66228c76ca546ddd2ec111b137a63aa64482ee3d9f4c",
+      "source_version": "6767c30380e6d20b95790cf1aa4fef0db01ff6ec4d3aa10dfaf57fefeabcafd2",
+      "timeline_run_ids": [
+        "timeline_run_73a4ed7acd9f552b700d2d2e8c698678ab02a300561137ddb4340c709cfae910"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV18NLx6fEAq",
+        "video_id": 65
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "06eb1682d4b6a416e1eb5cca078bced378e2d81ee47d9d01dba7d2324dbab635",
+      "hash_matches": true,
+      "observed_sha256": "06eb1682d4b6a416e1eb5cca078bced378e2d81ee47d9d01dba7d2324dbab635",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1hYwDzSE7A/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_6a2ba3e421fa4d72333ac91664637c70b566f308c8b2f8b9610257870329c7fe",
+      "source_version": "06eb1682d4b6a416e1eb5cca078bced378e2d81ee47d9d01dba7d2324dbab635",
+      "timeline_run_ids": [
+        "timeline_run_0360386e691585ac173e8758c40650f3f75c05313ebbede6aa75c03e97551d9b"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1hYwDzSE7A",
+        "video_id": 68
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "066f770e1a8f82c66a3f9d20ee72c2211d67f64c5826a6c70c153ca74da90f8f",
+      "hash_matches": true,
+      "observed_sha256": "066f770e1a8f82c66a3f9d20ee72c2211d67f64c5826a6c70c153ca74da90f8f",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1ySLc6QEcB/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_6794f193c1b0aa58f3ec45258c20be7f3374d04466c7af5401b2a1d1ead3262c",
+      "source_version": "066f770e1a8f82c66a3f9d20ee72c2211d67f64c5826a6c70c153ca74da90f8f",
+      "timeline_run_ids": [
+        "timeline_run_0342879d8bbdccf70c2927cbcf4d31eb5ebb28c2f4e66a8e62aa7a3994f30082"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1ySLc6QEcB",
+        "video_id": 70
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "36388bbcef6f6ce2a9d7358c8bce12e43e9fa45408fe6a784c1131ea560c986d",
+      "hash_matches": true,
+      "observed_sha256": "36388bbcef6f6ce2a9d7358c8bce12e43e9fa45408fe6a784c1131ea560c986d",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1co9yBhEvW/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_17b1b10e4f51ce9496c1f1cf1e84d64cd981770849f393ad4969f9df1b0bed72",
+      "source_version": "36388bbcef6f6ce2a9d7358c8bce12e43e9fa45408fe6a784c1131ea560c986d",
+      "timeline_run_ids": [
+        "timeline_run_266295ebb50a607935ee8f7a71f66c51d8279b33b030798c90a08d3661049090"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1co9yBhEvW",
+        "video_id": 71
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "89e4aa747043e7f6d54fafbf6b64affa178d0303b833425168f851d75bf64265",
+      "hash_matches": true,
+      "observed_sha256": "89e4aa747043e7f6d54fafbf6b64affa178d0303b833425168f851d75bf64265",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1Lk4y117Cb/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_a2e8d046a97f2839d6c3240881e22af775621355a3b65e78e30cb088f3fa6ad6",
+      "source_version": "89e4aa747043e7f6d54fafbf6b64affa178d0303b833425168f851d75bf64265",
+      "timeline_run_ids": [
+        "timeline_run_f081f1045236c16a21f6ae04a2270465c75cdd771a01bf83d79bf925b6eab249"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1Lk4y117Cb",
+        "video_id": 72
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "c8803219c997962785a301183c8b8b39833d0486957b06db3194e3431dc80fd9",
+      "hash_matches": true,
+      "observed_sha256": "c8803219c997962785a301183c8b8b39833d0486957b06db3194e3431dc80fd9",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1Wu5f6GEr6/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_ad0a76d2ec5df2c2d05f189396dade17c5f633fa54e40359fcce70548d0c0139",
+      "source_version": "c8803219c997962785a301183c8b8b39833d0486957b06db3194e3431dc80fd9",
+      "timeline_run_ids": [
+        "timeline_run_57ddfb5268b7bc3cbe4069be2ce6ee8ae42a40acefad65b9ae752430abd7887a"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1Wu5f6GEr6",
+        "video_id": 73
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "a9ac59f6e4cb0f81e5552f9bf73eb5cbacf95b815d68c70ea1f695699ef7abd4",
+      "hash_matches": true,
+      "observed_sha256": "a9ac59f6e4cb0f81e5552f9bf73eb5cbacf95b815d68c70ea1f695699ef7abd4",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1yDLG6DE39/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_63a943f56e1dbadc69c2d41bfd3e84e160677b04eaf0c0d9d051ee493bebf82c",
+      "source_version": "a9ac59f6e4cb0f81e5552f9bf73eb5cbacf95b815d68c70ea1f695699ef7abd4",
+      "timeline_run_ids": [
+        "timeline_run_5687b274d05af58d4a4e899e96415175a244159102fc75902b8b9d8a74e7298e"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1yDLG6DE39",
+        "video_id": 74
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "0b63bb8d8236baa85ce6d8111287d703baeb3099f409d4b8fecc84d0d3878ffa",
+      "hash_matches": true,
+      "observed_sha256": "0b63bb8d8236baa85ce6d8111287d703baeb3099f409d4b8fecc84d0d3878ffa",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1BxL561EaF/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_98efece3094106f6f8ba4aeded1e893ef2d35e9ac3a3c5515209e58af52c9491",
+      "source_version": "0b63bb8d8236baa85ce6d8111287d703baeb3099f409d4b8fecc84d0d3878ffa",
+      "timeline_run_ids": [
+        "timeline_run_c483cf53058f3f8ddcca86adabd8436ca111032d3cb88211523f5f2ceb9b98b2"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1BxL561EaF",
+        "video_id": 76
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "edf9d166300d37389489b51aa351588f8721eba12db215f9bce3edd4c3892cd5",
+      "hash_matches": true,
+      "observed_sha256": "edf9d166300d37389489b51aa351588f8721eba12db215f9bce3edd4c3892cd5",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1JLN2z4EZQ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_8e1f04b7c5e2cb7acc7b6d8c90194c62d48739c0ccd03718171c4d52a835d390",
+      "source_version": "edf9d166300d37389489b51aa351588f8721eba12db215f9bce3edd4c3892cd5",
+      "timeline_run_ids": [
+        "timeline_run_cf9ec21d0e83a2a71396aa2a06ead3b6909400cb1ca235507812f89238f71a37"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1JLN2z4EZQ",
+        "video_id": 77
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "6555e8b2118e80ae3bf504f543fb6dfd013da65181ab45a9d9df773c4b165b36",
+      "hash_matches": true,
+      "observed_sha256": "6555e8b2118e80ae3bf504f543fb6dfd013da65181ab45a9d9df773c4b165b36",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1G29EBGE8b/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_a7054f75a77200b645b943b51a2b26aa0174d293f4869016ec649951a7e416a6",
+      "source_version": "6555e8b2118e80ae3bf504f543fb6dfd013da65181ab45a9d9df773c4b165b36",
+      "timeline_run_ids": [
+        "timeline_run_c65dd15fa2b74d05f30778278863c74719df1844c765a7e4ebcd145d0dff8092"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1G29EBGE8b",
+        "video_id": 78
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "ceb181f3100e60c7746b2ae73922fdc8138d85c63a55b87e71e2498d5c496b12",
+      "hash_matches": true,
+      "observed_sha256": "ceb181f3100e60c7746b2ae73922fdc8138d85c63a55b87e71e2498d5c496b12",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1AuzkBREhx/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_defefaf274d8f891c00f16288e6e131e73e7a86db33df35733c5dd82874b6254",
+      "source_version": "ceb181f3100e60c7746b2ae73922fdc8138d85c63a55b87e71e2498d5c496b12",
+      "timeline_run_ids": [
+        "timeline_run_efc55b93541ca64e6982fa688bd4f50b6ff2393abef6507b5878b97d1dd98d23"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1AuzkBREhx",
+        "video_id": 80
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "eaa4c02609c60a288606d1c41e843e151c593a68873a73e99870332b06f45b23",
+      "hash_matches": true,
+      "observed_sha256": "eaa4c02609c60a288606d1c41e843e151c593a68873a73e99870332b06f45b23",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1LWRxBNEaq/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_9a98d45e8b9659717faca6f1bffd56bfb87fd90171d4577262e05f9899c2788d",
+      "source_version": "eaa4c02609c60a288606d1c41e843e151c593a68873a73e99870332b06f45b23",
+      "timeline_run_ids": [
+        "timeline_run_f7d49263ca56eefd706fdfc1c56b6f7533b1b5dd85bed847a8ce747276b6a124"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1LWRxBNEaq",
+        "video_id": 82
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "d2b65cd091530b0abb6d78a96405af8977ae53dd3bd6c97f16cef587949e645a",
+      "hash_matches": true,
+      "observed_sha256": "d2b65cd091530b0abb6d78a96405af8977ae53dd3bd6c97f16cef587949e645a",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1qTYizcEN3/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_09bc8c83f9aaf8bfe268faf3f83eaffe35a8d554d3b7005618e36eeec81e947b",
+      "source_version": "d2b65cd091530b0abb6d78a96405af8977ae53dd3bd6c97f16cef587949e645a",
+      "timeline_run_ids": [
+        "timeline_run_022ac6198b62ec86644f4da88c60518a9e2c8a572dcee46f1fc8cf78f9e606bd"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1qTYizcEN3",
+        "video_id": 83
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "42b5d906468b850f29066656045f11ebadb93ef42bf5a0d0833c44efea4259aa",
+      "hash_matches": true,
+      "observed_sha256": "42b5d906468b850f29066656045f11ebadb93ef42bf5a0d0833c44efea4259aa",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1ukRrBMEfp/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_b20ee66ef41aa02ac3f19d6279646f783fe89927ae2e90ba14bd33d9bf027915",
+      "source_version": "42b5d906468b850f29066656045f11ebadb93ef42bf5a0d0833c44efea4259aa",
+      "timeline_run_ids": [
+        "timeline_run_f8db02f228b21666853d3fe0182526559200d6dc5e08bd496d61889ccade730a"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1ukRrBMEfp",
+        "video_id": 85
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "cc6afce905dc90ee1c89d1906c2617ba80c4992196c256e5fa8a66db9c0e2f0c",
+      "hash_matches": true,
+      "observed_sha256": "cc6afce905dc90ee1c89d1906c2617ba80c4992196c256e5fa8a66db9c0e2f0c",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1TxwQz5E4B/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_abef1aa557da8dc97d215a7e46f771151ba505eec770d826acf1302838e60374",
+      "source_version": "cc6afce905dc90ee1c89d1906c2617ba80c4992196c256e5fa8a66db9c0e2f0c",
+      "timeline_run_ids": [
+        "timeline_run_0125b1b0733128767b1fb0472e11e9e370afebffc05d3efe98f13a8978c08acc",
+        "timeline_run_c2e11236470bb524592e3f7e42a7ed112c7c0b87f2eb66407d8bc8f5d1dd4663"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1TxwQz5E4B",
+        "video_id": 88
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "8ccffd35ac437bdf19fe613e5e2f6f79ffb3d8a1e5a799723c5d929df5adf32b",
+      "hash_matches": true,
+      "observed_sha256": "8ccffd35ac437bdf19fe613e5e2f6f79ffb3d8a1e5a799723c5d929df5adf32b",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1iVoVBgERD/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_9babfd3d271855cf6b4896e9ab4458d85b7e8d27bc2eb8c3b0b44e171b75fef0",
+      "source_version": "8ccffd35ac437bdf19fe613e5e2f6f79ffb3d8a1e5a799723c5d929df5adf32b",
+      "timeline_run_ids": [
+        "timeline_run_ba4e2a0d1435ef943ee21e413245cdb6492f7393f96c63fdb2e1a2d28c808824"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1iVoVBgERD",
+        "video_id": 90
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "aa4d3410bc677b142c3e3cbee8d4fd842dbdc3a891011074e165415c918103d4",
+      "hash_matches": true,
+      "observed_sha256": "aa4d3410bc677b142c3e3cbee8d4fd842dbdc3a891011074e165415c918103d4",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1YR5E6EE9o/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_fe0ea605f95bc676599bd1c9be52b3101e545061960e11e7a1b693d1456c7b6b",
+      "source_version": "aa4d3410bc677b142c3e3cbee8d4fd842dbdc3a891011074e165415c918103d4",
+      "timeline_run_ids": [
+        "timeline_run_b7306336bacff1f4e1e34ee32240aa1243103a8006bbbecf2cb1874f1695ce61"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1YR5E6EE9o",
+        "video_id": 91
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "d6a5c103268bb42a7525b832ffa16b6e1fd196af7e7184643cc206190bf90971",
+      "hash_matches": true,
+      "observed_sha256": "d6a5c103268bb42a7525b832ffa16b6e1fd196af7e7184643cc206190bf90971",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1TfRfBJEZw/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_caaf1d117914115fe6cdcd4617211a22ba3ff6aa06fa0988514edca4815b17bd",
+      "source_version": "d6a5c103268bb42a7525b832ffa16b6e1fd196af7e7184643cc206190bf90971",
+      "timeline_run_ids": [
+        "timeline_run_56c6d1b0ad72f7c49d899cf0b5ff5170846ac1b1ffa0e81fd7032e26a22033ec"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1TfRfBJEZw",
+        "video_id": 92
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "82a2f8fcf766cdb18fb890b02e798ca3e9c444a3ee2b5bc8a035887b09aeeab6",
+      "hash_matches": true,
+      "observed_sha256": "82a2f8fcf766cdb18fb890b02e798ca3e9c444a3ee2b5bc8a035887b09aeeab6",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV15HXCBkEKY/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_f2a14f4ab02cca21af381f73e759b1bff01fa4cb17a58b55b3d85af6ae69961b",
+      "source_version": "82a2f8fcf766cdb18fb890b02e798ca3e9c444a3ee2b5bc8a035887b09aeeab6",
+      "timeline_run_ids": [
+        "timeline_run_abf24eb73ccb5e3dd10686d9a3806d65c502efc93d71c52ee6cfdada35968011"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV15HXCBkEKY",
+        "video_id": 93
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "bedd2a31414e78ac47e575e86b746f003764f62d69baebeaa679604d0dd0d802",
+      "hash_matches": true,
+      "observed_sha256": "bedd2a31414e78ac47e575e86b746f003764f62d69baebeaa679604d0dd0d802",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1oKdxBzEVz/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_4adb15b0383712cb229b4cc8e3f3f686c00e460ba4b3859c08fbcfbec3ce9f95",
+      "source_version": "bedd2a31414e78ac47e575e86b746f003764f62d69baebeaa679604d0dd0d802",
+      "timeline_run_ids": [
+        "timeline_run_b87a3521f6796cf18c3279b9b8bc6448088e2bae47de755b841d6b09442af0e7"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1oKdxBzEVz",
+        "video_id": 95
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "b77051b7137a751b57d8b21ec7432e7af9f073374fffdb7d87c1711d7638e613",
+      "hash_matches": true,
+      "observed_sha256": "b77051b7137a751b57d8b21ec7432e7af9f073374fffdb7d87c1711d7638e613",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1nkdqByEtR/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_751137d423c09bfcc56ee34e816672e461bfdca5cc7948221700c6f6dae44303",
+      "source_version": "b77051b7137a751b57d8b21ec7432e7af9f073374fffdb7d87c1711d7638e613",
+      "timeline_run_ids": [
+        "timeline_run_e6f1edddec3f7e48edce515ca24aad334fab62b6fbe16796674e586953031c20"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1nkdqByEtR",
+        "video_id": 96
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "b6d3c108ad16f57517eb9572401717dbaee3b4fc677a981ccc45e830ecc13990",
+      "hash_matches": true,
+      "observed_sha256": "b6d3c108ad16f57517eb9572401717dbaee3b4fc677a981ccc45e830ecc13990",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV12nw4z6Eoa/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_832abc09a06038faaf0afa53bedf3c74eee0b8a4d9fd3660d7f247b27845f3bd",
+      "source_version": "b6d3c108ad16f57517eb9572401717dbaee3b4fc677a981ccc45e830ecc13990",
+      "timeline_run_ids": [
+        "timeline_run_3ddb4b0e6a3d5ef3cd90c5f3d5a6086fb0b684f6d3e6edc84e0ae45fe5b10b64"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV12nw4z6Eoa",
+        "video_id": 98
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "60cd3a3625485301cfeb7c6615cc57dda0db365a947ac3541586011d98600d1d",
+      "hash_matches": true,
+      "observed_sha256": "60cd3a3625485301cfeb7c6615cc57dda0db365a947ac3541586011d98600d1d",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV13MQQB8ERn/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_ab7fa521b692ed34fe7e855cae9a9e7b4cc985ebc4059310e0c52338f8dcb5f8",
+      "source_version": "60cd3a3625485301cfeb7c6615cc57dda0db365a947ac3541586011d98600d1d",
+      "timeline_run_ids": [
+        "timeline_run_cf9af34276c23e06b1f665bc892d2532c23e6a2bce296a5a982d6a1ab6791e5e"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV13MQQB8ERn",
+        "video_id": 99
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "e9b7228079ae86e1be8855146d6771ae6a8f43da75d8894fcf9bd8d50954b5ef",
+      "hash_matches": true,
+      "observed_sha256": "e9b7228079ae86e1be8855146d6771ae6a8f43da75d8894fcf9bd8d50954b5ef",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV17ZXpB4Ezi/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_2312ffaa769fa056caf15fa2f48a8eabf565eaf5e5b661e54f4cd5b0230f59c9",
+      "source_version": "e9b7228079ae86e1be8855146d6771ae6a8f43da75d8894fcf9bd8d50954b5ef",
+      "timeline_run_ids": [
+        "timeline_run_8885ca340de7678a610a56fb41a3fe5601dc3dba57a03fcd9ad435540a876916"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV17ZXpB4Ezi",
+        "video_id": 102
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "74fdf8e5a6d71e6b278b99fd649e0305a7e72b7e6ba763677f0c904531ac7636",
+      "hash_matches": true,
+      "observed_sha256": "74fdf8e5a6d71e6b278b99fd649e0305a7e72b7e6ba763677f0c904531ac7636",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1rQ9JBoECh/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_77e020e2f59c11f8b25419bcc25102d74163817c97805be89c144266f8bd467b",
+      "source_version": "74fdf8e5a6d71e6b278b99fd649e0305a7e72b7e6ba763677f0c904531ac7636",
+      "timeline_run_ids": [
+        "timeline_run_895781df0613b6aaf81736d29558cc47fb6fd266c5a1dec852a4dd4b200f6c4d"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1rQ9JBoECh",
+        "video_id": 103
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "f4b20d64bcdd41567114fba3c2b33b373d84f3465f701d8093d1d7e9e57e996b",
+      "hash_matches": true,
+      "observed_sha256": "f4b20d64bcdd41567114fba3c2b33b373d84f3465f701d8093d1d7e9e57e996b",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV14pXZBMEh9/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_e96e9fbbf3a249b03bb6d980fb2d3a8994d15cb2b94d90030104d8c58990d581",
+      "source_version": "f4b20d64bcdd41567114fba3c2b33b373d84f3465f701d8093d1d7e9e57e996b",
+      "timeline_run_ids": [
+        "timeline_run_3155e240fca1bd670115bbbb20502af5e797914d94689e416a6875f843f5352f"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV14pXZBMEh9",
+        "video_id": 105
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "c69242c650a869a4338b9c1ecd6c8e30644e0886f2762ddb8850bb212b8f61ec",
+      "hash_matches": true,
+      "observed_sha256": "c69242c650a869a4338b9c1ecd6c8e30644e0886f2762ddb8850bb212b8f61ec",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1iRXaBnESX/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_684e50f238b7e10ffe013444d9da19539485c12f6b94a32d45323877798a7229",
+      "source_version": "c69242c650a869a4338b9c1ecd6c8e30644e0886f2762ddb8850bb212b8f61ec",
+      "timeline_run_ids": [
+        "timeline_run_9ecf29324c6e3ef9f5c3d565413ab63bdeac5145289f81058249cc74bbcad02a"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1iRXaBnESX",
+        "video_id": 106
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "5ddf3aeba702b5daf48fb4ce3456dca884b373110f4c09391f07c85e967d494b",
+      "hash_matches": true,
+      "observed_sha256": "5ddf3aeba702b5daf48fb4ce3456dca884b373110f4c09391f07c85e967d494b",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1KJ61BBEB1/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_02d3910fb00b44f31b053732617cee02510a23fa679f07cbaab5626dcf550f70",
+      "source_version": "5ddf3aeba702b5daf48fb4ce3456dca884b373110f4c09391f07c85e967d494b",
+      "timeline_run_ids": [
+        "timeline_run_ba5e8c5e6d7e475c0129e027160ef581ab31dc7e3cbb2bf974f389ca32ebd1b8"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1KJ61BBEB1",
+        "video_id": 108
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "228d6b331406161c6dff8f18cd5feeaf5c6bfd37995f4808f71a4a1de0da1582",
+      "hash_matches": true,
+      "observed_sha256": "228d6b331406161c6dff8f18cd5feeaf5c6bfd37995f4808f71a4a1de0da1582",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1wBfvBnEkY/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_fb493fdb295494b5ff8a06236f7c037fed1942146d486c06893fba4f21214b56",
+      "source_version": "228d6b331406161c6dff8f18cd5feeaf5c6bfd37995f4808f71a4a1de0da1582",
+      "timeline_run_ids": [
+        "timeline_run_b8f16e563ddc6bd739a54052888083967318dac753d2368c830ad4cfa938e787"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1wBfvBnEkY",
+        "video_id": 109
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "e8aeb10c2b363d262a1b6014267a87406ec0ae1a5e2c047d1b326bbcc428c7c2",
+      "hash_matches": true,
+      "observed_sha256": "e8aeb10c2b363d262a1b6014267a87406ec0ae1a5e2c047d1b326bbcc428c7c2",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1zSDMBUE5o/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_975b334b9ce78ba03f95882e70d6c3ae853af29c87f35626ebf580b40f3a31b3",
+      "source_version": "e8aeb10c2b363d262a1b6014267a87406ec0ae1a5e2c047d1b326bbcc428c7c2",
+      "timeline_run_ids": [
+        "timeline_run_b20378766afa143ed14d16195ebaa3a574c927dda46cf5e5906863111d086462"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1zSDMBUE5o",
+        "video_id": 111
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "f85303edbf77171d9d2365ef7bea5ea0e2ba71bc97f302aa7319578aed4a8c54",
+      "hash_matches": true,
+      "observed_sha256": "f85303edbf77171d9d2365ef7bea5ea0e2ba71bc97f302aa7319578aed4a8c54",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1ixAVz9EaQ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_7a18bbee3da7d8f515d3ff01ef18c2e88def989ae085ef739277295c66dc8cdb",
+      "source_version": "f85303edbf77171d9d2365ef7bea5ea0e2ba71bc97f302aa7319578aed4a8c54",
+      "timeline_run_ids": [
+        "timeline_run_b9f200edbbd41c3c46a40a0e88586931fc06bce2bc2c97d74e6853c89870c3ea"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1ixAVz9EaQ",
+        "video_id": 113
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "1e27e0c6fff7b6e4b36d2db69d325d920fcce52851a4bb9b46c155914ffa8591",
+      "hash_matches": true,
+      "observed_sha256": "1e27e0c6fff7b6e4b36d2db69d325d920fcce52851a4bb9b46c155914ffa8591",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV15CwBzsEmt/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_ac53ce58a136789e6a64b9ba3b29b2d1ea57d181c718173f5796c7581a8188e3",
+      "source_version": "1e27e0c6fff7b6e4b36d2db69d325d920fcce52851a4bb9b46c155914ffa8591",
+      "timeline_run_ids": [
+        "timeline_run_9d7905ea151bfd0ed7fb3d7f3c14c3df50eb12e49c32e7de499d192e61924775"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV15CwBzsEmt",
+        "video_id": 114
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "b90fb249dadee4bffb5c46f7d7324e3683cef499dd38e676b0def360597a1ccf",
+      "hash_matches": true,
+      "observed_sha256": "b90fb249dadee4bffb5c46f7d7324e3683cef499dd38e676b0def360597a1ccf",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1aawjzpEmS/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_9c933849dd50219035dc2a05c66d00df863887b828f5887f0b24878b6589e42b",
+      "source_version": "b90fb249dadee4bffb5c46f7d7324e3683cef499dd38e676b0def360597a1ccf",
+      "timeline_run_ids": [
+        "timeline_run_c8ecbaef54ea60ceec03d384b95da0e83010039bb521fca2476bedcb6df343a1"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1aawjzpEmS",
+        "video_id": 115
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "ae51a9a348cca0c92221b4a563358f0e1563a3fb0df25aa7ceeff4b6ed7a8d5e",
+      "hash_matches": true,
+      "observed_sha256": "ae51a9a348cca0c92221b4a563358f0e1563a3fb0df25aa7ceeff4b6ed7a8d5e",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1GHS1BzE6J/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_f81540e5aacf5848468c512c2f2de1aa25a10bf07edf772d83818a126a57ce5d",
+      "source_version": "ae51a9a348cca0c92221b4a563358f0e1563a3fb0df25aa7ceeff4b6ed7a8d5e",
+      "timeline_run_ids": [
+        "timeline_run_93d861498dea2a4f9236b58a8ff3379675b952b017b24f02b90cb51a47047765"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1GHS1BzE6J",
+        "video_id": 116
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "72a2bb145b2baf986683a027f2813a591f11f0c5406b9efe7828e2839dde2d63",
+      "hash_matches": true,
+      "observed_sha256": "72a2bb145b2baf986683a027f2813a591f11f0c5406b9efe7828e2839dde2d63",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1UaPmzrESw/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_470770410ce77caaf7303e46451270bcdd82a1129c7592ee5401e055b35ec32a",
+      "source_version": "72a2bb145b2baf986683a027f2813a591f11f0c5406b9efe7828e2839dde2d63",
+      "timeline_run_ids": [
+        "timeline_run_d848a602ced2a74bedada5ae3a45b742c4267581f860123d1359a0bfe49ffaa4"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1UaPmzrESw",
+        "video_id": 117
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "d0b74d71714cb3cd60e0128f8d440e4483b11944b364fce4b1141b9277185870",
+      "hash_matches": true,
+      "observed_sha256": "d0b74d71714cb3cd60e0128f8d440e4483b11944b364fce4b1141b9277185870",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV19pPSzsEXv/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_1e64127ac6669e8bf6e66ea2ae16c0a1eb8b8b965dcc0540dfc14e64c1abb3cb",
+      "source_version": "d0b74d71714cb3cd60e0128f8d440e4483b11944b364fce4b1141b9277185870",
+      "timeline_run_ids": [
+        "timeline_run_230c9d82ce7d7e515451dd22abbcaa0bdf0020fc8c32102200980e9aeb95b1cd"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV19pPSzsEXv",
+        "video_id": 119
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "d7e11fe98b35386bd5770029ae5cca3672a93f87daaa119c6370265b879257ad",
+      "hash_matches": true,
+      "observed_sha256": "d7e11fe98b35386bd5770029ae5cca3672a93f87daaa119c6370265b879257ad",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1JA411c7VT/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_1d5852e70110c24b71869a289d933c5e3402eb2a15d0586f4c4ac8061f824a93",
+      "source_version": "d7e11fe98b35386bd5770029ae5cca3672a93f87daaa119c6370265b879257ad",
+      "timeline_run_ids": [
+        "timeline_run_f0feb67f6d46933d426c0d3acc786ba194980b6c57e5104bd74c51636ae2acd4"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1JA411c7VT",
+        "video_id": 120
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "c686d739f024d4a1635b23272acf07d38327a43f27df6dcf90dda07b55e4ef62",
+      "hash_matches": true,
+      "observed_sha256": "c686d739f024d4a1635b23272acf07d38327a43f27df6dcf90dda07b55e4ef62",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1QdzCB3Eu2/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_d415ce34ab96f43c8b573f99ef4cc66c025ea6caf652a7a2564a191d77cc6a8d",
+      "source_version": "c686d739f024d4a1635b23272acf07d38327a43f27df6dcf90dda07b55e4ef62",
+      "timeline_run_ids": [
+        "timeline_run_accb3bfd6f31157914fde9135bc4b8dbaf22d1ceae86b6ff873e056a69a0cc78"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1QdzCB3Eu2",
+        "video_id": 122
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "66940b4f5f0c61c63df7e1d6f2237007d5618f0177345d4656fde5363e90529a",
+      "hash_matches": true,
+      "observed_sha256": "66940b4f5f0c61c63df7e1d6f2237007d5618f0177345d4656fde5363e90529a",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1T21PBqErg/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_d4859784f6151840c19cc5aeeae84ffefba59a1b71bc5ad04cec47b0349172e1",
+      "source_version": "66940b4f5f0c61c63df7e1d6f2237007d5618f0177345d4656fde5363e90529a",
+      "timeline_run_ids": [
+        "timeline_run_3231ebc1c974adaf669262ed3e73cd854a35d2643b5151407d55ba8a072facc8"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1T21PBqErg",
+        "video_id": 123
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "123980fea6f7518eac36f0eb870091d6518ad3e1e82e38324d23a8cd8f7de06f",
+      "hash_matches": true,
+      "observed_sha256": "123980fea6f7518eac36f0eb870091d6518ad3e1e82e38324d23a8cd8f7de06f",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV11nSjB2ErQ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_bd73157965e04229dc88f96887bc079a320e3d26dcf9f273478327da7b8d0880",
+      "source_version": "123980fea6f7518eac36f0eb870091d6518ad3e1e82e38324d23a8cd8f7de06f",
+      "timeline_run_ids": [
+        "timeline_run_bf293bcbf57ec352003cee246467a89818e7e7bf15daa5e33568222ca52cbb25"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV11nSjB2ErQ",
+        "video_id": 124
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "bc47c431b20dc484fce6b5fe2e3ec183af25c73ee55f1e47612cf2565b56c599",
+      "hash_matches": true,
+      "observed_sha256": "bc47c431b20dc484fce6b5fe2e3ec183af25c73ee55f1e47612cf2565b56c599",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1G8CFYvEjt/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_8cac3d18fa42eb00115f3cb76184b04ea0e8ff54603cfb0bbe4efbf4b7e0ecfe",
+      "source_version": "bc47c431b20dc484fce6b5fe2e3ec183af25c73ee55f1e47612cf2565b56c599",
+      "timeline_run_ids": [
+        "timeline_run_699a6395269a1719b04799493dd739075f07667c1f483a651c9c3ccccae9639e"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1G8CFYvEjt",
+        "video_id": 131
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress"
+      ],
+      "expected_sha256": "b3f4757063ea30c53356744daf8b1f5df2703e64f9311442bf2f3aa50460a4ed",
+      "hash_matches": true,
+      "observed_sha256": "b3f4757063ea30c53356744daf8b1f5df2703e64f9311442bf2f3aa50460a4ed",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1Fw4m1C7Tq/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_d517d5d9a2345f8d27b17bd8c3ff290a210a4ca31d5f9f44e0198ad1bcf4f49e",
+      "source_version": "b3f4757063ea30c53356744daf8b1f5df2703e64f9311442bf2f3aa50460a4ed",
+      "timeline_run_ids": [
+        "timeline_run_78a3065327f6b52ba181e4864b4f7cc025ed7dad5f58c7e68adbd78adfbca24e"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1Fw4m1C7Tq",
+        "video_id": 132
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "12b12ca58cf3a2a0cd85b678366acb2885efbc227b6fa53d8539b666f4731db9",
+      "hash_matches": true,
+      "observed_sha256": "12b12ca58cf3a2a0cd85b678366acb2885efbc227b6fa53d8539b666f4731db9",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1tM9UBSEdg/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_cac3288767248589c95c00a64fd8236fbd7cc435a295fc05b1f82df7024a9f46",
+      "source_version": "12b12ca58cf3a2a0cd85b678366acb2885efbc227b6fa53d8539b666f4731db9",
+      "timeline_run_ids": [
+        "timeline_run_550b1ac5ef5b869b1cd8bb074d0320baeda5d3bb671cfee82999ebca68842e9c"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1tM9UBSEdg",
+        "video_id": 136
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "e021f2244263088b0cd270a3a94be12b5274b7dfb180d4a1a0849881d6a72fcb",
+      "hash_matches": true,
+      "observed_sha256": "e021f2244263088b0cd270a3a94be12b5274b7dfb180d4a1a0849881d6a72fcb",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV15bKn6iEmF/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_59df13ee7711bb771c22f4aeb6fddbe8264a6e9a62b22655c6e1a17992042ec4",
+      "source_version": "e021f2244263088b0cd270a3a94be12b5274b7dfb180d4a1a0849881d6a72fcb",
+      "timeline_run_ids": [
+        "timeline_run_e0c28eafd4ce3e8fc204d35520cc60d933d4a74182dae0360f33b294b98e5372"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV15bKn6iEmF",
+        "video_id": 140
+      }
+    },
+    {
+      "authorized_input_origin": [
+        "corrected_stress",
+        "p8_attempt_3"
+      ],
+      "expected_sha256": "071df78ee7048dd6994216f9df6d2858942abfd257314705b1da3104859e9913",
+      "hash_matches": true,
+      "observed_sha256": "071df78ee7048dd6994216f9df6d2858942abfd257314705b1da3104859e9913",
+      "path_is_frozen_evaluation_gold": false,
+      "resolution_method": "existing_raw_source_resolver",
+      "resolved_exact_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1xQ7K6CESQ/subtitle-raw.json",
+      "source_artifact_id": "source_artifact_739645c2841b8bee046e2e27f4281f9b58163003bee3a024d2d81124301f63b6",
+      "source_version": "071df78ee7048dd6994216f9df6d2858942abfd257314705b1da3104859e9913",
+      "timeline_run_ids": [
+        "timeline_run_45525bfafd4ce0163645eea755f563a6f3752b7657b10b15d8e4ad5944e621a4"
+      ],
+      "video_identity": {
+        "part": 1,
+        "source_id": "BV1xQ7K6CESQ",
+        "video_id": 141
+      }
+    }
+  ],
+  "repository_search_count": 0,
+  "schema_version": "v3.5-b-f1a-raw-source-allowlist-v1",
+  "snapshot_database": {
+    "expected_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+  },
+  "status": "complete",
+  "unresolved_source_count": 0,
+  "unresolved_video_ids": []
+}

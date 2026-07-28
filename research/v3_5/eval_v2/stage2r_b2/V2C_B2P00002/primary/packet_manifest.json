@@ -1,0 +1,24 @@
+{
+  "allowed_top_level_fields": [
+    "annotation_protocol_version",
+    "case_id",
+    "case_input_sha256",
+    "evaluation_view",
+    "evidence_question",
+    "full_raw_transcript",
+    "original_query",
+    "packet_version",
+    "projection_policy_version",
+    "query",
+    "query_language",
+    "review_output_schema_version",
+    "segment_schema",
+    "source_metadata"
+  ],
+  "forbidden_field_scan": [],
+  "model": "gpt-5.6-terra",
+  "packet_sha256": "db7d5e61f49da763a6386c5b64f147db76ab2e280bb6b3f78a37d87cb55d1c8a",
+  "prompt_version": "v3.5-primary-reviewer-draft-prompt-v3-query-grounded",
+  "provider_id": "openai",
+  "schema_version": "v3.5-reviewer-draft-v2"
+}

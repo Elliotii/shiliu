@@ -1,0 +1,19 @@
+{
+  "approved_q1_q2_reused": true,
+  "approved_query_hash_validated": true,
+  "candidate_builder_called": false,
+  "canonical_video_identity_used": true,
+  "exact_selection_frozen_before_execution": true,
+  "external_llm_calls": 0,
+  "frozen_controls_rerun": false,
+  "heldout_accessed": false,
+  "index_rebuilt": false,
+  "new_gold_created": false,
+  "phase_a_case_set_reused": true,
+  "phase_b_r_controls_reused": true,
+  "product_default_changed": false,
+  "queries_modified": false,
+  "retrieval_config_modified": false,
+  "router_modified": false,
+  "selector_called": false
+}

@@ -1,0 +1,15 @@
+{
+  "candidate_builder_calls": 0,
+  "embedding_calls": 0,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "heldout_accessed": false,
+  "phase_b_run": false,
+  "q1_queries_generated_by_codex": 0,
+  "q2_queries_generated_by_codex": 0,
+  "ready_for_human_query_authoring": true,
+  "runner_version": "v3.5-stage3r-qc-phase-a-v1",
+  "selector_calls": 0,
+  "status": "Stage 3R-QC Phase A Complete",
+  "v3_retrieval_calls": 0
+}

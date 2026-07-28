@@ -1,0 +1,73 @@
+{
+  "decision_name": "Shiliu V3.5-B F1A Preimplementation Recovery Amendment Ledger",
+  "schema_version": "v3.5-b-f1a-preimplementation-recovery-v1",
+  "decision_date": "2026-07-27",
+  "decision_authority": "V3.5-B",
+  "trigger": {
+    "blocking_report": "F1A_CANDIDATE_BUILDER_BLOCKING_REPORT.md",
+    "incident": "overbroad_repository_search_entered_frozen_gold_tree",
+    "semantic_frozen_records_displayed": false,
+    "frozen_gold_modified": false,
+    "implementation_started": false,
+    "implementation_freeze_seal_generated": false,
+    "development_scored_runs": 0,
+    "stress_scored_runs": 0
+  },
+  "authoritative_reclassification": {
+    "prior_attempt_status": "invalid_preimplementation_attempt",
+    "prior_attempt_reusable": false,
+    "prior_session_must_close": true,
+    "major_cycles_used": 0,
+    "major_cycles_remaining": 1,
+    "second_major_cycle_authorized": false,
+    "reason": "No implementation, freeze seal, or scored regression occurred."
+  },
+  "entry_state": {
+    "p9_decision": "execute",
+    "active_design": "adaptive_bounded_coverage_swap_v1",
+    "current_builder_version": "stage3b-acronym-w3.5-v1",
+    "builder_code_changed": false,
+    "f1a_implementation_started": false,
+    "f1b_authorized": false,
+    "stage4_started": false
+  },
+  "recovery_authorization": {
+    "new_codex_session_required": true,
+    "restart_major_cycle_1_from_phase_0": true,
+    "reuse_prior_session_analysis_or_state": false,
+    "reuse_prior_attempt_outputs_as_formal_cycle_assets": false,
+    "design_changed": false,
+    "acceptance_thresholds_changed": false,
+    "path_whitelist_required": true
+  },
+  "filesystem_policy": {
+    "default_deny": true,
+    "repository_root_recursive_search_forbidden": true,
+    "forbidden_commands_or_patterns": [
+      "rg ... .",
+      "find .",
+      "grep -R ... .",
+      "git grep over repository root",
+      "recursive glob from repository root",
+      "unscoped file indexing"
+    ],
+    "frozen_tree_forbidden": [
+      "research/v3_5/**/frozen_guarded/**",
+      "research/v3_5/**/internal_protected/**",
+      "research/v3_5/**/reviewed_gold_candidate/**",
+      "research/v3_5/**/sealed/**frozen**"
+    ],
+    "allowed_access_strategy": "explicit file and directory whitelist only"
+  },
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "recovery_amendment_status": "execution_candidate_ready",
+    "f1a_major_cycles_used": 0,
+    "f1a_major_cycles_remaining": 1,
+    "f1a_implementation_authorized": true,
+    "new_session_required": true,
+    "f1b_authorized": false,
+    "stage4_started": false
+  }
+}

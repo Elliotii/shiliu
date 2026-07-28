@@ -1,0 +1,43 @@
+{
+  "authoritative_video_mapping_hash": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "builder_freeze_seal_hash": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+  "canonicalizer_source_hashes": {
+    "src/shiliu/eval_v3_5/scoring_identity_bridge.py": "e317a8056b39a409fe5e63b3a45950bc7c1c2f98e77bce6550fcb6e7a5d278c3"
+  },
+  "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+  "contract_hash_algorithm": "sha256",
+  "development_gold_schema_hashes": {
+    "development_gold_v1_schema_validation_seal_attestation": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "sealed_product_evidence_gold_shape_and_instance_authority": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1"
+  },
+  "formal_eval_authorized": false,
+  "frozen_outputs": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/EVIDENCE_IDENTITY_CONTRACT_V1.json": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/EVIDENCE_IDENTITY_CONTRACT_V1.md": "7a0b129cd1fc949db93f4ee0d814249188bf3b99527bdb60a2b6baf469e56121",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/EVIDENCE_IDENTITY_CONTRACT_V1_TEST_RESULTS.json": "eb5e5fe0eb5b42f85b89ec984b7bceb0a9a7e9d494ba32f70d068af15449b091"
+  },
+  "matcher_source_hashes": {
+    "src/shiliu/eval_v3_5/scoring_identity_bridge.py": "e317a8056b39a409fe5e63b3a45950bc7c1c2f98e77bce6550fcb6e7a5d278c3"
+  },
+  "outcome": "evidence_identity_contract_frozen",
+  "recommended_next_step": "separate_scorer_v4_and_final_eval_authorization",
+  "schema_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/EVIDENCE_IDENTITY_CONTRACT_V1.json": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "src/shiliu/evidence/contracts.py": "8417574849f0f36450f455dfc9ba00b6457762d7acee739fc5c271f9569f23b7"
+  },
+  "schema_version": "v3.5-b-evidence-identity-contract-v1-freeze-seal-v1",
+  "scorer_v4_freeze_seal_generated": false,
+  "test_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/EVIDENCE_IDENTITY_CONTRACT_V1_TEST_RESULTS.json": "eb5e5fe0eb5b42f85b89ec984b7bceb0a9a7e9d494ba32f70d068af15449b091",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_evidence_identity_contract_v1.py": "b64a977d611b786c0aaad021c759580b5a2eec37a80542c30f9227cd93aee752"
+  },
+  "validation": {
+    "canonical_contract_complete": true,
+    "field_audit_complete": true,
+    "negative_tests_pass": true,
+    "positive_tests_pass": true,
+    "six_fixture_consistency_pass": true,
+    "source_type_semantics_resolved": true,
+    "systemic_identity_risks_unresolved": 0
+  }
+}

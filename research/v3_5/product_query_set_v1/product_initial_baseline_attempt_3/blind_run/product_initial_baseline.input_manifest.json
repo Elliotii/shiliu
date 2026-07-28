@@ -1,0 +1,111 @@
+{
+  "artifact_manifest": {
+    "path": "research/v3_eval/artifact_manifest.jsonl",
+    "sha256": "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f"
+  },
+  "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "authority_index": {
+    "path": "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+    "sha256": "13e792483b0f5c4945a7a2802e56cd9f8076479d7c583b2022ac197acfb98421"
+  },
+  "barrier": {
+    "blind_entry_accepts_gold_path": false,
+    "development_gold_opened": false,
+    "frozen_gold_opened": false,
+    "frozen_queries_executed": 0
+  },
+  "code": {
+    "dirty_tree_fingerprint_sha256": "5786e19d1960f5bd81d020e7b13080271b6615e3f8e9e397acbe35b8c41513d9",
+    "git_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a"
+  },
+  "components": {
+    "candidate_builder": {
+      "expected_sha256": "8a2ed841efdf42f048347bf23ed1170a67ce7be0f3b03823eabef31847a80458",
+      "path": "src/shiliu/evidence/stage3b.py",
+      "sha256": "8a2ed841efdf42f048347bf23ed1170a67ce7be0f3b03823eabef31847a80458"
+    },
+    "deterministic_selector": {
+      "expected_sha256": "34774d6c166680e7523010f9d1d950f9aa1b890487f46427279164cdedaed552",
+      "path": "src/shiliu/evidence/stage3a.py",
+      "sha256": "34774d6c166680e7523010f9d1d950f9aa1b890487f46427279164cdedaed552"
+    },
+    "mechanical_gate_contract": {
+      "expected_sha256": "f255c42a46825b77f45b7d8c54b1f5746cfed2f5d8d501a4cb9aef6d09b93051",
+      "path": "research/v3_5/stage4a/mechanical_gate_contract.json",
+      "sha256": "f255c42a46825b77f45b7d8c54b1f5746cfed2f5d8d501a4cb9aef6d09b93051"
+    },
+    "product_default_wiring": {
+      "expected_sha256": "5d5d42ad7501f8a9d917a17b7b6116da4f84f3d5d974f8a54e3dbcd88cb588f9",
+      "path": "research/v3_5/product_default_auto_wiring/product_default_auto_wiring_manifest.json",
+      "sha256": "5d5d42ad7501f8a9d917a17b7b6116da4f84f3d5d974f8a54e3dbcd88cb588f9"
+    },
+    "router": {
+      "expected_sha256": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+      "path": "src/shiliu/retrieval/planner.py",
+      "sha256": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e"
+    }
+  },
+  "frozen_at": "2026-07-26T16:15:56.685+00:00",
+  "harness": {
+    "component_functional_behavior_changed": false,
+    "evaluation_serialization_changed": true,
+    "module_path": "src/shiliu/eval_v3_5/p8_product_initial_baseline.py",
+    "module_sha256": "fa0b6e2e5e0c604df188e792df21df3679e558e1acdeb2d0c351a04d34459886",
+    "script_path": "scripts/run_p8_product_initial_baseline.py",
+    "script_sha256": "edde96225b7e5a142be79391c195c5ebbcd8ea6149aaf9235f12bfd4d40e3570",
+    "terminal_outcome_handling_changed": true,
+    "version": "v3.5-pqs-v1-p8-product-initial-baseline-v2-source-terminal"
+  },
+  "index": {
+    "chunk_count": 1412,
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "embedding_dimension": 512,
+    "embedding_index_available": true,
+    "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+    "embedding_model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "embedding_provider": "v3-qwen3-embedding-provider-v1",
+    "embedding_vector_count": 1555,
+    "index_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "index_sha256_or_manifest_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "index_version": "v3-stage1-lexical-v1",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "snapshot_id": "20260720T094346Z_c7663365",
+    "snapshot_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "source_snapshot_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "video_count": 143
+  },
+  "prior_attempt": {
+    "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_2",
+    "partial_prediction_count": 9,
+    "reused_in_attempt_3": false,
+    "status": "invalid_incomplete_attempt"
+  },
+  "query": {
+    "count": 14,
+    "path": "research/v3_5/product_query_set_v1/split_v1/product_query_development_v1.locked.jsonl",
+    "sha256": "e68d6bb405bafadb56c5333834d72c8155a7a310ca2e20341df4f412488a8935"
+  },
+  "recovery": {
+    "category": "evaluation_terminal_serialization",
+    "component_functional_behavior_changed": false,
+    "harness_version_changed": true,
+    "source_terminal_code": [
+      "no_supported_subtitle"
+    ]
+  },
+  "run_policy": {
+    "best_of_n": false,
+    "configuration_change_during_run": false,
+    "gold_aware_retry": false,
+    "manual_result_selection": false,
+    "valid_prediction_runs_per_query": 1
+  },
+  "runner_version": "v3.5-pqs-v1-p8-product-initial-baseline-v2-source-terminal",
+  "versions": {
+    "auto_router": "v3-search-planner-auto-v1",
+    "candidate_builder": "stage3b-acronym-w3.5-v1",
+    "deterministic_selector": "v3.5-deterministic-fine-selector-v1",
+    "mechanical_gate": "v3.5-mechanical-sufficiency-gate-v1",
+    "product_default_wiring": "v3-product-search-default-auto-v1"
+  }
+}

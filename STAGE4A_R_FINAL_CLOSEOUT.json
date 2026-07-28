@@ -1,0 +1,127 @@
+{
+  "Builder_Selector_Contract_Gold_change_status": {
+    "Candidate_Builder": false,
+    "Development_Gold": false,
+    "Evidence_Identity_Contract_V1": false,
+    "Fine_Selector": false,
+    "Product_Development_inputs": false,
+    "Stress_inputs": false,
+    "canonical_matcher": false
+  },
+  "Frozen_Evaluation_accessed": false,
+  "Stage4A_R_status": "formally_closed_pass",
+  "Stage4B_readiness": {
+    "all_judge_eligible_cases_have_legal_EvidenceBundle": true,
+    "all_judge_eligible_cases_have_trace_id": true,
+    "invalid_is_terminal_and_not_sent_to_semantic_judge": true,
+    "semantic_sufficiency_fields_not_prepopulated_by_gate": true,
+    "source_unverifiable_is_terminal_and_not_sent_to_semantic_judge": true
+  },
+  "Stage4B_status": "not_started",
+  "asset_integrity": {
+    "Development_Gold_hashes_unchanged": true,
+    "Development_inputs_unchanged": true,
+    "Evidence_Identity_Contract_V1_hash_valid": true,
+    "Evidence_Identity_Contract_V1_root_sha256": "0b65d3bee751b3f1ca466b2bfe4e6984ef4d48a2319eb4a0fa6e99415a0fbb08",
+    "Stress_inputs_unchanged": true,
+    "canonical_matcher_hash_valid": true,
+    "canonical_matcher_sha256": "e317a8056b39a409fe5e63b3a45950bc7c1c2f98e77bce6550fcb6e7a5d278c3",
+    "formal_builder_hashes_valid": true,
+    "formal_builder_root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "formal_selector_hashes_valid": true,
+    "formal_selector_root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67"
+  },
+  "before_revalidation": {
+    "formal_gate_version": "mechanical-gate-v1",
+    "product": {
+      "invalid": 0,
+      "judge_eligible": 13,
+      "source_unverifiable": 1,
+      "unhandled_exceptions": 0
+    },
+    "stress": {
+      "invalid": 0,
+      "judge_eligible": 20,
+      "source_unverifiable": 0,
+      "unhandled_exceptions": 0
+    }
+  },
+  "formal_components": {
+    "Evidence_Identity_Contract": {
+      "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "version": "Evidence Identity Contract V1"
+    },
+    "builder": "stage3b-acronym-w3.5-v1",
+    "gate": "mechanical-gate-v1-r1",
+    "selector": "v3.5-deterministic-fine-selector-v1"
+  },
+  "formal_run_counts": {
+    "Product_revalidation": 1,
+    "Stress_revalidation": 1
+  },
+  "gate_correction": {
+    "defect": "invalid artifact/identity/timeline/contract states and unavailable authoritative-source states shared terminal_unverifiable projection",
+    "generic": true,
+    "query_video_case_special_rules": 0,
+    "revision_allowance_maximum": 1,
+    "revision_allowance_used": 1,
+    "semantic_sufficiency_added": false,
+    "status": "single_generic_correction_completed"
+  },
+  "gate_freeze_and_preflight": {
+    "formal_gate_version": "mechanical-gate-v1-r1",
+    "freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "post_freeze_behavior_change": false,
+    "post_freeze_preflight": "pass",
+    "post_freeze_preflight_sha256": "92b6dc3110c75d5dac22a0b63d424ce151f35484d7df7880d945028d32d49177"
+  },
+  "gold_free_and_contract_tests": {
+    "Evidence_Identity_Contract_V1": "17/17 pass",
+    "Mechanical_Gate_and_Gold_free": "49/49 pass",
+    "overall": "66/66 pass",
+    "provider_calls": 0,
+    "semantic_sufficiency_not_evaluated": true
+  },
+  "next_stage": "Stage4B",
+  "outcome": "stage4a_r_pass_after_single_generic_correction",
+  "output_hashes": {
+    "STAGE4A_R_GATE_CORRECTION_REPORT.md": "af5ade14a145f65692c32dd3ee6925d343ee402102b9d3750c9c5741fe60bdf8",
+    "STAGE4A_R_MECHANICAL_GATE_FREEZE.json": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "stage4a_r_before_revalidation.json": "1aff3a0688361ad30e060ac56c66867ba48e53f4ed54c78c69b55d593c9d2fe2",
+    "stage4a_r_gold_free_test_results.json": "9460c6bb3e6e4eb98c0de23772d883dab22d74ff6b39be6f0582254f12f43c27",
+    "stage4a_r_post_freeze_preflight.json": "92b6dc3110c75d5dac22a0b63d424ce151f35484d7df7880d945028d32d49177",
+    "stage4a_r_product.metrics.json": "62d63ee57ede341f0ed2f60e04ea8a1cdc017aff09ab3dfcd486a414a0a952dc",
+    "stage4a_r_product.per_case.jsonl": "923623d354abf810e1326e710fc2fcb230f1761b261fb837432743c8ecaaca46",
+    "stage4a_r_stress.metrics.json": "d4638b7e2998d73f2fccec7b77ebf712372952e38180ea4967852fca22ba9222"
+  },
+  "product_revalidation": {
+    "bundle_contract_failure_count": 0,
+    "exactly_one_terminal_status_per_case": true,
+    "historical_distribution_reproduced": true,
+    "invalid": 0,
+    "invalid_identity_count": 0,
+    "judge_eligible": 13,
+    "judge_eligible_bundle_contract_pass_rate": 1.0,
+    "source_unverifiable": 1,
+    "source_unverifiable_cases_have_valid_reason_codes": true,
+    "total_cases": 14,
+    "unhandled_exception_count": 0,
+    "unverifiable_identity_count": 0
+  },
+  "schema_version": "v3.5-b-stage4a-r-final-closeout-v1",
+  "session_can_be_closed": true,
+  "stage": "Stage 4A-R — Minimal Mechanical Revalidation",
+  "stress_revalidation": {
+    "bundle_contract_failure_count": 0,
+    "exactly_one_terminal_status_per_case": true,
+    "invalid": 0,
+    "invalid_identity_count": 0,
+    "judge_eligible": 20,
+    "judge_eligible_bundle_contract_pass_rate": 1.0,
+    "source_unverifiable": 0,
+    "source_unverifiable_cases_have_valid_reason_codes": true,
+    "total_cases": 20,
+    "unhandled_exception_count": 0,
+    "unverifiable_identity_count": 0
+  }
+}

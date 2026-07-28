@@ -1,0 +1,420 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 P5 Split Decision — Corrected 14/10",
+  "schema_version": "v3.5-pqs-v1-p5-split-decision-r2",
+  "decision_date": "2026-07-26",
+  "decision_authority": "V3.5-B",
+  "authority_status": "authoritative",
+  "supersession": {
+    "supersedes_file": "V3_5_PQS_V1_P5_SPLIT_DECISION_LEDGER.json",
+    "superseded_sha256": "3d1da47956e3ce469301ecf201518711d66edbecb298e00a97d3500b7108624a",
+    "superseded_decision": "10 Development / 14 Frozen Evaluation",
+    "reason": "The prior package reversed the formally approved default guidance. It was corrected before Codex execution, before Gold, and before any Product Baseline or system-result inspection.",
+    "previous_package_must_not_be_executed": true
+  },
+  "p4_acceptance": {
+    "p3_execution": "accepted",
+    "p4_execution": "accepted",
+    "product_query_set_v1_status": "formally_frozen",
+    "query_count": 24,
+    "query_id_range": [
+      "PQS_V1_Q001",
+      "PQS_V1_Q024"
+    ],
+    "expected_canonical_content_sha256": "fadf21c1992d848f2904192af479f6720a059c9aeb772ccfc4cee3b220942825",
+    "expected_locked_jsonl_sha256": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c"
+  },
+  "split_policy": {
+    "split_version": "PQS_V1_SPLIT_V1",
+    "development_count": 14,
+    "frozen_evaluation_count": 10,
+    "assignment_method": "deterministic_semantic_stratification_before_gold_and_product_baseline",
+    "random_seed": null,
+    "seed_policy": "not_applicable_to_explicit_deterministic_assignment",
+    "leakage_groups_must_not_cross_splits": true,
+    "all_queries_assigned_exactly_once": true,
+    "system_results_used": false,
+    "gold_used": false,
+    "target_videos_used": false,
+    "library_gap_labels_preassigned": false,
+    "rationale": [
+      "Follow the formally approved default split for a 24-query Product Query Set: 14 Development and 10 Frozen Evaluation.",
+      "Keep every leakage group wholly within one split.",
+      "Use Development to cover the system-adjacent technical domains needed to diagnose Retrieval, Fine Evidence Resolution, and Sufficiency behavior.",
+      "Keep Frozen Evaluation as a distinct generalization slice spanning project planning, Pi architecture, Skill cost, model training, local inference, resume judgment, and AI product/full-stack questions.",
+      "Retain the user-origin query in Frozen Evaluation without using answerability or expected-label information.",
+      "Do not discard, rewrite, or relabel any frozen Product Query."
+    ],
+    "immutability_rule": "After P5 acceptance, moving a query requires a new split version and may not be driven by Gold or system results."
+  },
+  "development_query_ids": [
+    "PQS_V1_Q003",
+    "PQS_V1_Q004",
+    "PQS_V1_Q005",
+    "PQS_V1_Q006",
+    "PQS_V1_Q007",
+    "PQS_V1_Q008",
+    "PQS_V1_Q011",
+    "PQS_V1_Q012",
+    "PQS_V1_Q013",
+    "PQS_V1_Q014",
+    "PQS_V1_Q015",
+    "PQS_V1_Q017",
+    "PQS_V1_Q018",
+    "PQS_V1_Q019"
+  ],
+  "frozen_evaluation_query_ids": [
+    "PQS_V1_Q001",
+    "PQS_V1_Q002",
+    "PQS_V1_Q009",
+    "PQS_V1_Q010",
+    "PQS_V1_Q016",
+    "PQS_V1_Q020",
+    "PQS_V1_Q021",
+    "PQS_V1_Q022",
+    "PQS_V1_Q023",
+    "PQS_V1_Q024"
+  ],
+  "balance_summary": {
+    "development": {
+      "count": 14,
+      "single_or_multi_video": {
+        "multi": 10,
+        "single": 4
+      },
+      "complexity": {
+        "moderate": 9,
+        "simple": 3,
+        "natural_multi_aspect": 2
+      },
+      "query_family": {
+        "comparison": 3,
+        "mechanism": 2,
+        "process": 2,
+        "reported_result": 1,
+        "prerequisite": 1,
+        "tradeoff": 2,
+        "risk": 1,
+        "synthesis": 1,
+        "limitation": 1
+      },
+      "topic_cluster": {
+        "Harness 与验证": 5,
+        "规格驱动开发": 1,
+        "Coding Agent 工具": 2,
+        "浏览器与界面 Agent": 1,
+        "Agent 记忆": 2,
+        "RAG 工程": 3
+      },
+      "authoring_origin": {
+        "corpus_aware_codex": 14
+      },
+      "query_language": {
+        "zh": 14
+      }
+    },
+    "frozen_evaluation": {
+      "count": 10,
+      "single_or_multi_video": {
+        "multi": 8,
+        "single": 2
+      },
+      "complexity": {
+        "moderate": 5,
+        "simple": 3,
+        "natural_multi_aspect": 2
+      },
+      "query_family": {
+        "career_judgment": 3,
+        "process": 2,
+        "mechanism": 2,
+        "comparison": 1,
+        "tradeoff": 2
+      },
+      "topic_cluster": {
+        "Agent 学习与项目选择": 2,
+        "Coding Agent 工具": 2,
+        "Agent Skills": 1,
+        "模型训练": 1,
+        "模型原理与推理": 1,
+        "求职与成长": 1,
+        "AI 产品与全栈": 1,
+        "求职与项目规划": 1
+      },
+      "authoring_origin": {
+        "corpus_aware_codex": 9,
+        "user_discussion": 1
+      },
+      "query_language": {
+        "zh": 10
+      }
+    },
+    "leakage_groups_crossing_splits": 0,
+    "explicit_no_answer_or_library_gap_quota_used": false
+  },
+  "split_records": [
+    {
+      "query_id": "PQS_V1_Q001",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PROJECT_SELECTION_PLANNING",
+      "query_family": "career_judgment",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Agent 学习与项目选择",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q002",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_OPEN_SOURCE_PROJECT_CONTRIBUTION",
+      "query_family": "process",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Agent 学习与项目选择",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q003",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_EVAL_AND_OPTIMIZATION",
+      "query_family": "comparison",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Harness 与验证",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q004",
+      "split_assignment": "development",
+      "leakage_group": "LG_LOOP_AND_BAD_CASE_IMPROVEMENT",
+      "query_family": "mechanism",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Harness 与验证",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q005",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_EVAL_AND_OPTIMIZATION",
+      "query_family": "process",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Harness 与验证",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q006",
+      "split_assignment": "development",
+      "leakage_group": "LG_LOOP_AND_BAD_CASE_IMPROVEMENT",
+      "query_family": "reported_result",
+      "single_or_multi_video": "single",
+      "complexity": "simple",
+      "topic_cluster": "Harness 与验证",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q007",
+      "split_assignment": "development",
+      "leakage_group": "LG_SPEC_DRIVEN_AGENT_DEVELOPMENT",
+      "query_family": "process",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Harness 与验证",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q008",
+      "split_assignment": "development",
+      "leakage_group": "LG_SPEC_DRIVEN_AGENT_DEVELOPMENT",
+      "query_family": "prerequisite",
+      "single_or_multi_video": "multi",
+      "complexity": "simple",
+      "topic_cluster": "规格驱动开发",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q009",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PI_CODING_AGENT_ARCHITECTURE",
+      "query_family": "mechanism",
+      "single_or_multi_video": "multi",
+      "complexity": "simple",
+      "topic_cluster": "Coding Agent 工具",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q010",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PI_CODING_AGENT_ARCHITECTURE",
+      "query_family": "comparison",
+      "single_or_multi_video": "multi",
+      "complexity": "natural_multi_aspect",
+      "topic_cluster": "Coding Agent 工具",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q011",
+      "split_assignment": "development",
+      "leakage_group": "LG_CODING_AGENT_TOOLING",
+      "query_family": "comparison",
+      "single_or_multi_video": "multi",
+      "complexity": "natural_multi_aspect",
+      "topic_cluster": "Coding Agent 工具",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q012",
+      "split_assignment": "development",
+      "leakage_group": "LG_CODING_AGENT_TOOLING",
+      "query_family": "tradeoff",
+      "single_or_multi_video": "single",
+      "complexity": "moderate",
+      "topic_cluster": "Coding Agent 工具",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q013",
+      "split_assignment": "development",
+      "leakage_group": "LG_BROWSER_AGENT_INTEGRATION",
+      "query_family": "tradeoff",
+      "single_or_multi_video": "single",
+      "complexity": "moderate",
+      "topic_cluster": "浏览器与界面 Agent",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q014",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_MEMORY",
+      "query_family": "mechanism",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "Agent 记忆",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q015",
+      "split_assignment": "development",
+      "leakage_group": "LG_AGENT_MEMORY",
+      "query_family": "risk",
+      "single_or_multi_video": "multi",
+      "complexity": "simple",
+      "topic_cluster": "Agent 记忆",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q016",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_AGENT_SKILL_COST",
+      "query_family": "tradeoff",
+      "single_or_multi_video": "single",
+      "complexity": "simple",
+      "topic_cluster": "Agent Skills",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q017",
+      "split_assignment": "development",
+      "leakage_group": "LG_RAG_ENGINEERING",
+      "query_family": "comparison",
+      "single_or_multi_video": "single",
+      "complexity": "moderate",
+      "topic_cluster": "RAG 工程",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q018",
+      "split_assignment": "development",
+      "leakage_group": "LG_RAG_ENGINEERING",
+      "query_family": "synthesis",
+      "single_or_multi_video": "multi",
+      "complexity": "natural_multi_aspect",
+      "topic_cluster": "RAG 工程",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q019",
+      "split_assignment": "development",
+      "leakage_group": "LG_RAG_ENGINEERING",
+      "query_family": "limitation",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "RAG 工程",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q020",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_MODEL_TRAINING_LORA",
+      "query_family": "tradeoff",
+      "single_or_multi_video": "multi",
+      "complexity": "natural_multi_aspect",
+      "topic_cluster": "模型训练",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q021",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_LOCAL_INFERENCE_OMLX",
+      "query_family": "mechanism",
+      "single_or_multi_video": "single",
+      "complexity": "simple",
+      "topic_cluster": "模型原理与推理",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q022",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_RESUME_PROJECT_PRESENTATION",
+      "query_family": "career_judgment",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "求职与成长",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q023",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_AI_PRODUCT_FULLSTACK",
+      "query_family": "career_judgment",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "AI 产品与全栈",
+      "query_language": "zh",
+      "authoring_origin": "corpus_aware_codex"
+    },
+    {
+      "query_id": "PQS_V1_Q024",
+      "split_assignment": "frozen_evaluation",
+      "leakage_group": "LG_PROJECT_SELECTION_PLANNING",
+      "query_family": "process",
+      "single_or_multi_video": "multi",
+      "complexity": "moderate",
+      "topic_cluster": "求职与项目规划",
+      "query_language": "zh",
+      "authoring_origin": "user_discussion"
+    }
+  ]
+}

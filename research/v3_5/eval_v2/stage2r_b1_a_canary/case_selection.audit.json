@@ -1,0 +1,47 @@
+[
+  {
+    "candidate_id": "SAFEQ_b74c117c857397e307df",
+    "case_class": "ordinary",
+    "case_id": "V2C_B1A00001",
+    "complexity_tags": [
+      "single_video",
+      "short_transcript",
+      "negative_control_candidate"
+    ],
+    "development_authorization_source": "B1-A prompt + v3.5-safe-non-heldout-candidate-projection-v1",
+    "full_transcript_reference": "/Users/elliot/Documents/Shiliu/videos/BV1zDTX6eEGu/subtitle-raw.txt",
+    "leakage_group": "LGV2_VIDEO_BV1ZDTX6EEGU",
+    "query": "MCP",
+    "query_family": "exact_entity_mcp",
+    "query_id": "Q01",
+    "query_language": "en",
+    "raw_subtitle_json": "/Users/elliot/Documents/Shiliu/videos/BV1zDTX6eEGu/subtitle-raw.json",
+    "selection_reason": "single-video short negative-control candidate selected without Gold",
+    "source_language": "zh",
+    "source_type": "raw_subtitle",
+    "video_id": "BV1zDTX6eEGu"
+  },
+  {
+    "candidate_id": "SAFEQ_3722c739c07887747c70",
+    "case_class": "complex",
+    "case_id": "V2C_B1A00002",
+    "complexity_tags": [
+      "single_video",
+      "long_transcript",
+      "multi_aspect",
+      "evidence_lookup"
+    ],
+    "development_authorization_source": "B1-A prompt + v3.5-safe-non-heldout-candidate-projection-v1",
+    "full_transcript_reference": "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.txt",
+    "leakage_group": "LGV2_VIDEO_BV1O87764EBS",
+    "query": "哪个视频解释了 CLI 相比 MCP 的优势？",
+    "query_family": "evidence_lookup_cli_vs_mcp",
+    "query_id": "Q15",
+    "query_language": "zh",
+    "raw_subtitle_json": "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json",
+    "selection_reason": "long multi-aspect evidence-lookup candidate selected without Gold",
+    "source_language": "zh",
+    "source_type": "raw_subtitle",
+    "video_id": "BV1o87764Ebs"
+  }
+]

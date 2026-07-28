@@ -1,0 +1,19 @@
+{
+  "schema_version": "v3.5-b-checkpoint-1-v1",
+  "execution_status": "complete",
+  "acceptance_status": "pending_v3_5_b_review",
+  "checkpoint_1_status": "execution_candidate_ready",
+  "P7": "complete_and_accepted",
+  "P8": "complete_and_accepted",
+  "P8_formal_attempt": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "retrieval_reopen_by_default": false,
+  "F1A_entry_signal": true,
+  "F1B_candidate_signal": true,
+  "mechanical_gate_repair_signal": false,
+  "P9_ready_for_authorization": true,
+  "F1A_authorized": false,
+  "F1B_authorized": false,
+  "Stage4A_R_authorized": false,
+  "Stage4B_authorized": false,
+  "next_formal_step": "P9_F1A_CANDIDATE_BUILDER_DECISION"
+}

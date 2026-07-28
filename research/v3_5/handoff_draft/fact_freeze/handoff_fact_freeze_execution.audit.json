@@ -1,0 +1,19 @@
+{
+  "b0_executed": false,
+  "candidate_builder_run": false,
+  "deterministic_audit_replay": {
+    "executed": false,
+    "reason": "Existing case-level assets were sufficient."
+  },
+  "embedding_run": false,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "formal_handoff_files_generated": false,
+  "frozen_evaluation_accessed": false,
+  "frozen_evaluation_file_hash_recomputed": true,
+  "historical_assets_overwritten": false,
+  "production_files_modified": false,
+  "retrieval_run": false,
+  "selector_run": false,
+  "sufficiency_judge_run": false
+}

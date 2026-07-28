@@ -1,0 +1,22 @@
+{
+  "per_intent_empty_result_rate": {
+    "denominator": 26,
+    "numerator": 26,
+    "rate": 1.0
+  },
+  "q0_empty_result_rate": {
+    "denominator": 9,
+    "numerator": 9,
+    "rate": 1.0
+  },
+  "q1_empty_result_rate": {
+    "denominator": 9,
+    "numerator": 9,
+    "rate": 1.0
+  },
+  "q2_all_intents_empty_rate": {
+    "denominator": 9,
+    "numerator": 9,
+    "rate": 1.0
+  }
+}

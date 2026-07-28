@@ -1,0 +1,20 @@
+{
+  "allowed_top_level_fields": [
+    "annotation_protocol_version",
+    "case_id",
+    "case_input_sha256",
+    "full_raw_transcript",
+    "packet_version",
+    "query",
+    "query_language",
+    "review_output_schema_version",
+    "segment_schema",
+    "source_metadata"
+  ],
+  "forbidden_field_scan": [],
+  "model": "deepseek-v4-pro",
+  "packet_sha256": "11ac62de7dc152f43ac79227d275b1ba0960ae996eb1723f834dc9018f35f794",
+  "prompt_version": "v3.5-secondary-reviewer-draft-prompt-v1",
+  "provider_id": "deepseek",
+  "schema_version": "v3.5-reviewer-draft-v1"
+}

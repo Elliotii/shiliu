@@ -1,0 +1,26 @@
+{
+  "acronym_anchor_weight": 3.5,
+  "acronym_equal_length_only": true,
+  "acronym_max_length": 8,
+  "acronym_max_substitution_distance": 1,
+  "acronym_min_length": 2,
+  "asr_acronym_anchor_enabled": true,
+  "candidate_generation_policy_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+  "config_id": "stage3b-acronym-w3.5-v1",
+  "hard_max_characters": 500,
+  "hard_max_duration_seconds": 60.0,
+  "max_segments_per_candidate": 6,
+  "near_duplicate_jaccard_threshold": 0.75,
+  "per_anchor_window_max_segments": 6,
+  "preferred_characters": [
+    100,
+    350
+  ],
+  "preferred_duration_seconds": [
+    10.0,
+    45.0
+  ],
+  "within_video_max_candidates": 32,
+  "within_video_max_total_characters": 6000,
+  "within_video_max_total_union_duration_seconds": 600.0
+}

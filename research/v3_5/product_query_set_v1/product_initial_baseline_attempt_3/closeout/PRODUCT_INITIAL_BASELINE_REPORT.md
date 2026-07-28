@@ -1,0 +1,54 @@
+# Product Initial Baseline Report
+
+P8 execution status: complete. Acceptance remains pending V3.5-B review.
+
+## Runtime Identity
+
+Attempt `P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3` used Product Default Auto `v3-product-search-default-auto-v1`,
+Candidate Builder `stage3b-acronym-w3.5-v1`, Deterministic Selector
+`v3.5-deterministic-fine-selector-v1`, Mechanical Gate
+`v3.5-mechanical-sufficiency-gate-v1`, and snapshot `20260720T094346Z_c7663365` /
+`61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1`. Functional component changes: 0.
+
+## Prediction Freeze Proof
+
+Fourteen Development queries produced exactly fourteen predictions and traces.
+The Prediction Seal SHA-256 is `069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617`. Development Gold was
+first opened at `2026-07-26T16:16:59.818+00:00`, after the seal. Frozen Query runs and Frozen
+Gold access were both zero.
+
+## Metrics
+
+Retrieval: `{"any_acceptable_video": {"hit_at_1": {"all_query_lower_bound": 0.7142857142857143, "all_query_upper_bound": 0.7142857142857143, "metrics_on_determinate_queries": 0.7142857142857143}, "hit_at_10": {"all_query_lower_bound": 1.0, "all_query_upper_bound": 1.0, "metrics_on_determinate_queries": 1.0}, "hit_at_3": {"all_query_lower_bound": 0.9285714285714286, "all_query_upper_bound": 0.9285714285714286, "metrics_on_determinate_queries": 0.9285714285714286}, "hit_at_5": {"all_query_lower_bound": 0.9285714285714286, "all_query_upper_bound": 0.9285714285714286, "metrics_on_determinate_queries": 0.9285714285714286}}, "determinate_query_count": 14, "empty_result_count": 0, "first_acceptable_rank": [1, 1, 1, 6, 1, 2, 1, 1, 1, 1, 3, 2, 1, 1], "indeterminate_query_count": 0, "known_relevant_recall": {"at_1": 0.6785714285714286, "at_10": 1.0, "at_3": 0.8928571428571429, "at_5": 0.9285714285714286}, "latency": {"max_ms": 7070.952, "mean_ms": 1348.582642857143, "min_ms": 494.55}, "metadata_only_candidate_availability": 14, "router_distribution": {"hybrid": 14}, "transcript_candidate_availability": 14, "unjudged_return_count": 109}`.
+
+Candidate Builder: `{"asr_breakdown": {"ai": 3277, "asr": 57, "human": 170}, "candidate_count": 3504, "complete_acceptable_evidence_group_coverage": 0.42857142857142855, "cross_run_candidate_count": 0, "evidence_compression": {"definition": "mean constructed evidence-candidate window width in seconds", "mean_window_seconds": 14.276511700913243}, "invalid_candidate_count": 0, "language_breakdown": {"zh": 3504}, "latency": {"max_ms": 1565.07, "mean_ms": 1081.7337857142857, "min_ms": 531.944}, "required_aspect_coverage_macro": 0.6071428571428571, "required_span_recall_macro": 0.6538461538461539, "source_type_breakdown": {"ai": 3277, "asr": 57, "human": 170}, "window_width_mean_seconds": 14.276511700913243}`.
+
+Deterministic Selector: `{"bundle_hit": 0.07142857142857142, "compactness_macro": 0.8309555256740688, "complete_group_available_but_not_selected": 5, "formula": {"compactness": "selected interval union duration / summed selected interval duration", "redundancy": "1 - compactness"}, "latency": {"max_ms": 69.19, "mean_ms": 48.081785714285715, "min_ms": 0.003}, "redundancy_macro": 0.16904447432593123, "required_aspect_coverage_macro": 0.1130952380952381, "required_span_recall_macro": 0.12179487179487179, "selected_candidate_count": {"mean": 5.571428571428571, "total": 78}}`.
+
+Mechanical Gate: `{"invalid_decision_count": 0, "invalid_identity_count": 0, "invalid_source_count": 1, "invalid_timeline_count": 0, "judge_eligible_count": 13, "latency": {"max_ms": 0.05, "mean_ms": 0.03492857142857143, "min_ms": 0.028}, "mechanically_complete_count": 13, "mechanically_incomplete_count": 1, "terminal_unverifiable_count": 1}`.
+The Mechanical Gate reports mechanical eligibility only; no semantic sufficiency
+judgment was performed.
+
+## Unjudged and Measurement Limits
+
+Unjudged pairs: `109`. Unresolved pairs remain
+explicitly unjudged and do not block P8. Metric intervals express uncertainty
+from non-exhaustive Retrieval Gold and do not assign positive or negative labels
+to unresolved videos. The sealed base Gold was not modified.
+
+## Primary Failure Attribution
+
+`{"candidate_builder_failure": 7, "deterministic_selector_failure": 5, "end_to_end_bundle_hit": 1, "source_unverifiable": 1}`.
+
+## Product / Stress Separation
+
+Stress Set v2 was reused as a separate regression artifact. It is not a Product
+Benchmark and has no optimization authority. It did not change Product
+predictions, configuration, or failure attribution.
+
+## Governance
+
+No Query, Split, Gold, Router, Retrieval, Builder, Selector, or Gate behavior was
+changed. F1A, F1B, Stage 4A-R, Stage 4B, Checkpoint 1, and P9 were not started or
+authorized. The only possible next governance action is V3.5-B Checkpoint 1
+review; this P8 execution does not perform it.

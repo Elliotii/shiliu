@@ -1,0 +1,29 @@
+{
+  "schema_version": "v3.5-b-f1a-stress-before-v1",
+  "dataset_role": "evidence_sufficiency_stress_set_v2",
+  "evidence_bearing_cases": 20,
+  "stress_complete_group_coverage": {
+    "numerator": 11,
+    "denominator": 20,
+    "rate": 0.55
+  },
+  "stress_required_span_recall": null,
+  "stress_required_aspect_coverage": null,
+  "stress_candidate_count": 5362,
+  "stress_invalid_candidate_count": 0,
+  "acceptance_floor": {
+    "complete_group_coverage": {
+      "numerator": 11,
+      "denominator": 20,
+      "rule": "max(frozen_before, p9_absolute_11_of_20)"
+    }
+  },
+  "source": {
+    "manifest_path": "research/v3_5/stage3r_qc/track_a_auto_refresh/stage3r_track_a_auto_refresh_manifest.json",
+    "manifest_sha256": "f09a6895ffb4d3bc3112871fadf3962815aa93054c174d13f08da2cf05f92ad9",
+    "case_results_path": "research/v3_5/stage3r_qc/track_a_auto_refresh/scoring/case_results.jsonl",
+    "baseline_path": "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/stress_regression/stress_set_v2_regression.initial_product_baseline.json"
+  },
+  "optimization_authority": false,
+  "frozen_before_functional_modification": true
+}

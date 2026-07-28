@@ -1,0 +1,9 @@
+{
+  "counts": {
+    "insufficient": 7,
+    "partial": 18,
+    "sufficient": 22,
+    "unverifiable": 4
+  },
+  "total": 51
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "v3.5-b-f1a-evaluation-runner-freeze-seal-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "recovery_authority": "F1A Evaluation Harness Recovery and Closeout",
+  "status": "sealed_before_development_gold_semantic_access",
+  "sealed_at": "2026-07-26T21:13:48Z",
+  "runner_version": "v3.5-b-f1a-evaluation-harness-recovery-v1",
+  "runner_source_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/run_f1a_scored_regressions.py": "b9e9caedfcabecbd0fe60a5ac5b2344d9e278e20e1603087716f0e22665844af"
+  },
+  "terminal_helper_hashes": {
+    "normalize_source_terminal_and_runtime_terminal": "b9e9caedfcabecbd0fe60a5ac5b2344d9e278e20e1603087716f0e22665844af"
+  },
+  "runner_test_hashes": {
+    "tests/test_v3_5_f1a_evaluation_harness_recovery.py": "764cacd1257d7be3f2972e801d8d6d612fcf8988381aca188adda06288092bd0"
+  },
+  "terminal_schema_hashes": {
+    "src/shiliu/evidence/contracts.py": "8417574849f0f36450f455dfc9ba00b6457762d7acee739fc5c271f9569f23b7",
+    "src/shiliu/evidence/stage3a.py": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1"
+  },
+  "recognized_authoritative_source_terminal_codes": [
+    "no_supported_subtitle"
+  ],
+  "builder_freeze_seal": {
+    "path": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/f1a_implementation_freeze_seal.json",
+    "sha256": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b"
+  },
+  "gold_free_development": {
+    "path": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/f1a_gold_free_development_dry_run.json",
+    "sha256": "8bee6c77e8a7184c7296e28be82fb4d9d50dbc9db78791c4e08e55f5505f3e2e",
+    "output_hash_root": "7b3191d8c841b7641f6cce9cc87c77441e631d0d8944e98c8c008ea504531b13",
+    "legal_runtime_outputs": "14/14",
+    "evidence_contract_error_count": 0,
+    "invalid_terminal_count": 0
+  },
+  "gold_free_stress": {
+    "path": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/f1a_gold_free_stress_dry_run.json",
+    "sha256": "7454a3c29e00bd45cc777788ed759e2d944af615f13b154cefe12c860a858d63",
+    "output_hash_root": "2c93b726ae92905bac5a51844c8548216a87ab86c569cc9020132fda315fe5c9",
+    "legal_runtime_outputs": "20/20",
+    "evidence_contract_error_count": 0,
+    "invalid_terminal_count": 0
+  },
+  "recovery_authority_hashes": {
+    "F1A_EVALUATION_HARNESS_RECOVERY_AND_CLOSEOUT_TASK.md": "3c8f9e1d128f7f802f5932463c777f802d2adf0913aae71bd14929debf117c8a",
+    "V3_5_F1A_EVALUATION_HARNESS_RECOVERY_LEDGER.json": "d6e9f6ea5f02599579cf7d0301dee2ee5f067f732089b23f2dcf2ee885eec5e5"
+  },
+  "access_state_at_seal": {
+    "development_gold_semantic_accessed": false,
+    "frozen_evaluation_gold_accessed": false
+  },
+  "post_seal_runner_behavior_change_allowed": false,
+  "post_seal_builder_behavior_change_allowed": false,
+  "development_complete_scored_runs_remaining": 1,
+  "stress_complete_scored_runs_remaining": 1
+}

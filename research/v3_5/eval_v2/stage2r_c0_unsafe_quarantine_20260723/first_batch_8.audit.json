@@ -1,0 +1,44 @@
+{
+  "agreements_created": 0,
+  "annotation_reviews_created": 0,
+  "case_count": 8,
+  "case_ids": [
+    "V2C_C0_bcb8a3bd1c3498de",
+    "V2C_C0_df2edd3c87b214b9",
+    "V2C_C0_e99c3be04fad64f0",
+    "V2C_C0_8d16dea22266c1cd",
+    "V2C_C0_afb81bd37cc27a94",
+    "V2C_C0_1124fc602ff6a6c2",
+    "V2C_C0_3a81491fa5d104fc",
+    "V2C_C0_b61f1024e1e5ee29"
+  ],
+  "constructor_expected_distribution": {
+    "insufficient": 1,
+    "partial": 3,
+    "sufficient": 2,
+    "unverifiable": 2
+  },
+  "constructor_fields_must_be_stripped": true,
+  "diversity": {
+    "cross_language_cases": 2,
+    "distinct_videos": 8,
+    "maximum_cases_per_video": 1,
+    "multi_aspect_cases": 6,
+    "multi_group_cases": 0,
+    "multi_span_cases": 5,
+    "raw_asr_cases": 1,
+    "raw_subtitle_cases": 5,
+    "source_unavailable_cases": 2
+  },
+  "final_gold_created": 0,
+  "human_decisions_created": 0,
+  "partial_construction_valid": true,
+  "provider_calls": 0,
+  "query_projection_valid": true,
+  "reviewer_calls": 0,
+  "reviewer_packet_ready": true,
+  "source_integrity_ready": true,
+  "stage2r_c1_entered": false,
+  "target_distribution_met": true,
+  "unverifiable_operational_failure_valid": true
+}

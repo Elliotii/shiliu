@@ -1,0 +1,193 @@
+{
+  "groups": [
+    {
+      "case_ids": [
+        "CASE_015",
+        "RESERVE_004"
+      ],
+      "key": "claude_memory",
+      "key_type": "query_family_key"
+    },
+    {
+      "case_ids": [
+        "CASE_019",
+        "RESERVE_003"
+      ],
+      "key": "lora_anime_finetune",
+      "key_type": "query_family_key"
+    },
+    {
+      "case_ids": [
+        "CASE_001",
+        "CASE_012",
+        "RESERVE_001"
+      ],
+      "key": "mcp_cli_advantages",
+      "key_type": "query_family_key"
+    },
+    {
+      "case_ids": [
+        "CASE_002",
+        "CASE_013"
+      ],
+      "key": "memoryos",
+      "key_type": "query_family_key"
+    },
+    {
+      "case_ids": [
+        "CASE_011",
+        "CASE_016"
+      ],
+      "key": "q09",
+      "key_type": "query_family_key"
+    },
+    {
+      "case_ids": [
+        "CASE_007",
+        "CASE_014"
+      ],
+      "key": "rag_industrial",
+      "key_type": "query_family_key"
+    },
+    {
+      "case_ids": [
+        "CASE_019",
+        "RESERVE_003"
+      ],
+      "key": "video:117",
+      "key_type": "video_key"
+    },
+    {
+      "case_ids": [
+        "CASE_014",
+        "RESERVE_005"
+      ],
+      "key": "video:135",
+      "key_type": "video_key"
+    },
+    {
+      "case_ids": [
+        "CASE_001",
+        "RESERVE_001"
+      ],
+      "key": "video:78",
+      "key_type": "video_key"
+    },
+    {
+      "case_ids": [
+        "CASE_001",
+        "RESERVE_001"
+      ],
+      "key": "BV1G29EBGE8b:26-28",
+      "key_type": "evidence_seed_key"
+    },
+    {
+      "case_ids": [
+        "CASE_019",
+        "RESERVE_003"
+      ],
+      "key": "source_artifact_470770410ce77caaf7303e46451270bcdd82a1129c7592ee5401e055b35ec32a",
+      "key_type": "source_artifact_key"
+    },
+    {
+      "case_ids": [
+        "CASE_014",
+        "RESERVE_005"
+      ],
+      "key": "source_artifact_9e285c8fa39cb0f2d26ef1ab8fd7f7f56f81810c484278cca572924ccedbc141",
+      "key_type": "source_artifact_key"
+    },
+    {
+      "case_ids": [
+        "CASE_001",
+        "RESERVE_001"
+      ],
+      "key": "source_artifact_a7054f75a77200b645b943b51a2b26aa0174d293f4869016ec649951a7e416a6",
+      "key_type": "source_artifact_key"
+    }
+  ],
+  "required_relationship_check": {
+    "cases": [
+      "CASE_001",
+      "RESERVE_001"
+    ],
+    "future_leakage_group_candidate": true,
+    "relationship": "Q01–V78 and Q15–V78 share the exact approved interval seed"
+  },
+  "stage2b_round2_constraints": {
+    "broader_family_risks": [
+      {
+        "case_id": "CASE_003",
+        "family": "broader MCP / Function Calling comparison",
+        "final_grouping_decided": false
+      }
+    ],
+    "development_only": [
+      "CASE_012"
+    ],
+    "future_same_split_groups": [
+      {
+        "case_ids": [
+          "CASE_001",
+          "CASE_012"
+        ],
+        "reason": "exact query leakage candidate: MCP"
+      },
+      {
+        "case_ids": [
+          "CASE_002",
+          "CASE_013"
+        ],
+        "reason": "same query family: MemoryOS"
+      },
+      {
+        "case_ids": [
+          "CASE_007",
+          "CASE_014"
+        ],
+        "reason": "same query family: RAG industrial optimization"
+      },
+      {
+        "case_ids": [
+          "CASE_011",
+          "CASE_016"
+        ],
+        "reason": "same query family: Pi Agent plugins/configuration"
+      }
+    ],
+    "split_assigned": false
+  },
+  "stage2c_locked_contract": {
+    "development_case_ids": [
+      "CASE_001",
+      "CASE_002",
+      "CASE_003",
+      "CASE_005",
+      "CASE_012",
+      "CASE_013",
+      "CASE_015",
+      "CASE_017"
+    ],
+    "heldout_case_ids": [
+      "CASE_004",
+      "CASE_006",
+      "CASE_007",
+      "CASE_008",
+      "CASE_009",
+      "CASE_010",
+      "CASE_011",
+      "CASE_014",
+      "CASE_016",
+      "CASE_018"
+    ],
+    "leakage_groups": {
+      "LG_MCP": ["CASE_001", "CASE_003", "CASE_012"],
+      "LG_MEMORYOS": ["CASE_002", "CASE_013"],
+      "LG_PI_AGENT": ["CASE_011", "CASE_016"],
+      "LG_RAG_OPTIMIZATION": ["CASE_007", "CASE_014"]
+    },
+    "status": "locked",
+    "version": "v3.5-development-heldout-split-v1"
+  },
+  "status": "preliminary_only_no_split_assigned"
+}

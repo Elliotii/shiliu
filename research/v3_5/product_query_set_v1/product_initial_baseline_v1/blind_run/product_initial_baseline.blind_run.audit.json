@@ -1,0 +1,14 @@
+{
+  "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_2",
+  "component_behavior_changed": false,
+  "development_gold_opened": false,
+  "frozen_gold_opened": false,
+  "frozen_query_runs": 0,
+  "failed_query_id": "PQS_V1_Q014",
+  "failure_category": "runtime_source_authority_failure",
+  "failure_code": "no_supported_subtitle",
+  "prediction_query_attempts": 10,
+  "prediction_runs": 9,
+  "started_at": "2026-07-26T16:07:35.487+00:00",
+  "status": "blocked_before_prediction_freeze"
+}

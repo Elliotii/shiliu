@@ -1,0 +1,224 @@
+{
+  "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+  "candidate_count_total": 5362,
+  "complete_group_coverage": {
+    "denominator": 20,
+    "numerator": 14,
+    "rate": 0.7
+  },
+  "forced_swaps": false,
+  "invalid_candidate_count": 0,
+  "maximum_swap_count_per_query": 4,
+  "per_case": [
+    {
+      "candidate_count": 247,
+      "case_id": "C2C_16019b3c36a8945b",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 698.3733749948442,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 286,
+      "case_id": "C2C_a1c0207a1bc56a91",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1601.1438330169767,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 303,
+      "case_id": "C3C_41cfa020e8d664c5",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1129.9715000204742,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 273,
+      "case_id": "C3C_56b2c368638a31c3",
+      "complete_group_hit": false,
+      "covered_group_ids": [],
+      "invalid_candidate_count": 0,
+      "latency_ms": 2829.855083953589,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 281,
+      "case_id": "C3C_62e28b33eec87c37",
+      "complete_group_hit": false,
+      "covered_group_ids": [],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1929.6357918065041,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 215,
+      "case_id": "C3C_98e93af3d9519c76",
+      "complete_group_hit": false,
+      "covered_group_ids": [],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1623.0497499927878,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 214,
+      "case_id": "C3C_f57e1f0cc83cd5dd",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1336.759875062853,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 275,
+      "case_id": "V2C_C0C_0492bb2ae33b5cec",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1955.5365000851452,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 228,
+      "case_id": "V2C_C0C_185d322d5f9a00b3",
+      "complete_group_hit": false,
+      "covered_group_ids": [],
+      "invalid_candidate_count": 0,
+      "latency_ms": 3000.203208066523,
+      "swap_count": 3
+    },
+    {
+      "candidate_count": 274,
+      "case_id": "V2C_C0C_2b331035debc8160",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1318.3481248561293,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 308,
+      "case_id": "V2C_C0C_53862aba0bd0bfcb",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1124.153166078031,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 256,
+      "case_id": "V2C_C0C_5725899059df795c",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1307.0220828521997,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 268,
+      "case_id": "V2C_C0C_593dade03883828e",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 737.4293750617653,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 265,
+      "case_id": "V2C_C0C_8228254ff69d7b3b",
+      "complete_group_hit": false,
+      "covered_group_ids": [],
+      "invalid_candidate_count": 0,
+      "latency_ms": 785.6871669646353,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 269,
+      "case_id": "V2C_C0C_958161474678bd3f",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1052.923334063962,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 293,
+      "case_id": "V2C_C0C_9618a83c9df4f059",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1079.0872918441892,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 249,
+      "case_id": "V2C_C0C_9a49204f52a114c8",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1432.833458064124,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 309,
+      "case_id": "V2C_C0C_9d9b5b9460d0ce51",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1140.3491250239313,
+      "swap_count": 4
+    },
+    {
+      "candidate_count": 246,
+      "case_id": "V2C_C0C_a48a04ab33a1ad95",
+      "complete_group_hit": false,
+      "covered_group_ids": [],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1816.7687498498708,
+      "swap_count": 2
+    },
+    {
+      "candidate_count": 303,
+      "case_id": "V2C_C0C_c72788577931ce36",
+      "complete_group_hit": true,
+      "covered_group_ids": [
+        "G1"
+      ],
+      "invalid_candidate_count": 0,
+      "latency_ms": 1124.2770829703659,
+      "swap_count": 4
+    }
+  ],
+  "schema_version": "v3.5-b-f1a-stress-eval-v2-v1",
+  "scorer_version": "corrected_identity_bridge_v2"
+}

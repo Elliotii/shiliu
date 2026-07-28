@@ -1,0 +1,16 @@
+{
+  "bundle_candidate_count_penalty": 0.04,
+  "bundle_duration_penalty": 0.0005,
+  "config_id": "stage3a-selector-default-v1",
+  "entity_overlap_weight": 1.0,
+  "exact_phrase_weight": 2.0,
+  "length_penalty_weight": 0.15,
+  "locality_weight": 0.4,
+  "marginal_coverage_weight": 0.75,
+  "max_candidates_per_bundle": 6,
+  "ngram_weight": 1.25,
+  "overlap_penalty_weight": 0.8,
+  "parent_rank_weight": 0.35,
+  "query_coverage_weight": 2.0,
+  "token_overlap_weight": 1.25
+}

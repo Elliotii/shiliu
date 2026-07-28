@@ -1,0 +1,5 @@
+{
+  "command": "PYTHONPATH=src .venv/bin/pytest -q tests/test_stage3r_s1_identity_bridge.py tests/test_stage3r_s1_frozen_rescore.py tests/test_stage3r_projection_and_isolation.py tests/test_stage3r_freeze_and_scoring.py tests/test_evidence_contracts.py tests/test_evidence_snapshot_regression.py tests/test_evidence_stage1b.py tests/test_v3_5_evidence_stage3a.py tests/test_v3_5_stage3a_input_projection.py tests/test_v3_5_stage3a_reachability.py tests/test_v3_5_stage3b_selector.py tests/test_v3_5_eval_v2_stage2r_a.py",
+  "passed": 131,
+  "status": "passed"
+}

@@ -1,0 +1,34 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "all_cases_resolved": true,
+  "audit_sha256": "b921cef2de6cfe05fbad9979007955b0fc3753f9e694957ae4c9e44772465ac2",
+  "byte_identical_copy": true,
+  "case_count": 10,
+  "evidence_replay_status": "passed",
+  "evidence_spans_replayed": 37,
+  "execution_decision_sha256": "c35b7a12077624da6d094302f83dae8d3177b6a5199a773dd4e8b222aded87a3",
+  "frozen_gold_formally_accepted_by_codex": false,
+  "guarded_batch_count": 5,
+  "manifest_sha256": "3978a4339f791c0faf102be9b565148f07836317b96df7a6a10116226b7725e9",
+  "p6_cross_object_validation": "passed",
+  "p6_schema_validation": "passed",
+  "p8_started": false,
+  "pending_user_adjudication": 0,
+  "replay_failures": 0,
+  "reviewed_case_count": 10,
+  "seal_version": "FROZEN_GOLD_V1_SEAL_V1",
+  "sealed_artifact_hashes": {
+    "product_evidence_gold.frozen.v1.sealed.jsonl": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+    "product_retrieval_gold.frozen.v1.sealed.jsonl": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+    "product_sufficiency_gold.frozen.v1.sealed.jsonl": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a",
+    "reviewed_case_status.frozen.v1.sealed.jsonl": "67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259"
+  },
+  "sealed_at_utc": "2026-07-26T14:40:00Z",
+  "semantic_fields_changed_by_orchestrator": false,
+  "status": "sealed_execution_candidate",
+  "three_layer_counts": {
+    "evidence_gold": 10,
+    "retrieval_gold": 10,
+    "sufficiency_gold": 10
+  }
+}

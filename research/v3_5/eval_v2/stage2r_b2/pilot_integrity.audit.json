@@ -1,0 +1,42 @@
+{
+  "additional_query_pool_accessed": false,
+  "bundle_expected": "00137397059ab02e0155c4b1af94e239e7f591c830319c3a0ebe6975495de356",
+  "bundle_sha256": "00137397059ab02e0155c4b1af94e239e7f591c830319c3a0ebe6975495de356",
+  "cases": [
+    {
+      "case_id": "V2C_B2P00001",
+      "first_segment_id": "BV1o87764Ebs_seg_000001",
+      "full_transcript_not_truncated": true,
+      "last_segment_id": "BV1o87764Ebs_seg_000374",
+      "packet_hash_valid": true,
+      "packet_segment_count": 374,
+      "primary_secondary_packet_bytes_equal": true,
+      "raw_source_segment_count": 374,
+      "source_version_matches": true
+    },
+    {
+      "case_id": "V2C_B2P00002",
+      "first_segment_id": "BV1o87764Ebs_seg_000001",
+      "full_transcript_not_truncated": true,
+      "last_segment_id": "BV1o87764Ebs_seg_000374",
+      "packet_hash_valid": true,
+      "packet_segment_count": 374,
+      "primary_secondary_packet_bytes_equal": true,
+      "raw_source_segment_count": 374,
+      "source_version_matches": true
+    }
+  ],
+  "eval_v1_modified": false,
+  "final_gold_created": false,
+  "freeze_manifest_expected": "d64d72ebd283fb86d798b9c026a230569d924cdcf2c77471b5a5e0b2c72df394",
+  "freeze_manifest_sha256": "d64d72ebd283fb86d798b9c026a230569d924cdcf2c77471b5a5e0b2c72df394",
+  "frozen_v3_code_modified": false,
+  "heldout_or_gold_accessed": false,
+  "protocol_defect_detected": false,
+  "safe_projection_sha256": "2c2fd3e0d06452201119f22ab3b68dcdfc738f91d19a916e50dbb9fd2051b564",
+  "secret_scan_passed": true,
+  "stage2r_c_authorized": false,
+  "stage2r_c_reason": "awaiting human adjudication of remaining Pilot Cases",
+  "third_case_selected": false,
+  "third_reviewer_used": false
+}

@@ -1,0 +1,162 @@
+{
+  "schema_version": "v3.5-b-f1b-final-closeout-v1",
+  "stage": "P10-B — F1B Single Major Cycle and Final Decision",
+  "frozen_before": {
+    "formal_builder": "stage3b-acronym-w3.5-v1",
+    "selector": "v3.5-deterministic-fine-selector-v1",
+    "bundle_budget": 6,
+    "builder_complete_hits": "1/6",
+    "product_compactness_percent": 83.09555256740688,
+    "product_mean_selector_latency_ms": 48.081785714285715,
+    "stress_bundle_hits": "1/20"
+  },
+  "confirmed_failure_mechanism": "Relevance/locality-first per-video greedy assembly exhausts six slots on wrong-video, overlapping, or locally redundant windows while complementary evidence already exists in the Formal Builder CandidateSet.",
+  "selector_v2": {
+    "version": "v3.5-deterministic-fine-selector-v2",
+    "algorithm": "Greedy Marginal Bundle Assembly",
+    "generic_runtime_signals": [
+      "existing base lexical and builder relevance",
+      "query atom novelty",
+      "new segment coverage",
+      "temporal region novelty",
+      "segment and text redundancy",
+      "temporal overlap",
+      "stable deterministic tie-break"
+    ],
+    "Gold_free_at_runtime": true,
+    "query_specific_rules": 0,
+    "video_specific_rules": 0,
+    "freeze_status": "frozen_rejected_candidate"
+  },
+  "gold_free_tests": {
+    "status": "pass",
+    "pytest_tests_passed": 37,
+    "pytest_tests_failed": 0,
+    "selector_v1_exact_replay_cases": 6,
+    "selector_v2_stability_cases": 6,
+    "Evidence_Identity_Contract_V1": "pass"
+  },
+  "selector_v2_freeze": {
+    "seal_valid": true,
+    "post_freeze_preflight": "pass",
+    "selector_behavior_changed_after_freeze": false,
+    "selector_config_changed_after_freeze": false,
+    "test_semantics_changed_after_freeze": false
+  },
+  "product_before_after": {
+    "before": {
+      "selector_hits_on_builder_complete_cases": "1/6",
+      "recovered_previous_misses": "0/5",
+      "compactness_percent": 83.09555256740688,
+      "mean_selector_latency_ms": 48.081785714285715
+    },
+    "after": {
+      "selector_hits_on_builder_complete_cases": "0/6",
+      "recovered_previous_misses": "0/5",
+      "Q006_regressions": 1,
+      "selector_to_builder_span_capture_ratio": 0.0,
+      "selector_to_builder_aspect_capture_ratio": 0.0,
+      "compactness_percent": 99.74638860805051,
+      "mean_selector_latency_ms": 75.35663095768541,
+      "maximum_selected_candidate_count": 6,
+      "invalid_identity_or_timeline": 0
+    }
+  },
+  "stress_before_after": {
+    "before": {
+      "bundle_hits": "1/20",
+      "invalid_identity_or_runtime": 0,
+      "selected_candidate_count": "6_in_all_20_cases"
+    },
+    "after": {
+      "bundle_hits": "0/20",
+      "required_span_recall": 0.07017543859649122,
+      "required_aspect_coverage": 0.08333333333333333,
+      "compactness_percent": 98.6058119777711,
+      "mean_selector_latency_ms": 81.47559789940715,
+      "maximum_selected_candidate_count": 6,
+      "invalid_identity_or_timeline": 0
+    }
+  },
+  "gate_results": {
+    "product": {
+      "selector_hits_minimum_4_of_6": false,
+      "recovered_previous_misses_minimum_3_of_5": false,
+      "Q006_regressions_maximum_0": false,
+      "span_capture_minimum_50_percent": false,
+      "aspect_capture_minimum_50_percent": false,
+      "invalid_identity_or_timeline_maximum_0": true,
+      "selected_candidate_budget_maximum_6": true,
+      "compactness_minimum_73_09555256740688_percent": true,
+      "mean_selector_latency_maximum_96_16357142857143_ms": true
+    },
+    "stress": {
+      "bundle_hits_minimum_1_of_20": false,
+      "invalid_identity_or_timeline_maximum_0": true,
+      "selected_candidate_budget_maximum_6": true,
+      "required_span_recall_minimum_5_percent": true,
+      "required_aspect_coverage_minimum_5_percent": true,
+      "compactness_minimum_73_09555256740688_percent": true,
+      "mean_selector_latency_maximum_100_ms": true
+    }
+  },
+  "evaluation_validity": {
+    "valid": true,
+    "Gate_Freeze_hash_valid": true,
+    "Selector_v2_Seal_valid": true,
+    "formal_builder_unchanged": true,
+    "identity_contract_unchanged": true,
+    "Gold_and_inputs_unchanged": true,
+    "bundle_budget_unchanged": true,
+    "Product_After_run_count": 1,
+    "Stress_After_run_count": 1,
+    "invalid_identity_or_timeline": 0,
+    "known_projection_defect": false,
+    "nonzero_projected_stress_span_and_aspect_coverage": true,
+    "Frozen_Evaluation_accessed": false
+  },
+  "outcome": "rejected_keep_selector_v1",
+  "formal_selector": {
+    "version": "v3.5-deterministic-fine-selector-v1"
+  },
+  "experimental_selector_v2": {
+    "version": "v3.5-deterministic-fine-selector-v2",
+    "status": "frozen_rejected_candidate"
+  },
+  "F1B_status": "formally_closed_fail",
+  "major_cycle": {
+    "used": 1,
+    "maximum": 1,
+    "remaining": 0,
+    "additional_F1B_cycles": "prohibited"
+  },
+  "change_status": {
+    "Candidate_Builder": false,
+    "Retrieval": false,
+    "Auto_Router": false,
+    "Evidence_Identity_Contract_V1": false,
+    "canonical_matcher": false,
+    "Development_Gold": false,
+    "Stress_inputs": false,
+    "Product_Query_Set": false,
+    "bundle_budget": false,
+    "Mechanical_Gate": false
+  },
+  "formal_run_counts": {
+    "Product_After": 1,
+    "Stress_After": 1
+  },
+  "Frozen_Evaluation_accessed": false,
+  "output_hashes": {
+    "F1B_GATE_FREEZE.json": "b7179fba4619a33e677a435ba68c5b82dc404f55b60ade4be209244cb2dcd781",
+    "SELECTOR_V2_FREEZE_SEAL.json": "4eeef5b26c28c9ebaae95bdd4cf2a5afe936c31d1e7c1e5d61d3408c48ac64fe",
+    "research/v3_5/product_query_set_v1/f1b_selector_major_cycle_1/f1b_gold_free_test_results.json": "97ece155ad3f1346f6ae90360d4c13789c52187ba8bd1dd6889b4e2a8b0203c1",
+    "research/v3_5/product_query_set_v1/f1b_selector_major_cycle_1/f1b_post_freeze_preflight.json": "1b9d5254d3f4832200a1ff94a6e87d57fd02278e8030d6a3eec6320d2eb83ec2",
+    "f1b_product_after.per_case.jsonl": "78c6906f6e58e013c2d5e87bec3dc672419f7df2910594894a5071aceba6592c",
+    "f1b_product_after.metrics.json": "36dacdbe6be6ced7977279fa8aa3af642343079aaa5bc633af0217546e0aef8f",
+    "f1b_stress_after.metrics.json": "22960307690df8363f1c8237ba17c59c51b0cdc341762101f441d8c18d2bb65a"
+  },
+  "next_stage": "Stage4A_R",
+  "Stage4A_R_status": "not_started",
+  "session_can_be_closed": true
+}

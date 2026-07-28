@@ -1,0 +1,17 @@
+{
+  "primary_logical_invocations": 0,
+  "secondary_logical_invocations": 0,
+  "primary_raw_model_calls": 0,
+  "secondary_raw_model_calls": 0,
+  "total_raw_model_calls": 0,
+  "maximum_raw_model_calls": 4,
+  "primary_input_tokens": 0,
+  "primary_output_tokens": 0,
+  "secondary_input_tokens": 0,
+  "secondary_output_tokens": 0,
+  "total_latency_ms": 0,
+  "primary_repairs": 0,
+  "secondary_repairs": 0,
+  "estimated_cost_usd": 0.0,
+  "cost_basis": "No model request was sent."
+}

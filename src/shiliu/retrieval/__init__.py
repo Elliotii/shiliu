@@ -18,6 +18,7 @@ from shiliu.retrieval.planner import SearchFilterRequest, SearchPlanner, SearchR
 from shiliu.retrieval.consolidation import SearchResultConsolidator
 from shiliu.retrieval.enrichment import EvidenceEnricher
 from shiliu.retrieval.product_search import (
+    build_bilibili_jump_url,
     ProductSearchError,
     ProductSearchRequest,
     ProductSearchService,
@@ -42,6 +43,7 @@ __all__ = [
     "ProductSearchError",
     "ProductSearchRequest",
     "ProductSearchService",
+    "build_bilibili_jump_url",
     "RetrievalIndexCoordinator",
     "SearchResult",
     "SearchUnit",

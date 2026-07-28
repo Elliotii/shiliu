@@ -1,0 +1,29 @@
+{
+  "batch_count": 5,
+  "case_count": 10,
+  "development_gold_opened": false,
+  "evidence_replay_status": "passed",
+  "evidence_span_replay_count": 37,
+  "gold_layers_complete": true,
+  "initial_annotation_audit_sha256": "a11e2577779b911e7b58c0c5b854015e8f074617343cba5538031ce826f2d90e",
+  "initial_annotation_manifest_sha256": "9938445d5dc8db5e50facf443aaece69c03e061f503b6d38395bbf85a7571fd4",
+  "mutable_after_seal": false,
+  "opaque_batch_artifact_hashes": {
+    "opaque_batch_01.jsonl": "bec4a38f32b3d4a88dd4233373ff36e71f185ac2557d6443571fdb4c7e3c9360",
+    "opaque_batch_02.jsonl": "da28a6f5d96f1aafef3195f3fa2a22f7212354a99c90ebfc853ad42e3cc372ae",
+    "opaque_batch_03.jsonl": "4aea94b63f67f686d1e2051aa58149bf3e1c2696e6c8bb7063a66a22ddc2f267",
+    "opaque_batch_04.jsonl": "198f26e7d4829545d07fb919373645332b4693b0ab1e9f91e8a4647d305c2cc6",
+    "opaque_batch_05.jsonl": "9ed509e9bd87ed7747bc4d3dbe99f9383fd02c84a12c7c33870a78c3e65b9e4b"
+  },
+  "p6_cross_object_validation": "passed",
+  "p6_schema_validation": "passed",
+  "product_pipeline_calls": 0,
+  "product_prediction_opened": false,
+  "reviewer_output_opened": false,
+  "scope_violation_count": 0,
+  "seal_version": "FROZEN_INITIAL_ANNOTATION_SEAL_V1",
+  "sealed_at_utc": "2026-07-26T14:55:00Z",
+  "source_identity_bound": true,
+  "status": "sealed_initial_annotation",
+  "unit_id": "frozen_annotator_A"
+}

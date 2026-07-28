@@ -1,0 +1,46 @@
+{
+  "builder_config": {
+    "config_id": "stage3a-builder-32-v1",
+    "hard_max_characters": 500,
+    "hard_max_duration_seconds": 60.0,
+    "max_segments_per_candidate": 6,
+    "near_duplicate_jaccard_threshold": 0.75,
+    "per_anchor_window_max_segments": 6,
+    "preferred_characters": [
+      100,
+      350
+    ],
+    "preferred_duration_seconds": [
+      10.0,
+      45.0
+    ],
+    "within_video_max_candidates": 32,
+    "within_video_max_total_characters": 6000,
+    "within_video_max_total_union_duration_seconds": 600.0
+  },
+  "evaluation_scope": "development_only",
+  "heldout_executed": false,
+  "input_identities": {
+    "artifact_manifest_sha256": "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f",
+    "development_execution_manifest_sha256": "ef08e5c262d9fc885ab38d81c90f10ce4be6820c31d931c03f0ecdcfe71a534e",
+    "development_gold_sha256": "5693830749e3fba38dd35fc143988fb615ae48bf0f02b7344c8b03ce4a1d90d0",
+    "snapshot_database_sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
+  },
+  "runner_version": "v3.5-stage3a-development-runner-v1",
+  "selector_config": {
+    "bundle_candidate_count_penalty": 0.04,
+    "bundle_duration_penalty": 0.0005,
+    "config_id": "stage3a-selector-default-v1",
+    "entity_overlap_weight": 1.0,
+    "exact_phrase_weight": 2.0,
+    "length_penalty_weight": 0.15,
+    "locality_weight": 0.4,
+    "marginal_coverage_weight": 0.75,
+    "max_candidates_per_bundle": 6,
+    "ngram_weight": 1.25,
+    "overlap_penalty_weight": 0.8,
+    "parent_rank_weight": 0.35,
+    "query_coverage_weight": 2.0,
+    "token_overlap_weight": 1.25
+  }
+}

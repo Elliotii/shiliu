@@ -1,0 +1,24 @@
+{
+  "boundary_notes": [],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [],
+  "missing_aspect_indices": [
+    0
+  ],
+  "optional_context_spans": [],
+  "reason_codes": [
+    "topic_not_discussed"
+  ],
+  "required_aspects": [
+    {
+      "query_anchor_texts": [
+        "MCP"
+      ],
+      "text": "该视频的完整原字幕实质性讨论 MCP"
+    }
+  ],
+  "required_spans": [],
+  "status": "insufficient",
+  "supported_aspect_indices": []
+}

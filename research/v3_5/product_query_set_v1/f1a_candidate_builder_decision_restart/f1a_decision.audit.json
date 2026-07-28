@@ -1,0 +1,30 @@
+{
+  "decision": {
+    "closed_enum_used": true,
+    "implementation_authorized_by_codex": false,
+    "one_major_cycle_boundary_preserved": true,
+    "single_candidate_design_count": 1
+  },
+  "input_identity": {
+    "checkpoint_1_amendment_matches": true,
+    "exactly_six_failures_reproduced": true,
+    "p8_scoring_amendment_matches": true,
+    "q017_excluded": true
+  },
+  "prior_p9_attempt": {
+    "formal_decision_candidate": null,
+    "partial_analysis_reused_as_formal_evidence": false,
+    "status": "historical_blocked_attempt"
+  },
+  "scope": {
+    "code_changed": false,
+    "f1a_implementation_started": false,
+    "f1b_started": false,
+    "frozen_gold_opened": false,
+    "predictions_rerun": false,
+    "query_split_gold_changed": false,
+    "scoring_rerun": false,
+    "stage4_started": false
+  },
+  "schema_version": "v3.5-b-p9-f1a-restart-audit-v1"
+}

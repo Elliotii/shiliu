@@ -1,0 +1,133 @@
+{
+  "case_id": "V2C_B1A00002",
+  "review": {
+    "acceptable_evidence_groups": [
+      {
+        "alternative_expression_notes": "",
+        "group_id": "G1",
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "required_span_ids": [
+          "S1",
+          "S2",
+          "S3"
+        ]
+      }
+    ],
+    "boundary_notes": "",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [],
+    "optional_context_spans": [],
+    "reason_codes": [
+      "DIRECT_SUPPORT"
+    ],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "视频解释了将前后端分离、把调用做成命令行控制的方案，相比通过 MCP 模拟网页操作，在授权、边界情况和效率方面更直接、更快。"
+      }
+    ],
+    "required_spans": [
+      {
+        "end_time": 350.78,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000149",
+          "BV1o87764Ebs_seg_000150",
+          "BV1o87764Ebs_seg_000151",
+          "BV1o87764Ebs_seg_000152",
+          "BV1o87764Ebs_seg_000153"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S1",
+        "span_role": "required",
+        "start_time": 340.71,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      },
+      {
+        "end_time": 367.48,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000154",
+          "BV1o87764Ebs_seg_000155",
+          "BV1o87764Ebs_seg_000156",
+          "BV1o87764Ebs_seg_000157",
+          "BV1o87764Ebs_seg_000158",
+          "BV1o87764Ebs_seg_000159",
+          "BV1o87764Ebs_seg_000160"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S2",
+        "span_role": "required",
+        "start_time": 350.78,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      },
+      {
+        "end_time": 385.35,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000161",
+          "BV1o87764Ebs_seg_000162",
+          "BV1o87764Ebs_seg_000163",
+          "BV1o87764Ebs_seg_000164",
+          "BV1o87764Ebs_seg_000165",
+          "BV1o87764Ebs_seg_000166",
+          "BV1o87764Ebs_seg_000167",
+          "BV1o87764Ebs_seg_000168"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S3",
+        "span_role": "required",
+        "start_time": 367.48,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      }
+    ],
+    "reviewed_full_transcript": true,
+    "status": "sufficient",
+    "supported_aspects": [
+      "A1"
+    ],
+    "transcript_first_segment_id": "BV1o87764Ebs_seg_000001",
+    "transcript_last_segment_id": "BV1o87764Ebs_seg_000374"
+  },
+  "review_metadata": {
+    "case_input_sha256": "f3f8350c79f2b1555036117bd57f19ab49329250fdc723d9bf8498c9afe2a008",
+    "completed_at": "2026-07-22T18:10:17.242148Z",
+    "latency_ms": 17035,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-primary-reviewer-draft-prompt-v2",
+    "repair_count": 0,
+    "reviewer_model": "gpt-5.6-terra",
+    "reviewer_provider": "openai",
+    "reviewer_role": "primary",
+    "started_at": "2026-07-22T18:10:00.207148Z",
+    "usage": {
+      "cached_tokens": 0,
+      "estimated_cost_usd": null,
+      "input_tokens": 75882,
+      "output_tokens": 1176
+    },
+    "validation_status": "valid"
+  }
+}

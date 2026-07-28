@@ -1,0 +1,398 @@
+{
+  "Frozen_Gold_opened": true,
+  "Frozen_Gold_opened_after_prediction_freeze": true,
+  "Frozen_Query_opened": true,
+  "P15_V3_5_Final_Closeout_started": false,
+  "created_at": "2026-07-27T18:56:55.144+00:00",
+  "entry_gate": "pass",
+  "evaluation_validity": "valid",
+  "evidence_metrics": {
+    "candidate_builder_complete_group_availability": 0.0,
+    "evidence_bundle_complete_group_hit": 0.0,
+    "evidence_compactness": 0.972628974850878,
+    "invalid_identity_count": 0,
+    "per_case": [
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        },
+        "case_id": "PQS_V1_Q001",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        },
+        "case_id": "PQS_V1_Q002",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        },
+        "case_id": "PQS_V1_Q009",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.6666666666666666,
+          "required_span_recall": 0.7142857142857143
+        },
+        "case_id": "PQS_V1_Q010",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.3333333333333333,
+          "required_span_recall": 0.3333333333333333
+        },
+        "case_id": "PQS_V1_Q016",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.25
+        },
+        "case_id": "PQS_V1_Q020",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.25
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        },
+        "case_id": "PQS_V1_Q021",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        },
+        "case_id": "PQS_V1_Q022",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.6666666666666666,
+          "required_span_recall": 0.3333333333333333
+        },
+        "case_id": "PQS_V1_Q023",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      },
+      {
+        "builder": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        },
+        "case_id": "PQS_V1_Q024",
+        "selector": {
+          "complete_group_hit": false,
+          "complete_group_ids": [],
+          "required_aspect_coverage": 0.0,
+          "required_span_recall": 0.0
+        }
+      }
+    ],
+    "projection_contract": {
+      "Evidence_Identity_Contract_V1": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "scorer_v4_projection_sha256": "8d2752ed92fb96337af603a7768d47a628550b7796904dd760dc516d70e9cb7e",
+      "source": "scorer_v4_projection.py + scoring_identity_bridge.py"
+    },
+    "required_aspect_coverage": {
+      "builder_macro": 0.16666666666666666,
+      "bundle_macro": 0.0
+    },
+    "required_span_recall": {
+      "builder_macro": 0.1630952380952381,
+      "bundle_macro": 0.025
+    },
+    "schema_version": "v3.5-scorer-v4-projection-frozen-metrics-v1",
+    "unverifiable_identity_count": 5
+  },
+  "failure_analysis_count": 10,
+  "formal_prediction_run_count": 1,
+  "formal_run_manifest_hash": "3d09dd34a62bf4470a7d47cdee753fb68507910b5588f056c3cd3f0f51fda9da",
+  "mechanical_gate_metrics": {
+    "invalid_count": 0,
+    "judge_eligible_count": 5,
+    "routing_accuracy": 0.5,
+    "schema_version": "v3.5-mechanical-gate-metrics-v1",
+    "source_unverifiable_count": 5,
+    "unhandled_exception_count": 0
+  },
+  "next_stage": "P15_V3_5_Final_Closeout",
+  "outcome": "p14_frozen_evaluation_complete",
+  "output_hashes": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/FROZEN_EVAL_RUNTIME_SEAL.json": "65ebb99d53c6025d63177e5c0c131ee35f7f5a987de0e42ec8db7ab79dc6dbb4",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_EVIDENCE_METRICS.json": "5c2bdf4ccd4dc45856b0e735ffbc6831e1d9bea3632f03143e98454b27f99726",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_FAILURE_ANALYSIS.json": "2c1c28b6347815dd2d90f2d806ad78cec187de82bf8d4fc83ccabbe0f6bc649d",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_FAILURE_ANALYSIS.md": "53adbc43aebe418d94f2d8ac5187d5c9ba9f65a5b179ad14a6461773fa05b610",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_MECHANICAL_GATE_METRICS.json": "37a1391922496b64f03cc3cce9c075bdd96cd2dc999e1f8bc0855d8a2f99fe3f",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_RESULT_FREEZE_SEAL.json": "1d87f0d0d2fac11f4710a41c2034c0deb25e81bb446134f55802aca016f53dc4",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_RETRIEVAL_METRICS.json": "8c28ed4527f3a4b6cf9d8359263ae87018c0a82a17b28c8aafb5f705c1c28295",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_SUFFICIENCY_METRICS.json": "8fc4829b644ea0d6ec6cb5f8782f10dcfa72b87a2b5b61fa88cbe9b832944520",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_UNIFIED_METRICS.json": "71a904f384344c8f9823c6bbe24b0fc8ebcb49a2b01ea081b2ad5311c4e79c21",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_ENTRY_GATE.json": "581e37419dde905a67948b979f7f1faae701ea104faad1acaf288ac422799deb",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_FORMAL_RUN_MANIFEST.json": "3d09dd34a62bf4470a7d47cdee753fb68507910b5588f056c3cd3f0f51fda9da",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_PREDICTIONS_FREEZE.json": "3612c3f6889a9a05c87d507f42bc748888d386547ab0f43eeae15ee2fd920f2e",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/p14_replacement_predictions.per_case.jsonl": "9742fca9d4c88dffee193133757f5fa11cbc8a2f72885e0b6796be0c7de46748"
+  },
+  "post_result_changes": false,
+  "post_result_tuning": false,
+  "prediction_freeze_hash": "3612c3f6889a9a05c87d507f42bc748888d386547ab0f43eeae15ee2fd920f2e",
+  "result_freeze_seal_hash": "1d87f0d0d2fac11f4710a41c2034c0deb25e81bb446134f55802aca016f53dc4",
+  "retrieval_metrics": {
+    "Hit_at_1": 0.8,
+    "Hit_at_10": 1.0,
+    "Hit_at_3": 0.8,
+    "Hit_at_5": 0.9,
+    "per_case": [
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q001",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q002",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": false,
+        "Hit_at_10": true,
+        "Hit_at_3": false,
+        "Hit_at_5": false,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q009",
+        "first_acceptable_rank": 8
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q010",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q016",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q020",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q021",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q022",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": true,
+        "Hit_at_10": true,
+        "Hit_at_3": true,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q023",
+        "first_acceptable_rank": 1
+      },
+      {
+        "Hit_at_1": false,
+        "Hit_at_10": true,
+        "Hit_at_3": false,
+        "Hit_at_5": true,
+        "acceptable_hit": true,
+        "case_id": "PQS_V1_Q024",
+        "first_acceptable_rank": 5
+      }
+    ],
+    "primary_retrieval_failure_count": 0,
+    "schema_version": "v3.5-pqs-v1-retrieval-metrics-v1",
+    "structured_filter_case_results": {
+      "reason": "Frozen set contains no separately frozen structured-filter scoring contract.",
+      "status": "not_applicable"
+    }
+  },
+  "runtime_seal_hash": "65ebb99d53c6025d63177e5c0c131ee35f7f5a987de0e42ec8db7ab79dc6dbb4",
+  "schema_version": "v3.5-b-p14-frozen-evaluation-result-v1",
+  "session_can_close": true,
+  "status": "formally_closed",
+  "sufficiency_metrics": {
+    "aspect_metrics": {
+      "reason": "Frozen Judge emits query-facing free text; the existing Stage 4B contract does not semantically align it to Gold aspect identifiers with a second scorer.",
+      "status": "not_applicable"
+    },
+    "conservative_overclaim_rate": 0.0,
+    "evidence_id_validity_rate": 1.0,
+    "exact_four_state_accuracy": 0.2,
+    "four_state_confusion_matrix": {
+      "insufficient": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "partial": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      },
+      "sufficient": {
+        "insufficient": 1,
+        "partial": 2,
+        "sufficient": 2,
+        "unverifiable": 5
+      },
+      "unverifiable": {
+        "insufficient": 0,
+        "partial": 0,
+        "sufficient": 0,
+        "unverifiable": 0
+      }
+    },
+    "insufficient_precision": 0.0,
+    "insufficient_recall": null,
+    "partial_precision": 0.0,
+    "partial_recall": null,
+    "schema_validity_rate": 1.0,
+    "schema_version": "v3.5-stage4b-frozen-sufficiency-metrics-v1",
+    "severe_false_sufficient_count": 0,
+    "severe_false_unverifiable_count": 5,
+    "sufficient_precision": 1.0,
+    "sufficient_recall": 0.2,
+    "trace_completeness_rate": 1.0,
+    "unverifiable_precision": 0.0,
+    "unverifiable_recall": null
+  },
+  "unified_metrics": {
+    "completed_predictions": 10,
+    "component_failure_attribution_counts": {
+      "builder_incomplete": 5,
+      "mechanical_source_unverifiable": 5
+    },
+    "end_to_end_accuracy_or_formal_existing_metric": {
+      "reason": "No pre-frozen unified Accuracy contract exists; component-joint outcomes are reported without creating a new promotion metric.",
+      "status": "not_applicable"
+    },
+    "end_to_end_correct_cases": 0,
+    "runtime_error_cases": 0,
+    "total_cases": 10
+  },
+  "validity_checks": {
+    "Gold_opened_only_after_prediction_freeze": true,
+    "case_count_is_ten": true,
+    "component_hashes_unchanged": true,
+    "entry_gate_passed": true,
+    "formal_prediction_run_count_is_one": true,
+    "invalid_identity_systemic_defect_absent": true,
+    "manifest_valid": true,
+    "predictions_freeze_valid": true,
+    "runtime_hashes_unchanged": true,
+    "runtime_seal_valid": true,
+    "scorer_and_projection_valid": true,
+    "unhandled_infrastructure_failure_absent": true
+  }
+}

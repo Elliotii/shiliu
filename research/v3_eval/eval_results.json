@@ -1,0 +1,5037 @@
+{
+  "run_identity": {
+    "run_id": "v3-stage6b-formal-20260720T094346Z",
+    "created_at": "2026-07-20T16:02:13.984504+00:00",
+    "snapshot_id": "20260720T094346Z_c7663365",
+    "snapshot_db_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "snapshot_sha256_before": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "snapshot_sha256_after": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "eval_work_db_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/eval_work_stage6b_20260720T094346Z.db",
+    "work_hashes_unchanged": true,
+    "work_counts_before": {
+      "videos": 144,
+      "retrieval_units": 1555,
+      "retrieval_units_fts": 1555,
+      "retrieval_dense_vectors": 1555,
+      "retrieval_search_traces": 82,
+      "retrieval_search_presentations": 52
+    },
+    "work_counts_after": {
+      "videos": 144,
+      "retrieval_units": 1555,
+      "retrieval_units_fts": 1555,
+      "retrieval_dense_vectors": 1555,
+      "retrieval_search_traces": 374,
+      "retrieval_search_presentations": 344
+    },
+    "live_hashes_unchanged": true,
+    "live_trace_counts_unchanged": {
+      "retrieval_search_traces": true,
+      "retrieval_search_presentations": true
+    },
+    "conditions": {
+      "result_limit": 10,
+      "max_windows_per_video": 5,
+      "raw_top_k": 50,
+      "repetitions": 3,
+      "warmups_per_mode": 1
+    },
+    "cold_load_ms": 4470.2607919462025,
+    "provider_load_count": 1,
+    "provider_device": "mps"
+  },
+  "gold_identity": {
+    "query_count": 24,
+    "judgment_count": 452,
+    "human_ledger": "eval_gold_review.decisions.amended.jsonl",
+    "label_counts": {
+      "R_evidence": 104,
+      "N": 337,
+      "R_title": 6,
+      "U_title": 5
+    }
+  },
+  "aggregate_metrics": {
+    "policies": {
+      "lexical": {
+        "condensed_judged": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.349973,
+              "recall_at_10": 0.403274,
+              "mrr_at_10": 0.5,
+              "hit_at_1": 0.5,
+              "hit_at_5": 0.5,
+              "hit_at_10": 0.5,
+              "zero_result": 0.5
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.334987,
+              "recall_at_10": 0.37037,
+              "mrr_at_10": 0.444444,
+              "hit_at_1": 0.444444,
+              "hit_at_5": 0.444444,
+              "hit_at_10": 0.444444,
+              "zero_result": 0.555556
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.417411,
+              "recall_at_10": 0.551339,
+              "mrr_at_10": 0.75,
+              "hit_at_1": 0.75,
+              "hit_at_5": 0.75,
+              "hit_at_10": 0.75,
+              "zero_result": 0.25
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 0.333333,
+              "recall_at_10": 0.333333,
+              "mrr_at_10": 0.333333,
+              "hit_at_1": 0.333333,
+              "hit_at_5": 0.333333,
+              "hit_at_10": 0.333333,
+              "zero_result": 0.666667
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.356213,
+              "recall_at_10": 0.429501,
+              "mrr_at_10": 0.5625,
+              "hit_at_1": 0.5625,
+              "hit_at_5": 0.5625,
+              "hit_at_10": 0.5625,
+              "zero_result": 0.4375
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.841071,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.607143,
+                "recall_at_10": 0.75,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.365399,
+              "recall_at_10": 0.409309,
+              "mrr_at_10": 0.5,
+              "hit_at_1": 0.5,
+              "hit_at_5": 0.5,
+              "hit_at_10": 0.5,
+              "zero_result": 0.5
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.352315,
+              "recall_at_10": 0.375,
+              "mrr_at_10": 0.444444,
+              "hit_at_1": 0.444444,
+              "hit_at_5": 0.444444,
+              "hit_at_10": 0.444444,
+              "zero_result": 0.555556
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.424279,
+              "recall_at_10": 0.563702,
+              "mrr_at_10": 0.75,
+              "hit_at_1": 0.75,
+              "hit_at_5": 0.75,
+              "hit_at_10": 0.75,
+              "zero_result": 0.25
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 0.333333,
+              "recall_at_10": 0.333333,
+              "mrr_at_10": 0.333333,
+              "hit_at_1": 0.333333,
+              "hit_at_5": 0.333333,
+              "hit_at_10": 0.333333,
+              "zero_result": 0.666667
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.377424,
+              "recall_at_10": 0.4378,
+              "mrr_at_10": 0.5625,
+              "hit_at_1": 0.5625,
+              "hit_at_5": 0.5625,
+              "hit_at_10": 0.5625,
+              "zero_result": 0.4375
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.850962,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.711111,
+                "recall_at_10": 0.777778,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "conservative_lower_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.349973,
+              "recall_at_10": 0.403274,
+              "mrr_at_10": 0.5,
+              "hit_at_1": 0.5,
+              "hit_at_5": 0.5,
+              "hit_at_10": 0.5,
+              "zero_result": 0.5
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.334987,
+              "recall_at_10": 0.37037,
+              "mrr_at_10": 0.444444,
+              "hit_at_1": 0.444444,
+              "hit_at_5": 0.444444,
+              "hit_at_10": 0.444444,
+              "zero_result": 0.555556
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.417411,
+              "recall_at_10": 0.551339,
+              "mrr_at_10": 0.75,
+              "hit_at_1": 0.75,
+              "hit_at_5": 0.75,
+              "hit_at_10": 0.75,
+              "zero_result": 0.25
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 0.333333,
+              "recall_at_10": 0.333333,
+              "mrr_at_10": 0.333333,
+              "hit_at_1": 0.333333,
+              "hit_at_5": 0.333333,
+              "hit_at_10": 0.333333,
+              "zero_result": 0.666667
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.356213,
+              "recall_at_10": 0.429501,
+              "mrr_at_10": 0.5625,
+              "hit_at_1": 0.5625,
+              "hit_at_5": 0.5625,
+              "hit_at_10": 0.5625,
+              "zero_result": 0.4375
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.841071,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.607143,
+                "recall_at_10": 0.75,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.365399,
+              "recall_at_10": 0.409309,
+              "mrr_at_10": 0.5,
+              "hit_at_1": 0.5,
+              "hit_at_5": 0.5,
+              "hit_at_10": 0.5,
+              "zero_result": 0.5
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.352315,
+              "recall_at_10": 0.375,
+              "mrr_at_10": 0.444444,
+              "hit_at_1": 0.444444,
+              "hit_at_5": 0.444444,
+              "hit_at_10": 0.444444,
+              "zero_result": 0.555556
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.424279,
+              "recall_at_10": 0.563702,
+              "mrr_at_10": 0.75,
+              "hit_at_1": 0.75,
+              "hit_at_5": 0.75,
+              "hit_at_10": 0.75,
+              "zero_result": 0.25
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 0.333333,
+              "recall_at_10": 0.333333,
+              "mrr_at_10": 0.333333,
+              "hit_at_1": 0.333333,
+              "hit_at_5": 0.333333,
+              "hit_at_10": 0.333333,
+              "zero_result": 0.666667
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.377424,
+              "recall_at_10": 0.4378,
+              "mrr_at_10": 0.5625,
+              "hit_at_1": 0.5625,
+              "hit_at_5": 0.5625,
+              "hit_at_10": 0.5625,
+              "zero_result": 0.4375
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.850962,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.711111,
+                "recall_at_10": 0.777778,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "discovery_upper_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.335363,
+              "recall_at_10": 0.386228,
+              "mrr_at_10": 0.5,
+              "hit_at_1": 0.5,
+              "hit_at_5": 0.5,
+              "hit_at_10": 0.5,
+              "zero_result": 0.5
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.31713,
+              "recall_at_10": 0.349537,
+              "mrr_at_10": 0.444444,
+              "hit_at_1": 0.444444,
+              "hit_at_5": 0.444444,
+              "hit_at_10": 0.444444,
+              "zero_result": 0.555556
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.417411,
+              "recall_at_10": 0.551339,
+              "mrr_at_10": 0.75,
+              "hit_at_1": 0.75,
+              "hit_at_5": 0.75,
+              "hit_at_10": 0.75,
+              "zero_result": 0.25
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 0.333333,
+              "recall_at_10": 0.333333,
+              "mrr_at_10": 0.333333,
+              "hit_at_1": 0.333333,
+              "hit_at_5": 0.333333,
+              "hit_at_10": 0.333333,
+              "zero_result": 0.666667
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.336124,
+              "recall_at_10": 0.406064,
+              "mrr_at_10": 0.5625,
+              "hit_at_1": 0.5625,
+              "hit_at_5": 0.5625,
+              "hit_at_10": 0.5625,
+              "zero_result": 0.4375
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.841071,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.5,
+                "recall_at_10": 0.625,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.365399,
+              "recall_at_10": 0.409309,
+              "mrr_at_10": 0.5,
+              "hit_at_1": 0.5,
+              "hit_at_5": 0.5,
+              "hit_at_10": 0.5,
+              "zero_result": 0.5
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.352315,
+              "recall_at_10": 0.375,
+              "mrr_at_10": 0.444444,
+              "hit_at_1": 0.444444,
+              "hit_at_5": 0.444444,
+              "hit_at_10": 0.444444,
+              "zero_result": 0.555556
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.424279,
+              "recall_at_10": 0.563702,
+              "mrr_at_10": 0.75,
+              "hit_at_1": 0.75,
+              "hit_at_5": 0.75,
+              "hit_at_10": 0.75,
+              "zero_result": 0.25
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 0.333333,
+              "recall_at_10": 0.333333,
+              "mrr_at_10": 0.333333,
+              "hit_at_1": 0.333333,
+              "hit_at_5": 0.333333,
+              "hit_at_10": 0.333333,
+              "zero_result": 0.666667
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.377424,
+              "recall_at_10": 0.4378,
+              "mrr_at_10": 0.5625,
+              "hit_at_1": 0.5625,
+              "hit_at_5": 0.5625,
+              "hit_at_10": 0.5625,
+              "zero_result": 0.4375
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.850962,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.0,
+                "recall_at_10": 0.0,
+                "mrr_at_10": 0.0,
+                "hit_at_1": 0.0,
+                "hit_at_5": 0.0,
+                "hit_at_10": 0.0,
+                "zero_result": 1.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.711111,
+                "recall_at_10": 0.777778,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        }
+      },
+      "dense": {
+        "condensed_judged": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.783956,
+              "recall_at_10": 0.880141,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.809854,
+              "recall_at_10": 0.897156,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.803571,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.702939,
+              "recall_at_10": 0.835193,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.842857,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.791667,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.747024,
+                "recall_at_10": 0.880952,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.904762,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777737,
+              "recall_at_10": 0.875062,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.800728,
+              "recall_at_10": 0.887897,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.817308,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.694388,
+              "recall_at_10": 0.828211,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.853846,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.791667,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.933333,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "conservative_lower_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.783956,
+              "recall_at_10": 0.880141,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.809854,
+              "recall_at_10": 0.897156,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.803571,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.702939,
+              "recall_at_10": 0.835193,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.842857,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.791667,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.747024,
+                "recall_at_10": 0.880952,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.904762,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777737,
+              "recall_at_10": 0.875062,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.800728,
+              "recall_at_10": 0.887897,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.817308,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.694388,
+              "recall_at_10": 0.828211,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.853846,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.791667,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.933333,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "discovery_upper_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.749594,
+              "recall_at_10": 0.860065,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.767857,
+              "recall_at_10": 0.872619,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.803571,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.655692,
+              "recall_at_10": 0.807589,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.842857,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.791667,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.642857,
+                "recall_at_10": 0.864286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.791667,
+                "recall_at_10": 0.875,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777737,
+              "recall_at_10": 0.875062,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.800728,
+              "recall_at_10": 0.887897,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.817308,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.694388,
+              "recall_at_10": 0.828211,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.853846,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.791667,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.933333,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        }
+      },
+      "hybrid": {
+        "condensed_judged": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.783956,
+              "recall_at_10": 0.882035,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.809854,
+              "recall_at_10": 0.899471,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.803571,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.702939,
+              "recall_at_10": 0.837798,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.842857,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.747024,
+                "recall_at_10": 0.880952,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.904762,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.786828,
+              "recall_at_10": 0.876956,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.811839,
+              "recall_at_10": 0.890212,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.817308,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.706888,
+              "recall_at_10": 0.830815,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.853846,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 1.0,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "conservative_lower_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.783956,
+              "recall_at_10": 0.882035,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.809854,
+              "recall_at_10": 0.899471,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.803571,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.702939,
+              "recall_at_10": 0.837798,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.842857,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.747024,
+                "recall_at_10": 0.880952,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.904762,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.786828,
+              "recall_at_10": 0.876956,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.811839,
+              "recall_at_10": 0.890212,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.817308,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.706888,
+              "recall_at_10": 0.830815,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.853846,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 1.0,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "discovery_upper_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.749594,
+              "recall_at_10": 0.861959,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.767857,
+              "recall_at_10": 0.874934,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.803571,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.655692,
+              "recall_at_10": 0.810193,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.842857,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.642857,
+                "recall_at_10": 0.864286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.791667,
+                "recall_at_10": 0.875,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.786828,
+              "recall_at_10": 0.876956,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.811839,
+              "recall_at_10": 0.890212,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.817308,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.706888,
+              "recall_at_10": 0.830815,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.853846,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 1.0,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        }
+      },
+      "auto": {
+        "condensed_judged": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777462,
+              "recall_at_10": 0.881629,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.801918,
+              "recall_at_10": 0.899471,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.801339,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.69401,
+              "recall_at_10": 0.83724,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.841071,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.747024,
+                "recall_at_10": 0.880952,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.857143,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777737,
+              "recall_at_10": 0.876301,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.800728,
+              "recall_at_10": 0.890212,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.813702,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.694388,
+              "recall_at_10": 0.829914,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.850962,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.933333,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "conservative_lower_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777462,
+              "recall_at_10": 0.881629,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.801918,
+              "recall_at_10": 0.899471,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.801339,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.69401,
+              "recall_at_10": 0.83724,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.841071,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.747024,
+                "recall_at_10": 0.880952,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.857143,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777737,
+              "recall_at_10": 0.876301,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.800728,
+              "recall_at_10": 0.890212,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.813702,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.694388,
+              "recall_at_10": 0.829914,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.850962,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.933333,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        },
+        "discovery_upper_bound": {
+          "discovery": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.743912,
+              "recall_at_10": 0.861553,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.760913,
+              "recall_at_10": 0.874934,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.667411,
+              "recall_at_10": 0.801339,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.647879,
+              "recall_at_10": 0.809635,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.733929,
+                "recall_at_10": 0.841071,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.642857,
+                "recall_at_10": 0.864286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.875,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          },
+          "evidence": {
+            "overall": {
+              "query_count": 22,
+              "recall_at_5": 0.777737,
+              "recall_at_10": 0.876301,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "held_out": {
+              "query_count": 18,
+              "recall_at_5": 0.800728,
+              "recall_at_10": 0.890212,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "non_held_out_anchors": {
+              "query_count": 4,
+              "recall_at_5": 0.674279,
+              "recall_at_10": 0.813702,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "single_positive": {
+              "query_count": 6,
+              "recall_at_5": 1.0,
+              "recall_at_10": 1.0,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "multi_positive": {
+              "query_count": 16,
+              "recall_at_5": 0.694388,
+              "recall_at_10": 0.829914,
+              "mrr_at_10": 1.0,
+              "hit_at_1": 1.0,
+              "hit_at_5": 1.0,
+              "hit_at_10": 1.0,
+              "zero_result": 0.0
+            },
+            "by_category": {
+              "evidence_lookup": {
+                "query_count": 3,
+                "recall_at_5": 0.888889,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "exact_entity": {
+                "query_count": 5,
+                "recall_at_5": 0.739423,
+                "recall_at_10": 0.850962,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "metadata_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.736111,
+                "recall_at_10": 0.805556,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "mixed_entity": {
+                "query_count": 4,
+                "recall_at_5": 0.684524,
+                "recall_at_10": 0.839286,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "semantic_topic_question": {
+                "query_count": 4,
+                "recall_at_5": 0.75,
+                "recall_at_10": 0.8125,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              },
+              "temporal_filter": {
+                "query_count": 3,
+                "recall_at_5": 0.933333,
+                "recall_at_10": 1.0,
+                "mrr_at_10": 1.0,
+                "hit_at_1": 1.0,
+                "hit_at_5": 1.0,
+                "hit_at_10": 1.0,
+                "zero_result": 0.0
+              }
+            }
+          }
+        }
+      }
+    },
+    "latency": {
+      "lexical": {
+        "count": 72,
+        "p50": 4.04475,
+        "p95": 35.773633,
+        "max": 100.712625
+      },
+      "dense": {
+        "count": 72,
+        "p50": 95.66852,
+        "p95": 158.678435,
+        "max": 169.808292
+      },
+      "hybrid": {
+        "count": 72,
+        "p50": 103.832104,
+        "p95": 171.52995,
+        "max": 184.1795
+      },
+      "auto": {
+        "count": 72,
+        "p50": 96.348229,
+        "p95": 177.2136,
+        "max": 185.042333
+      }
+    },
+    "negative_controls": {
+      "lexical": {
+        "Q14": {
+          "zero_result": true,
+          "returned_count": 0,
+          "top_1_video_id": null,
+          "top_1_title": null,
+          "top_1_potentially_deceptive": false,
+          "top_5_potentially_deceptive_count": 0,
+          "auto_planned_mode": null
+        },
+        "Q18": {
+          "zero_result": true,
+          "returned_count": 0,
+          "top_1_video_id": null,
+          "top_1_title": null,
+          "top_1_potentially_deceptive": false,
+          "top_5_potentially_deceptive_count": 0,
+          "auto_planned_mode": null
+        }
+      },
+      "dense": {
+        "Q14": {
+          "zero_result": false,
+          "returned_count": 10,
+          "top_1_video_id": 91,
+          "top_1_title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+          "top_1_potentially_deceptive": true,
+          "top_5_potentially_deceptive_count": 5,
+          "auto_planned_mode": null
+        },
+        "Q18": {
+          "zero_result": false,
+          "returned_count": 10,
+          "top_1_video_id": 29,
+          "top_1_title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+          "top_1_potentially_deceptive": true,
+          "top_5_potentially_deceptive_count": 5,
+          "auto_planned_mode": null
+        }
+      },
+      "hybrid": {
+        "Q14": {
+          "zero_result": false,
+          "returned_count": 10,
+          "top_1_video_id": 91,
+          "top_1_title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+          "top_1_potentially_deceptive": true,
+          "top_5_potentially_deceptive_count": 5,
+          "auto_planned_mode": null
+        },
+        "Q18": {
+          "zero_result": false,
+          "returned_count": 10,
+          "top_1_video_id": 29,
+          "top_1_title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+          "top_1_potentially_deceptive": true,
+          "top_5_potentially_deceptive_count": 5,
+          "auto_planned_mode": null
+        }
+      },
+      "auto": {
+        "Q14": {
+          "zero_result": false,
+          "returned_count": 10,
+          "top_1_video_id": 91,
+          "top_1_title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+          "top_1_potentially_deceptive": true,
+          "top_5_potentially_deceptive_count": 5,
+          "auto_planned_mode": "hybrid"
+        },
+        "Q18": {
+          "zero_result": false,
+          "returned_count": 10,
+          "top_1_video_id": 29,
+          "top_1_title": "Loop Engineering落地实践 提高项目测试效率 测试 -> AGENT -> 研发",
+          "top_1_potentially_deceptive": true,
+          "top_5_potentially_deceptive_count": 5,
+          "auto_planned_mode": "hybrid"
+        }
+      }
+    },
+    "raw_duplicate_occupancy": {
+      "lexical": {
+        "10": {
+          "query_count": 24,
+          "mean_duplicate_count": 0.958333,
+          "mean_duplicate_rate": 0.115278
+        },
+        "20": {
+          "query_count": 24,
+          "mean_duplicate_count": 2.041667,
+          "mean_duplicate_rate": 0.131944
+        },
+        "50": {
+          "query_count": 24,
+          "mean_duplicate_count": 4.375,
+          "mean_duplicate_rate": 0.147361
+        }
+      },
+      "dense": {
+        "10": {
+          "query_count": 24,
+          "mean_duplicate_count": 4.708333,
+          "mean_duplicate_rate": 0.484722
+        },
+        "20": {
+          "query_count": 24,
+          "mean_duplicate_count": 10.625,
+          "mean_duplicate_rate": 0.555556
+        },
+        "50": {
+          "query_count": 24,
+          "mean_duplicate_count": 30.166667,
+          "mean_duplicate_rate": 0.651521
+        }
+      },
+      "hybrid": {
+        "10": {
+          "query_count": 24,
+          "mean_duplicate_count": 4.541667,
+          "mean_duplicate_rate": 0.468056
+        },
+        "20": {
+          "query_count": 24,
+          "mean_duplicate_count": 10.583333,
+          "mean_duplicate_rate": 0.553472
+        },
+        "50": {
+          "query_count": 24,
+          "mean_duplicate_count": 29.916667,
+          "mean_duplicate_rate": 0.646521
+        }
+      },
+      "auto": {
+        "10": {
+          "query_count": 24,
+          "mean_duplicate_count": 3.416667,
+          "mean_duplicate_rate": 0.341667
+        },
+        "20": {
+          "query_count": 24,
+          "mean_duplicate_count": 8.166667,
+          "mean_duplicate_rate": 0.408333
+        },
+        "50": {
+          "query_count": 24,
+          "mean_duplicate_count": 22.916667,
+          "mean_duplicate_rate": 0.482424
+        }
+      }
+    },
+    "grouping": {
+      "lexical": {
+        "discovery": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.403274,
+          "mean_grouping_gain_at_10": 0.454545
+        },
+        "evidence": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.409309,
+          "mean_grouping_gain_at_10": 0.363636
+        }
+      },
+      "dense": {
+        "discovery": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.880141,
+          "mean_grouping_gain_at_10": 0.590909
+        },
+        "evidence": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.875062,
+          "mean_grouping_gain_at_10": 0.545455
+        }
+      },
+      "hybrid": {
+        "discovery": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.882035,
+          "mean_grouping_gain_at_10": 0.5
+        },
+        "evidence": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.876956,
+          "mean_grouping_gain_at_10": 0.454545
+        }
+      },
+      "auto": {
+        "discovery": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.881629,
+          "mean_grouping_gain_at_10": 0.636364
+        },
+        "evidence": {
+          "query_count": 22,
+          "unique_video_recall_at_10": 0.876301,
+          "mean_grouping_gain_at_10": 0.545455
+        }
+      }
+    },
+    "windows": {
+      "lexical": {
+        "pair_count": 10,
+        "found_at_1": 0.1,
+        "found_at_2": 0.2,
+        "returned_window_count": 3,
+        "duration_p50": 236.25,
+        "duration_p90": 249.49,
+        "duration_max": 252.8,
+        "over_120_rate": 0.666667,
+        "over_300_rate": 0.0,
+        "mean_coverage": 0.666667,
+        "mean_duration_over_gold": 20.853064,
+        "mean_nonrelevant_fraction": 0.958931
+      },
+      "dense": {
+        "pair_count": 10,
+        "found_at_1": 0.7,
+        "found_at_2": 0.9,
+        "returned_window_count": 22,
+        "duration_p50": 236.1245,
+        "duration_p90": 582.3749,
+        "duration_max": 1367.8,
+        "over_120_rate": 0.772727,
+        "over_300_rate": 0.363636,
+        "mean_coverage": 0.409091,
+        "mean_duration_over_gold": 68.809769,
+        "mean_nonrelevant_fraction": 0.98601
+      },
+      "hybrid": {
+        "pair_count": 10,
+        "found_at_1": 0.7,
+        "found_at_2": 1.0,
+        "returned_window_count": 24,
+        "duration_p50": 235.94,
+        "duration_p90": 580.2647,
+        "duration_max": 1367.8,
+        "over_120_rate": 0.708333,
+        "over_300_rate": 0.333333,
+        "mean_coverage": 0.416667,
+        "mean_duration_over_gold": 64.092048,
+        "mean_nonrelevant_fraction": 0.983746
+      },
+      "auto": {
+        "pair_count": 10,
+        "found_at_1": 0.6,
+        "found_at_2": 0.8,
+        "returned_window_count": 17,
+        "duration_p50": 252.8,
+        "duration_p90": 623.3114,
+        "duration_max": 1367.8,
+        "over_120_rate": 0.705882,
+        "over_300_rate": 0.411765,
+        "mean_coverage": 0.470588,
+        "mean_duration_over_gold": 66.981568,
+        "mean_nonrelevant_fraction": 0.97859
+      }
+    },
+    "anchors": {
+      "lexical": {
+        "precise": {
+          "count": 3,
+          "median_error": 163.78,
+          "p90_error": 454.804,
+          "within_5s": 0.333333,
+          "within_15s": 0.333333,
+          "within_30s": 0.333333,
+          "relevant_window_found": 0.666667
+        },
+        "semantic_navigation": {
+          "count": 0,
+          "median_error": null,
+          "p90_error": null,
+          "within_5s": null,
+          "within_15s": null,
+          "within_30s": null,
+          "relevant_window_found": null
+        }
+      },
+      "dense": {
+        "precise": {
+          "count": 5,
+          "median_error": 286.84,
+          "p90_error": 783.298,
+          "within_5s": 0.2,
+          "within_15s": 0.2,
+          "within_30s": 0.2,
+          "relevant_window_found": 0.4
+        },
+        "semantic_navigation": {
+          "count": 17,
+          "median_error": 568.26,
+          "p90_error": 1889.3466,
+          "within_5s": 0.058824,
+          "within_15s": 0.176471,
+          "within_30s": 0.176471,
+          "relevant_window_found": 0.411765
+        }
+      },
+      "hybrid": {
+        "precise": {
+          "count": 7,
+          "median_error": 207.48,
+          "p90_error": 698.052,
+          "within_5s": 0.285714,
+          "within_15s": 0.285714,
+          "within_30s": 0.285714,
+          "relevant_window_found": 0.428571
+        },
+        "semantic_navigation": {
+          "count": 17,
+          "median_error": 568.26,
+          "p90_error": 1889.3466,
+          "within_5s": 0.058824,
+          "within_15s": 0.176471,
+          "within_30s": 0.176471,
+          "relevant_window_found": 0.411765
+        }
+      },
+      "auto": {
+        "precise": {
+          "count": 6,
+          "median_error": 225.31,
+          "p90_error": 740.675,
+          "within_5s": 0.333333,
+          "within_15s": 0.333333,
+          "within_30s": 0.333333,
+          "relevant_window_found": 0.5
+        },
+        "semantic_navigation": {
+          "count": 11,
+          "median_error": 570.981,
+          "p90_error": 1839.971,
+          "within_5s": 0.090909,
+          "within_15s": 0.181818,
+          "within_30s": 0.181818,
+          "relevant_window_found": 0.454545
+        }
+      }
+    },
+    "filters": {
+      "lexical": {
+        "returned_count": 59,
+        "violation_count": 0,
+        "violation_rate": 0.0,
+        "by_query": {
+          "Q19": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q20": {
+            "returned": 1,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q21": {
+            "returned": 4,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q22": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q23": {
+            "returned": 5,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q24": {
+            "returned": 1,
+            "violations": [],
+            "rate": 0.0
+          }
+        }
+      },
+      "dense": {
+        "returned_count": 227,
+        "violation_count": 0,
+        "violation_rate": 0.0,
+        "by_query": {
+          "Q19": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q20": {
+            "returned": 1,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q21": {
+            "returned": 6,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q22": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q23": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q24": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          }
+        }
+      },
+      "hybrid": {
+        "returned_count": 227,
+        "violation_count": 0,
+        "violation_rate": 0.0,
+        "by_query": {
+          "Q19": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q20": {
+            "returned": 1,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q21": {
+            "returned": 6,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q22": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q23": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q24": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          }
+        }
+      },
+      "auto": {
+        "returned_count": 200,
+        "violation_count": 0,
+        "violation_rate": 0.0,
+        "by_query": {
+          "Q19": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q20": {
+            "returned": 1,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q21": {
+            "returned": 6,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q22": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q23": {
+            "returned": 5,
+            "violations": [],
+            "rate": 0.0
+          },
+          "Q24": {
+            "returned": 10,
+            "violations": [],
+            "rate": 0.0
+          }
+        }
+      }
+    },
+    "auto": {
+      "query_type_agreement": 1.0,
+      "agreement_count": 24,
+      "oracle_mode_counts": {
+        "lexical": 9,
+        "dense": 13
+      },
+      "bucket_counts": {
+        "auto_matches_oracle": 8,
+        "auto_lexical_other_better": 1,
+        "other_mismatch": 12,
+        "auto_hybrid_lexical_better": 1
+      },
+      "mean_oracle_gap": [
+        0.003247,
+        0.0
+      ],
+      "per_query": [
+        {
+          "query_id": "Q01",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              0.5625,
+              1.0
+            ],
+            "dense": [
+              0.5,
+              1.0
+            ],
+            "hybrid": [
+              0.5,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.5625,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q02",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              0.6428571428571429,
+              1.0
+            ],
+            "dense": [
+              0.7142857142857143,
+              1.0
+            ],
+            "hybrid": [
+              0.7142857142857143,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.6428571428571429,
+            1.0
+          ],
+          "gap": [
+            0.071429,
+            0.0
+          ],
+          "bucket": "auto_lexical_other_better"
+        },
+        {
+          "query_id": "Q03",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q04",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q05",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q06",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q07",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              0.6666666666666666,
+              1.0
+            ],
+            "hybrid": [
+              0.6666666666666666,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.6666666666666666,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q08",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              0.8571428571428571,
+              1.0
+            ],
+            "hybrid": [
+              0.8571428571428571,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.8571428571428571,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q09",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q10",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q11",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q12",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              0.5,
+              1.0
+            ],
+            "hybrid": [
+              0.5,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.5,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q13",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              0.75,
+              1.0
+            ],
+            "hybrid": [
+              0.75,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.75,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q15",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q16",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q17",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.0,
+              0.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        },
+        {
+          "query_id": "Q19",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              0.4166666666666667,
+              1.0
+            ],
+            "dense": [
+              0.375,
+              1.0
+            ],
+            "hybrid": [
+              0.4166666666666667,
+              1.0
+            ]
+          },
+          "auto_score": [
+            0.4166666666666667,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q20",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q21",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_hybrid_lexical_better"
+        },
+        {
+          "query_id": "Q22",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q23",
+          "oracle_mode": "lexical",
+          "auto_planned_mode": "lexical",
+          "explicit_scores": {
+            "lexical": [
+              1.0,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "auto_matches_oracle"
+        },
+        {
+          "query_id": "Q24",
+          "oracle_mode": "dense",
+          "auto_planned_mode": "hybrid",
+          "explicit_scores": {
+            "lexical": [
+              0.25,
+              1.0
+            ],
+            "dense": [
+              1.0,
+              1.0
+            ],
+            "hybrid": [
+              1.0,
+              1.0
+            ]
+          },
+          "auto_score": [
+            1.0,
+            1.0
+          ],
+          "gap": [
+            0.0,
+            0.0
+          ],
+          "bucket": "other_mismatch"
+        }
+      ]
+    }
+  },
+  "dense_truncation": {
+    "transcript_chunk_count": 1412,
+    "over_512_count": 28,
+    "over_512_rate": 0.01983,
+    "affected_video_count": 13,
+    "formal_affected_query_count": 10,
+    "affected_queries": [
+      {
+        "query_id": "Q01",
+        "relevant_truncated_videos": [
+          7,
+          88,
+          100
+        ],
+        "modes_with_truncated_raw_hits": {
+          "lexical": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652"
+          ]
+        }
+      },
+      {
+        "query_id": "Q09",
+        "relevant_truncated_videos": [
+          7
+        ],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_0c0b109bf2ba7ee48b4b3c0abf94c98e",
+            "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_029b6d03f74ee4733604f0f8d0f48984"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_0c0b109bf2ba7ee48b4b3c0abf94c98e",
+            "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_029b6d03f74ee4733604f0f8d0f48984"
+          ]
+        }
+      },
+      {
+        "query_id": "Q12",
+        "relevant_truncated_videos": [],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4421d24491d3b35ef4283c43c2c79488"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4421d24491d3b35ef4283c43c2c79488"
+          ]
+        }
+      },
+      {
+        "query_id": "Q13",
+        "relevant_truncated_videos": [
+          50,
+          96
+        ],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7",
+            "transcript_chunk:bilibili:BV1c6Mw6AE6X:p1:chunk_61a3dff3608c1e54234482d0f826ae0e"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7",
+            "transcript_chunk:bilibili:BV1c6Mw6AE6X:p1:chunk_61a3dff3608c1e54234482d0f826ae0e"
+          ]
+        }
+      },
+      {
+        "query_id": "Q14",
+        "relevant_truncated_videos": [],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_711b011d4cba546c1c9b9e0a2b52cc03",
+            "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_711b011d4cba546c1c9b9e0a2b52cc03",
+            "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7"
+          ]
+        }
+      },
+      {
+        "query_id": "Q15",
+        "relevant_truncated_videos": [],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4663104e3d41678abeacfd59a7d13825"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4663104e3d41678abeacfd59a7d13825"
+          ]
+        }
+      },
+      {
+        "query_id": "Q16",
+        "relevant_truncated_videos": [],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_48df7b4dadefd45f90f8a2d558361467"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_48df7b4dadefd45f90f8a2d558361467"
+          ]
+        }
+      },
+      {
+        "query_id": "Q18",
+        "relevant_truncated_videos": [],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1c6Mw6AE6X:p1:chunk_61a3dff3608c1e54234482d0f826ae0e"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1c6Mw6AE6X:p1:chunk_61a3dff3608c1e54234482d0f826ae0e"
+          ]
+        }
+      },
+      {
+        "query_id": "Q19",
+        "relevant_truncated_videos": [
+          54,
+          88,
+          96,
+          100
+        ],
+        "modes_with_truncated_raw_hits": {}
+      },
+      {
+        "query_id": "Q23",
+        "relevant_truncated_videos": [],
+        "modes_with_truncated_raw_hits": {
+          "dense": [
+            "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7"
+          ],
+          "hybrid": [
+            "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7"
+          ]
+        }
+      }
+    ],
+    "classification": "Needs Further Evidence",
+    "top_truncated": [
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_d8a7bf25a28e378102f907e6a5d6e6dc",
+        "video_id": 116,
+        "token_count": 547
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_711b011d4cba546c1c9b9e0a2b52cc03",
+        "video_id": 116,
+        "token_count": 547
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1HhJs6oEap:p1:chunk_ae884579a6c1c5d6a49a996a3e5dbd31",
+        "video_id": 2,
+        "token_count": 541
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_fb38cd137c504c6ec90381787e3b54f8",
+        "video_id": 54,
+        "token_count": 533
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1rrVd6fEsm:p1:chunk_f1c5dfc1b40ba9cb8f11792043d131f1",
+        "video_id": 42,
+        "token_count": 531
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_6da8d75e9a4529781ed5f8dd54fbf652",
+        "video_id": 88,
+        "token_count": 531
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_52155c0e0b2cff52560b0d3611cdb3dc",
+        "video_id": 116,
+        "token_count": 531
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1rrVd6fEsm:p1:chunk_a6b1cafdd077a3838e790f1b1e9e624a",
+        "video_id": 42,
+        "token_count": 529
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_48df7b4dadefd45f90f8a2d558361467",
+        "video_id": 96,
+        "token_count": 529
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4663104e3d41678abeacfd59a7d13825",
+        "video_id": 88,
+        "token_count": 528
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_029b6d03f74ee4733604f0f8d0f48984",
+        "video_id": 100,
+        "token_count": 528
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1FPTT6uEd2:p1:chunk_0937b526f6bb7b73b7ff19a137a71aad",
+        "video_id": 4,
+        "token_count": 525
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1rrVd6fEsm:p1:chunk_d4ea31e89a899eb1fd2095ab3c606b84",
+        "video_id": 42,
+        "token_count": 525
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1rrVd6fEsm:p1:chunk_9ef783271a38596e209d5aeae49a8622",
+        "video_id": 42,
+        "token_count": 525
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1FrDLBMEB3:p1:chunk_36f9988b6e1edf4d2afd061cf22667a3",
+        "video_id": 110,
+        "token_count": 524
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1rrVd6fEsm:p1:chunk_66bc360007484199a3aae89b96c4ffaf",
+        "video_id": 42,
+        "token_count": 523
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_e7641bbfea4bf1b9f029247574ae00c1",
+        "video_id": 50,
+        "token_count": 523
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_21247a45c9922dcdf66d902efd3cb612",
+        "video_id": 54,
+        "token_count": 522
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_c68bcb20d76e42ecf9f806e162052d0e",
+        "video_id": 88,
+        "token_count": 522
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV12zVE6vECK:p1:chunk_a00e912237bfd6498ace3ea5542283f4",
+        "video_id": 53,
+        "token_count": 521
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_584eb845857c37c00bbd11abd46b33a7",
+        "video_id": 50,
+        "token_count": 520
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GHS1BzE6J:p1:chunk_c92288a7dcc3609164a682851d8b0387",
+        "video_id": 116,
+        "token_count": 520
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1rrVd6fEsm:p1:chunk_846a1a2de22504d295ea2be450b7f100",
+        "video_id": 42,
+        "token_count": 515
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1GqV16QESu:p1:chunk_824c9396b522328c671884396f2f2d47",
+        "video_id": 50,
+        "token_count": 515
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1TxwQz5E4B:p1:chunk_4421d24491d3b35ef4283c43c2c79488",
+        "video_id": 88,
+        "token_count": 514
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_dd917007d0407401ed6967b57b1c7a6b",
+        "video_id": 96,
+        "token_count": 514
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_0c0b109bf2ba7ee48b4b3c0abf94c98e",
+        "video_id": 7,
+        "token_count": 513
+      },
+      {
+        "unit_id": "transcript_chunk:bilibili:BV1c6Mw6AE6X:p1:chunk_61a3dff3608c1e54234482d0f826ae0e",
+        "video_id": 15,
+        "token_count": 513
+      }
+    ],
+    "stage6a_pool_raw_hit_audit": {
+      "raw_top_k": 100,
+      "truncated_chunks_in_candidate_raw_hits": 17,
+      "affected_query_count": 17,
+      "affected_query_ids": [
+        "Q01",
+        "Q03",
+        "Q04",
+        "Q06",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13",
+        "Q14",
+        "Q15",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q23",
+        "Q24"
+      ]
+    },
+    "stage6b_formal_raw_hit_audit": {
+      "raw_top_k": 50,
+      "affected_query_count": 9,
+      "note": "The smaller formal raw_top_k explains why this count is lower than the Stage 6A top-100 pool audit."
+    },
+    "causal_impact_statement": "Relevant-Gold videos and formal raw hits overlap some truncated chunks, but the frozen evidence cannot establish whether query-relevant content lies after token 512. Classification remains Needs Further Evidence; no chunking or embedding change is authorized."
+  },
+  "cross_language": {
+    "schema_language_counts": {
+      "zh": 129,
+      "unknown": 14,
+      "en": 1
+    },
+    "author_vs_platform_translation_distinguishable": false,
+    "classification": "Unknown",
+    "english_labeled_videos": [
+      {
+        "video_id": 37,
+        "title": "10分钟app开发全流程",
+        "subtitle_language": "en",
+        "subtitle_source": "ai"
+      }
+    ],
+    "chinese_query_english_subtitle_pairs": [],
+    "observed_chinese_query_retrievals_of_english_labeled_video": [],
+    "note": "Schema cannot reliably distinguish author Chinese subtitles, platform-translated Chinese subtitles, English original subtitles, and English ASR. No cross-language Relevant-Gold pair exists in the locked set, so no causal cross-language Recall conclusion is available."
+  },
+  "ai_summary": {
+    "frozen_video_unit_section_counts": {
+      "Title": 143,
+      "Uploader": 143,
+      "Summary Conclusion": 102,
+      "Summary Key Points": 102,
+      "Summary Detailed Notes": 102,
+      "Summary Entities": 94,
+      "Summary Chapters (video-level only)": 101,
+      "Cleaned Transcript (video-level only)": 84,
+      "Favorite Folders": 143,
+      "Description": 127,
+      "User Notes": 1
+    },
+    "fields": {
+      "title": "indexed",
+      "description": "indexed",
+      "ai_conclusion": "indexed when present",
+      "ai_key_points": "indexed when present",
+      "ai_full_summary": "Summary Detailed Notes indexed when present",
+      "ai_chapters": "indexed in lexical video unit; excluded from dense projection by field quota policy"
+    },
+    "video_unit_only_hit_count": 88,
+    "relevant_video_unit_only_hits": 44,
+    "not_relevant_video_unit_only_hits": 36,
+    "examples": [
+      {
+        "query_id": "Q01",
+        "mode": "hybrid",
+        "video_id": 119,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "lexical",
+        "video_id": 65,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "lexical",
+        "video_id": 142,
+        "human_label": "R_title",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "lexical",
+        "video_id": 71,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "lexical",
+        "video_id": 139,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "lexical",
+        "video_id": 3,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "dense",
+        "video_id": 65,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "hybrid",
+        "video_id": 65,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "hybrid",
+        "video_id": 142,
+        "human_label": "R_title",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "hybrid",
+        "video_id": 139,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q02",
+        "mode": "hybrid",
+        "video_id": 50,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q03",
+        "mode": "lexical",
+        "video_id": 40,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q03",
+        "mode": "lexical",
+        "video_id": 39,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q03",
+        "mode": "dense",
+        "video_id": 137,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q03",
+        "mode": "hybrid",
+        "video_id": 137,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "lexical",
+        "video_id": 117,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "lexical",
+        "video_id": 115,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "lexical",
+        "video_id": 30,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "lexical",
+        "video_id": 32,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "lexical",
+        "video_id": 130,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "hybrid",
+        "video_id": 30,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q04",
+        "mode": "hybrid",
+        "video_id": 130,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q05",
+        "mode": "lexical",
+        "video_id": 68,
+        "human_label": "R_evidence",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "dense",
+        "video_id": 137,
+        "human_label": "R_title",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "dense",
+        "video_id": 108,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "dense",
+        "video_id": 45,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "dense",
+        "video_id": 44,
+        "human_label": "U_title",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "dense",
+        "video_id": 112,
+        "human_label": "U_title",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "hybrid",
+        "video_id": 137,
+        "human_label": "R_title",
+        "video_unit_only_in_raw_top50": true
+      },
+      {
+        "query_id": "Q07",
+        "mode": "hybrid",
+        "video_id": 108,
+        "human_label": "N",
+        "video_unit_only_in_raw_top50": true
+      }
+    ],
+    "authority_rule": "AI Summary supports discovery/navigation only; raw subtitle/ASR remains evidence, timing, and citation authority."
+  },
+  "failure_analysis": {
+    "case_count": 8,
+    "cases": [
+      {
+        "case": "Lexical versus Dense",
+        "query_id": "Q01",
+        "query": "MCP",
+        "gold": [
+          6,
+          7,
+          12,
+          34,
+          39,
+          43,
+          47,
+          71,
+          78,
+          80,
+          83,
+          88,
+          93,
+          100,
+          111,
+          113
+        ],
+        "recall_at_10": {
+          "lexical": 0.5625,
+          "dense": 0.5,
+          "hybrid": 0.5
+        },
+        "auto_mode": "lexical",
+        "grouping_gain_hybrid": 1,
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [
+          78,
+          43,
+          71,
+          80,
+          7
+        ],
+        "dense_top_video_ids": [
+          71,
+          39,
+          80,
+          78,
+          83
+        ],
+        "hybrid_top_video_ids": [
+          71,
+          78,
+          80,
+          39,
+          83
+        ],
+        "auto_top_video_ids": [
+          78,
+          43,
+          71,
+          80,
+          7
+        ],
+        "auto_planned_mode": "lexical",
+        "product_window_counts": {
+          "lexical": 18,
+          "dense": 22,
+          "hybrid": 23,
+          "auto": 18
+        },
+        "root_cause": "Observed rank/coverage difference under exact frozen signals; no implementation defect established.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      },
+      {
+        "case": "Dense semantic gain",
+        "query_id": "Q06",
+        "query": "MCP 与 Function Calling 的区别",
+        "gold": [
+          83
+        ],
+        "recall_at_10": {
+          "lexical": 0.0,
+          "dense": 1.0,
+          "hybrid": 1.0
+        },
+        "auto_mode": "hybrid",
+        "grouping_gain_hybrid": 0,
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [],
+        "dense_top_video_ids": [
+          83,
+          111,
+          78,
+          39,
+          71
+        ],
+        "hybrid_top_video_ids": [
+          83,
+          111,
+          78,
+          39,
+          71
+        ],
+        "auto_top_video_ids": [
+          83,
+          111,
+          78,
+          39,
+          71
+        ],
+        "auto_planned_mode": "hybrid",
+        "product_window_counts": {
+          "lexical": 0,
+          "dense": 19,
+          "hybrid": 19,
+          "auto": 19
+        },
+        "root_cause": "Dense query embedding retrieves human-relevant videos missed by exact lexical matching.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      },
+      {
+        "case": "Hybrid gain",
+        "query_id": "Q02",
+        "query": "RAG",
+        "gold": [
+          3,
+          5,
+          26,
+          30,
+          65,
+          71,
+          77,
+          99,
+          102,
+          111,
+          122,
+          124,
+          136,
+          142
+        ],
+        "recall_at_10": {
+          "lexical": 0.6428571428571429,
+          "dense": 0.7142857142857143,
+          "hybrid": 0.7142857142857143
+        },
+        "auto_mode": "lexical",
+        "grouping_gain_hybrid": 3,
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [
+          30,
+          102,
+          136,
+          65,
+          111
+        ],
+        "dense_top_video_ids": [
+          26,
+          77,
+          5,
+          30,
+          71
+        ],
+        "hybrid_top_video_ids": [
+          77,
+          30,
+          5,
+          111,
+          136
+        ],
+        "auto_top_video_ids": [
+          30,
+          102,
+          136,
+          65,
+          111
+        ],
+        "auto_planned_mode": "lexical",
+        "product_window_counts": {
+          "lexical": 10,
+          "dense": 14,
+          "hybrid": 14,
+          "auto": 10
+        },
+        "root_cause": "RRF combines lexical and dense candidates; gain is measured without parameter tuning.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      },
+      {
+        "case": "Hybrid no gain or loss",
+        "query_id": "Q01",
+        "query": "MCP",
+        "gold": [
+          6,
+          7,
+          12,
+          34,
+          39,
+          43,
+          47,
+          71,
+          78,
+          80,
+          83,
+          88,
+          93,
+          100,
+          111,
+          113
+        ],
+        "recall_at_10": {
+          "lexical": 0.5625,
+          "dense": 0.5,
+          "hybrid": 0.5
+        },
+        "auto_mode": "lexical",
+        "grouping_gain_hybrid": 1,
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [
+          78,
+          43,
+          71,
+          80,
+          7
+        ],
+        "dense_top_video_ids": [
+          71,
+          39,
+          80,
+          78,
+          83
+        ],
+        "hybrid_top_video_ids": [
+          71,
+          78,
+          80,
+          39,
+          83
+        ],
+        "auto_top_video_ids": [
+          78,
+          43,
+          71,
+          80,
+          7
+        ],
+        "auto_planned_mode": "lexical",
+        "product_window_counts": {
+          "lexical": 18,
+          "dense": 22,
+          "hybrid": 23,
+          "auto": 18
+        },
+        "root_cause": "RRF does not improve every query and can inherit or reorder dense/lexical noise.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      },
+      {
+        "case": "Same-video grouping",
+        "query_id": "Q02",
+        "query": "RAG",
+        "gold": [
+          3,
+          5,
+          26,
+          30,
+          65,
+          71,
+          77,
+          99,
+          102,
+          111,
+          122,
+          124,
+          136,
+          142
+        ],
+        "recall_at_10": {
+          "lexical": 0.6428571428571429,
+          "dense": 0.7142857142857143,
+          "hybrid": 0.7142857142857143
+        },
+        "auto_mode": "lexical",
+        "grouping_gain_hybrid": 3,
+        "implementation_bug": false,
+        "v3_5_candidate": false,
+        "lexical_top_video_ids": [
+          30,
+          102,
+          136,
+          65,
+          111
+        ],
+        "dense_top_video_ids": [
+          26,
+          77,
+          5,
+          30,
+          71
+        ],
+        "hybrid_top_video_ids": [
+          77,
+          30,
+          5,
+          111,
+          136
+        ],
+        "auto_top_video_ids": [
+          30,
+          102,
+          136,
+          65,
+          111
+        ],
+        "auto_planned_mode": "lexical",
+        "product_window_counts": {
+          "lexical": 10,
+          "dense": 14,
+          "hybrid": 14,
+          "auto": 10
+        },
+        "root_cause": "Several raw units from one video occupy raw ranks; Product grouping restores unique-video coverage.",
+        "recommendation": "Delivered behavior; no change recommended from this case."
+      },
+      {
+        "case": "Negative-control semantic false positives",
+        "query_id": "Q14",
+        "query": "量子纠错表面码阈值如何计算？",
+        "gold": [],
+        "top_results": {
+          "lexical": [],
+          "dense": [
+            91,
+            90,
+            39
+          ],
+          "hybrid": [
+            91,
+            90,
+            39
+          ]
+        },
+        "auto_mode": "hybrid",
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [],
+        "dense_top_video_ids": [
+          91,
+          90,
+          39,
+          116,
+          103
+        ],
+        "hybrid_top_video_ids": [
+          91,
+          90,
+          39,
+          116,
+          103
+        ],
+        "auto_top_video_ids": [
+          91,
+          90,
+          39,
+          116,
+          103
+        ],
+        "auto_planned_mode": "hybrid",
+        "product_window_counts": {
+          "lexical": 0,
+          "dense": 23,
+          "hybrid": 23,
+          "auto": 23
+        },
+        "root_cause": "Dense similarity always returns nearest neighbors even when the corpus has no Relevant Gold.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      },
+      {
+        "case": "Negative-control semantic false positives",
+        "query_id": "Q18",
+        "query": "如何为 Kubernetes Pod 排查 CrashLoopBackOff？",
+        "gold": [],
+        "top_results": {
+          "lexical": [],
+          "dense": [
+            29,
+            93,
+            15
+          ],
+          "hybrid": [
+            29,
+            93,
+            15
+          ]
+        },
+        "auto_mode": "hybrid",
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [],
+        "dense_top_video_ids": [
+          29,
+          93,
+          15,
+          90,
+          64
+        ],
+        "hybrid_top_video_ids": [
+          29,
+          93,
+          15,
+          90,
+          64
+        ],
+        "auto_top_video_ids": [
+          29,
+          93,
+          15,
+          90,
+          64
+        ],
+        "auto_planned_mode": "hybrid",
+        "product_window_counts": {
+          "lexical": 0,
+          "dense": 18,
+          "hybrid": 18,
+          "auto": 18
+        },
+        "root_cause": "Dense similarity always returns nearest neighbors even when the corpus has no Relevant Gold.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      },
+      {
+        "case": "Evidence window overbreadth",
+        "query_id": "Q08",
+        "query": "RAG 项目怎么做工业优化",
+        "mode": "dense",
+        "video_id": 30,
+        "window": {
+          "window_rank": 1,
+          "start": 0.76,
+          "end": 1368.56,
+          "duration": 1367.8,
+          "gold_start": 28.23,
+          "gold_end": 32.96,
+          "intersection": 4.73,
+          "coverage": 1.0,
+          "duration_over_gold": 289.1754756871036,
+          "nonrelevant_fraction": 0.9965418920894867,
+          "jump_time": 1285.26,
+          "jump_source": "chunk_start_fallback",
+          "anchor_error": 1252.3
+        },
+        "implementation_bug": false,
+        "v3_5_candidate": true,
+        "lexical_top_video_ids": [],
+        "dense_top_video_ids": [
+          30,
+          102,
+          5,
+          77,
+          71
+        ],
+        "hybrid_top_video_ids": [
+          30,
+          102,
+          5,
+          77,
+          71
+        ],
+        "auto_top_video_ids": [
+          30,
+          102,
+          5,
+          77,
+          71
+        ],
+        "auto_planned_mode": "hybrid",
+        "product_window_counts": {
+          "lexical": 0,
+          "dense": 12,
+          "hybrid": 12,
+          "auto": 12
+        },
+        "root_cause": "Temporal merging joins broad adjacent chunks; this is a deferred quality limitation, not a Stage 6B implementation bug.",
+        "recommendation": "Deferred — Needs Version-session Decision; V3.5 candidate only if the Version Session accepts the evidence."
+      }
+    ]
+  }
+}

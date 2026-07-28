@@ -1,0 +1,50 @@
+{
+  "candidate_count": 39,
+  "exact_duplicates_removed": 0,
+  "family_gaps": {
+    "comparison_or_tradeoff": {
+      "observed": 12,
+      "shortfall": 0,
+      "soft_minimum": 3
+    },
+    "decision_or_troubleshooting": {
+      "observed": 12,
+      "shortfall": 0,
+      "soft_minimum": 2
+    },
+    "definition": {
+      "observed": 4,
+      "shortfall": 0,
+      "soft_minimum": 3
+    },
+    "evaluation_or_quality": {
+      "observed": 2,
+      "shortfall": 0,
+      "soft_minimum": 2
+    },
+    "how_to_or_process": {
+      "observed": 8,
+      "shortfall": 0,
+      "soft_minimum": 3
+    },
+    "natural_multi_aspect": {
+      "observed": 1,
+      "shortfall": 0,
+      "soft_minimum": 1
+    },
+    "purpose_or_use_case": {
+      "observed": 0,
+      "shortfall": 3,
+      "soft_minimum": 3
+    }
+  },
+  "human_authoring_required": false,
+  "possible_semantic_duplicates": 0,
+  "runner_version": "v3.5-product-query-set-phase-a-v1",
+  "source_allowlist": [
+    "00_V3_RETRIEVAL_VERSION_BRIEF.md",
+    "拾流_Shiliu_完整项目上下文与当前行动.md"
+  ],
+  "status": "Stage 3R-PQS-A Complete",
+  "stress_set_overlaps": 0
+}

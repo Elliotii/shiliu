@@ -1,0 +1,18 @@
+{
+  "audit_version": "v3.5-stage3r-scoring-identity-block-v1",
+  "blocked": true,
+  "detected_after_prediction_freeze": true,
+  "gold_segment_identity_namespace": "BV<source>_seg_<zero-padded-ordinal>",
+  "runtime_segment_identity_namespace": "segment_<sha256>",
+  "timeline_identity_matches": true,
+  "source_identity_matches": true,
+  "deterministic_mapping_available": "Gold ordinal N maps to Runtime original_ordinal N-1 within the same source artifact, source version, and timeline run",
+  "mapping_applied_in_this_run": false,
+  "observed_false_zero_overlap_cases_track_b_evidence_bearing": 20,
+  "prediction_files_modified": false,
+  "metrics_accepted": false,
+  "failure_attribution_accepted": false,
+  "stage3r_f1_authorized": false,
+  "required_disposition": "Stage 3R Blocked / Requires Rerun",
+  "forbidden_action_taken": false
+}

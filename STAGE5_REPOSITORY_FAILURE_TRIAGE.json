@@ -1,0 +1,124 @@
+{
+  "schema_version": "v3.5-stage5-repository-failure-triage-v1",
+  "tested_at": "2026-07-27T17:37:42Z",
+  "safe_repository_run": {
+    "passed": 948,
+    "failed": 6,
+    "warnings": 1,
+    "collection_errors": 0,
+    "frozen_content_test_files_excluded": 29,
+    "reason_for_exclusion": "The task prohibits opening Frozen Query, Gold, Prediction, or Failure Analysis content."
+  },
+  "initial_repository_collection": {
+    "status": "blocked",
+    "collection_dependency_missing": 1
+  },
+  "failures": [
+    {
+      "test_name": "test_canonical_identity_preserves_source_timeline_segments_and_times",
+      "test_path": "tests/test_f1a_scoring_identity_bridge.py",
+      "failure_type": "historical_test_expectation_conflict",
+      "first_observed_or_historical": "pre_existing_or_historical",
+      "caused_by_post_freeze_delta": false,
+      "formal_eval_path_affected": false,
+      "Stage5_path_affected": false,
+      "Frozen_Eval_runner_affected": false,
+      "blocking_status": "non_blocking_technical_debt",
+      "reason": "The test expects source_type=official_subtitle while the frozen canonical matcher projects the lineage value official.",
+      "evidence": "src/shiliu/eval_v3_5/scoring_identity_bridge.py SHA-256 e317a8056b39a409fe5e63b3a45950bc7c1c2f98e77bce6550fcb6e7a5d278c3 exactly matches STAGE4A_R_MECHANICAL_GATE_FREEZE.json; this repair did not modify that file."
+    },
+    {
+      "test_name": "test_workspace_manifest_hashes_every_asset",
+      "test_path": "tests/test_v3_5_eval_v2_construction_workspace_export.py",
+      "failure_type": "ephemeral_workspace_missing",
+      "first_observed_or_historical": "pre_existing_or_historical",
+      "caused_by_post_freeze_delta": false,
+      "formal_eval_path_affected": false,
+      "Stage5_path_affected": false,
+      "Frozen_Eval_runner_affected": false,
+      "blocking_status": "non_blocking_technical_debt",
+      "reason": "The test assumes a separately generated temporary construction workspace still exists.",
+      "evidence": "/tmp/shiliu-v3-5-c0-construction-input-v2/workspace_manifest.json is absent. The test is for an earlier construction export and is not imported by Product Search, Stage 5, or the guarded Frozen Auto runner."
+    },
+    {
+      "test_name": "test_authority_inventory_hashes_match_current_files",
+      "test_path": "tests/test_v3_5_handoff_fact_freeze_contracts.py",
+      "failure_type": "historical_handoff_hash_drift",
+      "first_observed_or_historical": "pre_existing_or_historical",
+      "caused_by_post_freeze_delta": false,
+      "formal_eval_path_affected": false,
+      "Stage5_path_affected": false,
+      "Frozen_Eval_runner_affected": false,
+      "blocking_status": "non_blocking_technical_debt",
+      "reason": "A historical handoff inventory records an older V3_5_CURRENT_STATE.md hash.",
+      "evidence": "Historical expected SHA-256 29c9b3c951c1ca5d504e2fbc5bbd2055c5cfd75b75b67cc83d141c8cf118134f; current authority document SHA-256 92b77a1f26df6fe589366966a8d3cec11ad15e7d57d45e7ce308d54612e82ed6. Neither file is part of this repair."
+    },
+    {
+      "test_name": "test_current_state_and_stress_corpus_are_explicitly_classified",
+      "test_path": "tests/test_v3_5_handoff_fact_freeze_contracts.py",
+      "failure_type": "historical_handoff_state_expectation",
+      "first_observed_or_historical": "pre_existing_or_historical",
+      "caused_by_post_freeze_delta": false,
+      "formal_eval_path_affected": false,
+      "Stage5_path_affected": false,
+      "Frozen_Eval_runner_affected": false,
+      "blocking_status": "non_blocking_technical_debt",
+      "reason": "The old test expects V3.5 current state to remain stale_requires_update, while the later inventory classifies it as current_source_of_truth.",
+      "evidence": "The assertion compares historical handoff metadata only; Product Search, Stage 5 services, traces, runtime guard, and frozen component hashes do not consume this status."
+    },
+    {
+      "test_name": "test_current_state_records_corrected_handoff_and_no_completion_claim",
+      "test_path": "tests/test_v3_5_handoff_fact_freeze_r1.py",
+      "failure_type": "historical_handoff_hash_drift",
+      "first_observed_or_historical": "pre_existing_or_historical",
+      "caused_by_post_freeze_delta": false,
+      "formal_eval_path_affected": false,
+      "Stage5_path_affected": false,
+      "Frozen_Eval_runner_affected": false,
+      "blocking_status": "non_blocking_technical_debt",
+      "reason": "The R1 handoff manifest binds an older current-state document hash.",
+      "evidence": "Manifest expected 29c9b3c951c1ca5d504e2fbc5bbd2055c5cfd75b75b67cc83d141c8cf118134f; current document is 92b77a1f26df6fe589366966a8d3cec11ad15e7d57d45e7ce308d54612e82ed6. The manifest is historical and not a current runtime seal."
+    },
+    {
+      "test_name": "test_r2_hash_inventory_matches_current_recorded_files_and_is_ready",
+      "test_path": "tests/test_v3_5_handoff_fact_freeze_r2.py",
+      "failure_type": "historical_handoff_hash_drift",
+      "first_observed_or_historical": "pre_existing_or_historical",
+      "caused_by_post_freeze_delta": false,
+      "formal_eval_path_affected": false,
+      "Stage5_path_affected": false,
+      "Frozen_Eval_runner_affected": false,
+      "blocking_status": "non_blocking_technical_debt",
+      "reason": "The R2 handoff inventory binds another older current-state document hash.",
+      "evidence": "Inventory expected 115bad56457cc53e40b03640a66f34d51cbbf3fc586a7bc31a043c282b2f8597; current document is 92b77a1f26df6fe589366966a8d3cec11ad15e7d57d45e7ce308d54612e82ed6. This repair did not alter either historical handoff artifact."
+    }
+  ],
+  "missing_dependencies": [
+    {
+      "dependency": "scripts/export_pqs_v1_authoring_packet.py",
+      "required_by": "tests/test_pqs_v1_authoring_packet_contracts.py",
+      "required_for_frozen_eval": false,
+      "required_for_stage5_runtime": false,
+      "installation_or_fix_needed": "Restore the historical authoring export script only if that obsolete authoring-packet suite must be rerun.",
+      "blocking_status": "non_blocking_technical_debt",
+      "evidence": "Pytest collection raises ModuleNotFoundError before that single test module is collected; Product Search, Stage 5, and the Frozen Auto runtime guard have no import edge to this script."
+    }
+  ],
+  "post_freeze_delta_failures": {
+    "initially_detected": [
+      "Frozen Auto Router source identity changed when uploader_contains was placed in planner.py.",
+      "Existing eval candidate-pool code passed SearchFilterRequest instances that the first Product-only subtype rejected."
+    ],
+    "resolved": [
+      "Moved uploader_contains out of planner.py and restored the frozen Router hash.",
+      "Added backward promotion of SearchFilterRequest instances in ProductSearchRequest."
+    ],
+    "remaining": 0
+  },
+  "formal_path_conclusion": {
+    "all_post_freeze_delta_failures_resolved": true,
+    "remaining_failures_proven_non_blocking": true,
+    "missing_dependency_classified": true,
+    "Frozen_Evaluation_content_accessed": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "auto_router_entrypoint": "SearchPlanner.plan",
+  "auto_router_module": "shiliu.retrieval.planner",
+  "auto_router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "dense_provider": "v3-qwen3-embedding-provider-v1",
+  "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+  "filters": {},
+  "hybrid_rrf_version": "v3-stage2-rrf-v1",
+  "index_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "lexical_version": "v3-stage1-lexical-v1",
+  "normalization": "SearchPlanner.normalize_query",
+  "query_classifier_entrypoint": "classify_query",
+  "raw_top_k": 50,
+  "retrieval_configuration_modified": false,
+  "router_rules_modified": false,
+  "scope": "all",
+  "top_k": 10
+}

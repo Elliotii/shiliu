@@ -252,13 +252,13 @@ def test_changed_missing_and_stale_units_are_reconciled_and_failure_preserves_ol
 def test_dense_search_filters_provenance_errors_and_corrupt_skip(app_paths):
     provider = FakeEmbeddingProvider()
     db, artifacts, lexical, dense = make_services(app_paths, provider)
-    source, first_id = add_video(db, artifacts, bvid="BV1000000004", title="Semantic Apple", folder_id=104, uploader="Alice")
+    source, first_id = add_video(db, artifacts, bvid="BV1000000004", title="Semantic Apple", folder_id=104, uploader="Alice Studio")
     _, ignored_id = add_video(db, artifacts, bvid="BV1000000005", title="Semantic Pear", folder_id=105, ignored=True)
     lexical.rebuild()
     with pytest.raises(DenseIndexNotReadyError, match="not ready"):
         dense.search("Semantic")
     dense.rebuild()
-    results = dense.search("Semantic Apple", level="video", filters=RetrievalFilters(source_db_id=source, folder_id=104, uploader="Alice"))
+    results = dense.search("Semantic Apple", level="video", filters=RetrievalFilters(source_db_id=source, folder_id=104, uploader_contains="LiCe ST"))
     assert [item.video_id for item in results] == [first_id]
     assert results[0].model_id == provider.model_id
     assert results[0].dense_index_version == DENSE_INDEX_VERSION
@@ -277,7 +277,7 @@ def test_dense_search_filters_provenance_errors_and_corrupt_skip(app_paths):
         favorite_time_to=200,
         reading_state="read",
         is_marked=True,
-        uploader="Alice",
+        uploader_contains="LiCe ST",
         archived=True,
     )
     filtered = dense.search("Semantic Apple", filters=all_filters)

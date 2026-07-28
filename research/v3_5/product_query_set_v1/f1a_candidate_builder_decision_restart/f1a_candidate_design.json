@@ -1,0 +1,77 @@
+{
+  "acceptance_metrics": {
+    "builder_complete_group_coverage_minimum": "8/13",
+    "builder_primary_failures_maximum": 4,
+    "builder_required_aspect_coverage_minimum": 0.6923,
+    "builder_required_span_recall_minimum": 0.6923,
+    "candidate_and_window_caps_unchanged": true,
+    "current_complete_group_hit_regressions_maximum": 0,
+    "current_complete_group_hit_query_ids": [
+      "PQS_V1_Q006",
+      "PQS_V1_Q007",
+      "PQS_V1_Q011",
+      "PQS_V1_Q012",
+      "PQS_V1_Q013",
+      "PQS_V1_Q019"
+    ],
+    "stress_complete_group_candidate_coverage_minimum": "11/20",
+    "stress_new_empty_or_identity_runtime_failures_maximum": 0
+  },
+  "addressable_failure_ids": [
+    "PQS_V1_Q003",
+    "PQS_V1_Q004",
+    "PQS_V1_Q005",
+    "PQS_V1_Q008",
+    "PQS_V1_Q015"
+  ],
+  "before_metrics": {
+    "builder_complete_group_coverage": "6/13",
+    "builder_primary_failures": 6,
+    "builder_required_aspect_coverage": 0.6538,
+    "builder_required_span_recall": 0.6538,
+    "selector_bundle_hit": "1/13",
+    "stress_complete_group_candidate_coverage": "11/20"
+  },
+  "cost_risks": {
+    "candidate_count": "unchanged; hard maximum remains 32 per video",
+    "latency": "one deterministic marginal-coverage pass over at most four reserved slots; no model call",
+    "noise": "up to four retained candidates may have lower lexical relevance",
+    "selector_load": "unchanged maximum candidate count; candidate composition may change",
+    "window_width": "unchanged; at most 6 segments, 60 seconds and 500 characters"
+  },
+  "design_name": "bounded_coverage_reserve_v1",
+  "expected_effect": "Test whether a fixed four-slot coverage reserve restores at least two complete evidence groups without increasing any existing budget.",
+  "fallback_if_not_accepted": "keep stage3b-acronym-w3.5-v1",
+  "non_goals": [
+    "Guarantee Q018 complete-group coverage",
+    "Improve deterministic Selector behavior",
+    "Change Retrieval, Router, Gate, Query, Split or Gold",
+    "Increase candidate count, window width or union-duration budget",
+    "Introduce a dense segment index, reranker or model call"
+  ],
+  "one_cycle_stop_conditions": {
+    "close_f1a_after_one_formal_cycle_regardless_of_result": true,
+    "no_second_variant_or_tuning_cycle": true,
+    "retain_current_builder_if_any_acceptance_metric_fails": true
+  },
+  "safety_constraints": {
+    "case_id_rule_forbidden": true,
+    "candidate_max_characters": 500,
+    "candidate_max_duration_seconds": 60,
+    "candidate_max_segments": 6,
+    "gold_feature_forbidden": true,
+    "heavy_architecture_forbidden": true,
+    "per_video_candidate_maximum": 32,
+    "total_character_maximum": 6000,
+    "total_union_duration_seconds_maximum": 600,
+    "video_id_rule_forbidden": true
+  },
+  "schema_version": "v3.5-b-p9-f1a-candidate-design-v1",
+  "single_algorithm_or_policy_change": {
+    "coverage_reserve_slots": 4,
+    "description": "Use the current allocator for the first 28 slots, then fill up to four existing slots by maximum marginal uncovered segment coverage inside query-supported anchor regions, subject to every current relevance, dedup, character, duration and union-duration constraint. Unused reserve slots revert to current ranking.",
+    "existing_relevance_slots": 28,
+    "total_slot_cap": 32
+  },
+  "target_mechanism": "bounded_candidate_pruning_coverage_gap"
+}

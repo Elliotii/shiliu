@@ -1,0 +1,19 @@
+{
+  "authoritative_sources_reviewable": true,
+  "evidence_group_ids_used": [],
+  "gold_policy_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "gold_version": "PQS_V1_DEVELOPMENT_GOLD_REVIEWER_A_PROPOSED_REVISION_V1",
+  "material_aspect_ids": [
+    "PQS_V1_Q017_A1"
+  ],
+  "missing_aspects": [
+    "PQS_V1_Q017_A1"
+  ],
+  "query_id": "PQS_V1_Q017",
+  "reason_codes": [
+    "SG_NO_USABLE_MATERIAL_SUPPORT"
+  ],
+  "review_state": "independent_review_complete",
+  "status": "insufficient",
+  "supported_aspects": []
+}

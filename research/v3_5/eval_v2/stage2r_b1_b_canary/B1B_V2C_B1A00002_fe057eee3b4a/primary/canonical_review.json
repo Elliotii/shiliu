@@ -1,0 +1,110 @@
+{
+  "case_id": "V2C_B1A00002",
+  "review": {
+    "acceptable_evidence_groups": [
+      {
+        "alternative_expression_notes": "该组说明 CLI 方案通过前后端分离和命令行控制实现独立运行，并明确比较 MCP 在授权、边缘情况及效率上不如该方案直接、快速。",
+        "group_id": "G1",
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "required_span_ids": [
+          "S1",
+          "S2"
+        ]
+      }
+    ],
+    "boundary_notes": "将前后端拆分并把后端调用做成命令行控制的方案，与随后对 MCP 在授权、边缘情况和效率方面的比较合并判读，构成对 CLI 相比 MCP 优势的完整解释。",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [],
+    "optional_context_spans": [],
+    "reason_codes": [
+      "COMPARATIVE_EXPLANATION_SUPPORTED",
+      "CLI_ADVANTAGE_OVER_MCP_SUPPORTED"
+    ],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "解释 CLI 相比 MCP 的优势，即保留 CLI 与 MCP 两个对象及其优势比较关系。"
+      }
+    ],
+    "required_spans": [
+      {
+        "end_time": 366.16,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000154",
+          "BV1o87764Ebs_seg_000155",
+          "BV1o87764Ebs_seg_000156",
+          "BV1o87764Ebs_seg_000157",
+          "BV1o87764Ebs_seg_000158",
+          "BV1o87764Ebs_seg_000159"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S1",
+        "span_role": "required",
+        "start_time": 350.78,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      },
+      {
+        "end_time": 385.35,
+        "required_aspect_ids": [
+          "A1"
+        ],
+        "segment_ids": [
+          "BV1o87764Ebs_seg_000161",
+          "BV1o87764Ebs_seg_000162",
+          "BV1o87764Ebs_seg_000163",
+          "BV1o87764Ebs_seg_000164",
+          "BV1o87764Ebs_seg_000165",
+          "BV1o87764Ebs_seg_000166",
+          "BV1o87764Ebs_seg_000167",
+          "BV1o87764Ebs_seg_000168"
+        ],
+        "source_artifact_id": "raw_subtitle:BV1o87764Ebs:p1",
+        "source_language": "zh",
+        "source_type": "raw_subtitle",
+        "source_version": "sha256:087e661d7af23a3bf535f65fdec5f66402ccb781bd5db8698dd5c1ee912a1e5b",
+        "span_id": "S2",
+        "span_role": "required",
+        "start_time": 367.48,
+        "timeline_run_id": "timeline_087e661d7af23a3b",
+        "video_id": "BV1o87764Ebs"
+      }
+    ],
+    "reviewed_full_transcript": true,
+    "status": "sufficient",
+    "supported_aspects": [
+      "A1"
+    ],
+    "transcript_first_segment_id": "BV1o87764Ebs_seg_000001",
+    "transcript_last_segment_id": "BV1o87764Ebs_seg_000374"
+  },
+  "review_metadata": {
+    "case_input_sha256": "fe057eee3b4a5809749a549734ab0915a4868409950f1dbd92ae8c63b8096e6d",
+    "completed_at": "2026-07-22T18:50:56.197723Z",
+    "latency_ms": 15084,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-primary-reviewer-draft-prompt-v3-query-grounded",
+    "repair_count": 0,
+    "reviewer_model": "gpt-5.6-terra",
+    "reviewer_provider": "openai",
+    "reviewer_role": "primary",
+    "started_at": "2026-07-22T18:50:41.113723Z",
+    "usage": {
+      "cached_tokens": 0,
+      "estimated_cost_usd": null,
+      "input_tokens": 76154,
+      "output_tokens": 960
+    },
+    "validation_status": "valid"
+  }
+}

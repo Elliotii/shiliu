@@ -1,0 +1,24 @@
+[
+  {
+    "agreement_status": "mandatory_human_review",
+    "case_id": "V2C_B1A00001",
+    "human_review_packet": "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/human_review_packet.md",
+    "packet_sha256": "26a2356b70bab12aea5573b3ae3f865cd023b98868a1e58c606ef47a85460fb2",
+    "primary_query_grounding": "valid",
+    "primary_status": "valid",
+    "review_run_id": "B1B_V2C_B1A00001_0b975c6b5eb9",
+    "secondary_query_grounding": "valid",
+    "secondary_status": "valid"
+  },
+  {
+    "agreement_status": "mandatory_human_review",
+    "case_id": "V2C_B1A00002",
+    "human_review_packet": "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/human_review_packet.md",
+    "packet_sha256": "8ae0123eef74c1f85b395914fa1db122e9962d2fffa1e83061bea7850f6c59e1",
+    "primary_query_grounding": "valid",
+    "primary_status": "valid",
+    "review_run_id": "B1B_V2C_B1A00002_fe057eee3b4a",
+    "secondary_query_grounding": "valid",
+    "secondary_status": "valid_after_repair"
+  }
+]

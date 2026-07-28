@@ -1,0 +1,9 @@
+{
+  "final_errors": [],
+  "initial_errors": [],
+  "post_transport_validator_correction": "spacing-insensitive aspect/anchor binding",
+  "query_grounding_errors": [],
+  "query_grounding_status": "valid",
+  "repair_count": 1,
+  "status": "valid_after_repair"
+}

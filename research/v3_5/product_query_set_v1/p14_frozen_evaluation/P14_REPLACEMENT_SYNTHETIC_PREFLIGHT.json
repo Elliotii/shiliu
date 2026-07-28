@@ -1,0 +1,47 @@
+{
+  "Frozen_Gold_opened": false,
+  "Frozen_Query_reopened": false,
+  "configuration": {
+    "CODEX_SQLITE_HOME": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/p14_frozen_evaluation/replacement_provider_state",
+    "model": "gpt-5.6-terra",
+    "policy": "v3.5-semantic-sufficiency-policy-v1",
+    "prompt_hash": "4d87dd06ab3362ae7ffdeae2b4d82e2accc0d10db8dd69cdeb3928f9000f898c",
+    "provider": "openai-codex-cli",
+    "schema_hash": "1b04bd32b0820abd3f1c109c63a0d61b2b0d45b737082b856cad67813070977c",
+    "temperature": 0
+  },
+  "configuration_hash": "a1c06c31cd20b39c9d5c6113876f785b4a803efad0dff88deaa8f3b175a3fae2",
+  "created_at": "2026-07-27T18:37:56.140+00:00",
+  "new_run_id_created": false,
+  "provider_latency_ms": 24746,
+  "provider_retry_count": 0,
+  "replacement_run_started": false,
+  "resume_contract_test": {
+    "Frozen_Gold_unopened": true,
+    "completed_artifact_hashes_unchanged": true,
+    "completed_case_not_recomputed": true,
+    "configuration_hash_unchanged": true,
+    "incomplete_case_can_resume": true,
+    "same_replacement_run_id": true
+  },
+  "schema_version": "v3.5-b-p14-replacement-synthetic-preflight-v1",
+  "status": "pass",
+  "synthetic_preflight": {
+    "development_gold_used": false,
+    "frozen_gold_used": false,
+    "frozen_query_used": false,
+    "product_capability_scoring": false
+  },
+  "trace_hash": "fb840fbe356d542e9665beeee6060ce548a8d1e7248108bbe8235e4eba3b660f",
+  "trace_path": "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_REPLACEMENT_SYNTHETIC_PREFLIGHT.trace.json",
+  "verify": {
+    "atomic_file_replace_valid": true,
+    "atomic_prediction_write_valid": true,
+    "interrupted_write_does_not_create_completed_case": true,
+    "model_response_available": true,
+    "provider_initialization": "pass",
+    "state_directory_writable": true,
+    "structured_output_valid": true,
+    "trace_persistence_valid": true
+  }
+}

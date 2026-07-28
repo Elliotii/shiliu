@@ -1,0 +1,48 @@
+{
+  "stage": "3R-QC-W",
+  "status": "complete",
+  "wiring_version": "v3-product-search-default-auto-v1",
+  "historical_product_default": {"mode": "lexical"},
+  "corrected_product_default": {
+    "mode": "auto",
+    "wiring_version": "v3-product-search-default-auto-v1"
+  },
+  "approved_auto_smoke": "passed",
+  "frontend": {
+    "initial_default_mode": "auto",
+    "initial_request_mode": "auto",
+    "explicit_modes_retained": ["auto", "lexical", "dense", "hybrid"]
+  },
+  "backend": {
+    "product_api": "POST /api/search",
+    "omitted_mode_default": "auto",
+    "omitted_mode_invokes_router": true
+  },
+  "trace": {
+    "requested_mode": true,
+    "default_applied": true,
+    "configured_default_mode": true,
+    "router_invoked": true,
+    "router_version": true,
+    "router_decision": true,
+    "effective_mode": true,
+    "router_reason_codes": true,
+    "embedding_invoked": true
+  },
+  "explicit_overrides_preserved": {
+    "lexical": true,
+    "dense": true,
+    "hybrid": true,
+    "auto": true
+  },
+  "regression": {"targeted_passed": true, "full_passed": true},
+  "scope": {
+    "router_modified": false,
+    "retrieval_algorithms_modified": false,
+    "index_rebuilt": false,
+    "stress_track_a_run": false,
+    "product_query_set_started": false,
+    "f1a_started": false,
+    "f1b_started": false
+  }
+}

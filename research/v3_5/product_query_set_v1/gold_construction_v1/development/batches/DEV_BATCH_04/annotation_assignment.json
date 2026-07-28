@@ -1,0 +1,17 @@
+{
+  "batch_id": "DEV_BATCH_04",
+  "split": "development",
+  "query_ids": [
+    "PQS_V1_Q011",
+    "PQS_V1_Q012"
+  ],
+  "packet_exporter": "current_codex_executor",
+  "initial_annotator": "new_independent_session",
+  "independent_reviewer": "different_independent_session",
+  "user_adjudicator": "user_if_required",
+  "packet_exporter_may_annotate": false,
+  "packet_exporter_may_review": false,
+  "same_session_annotation_and_review_allowed": false,
+  "workflow_status": "not_started",
+  "stop_after_role_output": true
+}

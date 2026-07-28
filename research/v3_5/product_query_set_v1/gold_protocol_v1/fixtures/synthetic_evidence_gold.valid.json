@@ -1,0 +1,134 @@
+{
+  "query_id": "SYNTH_QUERY_ALPHA",
+  "gold_version": "SYNTH_GOLD_V1",
+  "required_aspects": [
+    {
+      "aspect_id": "SYNTH_ASPECT_1",
+      "description": "Synthetic first material aspect.",
+      "materiality": "material",
+      "query_text_basis": "synthetic clause one"
+    },
+    {
+      "aspect_id": "SYNTH_ASPECT_2",
+      "description": "Synthetic second material aspect.",
+      "materiality": "material",
+      "query_text_basis": "synthetic clause two"
+    }
+  ],
+  "aspect_evidence_options": [
+    {
+      "aspect_id": "SYNTH_ASPECT_1",
+      "alternative_sets_between": "OR",
+      "required_spans_within_set": "AND",
+      "alternative_sets": [
+        {
+          "set_id": "SYNTH_SET_1",
+          "required_span_ids": [
+            "SYNTH_SPAN_A1"
+          ]
+        }
+      ]
+    },
+    {
+      "aspect_id": "SYNTH_ASPECT_2",
+      "alternative_sets_between": "OR",
+      "required_spans_within_set": "AND",
+      "alternative_sets": [
+        {
+          "set_id": "SYNTH_SET_2",
+          "required_span_ids": [
+            "SYNTH_SPAN_B1"
+          ]
+        }
+      ]
+    }
+  ],
+  "acceptable_evidence_groups_logic": "OR",
+  "acceptable_evidence_groups": [
+    {
+      "group_id": "SYNTH_GROUP_COMPLETE",
+      "required_span_sets_within_group": "AND",
+      "required_span_sets": [
+        {
+          "set_id": "SYNTH_GROUP_SET_1",
+          "required_span_ids": [
+            "SYNTH_SPAN_A1"
+          ]
+        },
+        {
+          "set_id": "SYNTH_GROUP_SET_2",
+          "required_span_ids": [
+            "SYNTH_SPAN_B1"
+          ]
+        }
+      ]
+    }
+  ],
+  "span_registry": [
+    {
+      "span_id": "SYNTH_SPAN_A1",
+      "video_id": "SYNTH_VIDEO_A",
+      "segment_ids": [
+        "SYNTH_SEG_A1"
+      ],
+      "start_time": 10.0,
+      "end_time": 20.0,
+      "quote_text": "Synthetic authoritative source text for material aspect one.",
+      "source_language": "x-synthetic",
+      "source_type": "official_subtitle",
+      "source_version": "SYNTH_SOURCE_V1",
+      "timeline_run_id": "SYNTH_TIMELINE_1",
+      "segment_identity_version": "SYNTH_SEGMENT_ID_V1",
+      "source_quality_flag": "clean",
+      "translated_gloss": null
+    },
+    {
+      "span_id": "SYNTH_SPAN_B1",
+      "video_id": "SYNTH_VIDEO_B",
+      "segment_ids": [
+        "SYNTH_SEG_B1"
+      ],
+      "start_time": 30.0,
+      "end_time": 44.0,
+      "quote_text": "Synthetic authoritative source text for material aspect two.",
+      "source_language": "x-synthetic",
+      "source_type": "asr_transcript",
+      "source_version": "SYNTH_SOURCE_V1",
+      "timeline_run_id": "SYNTH_TIMELINE_2",
+      "segment_identity_version": "SYNTH_SEGMENT_ID_V1",
+      "source_quality_flag": "minor_asr_noise",
+      "translated_gloss": "Synthetic gloss only; it does not replace quote_text."
+    },
+    {
+      "span_id": "SYNTH_CONTEXT_1",
+      "video_id": "SYNTH_VIDEO_A",
+      "segment_ids": [
+        "SYNTH_SEG_CONTEXT"
+      ],
+      "start_time": 2.0,
+      "end_time": 5.0,
+      "quote_text": "Synthetic optional context.",
+      "source_language": "x-synthetic",
+      "source_type": "official_subtitle",
+      "source_version": "SYNTH_SOURCE_V1",
+      "timeline_run_id": "SYNTH_TIMELINE_1",
+      "segment_identity_version": "SYNTH_SEGMENT_ID_V1",
+      "source_quality_flag": "clean",
+      "translated_gloss": null
+    }
+  ],
+  "optional_context_spans": [
+    "SYNTH_CONTEXT_1"
+  ],
+  "source_review_state": {
+    "authoritative_sources_reviewable": true,
+    "full_authoritative_transcript_reviewed": true,
+    "navigation_sources_used_as_gold_evidence": false
+  },
+  "review_state": "sealed",
+  "reason_codes": [
+    "EG_COMPLETE_ACCEPTABLE_GROUP",
+    "EG_MULTI_VIDEO_COMBINATION"
+  ],
+  "builder_or_retrieval_output_limits_gold": false
+}

@@ -1,0 +1,26 @@
+{
+  "auto_q0_hit": true,
+  "auto_q1_hit": true,
+  "auto_q2_hit": true,
+  "case_id": "C2C_ee3fac675fc7d408",
+  "effective_modes": {
+    "q0": "hybrid",
+    "q1": "hybrid",
+    "q2": [
+      "hybrid",
+      "hybrid",
+      "hybrid"
+    ]
+  },
+  "excluded_from_main_recall": true,
+  "interpretation_scope": "topic_relevant_target_video_discovery_only",
+  "router_decisions": {
+    "q0": "hybrid",
+    "q1": "hybrid",
+    "q2": [
+      "hybrid",
+      "hybrid",
+      "hybrid"
+    ]
+  }
+}

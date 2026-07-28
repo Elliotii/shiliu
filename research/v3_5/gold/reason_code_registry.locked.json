@@ -1,0 +1,56 @@
+{
+  "codes": {
+    "asr_transcription_uncertainty": {
+      "layer": "source_uncertainty",
+      "observed_primary_count": 0,
+      "primary_action_family": "human_review_action"
+    },
+    "no_approved_target": {
+      "layer": "corpus_gold",
+      "observed_primary_count": 1,
+      "primary_action_family": "safe_abstain"
+    },
+    "out_of_domain_negative_control": {
+      "layer": "corpus_gold",
+      "observed_primary_count": 1,
+      "primary_action_family": "safe_abstain"
+    },
+    "partial_aspect_coverage": {
+      "layer": "coverage",
+      "observed_primary_count": 1,
+      "primary_action_family": "evidence_resolution_action"
+    },
+    "query_target_mismatch": {
+      "layer": "source_or_corpus_gold",
+      "observed_primary_count": 1,
+      "primary_action_family": "safe_abstain"
+    },
+    "search_candidate_but_no_supporting_evidence": {
+      "layer": "source_or_corpus_gold",
+      "observed_primary_count": 2,
+      "primary_action_family": "safe_abstain"
+    },
+    "semantic_neighbor_only": {
+      "layer": "source_or_corpus_gold",
+      "observed_primary_count": 3,
+      "primary_action_family": "safe_abstain"
+    },
+    "title_only": {
+      "layer": "source",
+      "observed_primary_count": 2,
+      "primary_action_family": "source_recovery_action"
+    }
+  },
+  "historical_aliases": {
+    "limited_aspect_coverage": "partial_aspect_coverage"
+  },
+  "registry_version": "v3.5-reason-code-registry-v1",
+  "rules": [
+    "Aliases interpret historical intake and do not rewrite immutable Human Intake.",
+    "query_target_mismatch and semantic_neighbor_only are distinct.",
+    "no_approved_target and out_of_domain_negative_control are distinct.",
+    "ASR uncertainty may coexist with a coverage reason or reviewer flag.",
+    "Readiness reports absolute reason counts, not aggregate metrics alone."
+  ],
+  "status": "locked"
+}

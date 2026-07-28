@@ -1,0 +1,76 @@
+{
+  "split": "frozen_evaluation",
+  "batch_count": 5,
+  "query_count": 10,
+  "queries_per_batch": 2,
+  "batch_assignments": {
+    "FROZEN_BATCH_01": [
+      "PQS_V1_Q001",
+      "PQS_V1_Q024"
+    ],
+    "FROZEN_BATCH_02": [
+      "PQS_V1_Q009",
+      "PQS_V1_Q010"
+    ],
+    "FROZEN_BATCH_03": [
+      "PQS_V1_Q002",
+      "PQS_V1_Q016"
+    ],
+    "FROZEN_BATCH_04": [
+      "PQS_V1_Q020",
+      "PQS_V1_Q021"
+    ],
+    "FROZEN_BATCH_05": [
+      "PQS_V1_Q022",
+      "PQS_V1_Q023"
+    ]
+  },
+  "packets": {
+    "FROZEN_BATCH_01": {
+      "path": "frozen_guarded/batches/FROZEN_BATCH_01",
+      "query_ids": [
+        "PQS_V1_Q001",
+        "PQS_V1_Q024"
+      ],
+      "packet_content_sha256": "4b79c03468be6f334e0ec0a1faed26198189ed3d327379ceac0b3fbc8b5bcdd7",
+      "batch_manifest_sha256": "bd6430cab07c76e04bac1b9b1a0fdaea133f3936d102bc56afaa3530db8629e6"
+    },
+    "FROZEN_BATCH_02": {
+      "path": "frozen_guarded/batches/FROZEN_BATCH_02",
+      "query_ids": [
+        "PQS_V1_Q009",
+        "PQS_V1_Q010"
+      ],
+      "packet_content_sha256": "7d081983d4f303a47bf2ded1696b551cc8a529b5166c2cd133e9188d1b2e7a7f",
+      "batch_manifest_sha256": "ac4c4fca327b1bc297acd647d969c40aed74db1e8513674cc489a90244f18cf3"
+    },
+    "FROZEN_BATCH_03": {
+      "path": "frozen_guarded/batches/FROZEN_BATCH_03",
+      "query_ids": [
+        "PQS_V1_Q002",
+        "PQS_V1_Q016"
+      ],
+      "packet_content_sha256": "c74f4e1fea97532629af236a9dcfe59dc07f18bd10847e183723fe42498c5bd3",
+      "batch_manifest_sha256": "86dc7daa55417f0e44767dff3291d795bfeb89ba47ffbdc0a2848f6ebdd2c867"
+    },
+    "FROZEN_BATCH_04": {
+      "path": "frozen_guarded/batches/FROZEN_BATCH_04",
+      "query_ids": [
+        "PQS_V1_Q020",
+        "PQS_V1_Q021"
+      ],
+      "packet_content_sha256": "d263b720fa14e528a170d134f4986d80c4fd139eb403c03394ad977771066e92",
+      "batch_manifest_sha256": "bd9ecedcef48bdfebb1530815c05fde46935eeeeee284dee37678b0b86f6bcaa"
+    },
+    "FROZEN_BATCH_05": {
+      "path": "frozen_guarded/batches/FROZEN_BATCH_05",
+      "query_ids": [
+        "PQS_V1_Q022",
+        "PQS_V1_Q023"
+      ],
+      "packet_content_sha256": "4aa54ce3114522699a49dc4cbd5400ebc6efa944ed8750f346c958f1d739ed6d",
+      "batch_manifest_sha256": "77d967dd3c7f2d312296ed5e6b2fd7f1e431d33eadc3fbca5cad993b2f6325f2"
+    }
+  },
+  "all_annotation_status": "not_started"
+}

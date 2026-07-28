@@ -1,0 +1,12 @@
+{
+  "head_before": "8287c8d92378b87290274d02605cdc704cb8c470",
+  "branch": "codex/v3-domain-completion",
+  "dirty_worktree_preserved": true,
+  "stage2r_a_manifest_valid": true,
+  "stage2r_a_manifest_file_count": 15,
+  "safe_projection_valid": true,
+  "eval_v1_modified": false,
+  "heldout_accessed": false,
+  "raw_assignment_accessed": false,
+  "forbidden_access_attempts": 0
+}

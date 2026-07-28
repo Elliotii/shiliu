@@ -1,0 +1,41 @@
+{
+  "cached_tokens": 0,
+  "canonical_compilation_success": true,
+  "canonical_sha256": "bee804ddbb476e9c2fef5f00b367152a4623459db2175487481f6b6e8ef9e0a7",
+  "case_id": "V2C_B1A00002",
+  "cost_usd_if_available": null,
+  "end_to_end_latency_ms": 17581,
+  "finish_reason": "completed",
+  "initial_valid": true,
+  "input_tokens": 76154,
+  "output_tokens": 960,
+  "packet_sha256": "8ae0123eef74c1f85b395914fa1db122e9962d2fffa1e83061bea7850f6c59e1",
+  "prompt_version": "v3.5-primary-reviewer-draft-prompt-v3-query-grounded",
+  "provider_id": "openai",
+  "provider_latency_ms": 15084,
+  "repair_attempted": false,
+  "repair_valid": false,
+  "requested_model": "gpt-5.6-terra",
+  "response_model_echo": "gpt-5.6-terra",
+  "review_run_id": "B1B_V2C_B1A00002_fe057eee3b4a",
+  "reviewer_role": "primary",
+  "schema_version": "v3.5-reviewer-draft-v2",
+  "selected_successful_attempt": 2,
+  "transport_attempt_count": 2,
+  "transport_failures": [
+    {
+      "attempt": 1,
+      "failure_class": "unknown_http_400",
+      "http_status": 400,
+      "latency_ms": 1985,
+      "model_body_returned": false,
+      "payload_fingerprint": "fcd0a5baccf5a6f6d8b1c269295ba81873229f2d8da6657664e935be7a033ece",
+      "phase": "initial",
+      "request_id": null,
+      "retry_delay_ms": 500,
+      "safe_provider_error_code": "bad_response_status_code",
+      "safe_response_headers": [],
+      "success": false
+    }
+  ]
+}

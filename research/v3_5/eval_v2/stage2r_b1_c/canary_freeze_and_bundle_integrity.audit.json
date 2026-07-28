@@ -1,0 +1,44 @@
+{
+  "bundle_path": "V3_5_STAGE2R_B1_C_CANARY_HUMAN_ADJUDICATION_BUNDLE.md",
+  "bundle_sha256": "00137397059ab02e0155c4b1af94e239e7f591c830319c3a0ebe6975495de356",
+  "final_gold_created": false,
+  "freeze_manifest_path": "research/v3_5/eval_v2/stage2r_b1_c/canary_freeze_manifest.json",
+  "freeze_manifest_sha256": "d64d72ebd283fb86d798b9c026a230569d924cdcf2c77471b5a5e0b2c72df394",
+  "human_decision_prefilled": false,
+  "original_review_artifacts_unchanged": true,
+  "protected_artifact_sha256_after": {
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/agreement.json": "5885db79a28dda6c0d6c610c9c11e9a5e8a25564793c6557632148b9a92b63ab",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/human_review_packet.md": "83688035d8961f598e7174187fe1c9193679472aa550dde8c6853ba23a96fc0b",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/primary/canonical_review.json": "a7baaf09ed6da7a1bbbb72d8be44664a4214076c68f6129e787639d623de2b21",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/primary/reviewer_draft.initial.json": "ca8e8b8e8cfe3a0023cf00b49779445d8fdb128ac939b17e10f9e9f838e398e2",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/secondary/canonical_review.json": "fd6baee0d029ad2aa38fd861cdb3d575cf2942d6a5723ad036d8fe4416d290d1",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/secondary/reviewer_draft.initial.json": "93f155c0c3664803b13423eecdaf8b1e85b37cf4824865e3fc85de55b7142429",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/agreement.json": "dd9d4b6507a33bf0fc6a302b5094e0950e803ef8fd7577aed0075fe04cd8edb6",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/human_review_packet.md": "bc3eecd2b534ae768510fc24973e978d29d6ea1c422c14c7f391d680dc2c7525",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/primary/canonical_review.json": "477c106852ad7a5f1dd9c082a33870c097230bbd98923f407829ee7ee62f438f",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/primary/reviewer_draft.initial.json": "dbc8915d1fac09ae538ab9009f78cbe97f948d7f886ff51283c9d56d846ccfe1",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/secondary/canonical_review.json": "5511b476b65381ea6e6e3a2953babb8096c63ffbb88f31f7b56309d2674cef00",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/secondary/reviewer_draft.initial.json": "d71762b4fb400329273482383aa64782843329b4ba18323bf1245f733e01cd40",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/secondary/reviewer_draft.repair.json": "f80663a03e90689e2e95772c22f676c9624d665749977f8c16b513be6d7f493e"
+  },
+  "protected_artifact_sha256_before": {
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/agreement.json": "5885db79a28dda6c0d6c610c9c11e9a5e8a25564793c6557632148b9a92b63ab",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/human_review_packet.md": "83688035d8961f598e7174187fe1c9193679472aa550dde8c6853ba23a96fc0b",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/primary/canonical_review.json": "a7baaf09ed6da7a1bbbb72d8be44664a4214076c68f6129e787639d623de2b21",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/primary/reviewer_draft.initial.json": "ca8e8b8e8cfe3a0023cf00b49779445d8fdb128ac939b17e10f9e9f838e398e2",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/secondary/canonical_review.json": "fd6baee0d029ad2aa38fd861cdb3d575cf2942d6a5723ad036d8fe4416d290d1",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00001_0b975c6b5eb9/secondary/reviewer_draft.initial.json": "93f155c0c3664803b13423eecdaf8b1e85b37cf4824865e3fc85de55b7142429",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/agreement.json": "dd9d4b6507a33bf0fc6a302b5094e0950e803ef8fd7577aed0075fe04cd8edb6",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/human_review_packet.md": "bc3eecd2b534ae768510fc24973e978d29d6ea1c422c14c7f391d680dc2c7525",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/primary/canonical_review.json": "477c106852ad7a5f1dd9c082a33870c097230bbd98923f407829ee7ee62f438f",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/primary/reviewer_draft.initial.json": "dbc8915d1fac09ae538ab9009f78cbe97f948d7f886ff51283c9d56d846ccfe1",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/secondary/canonical_review.json": "5511b476b65381ea6e6e3a2953babb8096c63ffbb88f31f7b56309d2674cef00",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/secondary/reviewer_draft.initial.json": "d71762b4fb400329273482383aa64782843329b4ba18323bf1245f733e01cd40",
+    "research/v3_5/eval_v2/stage2r_b1_b_canary/B1B_V2C_B1A00002_fe057eee3b4a/secondary/reviewer_draft.repair.json": "f80663a03e90689e2e95772c22f676c9624d665749977f8c16b513be6d7f493e"
+  },
+  "reviewed_case_ids": [
+    "V2C_B1A00001",
+    "V2C_B1A00002"
+  ],
+  "third_case_selected": false
+}

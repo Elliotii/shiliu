@@ -1,0 +1,1866 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "自动导入和手工导入对比",
+    "planned_mode": "hybrid",
+    "query_type": "keyword_phrase",
+    "raw_query": "自动导入和手工导入对比",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "keyword_phrase_dual_signal",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.48708823323249817,
+      "end_time": null,
+      "excerpt": "[Title] 一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！ [Uploader] 像素夹心饼干 [Description] 大家好，我是饼干 🍪。 做像素风游戏，精灵动画的导入是一个极其枯燥的环节。一个角色可能有 10-20 个动画序列，传统流程需要逐个手动配置 SpriteFrames，重复劳动让人崩溃。 这一期，我用 Claude Code 实现了动画资源的自动化导入。只要素材命名规范、规格标准化，AI 就能帮你一键完成从切片到 SpriteFrames 配置的全过程。 核心思路只有一个：用 AI 解放游戏开发中每一个重复的卡点。 🔑 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "video:bilibili:BV1kqAUzAEho:p1",
+      "unit_type": "video",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.4629116356372833,
+      "end_time": 907.12,
+      "excerpt": "我们就可以安装一下我们的这个软件 我们这里呢点击一下跳过 因为我们不需要配那个东西 这个地方呢他已经检测到我们安装了git了 这两个其实都是一个 就是都是一个那种日志管理的软件嘛 但是这个可这这两个只需要装一个就好了 我们这里就已经选择了git 这个不需要勾选下一步这名字呢 它你看这个地方呢 它就会自动读取一下我们的 如果你刚刚没有没有配置git的话呢 那么你可以在这里也就是写一下 点击下一步 点击否 因为我们刚刚已经创建了 好那这里呢我们点击一下 就是我们已经进入了这个界面了对吧 选择我们的工具 这导入SSH密钥怎么导入呢 点就点这个load 就找到刚",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 789.5,
+      "subtitle_source": "ai",
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_68c8d21138508277a4937932ea03e3fa",
+      "unit_type": "transcript_chunk",
+      "uploader": "左-岚",
+      "video_id": 131
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.45260900259017944,
+      "end_time": 1046.769,
+      "excerpt": "现在你想给你开发的另外一个AI应用 去接入这个工具 或者说别人开发了一个类似的方法 你想接入进来 你要做的一件事情就是去copy代码 你要完整的copy这个方法 并且copy这个方法所对应的这个函数描述 你想要接几个方法 你就要copy几次 这个还是比较繁琐的一个事情 另外繁琐本身并不是一个致命的问题 致命的问题就是你有的时候你根本就用不了 这个就是工具复用困难的问题 因为你比如说你想介入别人的方法 但很有可能因为环境问题 或者各种依赖问题等等 你copy的代码它不一定能跑 还有就是很多企业或者说公司内部的团队 他愿意去对外提供自己的一些能力 但是他并不",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 927.34,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.4403443932533264,
+      "end_time": 823.78,
+      "excerpt": "比如说做好备份 做好这个版本管理 或者说去装更全面的一些生态的插件 才能够去更好的去产出 今天的分享就到这里啊 谢谢大家",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 810.84,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_4d6fd0c240398fe92610eb56fc858956",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.43701809644699097,
+      "end_time": 936.61,
+      "excerpt": "你也要手动绘制成PDF呃 因为截止我这个呃 目前的NBANNER还是不支持输出PDF的 但是呢论文里的图片需要用PDF 是一个非常严格的一个呃学术规范 那因为它是需要是矢量图 但是你SVG也行 就是一个矢量格式 是的图片是一个非常重要的学术规范 如果说你不画矢量图 不传矢量的图 如果说我作为审稿人的时候 发现你的里面的字选不中的话 我就会给你扣掉一分印象分 这个是我觉得是一个非常old school也好 也是我觉得是一个学术界的一个基本规范吧 所以说呢take可V2 就是那个banana画图真牛 但是别忘了重绘成矢量图 第三部分或者第四部分 这是我觉得这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 818.17,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_cd0685b7a5dad3ba5d5c92e4b65acfad",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.43500280380249023,
+      "end_time": 697.82,
+      "excerpt": "比如说你是windows电脑的话 你就点击这个start windows 你如果是Mac或者是LINUX的话 就点击这个 那么我现在点击这个start windows 点击一下它就会自动去访问这个页面 然后退出的话也是嗯多摁几下CTRLC就可以了 然后关掉页面就完事了 接下来就是比如说一些问题 一些可能常见的问题 比如说数据库的备份啊 数据库的迁移啊 比如你有多个电脑的时候 你怎么进行这个这个数据库的转移呢 你总不能每个电脑都是存一份新的吧 对不对 其实很简单 就在这个record的底下里面有个PRISMA 这个目录里面有个DEV点DB 你把它转移过去 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 578.21,
+      "subtitle_source": "ai",
+      "title": "力扣刷了就忘？我助你攻克遗忘曲线！",
+      "unit_id": "transcript_chunk:bilibili:BV1CbktBxErc:p1:chunk_3fd81006b95ef663688c87f2b066f36d",
+      "unit_type": "transcript_chunk",
+      "uploader": "西瓜咕咕呱",
+      "video_id": 128
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.43249112367630005,
+      "end_time": 272.44,
+      "excerpt": "找到permission request回车记录 就能看到我们刚才配置的hooks 我们现在来测试一下 随便叫他写点东西 过一会需要权限的时候 果然弹出了弹窗 让我们选择 我们直接在弹窗上选择可以同步到cloud code 这样就可以在需要权限时 通知我们进行快捷操作 而不是像机器一样傻傻的卡着浪费时间 当然这只是一个例子 通过不同搭配还可以实现自动跑测试脚本 拦截危险操作 自动审核工具权限升级 搭建一套完整的自动化工作流 关注我学习更多AI使用技巧",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 232.78,
+      "subtitle_source": "ai",
+      "title": "Hooks入门只需5分钟",
+      "unit_id": "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7c098dab80ca2f7eb3a380af269bb423",
+      "unit_type": "transcript_chunk",
+      "uploader": "Yin_Code",
+      "video_id": 74
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.43010014295578003,
+      "end_time": 300.26,
+      "excerpt": "这里应该是有一个调试方法的 它这个调试方法我看写在哪 应该是写在这个里面 然后对应到这里面了 我们来it it for death No moment death 还有不少类似于jump啊 jump for之类的是没有做那个自动的 但是我觉得不重要 可以看到所有动画都已经自动创建好了 这个过程中我一直都挂机 在这个页面没有手动点过一下 但是呢这个也是有一些问题的 那是什么呢 我们自动化的前提 一定是要有一个标准化的一个素材 就是我们的素材要命名清晰 而且有意义 每一个帧动作要统一一致 而且要尽量的去按动作去分文件 如果我们的这个是没有办法统一的话 那AI",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 232.81,
+      "subtitle_source": "ai",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_9b7a7f4c5fefc119af1bda226852e661",
+      "unit_type": "transcript_chunk",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.42864930629730225,
+      "end_time": 469.5,
+      "excerpt": "他的一个相当于只是是指的skill 它这个是干什么呢 就是说因为所有的MD文档 就是我们最终的一个核心 所以当你修改了一个MD的时候 他你在跑这个脚本 它也能够及时的把这个MD文件去进行一个处理 处理了 完完了以后切成多一个小块 然后有一个索引 让这个AI能够根据这个索引动态的去找到 他当前步骤要的一个内容 所以就是同步文档 这是最重要的 你可以去改文档 然后它每一次执行的时候都可以生效 具体的定义其实就写在skilled的spec sync的skill m d下 第二呢就是prograss truck 那当他完成了文档的设计以后 他要判断当前 文档当前",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 349.93,
+      "subtitle_source": "ai",
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.42133522033691406,
+      "end_time": 1164.029,
+      "excerpt": "其实是否可行 无非就是看你的这个方案 他能否完全的cover所有的需求 以及把问题解决的怎么样对吧 所以显而易见 第一个import一个包的方法 它不太好解决这个跨语言的问题 另外如果有的企业它不想提供源码的话 也比较麻烦 那我们可以再想一下 就是刚才遇到的这两个子问题 它都是绝对客观无解 没有办法去解决的一些问题吗 其实不是这样的 因为你拉了代码 首先说这个跨语言的问题吧 你拉的代码到本地 虽然你没有办法去本地调用 但是正常来说你的电脑或者说一个服务器 它是否一般都会存在多语言的执行环境 所以能不能用另外一种方式 就是我本地另起一个进程 去执行对应语言",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 1044.969,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_b175a63d5254e3af27d95fb0bb46fe2a",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.4212895631790161,
+      "end_time": 3606.88,
+      "excerpt": "再比如这个人cos用oppo code cloud也无所谓的 但是你这套DOS这套standards和features和这个呃 大家统一的就可以了啊 要统一可了 然后有这个有按照这些模式做一个下限 只能做这种下限的管理 我后来我就今天晚上这个大家老老师 我我还打打扰一下 我还有个问题啊 就是说其实刚才你爷说的 就是说那过程中的文档 比如说你的plan 还有那个你前面那个是丢弃 我们现在也是计划丢弃 但丢弃完之后合入对吧 合入到那个你那个整体的一个文档里面去对吧 合入这块东西 你那你们那边操作是有没什么问题 我们现在用AI合的时候 其实也没有一个 现在我们",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 3488.689,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.42084354162216187,
+      "end_time": 1280.71,
+      "excerpt": "通过进城建方式 通信的方式去做本地服务式的介入 那么思路二其实就很简单了 其实就是工具远程部署封装成标准化API 约定好这些请求响应格式去调用就OK 这个的话其实就是比较常见的远程服务式接入 所以现在从问题出发 我们得到了两个思路 那么接下来在直接从问题的另一端出发 也就是目标出发 我们可以想一下 就是对一个开发者来说 接入工具 复用工具最最最理想的方式是什么 或者说从理论上来说 摆脱了所有技术限制之后 你唯一必不可少 还剩下要做的那些事情到底是什么 这个事情确定下来之后 其他的那些冗余的东西都是可以做优化的地方 所以其实对开发者来说 接工具最好的方法就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 1162.689,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_7a109dfe2826d93d949f8035efb06c5e",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.42016828060150146,
+      "end_time": 232.01,
+      "excerpt": "对其实这个的好处就是你不需要再从头手搓 首先从头手搓是需要浪费token的 现在token都很贵对吧 然后第二个是需要时间 虽然就是我们web coding是很有成就感的 你可以把一些功能做的非常匹配你的需求 但其中还是有很多bug 就是其实感觉还是应该专业的人 干专业的事对吧 既然别人已经都验证过的东西 我们就不用不用重复造轮子 但如果他实在是满足不了你的需求 这个时候你再让AI在原来人家已经有的基础上 我们站在巨人的肩膀上 我们继续改进嘛对吧 这个也是没问题的 所以啊我觉得这个也是一个呃 工作方式和习惯的改变哈 以因为以前大家刚开始会web codi",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 113.84,
+      "subtitle_source": "ai",
+      "title": "手搓AI应用前先去Github上找找",
+      "unit_id": "transcript_chunk:bilibili:BV1kLT46aEKp:p1:chunk_40bebaeb600df629ff7c5b4c3ab4cdcf",
+      "unit_type": "transcript_chunk",
+      "uploader": "晓辉博士",
+      "video_id": 9
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.4138484299182892,
+      "end_time": 2424.3,
+      "excerpt": "一种进程间通信的机制 它就是能够让一个进程的输出 直接作为另外一个进程的输入去传递给它 所以总结下来 s studio传输指的就是说 通过标准输入和标准输出来传递数据 这两个只是接口 它们中间通过管道来进行连接 这样的话 一个进程的标准输出 就可以直接传给另外一个进程的 标准输入的接口 这样就实现了进程间的通信 实际上其实就是一个全双工的一个通信通道 但这样讲可能还不是很直观 我们还是来举一个例子 比如说这个很经典的PSAUX 这个命令在没有用管道的时候 默认这个PS的标准输入接收的是键盘的输入 它的输出会到屏幕上 但是假设我们在这里用了一个管道 它就会",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 2307.95,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_dc48a679f3ba5f3f99fea17d2b5ef080",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.41176706552505493,
+      "end_time": 814.92,
+      "excerpt": "而且我还可以协助AI进行修复 而MCP对人类来说更像是一个黑盒 整个运行过程都是在agent的内部的 如果运行出错 很难在本地复现问题 调试的难度大大增加 第三点是CLI天生支持管道服操作 可以将多个命令组装成流水线 轻松实现复杂任务 这种组合能力是MCP不具备的 我们来看一个例子 我们先使用GITHUBCLI获取open cloud艺术列表 这个竖线是管道符 意思是把上个命令的输出结果作为下个命令的输入 可以像拼接管道一样把命令组合起来 形成一条流水线 通过管道符 我们可以先把数据转换成一个power shell对象 在每条数据里面筛选出包含bug这个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 695.8,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_b054f1bd553c27a5e404f8c761765571",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.41009873151779175,
+      "end_time": 350.74,
+      "excerpt": "这就是留初级优化集 用来让系统提出改动流 初级只负责检查这个改动 在没见过的样例上还能不能成立 六部里另一个容易忽略的是第六部 人工审核流 初级能告诉你改动有没有通过更多样例 但他不一定能告诉你改动适不适合上线 有些指令虽然能涨分 但写的过度 具体只服务某个样例 放到生产里会浪费上下文窗口 人工审核就是检查分数上涨之后 产品体验有没有真的变好 流出及防作弊 人工审核防上线翻车 两道关卡各管一件事 流程讲完了 回到一个更根本的问题 这套流程能跑起来 全靠evil提供方向 evil在这里的角色 跟机器学习里的训练数据很像 训练数据里的每个样例会给模型一个梯度",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 231.77,
+      "subtitle_source": "ai",
+      "title": "LangChain:基于评测的Harness优化方法 自动优化真正难的，是设计评价信号",
+      "unit_id": "transcript_chunk:bilibili:BV1sudwBnEoP:p1:chunk_0a07ae5a3a6d6761ddac058c134d950a",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 55
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.4092438220977783,
+      "end_time": 817.13,
+      "excerpt": "一共有五个人点了四大呃 这个是上个月生成的 然后这些所有的内容都是用AI生成的 然后主要的方法就是采用了i flow呃 CLI用spark驱动的方式去做代码的生成 然后可以看到这样一个auto chapter bar的一个能力 大家可以去呃上传自己的一个字幕文件 然后去做那个chapter bar的生成 最终生成一个类似于这样子的小视频 这个大家自己去体验就好了 然后除了这个 就是昨天我又基于spike驱动的原则 去开发了一款工具 就是做英语学习的 就比如说我经常会问AI说 诶这个东西用英语怎么说 这个用于这个东西用英语怎么说 然后呃但是每次说完之后我就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 697.96,
+      "subtitle_source": "ai",
+      "title": "CodeAgent 使用方法从拉到夯，你用对了吗？使用 SPEC 驱动方式 + iFlow Cli 开发两个复杂的个人小产品 vmarker 和英语学习 APP",
+      "unit_id": "transcript_chunk:bilibili:BV13pqGB2E2G:p1:chunk_32622c932652433c6f3b7a4d878898be",
+      "unit_type": "transcript_chunk",
+      "uploader": "袁朝发",
+      "video_id": 22
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.4092138409614563,
+      "end_time": 2084.64,
+      "excerpt": "就是自动化的agent会在你的电脑上进行交流 而且呢他们会给你说 他们已经到了第1万个版本 但是呢其实没有人告告诉你 这个代码是正确还是错误 它只是在一个自己的方式进行进化 然后呢这个项目是什么呢 这个项目就是未来这个科幻般的时代 的一个开始 这个项目就是未来科研去不断的呃 大模型或者agent不断的去去自我净化 自不断的去做科研 而且而摒弃了人类用声波进行交流的一个时代 的一个最初始的项目就是auto research 我觉得这是一个非常伟大的一个工作 而且呢这个工作甚至可以去拓展到 多个神经体协同 甚至多个人进行协同 现在相当于有一个统一的hub一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 1965.88,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_6c3fab36a44a4e54c4156908873f3f3f",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.407673716545105,
+      "end_time": 2789.38,
+      "excerpt": "比如SWEBENCH还是有环境的反馈的 top bench也是有的 然后呃稍微带一点环境的反馈和交互 然后嗯让模型具备一点哎 遵循复杂system point和呃 和理解环境交互的这样一个能力 我觉得那会儿只能是做到这个水平 但是他根本没有达到工业级可用的能力 就你那最简单就是什么叫工业级可用 就是你把它接到啊啊啊呃 COCODE或open queror去用 你会发现它不可用 它有很多问题 对最简单他他就理解不了这个这套框架本身 然后他也呃呃呃也没有针对这套框架本身 人跟他的交互范式会发生变化 比如人跟他交互范范式发生最大变化 是人不再会去修改代码 人不",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 2671.82,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_bab76014c47725ca411dcc33cb2ecda4",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.40675708651542664,
+      "end_time": 1138.8,
+      "excerpt": "用记号指令 这里就是说你到底干了些什么东西 嗯你随便写一个 这里呢就可以看出来这是一个文件 添加了进去好 那么现在干什么该干什么呢 我们现在还没有远程仓库对吧 我这里呢以GITHUB为例哦 你gt e也行 怎么弄呢 点击个加号 点击新建 点击新建仓库就行 然后这个地方随便随随便选一个 然后可以选开源 可以选私有 开源的话 那就是大家都能看到 私有的话 就只有只有只有仓库成员 然后如果是我们的GITHUB一样的 点击这个new 然后还是一样的 随便输入 输入完之后 这个也是私有的 还是公有的好 我们这里就有 就以get1为例啊 然后呢我们现在先选自由吧 然",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 1019.88,
+      "subtitle_source": "ai",
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_0fa3bf423efc2bc23567927a61247557",
+      "unit_type": "transcript_chunk",
+      "uploader": "左-岚",
+      "video_id": 131
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.4057944416999817,
+      "end_time": 261.3,
+      "excerpt": "就是我们做这些所有的程序其实都是扩展程序 扩展程序呢 就我们只需要在我们的代码里边呢 去继承一个它的扩展插件的一个AAPI 然后底下呢我们根据它的这个扩展 不同的扩展点 比如说我们要注册comments词啊 还是我们需要去呃 监听一些生生命周期的一些呃事件点啊 然后我们去写我们自己的程序就可以了 那这样的扩展点呢 一个一个呢就成为了一个一个的小的一个 扩展功能 那这些扩展功能其实是可迁移 然后随时可配置的 我给大家举个例子啊 比如说刚才呢我们这个派呢 其实用的是贪吃蛇这个扩展点 然后呢我们在杠E的时候 后边我们就可以加上贪吃蛇这个插件 这样的话我们就有贪",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 169.64,
+      "subtitle_source": "ai",
+      "title": "认真做Agent 一定要看 PI",
+      "unit_id": "transcript_chunk:bilibili:BV1EbdbBHEPa:p1:chunk_029b6d03f74ee4733604f0f8d0f48984",
+      "unit_type": "transcript_chunk",
+      "uploader": "雷哥AI",
+      "video_id": 100
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.4046606123447418,
+      "end_time": 6976.63,
+      "excerpt": "可以并行的去探索 对做研究来说是有优势的 但是我并不认为他对嗯 我刚刚说的那种场景 发现发现一个可能是问题的问题 然后去深入排查原因 去解决它 我并不认为他对这种模型 训练进程中遇到的问题是是很大 团队是优势 反而很大 团队有可能是劣势 嗯嗯训这个模型过程中 你们团队状态是什么样的 团队状态是嗯原来做数据的那一 那做一训练数据的那一群人就去做后训练的嗯 然后嗯做infer 做训练框架 做推理 INFA人一块来去解决训练过程当中的问题 嗯那这是为什么 这是为什么为什么有这个变化 这是为什么预训练的人要去做后训练 很多样的原因哈 嗯首先后训练的一大部分的原因",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 6858.27,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_8b84d34786fc5c3a08b20fa29324e332",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.40451323986053467,
+      "end_time": 118.7,
+      "excerpt": "哈喽大家好 我是饼干 做上述分游戏啊 精灵动画是一定是绕不开的 一路在GODOT中通常有两种做法 一种是将SPRIT2D加载图集 然后切片通过enemy player中进行逐帧的控制 第二个呢就是使用enemy spit to d来驱动播放 创建thread frames的资源 不管哪一种方式 都需要大量的手动设置 导入一次还行 导入20次 那这种纯重复劳动 纯粹是在消耗我们的创作热情 那么如果说这整个过程都可以用AI自动完成的 今天我们来使用cloud code导入我们的精灵动画 我们可以看一下我们的演示素材 我们的演示素材是这一组 就是在网上之前很有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 0.0,
+      "subtitle_source": "ai",
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "unit_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87",
+      "unit_type": "transcript_chunk",
+      "uploader": "像素夹心饼干",
+      "video_id": 79
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.40336495637893677,
+      "end_time": 237.51,
+      "excerpt": "搭完不等于上限 上限不等于稳定运行 两天能做到文本提取嵌入基础检索跑通demo 但生产及还需要增量索引 故障恢复延迟SLA权限控制 可观测性 这些加在一起才是真正的工作量 这就引出了今天真正想讨论的核心问题 demo到production之间的鸿沟 这不是RAG特有的问题 是整个AI工程反复出现的模式 每个环节单独看都简单组合在一起 需要持续稳定运行的时候 复杂度是指数级增长的 demo的成功会创造虚假自信 让你低估生产化的工作量 demo的容易恰恰是最大的陷阱 cos的数据也说明了这一点 向量搜索比grab精度高 6.5到23.5个百分点看似不大 但a",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 119.62,
+      "subtitle_source": "ai",
+      "title": "Demo很爽，生产很难",
+      "unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_afce57337ccb785d9f7b47c9b1ce07c4",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.4030975103378296,
+      "end_time": 1860.83,
+      "excerpt": "而每次要挂载资料夹 它都需要人类的同意 所以你今天如果跟他讲 说去某个资料夹找某一个档案 他其实没有办法直接找的 他会先问你说那把这个资料夹挂载到口work上 你是否同意 那你点同意之后 他才能挂载 那我就觉得实在是非常烦 我就跟AIA卷跟小金说 你可不可以挂载前不要我同意啊 他说没问题 我以后都自动挂载 不再要求你的同意 但他每次挂载之前都还是会跳出一个视窗 说请问你是否要挂载这个资料夹 然后就问AI agent 说不是叫你说不要再问我了吗 他说可是没有办法 但是我背后的harness是要问的 也不是我要问的 所以你要了解那个问题 不是来自于语言模型本",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 1741.41,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_c2f0bce2cf647768a04ef0ad7202d868",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.40184393525123596,
+      "end_time": 2450.299,
+      "excerpt": "可能90%的扣的是模型产生的 但是可能就是我需要花很多时间去去看这个code 是不是写的合适 写的合理 是不是真的是我想让他写的 然后呃我觉得有了AI辅助工具之后 可能血扣的这个事儿 最重要的地方变成了你怎么去设计 你怎么去设计你这个扣子的逻辑 然后他需要和哪个哪一个呃文件相关联 然后需要做某哪些哪些事情 然后你需要给这个模型 可能给一些合理的context 比如说哎比如说这个code 你可以做一个reference去看一眼对呃 真正去输出扣的 我觉得模型比人的能力强太多了啊 所以说对我来说 你要实际去数有多少行 扣的是我自己手写的 有多少行 扣的是模型",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 2330.6,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_9053b6840b54dd5b32d74be945c93625",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.40157127380371094,
+      "end_time": 1010.94,
+      "excerpt": "而不是技能 是因为技能的标题和描述 总是会被半注入到上下文中 这并不理想 我只在我明确调用它的时候才想触发它 所以如果我们明确输入TX9 这是他被注入上下文的唯一时机 因为pi扩展的一个功能是 可以在执行过程中发送消息 这很棒 usage基本上也就是一个技能 但我不希望它被注入 除非我明确要求他会给模型一系列 关于如何计算我所有智能体使用量的指令派 Codex 我还想把get factory加进去 以及其他几个 但这只是我用来大致估算 最近使用量的一种方法 一是一个非常实用的功能 这就像是CEO之前想出的一个命令 他让他的cloud code写了一个it",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 899.54,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_5cd173c807b01b0daca1b9e4be505f74",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.4002690017223358,
+      "end_time": 812.349,
+      "excerpt": "它的输出质量相对来说还没有稳定到 有比如说有cloud code或者说open code这样的一个程度 它还是容易漂移 虽然说我们说这个派的宣传的理念是说是说 现在的这个AI模型的能力越来越强了 我们其实不需要那么多的题约束 去保证AI的质量 但是那些事情它并也并不是说完全没有价值 比如说我们现在的这个AI的模型 已经能够达到60分的能力 那那些东西 他可能说可以把这个模型的能力 提升到65分或者是70分 但是我认为他也没有把这模型能力能提升到 90分那么多 但是它确确实实有 给这个模型带来更稳定的一个输出质量 这个肯定还是有的 那派减轻了这个之后 就他",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 692.569,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_ff5c75df79558a393da2247cd7cb8248",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.39988651871681213,
+      "end_time": 3584.41,
+      "excerpt": "得到的正确率是最高的 可以完胜 当时其他号称可以直接听语音的模型哦 所以使用工具可能可以带来很大的帮助 但使用工具也有其他的挑战 什么样的挑战呢 我们刚才使用工具的方法是 每一个工具它都到要有对应的文字描述 告诉语 告诉语言模型说这个工具要怎么被使用 但假设工具很多怎么办呢 假设现在可以用的工具有上百个上千个 那你岂不是要先让语言模型读完上百个 上千个工具的使用说明书才开始做事吗 就跟刚才我们说不能够让AI agent先回顾他的一生 然后才来决定下一个指令一样 才能决定下一个行动一样 我们也没有办法让语言模型读完上百个 上千个工具的说明书 才来决定某一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 3466.08,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_fcd44784ccd67760b3f99608986414a8",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.3988369107246399,
+      "end_time": 350.45,
+      "excerpt": "我还大吃一惊 想说哎你你没有开工具 你怎么知道这个passer点PY的内容 你怎么知道有extract email这个函式 我发现说啊这边题目有讲了 题目有讲extract email的函式 所以他幻想了这个pass点PY 这个档案里面应该长什么样子 他就写了一个自己幻想的档案 然后呢 在幻想说自己verify了这一个幻想的档案 然后就说我做完了 当然这个不是我们人类要还可能想说哇 这个2B的模型果然是不行啊 做不了事情 但是你再仔细想一想 这不是一个愚笨的模型 他是个聪明的模型 他完全知道 pass点PY里面应该要有什么样的东西 他有能力写出一段正确的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 232.05,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_ba90a616b62bf3371419280951b93cc6",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.39871376752853394,
+      "end_time": 1007.4,
+      "excerpt": "如果你每天都需要某个工作流 那就把它做成模板 技能扩展或包 在你有七个可定制的层次 你可以通过调整settings点JASON来改变默认设置 但通过调整A键四点MD来修改项目规则 通过修改system点MD来替换A证的默认系统提示词 用提示模板来重复某个提示 但用技能来添加某项能力 用扩展来改变行为 最后你可以把做好的东西打包成一个包 分享出去 但我在视频里没怎么详细讲 settings点JASON 但如果你感兴趣 可以去文档的设置部分查看更多信息 但同样你也能在那里找到 如何构建自己的包的文档 但如果你想拿到我在视频中使用的这套幻灯片 用来做笔记或日后",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 927.03,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_41f3b58719724ad8ef4ecfd615297fef",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.39869773387908936,
+      "end_time": 205.9,
+      "excerpt": "可能我们会去呃复制页面上的一些信息的时候 是手动的去选区 或者说我们直接让这个呃A卷 让他去爬这个页面 但是这样子的话 其实它效率不是很高的 而且很多时候会拿到一些呃多余的上下文 那现在使用SELETER 比如我们使用SELETER 我想要拿这篇公众号的信息 我选中这个选区 然后按command加N复制 然后command加C复制出来的效果 然后呢我们回到这个codex里面来让我们粘贴啊 这时候非常干净的一份markdown就在这里了 这个功能呢非常适合我们去复制一些 比如说它页面里面默认没有提供这个 复制为markdown的 或者说一些啊第三方的一些文",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 109.76,
+      "subtitle_source": "ai",
+      "title": "如何更方便将任何页面内容转为 Markdown？",
+      "unit_id": "transcript_chunk:bilibili:BV1w9Nc69EiU:p1:chunk_9328c1a43ecdc82b25cd7e4174d4d3f7",
+      "unit_type": "transcript_chunk",
+      "uploader": "oil欧呦",
+      "video_id": 16
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.39861688017845154,
+      "end_time": 213.29,
+      "excerpt": "还是刚刚那个问题，如果你在cloud code里面问，那么工作流程大概是先用l寻找各种可能的文件命名，然后再进一步用grab搜索文件内容。 这个参索过程其实和人类工程师的做法是一样的，虽然看起来不太高效，但优点是在这个探索过程中，cloud也在了解项目，除了可以搞清楚一开始问的问题，还能顺带了解项目的架构、模块之间的依赖关系等等。 但代价就是这种做法对模型的要求比较高，无用的过程信息会记入上下文，对没那么聪明的模型来说是噪音会影响表现，更不用说这样的探索还会大量消耗token，不过这两点对于cloud来说都是可接受的，cloud模型本身足够聪明，不会被噪",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 94.67,
+      "subtitle_source": "asr",
+      "title": "Claude Code 为什么不用 RAG？",
+      "unit_id": "transcript_chunk:bilibili:BV18NLx6fEAq:p1:chunk_a6a706599aae4d0a05fcdb6122a7475d",
+      "unit_type": "transcript_chunk",
+      "uploader": "Hucci写代码",
+      "video_id": 65
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.39576953649520874,
+      "end_time": 900.44,
+      "excerpt": "但他们有网络搜索工具和抓取工具 抓取工具的作用就是接收你给他的任何网络URL 抓取它 并给你返回该网页的LOLM可读的markdown 所以这只是让我的模型 拥有良好的网络搜索工具 而无需所有操作都依赖curl flow title 只是为了获得那种好看的自定义派标题 OC是为了给他完整的上下文和指令 教他如何连接并配合我的open code实例工作 因为我所有的管理工作都通过智能体完成 因为那是最好的方式 我的Mac mini就在那 我通过tale scale SSH连接进去 我只是在告诉智能体该怎么做 所以如果我想把一个项目发过去 在后台运行 或者我",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 788.85,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_e8759aa50d1fe7373ae89d354a832e92",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.3953818380832672,
+      "end_time": 470.039,
+      "excerpt": "也就还是乱码 你就只能开新的对话 概率不算特别高吧 但我也确实遇到了 第二点 我觉得也比较严重的 就是这个质朴的模型一向很莽 就有的时候你跟他说的不是那么明确 他就会直接上手去操作 这个在4.7时期就这样 我当时问他说 哎你帮我排查一下 我怎么感觉卡卡的 他就直接开始给我删数据库 也不问这个数据它重不重要 这次的工作流也是就我们还在讨论阶段 他就已经开始去写入文件了 我觉得如果你要跟他去协作 还是要提前跟他说 哎我们先来讨论 你就不要直接动手操作啊 跟他说一些这样的提示词 然后是速度和可用性 就这个可用性啊 我这几天使用下来 其实至少遇到了有三次吧 就用",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 352.09,
+      "subtitle_source": "ai",
+      "title": "Claude用不了的时候，GLM-5.1能顶上吗？",
+      "unit_id": "transcript_chunk:bilibili:BV14pXZBMEh9:p1:chunk_f79e67d7d28999f0de0e18e8615ecd1e",
+      "unit_type": "transcript_chunk",
+      "uploader": "人工大黑",
+      "video_id": 105
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.3920239806175232,
+      "end_time": 2206.21,
+      "excerpt": "但他们发现说不给他这个工具还好 一给他这个工具反而更容易出错 因为对于模型来说 他只看到城市马的某一段到某一段 他根本不知道完整的城市马长什么样子 所以他甚至有可能会犯下这种给两个括号 因为前面这个括号是他自己打的 另外一个括号是本来城市里面有的 他根本不知道已经有一个右括号了 又自己多加一个右括号 所以导致syntax文语法的错误哦 所以如果给他这个edit的工具 你还要加上一个叫做linking的工具 那这个工具呢是检查语法有没有错误 所以每次模型修改完之后会检查语法有没有错 如果语法有错 就告诉他错在哪里 然后要求他重新写 那结果如何呢 那这边结果",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 2090.14,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_828b6f47cd8d757c94938333a87bd2d0",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.39111945033073425,
+      "end_time": 886.89,
+      "excerpt": "是一个notebook Python的notebook 然后google slides呢 它是用来做一些宏观的topic格和线索 去梳理一些更宏观的一些串串联 而谷歌浏览器就保持一个登录状态 因为到时候我们跨设备跨终端的时候 或者我们换了升级了我们我们的电脑 这里面还保留了大量的收藏和文件夹 还有一些插件 左til的话 我们用坚果云去做备份 那这样的话也可以跨设备跨文件呃 跨终端 然后换电脑的时候也可以无缝的去去备份哈 然后第二个就是UV哈 用get get it去管理仪器呃 康纳还是太重了哈 或者是管理的会太混乱了哈 我们用UV管理器哈 所有的项目都有",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 776.96,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_24fbe562c833ff1abd47caaa314def2c",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.3909803628921509,
+      "end_time": 612.54,
+      "excerpt": "包括一些传统行业 传统行业的AI替代非常难 就是我自己创业的基础感的话 你说你品控你怎么替代吗对吧 QC你替代不了嘛 那么你能替代什么 就是帮你做做图对 不要你做做设计 但是你最后落实到生产 你还是要人去参与对吧 虽然工厂的自动化替代率很高 但事实上就是我们还是要有人去负责的呃 能给大家一些建议和想法 就是这么多了",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 583.13,
+      "subtitle_source": "ai",
+      "title": "我这半年agent落地和未来工作的考虑",
+      "unit_id": "transcript_chunk:bilibili:BV19EJJ68EoJ:p1:chunk_b54ccee31182644038df9bcd9c698158",
+      "unit_type": "transcript_chunk",
+      "uploader": "极触感卡套",
+      "video_id": 25
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.390616238117218,
+      "end_time": 1399.84,
+      "excerpt": "就3月3月十多号的版本已经非常易用 就你基本上啊啊呃基于3年级后的版本 截一个啊还不错的模型 你都会觉得他很强大嗯而不是只有JK的模型 你会觉得他很强大 就是因为他整个A证的架构哦 受受一堆人开发者也好 嗯或者说本身像像我这种哦 并不是属于是啊 呃一开始这个框架的开发者只是使用者 我都能去改进它 我服我自己的场景去做改进和优化 所以诶我觉得这这是这个呃 或或者说这是开源A这种框架 本身的价值和意义对嗯在你高强度的那一周 就是跟open cloud交互的那一周 你消耗了多少美金的opus4.6嗯 第一天反正就是快1000块钱1000刀哦 对因为大概用了四五",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 1280.3,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_e1289914a9ac92b22983df7e19582eb8",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.3897970914840698,
+      "end_time": 104.12,
+      "excerpt": "Cursor和clocode都是很流行的coding agent，但他们对于找出任务所需要的代码这个问题思路完全不一样，cursor会使用一种很现代高效的检索方式Raack，而clocode只使用原始的share命令。 我们知道模型的上下文窗口是有限的，而一个项目的代码量却是巨大的。 所以每次任务我们只能检索需要的代码放进上下文里，而cloud code和cursor却选择了两种截然不同的检索方式到视频。 最后你会发现这不仅是技术路线的不同，更是认知上的区别，如果你需要在这两个工具之间做选择，你应该要了解这个差异，先从一个简单的例子开始，比如你要问个问题",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 0.04,
+      "subtitle_source": "asr",
+      "title": "Claude Code 为什么不用 RAG？",
+      "unit_id": "transcript_chunk:bilibili:BV18NLx6fEAq:p1:chunk_97613c7607f7518ba753dcba90b6d263",
+      "unit_type": "transcript_chunk",
+      "uploader": "Hucci写代码",
+      "video_id": 65
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.38931983709335327,
+      "end_time": 118.36,
+      "excerpt": "CLI这个计算机世界里面最古老的交互方式正在迎来一次新的爆发 飞书钉钉起微 谷歌stripe在最近两周内都不约而同地开源了自己的CLI产品 越来越多的软件开始转向CLI化 CLI全称是command line interface 其实就是命令行界面 CLI跟我们平时熟悉的图形界面 GUOI代表了两种不同的交互逻辑 如果我想把这个视频的前五秒切分出来 使用GUI的方式是先导入剪辑软件 找到对应的时间点切分 最后再把视频导出出来 使用CLA的方式则是打开命令行窗口 执行这一个命令就搞定了 GOI专门为人类设计 因为人类不擅长记忆命令 而更擅长使用图形工具 而",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+      "unit_id": "transcript_chunk:bilibili:BV1G29EBGE8b:p1:chunk_da39154f9ba5dd5fefd3d98f2278378f",
+      "unit_type": "transcript_chunk",
+      "uploader": "技术爬爬虾",
+      "video_id": 78
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.38756808638572693,
+      "end_time": 469.09,
+      "excerpt": "甚至说你评估了之后 觉得不应该引入那些花里胡哨的技术 要远远强于你 不知道为啥要用 但是感觉不用这个技术体现不出来 技术深度要强得多 对于这样的同学呢 我也知道你是踏踏实实做的 而且做明白了 这些东西要比那些网上抄来的 或者死记硬背的项目要强很多 呃再提醒一个点啊 就是有的同学已经有别的公司的实习经验了 但是简历上还是把自己练手的项目大出特出 把实习经历一笔带过 我在这里告诉大家啊 在面试官看来 你们在其他公司的实习经历 要比你自己的练手项目要重要得多 因为这个代表你真的在做落地的事情 而不是简单的练手 当然也有同学说啊 说我在实习期间做的都是打杂的事情",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 349.65,
+      "subtitle_source": "ai",
+      "title": "面试了上百个在校同学，我觉得有必要告诉大家，这样准备简历，你的通过率会高很多……",
+      "unit_id": "transcript_chunk:bilibili:BV1oyJP64Eoc:p1:chunk_994761089b5de0cc61d4d9ca5a58056a",
+      "unit_type": "transcript_chunk",
+      "uploader": "人拽话又多",
+      "video_id": 18
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.3874639570713043,
+      "end_time": 1393.409,
+      "excerpt": "具体的问题转换成非常具体的一些技术的需求 那其实有了技术需求之后 一切就变得简单了对吧 就你只需要去写一个技术方案 然后去做相应的开发 那这个事情其实大家谁都可以做对吧 所以我们一起来看一下技术需求是什么东西 首先我们要确定一个大的问题 就是我们刚才是提供了两个技术方案 的实现思路 那这个是都做吗 还是二选一 其实一般在开发中遇到这种场景 都是择优选择一个方案对吧 但我们现在必须要考虑一个问题 就是这两种方案 它是实现的是完全相同的东西吗 有一个问题就是说 如果你想要调用你电脑的一些本地服务 比如说你本地操作系统的一些接口 那么你去调用一个远程的一个AP",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 1275.72,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_662d82787fe0c82dab9c9f1996521fe2",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.3873673975467682,
+      "end_time": 812.43,
+      "excerpt": "然后它里面会分不同的编程语言呢 帮我们写好了它不同的规则 然后当我们需要用到 比如说需要用到go类啊或者java的时候 我们就可以去到这里的规则里面 然后让我们的cloud口去参考这些MD文档 然后去符合这个规则去写出我们的代码 OK那我们最后看一下这一个hook指令 能说hook就是一个触发器 我们确定好规则 然后当coud co每次做成某件事的之前或之后呢 自动去执行一个操作 然后这一个仓库里呢他定义了20多个户口 然后大家都可以去看一看 比如说我们可以看到这个pre compact at 就是说在再去compact at之前呢 然后去执行一些什么命",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 693.38,
+      "subtitle_source": "ai",
+      "title": "五分钟带你看懂黑客松冠军的 Claude Code 配置",
+      "unit_id": "transcript_chunk:bilibili:BV1XrEZ6NEuD:p1:chunk_21a0ee4eec41ba99914a55c847971c70",
+      "unit_type": "transcript_chunk",
+      "uploader": "奇思妙想CYC",
+      "video_id": 45
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.3873402774333954,
+      "end_time": 582.78,
+      "excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 464.17,
+      "subtitle_source": "ai",
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+      "unit_type": "transcript_chunk",
+      "uploader": "老山贼",
+      "video_id": 56
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.3872658610343933,
+      "end_time": 3835.689,
+      "excerpt": "它本质上就是个吸引子 他有这个实施方案 然后就是会吸引吸引那个AI 在下次那个设计的时候 去跟线的代码方案是一致的 不然的话他就会一直搜索 一直搜索 一直搜索 他就会他就天天他大部分时间就花在 不肯花在搜索代码上去了啊 理解理解 那你们现在做的时候就是会约束AI 就是先走那个事实文档里面的这个信息 而不是先搜索代码 对啊他也会搜索代码 它是它不会全局的倒出去搜索代码 它会效率会高很多很多 那绝对是因为我们现在实际的时候 其实很多时候就像你提到的这个打样工程 其实用一个打样的这样的一个代码 其实它AI的话 我们很多时候他是这么跑的 不会跑跑到那个文档里面去",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 3720.4,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_fa55a14578b055123f6412deb9f1662b",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.38698697090148926,
+      "end_time": 112.57,
+      "excerpt": "Hello 大家好 在之前的视频呢我给大家分享过 我之前开发的一个工具叫做SELETER 这个工具的安装很简单 就是我们到这个页面里 把这个select拖拽到我们的书签栏 然后此时我们到任何一个页面去 我们点击SELETER 这时候我们就可以选择页面上的元素 比如说选择这里 然后按command加C 然后我到这个codex里面来 我粘贴 此时啊 我们就可以把它这个页面元素位置 复制为一个提示词 这个提示词呢可以帮助NAH 快速的定位到这个元素位置 帮助我们去修改页面上的元素 好最近两天我给他优化了一些小功能 提升了它的这个交互体验 首先就是我们选中这个负",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "如何更方便将任何页面内容转为 Markdown？",
+      "unit_id": "transcript_chunk:bilibili:BV1w9Nc69EiU:p1:chunk_ad56d324bfae6fc688537833ff0ba7f8",
+      "unit_type": "transcript_chunk",
+      "uploader": "oil欧呦",
+      "video_id": 16
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.3865610659122467,
+      "end_time": 208.76,
+      "excerpt": "读office的语音声图 做视频 每一步我们现场都去跑一遍 第三部分呢 最后我会让去做一个完整的大的案例调研 并且去自动生成一个很酷的视频 然后呢再顺便提一句 光看这个视频 我觉得最好的学习方法是你打开你的电脑 一边看我的视频 一边自己去动手 视频呢可能有点长 大家可以先点赞收藏 然后慢慢看 我们现在正式开始 我们先来说一个很重要的区分啊 就是像cloud code codex open code呢 这些都是代码智能体这个agent的主要的目的啊 就是去写代码 产出就是代码 你让他去写一个功能 它交付给你的 就是整个项目里面的这个一个个文件 比如说我拿c",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 102.02,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_db93b176127af7cfe20d2aefe23e7985",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.3864066004753113,
+      "end_time": 3023.75,
+      "excerpt": "他就比如说我的这个数据字典 他是怎么做的 然后那个BS自入是怎么做的 他就不用去它这个东西可以放到memory里面 它就会变上下文那部分 不会去 每次去去扫代码 每一句扫代码 然后我知道我说这个东西 怎么从代码文档里提出来 大家有没有好的方式呢 这个没什么好的方式 这这这这一句话AI就行了 他这个你需要什么高级的东西 就是就是扫一下以前的代码文档 让他重新总结一遍 是的哦对啊 这个没什么这个甚至Scout不需要这玩意 也不需要 就是晚上就是就是就是让他去取summary 就反推一下就好了 反推一下是吧 这没啥高级的 这个因为是是 但是如果是你们因为一些业",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 2904.52,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_05b99c797da8bf2a665280b87f0f7ef5",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.38579997420310974,
+      "end_time": 929.64,
+      "excerpt": "然后后来就在国内的话 我就找了一下质朴也是可以的 质朴的一个模型也是可以做这个事的 然后还有一个就是computer use 这个是它把整个电脑的 就是把你的整个屏幕啊 怎么我就击打的好了好听 打这个还是这个比较好吧 大家静音一下吧 我来静音了 然后这个computer use子也是你 大家可以搜一下这个computer use 它就是把这个屏幕啊去截图 然后去AI去识别这个里面的元素 然后去按照坐标去点 但这个我暂时用不到呃 按照某种程度上其实是可以去用的 如果后面 但是我没有去很研究到computer的u er这个程度 我去研研究到computer ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 810.52,
+      "subtitle_source": "ai",
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_0c27edff83c389a221716d136c871e6e",
+      "unit_type": "transcript_chunk",
+      "uploader": "少个分号",
+      "video_id": 12
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "video:bilibili:BV1kqAUzAEho:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1kqAUzAEho",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/ef070459b1221c2a345eeaada8acfcefb007d832.jpg",
+      "detail_url": "/videos/79/transcript",
+      "duration": 302.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "[Title] 一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！ [Uploader] 像素夹心饼干 [Description] 大家好，我是饼干 🍪。 做像素风游戏，精灵动画的导入是一个极其枯燥的环节。一个角色可能有 10-20 个动画序列，传统流程需要逐个手动配置 SpriteFrames，重复劳动让人崩溃。 这一期，我用 Claude Code 实现了动画资源的自动化导入。只要素材命名规范、规格标准化，AI 就能帮你一键完成从切片到 SpriteFrames 配置的全过程。 核心思路只有一个：用 AI 解放游戏开发中每一个重复的卡点。 🔑 ",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "一个角色20个动画，手动导入到崩溃？AI 一句话全搞定！",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "像素夹心饼干",
+      "video_id": 79,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1kqAUzAEho",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_9b7a7f4c5fefc119af1bda226852e661",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 258.99,
+            "source": "ai_summary",
+            "start_time": 115.34,
+            "summary": "展示 Claude Code 的规划、多种实现方案及最终生成的脚本效果，所有动画自动创建完成。",
+            "title": "AI 处理过程与结果"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_9b7a7f4c5fefc119af1bda226852e661"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            8
+          ],
+          "duration": 67.44999999999999,
+          "excerpt": "这里应该是有一个调试方法的 它这个调试方法我看写在哪 应该是写在这个里面 然后对应到这里面了 我们来it it for death No moment death 还有不少类似于jump啊 jump for之类的是没有做那个自动的 但是我觉得不重要 可以看到所有动画都已经自动创建好了 这个过程中我一直都挂机 在这个页面没有手动点过一下 但是呢这个也是有一些问题的 那是什么呢 我们自动化的前提 一定是要有一个标准化的一个素材 就是我们的素材要命名清晰 而且有意义 每一个帧动作要统一一致 而且要尽量的去按动作去分文件 如果我们的这个是没有办法统一的话 那AI",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 232.81,
+          "jump_url": "https://www.bilibili.com/video/BV1kqAUzAEho?t=232",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 300.26,
+          "window_start": 232.81
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87",
+          "best_rank": 23,
+          "best_score": 0.012048192771084338,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 29.83,
+            "source": "ai_summary",
+            "start_time": 0.0,
+            "summary": "介绍 Godot 中手动导入精灵动画的两种方法，强调重复劳动带来的低效和枯燥。",
+            "title": "精灵动画导入的两种传统方式"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kqAUzAEho:p1:chunk_4133554bcbfe619ccf06a2e3d19ebb87"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            23
+          ],
+          "duration": 118.7,
+          "excerpt": "哈喽大家好 我是饼干 做上述分游戏啊 精灵动画是一定是绕不开的 一路在GODOT中通常有两种做法 一种是将SPRIT2D加载图集 然后切片通过enemy player中进行逐帧的控制 第二个呢就是使用enemy spit to d来驱动播放 创建thread frames的资源 不管哪一种方式 都需要大量的手动设置 导入一次还行 导入20次 那这种纯重复劳动 纯粹是在消耗我们的创作热情 那么如果说这整个过程都可以用AI自动完成的 今天我们来使用cloud code导入我们的精灵动画 我们可以看一下我们的演示素材 我们的演示素材是这一组 就是在网上之前很有",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.0,
+          "jump_url": "https://www.bilibili.com/video/BV1kqAUzAEho?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 118.7,
+          "window_start": 0.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 2,
+      "best_score": 0.016129032258064516,
+      "best_unit_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_68c8d21138508277a4937932ea03e3fa",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1G8CFYvEjt",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/82d30faf80db0f2c8ee2fc689684c945483e136d.jpg",
+      "detail_url": "/videos/131/transcript",
+      "duration": 1929.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "我们就可以安装一下我们的这个软件 我们这里呢点击一下跳过 因为我们不需要配那个东西 这个地方呢他已经检测到我们安装了git了 这两个其实都是一个 就是都是一个那种日志管理的软件嘛 但是这个可这这两个只需要装一个就好了 我们这里就已经选择了git 这个不需要勾选下一步这名字呢 它你看这个地方呢 它就会自动读取一下我们的 如果你刚刚没有没有配置git的话呢 那么你可以在这里也就是写一下 点击下一步 点击否 因为我们刚刚已经创建了 好那这里呢我们点击一下 就是我们已经进入了这个界面了对吧 选择我们的工具 这导入SSH密钥怎么导入呢 点就点这个load 就找到刚",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "【大学生扫盲课】1 Git、GitHub 和 Gitee 完整讲解：从基础到进阶功能",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "左-岚",
+      "video_id": 131,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1G8CFYvEjt",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_68c8d21138508277a4937932ea03e3fa",
+          "best_rank": 2,
+          "best_score": 0.016129032258064516,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_68c8d21138508277a4937932ea03e3fa"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            2
+          ],
+          "duration": 117.62,
+          "excerpt": "我们就可以安装一下我们的这个软件 我们这里呢点击一下跳过 因为我们不需要配那个东西 这个地方呢他已经检测到我们安装了git了 这两个其实都是一个 就是都是一个那种日志管理的软件嘛 但是这个可这这两个只需要装一个就好了 我们这里就已经选择了git 这个不需要勾选下一步这名字呢 它你看这个地方呢 它就会自动读取一下我们的 如果你刚刚没有没有配置git的话呢 那么你可以在这里也就是写一下 点击下一步 点击否 因为我们刚刚已经创建了 好那这里呢我们点击一下 就是我们已经进入了这个界面了对吧 选择我们的工具 这导入SSH密钥怎么导入呢 点就点这个load 就找到刚",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 789.5,
+          "jump_url": "https://www.bilibili.com/video/BV1G8CFYvEjt?t=789",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 907.12,
+          "window_start": 789.5
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_0fa3bf423efc2bc23567927a61247557",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1G8CFYvEjt:p1:chunk_0fa3bf423efc2bc23567927a61247557"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            20
+          ],
+          "duration": 118.91999999999996,
+          "excerpt": "用记号指令 这里就是说你到底干了些什么东西 嗯你随便写一个 这里呢就可以看出来这是一个文件 添加了进去好 那么现在干什么该干什么呢 我们现在还没有远程仓库对吧 我这里呢以GITHUB为例哦 你gt e也行 怎么弄呢 点击个加号 点击新建 点击新建仓库就行 然后这个地方随便随随便选一个 然后可以选开源 可以选私有 开源的话 那就是大家都能看到 私有的话 就只有只有只有仓库成员 然后如果是我们的GITHUB一样的 点击这个new 然后还是一样的 随便输入 输入完之后 这个也是私有的 还是公有的好 我们这里就有 就以get1为例啊 然后呢我们现在先选自由吧 然",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1019.88,
+          "jump_url": "https://www.bilibili.com/video/BV1G8CFYvEjt?t=1019",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1138.8,
+          "window_start": 1019.88
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1qTYizcEN3",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/3591942da5180f6e019a8b15138f8965444a3197.jpg",
+      "detail_url": "/videos/83/transcript",
+      "duration": 3435.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "现在你想给你开发的另外一个AI应用 去接入这个工具 或者说别人开发了一个类似的方法 你想接入进来 你要做的一件事情就是去copy代码 你要完整的copy这个方法 并且copy这个方法所对应的这个函数描述 你想要接几个方法 你就要copy几次 这个还是比较繁琐的一个事情 另外繁琐本身并不是一个致命的问题 致命的问题就是你有的时候你根本就用不了 这个就是工具复用困难的问题 因为你比如说你想介入别人的方法 但很有可能因为环境问题 或者各种依赖问题等等 你copy的代码它不一定能跑 还有就是很多企业或者说公司内部的团队 他愿意去对外提供自己的一些能力 但是他并不",
+      "matched_unit_count": 5,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 5,
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1qTYizcEN3",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_da78bc0395d79dba547460e98459fd56",
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_b175a63d5254e3af27d95fb0bb46fe2a",
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_7a109dfe2826d93d949f8035efb06c5e",
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_662d82787fe0c82dab9c9f1996521fe2"
+          ],
+          "component_hit_count": 4,
+          "component_raw_ranks": [
+            3,
+            10,
+            12,
+            43
+          ],
+          "duration": 466.0690000000001,
+          "excerpt": "现在你想给你开发的另外一个AI应用 去接入这个工具 或者说别人开发了一个类似的方法 你想接入进来 你要做的一件事情就是去copy代码 你要完整的copy这个方法 并且copy这个方法所对应的这个函数描述 你想要接几个方法 你就要copy几次 这个还是比较繁琐的一个事情 另外繁琐本身并不是一个致命的问题 致命的问题就是你有的时候你根本就用不了 这个就是工具复用困难的问题 因为你比如说你想介入别人的方法 但很有可能因为环境问题 或者各种依赖问题等等 你copy的代码它不一定能跑 还有就是很多企业或者说公司内部的团队 他愿意去对外提供自己的一些能力 但是他并不",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 927.34,
+          "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=927",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1393.409,
+          "window_start": 927.34
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_dc48a679f3ba5f3f99fea17d2b5ef080",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_dc48a679f3ba5f3f99fea17d2b5ef080"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            14
+          ],
+          "duration": 116.35000000000036,
+          "excerpt": "一种进程间通信的机制 它就是能够让一个进程的输出 直接作为另外一个进程的输入去传递给它 所以总结下来 s studio传输指的就是说 通过标准输入和标准输出来传递数据 这两个只是接口 它们中间通过管道来进行连接 这样的话 一个进程的标准输出 就可以直接传给另外一个进程的 标准输入的接口 这样就实现了进程间的通信 实际上其实就是一个全双工的一个通信通道 但这样讲可能还不是很直观 我们还是来举一个例子 比如说这个很经典的PSAUX 这个命令在没有用管道的时候 默认这个PS的标准输入接收的是键盘的输入 它的输出会到屏幕上 但是假设我们在这里用了一个管道 它就会",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2307.95,
+          "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=2307",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2424.3,
+          "window_start": 2307.95
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 4,
+      "best_score": 0.015625,
+      "best_unit_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_4d6fd0c240398fe92610eb56fc858956",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1gPGE6iELk",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c61f55a4ed65d11e87074c2f72667fd7b69ea1fe.jpg",
+      "detail_url": "/videos/56/transcript",
+      "duration": 824.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "比如说做好备份 做好这个版本管理 或者说去装更全面的一些生态的插件 才能够去更好的去产出 今天的分享就到这里啊 谢谢大家",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "Pi Agent Coding 到底有什么魔力让我忍不住想要用他",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "老山贼",
+      "video_id": 56,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1gPGE6iELk",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_4d6fd0c240398fe92610eb56fc858956",
+          "best_rank": 4,
+          "best_score": 0.015625,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 824.0,
+            "source": "ai_summary",
+            "start_time": 672.11,
+            "summary": "指出Pi在简单配置下输出稳定性不足的问题，建议生产环境做好备份、版本管理或安装更全面的插件。",
+            "title": "Pi的不足与使用建议"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_4d6fd0c240398fe92610eb56fc858956",
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_ff5c75df79558a393da2247cd7cb8248"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            4,
+            28
+          ],
+          "duration": 131.211,
+          "excerpt": "比如说做好备份 做好这个版本管理 或者说去装更全面的一些生态的插件 才能够去更好的去产出 今天的分享就到这里啊 谢谢大家",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 810.84,
+          "jump_url": "https://www.bilibili.com/video/BV1gPGE6iELk?t=810",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 823.78,
+          "window_start": 692.569
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39",
+          "best_rank": 45,
+          "best_score": 0.009523809523809525,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 489.91,
+            "source": "ai_summary",
+            "start_time": 279.88,
+            "summary": "说明Pi结合Warp终端的优势，以及通过扩展和自定义脚本实现高度贴合个人工作流的能力。",
+            "title": "转向Pi的原因：结合Warp与可定制性"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gPGE6iELk:p1:chunk_9613b0f02b41c2ba8826856313b49d39"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            45
+          ],
+          "duration": 118.60999999999996,
+          "excerpt": "开启一个后端的后台的任务 去跑这个派 进行一个任务 把任务的结果返回回来好 包括我写了git的一些指令也可以拉取 然后提交 你写了这个日志的一些工具 是可以快捷的去写日志 个就像我的这个日志 其实用指令去写的 对于我这种比较懒的人还是比较友好 派他个主要的一个理念 我们可以去搭建自己的工作流 他自己的官网上面也写了别的AI工具 其实是我们去适应它的工作流 去适应 比如说去适应codex的工作流 去适应这个open code的工作流 但是pad就是希望让派去适应你的工作流 而不是去你去适应他的工作流 然后包括我前面其实做了一次git的提交啊 在这个项目里面",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 464.17,
+          "jump_url": "https://www.bilibili.com/video/BV1gPGE6iELk?t=464",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 582.78,
+          "window_start": 464.17
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 5,
+      "best_score": 0.015384615384615385,
+      "best_unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_cd0685b7a5dad3ba5d5c92e4b65acfad",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15CwBzsEmt",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/3923bf10820d7ed27cf2a2686d608dcb42f77389.jpg",
+      "detail_url": "/videos/114/transcript",
+      "duration": 2379.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "你也要手动绘制成PDF呃 因为截止我这个呃 目前的NBANNER还是不支持输出PDF的 但是呢论文里的图片需要用PDF 是一个非常严格的一个呃学术规范 那因为它是需要是矢量图 但是你SVG也行 就是一个矢量格式 是的图片是一个非常重要的学术规范 如果说你不画矢量图 不传矢量的图 如果说我作为审稿人的时候 发现你的里面的字选不中的话 我就会给你扣掉一分印象分 这个是我觉得是一个非常old school也好 也是我觉得是一个学术界的一个基本规范吧 所以说呢take可V2 就是那个banana画图真牛 但是别忘了重绘成矢量图 第三部分或者第四部分 这是我觉得这",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "NextTryTV",
+      "video_id": 114,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15CwBzsEmt",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_cd0685b7a5dad3ba5d5c92e4b65acfad",
+          "best_rank": 5,
+          "best_score": 0.015384615384615385,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_cd0685b7a5dad3ba5d5c92e4b65acfad"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            5
+          ],
+          "duration": 118.44000000000005,
+          "excerpt": "你也要手动绘制成PDF呃 因为截止我这个呃 目前的NBANNER还是不支持输出PDF的 但是呢论文里的图片需要用PDF 是一个非常严格的一个呃学术规范 那因为它是需要是矢量图 但是你SVG也行 就是一个矢量格式 是的图片是一个非常重要的学术规范 如果说你不画矢量图 不传矢量的图 如果说我作为审稿人的时候 发现你的里面的字选不中的话 我就会给你扣掉一分印象分 这个是我觉得是一个非常old school也好 也是我觉得是一个学术界的一个基本规范吧 所以说呢take可V2 就是那个banana画图真牛 但是别忘了重绘成矢量图 第三部分或者第四部分 这是我觉得这",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 818.17,
+          "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=818",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 936.61,
+          "window_start": 818.17
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_6c3fab36a44a4e54c4156908873f3f3f",
+          "best_rank": 18,
+          "best_score": 0.01282051282051282,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_6c3fab36a44a4e54c4156908873f3f3f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            18
+          ],
+          "duration": 118.75999999999976,
+          "excerpt": "就是自动化的agent会在你的电脑上进行交流 而且呢他们会给你说 他们已经到了第1万个版本 但是呢其实没有人告告诉你 这个代码是正确还是错误 它只是在一个自己的方式进行进化 然后呢这个项目是什么呢 这个项目就是未来这个科幻般的时代 的一个开始 这个项目就是未来科研去不断的呃 大模型或者agent不断的去去自我净化 自不断的去做科研 而且而摒弃了人类用声波进行交流的一个时代 的一个最初始的项目就是auto research 我觉得这是一个非常伟大的一个工作 而且呢这个工作甚至可以去拓展到 多个神经体协同 甚至多个人进行协同 现在相当于有一个统一的hub一个",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 1965.88,
+          "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=1965",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2084.64,
+          "window_start": 1965.88
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 6,
+      "best_score": 0.015151515151515152,
+      "best_unit_id": "transcript_chunk:bilibili:BV1CbktBxErc:p1:chunk_3fd81006b95ef663688c87f2b066f36d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1CbktBxErc",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/3c9a9084129152c9cd15f835dbef2971c6cb4098.jpg",
+      "detail_url": "/videos/128/transcript",
+      "duration": 699.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "比如说你是windows电脑的话 你就点击这个start windows 你如果是Mac或者是LINUX的话 就点击这个 那么我现在点击这个start windows 点击一下它就会自动去访问这个页面 然后退出的话也是嗯多摁几下CTRLC就可以了 然后关掉页面就完事了 接下来就是比如说一些问题 一些可能常见的问题 比如说数据库的备份啊 数据库的迁移啊 比如你有多个电脑的时候 你怎么进行这个这个数据库的转移呢 你总不能每个电脑都是存一份新的吧 对不对 其实很简单 就在这个record的底下里面有个PRISMA 这个目录里面有个DEV点DB 你把它转移过去 ",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "力扣刷了就忘？我助你攻克遗忘曲线！",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "西瓜咕咕呱",
+      "video_id": 128,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1CbktBxErc",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1CbktBxErc:p1:chunk_3fd81006b95ef663688c87f2b066f36d",
+          "best_rank": 6,
+          "best_score": 0.015151515151515152,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 601.0,
+            "source": "ai_summary",
+            "start_time": 480.0,
+            "summary": "介绍通过 npm run dev 和运行脚本两种启动本地网站的方法，及如何正确退出。",
+            "title": "两种启动方案"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1CbktBxErc:p1:chunk_3fd81006b95ef663688c87f2b066f36d"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            6
+          ],
+          "duration": 119.61000000000001,
+          "excerpt": "比如说你是windows电脑的话 你就点击这个start windows 你如果是Mac或者是LINUX的话 就点击这个 那么我现在点击这个start windows 点击一下它就会自动去访问这个页面 然后退出的话也是嗯多摁几下CTRLC就可以了 然后关掉页面就完事了 接下来就是比如说一些问题 一些可能常见的问题 比如说数据库的备份啊 数据库的迁移啊 比如你有多个电脑的时候 你怎么进行这个这个数据库的转移呢 你总不能每个电脑都是存一份新的吧 对不对 其实很简单 就在这个record的底下里面有个PRISMA 这个目录里面有个DEV点DB 你把它转移过去 ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 578.21,
+          "jump_url": "https://www.bilibili.com/video/BV1CbktBxErc?t=578",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 697.82,
+          "window_start": 578.21
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7c098dab80ca2f7eb3a380af269bb423",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1yDLG6DE39",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/d1b981c1f3cfedf8207cbee136f6a21d951d0003.jpg",
+      "detail_url": "/videos/74/transcript",
+      "duration": 273.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "找到permission request回车记录 就能看到我们刚才配置的hooks 我们现在来测试一下 随便叫他写点东西 过一会需要权限的时候 果然弹出了弹窗 让我们选择 我们直接在弹窗上选择可以同步到cloud code 这样就可以在需要权限时 通知我们进行快捷操作 而不是像机器一样傻傻的卡着浪费时间 当然这只是一个例子 通过不同搭配还可以实现自动跑测试脚本 拦截危险操作 自动审核工具权限升级 搭建一套完整的自动化工作流 关注我学习更多AI使用技巧",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "Hooks入门只需5分钟",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Yin_Code",
+      "video_id": 74,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1yDLG6DE39",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7c098dab80ca2f7eb3a380af269bb423",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 273.0,
+            "source": "ai_summary",
+            "start_time": 156.45,
+            "summary": "完整操作：创建目录结构，编写 settings.json 与 notify.py，用 VS Code 加载并测试。",
+            "title": "手把手配置项目级Hooks"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1yDLG6DE39:p1:chunk_7c098dab80ca2f7eb3a380af269bb423"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 39.66,
+          "excerpt": "找到permission request回车记录 就能看到我们刚才配置的hooks 我们现在来测试一下 随便叫他写点东西 过一会需要权限的时候 果然弹出了弹窗 让我们选择 我们直接在弹窗上选择可以同步到cloud code 这样就可以在需要权限时 通知我们进行快捷操作 而不是像机器一样傻傻的卡着浪费时间 当然这只是一个例子 通过不同搭配还可以实现自动跑测试脚本 拦截危险操作 自动审核工具权限升级 搭建一套完整的自动化工作流 关注我学习更多AI使用技巧",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 232.78,
+          "jump_url": "https://www.bilibili.com/video/BV1yDLG6DE39?t=232",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 272.44,
+          "window_start": 232.78
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1ixAVz9EaQ",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/62cba1443965a26a70d29b74399a2748f8eee475.jpg",
+      "detail_url": "/videos/113/transcript",
+      "duration": 1178.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "他的一个相当于只是是指的skill 它这个是干什么呢 就是说因为所有的MD文档 就是我们最终的一个核心 所以当你修改了一个MD的时候 他你在跑这个脚本 它也能够及时的把这个MD文件去进行一个处理 处理了 完完了以后切成多一个小块 然后有一个索引 让这个AI能够根据这个索引动态的去找到 他当前步骤要的一个内容 所以就是同步文档 这是最重要的 你可以去改文档 然后它每一次执行的时候都可以生效 具体的定义其实就写在skilled的spec sync的skill m d下 第二呢就是prograss truck 那当他完成了文档的设计以后 他要判断当前 文档当前",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "骑猪撞宝马71",
+      "video_id": 113,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1ixAVz9EaQ:p1:chunk_0eae8927df9442104f35334af927a087"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            9
+          ],
+          "duration": 119.57,
+          "excerpt": "他的一个相当于只是是指的skill 它这个是干什么呢 就是说因为所有的MD文档 就是我们最终的一个核心 所以当你修改了一个MD的时候 他你在跑这个脚本 它也能够及时的把这个MD文件去进行一个处理 处理了 完完了以后切成多一个小块 然后有一个索引 让这个AI能够根据这个索引动态的去找到 他当前步骤要的一个内容 所以就是同步文档 这是最重要的 你可以去改文档 然后它每一次执行的时候都可以生效 具体的定义其实就写在skilled的spec sync的skill m d下 第二呢就是prograss truck 那当他完成了文档的设计以后 他要判断当前 文档当前",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 349.93,
+          "jump_url": "https://www.bilibili.com/video/BV1ixAVz9EaQ?t=349",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 469.5,
+          "window_start": 349.93
+        }
+      ]
+    },
+    {
+      "additional_window_count": 2,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1atjU6KEJF",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/de1c269ba79e6a0b85c91daffcf945af32ab8a2e.jpg",
+      "detail_url": "/videos/12/transcript",
+      "duration": 4118.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "再比如这个人cos用oppo code cloud也无所谓的 但是你这套DOS这套standards和features和这个呃 大家统一的就可以了啊 要统一可了 然后有这个有按照这些模式做一个下限 只能做这种下限的管理 我后来我就今天晚上这个大家老老师 我我还打打扰一下 我还有个问题啊 就是说其实刚才你爷说的 就是说那过程中的文档 比如说你的plan 还有那个你前面那个是丢弃 我们现在也是计划丢弃 但丢弃完之后合入对吧 合入到那个你那个整体的一个文档里面去对吧 合入这块东西 你那你们那边操作是有没什么问题 我们现在用AI合的时候 其实也没有一个 现在我们",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 4,
+      "title": "2026-06-20 AI 编程中的测试和 Loop",
+      "total_window_count": 4,
+      "unwindowed_chunk_count": 0,
+      "uploader": "少个分号",
+      "video_id": 12,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1atjU6KEJF",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_6017057a0ec27090dcd7f2e3acea3299"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            11
+          ],
+          "duration": 118.19100000000026,
+          "excerpt": "再比如这个人cos用oppo code cloud也无所谓的 但是你这套DOS这套standards和features和这个呃 大家统一的就可以了啊 要统一可了 然后有这个有按照这些模式做一个下限 只能做这种下限的管理 我后来我就今天晚上这个大家老老师 我我还打打扰一下 我还有个问题啊 就是说其实刚才你爷说的 就是说那过程中的文档 比如说你的plan 还有那个你前面那个是丢弃 我们现在也是计划丢弃 但丢弃完之后合入对吧 合入到那个你那个整体的一个文档里面去对吧 合入这块东西 你那你们那边操作是有没什么问题 我们现在用AI合的时候 其实也没有一个 现在我们",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3488.689,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3488",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3606.88,
+          "window_start": 3488.689
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_fa55a14578b055123f6412deb9f1662b",
+          "best_rank": 46,
+          "best_score": 0.009433962264150943,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4118.0,
+            "source": "ai_summary",
+            "start_time": 1955.0,
+            "summary": "回答听众问题，讨论Plan的评审、事实文档维护、团队工具统一与规范统一。强调AI是工具，软件工程能力和测试基建才是根基，批评行业忽视测试的现状。",
+            "title": "讨论与经验总结"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1atjU6KEJF:p1:chunk_fa55a14578b055123f6412deb9f1662b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            46
+          ],
+          "duration": 115.28899999999976,
+          "excerpt": "它本质上就是个吸引子 他有这个实施方案 然后就是会吸引吸引那个AI 在下次那个设计的时候 去跟线的代码方案是一致的 不然的话他就会一直搜索 一直搜索 一直搜索 他就会他就天天他大部分时间就花在 不肯花在搜索代码上去了啊 理解理解 那你们现在做的时候就是会约束AI 就是先走那个事实文档里面的这个信息 而不是先搜索代码 对啊他也会搜索代码 它是它不会全局的倒出去搜索代码 它会效率会高很多很多 那绝对是因为我们现在实际的时候 其实很多时候就像你提到的这个打样工程 其实用一个打样的这样的一个代码 其实它AI的话 我们很多时候他是这么跑的 不会跑跑到那个文档里面去",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3720.4,
+          "jump_url": "https://www.bilibili.com/video/BV1atjU6KEJF?t=3720",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3835.689,
+          "window_start": 3720.4
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 13,
+      "best_score": 0.0136986301369863,
+      "best_unit_id": "transcript_chunk:bilibili:BV1kLT46aEKp:p1:chunk_40bebaeb600df629ff7c5b4c3ab4cdcf",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1kLT46aEKp",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/ce6af64440a91007ddf60d9c8646bd6c35546e53.jpg",
+      "detail_url": "/videos/9/transcript",
+      "duration": 238.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "对其实这个的好处就是你不需要再从头手搓 首先从头手搓是需要浪费token的 现在token都很贵对吧 然后第二个是需要时间 虽然就是我们web coding是很有成就感的 你可以把一些功能做的非常匹配你的需求 但其中还是有很多bug 就是其实感觉还是应该专业的人 干专业的事对吧 既然别人已经都验证过的东西 我们就不用不用重复造轮子 但如果他实在是满足不了你的需求 这个时候你再让AI在原来人家已经有的基础上 我们站在巨人的肩膀上 我们继续改进嘛对吧 这个也是没问题的 所以啊我觉得这个也是一个呃 工作方式和习惯的改变哈 以因为以前大家刚开始会web codi",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "手搓AI应用前先去Github上找找",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "晓辉博士",
+      "video_id": 9,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1kLT46aEKp",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1kLT46aEKp:p1:chunk_40bebaeb600df629ff7c5b4c3ab4cdcf",
+          "best_rank": 13,
+          "best_score": 0.0136986301369863,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 114.0,
+            "source": "ai_summary",
+            "start_time": 29.0,
+            "summary": "作者以自己寻找网页划词解释工具为例，让AI在GitHub找到现成方案，可实现划词解释、对话交流和信息保存。",
+            "title": "个人案例：网页划词解释与知识保存"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1kLT46aEKp:p1:chunk_40bebaeb600df629ff7c5b4c3ab4cdcf"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            13
+          ],
+          "duration": 118.16999999999999,
+          "excerpt": "对其实这个的好处就是你不需要再从头手搓 首先从头手搓是需要浪费token的 现在token都很贵对吧 然后第二个是需要时间 虽然就是我们web coding是很有成就感的 你可以把一些功能做的非常匹配你的需求 但其中还是有很多bug 就是其实感觉还是应该专业的人 干专业的事对吧 既然别人已经都验证过的东西 我们就不用不用重复造轮子 但如果他实在是满足不了你的需求 这个时候你再让AI在原来人家已经有的基础上 我们站在巨人的肩膀上 我们继续改进嘛对吧 这个也是没问题的 所以啊我觉得这个也是一个呃 工作方式和习惯的改变哈 以因为以前大家刚开始会web codi",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 113.84,
+          "jump_url": "https://www.bilibili.com/video/BV1kLT46aEKp?t=113",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 232.01,
+          "window_start": 113.84
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 99.259,
+      "chapter_ms": 1.972,
+      "grouping_ms": 0.077,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 65.106,
+      "total_ms": 169.285
+    },
+    "raw": {
+      "dense_ms": 59.073,
+      "fusion_ms": 4.303,
+      "lexical_ms": 1.12,
+      "planning_ms": 0.029,
+      "total_ms": 65.055
+    }
+  },
+  "trace_id": "134e0ac8-192f-4813-9909-9105e79a656b",
+  "trace_persisted": false
+}

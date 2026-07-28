@@ -1,0 +1,17 @@
+{
+  "builder": "stage3b-adaptive-swap-w3.5-v1",
+  "formal_run_limits": {
+    "development": 1,
+    "stress": 1
+  },
+  "identity_contract": "EVIDENCE_IDENTITY_CONTRACT_V1",
+  "projection": {
+    "match": "coverage",
+    "non_match": "no_coverage",
+    "unverifiable": "no_coverage_and_separate_report"
+  },
+  "query_specific_rules": 0,
+  "schema_version": "v3.5-b-f1a-scorer-v4-manifest-v1",
+  "score_targeting_rules": 0,
+  "scorer_version": "scorer_v4_evidence_identity_contract_v1"
+}

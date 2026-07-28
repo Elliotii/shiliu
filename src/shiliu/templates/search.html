@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}拾流 · 搜索{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/search.css?v=3">{% endblock %}
+{% block content %}
+<main class="search-shell" data-search-page>
+  <header class="search-hero">
+    <p class="eyebrow">SEARCH YOUR EVIDENCE LIBRARY</p>
+    <h1>从收藏里，找到证据。</h1>
+    <p class="muted">搜索视频、观点、工具或项目，并回到真正相关的字幕时刻。</p>
+  </header>
+
+  <form class="search-form" data-search-form novalidate>
+    <div class="search-query-row">
+      <label class="visually-hidden" for="search-query">搜索内容</label>
+      <input id="search-query" name="q" type="search" maxlength="500" autocomplete="off" placeholder="搜索收藏的视频、观点、工具或项目……">
+      <button class="primary search-submit" type="submit" data-search-submit>搜索</button>
+    </div>
+
+    <div class="common-filters" data-filter-container>
+      <label for="search-folder">收藏夹
+        <select id="search-folder" name="folder_id">
+          <option value="">全部收藏夹</option>
+          {% for source in sources %}<option value="{{ source.folder_id }}">{{ source.folder_title }}</option>{% endfor %}
+        </select>
+      </label>
+      <label for="search-reading">阅读状态
+        <select id="search-reading" name="reading_state">
+          <option value="">全部</option>
+          <option value="unread">未阅</option>
+          <option value="in_progress">正在阅读</option>
+          <option value="read">已阅</option>
+        </select>
+      </label>
+      <label for="search-marked">关注
+        <select id="search-marked" name="marked">
+          <option value="">全部</option>
+          <option value="true">仅关注</option>
+          <option value="false">未关注</option>
+        </select>
+      </label>
+      <button class="ghost clear-filters" type="button" data-clear-filters>清除筛选</button>
+    </div>
+
+    <details class="more-filters" data-more-filters>
+      <summary>更多选项</summary>
+      <div class="more-filter-grid">
+        <label for="search-uploader-contains">UP 主（名称包含）<input id="search-uploader-contains" name="uploader_contains" type="text" maxlength="200"></label>
+        <label for="search-from">收藏时间从<input id="search-from" name="favorite_time_from" type="date"></label>
+        <label for="search-to">收藏时间至<input id="search-to" name="favorite_time_to" type="date"></label>
+        <label for="search-scope">搜索范围
+          <select id="search-scope" name="scope">
+            <option value="all">全部内容</option>
+            <option value="video">仅视频概览</option>
+            <option value="transcript_chunk">仅字幕证据</option>
+          </select>
+        </label>
+        <label for="search-mode">搜索模式
+          <select id="search-mode" name="mode">
+            <option value="lexical">关键词</option>
+            <option value="auto" selected>自动</option>
+            <option value="dense">语义</option>
+            <option value="hybrid">混合</option>
+          </select>
+          <small data-mode-help>适合明确工具、项目或术语</small>
+        </label>
+        <div class="boolean-filters">
+          <label><input name="archived" type="checkbox"> 包含归档</label>
+          <label><input name="ignored" type="checkbox"> 包含忽略</label>
+          <label><input name="sufficiency" type="checkbox"> 判断证据充分性（约 1–3 分钟）</label>
+        </div>
+      </div>
+    </details>
+  </form>
+
+  <section class="search-notice fallback-notice" data-fallback-state hidden role="status">语义搜索暂不可用，已使用关键词搜索。</section>
+  <section class="search-state idle-state" data-idle-state>
+    <h2>搜索收藏的视频、观点、工具或项目</h2>
+    <p>试试一个明确术语，或用一句话描述你想找的问题。</p>
+    <div class="query-examples" aria-label="搜索示例">
+      <button type="button" data-example-query="MCP">MCP</button>
+      <button type="button" data-example-query="上下文压缩">上下文压缩</button>
+      <button type="button" data-example-query="RAG 工作机制">RAG 工作机制</button>
+      <button type="button" data-example-query="Agent 工具调用失败">Agent 工具调用失败</button>
+    </div>
+  </section>
+  <section class="search-state loading-state" data-loading-state hidden aria-live="polite">
+    <span class="loading-mark" aria-hidden="true"></span>
+    <div><p data-loading-title>正在搜索……</p><small data-loading-stage>Current Stage: retrieval</small></div>
+  </section>
+  <section class="search-state empty-state search-empty" data-empty-state hidden>
+    <h2>没有找到相关内容</h2><p>可以清除筛选、切换到全部内容，或尝试关键词搜索。</p>
+    <div class="state-actions"><button type="button" class="ghost" data-empty-clear>清除筛选</button><button type="button" class="ghost" data-empty-all>切换到全部内容</button><button type="button" class="primary" data-use-lexical>尝试关键词搜索</button></div>
+  </section>
+  <section class="search-state error-state" data-error-state hidden role="alert">
+    <h2 data-error-title>搜索失败</h2><p data-error-message>搜索失败，请稍后重试。</p><p class="request-id" data-request-id hidden></p>
+    <div class="state-actions"><button type="button" class="primary" data-retry-search>重试</button><button type="button" class="ghost" data-error-lexical>改用关键词搜索</button></div>
+  </section>
+
+  <section class="search-results" data-success-state hidden>
+    <div class="results-heading"><h2 data-result-summary aria-live="polite"></h2><span data-mode-summary></span></div>
+    <section class="pipeline-summary" data-pipeline-summary hidden></section>
+    <div class="result-list" data-result-list></div>
+    <aside class="integration-limitations" data-integration-limitations hidden>
+      <strong>能力边界</strong>
+      <p>本版本判断“现有证据是否充分”，不生成最终答案。端到端结果仍可能受 Retrieval 和 Evidence Resolution 限制。</p>
+    </aside>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/search.js?v=5"></script>{% endblock %}

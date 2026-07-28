@@ -1,0 +1,19 @@
+{
+  "preserved_assets": [
+    "original Track A predictions",
+    "original Track B predictions",
+    "original SearchCandidateSets",
+    "original Candidate Builder outputs",
+    "original Selector outputs",
+    "original EvidenceBundles",
+    "original Runtime terminal states",
+    "original Prediction Freeze"
+  ],
+  "superseded_assets": [
+    "original Stage 3R scoring metrics",
+    "original Stage 3R failure attribution",
+    "original Stage 3R readiness decision",
+    "original Stage 3R-F1 recommendation"
+  ],
+  "supersession_reason": "segment_identity_namespace_mismatch_repaired"
+}

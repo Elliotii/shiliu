@@ -1,0 +1,10 @@
+{
+  "current_state_document_present": true,
+  "current_state_facts_consistent": true,
+  "heldout_accessed": false,
+  "lessons_and_product_reframe_document_present": false,
+  "passed": true,
+  "stage3r_hash_failures": 0,
+  "stage3r_s1_hash_failures": 0,
+  "stress_set_identity_verified": true
+}

@@ -1,0 +1,77 @@
+{
+  "access_boundary_declaration": {
+    "assigned_development_batches_only": true,
+    "authoritative_transcripts_opened_only_for_evidence_sources": true,
+    "authorized_shared_inputs_only": true,
+    "existing_gold_read": false,
+    "frozen_packet_opened": false,
+    "other_annotator_outputs_read": false,
+    "prediction_read": false,
+    "product_pipeline_calls": 0,
+    "reconciliation_performed": false,
+    "review_performed": false,
+    "reviewer_outputs_read": false
+  },
+  "all_evidence_spans_replayable": true,
+  "all_queries_passed_p6_three_layer_validator": true,
+  "artifact_name": "annotator_B Development Initial Annotation",
+  "assigned_batches": [
+    "DEV_BATCH_02",
+    "DEV_BATCH_04",
+    "DEV_BATCH_06"
+  ],
+  "completed_at": "2026-07-26T12:41:46.213428Z",
+  "gold_version": "PQS_V1_DEVELOPMENT_GOLD_INITIAL_ANNOTATOR_B_V1",
+  "input_hashes": {
+    "PRODUCT_QUERY_GOLD_PROTOCOL_V1.md": "1da2fd575a091ac5adff7e823080b8d90564fbf912abdb3cc5ee409599886e06",
+    "authoritative_transcript_identity_catalog.jsonl": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4",
+    "neutral_library_navigation_index.jsonl": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "product_evidence_gold.schema.json": "c6d065464e833d1eb36b27c2247e9362ab0040b10cd590451c6c8cdd22eb5947",
+    "product_gold_reason_code_registry.json": "7d759383aeb20aa2730254e2785ac8fc867ef5ecaf8fbcd42909cdf0c83ca50b",
+    "product_gold_review_policy.json": "45514dffb722b4c64c410b00980021889d4f869a827fef2d469c7a0f6538e545",
+    "product_retrieval_gold.schema.json": "6017dc5eaabae1be34701e0a4941ed205ce0e16a7db3885b431d665366b397c0",
+    "product_sufficiency_gold.schema.json": "56054395bb3ab1997bc58474ad34759026c9f4bc774f9164dbe66aedffa638f3"
+  },
+  "manifest_self_hash_excluded": true,
+  "output_file_hashes": {
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_02/annotation_report.md": "1d2381168883b517bcbe791cdb513fc8e553e6267bd4d1345729c2f3b012f3c7",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_02/evidence_gold.initial.jsonl": "fb4e86c88777853c9aca87706e390e849e95d90c9c092259b98c4d6590fb707a",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_02/file_hash_manifest.jsonl": "0017fe7ef0145a8ee03c73414dcaaaf38495124ab2bcc3e0e6faf59f8ee11735",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_02/initial_annotation_decision.jsonl": "0bf96401193b33813ebeea92d5ea224d89ee9710af539e08aedc0d6db2f75f09",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_02/retrieval_gold.initial.jsonl": "18e464cbf7807d6af00efffff434c19c6227c615dab4a8276cb8aac279163553",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_02/sufficiency_gold.initial.jsonl": "25a6c42a0155ac502336bf84608a8da2ff5dcce24a9ac722e240fed08e168df3",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_04/annotation_report.md": "440bc30f1156564f58a5980790e7d9c8d71ae47d67eadcff49ead2922c4caf33",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_04/evidence_gold.initial.jsonl": "139f5ab8d0600f62104216e2cd0bf4625abeea272ae459cb9464b3a149969bce",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_04/file_hash_manifest.jsonl": "ecc31d317cce98fbcf6556faf0eaf92b96506e3d7415ed2b365092db70fb8109",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_04/initial_annotation_decision.jsonl": "b861f8343e10f46e022cd055fc9d5fa932f3eb3dd91265f928842b92815f9a81",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_04/retrieval_gold.initial.jsonl": "b92e20267fc9ff24a91e06ac853422a83460ff0cb33dd9d43597af2621c9e0a2",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_04/sufficiency_gold.initial.jsonl": "277f46f0351cd57c87992186354ddbc6e9a150a1ecc644b0c7afdc9066bd189e",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_06/annotation_report.md": "cf73b837b47d4338069abe0d5afbcf40b0f95c7e9d36a5e8373987504059d81b",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_06/evidence_gold.initial.jsonl": "cd432344b310b20da411df1cc98ed2e55431341aec1eaea75f6f32cd23d5af48",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_06/file_hash_manifest.jsonl": "b184e9123303a7e09fe6e51241fa05bbf3624520001cd791d9535ec4c583f5e7",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_06/initial_annotation_decision.jsonl": "c94430c0375e082bf9d29b99e7916be8ba86f0d9854a2cb43207ccb85c58bf8d",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_06/retrieval_gold.initial.jsonl": "e7c0f44cfd081d253c902f7edaaf897b02d67aa7df5a3d12c82a3143040b35a9",
+    "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/initial_annotations/annotator_B/DEV_BATCH_06/sufficiency_gold.initial.jsonl": "c6dfd9e550365192247fd5f31ea60638adffb32e0f439a78482788ee9d50553c"
+  },
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "query_count": 6,
+  "query_ids": [
+    "PQS_V1_Q004",
+    "PQS_V1_Q006",
+    "PQS_V1_Q011",
+    "PQS_V1_Q012",
+    "PQS_V1_Q017",
+    "PQS_V1_Q018"
+  ],
+  "role": "initial_annotator",
+  "schema_version": "v3.5-development-gold-cycle-annotator-unit-v1",
+  "unit_id": "annotator_B",
+  "validation_results": {
+    "PQS_V1_Q004": "passed_p6_three_layer_and_source_replay",
+    "PQS_V1_Q006": "passed_p6_three_layer_and_source_replay",
+    "PQS_V1_Q011": "passed_p6_three_layer_and_source_replay",
+    "PQS_V1_Q012": "passed_p6_three_layer_and_source_replay",
+    "PQS_V1_Q017": "passed_p6_three_layer_and_source_replay",
+    "PQS_V1_Q018": "passed_p6_three_layer_and_source_replay"
+  }
+}

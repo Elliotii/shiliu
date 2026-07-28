@@ -1,0 +1,8 @@
+{
+  "approved_query_file_valid": true,
+  "approved_query_frozen": true,
+  "case_alignment_valid": true,
+  "hard_leakage_count": 0,
+  "source_sha256": "d8e60a5525556a02b454508bc8a6f0915fd6402724713389e7a2d34264484f9a",
+  "status": "passed"
+}

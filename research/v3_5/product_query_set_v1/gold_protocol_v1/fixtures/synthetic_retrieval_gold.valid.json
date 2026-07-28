@@ -1,0 +1,33 @@
+{
+  "query_id": "SYNTH_QUERY_ALPHA",
+  "gold_version": "SYNTH_GOLD_V1",
+  "known_relevant_video_ids": [
+    "SYNTH_VIDEO_A"
+  ],
+  "acceptable_video_ids": [
+    "SYNTH_VIDEO_A",
+    "SYNTH_VIDEO_B"
+  ],
+  "hard_negative_video_ids": [
+    "SYNTH_VIDEO_NEAR_MISS"
+  ],
+  "relevance_review_scope": {
+    "pool_version": "SYNTH_POOL_V1",
+    "reviewed_video_ids": [
+      "SYNTH_VIDEO_A",
+      "SYNTH_VIDEO_B",
+      "SYNTH_VIDEO_NEAR_MISS"
+    ],
+    "pool_construction_method": "synthetic_fixture_only",
+    "review_authority": "synthetic_fixture_validator",
+    "review_timestamp": "2026-07-26T00:00:00Z"
+  },
+  "exhaustive": false,
+  "unjudged_outside_pool_is_negative": false,
+  "review_state": "sealed",
+  "reason_codes": [
+    "RG_KNOWN_RELEVANT",
+    "RG_ACCEPTABLE_ALTERNATIVE",
+    "RG_HARD_NEGATIVE_EXPLICIT"
+  ]
+}

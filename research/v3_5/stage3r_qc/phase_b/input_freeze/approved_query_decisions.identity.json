@@ -1,0 +1,9 @@
+{
+  "byte_preserved": true,
+  "frozen_copy_sha256": "d8e60a5525556a02b454508bc8a6f0915fd6402724713389e7a2d34264484f9a",
+  "frozen_path": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/stage3r_qc/phase_b/input_freeze/approved_query_decisions.jsonl",
+  "hash_match": true,
+  "records": 10,
+  "source_path": "/Users/elliot/Downloads/stage3r_qc_query_decisions.approved.jsonl",
+  "source_sha256": "d8e60a5525556a02b454508bc8a6f0915fd6402724713389e7a2d34264484f9a"
+}

@@ -1,0 +1,30 @@
+{
+  "primary": {
+    "logical_invocations": 1,
+    "raw_model_calls": 2,
+    "initial_valid": false,
+    "repair_count": 1,
+    "invalid_after_repair": true,
+    "latency_ms_total": 94163,
+    "input_tokens_total": 22818,
+    "output_tokens_total": 964,
+    "cached_tokens_total": 1920,
+    "estimated_cost_usd": null
+  },
+  "secondary": {
+    "logical_invocations": 0,
+    "raw_model_calls": 0,
+    "latency_ms_total": 0,
+    "input_tokens_total": 0,
+    "output_tokens_total": 0,
+    "estimated_cost_usd": 0.0
+  },
+  "total": {
+    "logical_invocations": 1,
+    "raw_model_calls": 2,
+    "latency_ms_total": 94163,
+    "input_tokens_total": 22818,
+    "output_tokens_total": 964,
+    "estimated_cost_usd": null
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "candidates_covering_span": "UNION",
+  "coverage_semantics_version": "v3.5-candidate-union-coverage-v1",
+  "covering_subset_tiebreak": [
+    "complete segment coverage",
+    "fewest candidates",
+    "shortest union duration",
+    "fewest extra segments",
+    "candidate_id lexical"
+  ],
+  "evidence_groups": "OR",
+  "required_spans_within_group": "AND"
+}

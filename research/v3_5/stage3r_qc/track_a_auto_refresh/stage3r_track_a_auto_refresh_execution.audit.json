@@ -1,0 +1,12 @@
+{
+  "f1a_started": false,
+  "f1b_started": false,
+  "failure_counts_sum_to_twenty": true,
+  "heldout_accessed": false,
+  "historical_assets_modified": false,
+  "index_rebuilt": false,
+  "product_query_set_started": false,
+  "retrieval_algorithms_modified": false,
+  "router_modified": false,
+  "status": "complete"
+}

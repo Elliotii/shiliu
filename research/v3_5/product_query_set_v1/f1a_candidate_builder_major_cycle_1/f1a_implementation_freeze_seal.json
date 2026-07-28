@@ -1,0 +1,77 @@
+{
+  "schema_version": "v3.5-b-f1a-implementation-freeze-seal-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "status": "sealed_before_development_gold_semantic_access",
+  "sealed_at": "2026-07-26T20:54:21Z",
+  "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+  "active_design": "adaptive_bounded_coverage_swap_v1",
+  "source_hashes": {
+    "src/shiliu/evidence/stage3a.py": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1"
+  },
+  "config_hashes": {
+    "research/v3_5/stage3b/stage3b_run_manifest.json": "b6d567164274df97b7386143d976a7b2c0e828776f6b1746bebf15c0eea59e8d"
+  },
+  "test_hashes": {
+    "tests/test_v3_5_stage3b_selector.py": "16797eda874f53bfb79a743f72b93dee9f5ede4f20caad581cc6e0695837d235",
+    "tests/test_v3_5_evidence_stage3a.py": "5a7ad9181652e2159463999dc17976aa88162b8d4eee32a80dc34c51f54e0fc0",
+    "tests/test_v3_5_stage3a_reachability.py": "515aad8d46d46e92292d9e05e43a7e4dfc7e50704c26a5d6c38379aa911c9d1c",
+    "tests/test_product_search_api.py": "d335f27edc780fe1c1bd6ea575af72febe6db7a4779ab7a14e304bc1275e61a4",
+    "tests/test_stage3r_track_a_auto_refresh_contracts.py": "b699a1e1b71741e964d10081bd84bad62293a854aba16269340cc10ac6dc8ee1",
+    "tests/test_pqs_v1_p8_product_initial_baseline_contract.py": "1139f66ac8360006a8fc78d49bd042d33814ea2af28ba1fc9cea1ce0be3e0d69",
+    "tests/test_v3_5_f1a_adaptive_bounded_coverage_swap.py": "7fa469fb56a6c4d65af66e14449d2ce54a15cb63a202dcdcd8bbeefcc38c1be9",
+    "tests/test_v3_5_f1a_major_cycle_contract.py": "cc41c10090ab38ca839fd8f09bd633df9c891875ec9c7000cf47a4413043ba40"
+  },
+  "scoring_runner_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/run_f1a_scored_regressions.py": "c72c20ebe70034bdbbd1df9aa3e73aa258c8a87814c4f76fa74f47be1524bf86"
+  },
+  "trace_schema_hashes": {
+    "candidate_pool_and_adaptive_swap_trace_schema": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1"
+  },
+  "design_authority_hashes": {
+    "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION_AMENDMENT.md": "a4fe3f585a4d3cae1f5f61a12d34d4bd94c9351a0547695580232dc320167e7c",
+    "V3_5_F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION_LEDGER.json": "8cbf6dc633be9ee6c3090b825cdfd6f4bfed4ff9b07882998e1f6e756c01aa62",
+    "F1A_MAJOR_CYCLE_1_SEED_ACCESS_MANIFEST.json": "74c0a96e3197bc67f41390913b6a44d807d62083a7a6adf9adedb6fd92ae6329",
+    "F1A_RECOVERY_FILESYSTEM_ACCESS_POLICY.json": "5ee37aece383d0c7f52da66e24303da1b8aae27c1fab935553bc0b655104c635",
+    "STAGE3R_F1A_CANDIDATE_BUILDER_IMPLEMENTATION_TASK.md": "c06ad7fd67f4413ad08208e83cabb39d5ba4cba8bb9a8dbbb81fff2b9fa7ed08",
+    "V3_5_F1A_CANDIDATE_BUILDER_IMPLEMENTATION_LEDGER.json": "76783e185062f0c9b731a1e2c1d7e2af3d5ad921ea6a918bb37af1e1e95d6b6c",
+    "V3_5_F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_LEDGER.json": "b04e68b13202be71f9623c3bfe03dcb34168eb7c4203e3a0fa5f8a9e1c70db06",
+    "F1A_FROZEN_RAW_SOURCE_AUTHORIZATION_AND_IMPLEMENTATION_RESUME.txt": "14765dd51cfbb7ff4c08302b1162e5c4dcf1b82dd48c91da24ddc582360c83dd"
+  },
+  "filesystem_gate_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1_recovery/f1a_exact_path_resolution.json": "4e6c00022ff52542098d452aea5c5d7fb0b3fd54455b7df1306789e1726bb957",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1_recovery/f1a_raw_source_allowlist.json": "3903e18b49e13806a29b759224552b2d105d3a99abd04359fc30bff0fba2f06d"
+  },
+  "candidate_and_budget_constants": {
+    "candidate_cap": 32,
+    "per_window_segment_limit": 6,
+    "per_window_seconds_limit": 60.0,
+    "per_window_character_limit": 500,
+    "total_seconds_limit": 600.0,
+    "total_character_limit": 6000,
+    "maximum_swaps_per_query": 4,
+    "minimum_swaps_per_query": 0,
+    "forced_swaps": false,
+    "selector_budget_changed": false
+  },
+  "unscored_verification": {
+    "gold_free_p8_replay_count": 1,
+    "candidate_count_total": 3504,
+    "maximum_swap_count_per_query": 4,
+    "invalid_candidate_count": 0,
+    "direct_test_count_passed": 51,
+    "direct_test_count_failed": 0,
+    "pytest_available": false,
+    "api_regression_dependency_available": false,
+    "scoring_runner_syntax_and_import_valid": true
+  },
+  "access_state_at_seal": {
+    "development_gold_semantic_access": false,
+    "frozen_evaluation_gold_access": false,
+    "repository_recursive_search_count": 0,
+    "forbidden_path_touch_count": 0,
+    "guessed_path_count": 0
+  },
+  "post_seal_behavior_change_allowed": false,
+  "development_scored_runs_remaining": 1,
+  "stress_scored_runs_remaining": 1
+}

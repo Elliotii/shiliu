@@ -1,0 +1,28 @@
+{
+  "Evidence_Identity_Contract_V1": {
+    "failed": 0,
+    "passed": 17,
+    "status": "pass"
+  },
+  "Frozen_Evaluation_accessed": false,
+  "command": "PYTHONPATH=src .venv/bin/pytest -q tests/test_v3_5_stage4a_gate.py tests/test_v3_5_stage4a_eval.py tests/test_stage4a_r_mechanical_gate.py research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/test_evidence_identity_contract_v1.py",
+  "mechanical_gate_contract_and_gold_free": {
+    "exception_containment_tests": "pass",
+    "failed": 0,
+    "invalid_bundle_negative_tests": "pass",
+    "judge_eligible_positive_tests": "pass",
+    "passed": 49,
+    "reason_code_projection_tests": "pass",
+    "same_input_same_status_tests": "pass",
+    "semantic_sufficiency_not_evaluated": true,
+    "source_unverifiable_tests": "pass",
+    "status": "pass",
+    "terminal_exclusivity_tests": "pass"
+  },
+  "overall": {
+    "failed": 0,
+    "passed": 66,
+    "status": "pass"
+  },
+  "provider_calls": 0
+}

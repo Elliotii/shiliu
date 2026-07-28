@@ -1,0 +1,50 @@
+{
+  "schema_version": "v3.5-b-p14-replacement-environment-delta-v1",
+  "original_environment": {
+    "state_directory": "/Users/elliot/.codex",
+    "sqlite_state_path": "/Users/elliot/.codex/state_5.sqlite",
+    "permissions": {
+      "state_directory": "drwxr-xr-x",
+      "sqlite_state_file": "-rw-r--r--",
+      "effective_access_from_original_runner": "read_only_by_execution_sandbox"
+    },
+    "relevant_environment_variables": {
+      "CODEX_HOME": "unset; defaulted to /Users/elliot/.codex",
+      "CODEX_SQLITE_HOME": "unset; defaulted to CODEX_HOME"
+    },
+    "provider_initialization_status": "fail_readonly_sqlite_state"
+  },
+  "repaired_environment": {
+    "state_directory": "/Users/elliot/.codex",
+    "sqlite_state_directory": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/p14_frozen_evaluation/replacement_provider_state",
+    "permissions": {
+      "sqlite_state_directory": "drwx------",
+      "owner_uid": 501,
+      "owner_gid": 20
+    },
+    "relevant_environment_variables": {
+      "CODEX_HOME": "unchanged and unset; remains /Users/elliot/.codex",
+      "CODEX_SQLITE_HOME": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/p14_frozen_evaluation/replacement_provider_state"
+    },
+    "provider_initialization_expected": "pass"
+  },
+  "authorized_differences": [
+    "isolated_writable_state_directory",
+    "directly_related_permission_or_path_change",
+    "atomic_case_persistence",
+    "same_run_id_resume_support"
+  ],
+  "unauthorized_differences": {
+    "count": 0,
+    "items": []
+  },
+  "official_configuration_basis": {
+    "source": "OpenAI Codex environment variables documentation, Core locations",
+    "finding": "CODEX_SQLITE_HOME sets where CLI and app-server SQLite-backed state is stored while CODEX_HOME remains unchanged"
+  },
+  "repository_source_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a",
+  "repository_source_commit_changed": false,
+  "Frozen_Query_used": false,
+  "Frozen_Gold_used": false,
+  "created_at": "2026-07-27T18:33:44Z"
+}

@@ -1,0 +1,50 @@
+{
+  "immutability": {
+    "sealed_files_byte_identical": true,
+    "semantic_fields_changed": 0,
+    "source_candidate_files_changed": false
+  },
+  "input_identity": {
+    "decision_ledger_hash_matches": true,
+    "decision_ledger_sha256": "6caeeb1898e9aef7ed401fba4d5b0285b4c84834b6e5a2416527b74aa9352651",
+    "development_cycle_report_hash_matches": true,
+    "p5_development_identity_matches": true,
+    "source_candidate_hashes_match": true,
+    "task_contract_sha256": "57ebf1bbd1bfbc78e64a4e91f980c2106f10ff6bbd6a9d68d4caf53a73c2d815"
+  },
+  "records": {
+    "case_status_count": 14,
+    "evidence_gold_records": 14,
+    "frozen_query_ids_present": 0,
+    "query_count": 14,
+    "query_id_sets_identical": true,
+    "retrieval_gold_records": 14,
+    "sufficiency_gold_records": 14,
+    "three_layer_record_counts_match": true
+  },
+  "review_resolution": {
+    "blocked": 0,
+    "only_reconciled_query_id": "PQS_V1_Q017",
+    "pending": 0,
+    "q017_reconciliation_rounds_used": 1,
+    "reviewed_agreement": 13,
+    "reviewed_reconciled": 1
+  },
+  "scope": {
+    "annotator_reviewer_or_reconciliation_restarted": false,
+    "existing_external_gold_read": false,
+    "frozen_cycle_started": false,
+    "frozen_packet_or_gold_opened": false,
+    "p8_started": false,
+    "product_pipeline_calls": 0,
+    "product_prediction_read": false
+  },
+  "validation": {
+    "cross_object_validation": "passed",
+    "downstream_failure_codes_in_gold": 0,
+    "evidence_spans_replayed": 41,
+    "navigation_sources_used_as_evidence": 0,
+    "p6_schema_validation": "passed",
+    "replay_failures": 0
+  }
+}

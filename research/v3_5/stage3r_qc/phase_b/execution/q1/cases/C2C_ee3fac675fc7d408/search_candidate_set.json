@@ -1,0 +1,28 @@
+{
+  "executed_mode": "lexical",
+  "fallback_state": {
+    "fallback": false,
+    "fallback_reason": null
+  },
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": null,
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "presentation_trace_id": "28191308-a5c0-46ec-9bc8-00b6be4dba13",
+  "presentation_trace_persisted": false,
+  "query_type": "mixed_entity",
+  "raw_unit_candidates": [],
+  "runtime_corpus_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "search_candidate_contract_version": "v3.5-search-candidate-v1",
+  "search_trace_id": "28191308-a5c0-46ec-9bc8-00b6be4dba13",
+  "snapshot_id": "20260720T094346Z_c7663365",
+  "trace_persisted": false,
+  "video_candidates": []
+}

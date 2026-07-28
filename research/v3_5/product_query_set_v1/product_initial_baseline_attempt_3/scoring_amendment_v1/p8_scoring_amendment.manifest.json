@@ -1,0 +1,55 @@
+{
+  "amendment_version": "v3.5-p8-scoring-amendment-v1",
+  "attempt_id": "P8_PRODUCT_INITIAL_BASELINE_ATTEMPT_3",
+  "generated_at": "2026-07-26T17:46:05.114+00:00",
+  "hash_root_members": {
+    "development_gold_seal_sha256": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "failure_attribution_sha256": "2f6fc2b4cd10c8240d1395d096f7dcf7c97bafde43026d0df0e454e50ea3d7a9",
+    "per_query_sha256": "f3e886735ae8400c9e42e59312660e3de84b8b05008de42aa52046740259d108",
+    "prediction_seal_sha256": "069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617",
+    "scorer_sha256": "7e4cce1f495f32abd67382ff8954de7e783435baa2aa22488123ace3d54dca52",
+    "scores_sha256": "8271d68f7942f960650b1638330935fa3d1298702893d61133cbf8598ed425ec"
+  },
+  "original_scoring": {
+    "failure_attribution_sha256": "75924ba07023825a44fe7d0d2ab78a22798edb680eb5251238f61afe25292865",
+    "per_query_sha256": "0c91f361c2ea2091e796960dc2d7a1995336f14a548034263d13635accda892d",
+    "preserved": true,
+    "reason": "builder_failure_eligibility_defect",
+    "scores_sha256": "30cce533265015cfcc5fd35992e43583d9f2a968928d2e012a9f49ee6c07466d",
+    "status": "superseded_by_scoring_amendment"
+  },
+  "outputs": [
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/P8_SCORING_AMENDMENT_REPORT.md",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.scores.json",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.per_query.jsonl",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.failure_attribution.jsonl",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.audit.json",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.execution_decision.json",
+    "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/V3_5_P8_SCORING_CHECKPOINT_1_AMENDMENT_DECISION_LEDGER.json"
+  ],
+  "schema_version": "v3.5-p8-scoring-eligibility-v2",
+  "scoring_hash_root": "54bc35083f4410ace027452b64fc2d22432111be5a2036c0ce245e6319849795",
+  "success_state": {
+    "Checkpoint_1_amendment": {
+      "status": "execution_candidate_ready"
+    },
+    "F1A_authorized": false,
+    "F1A_entry_signal": true,
+    "F1B_authorized": false,
+    "P8_prediction_set": {
+      "status": "valid_and_frozen"
+    },
+    "P8_scoring_amendment": {
+      "status": "execution_candidate_ready"
+    },
+    "P9": {
+      "restart_readiness": true,
+      "restarted": false,
+      "status": "blocked_pending_v3_5_b_acceptance"
+    },
+    "Stage4_started": false,
+    "acceptance_status": "pending_v3_5_b_review",
+    "execution_status": "complete"
+  },
+  "version_relation": "P8 Attempt 3 Frozen Prediction Set + P8 Scoring Amendment v1 = Amended Product Initial Baseline"
+}

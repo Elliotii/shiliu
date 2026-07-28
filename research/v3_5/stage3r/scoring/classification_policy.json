@@ -1,0 +1,21 @@
+{
+  "evidence_structure_rules": [
+    "single_span",
+    "multi_span_same_region",
+    "multi_span_distant_regions",
+    "multiple_alternative_groups",
+    "no_positive_gold_group",
+    "source_authority_unavailable"
+  ],
+  "fixed_before_scoring": true,
+  "query_family_rules": [
+    "result_or_effect",
+    "comparison",
+    "method_or_process",
+    "implementation_detail",
+    "evaluation_or_test",
+    "definition_or_explanation",
+    "multi-part_question"
+  ],
+  "version": "v3.5-stage3r-deterministic-classification-v1"
+}

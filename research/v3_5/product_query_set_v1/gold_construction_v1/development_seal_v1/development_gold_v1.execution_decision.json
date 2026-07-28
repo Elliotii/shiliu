@@ -1,0 +1,9 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "development_gold_formally_sealed_by_codex": false,
+  "development_gold_seal_version": "DEVELOPMENT_GOLD_V1",
+  "development_gold_sealed_execution_candidate_ready": true,
+  "execution_status": "complete",
+  "frozen_gold_cycle_authorized": false,
+  "p8_authorized": false
+}

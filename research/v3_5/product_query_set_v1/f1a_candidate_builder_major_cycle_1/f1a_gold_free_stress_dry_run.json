@@ -1,0 +1,418 @@
+{
+  "candidate_count_total": 5362,
+  "development_gold_semantic_accessed": false,
+  "evidence_contract_error_count": 0,
+  "evidence_contract_errors": [],
+  "input_count": 20,
+  "invalid_terminal_count": 0,
+  "legal_terminal_count": 20,
+  "maximum_swap_count_per_query": 4,
+  "output_hash_root": "2c93b726ae92905bac5a51844c8548216a87ab86c569cc9020132fda315fe5c9",
+  "outputs": [
+    {
+      "bundle_sha256": "537ed5589086e13527af01800d2f7afcb40315e9b4b5d8d52d9c242a34123b44",
+      "candidate_count": 247,
+      "candidate_set_sha256": "d0df49dbe85ebe5c60e6156dfa85a3808dff7a07732bb9ba80d2c936b5fd16a6",
+      "failure_category": null,
+      "input_id": "C2C_16019b3c36a8945b",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "d31c636820f3ab84fa9798165e9fd4c7a28dac35e4a9e15315be0ebb80584ac4",
+      "candidate_count": 286,
+      "candidate_set_sha256": "521abb3211fc9d151e039ba000bdb8a450f2a518ee38fd2003e0f4973a30d8f1",
+      "failure_category": null,
+      "input_id": "C2C_a1c0207a1bc56a91",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "db59dd28fd307a750e2e9d9a3d8c674eb302e5c002987c95bdfee520bdabe889",
+      "candidate_count": 303,
+      "candidate_set_sha256": "9de9d036ad4d83a33c7e9742a0938031dbfa3c0c10a2c0f8d737a5382915a472",
+      "failure_category": null,
+      "input_id": "C3C_41cfa020e8d664c5",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "71c47750198e0befd80a8fcd8e59181a297fc2cd2dd0632bc482f45f45747759",
+      "candidate_count": 273,
+      "candidate_set_sha256": "561181ffea0fc2a8e2ffbef68f0c63a18364c69b238bd912294f4fd408b582ec",
+      "failure_category": null,
+      "input_id": "C3C_56b2c368638a31c3",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "4959aa0780d494ac666f385e02283d45c457526fc9a40736834e345b5b0af626",
+      "candidate_count": 281,
+      "candidate_set_sha256": "5501ee6f714a56bc4e6c8b1a83d6a4eed963f744e72b990c498427ea5e7886b8",
+      "failure_category": null,
+      "input_id": "C3C_62e28b33eec87c37",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "0a03c86e5e1237acc87b8135e500a3da2ca7ebe3ef839bb5f6584e2220d01a28",
+      "candidate_count": 215,
+      "candidate_set_sha256": "a329f8cefe01ca1d452aa6a02fd7cd20ebc7978e27188bc5a860b8bcc2f3dc12",
+      "failure_category": null,
+      "input_id": "C3C_98e93af3d9519c76",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "6b4944289673f9c04c05bb66a36794d363c0425a5ea2dd393eb6fffb3261b73b",
+      "candidate_count": 214,
+      "candidate_set_sha256": "bd6459bec4a76a82f4c72366063337394aee36254385c12c64e1bf5bad190905",
+      "failure_category": null,
+      "input_id": "C3C_f57e1f0cc83cd5dd",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "b9a457ffba90ece4aa4d7d741cdf419dc143c41889d6a0838021d0887502deaf",
+      "candidate_count": 275,
+      "candidate_set_sha256": "3e994b9ee5af9fdbbc419a438b959328a252d3dfde4fbcc79ea546d66b4ef054",
+      "failure_category": null,
+      "input_id": "V2C_C0C_0492bb2ae33b5cec",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "b4d9f8ad41364b82ce77a84aeb898497281db095a4ce2901af8d3ee14c29efa4",
+      "candidate_count": 228,
+      "candidate_set_sha256": "16dac91753fb2de77f3773518280e662f78581e9dcb228c56cbfda3855713627",
+      "failure_category": null,
+      "input_id": "V2C_C0C_185d322d5f9a00b3",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 3,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "b74acd3e28f89e2557c78350457b4266004df6f6180dfc3e3bc9b750cec30d2c",
+      "candidate_count": 274,
+      "candidate_set_sha256": "4b5bff1fb38f8822d144b13aef10682f58c1d05bd5038f26ccff675868dcda98",
+      "failure_category": null,
+      "input_id": "V2C_C0C_2b331035debc8160",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "50db1e67e827d9756972980b1ec97cef73ef321abc8e0062c2db3f79c0ff9118",
+      "candidate_count": 308,
+      "candidate_set_sha256": "c0a3188c50c61a2b627f2308e957d423a1527f268fe1ffda8c2f6f06a75e48a4",
+      "failure_category": null,
+      "input_id": "V2C_C0C_53862aba0bd0bfcb",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "52a0f247c92c9f7687e88d5e926cb7fcec63a5159ed5ff61075087f52187614a",
+      "candidate_count": 256,
+      "candidate_set_sha256": "765844ab1efdba0d7ade862ff4f563d6e5b8e77d7807935c9e53e3fd1932ab2c",
+      "failure_category": null,
+      "input_id": "V2C_C0C_5725899059df795c",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "fcff360fa4fc92e5a2061533002ad901e53db7ad3983f6e37a627338cd0723e2",
+      "candidate_count": 268,
+      "candidate_set_sha256": "bb3dfa49a502129fe08af48c54db584c72ce25613e6a2431171f7197dafd82be",
+      "failure_category": null,
+      "input_id": "V2C_C0C_593dade03883828e",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "4bff2002e90ed70bbb7e5acf37e7969826052db5ec2a5caffd2a73ef74f8011b",
+      "candidate_count": 265,
+      "candidate_set_sha256": "86bd8cba66c0c13407d933adea4c7cd3e1beea1057ea14ebcb9b338680693dbf",
+      "failure_category": null,
+      "input_id": "V2C_C0C_8228254ff69d7b3b",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "0550ff76c266cfacc37dcc073b61f5b172b792a873ae748ddb4138fe89cceda4",
+      "candidate_count": 269,
+      "candidate_set_sha256": "cbd1e093565acf64b32964bcb0fe74c62de1a16b944f5d5493dbd9a4cf7042e6",
+      "failure_category": null,
+      "input_id": "V2C_C0C_958161474678bd3f",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "e1522c3b455f08b71185aebf027a44626adeb6ec07d901d326c8ee4b8ba9da1c",
+      "candidate_count": 293,
+      "candidate_set_sha256": "47b7cea189999e9b6fdf7b82356b2cdb6c6a182a0de42b8de99e511a725f85b8",
+      "failure_category": null,
+      "input_id": "V2C_C0C_9618a83c9df4f059",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "bfc61baa7c826218d8a1767f99b4eeaf52a262b82aa32ea63c44a30d9a03188a",
+      "candidate_count": 249,
+      "candidate_set_sha256": "ceb0d0f8c158853b543667d633fb5aa0edd712a8550cefb91f1a2cc10aa23e69",
+      "failure_category": null,
+      "input_id": "V2C_C0C_9a49204f52a114c8",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "0f8988ebe9da715ef0c40f5a65bebdc3c97d6e34eb974e0dc40383d9957e5671",
+      "candidate_count": 309,
+      "candidate_set_sha256": "a0c289b90f570521baa9ba5bc92e949472e7b4ed81d54ba06ff26b5d3866bea5",
+      "failure_category": null,
+      "input_id": "V2C_C0C_9d9b5b9460d0ce51",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "8cce4d3e861fa7a8803531154c9840b5f6fb6a06982dd03f14339ae40b190aea",
+      "candidate_count": 246,
+      "candidate_set_sha256": "e900d756d8691fbece6cc0ec2ac48ebf45a2701e9fdb4bae7bbcc522f0cc2119",
+      "failure_category": null,
+      "input_id": "V2C_C0C_a48a04ab33a1ad95",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 2,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    },
+    {
+      "bundle_sha256": "2b59ea2f22f4d2e2502b0c0a9dbcc1f4e4db71077b3fd86724cf9e3bd6f5dff3",
+      "candidate_count": 303,
+      "candidate_set_sha256": "97f24e87a2466a0a02e414700eea047d8b052ae5dc054a9394140bb5e6e3be47",
+      "failure_category": null,
+      "input_id": "V2C_C0C_c72788577931ce36",
+      "legal_terminal": true,
+      "normalization_status": "valid",
+      "swap_count": 4,
+      "terminal": {
+        "builder_called": true,
+        "complete": true,
+        "mechanical_gate_outcome": "judge_eligible",
+        "reason_code": null,
+        "recognized_source_terminal": false,
+        "selector_called": true,
+        "status": "runtime_complete"
+      },
+      "validation_errors": []
+    }
+  ],
+  "runner_version": "v3.5-b-f1a-evaluation-harness-recovery-v1",
+  "runtime_output_count": 20,
+  "schema_version": "v3.5-b-f1a-gold-free-stress-dry-run-v1",
+  "source_unverifiable_count": 0,
+  "status": "complete"
+}

@@ -1,0 +1,16 @@
+{
+  "approved_query_file_valid": true,
+  "audited_categories": [
+    "bvid_aid",
+    "full_target_titles",
+    "gold_quotes",
+    "gold_segment_ids",
+    "source_artifact_ids",
+    "video_ids"
+  ],
+  "case_alignment_valid": true,
+  "findings": [],
+  "gold_transcript_displayed": false,
+  "hard_leakage_count": 0,
+  "neutral_topic_terms_used_as_queries": false
+}

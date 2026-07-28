@@ -1,0 +1,13 @@
+{
+  "authoritative_mapping_cardinality": 144,
+  "authoritative_mapping_one_to_one": true,
+  "builder_freeze_verified": true,
+  "candidate_replay_started": false,
+  "development_gold_opened": false,
+  "formal_development_run_count": 0,
+  "formal_stress_run_count": 0,
+  "query_specific_rules": 0,
+  "schema_version": "v3.5-b-f1a-scorer-v3-preflight-v1",
+  "scorer_v3_seal": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v3/SCORER_V3_FREEZE_SEAL.json",
+  "status": "pass"
+}

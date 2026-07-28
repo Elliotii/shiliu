@@ -1,0 +1,27 @@
+{
+  "candidate_pool_configuration_count": 2,
+  "cumulative_logical_calls": 10,
+  "cumulative_raw_attempts": 16,
+  "stop_condition": "invalid after one repair in 40% of final-config logical calls (>25%)",
+  "variant_count": 2,
+  "variants": [
+    {
+      "candidate_pool": "unbounded Track A / bounded Track B",
+      "config_id": "stage3b-structured-selector-full-v1",
+      "logical_calls": 5,
+      "max_output_tokens": 2048,
+      "raw_attempts": 6,
+      "result": "Track A rejected locally above 32 Candidates; three Track B calls exhausted repair with invalid_json.",
+      "selected": false
+    },
+    {
+      "candidate_pool": "uniform top 32 frozen before Gold access",
+      "config_id": "stage3b-structured-selector-full-high-thinking-v2",
+      "logical_calls": 5,
+      "max_output_tokens": 8192,
+      "raw_attempts": 10,
+      "result": "3/5 valid only after repair; 2/5 repair exhausted; 0 hits.",
+      "selected": true
+    }
+  ]
+}

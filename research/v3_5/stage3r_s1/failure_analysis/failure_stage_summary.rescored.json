@@ -1,0 +1,9 @@
+{
+  "counts": {
+    "candidate_builder": 9,
+    "deterministic_selector": 9,
+    "source_authority": 4,
+    "v3_retrieval": 20
+  },
+  "total": 42
+}

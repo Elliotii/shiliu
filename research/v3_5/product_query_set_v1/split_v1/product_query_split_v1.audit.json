@@ -1,0 +1,140 @@
+{
+  "audit_version": "v3.5-pqs-v1-p5-split-audit-r2",
+  "input_identity": {
+    "r2_contract_hash_matches": true,
+    "decision_ledger_hash_matches": true,
+    "p4_canonical_hash_matches": true,
+    "p4_locked_jsonl_hash_matches": true,
+    "locked_query_count": 24,
+    "superseded_10_14_package_executed": false
+  },
+  "assignment": {
+    "development_count": 14,
+    "frozen_evaluation_count": 10,
+    "all_queries_assigned_exactly_once": true,
+    "missing_query_count": 0,
+    "duplicate_assignment_count": 0,
+    "unexpected_query_count": 0,
+    "leakage_groups_crossing_splits": 0
+  },
+  "distribution": {
+    "family_recorded": true,
+    "topic_recorded": true,
+    "scope_recorded": true,
+    "complexity_recorded": true,
+    "language_recorded": true,
+    "authoring_origin_recorded": true,
+    "library_gap_labels_preassigned": false,
+    "development": {
+      "query_family": {
+        "comparison": 3,
+        "limitation": 1,
+        "mechanism": 2,
+        "prerequisite": 1,
+        "process": 2,
+        "reported_result": 1,
+        "risk": 1,
+        "synthesis": 1,
+        "tradeoff": 2
+      },
+      "topic_cluster": {
+        "Agent 记忆": 2,
+        "Coding Agent 工具": 2,
+        "Harness 与验证": 5,
+        "RAG 工程": 3,
+        "浏览器与界面 Agent": 1,
+        "规格驱动开发": 1
+      },
+      "single_or_multi_video": {
+        "multi": 10,
+        "single": 4
+      },
+      "complexity": {
+        "moderate": 9,
+        "natural_multi_aspect": 2,
+        "simple": 3
+      },
+      "query_language": {
+        "zh": 14
+      },
+      "authoring_origin": {
+        "corpus_aware_codex": 14
+      }
+    },
+    "frozen_evaluation": {
+      "query_family": {
+        "career_judgment": 3,
+        "comparison": 1,
+        "mechanism": 2,
+        "process": 2,
+        "tradeoff": 2
+      },
+      "topic_cluster": {
+        "AI 产品与全栈": 1,
+        "Agent Skills": 1,
+        "Agent 学习与项目选择": 2,
+        "Coding Agent 工具": 2,
+        "模型原理与推理": 1,
+        "模型训练": 1,
+        "求职与成长": 1,
+        "求职与项目规划": 1
+      },
+      "single_or_multi_video": {
+        "multi": 8,
+        "single": 2
+      },
+      "complexity": {
+        "moderate": 5,
+        "natural_multi_aspect": 2,
+        "simple": 3
+      },
+      "query_language": {
+        "zh": 10
+      },
+      "authoring_origin": {
+        "corpus_aware_codex": 9,
+        "user_discussion": 1
+      }
+    }
+  },
+  "immutability": {
+    "query_text_changed": false,
+    "frozen_metadata_changed": false,
+    "reserve_or_rejected_candidate_added": false,
+    "p3_p4_assets_changed": false,
+    "p3_p4_baseline_hashes": {
+      "user_validation/PQS_V1_USER_VALIDATION_REPORT.md": "823dbfcfb931d5bc8771a2ce598881e1840b7150931ac4a327970728dec849d5",
+      "user_validation/pqs_v1_user_validation.audit.json": "0acb8f6b88e5d60579dc03b0808862deff6fccd9611dcaaae79fa12b4622b58e",
+      "user_validation/pqs_v1_user_validation.manifest.json": "a2de9d806f911a80d0b921827fcde53e5614e43afc13daca85e9dda6ddbb6587",
+      "user_validation/product_query_candidate_pool.after_user_revision.jsonl": "a0f7748b8dc2eb71d9204e3042558ae615db9d908e693970f4a6654c28afb667",
+      "user_validation/product_query_user_validation.completed.jsonl": "b66bdd7ae2dd778a629f266aa867330db172f9d63c972768d734ddee6f6f911d",
+      "freeze/PRODUCT_QUERY_SET_V1_FREEZE_REPORT.md": "1c60574b1a84afb1160b66a8423dfa37640b88c7a56a63b0166864ab2a4b342b",
+      "freeze/product_query_set_v1.file_hash_manifest.jsonl": "27a8c052f3697b19a8ffe49a8e87a9715a6d7c9ed86cccfa8ac89e93da4a5bf5",
+      "freeze/product_query_set_v1.freeze_execution_decision.json": "2e22eb39013ecaa83fa0378ba3b48e80c5e42674620b9735ea0e471ab9cf285e",
+      "freeze/product_query_set_v1.lock.audit.json": "95f00c022a9cf2afb0bd7e189798c8ef5e3b8b2575ec51a78edb246c703075bd",
+      "freeze/product_query_set_v1.locked.jsonl": "35d33dcf4dd77f12cad4e0c118f2c2f2e371a3019320906a3d2134bb933dd59c",
+      "freeze/product_query_set_v1.manifest.json": "eb1a30ae0b1643c246a9c2c5a1b9ae1113748a3227fa2e10b77a1c1f2d9402eb"
+    }
+  },
+  "scope": {
+    "gold_assets_read": false,
+    "target_videos_read": false,
+    "system_results_read": false,
+    "retrieval_calls": 0,
+    "builder_calls": 0,
+    "selector_calls": 0,
+    "judge_calls": 0
+  },
+  "downstream": {
+    "gold_created": false,
+    "product_baseline_started": false,
+    "f1a_or_f1b_started": false,
+    "stage4_started": false
+  },
+  "canonical_assignment": {
+    "canonicalization_version": "json-array-sort-keys-utf8-v1",
+    "first_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+    "second_sha256": "3014e941a385022abf0bef99c6d9f1d0b82b6d5e7a0b2a22d6977189c8f85239",
+    "repeatable": true
+  }
+}

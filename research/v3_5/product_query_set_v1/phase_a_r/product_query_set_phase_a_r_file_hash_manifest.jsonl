@@ -1,0 +1,7 @@
+{"path":"PQS_V1_QUERY_ONLY_REVIEW_PACKET_REVISED.md","sha256":"63fb80b396f9b9e0055cbefdbd0c76454ed50c691319cea2ac3a2061231718f8"}
+{"path":"PQS_V1_QUERY_SOURCE_AUDIT_REVISED.md","sha256":"96c1c86e322ba6c073a9f1b83a75216414680c3b40ca94ee22487d384bf83b2a"}
+{"path":"V3_5_PRODUCT_QUERY_SET_V1_PHASE_A_R_REPORT.md","sha256":"384cad85be04c4d5a2bb40783ff8f36ae79c21c1d3b2c69891fa12ba70a6878c"}
+{"path":"product_query_candidates.revised.jsonl","sha256":"445861664376be39d34036978f113867799e0da1a8814914bc33bb8ceca420e4"}
+{"path":"product_query_decisions.revised.template.jsonl","sha256":"331ec15cbc0e3dcc242759b2444893b45a0043886af99c3b1239c52063e0f70b"}
+{"path":"product_query_set_phase_a_r_execution.audit.json","sha256":"4ebbb9994c71bc3178f75e131b656162c136853c526e903cd09d25690a211c8b"}
+{"path":"product_query_set_phase_a_r_manifest.json","sha256":"806f78e93c617e7c4b0b71ad0db4e10ecb36015e4ed7a574e9f1dd4f1fc181dd"}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "v3.5-stage5-post-freeze-repair-closeout-v1",
+  "outcome": "stage5_post_freeze_repair_and_refreeze_pass_with_limitations",
+  "status": "formally_closed_pass_with_limitations",
+  "next_stage": "Pre_Frozen_Checklist",
+  "original_stage5_freeze": {
+    "status": "valid_historical_snapshot",
+    "sha256": "c65b77dfb8fbce546e8054ec9d57af682db9b8be1c725f1d2b138326ee9d9461"
+  },
+  "post_freeze_delta_audit": "complete",
+  "uploader_contract": {
+    "old_uploader_exact_semantics_restored": true,
+    "uploader_contains_available": true,
+    "UI_uses_uploader_contains": true,
+    "backward_compatibility_tests_pass": true
+  },
+  "runtime_isolation": {
+    "product_uses_live_current": true,
+    "product_sync_allowed": true,
+    "product_mutable_index_allowed": true,
+    "frozen_eval_rejects_live_current": true,
+    "frozen_eval_sync_disabled": true,
+    "sealed_snapshot_and_index_hash_required": true,
+    "guard_runs_before_frozen_input_load": true
+  },
+  "sync_validation": {
+    "retryable_failure_enters_cooldown": true,
+    "existing_unavailable_source_does_not_use_legacy_fallback": true,
+    "current_index_protected_from_transient_failure": true,
+    "affects_frozen_eval_runtime": false
+  },
+  "UI_validation": {
+    "JavaScript_syntax": "pass",
+    "DOM_component_tests": "pass",
+    "evidence_text_safe_rendering": "pass",
+    "no_uncontrolled_innerHTML": true,
+    "console_errors_in_smoke": 0,
+    "Stage5_status_and_limitations_rendered": true,
+    "cover_repairs_retained": true
+  },
+  "tests": {
+    "focused_passed": 139,
+    "focused_failed": 0,
+    "safe_repository_passed": 948,
+    "safe_repository_failed_non_blocking": 6,
+    "missing_dependency_count": 1,
+    "post_freeze_delta_failures_remaining": 0
+  },
+  "live_smoke": {
+    "product_normal_search": "pass",
+    "uploader_exact_full_name": "pass",
+    "uploader_exact_partial_name_rejected": "pass",
+    "uploader_contains_partial_name": "pass",
+    "source_unverifiable_bypass": "pass",
+    "synthetic_invalid_bypass": "pass",
+    "judge_eligible": "pass",
+    "judge_status": "sufficient",
+    "judge_trace_id": "stage5_trace_4caa20d399dec2a8b49894dc3117ba6798d518fd62adf963ac750ec2d4a92acf",
+    "judge_latency_ms": 38137,
+    "judge_retry_count": 0,
+    "judge_parse_status": "valid",
+    "frozen_guard_live_current_rejected": true,
+    "frozen_guard_missing_hash_rejected": true,
+    "frozen_guard_sealed_synthetic_fixture_passed": true
+  },
+  "formal_components": {
+    "Builder_unchanged": true,
+    "Selector_unchanged": true,
+    "Mechanical_Gate_unchanged": true,
+    "Semantic_Judge_unchanged": true,
+    "Identity_Contract_unchanged": true,
+    "Auto_Router_unchanged": true
+  },
+  "current_integration": {
+    "status": "revalidated_and_refrozen",
+    "seal": "STAGE5_CURRENT_INTEGRATION_REFREEZE_SEAL.json",
+    "seal_sha256": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c"
+  },
+  "documented_limitations": [
+    "Six individually triaged historical tests remain non-blocking.",
+    "One historical authoring-packet test dependency is missing and non-blocking.",
+    "Production proxy timeout configuration remains outside the repository.",
+    "Stage 4B Track A, Track B, and long-latency limitations remain."
+  ],
+  "output_hashes": {
+    "STAGE5_POST_FREEZE_DELTA_AUDIT.md": "804510078d69181ed0db53d87cea3ffe7e1719fac13878c52baf8f0beebb4d1b",
+    "STAGE5_POST_FREEZE_DELTA_AUDIT.json": "757f07294e75e35834c8457743307c194a2e0e62c3a8413e65c05ab5cd71609f",
+    "STAGE5_POST_FREEZE_FILTER_AND_RUNTIME_CONTRACT.md": "e22698e5c75c8c5902a8fe4d7abf3552839c0b2f6c25c79a69ba1d4aebcce4d8",
+    "STAGE5_REPOSITORY_FAILURE_TRIAGE.md": "909b80ed2eeea43ec7557d54cfb5daca1affd9e69e91b20a6bac94ee7ef73ef6",
+    "STAGE5_REPOSITORY_FAILURE_TRIAGE.json": "ccd3e43e23c2c5c0dbad984750e83334c907c9ace162ef99cfd4fd34756166ef",
+    "STAGE5_CURRENT_INTEGRATION_TEST_RESULTS.json": "7dfba4a97039495371bc2473dd423a046f2c1e28a044ab0e9bb266a8af04383f",
+    "STAGE5_CURRENT_INTEGRATION_LIVE_SMOKE_RESULTS.json": "ddb9508b162c41e80407728df4294bba51a185cba2e3837b9e6fa4405d28efac",
+    "STAGE5_CURRENT_INTEGRATION_REFREEZE_SEAL.json": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+    "STAGE5_POST_FREEZE_REPAIR_CLOSEOUT.md": "15decf7b325e04b73b812d213cd7f404849563ea124798b55cc43d7faa62c74e"
+  },
+  "Frozen_Evaluation_content_accessed": false,
+  "Final_Answer_added": false,
+  "Agentic_Search_added": false,
+  "Memory_added": false,
+  "Harness_added": false,
+  "Stage5_algorithmic_reopen_occurred": false,
+  "Pre_Frozen_Checklist_started": false,
+  "Session_can_be_closed": true
+}

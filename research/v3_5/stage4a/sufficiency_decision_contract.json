@@ -1,0 +1,214 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action_family": {
+      "enum": [
+        "retrieval_action",
+        "evidence_resolution_action",
+        "selector_recovery_action",
+        "source_recovery_action",
+        "data_integrity_action",
+        "none"
+      ],
+      "title": "Action Family",
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "conflicts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Conflicts",
+      "type": "array"
+    },
+    "decision_id": {
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "end_to_end_claim_eligible": {
+      "title": "End To End Claim Eligible",
+      "type": "boolean"
+    },
+    "evaluation_track": {
+      "enum": [
+        "frozen_v3_end_to_end",
+        "oracle_video_conditional"
+      ],
+      "title": "Evaluation Track",
+      "type": "string"
+    },
+    "evidence_bundle_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Evidence Bundle Id"
+    },
+    "evidence_ids_used": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids Used",
+      "type": "array"
+    },
+    "judge_contract_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Judge Contract Version"
+    },
+    "judge_model": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Judge Model"
+    },
+    "judge_prompt_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Judge Prompt Version"
+    },
+    "mechanical_gate_applied": {
+      "title": "Mechanical Gate Applied",
+      "type": "boolean"
+    },
+    "missing_aspects": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Aspects",
+      "type": "array"
+    },
+    "operational_reason_code": {
+      "anyOf": [
+        {
+          "enum": [
+            "upstream_retrieval_failure",
+            "no_search_candidate",
+            "candidate_generation_failure",
+            "selector_failed",
+            "raw_source_unavailable",
+            "no_supported_subtitle",
+            "title_only",
+            "source_unreadable",
+            "source_version_mismatch",
+            "language_unresolved",
+            "normalization_failure",
+            "invalid_evidence_bundle",
+            "execution_manifest_mismatch",
+            "search_candidate_set_mismatch",
+            "unknown_operational_state"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Operational Reason Code"
+    },
+    "policy_version": {
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "semantic_judge_invoked": {
+      "title": "Semantic Judge Invoked",
+      "type": "boolean"
+    },
+    "semantic_reason_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Semantic Reason Code"
+    },
+    "status": {
+      "enum": [
+        "sufficient",
+        "partial",
+        "insufficient",
+        "unverifiable"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "sufficiency_decision_contract_version": {
+      "const": "v3.5-sufficiency-decision-v1",
+      "default": "v3.5-sufficiency-decision-v1",
+      "title": "Sufficiency Decision Contract Version",
+      "type": "string"
+    },
+    "supported_aspects": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Supported Aspects",
+      "type": "array"
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "validation_errors": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Validation Errors",
+      "type": "array"
+    }
+  },
+  "required": [
+    "decision_id",
+    "status",
+    "supported_aspects",
+    "missing_aspects",
+    "conflicts",
+    "operational_reason_code",
+    "semantic_reason_code",
+    "action_family",
+    "confidence",
+    "evidence_bundle_id",
+    "evidence_ids_used",
+    "mechanical_gate_applied",
+    "semantic_judge_invoked",
+    "policy_version",
+    "judge_contract_version",
+    "judge_prompt_version",
+    "judge_model",
+    "evaluation_track",
+    "end_to_end_claim_eligible",
+    "trace_id",
+    "validation_errors"
+  ],
+  "title": "SufficiencyDecision",
+  "type": "object"
+}

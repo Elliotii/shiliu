@@ -1,0 +1,31 @@
+{
+  "eval_v1": {
+    "development": "0/13",
+    "status": "invalidated_as_algorithm_result_due_to_confirmed_scoring_identity_defect"
+  },
+  "eval_v2": {
+    "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+    "scorer_version": "corrected_identity_bridge_v2"
+  },
+  "final_builder": "stage3b-acronym-w3.5-v1",
+  "gates": {
+    "builder_primary_failures_maximum_4": false,
+    "candidate_cap_32": true,
+    "complete_group_coverage_minimum_8_of_13": false,
+    "existing_six_regressions_allowed_0": false,
+    "forced_swaps_false": true,
+    "invalid_identity_source_timeline_maximum_0": true,
+    "maximum_swaps_per_query_4": true,
+    "required_aspect_coverage_minimum": false,
+    "required_span_recall_minimum": false,
+    "stress_complete_group_coverage_minimum_11_of_20": true
+  },
+  "outcome": "rejected_keep_existing_builder",
+  "output_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v2/SCORER_V2_FREEZE_SEAL_REPLACEMENT.json": "9c6266804be7591c4f8ac9b61dd42eb3eba2aa74512b71edf05f9488641c4378",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v2/f1a_eval_v2_development_metrics.json": "0cd14f61b32b81c53afff095ff6c74ebeef776dd93290daaabc80a80d6824a06",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v2/f1a_eval_v2_development_per_query.jsonl": "ca2808fd566bed947075955f80cc1dba3dc628174368f95c4fc4b88310ffab1a",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v2/f1a_eval_v2_stress_metrics.json": "3e51d352c043f30b355f07abc937571254d56525db9636277c31fca23e4db915"
+  },
+  "schema_version": "v3.5-b-f1a-scorer-v2-closeout-v1"
+}

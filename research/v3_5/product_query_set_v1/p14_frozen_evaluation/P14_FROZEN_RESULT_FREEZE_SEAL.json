@@ -1,0 +1,69 @@
+{
+  "Frozen_Gold_opened_after_prediction_freeze": true,
+  "Frozen_Gold_opening_audit_hashes": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_GOLD_OPENING_AUDIT.json": "4ea77e2506cdcfcc09566f01c80efdba08dbdb8f44446d71d4c7e8fc41eadef7",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_GOLD_OPENING_AUDIT.md": "de9fcfef75181204b977b20c8d78c1f531e98390cb66fe3cc2cbd1bf7f48dd6a"
+  },
+  "Gold_hashes": {
+    "aggregate_seal": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+    "evidence": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+    "retrieval": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+    "sufficiency": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a"
+  },
+  "case_recomputation": false,
+  "evaluation_validity": "valid",
+  "failure_analysis_hashes": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_FAILURE_ANALYSIS.json": "2c1c28b6347815dd2d90f2d806ad78cec187de82bf8d4fc83ccabbe0f6bc649d",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_FAILURE_ANALYSIS.md": "53adbc43aebe418d94f2d8ac5187d5c9ba9f65a5b179ad14a6461773fa05b610"
+  },
+  "formal_prediction_run_count": 1,
+  "freeze_barrier_contract_correction_hash": "26a289dce5dd82b66325095f1e4ebc7d8486ccb227aa33823bc9ae2f753443a6",
+  "frozen_at": "2026-07-27T19:01:32+00:00",
+  "metrics_hashes": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_EVIDENCE_METRICS.json": "5c2bdf4ccd4dc45856b0e735ffbc6831e1d9bea3632f03143e98454b27f99726",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_MECHANICAL_GATE_METRICS.json": "37a1391922496b64f03cc3cce9c075bdd96cd2dc999e1f8bc0855d8a2f99fe3f",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_RETRIEVAL_METRICS.json": "8c28ed4527f3a4b6cf9d8359263ae87018c0a82a17b28c8aafb5f705c1c28295",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_SUFFICIENCY_METRICS.json": "8fc4829b644ea0d6ec6cb5f8782f10dcfa72b87a2b5b61fa88cbe9b832944520",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/P14_FROZEN_UNIFIED_METRICS.json": "71a904f384344c8f9823c6bbe24b0fc8ebcb49a2b01ea081b2ad5311c4e79c21"
+  },
+  "original_invalid_run_hashes": {
+    "invalid_run_seal": "f61bb37a04daaf298e0f3c970231a4b10ff87abd3b63b35348b45bfb8d8ae57c",
+    "manifest": "83c7265c32e86fb4b311e604be1545c55a05627817ea265b5c8d97fc46bc2101",
+    "provider_failure_log": "4a88086eb1f452631401a1b8bcce141d16730a172b4671242db115a840c49df6"
+  },
+  "outcome": "p14_frozen_evaluation_complete",
+  "parent_invalid_run_id": "P14_FROZEN_EVALUATION_20260727T181722Z",
+  "post_result_tuning": false,
+  "prediction_modification": false,
+  "predictions_freeze_hash": "3612c3f6889a9a05c87d507f42bc748888d386547ab0f43eeae15ee2fd920f2e",
+  "preserved_base_scorer_closeout_hashes": {
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/history/same_run_base_scorer/P14_FROZEN_EVALUATION_RESULT.base_scorer.json": "b7dd6798b6317349cf32f455a622ecc835bf7855d7d488ee70ffbe106fee55ac",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/history/same_run_base_scorer/P14_FROZEN_EVALUATION_RESULT.base_scorer.md": "7eb690cd08f027e38a2ebf37c99eb37b55da9323ab4c7fbb28419ea97bd1a31a",
+    "research/v3_5/product_query_set_v1/p14_frozen_evaluation/history/same_run_base_scorer/P14_FROZEN_RESULT_FREEZE_SEAL.base_scorer.json": "1d87f0d0d2fac11f4710a41c2034c0deb25e81bb446134f55802aca016f53dc4"
+  },
+  "provider_recall": false,
+  "replacement_freeze_barrier_history_hashes": {
+    "invalid_report": "60c69cb70680ef0ffada464a2d98b5baba31792624b626c3eee0e2d2d388f2aa",
+    "invalid_seal": "34ca19631413e3fffc5055368813c7e6528f7486f91c9d33e28ba01cdc456cea"
+  },
+  "replacement_manifest_hash": "3d09dd34a62bf4470a7d47cdee753fb68507910b5588f056c3cd3f0f51fda9da",
+  "replacement_run_id": "P14_REPLACEMENT_FROZEN_EVALUATION_20260727T184443+0000",
+  "runtime_seal_hash": "65ebb99d53c6025d63177e5c0c131ee35f7f5a987de0e42ec8db7ab79dc6dbb4",
+  "same_run_resume_audit_hash": "05db24ed58c81d58ebfd1b6f32abf88a5b40929cadc051bb6144763c838c38e8",
+  "schema_version": "v3.5-b-p14-same-run-result-freeze-seal-v2",
+  "status": "formally_closed",
+  "validity_checks": {
+    "Frozen_Gold_opened_only_after_prediction_freeze": true,
+    "all_ten_original_case_artifacts_reused": true,
+    "configuration_hash_constant": true,
+    "freeze_barrier_correction_orchestration_only": true,
+    "frozen_component_hashes_unchanged": true,
+    "no_case_recomputed": true,
+    "no_prediction_modified": true,
+    "no_provider_recall": true,
+    "original_invalid_run_preserved": true,
+    "predictions_freeze_valid": true,
+    "replacement_run_id_unchanged": true,
+    "scorer_and_projection_hashes_valid": true
+  }
+}

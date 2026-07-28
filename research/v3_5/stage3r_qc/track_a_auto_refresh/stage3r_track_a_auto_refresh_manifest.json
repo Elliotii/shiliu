@@ -1,0 +1,120 @@
+{
+  "historical_explicit_lexical_track_a": {
+    "bundle_hit": "0/20",
+    "complete_gold_group_candidate_coverage": "0/20",
+    "target_video_recall": "0/20"
+  },
+  "historical_oracle_video_track_b": {
+    "bundle_hit": "2/20",
+    "complete_gold_group_candidate_coverage": "11/20",
+    "conditional_bundle_hit": "2/11"
+  },
+  "input_freeze": {
+    "case_count": 20,
+    "mode_omitted": true,
+    "uses_original_queries": true
+  },
+  "metrics": {
+    "bundle_hit": {
+      "denominator": 20,
+      "numerator": 1,
+      "rate": 0.05
+    },
+    "complete_gold_group_candidate_coverage": {
+      "denominator": 20,
+      "numerator": 11,
+      "rate": 0.55
+    },
+    "conditional_builder_coverage_given_target_video_retrieved": {
+      "denominator": 20,
+      "numerator": 11,
+      "rate": 0.55
+    },
+    "conditional_bundle_hit_given_complete_candidate_group": {
+      "denominator": 11,
+      "numerator": 1,
+      "rate": 0.09090909090909091
+    },
+    "empty_result_count": 0,
+    "evidence_bearing_cases": 20,
+    "failure_attribution": {
+      "blocked_identity_or_runtime_failure": 0,
+      "candidate_builder_failure": 9,
+      "deterministic_selector_failure": 10,
+      "end_to_end_bundle_hit": 1,
+      "retrieval_failure": 0
+    },
+    "router_distribution": {
+      "dense": 0,
+      "hybrid": 20,
+      "lexical": 0,
+      "other": 0
+    },
+    "router_miss_case_ids": [],
+    "router_miss_count": 0,
+    "target_video_rank": {
+      "miss": 0,
+      "rank_1": 15,
+      "rank_1_to_10": 0,
+      "rank_1_to_3": 4,
+      "rank_1_to_5": 1
+    },
+    "target_video_recall": {
+      "denominator": 20,
+      "numerator": 20,
+      "rate": 1.0
+    }
+  },
+  "runner_version": "v3.5-stage3r-track-a-auto-refresh-v1",
+  "runtime_identity": {
+    "auto_router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "candidate_builder_normalization_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+    "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+    "chunk_version": "v3.5-search-candidate-v1",
+    "declared_auto_router_version": "v3-search-planner-auto-v1",
+    "dense_provider": "v3-qwen3-embedding-provider-v1",
+    "deterministic_selector_version": "v3.5-deterministic-fine-selector-v1",
+    "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+    "filters": {},
+    "hybrid_rrf_version": "v3-stage2-rrf-v1",
+    "index": {
+      "chunk_count": 1412,
+      "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+      "embedding_dimension": 512,
+      "embedding_index_available": true,
+      "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+      "embedding_model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+      "embedding_provider": "v3-qwen3-embedding-provider-v1",
+      "embedding_vector_count": 1555,
+      "index_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+      "index_sha256_or_manifest_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+      "index_version": "v3-stage1-lexical-v1",
+      "projection_version": "v3-dense-projection-qwen-v1",
+      "source_snapshot_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+      "video_count": 143
+    },
+    "index_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "lexical_version": "v3-stage1-lexical-v1",
+    "raw_top_k": 50,
+    "scope": "all",
+    "selector_policy_version": "v3.5-deterministic-fine-selector-v1",
+    "snapshot_identity": "20260720T094346Z_c7663365",
+    "top_k": 10
+  },
+  "runtime_usage": {
+    "candidate_builder_calls": 20,
+    "dense_effective_calls": 0,
+    "deterministic_selector_calls": 20,
+    "external_llm_calls": 0,
+    "external_network_calls": 0,
+    "final_answer_calls": 0,
+    "heldout_accessed": false,
+    "hybrid_effective_calls": 20,
+    "lexical_effective_calls": 0,
+    "product_search_calls": 20,
+    "router_calls": 20,
+    "structured_llm_selector_calls": 0,
+    "sufficiency_judge_calls": 0
+  },
+  "status": "complete"
+}

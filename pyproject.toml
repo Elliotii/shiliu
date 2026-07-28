@@ -15,6 +15,7 @@ dependencies = [
   "jinja2>=3.1,<4",
   "keyring>=25,<26",
   "markdown>=3.7,<4",
+  "openai>=2,<3",
   "pydantic>=2.9,<3",
   "tomli>=2,<3; python_version < '3.11'",
   "uvicorn>=0.30,<1",
@@ -38,4 +39,9 @@ packages = ["src/shiliu"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -m 'not external_artifact and not live_provider'"
+markers = [
+  "external_artifact: requires an intentionally external historical artifact or workspace",
+  "live_provider: requires live credentials and a networked model provider",
+  "historical_contract: preserved historical assertion excluded from the current deterministic baseline",
+]

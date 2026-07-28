@@ -1,0 +1,50 @@
+{
+  "audit_name": "Shiliu V3.5-B F1A Preimplementation Recovery Audit",
+  "schema_version": "v3.5-b-f1a-preimplementation-recovery-v1",
+  "incident": {
+    "prior_session_closed_or_marked_unusable": true,
+    "semantic_frozen_records_displayed": false,
+    "frozen_gold_modified": false,
+    "builder_or_design_influenced_by_frozen_content": false
+  },
+  "reclassification": {
+    "invalid_preimplementation_attempt": true,
+    "prior_attempt_reusable": false,
+    "major_cycles_used": 0,
+    "major_cycles_remaining": 1,
+    "major_cycle_1_restart_authorized": true,
+    "restart_is_not_second_cycle": true,
+    "second_major_cycle_authorized": false
+  },
+  "filesystem": {
+    "default_deny_policy_frozen": true,
+    "repository_recursive_search_forbidden": true,
+    "frozen_path_patterns_forbidden": true,
+    "missing_exact_path_blocks": true
+  },
+  "scope": {
+    "builder_changed": false,
+    "test_behavior_changed": false,
+    "implementation_started": false,
+    "implementation_freeze_seal_generated": false,
+    "development_scored_runs": 0,
+    "stress_scored_runs": 0,
+    "prediction_or_scoring_rerun": false,
+    "frozen_gold_opened_in_recovery_session": false,
+    "query_changed": false,
+    "split_changed": false,
+    "development_gold_changed": false,
+    "frozen_gold_changed": false,
+    "f1b_started": false,
+    "stage4_started": false
+  },
+  "unchanged_authorities": {
+    "p9_decision": "execute",
+    "active_design": "adaptive_bounded_coverage_swap_v1",
+    "current_builder": "stage3b-acronym-w3.5-v1",
+    "design_changed": false,
+    "acceptance_thresholds_changed": false,
+    "f1b_authorized": false,
+    "stage4_started": false
+  }
+}

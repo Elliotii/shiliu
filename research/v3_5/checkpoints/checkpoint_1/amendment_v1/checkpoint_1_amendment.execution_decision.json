@@ -1,0 +1,27 @@
+{
+  "Checkpoint_1_amendment": {
+    "status": "execution_candidate_ready"
+  },
+  "F1A_authorized": false,
+  "F1A_entry_signal": true,
+  "F1B_authorized": false,
+  "P8_prediction_set": {
+    "status": "valid_and_frozen"
+  },
+  "P8_scoring_amendment": {
+    "current_version": "P8_SCORING_AMENDMENT_V1",
+    "scoring_hash_root": "54bc35083f4410ace027452b64fc2d22432111be5a2036c0ce245e6319849795",
+    "status": "complete_execution_candidate"
+  },
+  "P9": {
+    "restart_readiness": true,
+    "restarted": false,
+    "status": "blocked_pending_v3_5_b_acceptance"
+  },
+  "Stage4_started": false,
+  "acceptance_status": "pending_v3_5_b_review",
+  "execution_status": "complete",
+  "original_checkpoint_derived_findings": "superseded",
+  "original_scoring_status": "superseded_by_scoring_amendment",
+  "recompute_scoring_again": false
+}

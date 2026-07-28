@@ -1,0 +1,19 @@
+{
+  "action_family": "none",
+  "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+  "evaluation_track": "frozen_v3_end_to_end",
+  "evidence_bundle_identity": "bundle_826e551c2b3e81542458ac2f1361587f1fd0e94d6d893b80e71902ede3eebc82",
+  "evidence_candidate_set_identity": "candidate_set_6320b64da5c114ac4cf853d4e120e6e5f52c042db7d4b460189b729646188c71",
+  "evidence_resolution_status": "resolved",
+  "failure_attribution": null,
+  "gate_outcome": "judge_eligible",
+  "gold_opened_after_prediction": true,
+  "judge_input_adequate": true,
+  "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+  "operational_reason": null,
+  "query_identity": "Q03",
+  "search_candidate_set_identity": "36c22f065d5b556472a122e72805b3aebce7b49fad790d97d73e4234e22e7675",
+  "selector_version": "v3.5-deterministic-fine-selector-v1",
+  "semantic_judge_required": true,
+  "terminal_sufficiency_decision_id": null
+}

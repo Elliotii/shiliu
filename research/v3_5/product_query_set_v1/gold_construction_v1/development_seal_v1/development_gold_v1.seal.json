@@ -1,0 +1,38 @@
+{
+  "acceptance_authority": "V3.5-B",
+  "canonical_query_id_set_serialization": "UTF-8, lexicographically sorted query IDs, one per line, final LF",
+  "canonical_query_id_set_sha256": "8bbee75b95d995e3b9b91ea73ceff43d58371f3e4ca022c9c92084f2d0c45b56",
+  "evidence_span_count": 41,
+  "execution_authority": "Codex",
+  "gold_protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "immutability": {
+    "in_place_edit_forbidden": true,
+    "semantic_changes_require_versioned_amendment_or_new_gold_version": true
+  },
+  "mechanical_validation": {
+    "cross_object": "passed",
+    "evidence_replay": "passed",
+    "schemas": "passed"
+  },
+  "query_count": 14,
+  "review_status": {
+    "pending": 0,
+    "reviewed_agreement": 13,
+    "reviewed_reconciled": 1
+  },
+  "seal_version": "DEVELOPMENT_GOLD_V1",
+  "sealed_at": "2026-07-26T13:49:36.538473Z",
+  "sealed_file_hashes": {
+    "product_evidence_gold.development.v1.sealed.jsonl": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "product_retrieval_gold.development.v1.sealed.jsonl": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "product_sufficiency_gold.development.v1.sealed.jsonl": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+    "reviewed_case_status.development.v1.sealed.jsonl": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+  },
+  "source_candidate_hashes": {
+    "product_evidence_gold.development.reviewed.jsonl": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "product_retrieval_gold.development.reviewed.jsonl": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "product_sufficiency_gold.development.reviewed.jsonl": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+    "reviewed_case_status.jsonl": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+  },
+  "status": "sealed_execution_candidate"
+}

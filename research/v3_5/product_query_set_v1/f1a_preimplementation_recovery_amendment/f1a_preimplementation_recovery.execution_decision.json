@@ -1,0 +1,29 @@
+{
+  "decision_name": "Shiliu V3.5-B F1A Preimplementation Recovery Execution Decision",
+  "schema_version": "v3.5-b-f1a-preimplementation-recovery-v1",
+  "execution_status": "complete",
+  "acceptance_status": "pending_v3_5_b_review",
+  "recovery_amendment_status": "execution_candidate_ready",
+  "f1a": {
+    "previous_attempt": "invalid_preimplementation_attempt",
+    "previous_attempt_reusable": false,
+    "prior_session_must_close": true,
+    "major_cycles_used": 0,
+    "major_cycles_remaining": 1,
+    "major_cycle_1_restart_authorized": true,
+    "restart_is_second_cycle": false,
+    "second_major_cycle_authorized": false,
+    "implementation_authorized": true,
+    "implementation_started": false,
+    "next_execution_requires_new_session": true
+  },
+  "next_formal_step": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "p9_decision": "execute",
+  "active_design": "adaptive_bounded_coverage_swap_v1",
+  "current_builder": "stage3b-acronym-w3.5-v1",
+  "design_changed": false,
+  "acceptance_thresholds_changed": false,
+  "f1b_authorized": false,
+  "stage4_started": false,
+  "stop_after_recovery_amendment": true
+}

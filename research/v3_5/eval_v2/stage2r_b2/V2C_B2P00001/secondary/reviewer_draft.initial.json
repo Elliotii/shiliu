@@ -1,0 +1,26 @@
+{
+  "boundary_notes": [
+    "The transcript discusses AI agent development, testing and verification methodology, but never mentions RAG (Retrieval-Augmented Generation)."
+  ],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [],
+  "missing_aspect_indices": [
+    0
+  ],
+  "optional_context_spans": [],
+  "reason_codes": [
+    "no_mention_of_RAG"
+  ],
+  "required_aspects": [
+    {
+      "query_anchor_texts": [
+        "RAG"
+      ],
+      "text": "视频原字幕包含对RAG的实质讨论"
+    }
+  ],
+  "required_spans": [],
+  "status": "insufficient",
+  "supported_aspect_indices": []
+}

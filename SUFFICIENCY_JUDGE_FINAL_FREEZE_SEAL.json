@@ -1,0 +1,96 @@
+{
+  "Development_Sufficiency_Gold_hashes": {
+    "sha256": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "Development_input_hashes": {
+    "track_a": "1eec91410984f3c608d63cc985ca8ac8022ad1b350a61f644fd4f3b40ce7d512",
+    "track_b": "25e362e8cb5c0e4965a2b296fc88ef98d2872636b5897c48ddaec16f8242d355",
+    "track_c": "547026b58b7eea055ea1e793982ffe9cc8c0031fc8a994b725bf740770b4c5e2"
+  },
+  "Frozen_Evaluation_accessed": false,
+  "compatible_schema_patch_hash_if_any": "5b399dbf2dbd1ba0340a3d738218517738921342f38ce6e410be04bf64095a84",
+  "confidence_policy": {
+    "meaning": "confidence that the selected four-state boundary is correct",
+    "must_not_substitute_for_status": true,
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  "final_prediction_hashes": {
+    "track_a": "b56462f928b647354428d88eae17022438230d2645ff27b3ead33e5e303715ab",
+    "track_b": "749aa37197194a4f4b68d2d62021eeff1b3ff301fe0906cba9c95760b8fa8a9a",
+    "track_c": "88815bb5cd2d9f519fe0cab0b7d22ad79c9dea676e0521a0b3cd9acfc8e09d3f"
+  },
+  "final_status": "stage4b_pass_with_documented_limitations",
+  "formal_upstream_hashes": {
+    "Evidence_Identity_Contract_V1_hashes": {
+      "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "file_count": 4,
+      "root_sha256": "0b65d3bee751b3f1ca466b2bfe4e6984ef4d48a2319eb4a0fa6e99415a0fbb08"
+    },
+    "formal_builder_hashes": {
+      "file_count": 2,
+      "root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1"
+    },
+    "formal_selector_hashes": {
+      "file_count": 1,
+      "root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67"
+    },
+    "identity_contract_sha256": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "stage4a_freeze_sha256": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c"
+  },
+  "implementation_hashes": {
+    "file_count": 2,
+    "files": {
+      "research/v3_5/product_query_set_v1/stage4b_incremental/run_stage4b.py": "f067b96d41876f7f1fb628e275f8484d8837627b9ab68e5d1bec72dc02dbf3ef",
+      "src/shiliu/eval_v3_5/stage4b.py": "55cd6811b0bb4e801a4f499ea0ea3b965db33323f7b2740f0ebb237d6aa687c9"
+    },
+    "root_sha256": "7f46e4fea9c4854132fb0badb6aebcfbc976b90ad2f364d129e212054a4caf4a"
+  },
+  "initial_prediction_hashes": {
+    "track_a": "b56462f928b647354428d88eae17022438230d2645ff27b3ead33e5e303715ab",
+    "track_b": "749aa37197194a4f4b68d2d62021eeff1b3ff301fe0906cba9c95760b8fa8a9a",
+    "track_c": "88815bb5cd2d9f519fe0cab0b7d22ad79c9dea676e0521a0b3cd9acfc8e09d3f"
+  },
+  "judge_model": "gpt-5.6-terra",
+  "judge_provider": "openai-codex-cli",
+  "language_policy": {
+    "judge_query_and_evidence_semantically_across_languages": true,
+    "language_difference_alone_is_not_a_verification_blocker": true
+  },
+  "parse_failure_policy": "retry_once_then_fail_closed_without_prediction",
+  "policy_hash": "7bbed36f11ff5d7d0978db039d7471b1028b813da26aec05c4c094ee84b64042",
+  "prompt_hash": "4d87dd06ab3362ae7ffdeae2b4d82e2accc0d10db8dd69cdeb3928f9000f898c",
+  "reason_code_policy": [
+    "SJ_ALL_MATERIAL_NEEDS_SUPPORTED",
+    "SJ_AUTHORITATIVE_VERIFICATION_BLOCKED",
+    "SJ_BLOCKING_CONFLICT",
+    "SJ_CROSS_LANGUAGE_SUPPORT",
+    "SJ_MEANINGFUL_SUBSET_WITH_MATERIAL_GAP",
+    "SJ_REVIEWABLE_WITHOUT_USABLE_MAIN_ANSWER"
+  ],
+  "retry_policy": {
+    "maximum_retries": 1,
+    "retry_on": [
+      "provider_failure",
+      "parse_failure",
+      "validation_failure"
+    ]
+  },
+  "reused_decision_contract_hash": "cf23071972bb34580dfe3ed075697f689b0dbeb67b3d0468df9d9141cc3477aa",
+  "reused_request_contract_hash": "93ff095b2d01062194c1a663e06bd37ae57dd9f3e3fa5edda11c18db4a0a594c",
+  "schema_version": "v3.5-sufficiency-judge-final-freeze-seal-v1",
+  "structured_output_config": "codex_exec_json_schema",
+  "substantive_generic_revisions_used": 0,
+  "temperature": 0,
+  "test_hashes": {
+    "file_count": 3,
+    "files": {
+      "tests/test_stage4b_semantic_judge.py": "dbacc49f3311d50072c2d818a172613280613c3958bd86b862b7727a85c700d3",
+      "tests/test_v3_5_stage4a_eval.py": "611061c400bf74085f0d2887c2e262ca9ab895a531b22b5991dc9474bdaf0a6e",
+      "tests/test_v3_5_stage4a_gate.py": "c414dd5265bfc8c01c7a5e562d30955826ee0dcb12e98d879639dfaf4a47081e"
+    },
+    "root_sha256": "d18ca110ea555a70c1c047d48f066bff873c0fa4a6e7e52d9e44c89deeb538f9"
+  }
+}

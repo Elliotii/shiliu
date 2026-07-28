@@ -1,0 +1,9 @@
+bundle_id,candidate_builder_case_coverage,candidate_builder_case_covered,candidate_character_budget,candidate_count,candidate_token_budget,case_id,complete_gold_group_count,complete_gold_groups_covered,deterministic_bundle_hit_at_1,failure_category,gold_segment_recall_at_1,gold_segment_recall_at_3,gold_segment_recall_at_5,median_start_time_error,predicted_gold_union_duration_ratio,required_span_count,required_spans_covered,selected_bundle_candidate_count,selected_bundle_union_duration,target_video_reachable,transcript_chunk_reachable,video_candidate_reachable
+bundle_16d07a1f6ecd88feb9e6b6d35975dae67d1c88372d5943bf653c49470fcd3ac8,True,True,24044,283,19607,CASE_001,1,1,True,,0.2,1.0,1.0,7.980000000000018,8.839590443685989,1,1,6,103.60000000000002,True,True,True
+bundle_826e551c2b3e81542458ac2f1361587f1fd0e94d6d893b80e71902ede3eebc82,True,True,5531,64,4459,CASE_002,1,1,False,selector_failure,0.0,0.043478260869565216,0.043478260869565216,14.059999999999945,1.494115801035619,1,1,6,95.22000000000003,True,False,True
+,False,False,0,0,0,CASE_003,1,0,False,upstream_retrieval_failure,0.0,0.0,0.0,,0.0,1,0,0,0.0,False,False,False
+,False,False,0,0,0,CASE_005,1,0,False,upstream_retrieval_failure,0.0,0.0,0.0,,0.0,4,0,0,0.0,False,False,False
+bundle_16d07a1f6ecd88feb9e6b6d35975dae67d1c88372d5943bf653c49470fcd3ac8,True,,,,,CASE_012,,,,,,,,,,,,,,True,True,False
+bundle_826e551c2b3e81542458ac2f1361587f1fd0e94d6d893b80e71902ede3eebc82,True,,,,,CASE_013,,,,,,,,,,,,,,False,False,False
+,False,,,,,CASE_015,,,,upstream_retrieval_failure,,,,,,,,,,False,False,False
+,False,,,,,CASE_017,,,,upstream_retrieval_failure,,,,,,,,,,False,False,False

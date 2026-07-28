@@ -1,0 +1,26 @@
+{
+  "access_scope": {
+    "development_gold_opened": false,
+    "existing_gold_opened": false,
+    "product_pipeline_calls": 0,
+    "product_prediction_opened": false,
+    "retrieval_builder_selector_gate_judge_outputs_opened": false,
+    "reviewer_output_opened": false,
+    "scope_violation_count": 0
+  },
+  "audit_version": "FROZEN_INITIAL_ANNOTATION_AUDIT_V1",
+  "batch_count": 5,
+  "case_count": 10,
+  "downstream_failure_codes_in_gold": 0,
+  "evidence_replay_failures": 0,
+  "evidence_replay_status": "passed",
+  "evidence_span_replay_count": 37,
+  "full_authoritative_transcript_reviews": 10,
+  "input_identity_status": "passed",
+  "manifest_sha256": "9938445d5dc8db5e50facf443aaece69c03e061f503b6d38395bbf85a7571fd4",
+  "navigation_sources_used_as_gold_evidence": 0,
+  "p6_cross_object_validation": "passed",
+  "p6_schema_validation": "passed",
+  "source_identity_bindings": 10,
+  "unit_id": "frozen_annotator_A"
+}

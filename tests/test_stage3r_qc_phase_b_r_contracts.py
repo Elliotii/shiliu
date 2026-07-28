@@ -12,7 +12,6 @@ from shiliu.eval_v3_5.stage3r_qc_phase_b_r import (
     classify_retrieval_mode,
     effective_runtime_config,
     inspect_index,
-    resolve_product_default_path,
     resolve_view_reuse,
     runtime_configs_equivalent,
     select_frozen_known_positive,
@@ -66,8 +65,8 @@ def test_stage3r_qc_phase_b_r_does_not_rerun_lexical():
     assert usage["lexical"]["new_calls"] == 0
 
 
-def test_stage3r_qc_phase_b_r_resolves_actual_product_default_path():
-    resolution = resolve_product_default_path(ROOT)
+def test_stage3r_qc_phase_b_r_records_its_historical_product_default_path():
+    resolution = load_json("product_path/product_default_resolution.json")
     assert resolution["effective_search_request_mode"] == "lexical"
     assert resolution["checks"] and all(resolution["checks"].values())
 

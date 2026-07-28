@@ -1,0 +1,70 @@
+{
+  "boundary_notes": [
+    "将前后端拆分并把后端调用做成命令行控制的方案，与随后对 MCP 在授权、边缘情况和效率方面的比较合并判读，构成对 CLI 相比 MCP 优势的完整解释。"
+  ],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [
+    {
+      "alternative_expression_notes": "该组说明 CLI 方案通过前后端分离和命令行控制实现独立运行，并明确比较 MCP 在授权、边缘情况及效率上不如该方案直接、快速。",
+      "required_aspect_indices": [
+        0
+      ],
+      "required_span_indices": [
+        0,
+        1
+      ]
+    }
+  ],
+  "missing_aspect_indices": [],
+  "optional_context_spans": [],
+  "reason_codes": [
+    "COMPARATIVE_EXPLANATION_SUPPORTED",
+    "CLI_ADVANTAGE_OVER_MCP_SUPPORTED"
+  ],
+  "required_aspects": [
+    {
+      "query_anchor_texts": [
+        "CLI",
+        "相比",
+        "MCP",
+        "优势"
+      ],
+      "text": "解释 CLI 相比 MCP 的优势，即保留 CLI 与 MCP 两个对象及其优势比较关系。"
+    }
+  ],
+  "required_spans": [
+    {
+      "segment_ids": [
+        "BV1o87764Ebs_seg_000154",
+        "BV1o87764Ebs_seg_000155",
+        "BV1o87764Ebs_seg_000156",
+        "BV1o87764Ebs_seg_000157",
+        "BV1o87764Ebs_seg_000158",
+        "BV1o87764Ebs_seg_000159"
+      ],
+      "supported_aspect_indices": [
+        0
+      ]
+    },
+    {
+      "segment_ids": [
+        "BV1o87764Ebs_seg_000161",
+        "BV1o87764Ebs_seg_000162",
+        "BV1o87764Ebs_seg_000163",
+        "BV1o87764Ebs_seg_000164",
+        "BV1o87764Ebs_seg_000165",
+        "BV1o87764Ebs_seg_000166",
+        "BV1o87764Ebs_seg_000167",
+        "BV1o87764Ebs_seg_000168"
+      ],
+      "supported_aspect_indices": [
+        0
+      ]
+    }
+  ],
+  "status": "sufficient",
+  "supported_aspect_indices": [
+    0
+  ]
+}

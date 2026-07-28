@@ -1,0 +1,19 @@
+{
+  "candidate_builder_run": false,
+  "current_state_authority_notice_added": true,
+  "embedding_run": false,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "formal_handoff_files_generated": false,
+  "frozen_evaluation_accessed": false,
+  "historical_stage_assets_modified": false,
+  "main_session_review_packet_generated": false,
+  "original_h0_assets_modified": false,
+  "production_code_modified": false,
+  "r1_assets_modified": false,
+  "retrieval_run": false,
+  "selector_run": false,
+  "stage3r_pqs_b0_accepted": false,
+  "stage3r_pqs_b0_executed": false,
+  "sufficiency_judge_run": false
+}

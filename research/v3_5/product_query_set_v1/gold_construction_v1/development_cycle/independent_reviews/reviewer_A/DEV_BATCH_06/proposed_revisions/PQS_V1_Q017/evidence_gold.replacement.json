@@ -1,0 +1,74 @@
+{
+  "acceptable_evidence_groups": [],
+  "acceptable_evidence_groups_logic": "OR",
+  "aspect_evidence_options": [
+    {
+      "alternative_sets": [
+        {
+          "required_span_ids": [
+            "PQS_V1_Q017_SPAN_01"
+          ],
+          "set_id": "PQS_V1_Q017_A2_SET_01"
+        }
+      ],
+      "alternative_sets_between": "OR",
+      "aspect_id": "PQS_V1_Q017_A2",
+      "required_spans_within_set": "AND"
+    }
+  ],
+  "builder_or_retrieval_output_limits_gold": false,
+  "gold_version": "PQS_V1_DEVELOPMENT_GOLD_REVIEWER_A_PROPOSED_REVISION_V1",
+  "optional_context_spans": [],
+  "query_id": "PQS_V1_Q017",
+  "reason_codes": [
+    "EG_MATERIAL_ASPECT_MISSING"
+  ],
+  "required_aspects": [
+    {
+      "aspect_id": "PQS_V1_Q017_A1",
+      "description": "给出 Step Back 与 HyDE 各自适用条件以及二者的选择规则。",
+      "materiality": "material",
+      "query_text_basis": "“Step Back 和 HyDE 查询改写应该怎么选”"
+    },
+    {
+      "aspect_id": "PQS_V1_Q017_A2",
+      "description": "确认相关性不足会触发重写，且系统存在 Step Back、HyDE 与路由选择。",
+      "materiality": "supporting",
+      "query_text_basis": "“在相关性不足时”"
+    }
+  ],
+  "review_state": "independent_review_complete",
+  "source_review_state": {
+    "authoritative_sources_reviewable": true,
+    "full_authoritative_transcript_reviewed": true,
+    "navigation_sources_used_as_gold_evidence": false
+  },
+  "span_registry": [
+    {
+      "end_time": 139.04,
+      "quote_text": "假如这里评估相关性 它不通过的话 他会进行一次额查询重写也是有三种策略的 对他进行查回查询重写的呃 这个我在我的项目里也是写的 有 比如说呃就这两种 一种是steve back 一种是这个假设文档嵌入两种方法 然后也是通过一个路由选择的",
+      "segment_identity_version": "v3.5-source-identity-v2",
+      "segment_ids": [
+        "segment_b10032213556d55208de0e68ab17fe4aaee9ed3bca5873664f2e2b496bc14c42",
+        "segment_6667511f586690df7a54099e975a8a5b1c0af11e76e59ada3e9427dc740affe9",
+        "segment_efcb0b03383bdbd899497db124c2959a6683dead5984fdd8ed97e270a22d2e2e",
+        "segment_8bff8597668444bf79eca941592b5354360e65405601a251fac63109e71507e9",
+        "segment_b517d2a80fd07d94db3cef0c04f73d1b91fc0a8b62610a27eb8aae2baef5b56a",
+        "segment_775ac14b821d15551de961eac305e9cd6313e24c600b783d6771c3a22fb59eca",
+        "segment_455950411de86f5870b7edfd6b65d570f7ea3a0b4deebbef2deb73745d60ee5f",
+        "segment_8c54885e0191911159193a0a5a7d899efbf69bc2721981e291770a6f0475c299",
+        "segment_105dfec13f7637e673a48c5c7302ffe1b150f3dece5f967300ad409324b1f80a",
+        "segment_9a9c55fd60612ecf4de0257a47087bcc757d03b6a36f65120196052f0588a278"
+      ],
+      "source_language": "zh",
+      "source_quality_flag": "clean",
+      "source_type": "official_subtitle",
+      "source_version": "c2928145f2f1394392778962f1ac9aaff82cf19bd803933569e5aeea56083f44",
+      "span_id": "PQS_V1_Q017_SPAN_01",
+      "start_time": 110.8,
+      "timeline_run_id": "timeline_run_6b8a0258a37f58848d5d29acf181b2320670a9321cc7e196234719393d1dfcbf",
+      "translated_gloss": null,
+      "video_id": "bilibili:BV1vQwJzTEdz"
+    }
+  ]
+}

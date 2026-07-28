@@ -1,0 +1,48 @@
+{
+  "aspect_metrics": {
+    "reason": "Frozen Judge emits query-facing free text; the existing Stage 4B contract does not semantically align it to Gold aspect identifiers with a second scorer.",
+    "status": "not_applicable"
+  },
+  "conservative_overclaim_rate": 0.0,
+  "evidence_id_validity_rate": 1.0,
+  "exact_four_state_accuracy": 0.2,
+  "four_state_confusion_matrix": {
+    "insufficient": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 0,
+      "unverifiable": 0
+    },
+    "partial": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 0,
+      "unverifiable": 0
+    },
+    "sufficient": {
+      "insufficient": 1,
+      "partial": 2,
+      "sufficient": 2,
+      "unverifiable": 5
+    },
+    "unverifiable": {
+      "insufficient": 0,
+      "partial": 0,
+      "sufficient": 0,
+      "unverifiable": 0
+    }
+  },
+  "insufficient_precision": 0.0,
+  "insufficient_recall": null,
+  "partial_precision": 0.0,
+  "partial_recall": null,
+  "schema_validity_rate": 1.0,
+  "schema_version": "v3.5-stage4b-frozen-sufficiency-metrics-v1",
+  "severe_false_sufficient_count": 0,
+  "severe_false_unverifiable_count": 5,
+  "sufficient_precision": 1.0,
+  "sufficient_recall": 0.2,
+  "trace_completeness_rate": 1.0,
+  "unverifiable_precision": 0.0,
+  "unverifiable_recall": null
+}

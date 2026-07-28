@@ -1,0 +1,1814 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "RAG 在线质量评测",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "RAG 在线质量评测",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.7592566013336182,
+      "end_time": 353.05,
+      "excerpt": "还需要根据一个业务的去tag去打分 比方说你是医疗问答场景 你可以手动控制什么样的tag 他的分数更高 也就是你觉得你觉得应该什么东西 返回的频率更高 就是你可以手动去控制 其实就有点类似于推荐系统的这种 手动去给自己的分数做调整 就是真实的企业落地会考虑的一个问题 比如一些这种呃你不希望频繁被召回 给用户展示的东西 你就可以让他反而分数更低一点 都可以融合到这些东西 都可以融合到最后的那个react的计算中 然后其次就是一个系统的评测 线上数据的反馈回流 跑出真实的知识飞轮 我觉得可信评测这块就是一个rag的结果 闭环的最后一环呃 一个真实的rig落地",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 234.33,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_393af3d662972f58d4121823852689b5",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.7590697407722473,
+      "end_time": 1368.56,
+      "excerpt": "它不能只是做这种简单分类 而是需要去判断复杂的原因 它的分类就包括这种 它会对这种你上面得到这些负反馈去做分类 它会把它分为包括知识缺失或者回答有错误 或者数据错误 我就不练了 下面这些包括这些问题去做一个分类 然后你通过这些分类 你的你的运营可以对这些分类做检测 查看这个是否是真实存在的问题 然后再作为下一次回归测试的这种bad case的 这种评测机什么的 保证你这个系统是越用越好的 一套可复用的AH条件 rag的优化方法论 也就是以下经验 OK这个视频大概就是这些内容 然后我觉得一个真实的你 我觉得你现在做的一个react项目 应该至少包含一个评测",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 1285.26,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_b917c48e1a3bb102a6e7253c16e09ec8",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.7095898985862732,
+      "end_time": 121.2,
+      "excerpt": "做过AI产品的人都知道demo很好 上线崩了 每个人都觉得RAG两天就能搭完 但你搭的是demo 不是production 大家好 这里是LLM x factors 一个专注于拆解大语言模型时代 底层逻辑的频道 最近一个YC创业公司发布 引发了一场特别典型的争论 创始人说自建RAG掉了几周 效果不稳定 评论区一个工程师说两天就答完了 cursor数据显示 向量搜索精度高6~23个百分点 三方看似矛盾 其实在说三件不同的事 我们先快速了解一下这个产品到底做了什么 captain把RAG全链路变成一个API 给他S3桶或google drive地址 自动做文",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 2.6,
+      "subtitle_source": "ai",
+      "title": "Demo很爽，生产很难",
+      "unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_03f70bd4f1cec6ca4fb9099b5c00fc3f",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.6894329786300659,
+      "end_time": null,
+      "excerpt": "[Title] 如何优化你简历的RAG项目，工业级RAG项目是怎么做的 [Uploader] Stellar鱼 [Description] - [Summary Conclusion] 工业级RAG项目需在简历中呈现从问题发现、策略实施到指标验证的完整优化闭环，而非仅罗列技术栈，核心优化包括语义切分、多路检索、查询改写、排序加权及评测反馈飞轮。 [Summary Key Points] 简历中的RAG项目要突出“遇到什么问题→采用什么优化策略→达到什么业务指标”的闭环，而非简单堆砌技术栈。 RAG优化可拆分为入库阶段（数据清洗、语义切分、元数据打标）、检",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "video:bilibili:BV11wEb6uEwB:p1",
+      "unit_type": "video",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.6868573427200317,
+      "end_time": 821.01,
+      "excerpt": "他这个意思表达够不够明确 包括ogenttic rag中 他如果检索到的呛可回答的那种并不全面 还会做多次检索 生成多个query 就是更加灵活的一个rag 当然它可能会升牺牲一些实操性 但是它会能极大的保证那种正确知识的命中率 下面是一个系统中的取舍嘶 其次就是模型微调呃 这一块就是其实呃 比方说你的查询重写模块一般都是用一个小一 一般都是用一个小模型去做这样一个事情 而这样一个小模型 他的那种评测集和结果一般都是可以打标 打的比较固定的 就是你希望什么样的query 去命中什么样的chunk 和命中什么样的这种问子问题 这种情况就他的数据集比较确定的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 702.51,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_d72012964d580f8b66161fb429d0e849",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.6799321174621582,
+      "end_time": 237.51,
+      "excerpt": "搭完不等于上限 上限不等于稳定运行 两天能做到文本提取嵌入基础检索跑通demo 但生产及还需要增量索引 故障恢复延迟SLA权限控制 可观测性 这些加在一起才是真正的工作量 这就引出了今天真正想讨论的核心问题 demo到production之间的鸿沟 这不是RAG特有的问题 是整个AI工程反复出现的模式 每个环节单独看都简单组合在一起 需要持续稳定运行的时候 复杂度是指数级增长的 demo的成功会创造虚假自信 让你低估生产化的工作量 demo的容易恰恰是最大的陷阱 cos的数据也说明了这一点 向量搜索比grab精度高 6.5到23.5个百分点看似不大 但a",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 119.62,
+      "subtitle_source": "ai",
+      "title": "Demo很爽，生产很难",
+      "unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_afce57337ccb785d9f7b47c9b1ce07c4",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.6744710803031921,
+      "end_time": 586.67,
+      "excerpt": "它有三个作用 一个是识别它这个枪口的标签 另一个是可以定向去召回 这个枪口相关的知识呃 其次就是在RERANK的时候可以做一个加权计算 其次是一个冲突治理的部分 冲突治理应该是知识问答错误的重要来源 嗯我觉得冲突之冲突治理呃 一个rap系统 它在知识在向量化之后 它一般是定死定死的 然后很多人可能就忽略一个姿势的再处理 包括企业中落地 这种情况最常见一些旧文档呃 很很因为很多知识它是有时效性的 比如政策的变更 活动规则的变化 这种rag失效呀这种 所以一般真实的企业落地 它是会在那种场rag向量知识得到处理之后 还会再做一些二次检查 就比方说可能是一天一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 468.93,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_ad215855df703a8d16b4a22a79f8f1d8",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.6659519076347351,
+      "end_time": 236.06,
+      "excerpt": "但agent优先不是多agent 我们之前在字节dear flow 2.0那期已经聊过这条结论 ANTHROPIC自己实测多agent比普通对话少15倍 token比单agent还多近四倍 Cognition 2026年4月 不是出过follow up 说什么时候多agent能work吗 立场变了 没撤稿 只是软化原话 moi agent现在最能work的场景是single threaded right 加副agent只贡献智能 不直接动作翻译成人话 主线还是单agent负agent只插不动手 客服正好是这个pattern 所以不是争多agent 那具体",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 117.1,
+      "subtitle_source": "ai",
+      "title": "面试官问：怎么设计企业智能客服 Agent？",
+      "unit_id": "transcript_chunk:bilibili:BV1tM9UBSEdg:p1:chunk_502a3289be0df460fd1c5b5e22904b7d",
+      "unit_type": "transcript_chunk",
+      "uploader": "AI深度幻觉",
+      "video_id": 136
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.6659390926361084,
+      "end_time": 582.43,
+      "excerpt": "还有一些REDIS啊 还有一些数据库之类的 这三个文件就不是很重要 OK这个也是呃 然后呢这一块是RERANK的一个逻辑啊 RERANK呢就相当于是我们把呃 我们检测到的一些块儿 然后呢不经过向量切分 直接通过语义来判断 它和原来我们的query的一个 相关度是怎么样的 当然了 这里呢是需要调用API的 一个就是需要调用model的API啊 因为我们本地是没有下载这个东西的 就是我们直接把这个接口返回给他 然后呢就是调用它的那个接口 然后呢我们就能得到一个最后的一个排序 OK啊 然后这部分呢也是啊 就是我们把我们rag系统可能会用到的 一些工具 我们都给",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 467.28,
+      "subtitle_source": "ai",
+      "title": "[开源] RAG 项目框架及源码详解",
+      "unit_id": "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_0171f0e2944707b88f4f0e98282b11f0",
+      "unit_type": "transcript_chunk",
+      "uploader": "蹦跶波",
+      "video_id": 26
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.6655398607254028,
+      "end_time": null,
+      "excerpt": "[Title] [开源] Agentic RAG项目实战 [Uploader] 蹦跶波 [Description] 感觉传统RAG马上就要成为过时的Agent项目了，赶紧把这期视频出了 项目地址：https://github.com/icey1287/SuperMew ————未完待续———— [Summary Conclusion] 视频演示了一个名为SuperMew的开源Agentic RAG项目，通过查询重写、父子文档分块、工具集成等策略增强检索问答，并展示了其架构与核心流程。 [Summary Key Points] 项目实现Agentic RA",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "[开源] Agentic RAG项目实战",
+      "unit_id": "video:bilibili:BV1vQwJzTEdz:p1",
+      "unit_type": "video",
+      "uploader": "蹦跶波",
+      "video_id": 5
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.6638275980949402,
+      "end_time": 236.99,
+      "excerpt": "大家应该都会用GPT去做自己的简历优化 面试官也不会真的去看你的项目 面试官去很多人把自己的项目就写的比较呃 技术表写的写的很多 但是其实落地很少嗯 如果面试官判断你是否落地 大概率就靠这样一种闭环 包括你最后达到什么样的效果 为什么用这个技术 而不是为了学习而用 就是你真实的是去解决一个问题 因为面试官面试的本质 还是考察你解决特定问题的能力 而这个能力能从你遇到过什么样的问题 你如何思考解决方案的最后 最后再到如何闭环体现出来 然后这个视频会推荐给大家一些 你可以用在自己rag项目中的一些优化点 然后总体可以看成四以下四个部分 包括我对于rap的理解",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 117.36,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_7e21e65874dec49b0d3c064abd11effa",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.6633064150810242,
+      "end_time": 236.29,
+      "excerpt": "这就会带来很多问题 首先模型可能无法读取所有的内容 因为每个模型都只能存储一定量的信息 我们通常称这个量为上下文窗口大小 如果你的产品手册字数过多 超过了这个上下文窗口大小的话 模型就会读了 后面忘了 前面回答的准确率也就无法得到保障 除此之外 模型的推理成本也会很高 输入越多 成本越高 每次回答问题的时候都要带上一本厚厚的手册 那成本可想而知 不可能少了 最后模型的推理速度也会受到影响 输入越多 模型需要消化的内容就越多 模型的输出就会越慢 一本上百页的手册扔进来 那大概率会对模型的推理速度产生严重的影响 看来直接把文档丢给模型是行不通的 那我们是不是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 117.05,
+      "subtitle_source": "ai",
+      "title": "RAG 工作机制详解——一个高质量知识库背后的技术全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1JLN2z4EZQ:p1:chunk_56a682c288a4e9b5098f4b2d7653f569",
+      "unit_type": "transcript_chunk",
+      "uploader": "马克的技术工作坊",
+      "video_id": 77
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.6584619879722595,
+      "end_time": 469.95,
+      "excerpt": "你的向量的 这个生产 一个是知识的来源 比方说这里提到 可以通过用户的一些线上反馈的问题 agent的去判断这个问题的类型是怎样的 然后做一个知识的草稿归档 然后还有还有并不是所有问题都会被你的rap 重新检索插入这库中 而是会做一个二次的校验 真正有价值的知识才会做一个后续入库 做一个问答 这样就是保证你这样一个知识飞轮的一个基础 其次是一个呛壳优化呃 原始的一些做法 大概都是通过标题拆分以及递归切分 这种情况一般都是直接暴力的忽略语义 但是现在的一些升级的策略 就是通过LAM与E进行拆分 并且时刻去做一个那种数据的处理 过长的片段再做拆分 过短的片段",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 351.21,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_c4957fec396229e980b26e4259d52bd8",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.6583263874053955,
+      "end_time": 1169.77,
+      "excerpt": "你是需要一定的手段去包括这个 比如在企业中 就更需要这种手段去验证这个东西是可用的 也就是你这个目标知识一定要达到多少的 这种指标 他做的一些做法就是一个知识生产 然后其次就是语义切分 还是偏向于数据处理的这些部分 原数据增强去增强它召回的一个准确度 其次是冲突治理 也就是我刚刚提到这些部分 它是一个轮回 就你每次用户越问越用 他最后得到的一些反馈会回到这个系统中 它是一个用越用越好的这样一个飞轮 然后这一块就是他如果不采用这种可信验证 得到这些这种错误 我觉得这就是面试官面试的时候 都你都可以把这些东西提出来 告诉面试官 你是真实做过这个东西 而不是而",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 1051.41,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_0fd724a000f4bcc248bbc973e330ac5c",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.6505250930786133,
+      "end_time": null,
+      "excerpt": "[Title] [开源] RAG 项目框架及源码详解 [Uploader] 蹦跶波 [Description] 项目地址：https://github.com/icey1287/SuperMew [Summary Conclusion] 视频详细讲解了基于LangGraph的RAG项目SuperMew的核心架构、混合检索、父子文档三级切片以及裁判模型等实现细节。 [Summary Key Points] 使用LangGraph状态机构建问答流程，包含检索、裁判、查询重写与生成节点。 通过TF-IDF稀疏向量与密集向量混合检索，并采用RRF算法融合排序，提",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "[开源] RAG 项目框架及源码详解",
+      "unit_id": "video:bilibili:BV1wMQjBCEpZ:p1",
+      "unit_type": "video",
+      "uploader": "蹦跶波",
+      "video_id": 26
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.6456663608551025,
+      "end_time": 118.72,
+      "excerpt": "你是否想做一个靠谱的知识客服 或者是搭建一个能回答问题的知识库 那你就一定绕不开一个技术 Rag 它的全称是retrieval augmented generation 翻译过来就是检索增强生成 听起来挺高大上 但说白了也就这么两件事 先从资料库里检索相关的内容 再基于这些内容来生成答案 也就是说它先检索再生成 所以叫做检索增强生成 rag是目前最常用的AI问答方案之一 很多企业内的知识助手 智能客服用的都是这项技术 在本视频里 我将会为你介绍rag的实现原理 主要包括以下三个部分 首先我们将总体看一下rag的使用场景 和大致链路 让你对这门技术有个感性",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "RAG 工作机制详解——一个高质量知识库背后的技术全流程",
+      "unit_id": "transcript_chunk:bilibili:BV1JLN2z4EZQ:p1:chunk_da080a304bd25c7141eb58fa9da4b4bf",
+      "unit_type": "transcript_chunk",
+      "uploader": "马克的技术工作坊",
+      "video_id": 77
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.6403355598449707,
+      "end_time": null,
+      "excerpt": "[Title] RAG 工作机制详解——一个高质量知识库背后的技术全流程 [Uploader] 马克的技术工作坊 [Description] RAG 工作机制详解——一个高质量知识库背后的技术全流程 [Favorite Folders] 2026找工作学习",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "RAG 工作机制详解——一个高质量知识库背后的技术全流程",
+      "unit_id": "video:bilibili:BV1JLN2z4EZQ:p1",
+      "unit_type": "video",
+      "uploader": "马克的技术工作坊",
+      "video_id": 77
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.6322812438011169,
+      "end_time": 695.72,
+      "excerpt": "然后是关于RG 这也是很多企业内部在做的一件事情 主要是和知识库检索相关 比如说公司里面有很多内部文档 或者是一些业务知识库 这些内容呢模型本身是不知道的 而且也不可能全部塞在PRONT里面 那这时候就需要构建一个RIG服务 提问的时候呢 他会从知识库里检索出相关资料 让模型基于检索到的内容去回答 如果你想自己搭建一个比较完整的rh agent 可以看long uncha官方的build和rh agent 里面讲到两种比较常见的RAG流程 一种是比较传统的两部流程 先检索再进行生成 另一种呢是把检索当做是一个tour 让ASIAN的在需要的时候自己决定要",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 577.73,
+      "subtitle_source": "ai",
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f",
+      "unit_type": "transcript_chunk",
+      "uploader": "polebug23",
+      "video_id": 71
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.6308550238609314,
+      "end_time": null,
+      "excerpt": "[Title] Demo很爽，生产很难 [Uploader] LLM-X-生生不息版 [Description] “RAG两天就搭完了”和“调了几周还不稳定”，哪个才是真相？都对。前者说的是Demo，后者说的是Production。从Demo到生产，增量索引、权限控制、延迟SLA等工程挑战才是真正的门槛。通用RAG正快速commodity化，垂直领域的深度理解才是未来。 [Summary Conclusion] Demo到生产的鸿沟是AI工程最昂贵的认知盲区，通用RAG基础设施正快速商品化，垂直领域的深度理解才是长期壁垒。 [Summary Key Po",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "Demo很爽，生产很难",
+      "unit_id": "video:bilibili:BV17ZXpB4Ezi:p1",
+      "unit_type": "video",
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.6278983354568481,
+      "end_time": 3951.06,
+      "excerpt": "然后大家会发现是比较简单的 那么它主要做的是一个多轮长对话的一个事情 我们可以看一下他的分析啊 首先呢他会给一个样本标识 然后问到对列表 具体来说呢他会给很多的QA 现在他这个QA是57个 然后一个QA里面又包含几十个问答队 大概是做了这样的事情 evidence呢主要是证据来源 然后category是它的问题类比 最后我们可以看一下他的这个参数 然后他的问题类别主要包括这几 这四个 一个是单挑 一个是多跳 一个是食欲和这个开放语 那么我们可以看一下他的说明啊 我在这里就不做过多的讲解了 因为大家一看这个表格就明白了 那么评价指标呢主要是这些 大家可以简",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 3832.9,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_03a7025c257610a31d2a8a154c797f07",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.6213569641113281,
+      "end_time": 120.669,
+      "excerpt": "哈喽大家好啊 我是鱼呃 出这个视频呢 主要是因为这段时间也有收到一些 找我做简历辅导的同学的简历 然后发现大家很多有用rag去加入到自己的 自己的后端项目中 然后相当于是做一些A级的项目的这种拓展 然后但是发现大家写rap的时候 发现很多人都只写用rap实现什么什么 然后其实并没有做到一个 就是rag中间过程的一些优化的拆解 比方说很多人做这种知识库 然后只说用rag技术 然后基于long chain或者i know 去实现一个什么智能体 但其实并没有说自己在做rap过程中 遇到一些什么场景的问题 包括用到了什么样的优化策略呃 打个比方就是说比方说你发现",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 0.76,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_8c7c1ea30ccb03860da640c927bb1ab0",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.6206232309341431,
+      "end_time": 345.06,
+      "excerpt": "一个主要就是负责一个对话存储 还有一个呃总结提炼省token嘛 还有一个就是这个正常的输出以及流式输出 两种情况 主要就是现在就是这个流式输出了 正常输出已经呃太慢了 不太好不太好看 你输入一个输入一个那个查询 然后他一分钟之后才给你蹦出来的 结果不太不太美观对吧 然后API呢就是通过呃fast API 然后呢 去连接它的一个前后端的一个交互流程嘛 这个就是主程序了 接下来呢就是一个文档的一个加载 主要是涉及到那个三级文档的分块啊 就是包括了我刚说的一个父子查询 这样子的就是一个trunk的一个切分策略 另一个就是这个embedding的一个呃检索嘛 这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 227.07,
+      "subtitle_source": "ai",
+      "title": "[开源] Agentic RAG项目实战",
+      "unit_id": "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_d232a41ec2462e6607ed3f72cdb47d1e",
+      "unit_type": "transcript_chunk",
+      "uploader": "蹦跶波",
+      "video_id": 5
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.6194819808006287,
+      "end_time": 587.389,
+      "excerpt": "最后模型在基于以上所有的这些信息生成回复 也就对应检索增强生成这三个步骤非常好理解 有了rag之后 模型他回答你的问题的时候 就可以带上很多真实可信的参考信息 甚至还能标注出 甚至还能标注出来自哪里 1234567 这样就大幅减少了幻觉现象 而且rag相对微调来说 虽然解决的问题不完全一致 但是也有部分重叠 它们都可以解决这种给予模型预训练阶段 未接收的这种私有知识的这些需求 但是相比之下 rig比起微调 它是一个轻量的多的成本低廉的多 落地起来快得多的一个动作 但是毕竟rag它并没有动到模型的根本的能力 没有改变它的任何一个参数 也没有使模型变得更聪明",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 467.71,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.6175355315208435,
+      "end_time": 252.96,
+      "excerpt": "在commodity化垂直场景才有长期价值 下次两天搭完r a g demo效果特别好的时候 先别高兴太早 问自己 这东西能在生产环境跑三个月不出问题吗 这里是LLM x factors 我们下期见",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": 233.56,
+      "subtitle_source": "ai",
+      "title": "Demo很爽，生产很难",
+      "unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_64c84a10aff26af20acea08846d9c22b",
+      "unit_type": "transcript_chunk",
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.6140775680541992,
+      "end_time": 351.189,
+      "excerpt": "但会漏掉精确的ts s999这个串唉 精确串项链看不见 对客服场景到处都是订单号 SKU错误码向量都看不见 BM25关键词搜捕这个洞 Anthropic contextual retrieval 具体怎么操作 我看博客没看懂关键点 每个chunk在embed之前 先用high哭生成这块内容 在原文档里上下文是啥 几十个token append到chunk上 再in bed 再叠加BM25和REANCHOR ANTHROPIC实测top20 失败率从5.7%降到1.9% 改善67% graph rag呢 我们之前在KATHY记忆库那期聊过反rag叙事 但l",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 232.42,
+      "subtitle_source": "ai",
+      "title": "面试官问：怎么设计企业智能客服 Agent？",
+      "unit_id": "transcript_chunk:bilibili:BV1tM9UBSEdg:p1:chunk_845aaa1a31d54f67fd21841ce6212d05",
+      "unit_type": "transcript_chunk",
+      "uploader": "AI深度幻觉",
+      "video_id": 136
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.5966612696647644,
+      "end_time": 3818.05,
+      "excerpt": "所以得到错误的结果呢 这是有可能的哦 我们这边拿RAG当做一个例子 那这是个非常知名的例子 之前google出了一个叫做AI overview的功能 这个功能其实就是一个IG的功能 根据google搜寻型的结果 用语言模型总结搜寻型的答案 那就有人问了一个问题 哎我的披萨上面的气势粘不住怎么办呢 那AI overview就说啊 弄个胶水把它粘上去就好了 而且他是非常认真在回答这个问题的 因为他说不止要用一般的胶水 要用无毒的胶水才可以 那这个答案呢其实就是来自于REDDY上 一个乡民的玩笑 就有个乡民开玩笑说啊 你用胶水把气死粘在披萨上不就好了 这是个玩",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 3699.08,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_a255a2e44e8dbda11aa48509f12d30e9",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.5908286571502686,
+      "end_time": 1287.46,
+      "excerpt": "它一定是越用越好的 而不是他马刚做出来的一个rap系统 它一定效果是不一定好的 而是他在不停的业务过程中是越用越好 需要不停的反馈 也就是文章将react也就拆成这十个阶段 其次就是argenttic rag 然后这一块的话 其实我也会单独再开一个视频去讲 就是argentic reg 也是现在最火的一个rag的一个分支 方向优化就是一个变种 它是一个基于更智能的一个agent的一个rag 包括你对这个rag有更可控 因为你可以对他做一些强化学习的训练 去保证它约束他一个正确的生成 有其次 我觉得最终更重要的是一个线上反馈吧 比如你可以通过这些方式反馈 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 1168.01,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_c349f8a274656ed2c24eb238a78d993c",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.5907325744628906,
+      "end_time": 937.74,
+      "excerpt": "可以引入一个图to rag 去做一个关系性的这种检索 因为本身的rag它还是基于向量的 他这种方式就导致了 它可能会漏掉一些这种呛克之间的关系性 其次就是一个定向检索 就是定向检索的话就是基于一个tag去做的过滤 也就是我们之前讲到的那个 所以最后检索得到从这四路得到一些呛合 先去虫 然后再做一个多路融合 通过这它们对应的一个分数去做打分 最后得到一个排序后的结果 通过这个结果去喂给模型 最后还会做一个截断 因为保证一个上下文的这种连贯性 保证上下文窗口不爆炸 然后可以讲一下 也嗯我包括我们之前刚提到的 大家很多找我做简历咨询的同学 大家用的都是比较单一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 818.38,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_6d1a0464d7b61ea108439377db77fbe1",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.5892674922943115,
+      "end_time": 2201.42,
+      "excerpt": "是可以完全直接限套RG的技术的啊 如果你今天想要研究这个AI agent 按照经验来修改他的行为来 那你可以考虑一个叫做string bench的benchmark 那在string bench里面呢会有一系列的问题 然后呢AI会依序去解这些问题啊 先解第一个问题 得到第一个问题的答案 然后接下来他会得到第一个问题答案的呃反馈 那在这个string bench目前的版本里面呢 因为所有的问题都是有标准答案的 所以AI agent得到的回馈是binary的的 对或者是错好 那根据他过去的经验 他就可以修正他的行为 期待他在第二个问题的时候 可以得到更准确的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 2081.86,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_b71cfe92a333b4737c5a99efaaa1c80a",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.5756750106811523,
+      "end_time": 5094.889,
+      "excerpt": "让你的agent可以得到更好的结果 那这是一个去你这是上个月的论文 然后这篇文章里面呢也展示了说 因为最后我们怎么知道任务有没有成功 今天agent跟customer这个互动的过程有多顺畅 其实你也需要另外一个语言模型 来评量任务有没有成功 那这篇论文也发现说呢 语言模型往往高估了人的customer 跟agent这个对话好的程度 那这边就评量了不同的面相 那这边的纵轴呢 代表说是人类对这一个对话的给分 然后这个呃这边human代表人类对这个对话的给分 GPT5.1代表说GPT5.1 如果他扮演一个人类价值的角色 他对这个customer跟AG卷互动的过",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 4975.74,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_352026251062ea95c865c4913126e7cf",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.5694388151168823,
+      "end_time": 119.0,
+      "excerpt": "那我现在来简单介绍一下我的这个项目啊 关于这些项目细节我先暂时不说了 呃我们直接来启动一下看看吧 首先启动一下我们的docker OK接下来呢去启动我们的服务呃 这个项目结构我一会说一下 OK了 我们的项目已经启动完成 直接进入我们的页面 呃我给大家提前看一下 这是我已经上传过的一些文档啊 他主要做的是一个RG的一个系统吧 呃怎么给大家看呢 给大家看一下我之前预测的一些问题吧 比如问他消费者权益保护法第七条之甚 他会先检索知识库 然后分块检索 然后什么合并 然后检索完成评估下这个文档评估通过之后 他就会输出我们的答案是流式输出的啊 然后这里检索过程呢也是",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 1.44,
+      "subtitle_source": "ai",
+      "title": "[开源] Agentic RAG项目实战",
+      "unit_id": "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_cedcdd46af263094ea5740d3e5b53967",
+      "unit_type": "transcript_chunk",
+      "uploader": "蹦跶波",
+      "video_id": 5
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.5678462982177734,
+      "end_time": 1054.97,
+      "excerpt": "然后你如果做了graph flag 你一定你就能通过一个图的这种关系 去把毕业召回 其次就是标签检索取 通过这样的业务字段过滤 如这边也是刚提到这种双录检索 再合并驱虫 然后graph rag这块 我也会在下一个视频再详细讲一下 这边就就先跳过 因为graph g其实又是另一个这种呃优化的策略 包括我下一个视频会讲一下graph的原理 还有这种他做本身这种社区图 发现这种做法 其次第四类就是嗯第四个大类也就是rank rank级别的这种优化就是RERANK 它的原理就是通过你把Q和你的召回的呛 K拼在一起去做这样一个attention attention",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 935.74,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_a4ab270aa113da098c78c858749dabcd",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.5676347017288208,
+      "end_time": null,
+      "excerpt": "[Title] Claude Code 为什么不用 RAG？ [Uploader] Hucci写代码 [Description] 这个视频解释了为什么 claude code 仅使用最基础的 shell 命令做代码检索。 想和更多 AI 工程师讨论？加入知识星球：https://t.zsxq.com/K78RA [Summary Conclusion] Claude Code不用RAG而只用shell命令做代码检索，不仅是技术取舍，更意味着它认为理解项目需要构建知识而非仅提取已有片段。 [Summary Key Points] Cursor用RAG（分块",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "Claude Code 为什么不用 RAG？",
+      "unit_id": "video:bilibili:BV18NLx6fEAq:p1",
+      "unit_type": "video",
+      "uploader": "Hucci写代码",
+      "video_id": 65
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.5657414197921753,
+      "end_time": 825.199,
+      "excerpt": "所以他其实这个问题我觉得问的就有点大 就是说怎么样的去实现这样一个目标 但在我们为了实现这个目标 我们用非常多的策略 比如说我们先用各种去分块 分块的过程中 如何去避免它进行一些语义断裂 我们后面可能还有去进行这个 用单元模型对分的块 然后再去进行一个优化对吧 然后基于一些标签去进行分块这样的一个策略 包括我们用BM2用了这个系数向量 重密向量去去去进行啊存储 所以包括后面的再检索的过程中 我们进行出牌呀 金牌呀 最后我们用rag a s去进行评估 看一下有没有哪些问题 所以整体的所有的步骤 都是为了去保证最后的一个质量更好 所以这个问题怎么回答 我就觉",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 706.43,
+      "subtitle_source": "ai",
+      "title": "最新字节大模型开发暑期实习一面面试精讲",
+      "unit_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_6ac329d4e03828bfcd7b226621193603",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 73
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.5632987022399902,
+      "end_time": 2206.65,
+      "excerpt": "如果你今天想要研究这个AI agent 按照经验来修改他的行为来 那你可以考虑一个叫做string bench的benchmark 那在string bench里面呢会有一系列的问题 然后呢AI会依序去解这些问题啊 先解第一个问题 得到第一个问题的答案 然后接下来他会得到第一个问题答案的呃反馈 那在这个string bench目前的版本里面呢 因为所有的问题都是有标准答案的 所以agent得到的回馈是binary的的 对或者是错好 那根据他过去的经验 他就可以修正他的行为 期待他在第二个问题的时候 可以得到更准确的答案 得到更高的正确率 然后这个过程就一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 2087.34,
+      "subtitle_source": "ai",
+      "title": "LLM大模型入门！一口气带你学完AI agent、transformer、LangChain 、RAG 等大模型核心知识点！简直不要太爽！",
+      "unit_id": "transcript_chunk:bilibili:BV11nSjB2ErQ:p1:chunk_2414a7568cbc2fbde3ac92a47c11224a",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅-机器学习课堂",
+      "video_id": 124
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.5622842311859131,
+      "end_time": 229.87,
+      "excerpt": "他会进行一次额查询重写也是有三种策略的 对他进行查回查询重写的呃 这个我在我的项目里也是写的 有 比如说呃就这两种 一种是steve back 一种是这个假设文档嵌入两种方法 然后也是通过一个路由选择的 然后回到我们这里 他已经开始输出了 OK最后他的结论呢是呃无效 然后看下是它的检索过程 然后接下来呢就是关于这个项目的一个测试啊 我是接入了long smith的 然后呢我们直接进来 然后就能看到我点击这个tracing看一下 像他这完整的一个检索的过程 包括检索的块啊 都是在这里有记录的 这是这么多块 包括他的一些prompt呀 system prom",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 113.0,
+      "subtitle_source": "ai",
+      "title": "[开源] Agentic RAG项目实战",
+      "unit_id": "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_cecd958beff668d01dacb135ed3ba22f",
+      "unit_type": "transcript_chunk",
+      "uploader": "蹦跶波",
+      "video_id": 5
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.5622061491012573,
+      "end_time": 3715.26,
+      "excerpt": "发现这个function运作的非常的顺利 然后就可以把这个function当做一个工具 放到他的工具包里面 那之后这个工具就有可能在选择工具的时候 被选出来 用 在接下来的互动中使用那类似的技术非常的多 那我在右上角就引用了一系列的论文 从23年到24年的论文都有告诉你说 这也是一个热门的研究方向 那其实啊让模型自己打造工具这件事情 跟模型把过去的记忆 比如说一些比较成功的记忆 放到memory里面再提取出来 其实是差不多的意思 只是这边换了一个故事 说现在放到memory里面的东西 是一个叫做工具的东西 是一段城市嘛 但他们背后基本的精神 其实跟根据经",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 3598.01,
+      "subtitle_source": "ai",
+      "title": "LLM大模型入门！一口气带你学完AI agent、transformer、LangChain 、RAG 等大模型核心知识点！简直不要太爽！",
+      "unit_id": "transcript_chunk:bilibili:BV11nSjB2ErQ:p1:chunk_a7a2996fe53f9ea799cf2729145a4133",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅-机器学习课堂",
+      "video_id": 124
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.559105634689331,
+      "end_time": 3835.14,
+      "excerpt": "用户支持和assistant的支持 最后我们把它把这些问题都组装起来 接下来我们的system prom怎么写的呢 就是角色设定和助手知识 所以我们会发现这个角色设定助手知识呢 这一部分其实也是有一点长期记忆的内容了 然后我们再把这个user prompt呢 就是通过我们的短期记忆的拼接 然后加中继器的检索 再加一些背景知识 就是再加上我们的一个问题 就是query 用户的这个query组装成一个合并的form 然后我们找这个合合并的prompt 会给我们的大模型来生成响应 最后就得到我们用户想要的一个结果啦 也满足我们的记忆了 当然我们不仅仅是做完一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 3715.78,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_3a98c3e11bfab6d2d6c930c56766d26d",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.557648777961731,
+      "end_time": 590.24,
+      "excerpt": "理解了这些 你就可以去回答这个也不讲 然后第四个是金牌 为什么不用从不用cross encoder l做基于规则 所以所以我们这里看一下 针对于这个问题 所以你第一个要去掌握就是RAG的这个金牌 所以它其实是一个承建的一个八股 或者说是啊RAG里面最基本的一个知识点 所以在最金牌是什么东西 就是位于RNG后面的一个出牌金牌 这样一个环节 它是啊基本上成熟的rap系统都会用 所以一般来说金牌会有哪三种方法呢 一个是基于CROSSENCODER 它本质上是一种模型 但是它不是大模型 而是一种相对来说可能就几十个兆 几百兆的这样的一个模型 在本地上就能够去进行",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 471.54,
+      "subtitle_source": "ai",
+      "title": "最新字节大模型开发暑期实习一面面试精讲",
+      "unit_id": "transcript_chunk:bilibili:BV1Wu5f6GEr6:p1:chunk_842a9170fb465ff54740f390afe1d78c",
+      "unit_type": "transcript_chunk",
+      "uploader": "骑猪撞宝马71",
+      "video_id": 73
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.5558664202690125,
+      "end_time": 471.13,
+      "excerpt": "就是它需要GPU 需要卡 需要成本成本很高 然后微调的这个耗时耗时周期也比较长 他需要投入人力去准备数据集 去清洗数据 去跑模型去训练 这个就造成了微调它的这个迭代周期比较长 成本比较高的这样的一个问题 还有一个点就在于说大家会发现就是最近这几年 这个基座大模型的迭代实在是太快了 经常有一种情况 就是当你还拿着上一个版本的这个基座大模型去做微调 调了几个月 结果人家反手出了一个新的一个SOTA的版本 在你的这个想要微调的细分领域也干掉了你 然后在其他的这些领域也干掉了你 很悲伤对 但这就是这两年经常发生的事情 所以假设我想要让模型拥有一些我私有的知识 那",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 352.93,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_2368fb184fc7ae2f1b13c629a8bd1415",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.5551974773406982,
+      "end_time": 119.64,
+      "excerpt": "大家好呀 这期视频呢我就给大家讲解一下 我这个项目的整体架构 还有一些核心代码的梳理吧 然后这个呢也是AI帮我做的一个presentation呃 前面这些点都是看一看得了 然后呢这个其实我项目比较关键的一点 就是用了这个long graph的一个呃 状态机的一个节点的这个过程 它还有一个grader裁判模型 然后呢他会去检索 他会去判断你检索的内容和你这个想要的答案 就是你的问题是否是完完全相关的 如果不相关的话 他就会去让你去重写这个节点 如果是相关的话 那就去生成 然后呢这一部分呢是embedding部分啊 我们用了一个密集检索和稀疏矩阵检索的 两部",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 0.4,
+      "subtitle_source": "ai",
+      "title": "[开源] RAG 项目框架及源码详解",
+      "unit_id": "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_4ff3cfedbfaf47add9b4f51f3bebe493",
+      "unit_type": "transcript_chunk",
+      "uploader": "蹦跶波",
+      "video_id": 26
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.5533280372619629,
+      "end_time": null,
+      "excerpt": "[Title] 我做Agent平台这一年，评测这关卡了我整整一个月 [Uploader] 海云日记 [Description] - [Summary Conclusion] Agent开发中最难的是建立科学的评测体系，特别是用Pass@k衡量稳定性，并持续迭代评测用例与评分方法。 [Summary Key Points] Agent平台的评测比模型选型、架构设计更难，因为如何客观判断Agent输出质量缺乏标准方法。 评测应作为第零步尽早启动，20~50个真实场景即可构建有效基准。 Pass k 衡量能力上限（一次通过即算通过），Pass@k 衡量稳定性（",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "我做Agent平台这一年，评测这关卡了我整整一个月",
+      "unit_id": "video:bilibili:BV1qhE26VEbS:p1",
+      "unit_type": "video",
+      "uploader": "海云日记",
+      "video_id": 51
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.5533026456832886,
+      "end_time": 704.72,
+      "excerpt": "多意图 而且带上下文的这种问题 如果rewrite系统 它直接拿原文题检索是肯定会导致检索失败的 而query的改写一般会分为以下几个策略 第一个是一个主改写 就是相当于是规范表达去补全你的语义 比方说rag这个用户说累说了一句 上一句话说的是什么什么什么A是什么什么 然后下一句话用了一个代词是它是什么意思 然后AGENTTIC这个主改写 就可以把这个它补全程 上一个和绘画中的A去做一个检索 甚至是把这个A改写成一个能命中语义中 语义库中更加规范表达的一个形式 其次是一个子查询 比方说用户一问的一个问题 但是这个问题可能是多个问题组成的 所以这个时候就需",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 585.84,
+      "subtitle_source": "ai",
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_891be396c08923c05487afcc2ee56c09",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 30
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.5526214241981506,
+      "end_time": 4184.479,
+      "excerpt": "你你需要具备更多的数据的访问的权限 你需你需要具备哎给你一个集群 你会用你一个GPU集群 你会用它 并且你还要自己去定义一套评估标准 当你对呃在这个基础上训练个模型过后 怎么去验证这这些事情 就是呃我想象的是 我们应该让这个模型结合一套框架本身 应该去完成这些事情和任务 而不是去追求呃另外一个叙事上的事情 所以我就没有太理解来他们那个叙事吧 你说DAU的叙事是吧 对 就是我自己觉得这个叙事就嗯 不太符合我自己的呃 我们做做研究的一个路径嗯 过去两个月 你觉得你的生活发生了什么样的变化 生活就是嗯亢奋还要亢奋 就呃就是你感觉每天嗯都会发现了 AG的框架本身",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 4065.67,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_f5d780809037dffae0b8ea15c702c3fe",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.5515431761741638,
+      "end_time": 1282.99,
+      "excerpt": "这个我觉得long chan的这篇文章比ENTHOPPIC这篇写的要更好一点 首先什么是上下文工程 我觉得简单来说其实就是在agent的循环运行的这个过程中 它会产生越来越多的数据 可能与下一轮的这个推理相关的数据 比如说系统提示词 用户的提示词 历史对话to的这些工具描述每一轮的这个工具调用时to返回的结果 一些状态信息 一些你rag回来的数据等等等等 而上下文工程就是说怎么把这一些海量的信息进行筛选和提炼 然后精确地选取合适的一些信息放入下一轮的这个模型 调用的这个上下文窗口中 以期获得最好的结果返回 那么问题来了 为什么我们不能直接把全量的这些信息",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 1164.21,
+      "subtitle_source": "ai",
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_ccecc343d9822f3cbe66c8af44cc9360",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.549225389957428,
+      "end_time": 463.039,
+      "excerpt": "然后嗯嗯嗯 其实嗯现在的一些够浪够浪的那种内政开发 也是比较多的 就是包括自己可能其他厂不知道 就是字节这边的话主推还是i know i know是比较自信的 就由爱诺去做自己一些系统的一些研发 咳咳包括我所在的组就是i know嗯 其次就是南拆 南拆的话我觉得是算算是一个基础嗯 OK除了框架呢 就是我觉得你想上手一个框架 最快的方法还是你马上去找一个项目去做 就是我觉得通过项目来学习一个框架 是学的最快的 然后这个项目的话 如果你是足够的话 你也可以看一下我们这边开源的这个项目 也是用了一些那种A层开发 相关是一个推荐系统 然后其次是第三部分是rag ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 344.51,
+      "subtitle_source": "ai",
+      "title": "前后端都可看的Agent开发学习路线",
+      "unit_id": "transcript_chunk:bilibili:BV13MQQB8ERn:p1:chunk_97397519713252312e8ce85bbf655d57",
+      "unit_type": "transcript_chunk",
+      "uploader": "Stellar鱼",
+      "video_id": 99
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.548883318901062,
+      "end_time": 2915.57,
+      "excerpt": "因为语言模型如今常被嵌入到某些系统中 嗯，好的 现在在建立评估体系后 嗯 让我们看看数据整理 我认为这是一个人们未意识到的重要点 我经常听到人们说 哦 我们在训练 模型使用互联网 这显然不合理 数据不会 你知道的 你知道的 从天而降 互联网数据可以 你知道的 直接输入模型 嗯 数据必须主动获取 所以 即使像举例说明 你知道的 我总是告诉人们要查看数据 嗯，所以让我们看看一些数据 这是Common Crawl数据 嗯 你知道的数据 我将选取十份文档 希望这能正常运行 好的 我认为渲染有问题 但嗯 你可以大致看到 呃 这是一个 这是通用爬取数据的一个随机样本",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 2796.31,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_b9780ed5e1609f28de60c509929f8077",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.5488348603248596,
+      "end_time": 937.13,
+      "excerpt": "那快呢 这一点也特别关键 这是matt harness很亮眼但容易被忽略的一点 项目页明确写道 在文本分类实验中 matt harness只用四次完整评估 就追上了open evolve和ttt discovered 各自最终达到的准确率 而这两个方法要到40次完整评估左右 才到自己的终点 换句话说 它不只是终点更高 到达同等水平的搜索成本大概低了十倍 这个就很能说明完整历史到底值不值对 因为作者给出的解释正是 mata harness之所以收敛更快 不是因为外循环更复杂 而是因为proposal有能力读历史 trace做更精准的失败定位 所以每一轮改动",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 819.12,
+      "subtitle_source": "ai",
+      "title": "[Harness自动优化]01期-Meta-Harness-斯坦福爆火论文-别只卷模型，来“自动发明模型外壳”（简介附原文链接）",
+      "unit_id": "transcript_chunk:bilibili:BV1rQ9JBoECh:p1:chunk_3fdabc234219601bbe8c7df692ff9ace",
+      "unit_type": "transcript_chunk",
+      "uploader": "Agent智能体深度研究院",
+      "video_id": 103
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.5442583560943604,
+      "end_time": 2119.02,
+      "excerpt": "AI也会用这种装弱的策略去故意的在evaluation上 获得低分 这里作者就举了一个例子 上面这个是mmlu的问题 这个是衡量模型基本能力的一个benchmark 下面这个是一个关于safety 关于chemical biology这些safety相关的一个问题 sandbagging就是指 在evaluation的时候模型知道自己是被evaluate 所以它就故意的在mmlu也就是基本能力 这些问题上面答对 然后再衡量 模型dangerous capacity的时候就故意答错 显得它好像在这方面很弱似的 但实际在没有被evaluate的时候 它两类问",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 2000.82,
+      "subtitle_source": "human",
+      "title": "AI学会了装傻和欺骗！现有Safety Evaluation体系为何已经跟不上大模型发展？",
+      "unit_id": "transcript_chunk:bilibili:BV19BGD6aEb8:p1:chunk_5a480d47af872aad259355603f21451d",
+      "unit_type": "transcript_chunk",
+      "uploader": "EZ-Encoder",
+      "video_id": 48
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.5439990758895874,
+      "end_time": 3935.93,
+      "excerpt": "语言模型继续做文字接龙的时候 他就知道说这显然有问题 这个API给我的答案是1万度 这是不合理的 怎么可能比太阳上的温度还高呢 可见工具输出有错 如果你需要其他帮助的话 再告诉我 所以语言模型 今天是有自己一定程度的判断力的 它也不是完全相信工具 就像你今天不完全相信语言模型的输出一样 他也不完全相信他的工具的输出 他还是有自己一定程度的判断力的 所以实际上语言模型在使用工具 或者是他在做RG的时候 它内部是有一个角力的 就是语言模型有它内部对世界的信念 这是他的internal的knowledge存在它的参数里面 他从工具会得到一个外部的knowled",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": 3815.97,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_4084f1257c3163d84a68a365daaede6b",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_393af3d662972f58d4121823852689b5",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV11wEb6uEwB",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/ae5ec220377a97a1c3996d8bf3f16b2049a61e62.jpg",
+      "detail_url": "/videos/30/transcript",
+      "duration": 1372.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "还需要根据一个业务的去tag去打分 比方说你是医疗问答场景 你可以手动控制什么样的tag 他的分数更高 也就是你觉得你觉得应该什么东西 返回的频率更高 就是你可以手动去控制 其实就有点类似于推荐系统的这种 手动去给自己的分数做调整 就是真实的企业落地会考虑的一个问题 比如一些这种呃你不希望频繁被召回 给用户展示的东西 你就可以让他反而分数更低一点 都可以融合到这些东西 都可以融合到最后的那个react的计算中 然后其次就是一个系统的评测 线上数据的反馈回流 跑出真实的知识飞轮 我觉得可信评测这块就是一个rag的结果 闭环的最后一环呃 一个真实的rig落地",
+      "matched_unit_count": 13,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 12,
+      "title": "如何优化你简历的RAG项目，工业级RAG项目是怎么做的",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "Stellar鱼",
+      "video_id": 30,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV11wEb6uEwB",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 13.309,
+          "anchor_segment_start": 8.71,
+          "best_chunk_id": "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_393af3d662972f58d4121823852689b5",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 159.579,
+            "source": "ai_summary",
+            "start_time": 0.76,
+            "summary": "指出简历中RAG项目普遍缺乏优化过程描述，强调应体现问题场景、优化策略和业务指标，形成闭环思维。",
+            "title": "简历中RAG项目的常见问题与优化闭环"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_393af3d662972f58d4121823852689b5",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_b917c48e1a3bb102a6e7253c16e09ec8",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_d72012964d580f8b66161fb429d0e849",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_ad215855df703a8d16b4a22a79f8f1d8",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_7e21e65874dec49b0d3c064abd11effa",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_c4957fec396229e980b26e4259d52bd8",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_0fd724a000f4bcc248bbc973e330ac5c",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_8c7c1ea30ccb03860da640c927bb1ab0",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_c349f8a274656ed2c24eb238a78d993c",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_6d1a0464d7b61ea108439377db77fbe1",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_a4ab270aa113da098c78c858749dabcd",
+            "transcript_chunk:bilibili:BV11wEb6uEwB:p1:chunk_891be396c08923c05487afcc2ee56c09"
+          ],
+          "component_hit_count": 12,
+          "component_raw_ranks": [
+            1,
+            2,
+            5,
+            7,
+            11,
+            13,
+            14,
+            21,
+            27,
+            28,
+            32,
+            43
+          ],
+          "duration": 1367.8,
+          "excerpt": "找我做简历辅导的同学的简历 然后发现大家很多有用rag去加入到自己的 自己的后端项目中",
+          "jump_source": "exact_entity_term",
+          "jump_time": 8.71,
+          "jump_url": "https://www.bilibili.com/video/BV11wEb6uEwB?t=8",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1368.56,
+          "window_start": 0.76
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 3,
+      "best_score": 0.015873015873015872,
+      "best_unit_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_03f70bd4f1cec6ca4fb9099b5c00fc3f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV17ZXpB4Ezi",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/b73532b68e7e86fd8f08bb6ebb8413053807c426.jpg",
+      "detail_url": "/videos/102/transcript",
+      "duration": 255.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "做过AI产品的人都知道demo很好 上线崩了 每个人都觉得RAG两天就能搭完 但你搭的是demo 不是production 大家好 这里是LLM x factors 一个专注于拆解大语言模型时代 底层逻辑的频道 最近一个YC创业公司发布 引发了一场特别典型的争论 创始人说自建RAG掉了几周 效果不稳定 评论区一个工程师说两天就答完了 cursor数据显示 向量搜索精度高6~23个百分点 三方看似矛盾 其实在说三件不同的事 我们先快速了解一下这个产品到底做了什么 captain把RAG全链路变成一个API 给他S3桶或google drive地址 自动做文",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "Demo很爽，生产很难",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "LLM-X-生生不息版",
+      "video_id": 102,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV17ZXpB4Ezi",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 8.96,
+          "anchor_segment_start": 6.5,
+          "best_chunk_id": "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_03f70bd4f1cec6ca4fb9099b5c00fc3f",
+          "best_rank": 3,
+          "best_score": 0.015873015873015872,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 39.39,
+            "source": "ai_summary",
+            "start_time": 2.6,
+            "summary": "指出RAG Demo搭建很快，但生产环境很容易崩溃，强调两者间的根本区别。",
+            "title": "Demo与生产的鸿沟"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_03f70bd4f1cec6ca4fb9099b5c00fc3f",
+            "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_afce57337ccb785d9f7b47c9b1ce07c4",
+            "transcript_chunk:bilibili:BV17ZXpB4Ezi:p1:chunk_64c84a10aff26af20acea08846d9c22b"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            3,
+            6,
+            24
+          ],
+          "duration": 250.36,
+          "excerpt": "上线崩了 每个人都觉得RAG两天就能搭完 但你搭的是demo",
+          "jump_source": "exact_entity_term",
+          "jump_time": 6.5,
+          "jump_url": "https://www.bilibili.com/video/BV17ZXpB4Ezi?t=6",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 252.96,
+          "window_start": 2.6
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 8,
+      "best_score": 0.014705882352941176,
+      "best_unit_id": "transcript_chunk:bilibili:BV1tM9UBSEdg:p1:chunk_502a3289be0df460fd1c5b5e22904b7d",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1tM9UBSEdg",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/aa6e8e2619bfa8dd7ad1d7c1f7500eb0dfcad99d.jpg",
+      "detail_url": "/videos/136/transcript",
+      "duration": 664.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "但agent优先不是多agent 我们之前在字节dear flow 2.0那期已经聊过这条结论 ANTHROPIC自己实测多agent比普通对话少15倍 token比单agent还多近四倍 Cognition 2026年4月 不是出过follow up 说什么时候多agent能work吗 立场变了 没撤稿 只是软化原话 moi agent现在最能work的场景是single threaded right 加副agent只贡献智能 不直接动作翻译成人话 主线还是单agent负agent只插不动手 客服正好是这个pattern 所以不是争多agent 那具体",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "面试官问：怎么设计企业智能客服 Agent？",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "AI深度幻觉",
+      "video_id": 136,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1tM9UBSEdg",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 203.019,
+          "anchor_segment_start": 201.759,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1tM9UBSEdg:p1:chunk_502a3289be0df460fd1c5b5e22904b7d",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 241.0,
+            "source": "ai_summary",
+            "start_time": 121.0,
+            "summary": "多 Agent 在客服场景反而成本高、效果未必好，提出简单/中等/复杂三档分流及其对应技术方案，给出详细成本与延迟倍数。",
+            "title": "架构原则：单 Agent 优先与三档分流"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1tM9UBSEdg:p1:chunk_502a3289be0df460fd1c5b5e22904b7d",
+            "transcript_chunk:bilibili:BV1tM9UBSEdg:p1:chunk_845aaa1a31d54f67fd21841ce6212d05"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            8,
+            25
+          ],
+          "duration": 234.08900000000003,
+          "excerpt": "架构和分流清楚了 那RAG怎么答 还是纯向量",
+          "jump_source": "exact_entity_term",
+          "jump_time": 201.759,
+          "jump_url": "https://www.bilibili.com/video/BV1tM9UBSEdg?t=201",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 351.189,
+          "window_start": 117.1
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_0171f0e2944707b88f4f0e98282b11f0",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1wMQjBCEpZ",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/97c55d2d74c20a02930259d99fda222f1442f3a6.jpg",
+      "detail_url": "/videos/26/transcript",
+      "duration": 669.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "还有一些REDIS啊 还有一些数据库之类的 这三个文件就不是很重要 OK这个也是呃 然后呢这一块是RERANK的一个逻辑啊 RERANK呢就相当于是我们把呃 我们检测到的一些块儿 然后呢不经过向量切分 直接通过语义来判断 它和原来我们的query的一个 相关度是怎么样的 当然了 这里呢是需要调用API的 一个就是需要调用model的API啊 因为我们本地是没有下载这个东西的 就是我们直接把这个接口返回给他 然后呢就是调用它的那个接口 然后呢我们就能得到一个最后的一个排序 OK啊 然后这部分呢也是啊 就是我们把我们rag系统可能会用到的 一些工具 我们都给",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "[开源] RAG 项目框架及源码详解",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "蹦跶波",
+      "video_id": 26,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1wMQjBCEpZ",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 516.34,
+          "anchor_segment_start": 513.1,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_0171f0e2944707b88f4f0e98282b11f0",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 539.14,
+            "source": "ai_summary",
+            "start_time": 309.88,
+            "summary": "讲解三级递归切片与auto merge算法：L3入库，命中后按父ID合并唤醒L2、L1，保留上下文。",
+            "title": "父子文档三级切片"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_0171f0e2944707b88f4f0e98282b11f0"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            9
+          ],
+          "duration": 115.14999999999998,
+          "excerpt": "然后这部分呢也是啊 就是我们把我们rag系统可能会用到的 一些工具",
+          "jump_source": "exact_entity_term",
+          "jump_time": 513.1,
+          "jump_url": "https://www.bilibili.com/video/BV1wMQjBCEpZ?t=513",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 582.43,
+          "window_start": 467.28
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_4ff3cfedbfaf47add9b4f51f3bebe493",
+          "best_rank": 41,
+          "best_score": 0.009900990099009901,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1wMQjBCEpZ:p1:chunk_4ff3cfedbfaf47add9b4f51f3bebe493"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            41
+          ],
+          "duration": 119.24,
+          "excerpt": "大家好呀 这期视频呢我就给大家讲解一下 我这个项目的整体架构 还有一些核心代码的梳理吧 然后这个呢也是AI帮我做的一个presentation呃 前面这些点都是看一看得了 然后呢这个其实我项目比较关键的一点 就是用了这个long graph的一个呃 状态机的一个节点的这个过程 它还有一个grader裁判模型 然后呢他会去检索 他会去判断你检索的内容和你这个想要的答案 就是你的问题是否是完完全相关的 如果不相关的话 他就会去让你去重写这个节点 如果是相关的话 那就去生成 然后呢这一部分呢是embedding部分啊 我们用了一个密集检索和稀疏矩阵检索的 两部",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.4,
+          "jump_url": "https://www.bilibili.com/video/BV1wMQjBCEpZ?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 119.64,
+          "window_start": 0.4
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 10,
+      "best_score": 0.014285714285714285,
+      "best_unit_id": "video:bilibili:BV1vQwJzTEdz:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1vQwJzTEdz",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/d32ef2c841d53267ea6b9c5c1138507c3a51ecce.jpg",
+      "detail_url": "/videos/5/transcript",
+      "duration": 409.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "[Title] [开源] Agentic RAG项目实战 [Uploader] 蹦跶波 [Description] 感觉传统RAG马上就要成为过时的Agent项目了，赶紧把这期视频出了 项目地址：https://github.com/icey1287/SuperMew ————未完待续———— [Summary Conclusion] 视频演示了一个名为SuperMew的开源Agentic RAG项目，通过查询重写、父子文档分块、工具集成等策略增强检索问答，并展示了其架构与核心流程。 [Summary Key Points] 项目实现Agentic RA",
+      "matched_unit_count": 4,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "[开源] Agentic RAG项目实战",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "蹦跶波",
+      "video_id": 5,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1vQwJzTEdz",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 306.1,
+          "anchor_segment_start": 302.18,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_d232a41ec2462e6607ed3f72cdb47d1e",
+          "best_rank": 22,
+          "best_score": 0.012195121951219513,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 324.28,
+            "source": "ai_summary",
+            "start_time": 218.44,
+            "summary": "解析项目核心模块：agent（对话存储、总结）、FastAPI接口、文档加载与父子分块、BM25检索、向量数据库写入，以及RAG流程中的查询重写和打分节点。",
+            "title": "项目架构与代码解析"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_d232a41ec2462e6607ed3f72cdb47d1e",
+            "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_cedcdd46af263094ea5740d3e5b53967",
+            "transcript_chunk:bilibili:BV1vQwJzTEdz:p1:chunk_cecd958beff668d01dacb135ed3ba22f"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            22,
+            31,
+            36
+          ],
+          "duration": 343.62,
+          "excerpt": "父子分块嘛 这个呢就是整体的一个rag的流程了 包括是整体的一个prompt",
+          "jump_source": "exact_entity_term",
+          "jump_time": 302.18,
+          "jump_url": "https://www.bilibili.com/video/BV1vQwJzTEdz?t=302",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 345.06,
+          "window_start": 1.44
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV1JLN2z4EZQ:p1:chunk_56a682c288a4e9b5098f4b2d7653f569",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1JLN2z4EZQ",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/9aece9518fe00d08450b731fb8d2a2e748131765.jpg",
+      "detail_url": "/videos/77/transcript",
+      "duration": 1022.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "这就会带来很多问题 首先模型可能无法读取所有的内容 因为每个模型都只能存储一定量的信息 我们通常称这个量为上下文窗口大小 如果你的产品手册字数过多 超过了这个上下文窗口大小的话 模型就会读了 后面忘了 前面回答的准确率也就无法得到保障 除此之外 模型的推理成本也会很高 输入越多 成本越高 每次回答问题的时候都要带上一本厚厚的手册 那成本可想而知 不可能少了 最后模型的推理速度也会受到影响 输入越多 模型需要消化的内容就越多 模型的输出就会越慢 一本上百页的手册扔进来 那大概率会对模型的推理速度产生严重的影响 看来直接把文档丢给模型是行不通的 那我们是不是",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "RAG 工作机制详解——一个高质量知识库背后的技术全流程",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "马克的技术工作坊",
+      "video_id": 77,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1JLN2z4EZQ",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 7.84,
+          "anchor_segment_start": 7.12,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1JLN2z4EZQ:p1:chunk_56a682c288a4e9b5098f4b2d7653f569",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1JLN2z4EZQ:p1:chunk_56a682c288a4e9b5098f4b2d7653f569",
+            "transcript_chunk:bilibili:BV1JLN2z4EZQ:p1:chunk_da080a304bd25c7141eb58fa9da4b4bf"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            12,
+            16
+          ],
+          "duration": 236.25,
+          "excerpt": "那你就一定绕不开一个技术 Rag 它的全称是retrieval augmented generation",
+          "jump_source": "exact_entity_term",
+          "jump_time": 7.12,
+          "jump_url": "https://www.bilibili.com/video/BV1JLN2z4EZQ?t=7",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 236.29,
+          "window_start": 0.04
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 18,
+      "best_score": 0.01282051282051282,
+      "best_unit_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1co9yBhEvW",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/95412e13ce98a90ea8d053ed266fadaed9171290.jpg",
+      "detail_url": "/videos/71/transcript",
+      "duration": 925.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "然后是关于RG 这也是很多企业内部在做的一件事情 主要是和知识库检索相关 比如说公司里面有很多内部文档 或者是一些业务知识库 这些内容呢模型本身是不知道的 而且也不可能全部塞在PRONT里面 那这时候就需要构建一个RIG服务 提问的时候呢 他会从知识库里检索出相关资料 让模型基于检索到的内容去回答 如果你想自己搭建一个比较完整的rh agent 可以看long uncha官方的build和rh agent 里面讲到两种比较常见的RAG流程 一种是比较传统的两部流程 先检索再进行生成 另一种呢是把检索当做是一个tour 让ASIAN的在需要的时候自己决定要",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "分享我转 AI 方向的学习路径和工作转变",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "polebug23",
+      "video_id": 71,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1co9yBhEvW",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 617.739,
+          "anchor_segment_start": 614.079,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f",
+          "best_rank": 18,
+          "best_score": 0.01282051282051282,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 722.41,
+            "source": "ai_summary",
+            "start_time": 482.42,
+            "summary": "介绍MCP协议的学习路径和RAG构建与测评资源，并转向工作内容：企业AI三个方向，自身从事内部工具与团队提效。",
+            "title": "MCP与RAG学习及企业AI团队工作转变"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1co9yBhEvW:p1:chunk_baacf9186c1bb39b1348144fe5eec71f"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            18
+          ],
+          "duration": 117.99000000000001,
+          "excerpt": "可以看long uncha官方的build和rh agent 里面讲到两种比较常见的RAG流程 一种是比较传统的两部流程",
+          "jump_source": "exact_entity_term",
+          "jump_time": 614.079,
+          "jump_url": "https://www.bilibili.com/video/BV1co9yBhEvW?t=614",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 695.72,
+          "window_start": 577.73
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 20,
+      "best_score": 0.0125,
+      "best_unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_03a7025c257610a31d2a8a154c797f07",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1hr6EBBEhM",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/f3e41466dbd71c14a8a68269d13046ad64f95e8f.jpg",
+      "detail_url": "/videos/39/transcript",
+      "duration": 4245.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "然后大家会发现是比较简单的 那么它主要做的是一个多轮长对话的一个事情 我们可以看一下他的分析啊 首先呢他会给一个样本标识 然后问到对列表 具体来说呢他会给很多的QA 现在他这个QA是57个 然后一个QA里面又包含几十个问答队 大概是做了这样的事情 evidence呢主要是证据来源 然后category是它的问题类比 最后我们可以看一下他的这个参数 然后他的问题类别主要包括这几 这四个 一个是单挑 一个是多跳 一个是食欲和这个开放语 那么我们可以看一下他的说明啊 我在这里就不做过多的讲解了 因为大家一看这个表格就明白了 那么评价指标呢主要是这些 大家可以简",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "日新月异max",
+      "video_id": 39,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1hr6EBBEhM",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_03a7025c257610a31d2a8a154c797f07",
+          "best_rank": 20,
+          "best_score": 0.0125,
+          "chapter": {
+            "boundary_type": "derived_from_video_duration",
+            "derived_end_time": 4245.0,
+            "source": "ai_summary",
+            "start_time": 3806.08,
+            "summary": "讲解LoCoMo数据集格式、评价指标BLEU和F1的计算原理，以及代码中如何生成答案和评估记忆效果。",
+            "title": "评测数据集详解"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_03a7025c257610a31d2a8a154c797f07",
+            "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_3a98c3e11bfab6d2d6c930c56766d26d"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            20,
+            38
+          ],
+          "duration": 235.27999999999975,
+          "excerpt": "然后大家会发现是比较简单的 那么它主要做的是一个多轮长对话的一个事情 我们可以看一下他的分析啊 首先呢他会给一个样本标识 然后问到对列表 具体来说呢他会给很多的QA 现在他这个QA是57个 然后一个QA里面又包含几十个问答队 大概是做了这样的事情 evidence呢主要是证据来源 然后category是它的问题类比 最后我们可以看一下他的这个参数 然后他的问题类别主要包括这几 这四个 一个是单挑 一个是多跳 一个是食欲和这个开放语 那么我们可以看一下他的说明啊 我在这里就不做过多的讲解了 因为大家一看这个表格就明白了 那么评价指标呢主要是这些 大家可以简",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3832.9,
+          "jump_url": "https://www.bilibili.com/video/BV1hr6EBBEhM?t=3832",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3951.06,
+          "window_start": 3715.78
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 23,
+      "best_score": 0.012048192771084338,
+      "best_unit_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1zSDMBUE5o",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/a6d7a2ec2d9299db46a4bbca29e5f12515a5ddf2.jpg",
+      "detail_url": "/videos/111/transcript",
+      "duration": 2025.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "最后模型在基于以上所有的这些信息生成回复 也就对应检索增强生成这三个步骤非常好理解 有了rag之后 模型他回答你的问题的时候 就可以带上很多真实可信的参考信息 甚至还能标注出 甚至还能标注出来自哪里 1234567 这样就大幅减少了幻觉现象 而且rag相对微调来说 虽然解决的问题不完全一致 但是也有部分重叠 它们都可以解决这种给予模型预训练阶段 未接收的这种私有知识的这些需求 但是相比之下 rig比起微调 它是一个轻量的多的成本低廉的多 落地起来快得多的一个动作 但是毕竟rag它并没有动到模型的根本的能力 没有改变它的任何一个参数 也没有使模型变得更聪明",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 111,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1zSDMBUE5o",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 409.66,
+          "anchor_segment_start": 406.46,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+          "best_rank": 23,
+          "best_score": 0.012048192771084338,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_c985b56f7378cb5de7fc542d019d74e5",
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_2368fb184fc7ae2f1b13c629a8bd1415"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            23,
+            40
+          ],
+          "duration": 234.459,
+          "excerpt": "那有没有什么平替的方案呢 这个就涉及到rag检索增强技术 Retrieval augmented generation",
+          "jump_source": "exact_entity_term",
+          "jump_time": 406.46,
+          "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=406",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 587.389,
+          "window_start": 352.93
+        },
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1197.239,
+          "anchor_segment_start": 1194.01,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_ccecc343d9822f3cbe66c8af44cc9360",
+          "best_rank": 45,
+          "best_score": 0.009523809523809525,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1zSDMBUE5o:p1:chunk_ccecc343d9822f3cbe66c8af44cc9360"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            45
+          ],
+          "duration": 118.77999999999997,
+          "excerpt": "一些状态信息 一些你rag回来的数据等等等等 而上下文工程就是说怎么把这一些海量的信息进行筛选和提炼",
+          "jump_source": "exact_entity_term",
+          "jump_time": 1194.01,
+          "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=1194",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1282.99,
+          "window_start": 1164.21
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 26,
+      "best_score": 0.011627906976744186,
+      "best_unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_a255a2e44e8dbda11aa48509f12d30e9",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1QdzCB3Eu2",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/6038fbae7b552e47a2e6b5259dec83a5384f0b2a.jpg",
+      "detail_url": "/videos/122/transcript",
+      "duration": 132579.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "所以得到错误的结果呢 这是有可能的哦 我们这边拿RAG当做一个例子 那这是个非常知名的例子 之前google出了一个叫做AI overview的功能 这个功能其实就是一个IG的功能 根据google搜寻型的结果 用语言模型总结搜寻型的答案 那就有人问了一个问题 哎我的披萨上面的气势粘不住怎么办呢 那AI overview就说啊 弄个胶水把它粘上去就好了 而且他是非常认真在回答这个问题的 因为他说不止要用一般的胶水 要用无毒的胶水才可以 那这个答案呢其实就是来自于REDDY上 一个乡民的玩笑 就有个乡民开玩笑说啊 你用胶水把气死粘在披萨上不就好了 这是个玩",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "跟着李老师学AI",
+      "video_id": 122,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1QdzCB3Eu2",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 3706.12,
+          "anchor_segment_start": 3703.02,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_a255a2e44e8dbda11aa48509f12d30e9",
+          "best_rank": 26,
+          "best_score": 0.011627906976744186,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_a255a2e44e8dbda11aa48509f12d30e9",
+            "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_4084f1257c3163d84a68a365daaede6b"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            26,
+            50
+          ],
+          "duration": 236.8499999999999,
+          "excerpt": "这是有可能的哦 我们这边拿RAG当做一个例子 那这是个非常知名的例子",
+          "jump_source": "exact_entity_term",
+          "jump_time": 3703.02,
+          "jump_url": "https://www.bilibili.com/video/BV1QdzCB3Eu2?t=3703",
+          "matched_terms": [
+            "RAG"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3935.93,
+          "window_start": 3699.08
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_b71cfe92a333b4737c5a99efaaa1c80a",
+          "best_rank": 29,
+          "best_score": 0.011235955056179775,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_b71cfe92a333b4737c5a99efaaa1c80a"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            29
+          ],
+          "duration": 119.55999999999995,
+          "excerpt": "是可以完全直接限套RG的技术的啊 如果你今天想要研究这个AI agent 按照经验来修改他的行为来 那你可以考虑一个叫做string bench的benchmark 那在string bench里面呢会有一系列的问题 然后呢AI会依序去解这些问题啊 先解第一个问题 得到第一个问题的答案 然后接下来他会得到第一个问题答案的呃反馈 那在这个string bench目前的版本里面呢 因为所有的问题都是有标准答案的 所以AI agent得到的回馈是binary的的 对或者是错好 那根据他过去的经验 他就可以修正他的行为 期待他在第二个问题的时候 可以得到更准确的",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 2081.86,
+          "jump_url": "https://www.bilibili.com/video/BV1QdzCB3Eu2?t=2081",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 2201.42,
+          "window_start": 2081.86
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 30.518,
+      "chapter_ms": 0.575,
+      "grouping_ms": 0.065,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 64.634,
+      "total_ms": 98.191
+    },
+    "raw": {
+      "dense_ms": 58.5,
+      "fusion_ms": 4.415,
+      "lexical_ms": 1.101,
+      "planning_ms": 0.018,
+      "total_ms": 64.593
+    }
+  },
+  "trace_id": "4eaea632-0b3c-490c-8ae2-ec309b581541",
+  "trace_persisted": false
+}

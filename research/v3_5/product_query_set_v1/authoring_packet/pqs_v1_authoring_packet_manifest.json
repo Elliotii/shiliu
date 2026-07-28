@@ -1,0 +1,13 @@
+{
+  "content_map_provenance_private": true,
+  "dev_eval_split_started": false,
+  "f1a_started": false,
+  "f1b_started": false,
+  "legacy_candidate_count": 40,
+  "navigation_item_count": 131,
+  "product_baseline_started": false,
+  "product_query_set_frozen": false,
+  "runner_version": "v3.5-product-query-set-authoring-packet-v1",
+  "status": "Stage 3R-PQS-B0 Complete",
+  "topic_cluster_count": 10
+}

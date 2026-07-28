@@ -1,0 +1,14 @@
+{"path":"src/shiliu/evidence/stage3a.py"}
+{"path":"src/shiliu/evidence/contracts.py"}
+{"path":"src/shiliu/evidence/source.py"}
+{"path":"src/shiliu/evidence/authority.py"}
+{"path":"src/shiliu/evidence/mapping.py"}
+{"path":"src/shiliu/evidence/search.py"}
+{"path":"src/shiliu/eval_v3_5/stage3a.py"}
+{"path":"src/shiliu/eval_v3_5/stage3a_inputs.py"}
+{"path":"src/shiliu/retrieval/service.py"}
+{"path":"src/shiliu/retrieval/orchestrator.py"}
+{"path":"src/shiliu/retrieval/product_search.py"}
+{"path":"src/shiliu/retrieval/consolidation.py"}
+{"path":"src/shiliu/retrieval/enrichment.py"}
+{"path":"src/shiliu/retrieval/hybrid.py"}

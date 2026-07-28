@@ -1,0 +1,24 @@
+{
+  "track_a": {
+    "bundle_created": 0,
+    "bundle_segment_count": 0,
+    "bundle_union_duration_seconds": 0,
+    "cases": 7,
+    "near_support_concentration": "unavailable",
+    "selector_abstained": 7,
+    "typed_failure": 0,
+    "valid_candidate_builder_output": 0,
+    "valid_search_candidate_set": 0
+  },
+  "track_b": {
+    "bundle_created": 7,
+    "bundle_segment_count": 40,
+    "bundle_union_duration_seconds": 758.7807009999999,
+    "cases": 7,
+    "near_support_concentration": "unavailable",
+    "selector_abstained": 0,
+    "typed_failure": 0,
+    "valid_candidate_builder_output": 7,
+    "valid_search_candidate_set": 7
+  }
+}

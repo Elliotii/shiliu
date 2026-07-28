@@ -1,0 +1,22 @@
+{
+  "answerability_checked": false,
+  "candidate_builder_calls": 0,
+  "embedding_calls": 0,
+  "external_llm_calls": 0,
+  "external_network_calls": 0,
+  "f1a_started": false,
+  "f1b_started": false,
+  "final_answer_calls": 0,
+  "generated_at_utc": "2026-07-24T18:53:16+00:00",
+  "gold_used_to_generate_queries": false,
+  "heldout_accessed": false,
+  "product_search_calls": 0,
+  "retrieval_calls": 0,
+  "runner_version": "v3.5-product-query-set-phase-a-v1",
+  "selector_calls": 0,
+  "stress_set_reference_role": "exact_overlap_marking_only; not a candidate source",
+  "sufficiency_judge_calls": 0,
+  "system_results_used_to_select_queries": false,
+  "video_titles_used_to_generate_queries": false,
+  "videos_or_subtitles_viewed": false
+}

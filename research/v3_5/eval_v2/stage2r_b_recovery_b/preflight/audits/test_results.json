@@ -1,0 +1,7 @@
+{
+  "command": ".venv/bin/pytest -q tests/test_v3_5_eval_v2_reviewer_draft.py tests/test_v3_5_eval_v2_review_compiler.py tests/test_v3_5_eval_v2_recovery_b.py",
+  "result": "13 passed",
+  "exit_code": 0,
+  "legacy_clean_restart_regression_in_final_directed_run": false,
+  "note": "The earlier accidental legacy test inclusion is separately disclosed in access_and_frozen.audit.json and is why the B0 outcome is blocked."
+}

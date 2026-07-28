@@ -1,0 +1,40 @@
+{
+  "adjudication_reason_unchanged": true,
+  "agreement_rerun": false,
+  "automatic_decision_used": false,
+  "canonical_reconstruction_passed": true,
+  "case_count": 2,
+  "final_gold_created": false,
+  "human_action_unchanged": true,
+  "human_authored": true,
+  "model_calls": 0,
+  "output_sha256": "e70732bfdf11b01b011463c2042872080977af44726a15ba7b275e12411f6470",
+  "protected_sha256_after": {
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/agreement.json": "999357d5bf6b026c4eb42a9482bb2fa9d3ed928ed23056b20de3fe5289128b4f",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/human_review_packet.md": "1b25ff86502a4964c1b1cf0f42b34045333fa242656a7d53ddd5a5b372c39a98",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/primary/canonical_review.json": "175826146c5684b533bc9f92ce34aa1f14e1df756f68c63a7a93566e4aa2b721",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/secondary/canonical_review.json": "5ba259391d0ca810bd88fe7e542b62c331edb2487317caa8fd8a66bc3145af54",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/agreement.json": "8586bde7e0eed89d8240cdba73ac0393ba166be04944576f9013b6efbea60ac6",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/human_review_packet.md": "83e09d6063f06c4e11a74c59561261834a306c4c2c9d3863273c6f89ec3f74c5",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/primary/canonical_review.json": "97a290b462095784d22cb028243def1d85a037e651e0fc09d1ca7fc6ad8e253e",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/secondary/canonical_review.json": "97b3813029fb6ae33f3364a7a8d3ab6931cae694f710b04ab8f40b518d5cb43a"
+  },
+  "protected_sha256_before": {
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/agreement.json": "999357d5bf6b026c4eb42a9482bb2fa9d3ed928ed23056b20de3fe5289128b4f",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/human_review_packet.md": "1b25ff86502a4964c1b1cf0f42b34045333fa242656a7d53ddd5a5b372c39a98",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/primary/canonical_review.json": "175826146c5684b533bc9f92ce34aa1f14e1df756f68c63a7a93566e4aa2b721",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00001/secondary/canonical_review.json": "5ba259391d0ca810bd88fe7e542b62c331edb2487317caa8fd8a66bc3145af54",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/agreement.json": "8586bde7e0eed89d8240cdba73ac0393ba166be04944576f9013b6efbea60ac6",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/human_review_packet.md": "83e09d6063f06c4e11a74c59561261834a306c4c2c9d3863273c6f89ec3f74c5",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/primary/canonical_review.json": "97a290b462095784d22cb028243def1d85a037e651e0fc09d1ca7fc6ad8e253e",
+    "research/v3_5/eval_v2/stage2r_b2/V2C_B2P00002/secondary/canonical_review.json": "97b3813029fb6ae33f3364a7a8d3ab6931cae694f710b04ab8f40b518d5cb43a"
+  },
+  "reviewer_calls": 0,
+  "source_assets_unchanged": true,
+  "stage2r_c_entered": false,
+  "user_decision_file_sha256": "04ab157e22686bb0d4b876155e7ff60bf252c71696605a783cccc083951acb2e",
+  "validated_case_ids": [
+    "V2C_B2P00001",
+    "V2C_B2P00002"
+  ]
+}

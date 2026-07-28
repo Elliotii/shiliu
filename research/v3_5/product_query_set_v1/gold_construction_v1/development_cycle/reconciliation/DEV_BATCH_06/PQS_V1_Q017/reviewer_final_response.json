@@ -1,0 +1,53 @@
+{
+  "accepted_replacement_records": [
+    {
+      "layer": "evidence",
+      "path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/independent_reviews/reviewer_A/DEV_BATCH_06/proposed_revisions/PQS_V1_Q017/evidence_gold.replacement.json",
+      "sha256": "4f7168328f07cd08466b63f3fd761f65bfa160338afd87928711fc03a25a121f"
+    },
+    {
+      "layer": "retrieval",
+      "path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/independent_reviews/reviewer_A/DEV_BATCH_06/proposed_revisions/PQS_V1_Q017/retrieval_gold.replacement.json",
+      "sha256": "f42c0eaf5690b4ddb6e770de01ce0bb4eec029ba7291310d496e0abeed54d14c"
+    },
+    {
+      "layer": "sufficiency",
+      "path": "research/v3_5/product_query_set_v1/gold_construction_v1/development_cycle/independent_reviews/reviewer_A/DEV_BATCH_06/proposed_revisions/PQS_V1_Q017/sufficiency_gold.replacement.json",
+      "sha256": "ae0b3141cfd4c4b5722b009f3058e605e1afdf97fcec7299093aad33172c8a0c"
+    }
+  ],
+  "access_boundary_declaration": {
+    "existing_gold_read": false,
+    "frozen_packet_opened": false,
+    "initial_annotation_files_modified": false,
+    "only_authorized_reconciliation_inputs_opened": true,
+    "phase1_files_modified": false,
+    "prediction_read": false,
+    "product_pipeline_calls": 0,
+    "reviewer_replacement_files_modified": false
+  },
+  "annotator_return_required": false,
+  "automatic_reconciliation_rounds_remaining": 0,
+  "batch_id": "DEV_BATCH_06",
+  "completed_at_utc": "2026-07-26T13:17:36.950639Z",
+  "query_id": "PQS_V1_Q017",
+  "reconciliation_round": 1,
+  "response": "agree_reconciled",
+  "response_reason": "Annotator accepted the reviewer-proposed complete three-layer replacement without alteration. The accepted records preserve the material choice boundary and correctly apply the P6 insufficient state because the reviewable source supplies no material Step Back-versus-HyDE selection criterion.",
+  "role": "independent_reviewer_reconciliation_final",
+  "second_round_started": false,
+  "unit_id": "reviewer_A",
+  "user_adjudication_required": false,
+  "validation": {
+    "accepted_record_hashes_match": true,
+    "annotator_file_hash_manifest_sha256": "7fac3ca3be7ef5d80cfd98a7685997d61dcf4ba1813002d04cfac36bf8aa979c",
+    "annotator_response_sha256": "dd5107358e8f2a35c8fc8210ddc15fa0f13586c76dbb98eff2e4e3f4c3d9cb50",
+    "exact_quote_replay": "passed",
+    "p6_three_layer_validator": "passed",
+    "query_identity_consistent": true,
+    "replayed_span_count": 1,
+    "segment_identity_replay": "passed",
+    "source_file_hash_replay": "passed",
+    "timeline_identity_replay": "passed"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "external_calls": 0,
+  "local_query_embedding_calls": 0,
+  "retrieval_call_count": 1,
+  "reused_q1_result": false
+}

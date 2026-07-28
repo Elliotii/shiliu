@@ -1,0 +1,275 @@
+{
+  "alternative_or_group_cases": [
+    "CASE_008"
+  ],
+  "canonical_ledger_path": "research/v3_5/human_reviews/review_decisions.calibration.10_cases.validated.jsonl",
+  "canonical_output_sha256": "06ce0e3980e09618a901f572e96ab9d0970660219f33cab79630860532f01737",
+  "case_ids": [
+    "CASE_015",
+    "CASE_017",
+    "CASE_013",
+    "CASE_001",
+    "CASE_003",
+    "CASE_012",
+    "CASE_007",
+    "CASE_008",
+    "CASE_009",
+    "CASE_010"
+  ],
+  "case_validation": [
+    {
+      "case_id": "CASE_015",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 0,
+      "segments": "passed",
+      "source_language": null,
+      "source_state": "title_only",
+      "source_type": "title_only",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_017",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 0,
+      "segments": "passed",
+      "source_language": null,
+      "source_state": "query_corpus",
+      "source_type": "query_corpus",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_013",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 698,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_001",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 328,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_003",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 1378,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_012",
+      "four_state": "passed",
+      "gold_group_count": 0,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 1748,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "human",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_007",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 493,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_008",
+      "four_state": "passed",
+      "gold_group_count": 2,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 138,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_009",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 313,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    },
+    {
+      "case_id": "CASE_010",
+      "four_state": "passed",
+      "gold_group_count": 1,
+      "packet": "passed",
+      "schema": "passed",
+      "segment_authority_count": 324,
+      "segments": "passed",
+      "source_language": "zh",
+      "source_state": "readable_raw",
+      "source_type": "ai",
+      "source_version": "passed",
+      "timeline": "passed"
+    }
+  ],
+  "cases_with_gold_evidence_groups": 6,
+  "errors": [],
+  "four_state_invariant_result": "passed",
+  "group_durations": [
+    {
+      "case_id": "CASE_001",
+      "duration_seconds": 11.72,
+      "group_id": "G1",
+      "span_count": 1
+    },
+    {
+      "case_id": "CASE_003",
+      "duration_seconds": 52.53,
+      "group_id": "G1",
+      "span_count": 1
+    },
+    {
+      "case_id": "CASE_007",
+      "duration_seconds": 103.301,
+      "group_id": "G1",
+      "span_count": 2
+    },
+    {
+      "case_id": "CASE_008",
+      "duration_seconds": 18.621,
+      "group_id": "G1",
+      "span_count": 1
+    },
+    {
+      "case_id": "CASE_008",
+      "duration_seconds": 11.8,
+      "group_id": "G2",
+      "span_count": 1
+    },
+    {
+      "case_id": "CASE_009",
+      "duration_seconds": 243.55,
+      "group_id": "G1",
+      "span_count": 6
+    },
+    {
+      "case_id": "CASE_010",
+      "duration_seconds": 89.05,
+      "group_id": "G1",
+      "span_count": 3
+    }
+  ],
+  "input_files": [
+    {
+      "case_ids": [
+        "CASE_015",
+        "CASE_017",
+        "CASE_013",
+        "CASE_001",
+        "CASE_003",
+        "CASE_012"
+      ],
+      "filename": "calibration_batch_01_cases_015_017_013_001_003_012.completed.jsonl",
+      "record_count": 6,
+      "sha256": "b6b004c45514182676f67ceda664bd8c45d34d8efeb49ef63f56a4fe44fc2566"
+    },
+    {
+      "case_ids": [
+        "CASE_007",
+        "CASE_008",
+        "CASE_009",
+        "CASE_010"
+      ],
+      "filename": "calibration_batch_02_cases_007_008_009_010.completed.jsonl",
+      "record_count": 4,
+      "sha256": "970a502d5041444489addb226a8a4e687408a998747dec6ea30897998dfbce09"
+    }
+  ],
+  "label_distribution": {
+    "insufficient": 3,
+    "sufficient": 6,
+    "unverifiable": 1
+  },
+  "language_distribution": {
+    "none": 2,
+    "zh": 8
+  },
+  "longest_gold_group": {
+    "case_id": "CASE_009",
+    "duration_seconds": 243.55,
+    "group_id": "G1",
+    "span_count": 6
+  },
+  "multi_span_group_cases": [
+    "CASE_007",
+    "CASE_009",
+    "CASE_010"
+  ],
+  "needs_second_review_cases": [],
+  "packet_validation_result": "passed",
+  "schema_validation_result": "passed",
+  "segment_validation_result": "passed",
+  "source_type_distribution": {
+    "ai": 7,
+    "human": 1,
+    "query_corpus": 1,
+    "title_only": 1
+  },
+  "source_version_validation_result": "passed",
+  "timeline_validation_result": "passed",
+  "transcript_error_flag_cases": [
+    "CASE_003",
+    "CASE_007",
+    "CASE_009",
+    "CASE_010"
+  ],
+  "validated_at": "2026-07-20T21:48:47.921661+00:00",
+  "validator_version": "v3.5-human-intake-validator-v1",
+  "warnings": []
+}

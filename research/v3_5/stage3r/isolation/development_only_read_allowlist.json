@@ -1,0 +1,20 @@
+{
+  "paths": [
+    "/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/corpus_lock/development_gold.executable_31.jsonl",
+    "/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/corpus_lock/development_gold.executable_31.manifest.json",
+    "/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/corpus_lock/final_development_corpus_lock.json",
+    "/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/readiness/stage3r_readiness.audit.json",
+    "/tmp/shiliu-v3-5-stage2r-c4-review-v1/finalize_and_lock/closeout/FINAL_DEVELOPMENT_CORPUS_STATE.json",
+    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_eval/artifact_manifest.jsonl",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/V3_5_STAGE3A_EVIDENCE_CANDIDATE_AND_BASELINE_REPORT.md",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/V3_5_STAGE3A_RETRIEVAL_REACHABILITY_AUDIT_REPORT.md",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/V3_5_STAGE3A_INPUT_PROJECTION_FINAL.md",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/V3_5_STAGE3B_STRUCTURED_FINE_SELECTOR_REPORT.md",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/stage3a_inputs/development_execution_manifest.8_cases.locked.jsonl",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/stage3a_inputs/development_execution_manifest.lock.json",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/stage3a_inputs/development_execution_manifest.audit.json",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/stage3a_inputs/DEVELOPMENT_EXECUTION_INPUT_CONTRACT.md"
+  ]
+}

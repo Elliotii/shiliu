@@ -1,0 +1,14 @@
+{
+  "candidate_count": 12,
+  "candidate_ids_unique": true,
+  "constructor_expected_status_in_candidate_pool_only": true,
+  "constructor_fields_must_be_stripped": true,
+  "evidence_question_duplicates": [],
+  "first_batch_maximum_cases_per_video": 1,
+  "heldout_membership_consulted": false,
+  "pilot_query_duplicates": [],
+  "prohibited_query_pools_accessed": false,
+  "query_text_duplicates": [],
+  "same_video_near_duplicate_queries": [],
+  "source_plus_evidence_region_duplicates": []
+}

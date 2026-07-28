@@ -42,3 +42,42 @@ saveAsrButton?.addEventListener('click',async()=>{const status=document.querySel
 
 const masonry=document.querySelector('.waterfall');
 if(masonry){const cards=[...masonry.querySelectorAll('.video-card')],gap=()=>Number.parseFloat(getComputedStyle(masonry).getPropertyValue('--masonry-gap'))||24;let frame=0;const layout=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const spacing=gap();cards.forEach(card=>{const span=Math.max(1,Math.ceil(card.getBoundingClientRect().height+spacing));const value=`span ${span}`;if(card.style.gridRowEnd!==value)card.style.gridRowEnd=value})})};if('ResizeObserver'in window){const observer=new ResizeObserver(layout);cards.forEach(card=>observer.observe(card))}window.addEventListener('resize',layout,{passive:true});masonry.querySelectorAll('details').forEach(item=>item.addEventListener('toggle',layout));masonry.querySelectorAll('img').forEach(image=>{if(!image.complete)image.addEventListener('load',layout,{once:true})});document.fonts?.ready.then(layout);layout()}
+
+const classifyLibraryCover=image=>{
+  const frame=image.closest('.cover-wrap');
+  if(!frame||!image.naturalWidth||!image.naturalHeight)return;
+  frame.classList.toggle('is-portrait-cover',image.naturalHeight>image.naturalWidth*1.08);
+  try{
+    const width=48,height=27,canvas=document.createElement('canvas');
+    canvas.width=width;canvas.height=height;
+    const context=canvas.getContext('2d',{willReadFrequently:true});
+    context.drawImage(image,0,0,width,height);
+    const pixels=context.getImageData(0,0,width,height).data,columns=[];
+    for(let x=0;x<width;x++){
+      let total=0;
+      for(let y=0;y<height;y++){
+        const offset=(y*width+x)*4;
+        total+=(pixels[offset]*.2126)+(pixels[offset+1]*.7152)+(pixels[offset+2]*.0722);
+      }
+      columns.push(total/height);
+    }
+    const center=columns.slice(18,30).reduce((sum,value)=>sum+value,0)/12;
+    const threshold=Math.min(42,center*.42);
+    let left=0,right=width-1;
+    while(left<width/2&&columns[left]<threshold)left++;
+    while(right>width/2&&columns[right]<threshold)right--;
+    const contentWidth=right-left+1;
+    if(center>58&&left>=4&&right<=width-5&&contentWidth>=12){
+      const zoom=Math.min(2.2,width/contentWidth);
+      frame.style.setProperty('--cover-zoom',zoom.toFixed(3));
+      frame.classList.add('is-pillarboxed');
+    }
+  }catch(_error){
+    frame.style.removeProperty('--cover-zoom');
+    frame.classList.remove('is-pillarboxed');
+  }
+};
+document.querySelectorAll('.cover-wrap img').forEach(image=>{
+  if(image.complete)classifyLibraryCover(image);
+  else image.addEventListener('load',()=>classifyLibraryCover(image),{once:true});
+});

@@ -1,0 +1,21 @@
+{
+  "query_id": "SYNTH_QUERY_ALPHA",
+  "gold_version": "SYNTH_GOLD_V1",
+  "material_aspect_ids": [
+    "SYNTH_ASPECT_1",
+    "SYNTH_ASPECT_2"
+  ],
+  "gold_policy_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "review_state": "sealed",
+  "status": "insufficient",
+  "supported_aspects": [],
+  "missing_aspects": [
+    "SYNTH_ASPECT_1",
+    "SYNTH_ASPECT_2"
+  ],
+  "reason_codes": [
+    "SG_NO_USABLE_MATERIAL_SUPPORT"
+  ],
+  "evidence_group_ids_used": [],
+  "authoritative_sources_reviewable": true
+}

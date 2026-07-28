@@ -1,0 +1,94 @@
+{
+  "seal_version": "v3.5-frozen-eval-runtime-seal-v1",
+  "runtime_mode": "frozen_eval_runtime",
+  "corpus_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "sealed_corpus_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+  "snapshot_id": "20260720T094346Z_c7663365",
+  "sync_allowed": false,
+  "mutable_index_allowed": false,
+  "snapshot": {
+    "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "read_only": true
+  },
+  "database": {
+    "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "read_only": true
+  },
+  "lexical_index": {
+    "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "read_only": true,
+    "index_version": "v3-stage1-lexical-v1",
+    "storage_contract": "lexical index is embedded in the sealed SQLite snapshot"
+  },
+  "dense_index": {
+    "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "read_only": true,
+    "index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "embedding_provider": "v3-qwen3-embedding-provider-v1",
+    "embedding_dimension": 512,
+    "embedding_vector_count": 1555,
+    "storage_contract": "dense index is embedded in the sealed SQLite snapshot"
+  },
+  "artifacts": {
+    "database": {
+      "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+      "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
+    },
+    "lexical_index": {
+      "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+      "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
+    },
+    "dense_index": {
+      "path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+      "sha256": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
+    }
+  },
+  "runtime_policy": {
+    "sync_allowed": false,
+    "mutable_index_allowed": false,
+    "live_current_allowed": false,
+    "rebuild_allowed": false
+  },
+  "binding_integrity": {
+    "snapshot_database_same_corpus": true,
+    "database_lexical_index_same_snapshot": true,
+    "database_dense_index_same_snapshot": true,
+    "corpus_identity_consistent": true,
+    "paths_exist": true,
+    "hashes_match_existing_authority": true,
+    "index_rebuilt": false
+  },
+  "binding_evidence": {
+    "source_manifests": [
+      "research/v3_5/auto_smoke/runtime_preflight/index_identity.json",
+      "research/v3_5/auto_smoke/runtime_preflight/auto_runtime_identity.json",
+      "research/v3_5/stage3r_qc/phase_b/runtime_freeze/frozen_v3_runtime_identity.json"
+    ],
+    "source_seals": [
+      "STAGE5_CURRENT_INTEGRATION_REFREEZE_SEAL.json"
+    ],
+    "source_hashes": {
+      "research/v3_5/auto_smoke/runtime_preflight/index_identity.json": "715ef38a9a67487e58c803ed6a5ac0bba7fc8e30b408d67d9fcb41bd53dc0d04",
+      "research/v3_5/auto_smoke/runtime_preflight/auto_runtime_identity.json": "53ea7d2e81ff5cf89244fca0d2660db9a73f06cafed2aa5c832c8ba755eb58c6",
+      "research/v3_5/auto_smoke/runtime_preflight/runtime_integrity.audit.json": "26b21454a32512bb035d683cf8940517407025aea991088491038a48da68b294",
+      "research/v3_5/stage3r_qc/phase_b/runtime_freeze/frozen_v3_runtime_identity.json": "647db8d33ef26b5a3955bd4ddf723e775ec1494ba557bfab3f20af4e5f8214fe",
+      "research/v3_5/stage3r_qc/phase_b/runtime_freeze/frozen_v3_runtime_config.audit.json": "7e3bf4f865c9733b3d7ac34b6e6442670bea24277d04daccec4890290e8888e3",
+      "STAGE5_CURRENT_INTEGRATION_REFREEZE_SEAL.json": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c",
+      "snapshot_database_lexical_dense_embedded_file": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
+    }
+  },
+  "formal_components": {
+    "builder_hash": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+    "selector_hash": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+    "identity_contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "mechanical_gate_hash": "1577a51e57661a0a8bcbd51cfaed31013bdf2859ab786d67c50f7c42fa84f17c",
+    "semantic_judge_freeze_seal_hash": "2e2d90afda5dc6e7f7576742e900782f857622a331303bca18b983d27b645d59",
+    "Stage5_current_integration_refreeze_seal_hash": "4ff57a88c23b7f114dcb8f71a1e83e1f127af81a761f439c54d7a28ecde8b40c"
+  },
+  "Frozen_Evaluation_content_accessed": false,
+  "created_at": "2026-07-27T18:10:29Z"
+}

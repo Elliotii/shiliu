@@ -1,0 +1,7 @@
+{
+  "candidate_builder_calls": 0,
+  "guard_method": "S1 imports and invokes no prohibited runner function",
+  "prediction_runner_calls": 0,
+  "retrieval_calls": 0,
+  "selector_calls": 0
+}

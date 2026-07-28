@@ -1,0 +1,12 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "active_candidate_design": "adaptive_bounded_coverage_swap_v1",
+  "execution_status": "complete",
+  "f1a_implementation_authorized": false,
+  "f1a_major_cycles_remaining": 1,
+  "f1b_authorized": false,
+  "p9_candidate_design_amendment_status": "execution_candidate_ready",
+  "p9_decision": "execute",
+  "schema_version": "v3.5-b-p9-candidate-design-amendment-execution-v1",
+  "stage4_started": false
+}

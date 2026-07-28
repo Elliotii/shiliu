@@ -1,0 +1,36 @@
+{
+  "schema_version": "v3.5-stage5-integration-test-results-v1",
+  "timestamp": "2026-07-27T15:15:00Z",
+  "contract_fixture_dom_suite": {
+    "command": "PYTHONPATH=.:src .venv/bin/pytest -q tests/test_stage5_integration.py tests/test_search_page.py tests/test_product_search_api.py tests/test_evidence_stage1b.py tests/test_v3_5_stage3b_selector.py tests/test_stage4a_r_mechanical_gate.py tests/test_stage4b_semantic_judge.py",
+    "passed": 78,
+    "failed": 0
+  },
+  "coverage": {
+    "api_request_response_contract": true,
+    "frozen_component_version_wiring": true,
+    "judge_eligible_calls_judge": true,
+    "source_unverifiable_bypasses_judge": true,
+    "invalid_bypasses_judge": true,
+    "all_four_semantic_statuses": true,
+    "evidence_id_subset_preservation": true,
+    "trace_id_and_stage_span_propagation": true,
+    "provider_and_parse_error_mapping": true,
+    "ui_loading_evidence_gate_semantic_and_limitations": true,
+    "safe_dom_no_inner_html": true
+  },
+  "syntax_and_diff_checks": {
+    "node_check": "pass",
+    "python_compile": "pass",
+    "git_diff_check": "pass"
+  },
+  "repository_regression": {
+    "passed": 1371,
+    "failed": 9,
+    "stage5_related_failures": 0,
+    "collection_exclusion": "tests/test_pqs_v1_authoring_packet_contracts.py: pre-existing missing scripts/export_pqs_v1_authoring_packet.py",
+    "failure_classification": "pre-existing historical hash/state expectations and one binary-file UTF-8 assumption; no Stage 5 file is implicated"
+  },
+  "Frozen_Evaluation_accessed": false
+}
+

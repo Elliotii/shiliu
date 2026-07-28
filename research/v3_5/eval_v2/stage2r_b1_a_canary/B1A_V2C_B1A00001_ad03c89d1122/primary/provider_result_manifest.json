@@ -1,0 +1,57 @@
+{
+  "cached_tokens": null,
+  "canonical_compilation_success": false,
+  "canonical_sha256": null,
+  "case_id": "V2C_B1A00001",
+  "cost_usd_if_available": null,
+  "end_to_end_latency_ms": 5220,
+  "finish_reason": null,
+  "initial_valid": false,
+  "input_tokens": null,
+  "output_tokens": null,
+  "packet_sha256": "a89a2a9142fd5896b0b0c7286d5fc88e4b0f0c3c1105d073f20b31b18973f852",
+  "prompt_version": "v3.5-primary-reviewer-draft-prompt-v2",
+  "provider_id": "openai",
+  "provider_latency_ms": null,
+  "repair_attempted": false,
+  "repair_valid": false,
+  "requested_model": "gpt-5.6-terra",
+  "response_model_echo": null,
+  "review_run_id": "B1A_V2C_B1A00001_ad03c89d1122",
+  "reviewer_role": "primary",
+  "schema_version": "v3.5-reviewer-draft-v1",
+  "selected_successful_attempt": null,
+  "transport_attempt_count": 3,
+  "transport_failures": [
+    {
+      "attempt": 1,
+      "failure_class": "http_400_transient",
+      "http_status": 400,
+      "latency_ms": 1743,
+      "payload_fingerprint": "46578ef0a8fb407ce888da6705bc7f78c3c2da5408ee927b6a56f33123f2816f",
+      "phase": "initial",
+      "retry_delay_ms": 500,
+      "success": false
+    },
+    {
+      "attempt": 2,
+      "failure_class": "http_400_transient",
+      "http_status": 400,
+      "latency_ms": 1099,
+      "payload_fingerprint": "46578ef0a8fb407ce888da6705bc7f78c3c2da5408ee927b6a56f33123f2816f",
+      "phase": "initial",
+      "retry_delay_ms": 1000,
+      "success": false
+    },
+    {
+      "attempt": 3,
+      "failure_class": "http_400_transient",
+      "http_status": 400,
+      "latency_ms": 869,
+      "payload_fingerprint": "46578ef0a8fb407ce888da6705bc7f78c3c2da5408ee927b6a56f33123f2816f",
+      "phase": "initial",
+      "retry_delay_ms": 0,
+      "success": false
+    }
+  ]
+}

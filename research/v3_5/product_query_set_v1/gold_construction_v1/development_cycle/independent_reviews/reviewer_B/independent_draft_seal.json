@@ -1,0 +1,75 @@
+{
+  "seal_schema_version": "development-independent-draft-seal-v1",
+  "role": "reviewer_B",
+  "unit_id": "reviewer_B_replacement",
+  "phase": "independent_draft_before_initial_annotation_open",
+  "sealed_at": "2026-07-26T13:05:08Z",
+  "initial_annotation_opened": false,
+  "batches": {
+    "DEV_BATCH_01": {
+      "query_ids": ["PQS_V1_Q003", "PQS_V1_Q005"],
+      "files": {
+        "retrieval_gold.independent.jsonl": "b3aa52078d9b403d6f950567a4801f0a7b0dbcfbc6c96d10deb4f86bc32685a3",
+        "evidence_gold.independent.jsonl": "315119e03c9878ee8e17ea3b9a4932f647f7928bc76a3c752af12adb23f4496b",
+        "sufficiency_gold.independent.jsonl": "82acbe0b4adc4566fad6707407e640ddb97bd0bb1c2cbbe72011aada6fc0b24b",
+        "independent_draft_report.md": "5c78eb560c873171a1ee3633d4e39639f27f623f5c1c03931a48efa7289680ca",
+        "file_hash_manifest.jsonl": "0726d685d45b283a47c578801a6909f3f3a3d1afe9bff2c31bc87c55ee455d8a"
+      }
+    },
+    "DEV_BATCH_03": {
+      "query_ids": ["PQS_V1_Q007", "PQS_V1_Q008"],
+      "files": {
+        "retrieval_gold.independent.jsonl": "7b412359e6e4d4cbd2c256557471330ff678c450b3166f4c350b638d8478ddf4",
+        "evidence_gold.independent.jsonl": "355c78aabec61d19492365127aec9ea47deb18346a902aa5c82a1db5a2fda73d",
+        "sufficiency_gold.independent.jsonl": "7e0f3beae2841680cf00cc2fe8f4319ccdbe2ba77babbd1f4e6cfc34b30f7472",
+        "independent_draft_report.md": "9e4e4eea75655e60dae2ffd847818cd5f0260c3741c51bd7ceedffb806bc4a8b",
+        "file_hash_manifest.jsonl": "f4c4844610e14b32c70b4a434bfa1bf7d7b70b83c0beb5061716b6c116c6a462"
+      }
+    },
+    "DEV_BATCH_05": {
+      "query_ids": ["PQS_V1_Q014", "PQS_V1_Q015"],
+      "files": {
+        "retrieval_gold.independent.jsonl": "5c85cabfcd15f5024080e0d21996253e0a93d7d0dbc842f407874f8a6c2cda0c",
+        "evidence_gold.independent.jsonl": "7a9a451c6b7e8a8d2bf4195ea9e03925893db5c25bb2bb129a8cd8706df8e113",
+        "sufficiency_gold.independent.jsonl": "42595d6c03bf18e852423d34a638179c3453f2073d9b8438195b07e8c3cd5490",
+        "independent_draft_report.md": "bf33437752ebfbb2c996236d2cc6f209f7c6fc2ec8ce92b9b976281efbc6dfd4",
+        "file_hash_manifest.jsonl": "ce3407c292318d08c3ac9cfa30284ddce45adc9fbe8ba2e60dc4c7ef395cd262"
+      }
+    },
+    "DEV_BATCH_07": {
+      "query_ids": ["PQS_V1_Q013", "PQS_V1_Q019"],
+      "files": {
+        "retrieval_gold.independent.jsonl": "115b0f49ed0b6c6b0939daa5c3b93d5b46a760d94d9fd28313b24d786042d5b9",
+        "evidence_gold.independent.jsonl": "eb196e5aebeea2a8523d2bac54ca5428a173e2ecf95b635ec4e0c1dffdf73b55",
+        "sufficiency_gold.independent.jsonl": "bd88c2d0a42f3eb53a0d3cb379f6d21436a20822ad87dbed7dc6351e4951b769",
+        "independent_draft_report.md": "cf7b254e30b0b23c5624fde89386cc0b24c0ef2c2707e50297e741b4c1eb6cc7",
+        "file_hash_manifest.jsonl": "3c5f45a4b0a1822ca1ae087b4ef5ca7941304703edd09aaeb911fd87c4756297"
+      }
+    }
+  },
+  "input_identities": {
+    "task_contract_sha256": "e112266314ce49d4fc86d88f991ebc697765a346a8afe1711f0516297d32fa03",
+    "development_cycle_decision_ledger_sha256": "99cb02349b5a67a9a33ccaaba75bc84d12a6c81be2a37db54fab3cba6c77e1ea",
+    "neutral_library_navigation_index_sha256": "5cbd90113068167137f0fae6a4f10e08af7eaf8d2c0f3c10d03704a2acd9f32f",
+    "authoritative_transcript_identity_catalog_sha256": "6dea9ffb022387d9e8535beca03c989316941027ef46370519a4905174ca9aa4",
+    "p6_validator_sha256": "c2e61bb73cfb29193a983229019032f17ef0cfd37fedf79699df2029af1a7103"
+  },
+  "validation": {
+    "p6_three_layer_validator": "pass",
+    "validated_query_count": 8,
+    "evidence_replay": "pass",
+    "replayed_span_count": 25,
+    "catalog_identity_match": "pass",
+    "source_file_sha256_match": "pass"
+  },
+  "access_attestation": {
+    "initial_annotations_paths_read_listed_searched_or_statted": false,
+    "other_reviewer_output_opened": false,
+    "frozen_packet_opened": false,
+    "prediction_or_existing_gold_read": false,
+    "historical_target_read": false,
+    "product_pipeline_calls": 0,
+    "navigation_sources_used_as_gold_evidence": false,
+    "orchestrator_semantic_decision_requested": false
+  }
+}

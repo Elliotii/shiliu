@@ -1,0 +1,106 @@
+{
+  "candidate_counts": {
+    "dense": 0,
+    "lexical": 1
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": null,
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": false,
+    "normalized_query": "vibe coding",
+    "planned_mode": "lexical",
+    "query_type": "exact_entity",
+    "raw_query": "vibe coding",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "short_ascii_entity",
+    "scope": "all",
+    "validated_filters": {
+      "marked": true
+    }
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": null,
+      "dense_score": null,
+      "end_time": null,
+      "excerpt": "[Title] vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！ [Uploader] chocpink_AI版 [Description] 想了很久终于开始了这件事——vibe coding！ 下面快速总结了我用到的一些工具： Apptweak：竞品调研 figma make、google stitch、i…",
+      "lexical_rank": 1,
+      "lexical_score": 6.277302729485329,
+      "rank": 1,
+      "retrieval_method": "lexical",
+      "rrf_score": null,
+      "score": 6.277302729485329,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "unit_id": "video:bilibili:BV1fRSfBWE5X:p1",
+      "unit_type": "video",
+      "uploader": "chocpink_AI版",
+      "video_id": 34
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 6.277302729485329,
+      "best_unit_id": "video:bilibili:BV1fRSfBWE5X:p1",
+      "best_unit_type": "video",
+      "bvid": "BV1fRSfBWE5X",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/5a9a59925461a139602705ef37eb287496c278ed.jpg",
+      "detail_url": "/videos/34/transcript",
+      "duration": 520.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": true,
+      "match_excerpt": "[Title] vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！ [Uploader] chocpink_AI版 [Description] 想了很久终于开始了这件事——vibe coding！ 下面快速总结了我用到的一些工具： Apptweak：竞品调研 figma make、google stitch、i…",
+      "matched_unit_count": 1,
+      "reading_state": "read",
+      "retrieval_methods": [
+        "lexical"
+      ],
+      "supporting_chunk_count": 0,
+      "title": "vlog｜白天上班 晚上vibe coding，准备一个月上架我的第一款App！",
+      "total_window_count": 0,
+      "unwindowed_chunk_count": 0,
+      "uploader": "chocpink_AI版",
+      "video_id": 34,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1fRSfBWE5X",
+      "windows": []
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 0.478,
+      "chapter_ms": 0.063,
+      "grouping_ms": 0.007,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 1.607,
+      "total_ms": 2.445
+    },
+    "raw": {
+      "dense_ms": 0.0,
+      "fusion_ms": 0.0,
+      "lexical_ms": 1.289,
+      "planning_ms": 0.016,
+      "total_ms": 1.585
+    }
+  },
+  "trace_id": "3f0b4399-71fd-4193-a47c-27e499349e8f",
+  "trace_persisted": false
+}

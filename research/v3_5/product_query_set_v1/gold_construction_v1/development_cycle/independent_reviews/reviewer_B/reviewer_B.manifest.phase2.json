@@ -1,0 +1,87 @@
+{
+  "manifest_schema_version": "development-independent-review-phase2-manifest-v1",
+  "role": "reviewer_B",
+  "unit_id": "reviewer_B_replacement",
+  "phase": "initial_annotation_comparison",
+  "phase_status": "complete",
+  "phase1_seal_sha256": "c7ff56f2cc9f0610a9c82430a1afdc5faf207d4fb97323a781918f4cbba8a591",
+  "phase1_sealed_at_utc": "2026-07-26T13:05:08Z",
+  "initial_annotation_opened_at_utc": "2026-07-26T13:07:49Z",
+  "comparison_completed_at_utc": "2026-07-26T13:11:51Z",
+  "draft_before_open_verified": true,
+  "assigned_batches": ["DEV_BATCH_01", "DEV_BATCH_03", "DEV_BATCH_05", "DEV_BATCH_07"],
+  "query_count": 8,
+  "outcome_counts": {
+    "agree": 8,
+    "revise_gold": 0,
+    "escalate": 0,
+    "blocked_by_source": 0
+  },
+  "initial_annotation_file_hashes": {
+    "DEV_BATCH_01": {
+      "retrieval_gold.initial.jsonl": "27f4d96df7be7b71ab322d56f831d196df8405e022894b582dcd1625aced57c6",
+      "evidence_gold.initial.jsonl": "9b2bf811a913ada4b3bd9242acc8f8a2023166043f4349b104fab17a0f38b5a0",
+      "sufficiency_gold.initial.jsonl": "801cb5bd775a96380e422618a5f597558d21792a6fbde4591c66ba4c6eae3a6d"
+    },
+    "DEV_BATCH_03": {
+      "retrieval_gold.initial.jsonl": "3171a2a9282320a2b3f90db19d59c6a63df97df634e5e45bcc5b70ee27b9ff0c",
+      "evidence_gold.initial.jsonl": "7259177a75417fae047bd4bb01bb6ce17be4a2b15198a559080cfb69f7ac2034",
+      "sufficiency_gold.initial.jsonl": "c1dc05e3102c07307dddd4f8b67ff72114ef3ed0bfb9561bbed6683a6425fafc"
+    },
+    "DEV_BATCH_05": {
+      "retrieval_gold.initial.jsonl": "73fd668b933aad2153b7f253ab7c58e9cf1886fa2a9ec2020517f5a56c712934",
+      "evidence_gold.initial.jsonl": "3782cbc1676a06215fbaf19b4a0ef60b84006d352477aad55e35b40fafc18949",
+      "sufficiency_gold.initial.jsonl": "94f1f52e8435fa6d62152db6c55643b5dd89978b145681c2863971e26274d3f9"
+    },
+    "DEV_BATCH_07": {
+      "retrieval_gold.initial.jsonl": "7afe6a35a90db5028a6dfb9186762a230a988c89476f9f186e88ec71bad74c3d",
+      "evidence_gold.initial.jsonl": "a881b882dd46aee93bf99e2e16eabbb13995b66b16435494f605f87a2612932c",
+      "sufficiency_gold.initial.jsonl": "74b9d520f72dff887737e6f6828e10bb4679032a8a2595439a500b8f966364cd"
+    }
+  },
+  "comparison_output_hashes": {
+    "DEV_BATCH_01": {
+      "review_decision.jsonl": "f10828cf396fb983bfd146ffe0deea4b4f41a292307a1c486d54c7a3b7497bca",
+      "layer_comparison.jsonl": "72fbbca7b1f51413cc42625b2d9b4d9453a86cd0fbeeb3baa2992a81c7f58351",
+      "independent_review_report.md": "abae4f2f1fcd0fb73f7dcc825aea6185b17eb8ec0a0f1607c6487f054ac28fbc",
+      "comparison_file_hash_manifest.jsonl": "4594e028592d0e9709ffb3e0ad0018f54595f821491aab25d88545f5538da7d6"
+    },
+    "DEV_BATCH_03": {
+      "review_decision.jsonl": "98044f511e0db4ca3020df07c80ef668b1120b033f47808c83cbd4be64894444",
+      "layer_comparison.jsonl": "8614f057fb412ae8177750f00451c2fbb9ee3eae749d63b50d0cb7a14abe5346",
+      "independent_review_report.md": "7da6bc4fca2e30c6756ee99b035e0c306caf5bb6c2162d800fb76d613f7616bb",
+      "comparison_file_hash_manifest.jsonl": "2d0181576b70a2ed70005d30954583fb687bf6708fe1c694884abfb1d289042f"
+    },
+    "DEV_BATCH_05": {
+      "review_decision.jsonl": "bdf3430e7221e3d6cd02454daa87a0dcc3638c0a8de337608dad5fe1d6a79ceb",
+      "layer_comparison.jsonl": "5f78228e381fa09f394a9556cdda08068ece024c804ac6b50fe26d39cbdeeee9",
+      "independent_review_report.md": "d7bbd77132a631ed589ba7250d49a0f165b5e24afef71c6bb87b2d1c8a66732a",
+      "comparison_file_hash_manifest.jsonl": "d2f0b5aa0021ca4f264d0dd7050ee4e1f5ff417488c626bcf7c8deea166e87b3"
+    },
+    "DEV_BATCH_07": {
+      "review_decision.jsonl": "04e02c7b0caa4286c04328da0c4c22e025458deb248150d6290d8b32a8a93dd7",
+      "layer_comparison.jsonl": "d57569a3ba220d3dbab15f17a798dbfcb6e62a70f556543c8338f63d3519d0bd",
+      "independent_review_report.md": "734634264b8cc0f1f2486480c1b42a420ee41361c6aac7fc1dccaf3fda16c72b",
+      "comparison_file_hash_manifest.jsonl": "a5cc839ef5bf24d25e8f9f1a6cbfd51bfae19f4a109215677d011f6cdc39bf21"
+    }
+  },
+  "validation": {
+    "initial_p6_three_layer_validator": "pass",
+    "initial_validated_query_count": 8,
+    "initial_evidence_replay": "pass",
+    "initial_replayed_span_count": 22,
+    "decision_record_count": 8,
+    "layer_comparison_record_count": 24,
+    "comparison_hash_verification": "pass"
+  },
+  "boundary_attestation": {
+    "phase1_files_modified": false,
+    "initial_annotation_files_modified": false,
+    "reconciliation_started": false,
+    "user_adjudication_started": false,
+    "frozen_packet_opened": false,
+    "prediction_or_existing_gold_read": false,
+    "product_pipeline_calls": 0,
+    "orchestrator_made_semantic_decision_for_reviewer": false
+  }
+}

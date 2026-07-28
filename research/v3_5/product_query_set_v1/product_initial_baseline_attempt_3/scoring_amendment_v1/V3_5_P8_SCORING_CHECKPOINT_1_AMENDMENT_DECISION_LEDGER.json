@@ -1,0 +1,84 @@
+{
+  "decision_name": "Shiliu V3.5-B P8 Scoring and Checkpoint 1 Amendment Decision Ledger",
+  "schema_version": "v3.5-b-p8-scoring-amendment-v1",
+  "decision_date": "2026-07-27",
+  "decision_authority": "V3.5-B",
+  "trigger": {
+    "p9_blocking_report": "P9_F1A_CANDIDATE_BUILDER_DECISION_BLOCKED_RESPONSE.md",
+    "blocking_reason": "PQS_V1_Q017 has zero Gold-defined acceptable evidence groups and an explicitly missing material aspect, but P8 attributed candidate_builder_failure.",
+    "defect_class": "identity_or_scoring_defect"
+  },
+  "authoritative_scope": {
+    "p7_gold_changed": false,
+    "p8_predictions_changed": false,
+    "p8_traces_changed": false,
+    "p8_prediction_seal_changed": false,
+    "query_split_gold_changed": false,
+    "builder_behavior_changed": false,
+    "selector_behavior_changed": false,
+    "gate_behavior_changed": false,
+    "scoring_eligibility_changed": true,
+    "primary_failure_attribution_changed": true,
+    "checkpoint_1_derived_findings_changed": true
+  },
+  "required_rule": {
+    "candidate_builder_failure_eligible_only_if": [
+      "retrieval_success_is_true",
+      "authoritative_source_is_reviewable",
+      "acceptable_evidence_group_count_is_greater_than_zero",
+      "required_material_evidence_is_constructible"
+    ],
+    "zero_acceptable_group_handling": {
+      "must_not_enter_builder_coverage_denominator": true,
+      "must_not_be_candidate_builder_failure": true,
+      "must_be_routed_by_gold_and_source_semantics": true,
+      "final_enum_must_be_mechanically_justified": true
+    }
+  },
+  "execution_scope": {
+    "read_frozen_p8_predictions": true,
+    "read_development_gold": true,
+    "read_frozen_gold": false,
+    "rerun_predictions": false,
+    "rerun_traces": false,
+    "rerun_retrieval": false,
+    "rerun_builder": false,
+    "rerun_selector": false,
+    "rerun_gate": false,
+    "recompute_scores_from_frozen_artifacts": true,
+    "update_checkpoint_1_authorities": true,
+    "restart_p9": false
+  },
+  "required_outputs": [
+    "P8_SCORING_AMENDMENT_REPORT.md",
+    "p8_scoring_amendment.scores.json",
+    "p8_scoring_amendment.per_query.jsonl",
+    "p8_scoring_amendment.failure_attribution.jsonl",
+    "p8_scoring_amendment.manifest.json",
+    "p8_scoring_amendment.audit.json",
+    "p8_scoring_amendment.execution_decision.json",
+    "p8_scoring_amendment.file_hash_manifest.jsonl",
+    "CHECKPOINT_1_AMENDMENT_REPORT.md",
+    "checkpoint_1_amendment.manifest.json",
+    "checkpoint_1_amendment.audit.json",
+    "checkpoint_1_amendment.execution_decision.json",
+    "checkpoint_1_amendment.file_hash_manifest.jsonl"
+  ],
+  "required_authority_updates": [
+    "V3_5_CURRENT_STATE.md",
+    "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+    "authoritative Decision Ledger",
+    "02_PRODUCT_QUERY_SET_AND_REMAINING_V3_5_PLAN.md"
+  ],
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "p8_prediction_set_status": "valid_and_frozen",
+    "p8_scoring_status": "amendment_execution_candidate_ready",
+    "checkpoint_1_status": "amendment_execution_candidate_ready",
+    "p9_status": "blocked_pending_v3_5_b_acceptance",
+    "f1a_authorized": false,
+    "f1b_authorized": false,
+    "stage4_started": false
+  }
+}

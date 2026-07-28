@@ -1,0 +1,341 @@
+{
+  "canonical_evidence_identity": {
+    "canonical_segment_identity": {
+      "field": "segment_ids",
+      "normalization": "segment_id becomes a singleton segment_ids sequence",
+      "required": true
+    },
+    "canonical_temporal_interval": {
+      "fields": ["start_time", "end_time"],
+      "normalization": "finite decimal seconds",
+      "required": true,
+      "tolerance_seconds": 0.000001
+    },
+    "canonical_timeline_identity": {
+      "field": "timeline_run_id",
+      "match": "exact",
+      "required": true
+    },
+    "canonical_video_identity": {
+      "aliases": ["video_id", "bvid", "source_id", "canonical_video_id"],
+      "authoritative_tuple": ["source_platform", "source_video_id", "snapshot_numeric_video_id", "part"],
+      "mapping_policy": "one-to-one authoritative snapshot mapping only",
+      "required": true,
+      "unsupported_aliases": ["aid"]
+    },
+    "evidence_form": {
+      "allowed_for_equality": "segment_backed_transcript",
+      "required": true
+    },
+    "source_platform": {
+      "normalization": "casefolded authoritative mapping platform",
+      "required": true
+    },
+    "source_version": {
+      "match": "exact",
+      "required": true
+    }
+  },
+  "comparison_policy": {
+    "allowed_equivalences": [
+      "BVID and authoritative snapshot numeric video ID",
+      "segment_id and singleton segment_ids",
+      "numeric and string time values within 1e-6 seconds",
+      "different selector methods with identical evidence identity",
+      "different builder/model versions with identical evidence identity",
+      "legacy subtitle-class and generation-lineage labels when stable segment identity is identical"
+    ],
+    "candidate_id_only_sufficient": false,
+    "conservative_non_match_conditions": [
+      "different canonical video",
+      "different source version",
+      "different timeline run",
+      "different stable segment identity",
+      "AI-generated summary versus segment-backed transcript",
+      "time overlap without segment identity"
+    ],
+    "exact_match_fields": [
+      "canonical_video_identity",
+      "source_version",
+      "canonical_timeline_identity",
+      "evidence_form"
+    ],
+    "normalized_match_fields": [
+      "source_platform",
+      "video aliases",
+      "segment_id/segment_ids",
+      "canonical_temporal_interval"
+    ],
+    "one_to_many_coverage": "same namespace plus union of Runtime segment_ids contains Gold segment_ids and contributing interval envelope covers Gold interval",
+    "unverifiable_conditions": [
+      "unknown, ambiguous, or conflicting video alias",
+      "aid without an authoritative aid mapping",
+      "missing video, source_version, timeline_run_id, segment identity, start_time, or end_time",
+      "unattested underlying evidence form"
+    ]
+  },
+  "field_audit": [
+    {
+      "actual_semantics": "platform namespace; Gold embeds it in video_id and Runtime derives it from authoritative mapping",
+      "category": "canonical_identity",
+      "evidence": ["Gold span_registry.video_id", "VideoIdentityCanonicalizer"],
+      "field": "source_platform",
+      "missing_value_policy": "unverifiable if canonical video cannot supply it",
+      "normalization_rule": "casefold and require agreement with mapping",
+      "present_in_gold": "derived",
+      "present_in_runtime": "derived",
+      "required_for_equality": true
+    },
+    {
+      "actual_semantics": "legacy overloaded provenance label: Gold subtitle class; Runtime subtitle generation lineage",
+      "category": "provenance",
+      "evidence": ["Gold values official_subtitle/asr_transcript", "Runtime values ai/asr/human", "FrozenRawSourceResolver database projection"],
+      "field": "source_type",
+      "missing_value_policy": "do not compare; underlying form still must be attested",
+      "normalization_rule": "parse into evidence form and generation lineage; never direct equality",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "language/provenance annotation, with Gold und/zh and Runtime zh",
+      "category": "provenance",
+      "evidence": ["Gold span_registry.source_language", "EvidenceCandidate.source_language"],
+      "field": "source_language",
+      "missing_value_policy": "allowed missing",
+      "normalization_rule": "preserve only",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "SHA-256 byte identity of authoritative subtitle-raw.json",
+      "category": "canonical_identity",
+      "evidence": ["source_version_for_bytes", "make_segment_id", "make_timeline_run_id"],
+      "field": "source_version",
+      "missing_value_policy": "unverifiable",
+      "normalization_rule": "exact string",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": true
+    },
+    {
+      "actual_semantics": "snapshot-local numeric video identity or platform-qualified BVID depending on producer",
+      "category": "canonical_identity",
+      "evidence": ["Gold uses bilibili:BVID", "Runtime EvidenceCandidate uses snapshot numeric ID"],
+      "field": "video_id",
+      "missing_value_policy": "unverifiable",
+      "normalization_rule": "authoritative one-to-one mapping",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": true
+    },
+    {
+      "actual_semantics": "Bilibili public video alias",
+      "category": "navigation_metadata",
+      "evidence": ["Gold video_id embeds BVID", "SearchCandidateVideo.source_id"],
+      "field": "bvid",
+      "missing_value_policy": "use another authoritative video alias",
+      "normalization_rule": "map as bilibili source_video_id",
+      "present_in_gold": "embedded",
+      "present_in_runtime": "adjacent search metadata",
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "Bilibili aid is not present in the authoritative videos(platform, source_id, id, part) mapping",
+      "category": "navigation_metadata",
+      "evidence": ["VideoIdentityCanonicalizer.from_sqlite SELECT list"],
+      "field": "aid",
+      "missing_value_policy": "aid-only identity is unverifiable",
+      "normalization_rule": "none until authoritative mapping exists",
+      "present_in_gold": false,
+      "present_in_runtime": false,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "platform source video identifier, normally BVID",
+      "category": "navigation_metadata",
+      "evidence": ["SearchCandidateVideo.source_id", "videos.source_id mapping"],
+      "field": "source_id",
+      "missing_value_policy": "use another authoritative video alias",
+      "normalization_rule": "pair with source_platform",
+      "present_in_gold": "embedded in video_id",
+      "present_in_runtime": "adjacent search metadata",
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "normalized video alias accepted by matcher inputs; not emitted by current Gold/Runtime",
+      "category": "canonical_identity",
+      "evidence": ["canonical matcher input contract"],
+      "field": "canonical_video_id",
+      "missing_value_policy": "use another video alias",
+      "normalization_rule": "authoritative mapping",
+      "present_in_gold": false,
+      "present_in_runtime": false,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "stable monotonic-run namespace derived from source_version and run ordinal",
+      "category": "canonical_identity",
+      "evidence": ["make_timeline_run_id", "_assign_timeline_runs"],
+      "field": "timeline_run_id",
+      "missing_value_policy": "unverifiable",
+      "normalization_rule": "exact string",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": true
+    },
+    {
+      "actual_semantics": "stable raw-source segment identity derived from artifact, version, and ordinal",
+      "category": "canonical_identity",
+      "evidence": ["make_segment_id"],
+      "field": "segment_id",
+      "missing_value_policy": "normalize segment_ids instead",
+      "normalization_rule": "singleton segment_ids",
+      "present_in_gold": false,
+      "present_in_runtime": false,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "ordered stable raw-source segments represented by an evidence span/window",
+      "category": "canonical_identity",
+      "evidence": ["Gold span_registry", "EvidenceCandidate.segment_ids"],
+      "field": "segment_ids",
+      "missing_value_policy": "unverifiable",
+      "normalization_rule": "non-empty unique string sequence; union for split coverage",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": true
+    },
+    {
+      "actual_semantics": "canonical evidence interval boundaries in seconds",
+      "category": "canonical_identity",
+      "evidence": ["Gold span_registry", "EvidenceCandidate"],
+      "field": "start_time/end_time",
+      "missing_value_policy": "unverifiable",
+      "normalization_rule": "finite float, non-negative, end >= start, 1e-6 tolerance",
+      "present_in_gold": true,
+      "present_in_runtime": true,
+      "required_for_equality": true
+    },
+    {
+      "actual_semantics": "query/process-specific candidate-window hash including generation methods and parents",
+      "category": "processing_metadata",
+      "evidence": ["_candidate_identity"],
+      "field": "candidate_id",
+      "missing_value_policy": "allowed missing",
+      "normalization_rule": "preserve only",
+      "present_in_gold": false,
+      "present_in_runtime": true,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "derived artifact namespace; Runtime includes it but Gold stable segment IDs already embed it",
+      "category": "derived_diagnostic",
+      "evidence": ["make_source_artifact_id", "make_segment_id"],
+      "field": "source_artifact_id",
+      "missing_value_policy": "allowed missing; mismatch rejects only when present on both",
+      "normalization_rule": "exact string",
+      "present_in_gold": false,
+      "present_in_runtime": true,
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "method that selected candidates into a bundle",
+      "category": "processing_metadata",
+      "evidence": ["EvidenceBundle.selection_method"],
+      "field": "selector_method/selection_method",
+      "missing_value_policy": "allowed missing",
+      "normalization_rule": "preserve only",
+      "present_in_gold": false,
+      "present_in_runtime": "bundle level",
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "candidate construction implementation/config provenance",
+      "category": "processing_metadata",
+      "evidence": ["CandidateBuilderConfig.config_id", "swap trace builder_version"],
+      "field": "builder_version",
+      "missing_value_policy": "allowed missing",
+      "normalization_rule": "preserve only",
+      "present_in_gold": false,
+      "present_in_runtime": "trace/manifest level",
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "optional model provenance; not an evidence key",
+      "category": "processing_metadata",
+      "evidence": ["Structured selector trace model_identity"],
+      "field": "model_name",
+      "missing_value_policy": "allowed missing",
+      "normalization_rule": "preserve only",
+      "present_in_gold": false,
+      "present_in_runtime": "not on deterministic candidate",
+      "required_for_equality": false
+    },
+    {
+      "actual_semantics": "method that produced evidence text/form; summary generation changes evidence form",
+      "category": "provenance",
+      "evidence": ["canonical contract negative summary rule"],
+      "field": "extraction_method",
+      "missing_value_policy": "allowed only when segment-backed schema attestation exists",
+      "normalization_rule": "summary markers normalize to ai_generated_summary",
+      "present_in_gold": false,
+      "present_in_runtime": false,
+      "required_for_equality": "conditional guard"
+    }
+  ],
+  "provenance": {
+    "extraction_method": "processing that produced the evidence form",
+    "model_or_builder_version": "processing provenance, never identity",
+    "selection_method": "candidate/bundle picker, never identity",
+    "source_generation_lineage": "human/ai/asr subtitle generation lineage, never direct identity",
+    "underlying_evidence_source": "raw subtitle segment-backed transcript versus generated summary"
+  },
+  "provenance_value_audit": {
+    "ai": "Runtime subtitle generation lineage copied from videos.subtitle_source; not Selector identity",
+    "asr": "Runtime subtitle generation lineage",
+    "asr_transcript": "Gold subtitle class",
+    "official_subtitle": "Gold subtitle class",
+    "raw_subtitle": "artifact role and underlying segment-backed transcript form"
+  },
+  "root_causes": {
+    "eval_v1": "candidate segment/timeline identity was not bridged to Gold identity",
+    "eval_v2": "BVID and snapshot numeric video aliases were not canonicalized",
+    "eval_v3": "legacy source_type values from different semantic axes were compared as identity equality"
+  },
+  "schema_version": "v3.5-b-evidence-identity-contract-v1",
+  "source_type_semantic_finding": {
+    "finding": "Runtime source_type=ai means AI subtitle-generation lineage, not AI selection method",
+    "gold_domain": ["official_subtitle", "asr_transcript"],
+    "runtime_domain": ["ai", "asr", "human"],
+    "selection_field": "selection_method/selector_method",
+    "underlying_field": "underlying_evidence_source",
+    "verified_by": [
+      "FrozenRawSourceResolver SELECT subtitle_source",
+      "SourceArtifactReference.source_lineage assignment",
+      "load_source_artifact RawEvidenceSegment.source_type assignment",
+      "EvidenceCandidate source_type copy",
+      "EvidenceBundle.selection_method separate field"
+    ]
+  },
+  "systemic_risks": [
+    {"risk": "source_version", "status": "resolved_by_contract", "test_coverage": "exact namespace negative"},
+    {"risk": "timeline namespace", "status": "resolved_by_contract", "test_coverage": "wrong timeline negative"},
+    {"risk": "segment aggregation", "status": "resolved_by_contract", "test_coverage": "single versus split union positive"},
+    {"risk": "one-to-many segment mapping", "status": "resolved_by_contract", "test_coverage": "union coverage positive"},
+    {"risk": "time boundary precision", "status": "resolved_by_contract", "test_coverage": "1e-6 normalized representation positive"},
+    {"risk": "official subtitle vs ASR", "status": "explicitly_non_identity", "test_coverage": "provenance-domain separation and stable segment namespace"},
+    {"risk": "raw subtitle vs AI-generated summary", "status": "conservative_non_match", "test_coverage": "summary negative"},
+    {"risk": "selection provenance vs evidence provenance", "status": "resolved_by_contract", "test_coverage": "AI selector positive and selector invariance"}
+  ],
+  "validation": {
+    "field_audit_complete": true,
+    "source_type_semantics_resolved": true,
+    "canonical_contract_complete": true,
+    "positive_tests_pass": true,
+    "negative_tests_pass": true,
+    "six_fixture_consistency_pass": true,
+    "systemic_identity_risks_unresolved": 0
+  }
+}

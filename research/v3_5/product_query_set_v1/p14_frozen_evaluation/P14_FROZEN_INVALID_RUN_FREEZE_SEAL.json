@@ -1,0 +1,23 @@
+{
+  "schema_version": "v3.5-b-p14-frozen-invalid-run-freeze-seal-v1",
+  "run_id": "P14_FROZEN_EVALUATION_20260727T181722Z",
+  "outcome": "p14_frozen_evaluation_invalid",
+  "evaluation_validity": "invalid",
+  "formal_prediction_run_count": 1,
+  "rerun_authorized": false,
+  "Frozen_Query_opened": true,
+  "Frozen_Gold_opened": false,
+  "predictions_freeze_exists": false,
+  "result_freeze_exists": false,
+  "entry_gate_hash": "fd4add3d2b3d76c33397e6d92f327a8b3709224ff4680711f041eb5111821bb8",
+  "runtime_seal_hash": "65ebb99d53c6025d63177e5c0c131ee35f7f5a987de0e42ec8db7ab79dc6dbb4",
+  "formal_run_manifest_hash": "83c7265c32e86fb4b311e604be1545c55a05627817ea265b5c8d97fc46bc2101",
+  "formal_executor_hash": "94748013de4902472d295e13d727eeaf6ad2f8bee9d06b96da06763030fdc52e",
+  "invalid_run_report_hashes": {
+    "P14_FROZEN_INVALID_RUN_REPORT.json": "dabc251742dae3bf76b95a947f8c4eda52019f98b673187db53b59abcd88cad2",
+    "P14_FROZEN_INVALID_RUN_REPORT.md": "fe73786a332e6cccb621a817856af39627d435049095eeb1aafc3a7ad9a74266"
+  },
+  "trace_file_count": 0,
+  "post_result_changes": false,
+  "frozen_at": "2026-07-27T18:19:10Z"
+}

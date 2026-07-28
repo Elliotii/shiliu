@@ -1,0 +1,71 @@
+{
+  "decision_name": "Shiliu V3.5-B P9 F1A Candidate Builder Decision Restart Ledger",
+  "schema_version": "v3.5-b-p9-f1a-restart-v1",
+  "decision_date": "2026-07-27",
+  "decision_authority": "V3.5-B",
+  "supersession": {
+    "prior_p9_attempt": "safely_blocked_due_to_scoring_defect",
+    "prior_decision_candidate": null,
+    "prior_partial_analysis_reusable_as_formal_evidence": false,
+    "restart_basis": "P8_SCORING_AMENDMENT_V1 + CHECKPOINT_1_AMENDMENT"
+  },
+  "entry_state": {
+    "p7_status": "complete_and_accepted",
+    "p8_prediction_set_status": "valid_and_frozen",
+    "p8_scoring_version": "P8_SCORING_AMENDMENT_V1",
+    "p8_scoring_hash_root": "54bc35083f4410ace027452b64fc2d22432111be5a2036c0ce245e6319849795",
+    "checkpoint_1_amendment_status": "complete_and_accepted",
+    "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+    "builder_complete_group_coverage": "6/13",
+    "builder_required_span_recall": 0.6538,
+    "builder_required_aspect_coverage": 0.6538,
+    "builder_primary_failure_count": 6,
+    "selector_primary_failure_count": 5,
+    "retrieval_primary_failure_count": 0,
+    "gold_defined_evidence_absent_count": 1,
+    "source_unverifiable_count": 1,
+    "f1a_entry_signal": true,
+    "f1a_authorized": false,
+    "f1b_authorized": false,
+    "stage4_started": false
+  },
+  "purpose": "Determine whether the six amended Candidate Builder primary failures share a generic mechanism worth one bounded repair cycle.",
+  "allowed_decisions": [
+    "execute",
+    "skip",
+    "reject",
+    "record_as_limitation"
+  ],
+  "scope": {
+    "development_gold_access_allowed": true,
+    "amended_p8_predictions_traces_scores_access_allowed": true,
+    "current_builder_source_read_allowed": true,
+    "stress_regression_secondary_only": true,
+    "frozen_gold_access_forbidden": true,
+    "code_change_forbidden": true,
+    "prediction_or_scoring_rerun_forbidden": true,
+    "f1a_implementation_forbidden": true,
+    "f1b_or_stage4_start_forbidden": true
+  },
+  "execute_gate": {
+    "six_failures_reproduced": true,
+    "all_failures_builder_eligible": true,
+    "generic_mechanism_identified": true,
+    "mechanism_supported_beyond_single_case": true,
+    "single_bounded_design_defined": true,
+    "expected_addressable_failures_at_least_two_or_architecture_wide_proof": true,
+    "no_case_video_gold_specific_rule": true,
+    "no_heavy_architecture": true,
+    "one_major_cycle_max": 1
+  },
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "p9_status": "decision_execution_candidate_ready",
+    "f1a_decision_candidate": "execute|skip|reject|record_as_limitation",
+    "f1a_authorized_by_codex": false,
+    "f1b_authorized": false,
+    "component_behavior_changed": false,
+    "next_stage_started": false
+  }
+}

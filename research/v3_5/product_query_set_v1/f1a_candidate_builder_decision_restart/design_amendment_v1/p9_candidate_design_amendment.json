@@ -1,0 +1,45 @@
+{
+  "acceptance_status": "pending_v3_5_b_review",
+  "active_candidate_design": "adaptive_bounded_coverage_swap_v1",
+  "addressable_failure_count": 5,
+  "addressable_failure_ids": [
+    "PQS_V1_Q003",
+    "PQS_V1_Q004",
+    "PQS_V1_Q005",
+    "PQS_V1_Q008",
+    "PQS_V1_Q015"
+  ],
+  "design_version_relation": {
+    "active": {
+      "name": "adaptive_bounded_coverage_swap_v1",
+      "status": "implementation_candidate"
+    },
+    "superseded": {
+      "evaluated": false,
+      "implemented": false,
+      "name": "bounded_coverage_reserve_v1",
+      "reason": "fixed_slot_partition_creates_unnecessary_regression_risk",
+      "status": "superseded_before_implementation"
+    }
+  },
+  "execution_status": "complete",
+  "f1a_implementation_authorized": false,
+  "f1a_major_cycles_remaining": 1,
+  "f1b_authorized": false,
+  "failure_mechanism": {
+    "primary": "bounded_candidate_pruning_coverage_gap",
+    "secondary": "dedup_below_threshold_leaves_complement_gap"
+  },
+  "p9_candidate_design_amendment_status": "execution_candidate_ready",
+  "p9_decision": "execute",
+  "q018_non_goal": true,
+  "schema_version": "v3.5-b-p9-candidate-design-amendment-v1",
+  "stage4_started": false,
+  "unchanged_boundaries": {
+    "acceptance_thresholds_changed": false,
+    "addressable_failure_set_changed": false,
+    "failure_mechanism_changed": false,
+    "major_cycles_max": 1,
+    "p9_execute_decision_changed": false
+  }
+}

@@ -1,0 +1,15 @@
+{"path":"PQS_V1_PROTOCOL.md","sha256":"60e2883f3e7ddb52b5d2be45d563fc17ccaf50519adce047be423f2251e7db2c"}
+{"path":"PQS_V1_QUERY_ONLY_REVIEW_PACKET.md","sha256":"9af78f9559f7d7d7e99434a2cd38eb33bfc7a4ea9bb1fb1d07bf4d870af873e2"}
+{"path":"PQS_V1_QUERY_SOURCE_AUDIT.md","sha256":"507c81cb515ed7f42a48def0a779137e51bab50ff881b16a356d6b22623f1c17"}
+{"path":"V3_5_PRODUCT_QUERY_SET_V1_PHASE_A_REPORT.md","sha256":"9a4ec2bbdc335b11616406b5b2f77d3eaa8430cbebd7aab95d9e425529126add"}
+{"path":"candidate_pool/README.md","sha256":"191c13ceed739606878267887c648c4cfc2aa7092a825236d033844e10193877"}
+{"path":"human_decisions/README.md","sha256":"8b4c30cbe34c2034b325c5b6d7d7d3dc745c7ee48d7187bd1e0b0a565e5e97da"}
+{"path":"isolation/README.md","sha256":"98fe9eb7fd6d0da0d44ea2619ffef6785b840b616f593fe2a4569d8de8665d18"}
+{"path":"product_query_candidates.discovered.jsonl","sha256":"2aeaa82c874dba5dd5fc135f7f7ec54155137fc173ec3b2c7339483dfc4923f9"}
+{"path":"product_query_decisions.template.jsonl","sha256":"79e0cc1a542163ee4c7d16b3a879c5f6e88c2bdca865c23e9a5514f5ba169325"}
+{"path":"product_query_set_phase_a_execution.audit.json","sha256":"ab5932721012a0284ef6cb3b2fad33869d2d383421f16cb7f89827fc338300b5"}
+{"path":"product_query_set_phase_a_manifest.json","sha256":"8fdf1e9d78eb7ff863ef98a6ad0922fa285358ab56962ed0d2253e9447be2274"}
+{"path":"protocol/README.md","sha256":"e9b888d56a5b7fca1e9c8fcf48481e815fbe9680e7be96c097892934768b1a9c"}
+{"path":"query_only_review/README.md","sha256":"879e828e6f77c206d216aaae9ad9947a2340385975ddf002b5ef602b616660a4"}
+{"path":"source_audit/README.md","sha256":"f6167bcbb374d7642566c9637dd4436b0edc5f9befbb39235c1d6566c79c5f8b"}
+{"path":"tests/README.md","sha256":"a311b40c4cd8d9574ce82274405ed82ada63389d252f6a61f80195d13c8f0c89"}

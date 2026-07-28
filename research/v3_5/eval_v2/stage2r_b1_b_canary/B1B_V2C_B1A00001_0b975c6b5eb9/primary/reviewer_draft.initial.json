@@ -1,0 +1,26 @@
+{
+  "boundary_notes": [
+    "完整可读字幕围绕名为“大圆”的AI工作助手、工作上下文、群聊信息汇总及创意展开，未出现或实质讨论MCP。"
+  ],
+  "confidence": "high",
+  "conflict_notes": "",
+  "evidence_groups": [],
+  "missing_aspect_indices": [
+    0
+  ],
+  "optional_context_spans": [],
+  "reason_codes": [
+    "query_topic_not_discussed"
+  ],
+  "required_aspects": [
+    {
+      "query_anchor_texts": [
+        "MCP"
+      ],
+      "text": "视频完整原字幕是否实质讨论MCP。"
+    }
+  ],
+  "required_spans": [],
+  "status": "insufficient",
+  "supported_aspect_indices": []
+}

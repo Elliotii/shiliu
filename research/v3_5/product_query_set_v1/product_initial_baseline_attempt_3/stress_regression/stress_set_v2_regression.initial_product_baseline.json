@@ -1,0 +1,61 @@
+{
+  "dataset_role": "evidence_sufficiency_stress_set_v2",
+  "execution": "reused_frozen_corrected_stress_track_a",
+  "optimization_authority": false,
+  "product_benchmark": false,
+  "product_failure_attribution_modified": false,
+  "product_prediction_rerun": false,
+  "source_metrics": {
+    "bundle_hit": {
+      "denominator": 20,
+      "numerator": 1,
+      "rate": 0.05
+    },
+    "complete_gold_group_candidate_coverage": {
+      "denominator": 20,
+      "numerator": 11,
+      "rate": 0.55
+    },
+    "conditional_builder_coverage_given_target_video_retrieved": {
+      "denominator": 20,
+      "numerator": 11,
+      "rate": 0.55
+    },
+    "conditional_bundle_hit_given_complete_candidate_group": {
+      "denominator": 11,
+      "numerator": 1,
+      "rate": 0.09090909090909091
+    },
+    "empty_result_count": 0,
+    "evidence_bearing_cases": 20,
+    "failure_attribution": {
+      "blocked_identity_or_runtime_failure": 0,
+      "candidate_builder_failure": 9,
+      "deterministic_selector_failure": 10,
+      "end_to_end_bundle_hit": 1,
+      "retrieval_failure": 0
+    },
+    "router_distribution": {
+      "dense": 0,
+      "hybrid": 20,
+      "lexical": 0,
+      "other": 0
+    },
+    "router_miss_case_ids": [],
+    "router_miss_count": 0,
+    "target_video_rank": {
+      "miss": 0,
+      "rank_1": 15,
+      "rank_1_to_10": 0,
+      "rank_1_to_3": 4,
+      "rank_1_to_5": 1
+    },
+    "target_video_recall": {
+      "denominator": 20,
+      "numerator": 20,
+      "rate": 1.0
+    }
+  },
+  "source_path": "research/v3_5/stage3r_qc/track_a_auto_refresh/stage3r_track_a_auto_refresh_manifest.json",
+  "source_sha256": "f09a6895ffb4d3bc3112871fadf3962815aa93054c174d13f08da2cf05f92ad9"
+}

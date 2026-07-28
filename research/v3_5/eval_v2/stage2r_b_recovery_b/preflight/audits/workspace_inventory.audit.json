@@ -1,0 +1,18 @@
+{
+  "workspace_version": "v3.5-primary-reviewer-draft-workspace-v1",
+  "workspace_path": "/private/var/folders/97/r461glzx7095wz145rtr5lmw0000gn/T/shiliu-stage2r-b-recovery-b-m68vqpxb/B0_PREFLIGHT_FIXTURE_PRIMARY",
+  "repository_external": true,
+  "inventory": [
+    "annotation_protocol_excerpt.md",
+    "current_case.packet.json",
+    "output",
+    "primary_reviewer.draft.v1.md",
+    "reviewer_draft.v1.schema.json",
+    "workspace_manifest.json"
+  ],
+  "allowlist_passed": true,
+  "repository_copy_present": false,
+  "secret_files_present": false,
+  "project_sensitive_isolation": "required",
+  "universal_filesystem_isolation": "best_effort_not_proven"
+}

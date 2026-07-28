@@ -1,0 +1,173 @@
+{
+  "candidate_builder_complete_group_availability": 0.0,
+  "evidence_bundle_complete_group_hit": 0.0,
+  "evidence_compactness": 0.972628974850878,
+  "invalid_identity_count": 0,
+  "per_case": [
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q001",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q002",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q009",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.6666666666666666,
+        "required_span_recall": 0.7142857142857143
+      },
+      "case_id": "PQS_V1_Q010",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.3333333333333333,
+        "required_span_recall": 0.3333333333333333
+      },
+      "case_id": "PQS_V1_Q016",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.25
+      },
+      "case_id": "PQS_V1_Q020",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.25
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q021",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q022",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.6666666666666666,
+        "required_span_recall": 0.3333333333333333
+      },
+      "case_id": "PQS_V1_Q023",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    },
+    {
+      "builder": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      },
+      "case_id": "PQS_V1_Q024",
+      "selector": {
+        "complete_group_hit": false,
+        "complete_group_ids": [],
+        "required_aspect_coverage": 0.0,
+        "required_span_recall": 0.0
+      }
+    }
+  ],
+  "projection_contract": {
+    "Evidence_Identity_Contract_V1": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "scorer_v4_projection_sha256": "8d2752ed92fb96337af603a7768d47a628550b7796904dd760dc516d70e9cb7e",
+    "source": "scorer_v4_projection.py + scoring_identity_bridge.py"
+  },
+  "required_aspect_coverage": {
+    "builder_macro": 0.16666666666666666,
+    "bundle_macro": 0.0
+  },
+  "required_span_recall": {
+    "builder_macro": 0.1630952380952381,
+    "bundle_macro": 0.025
+  },
+  "schema_version": "v3.5-scorer-v4-projection-frozen-metrics-v1",
+  "unverifiable_identity_count": 5
+}

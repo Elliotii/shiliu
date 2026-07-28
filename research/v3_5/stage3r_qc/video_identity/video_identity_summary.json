@@ -1,0 +1,11 @@
+{
+  "ambiguous_gold_video_identity": 0,
+  "duplicate_canonical_video_identity": 0,
+  "evidence_bearing_cases": 20,
+  "evidence_bearing_gold_video_identity_resolved": 20,
+  "identity_failures": 0,
+  "insufficient_cases_with_explicit_target": 7,
+  "insufficient_target_video_identity_resolved": 7,
+  "preflight_gate_passed": true,
+  "runtime_result_not_present": 27
+}

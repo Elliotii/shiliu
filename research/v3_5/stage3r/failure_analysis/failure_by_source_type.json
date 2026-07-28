@@ -1,0 +1,8 @@
+{
+  "counts": {
+    "raw_asr": 4,
+    "raw_subtitle": 36,
+    "unavailable_or_no_positive_gold": 11
+  },
+  "total": 51
+}

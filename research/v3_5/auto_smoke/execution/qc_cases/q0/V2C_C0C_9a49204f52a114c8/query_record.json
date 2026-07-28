@@ -1,0 +1,28 @@
+{
+  "auto_router_invoked": true,
+  "case_id": "V2C_C0C_9a49204f52a114c8",
+  "effective_mode": "hybrid",
+  "embedding_cache_hit": false,
+  "embedding_invoked": true,
+  "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+  "embedding_provider": "v3-qwen3-embedding-provider-v1",
+  "empty_result": false,
+  "exact_query_cache_hit": false,
+  "latency_ms": 154.88566597923636,
+  "query": "RAG 上生产前需要补齐哪些工程能力，又该怎样设计离线与在线质量评测？",
+  "query_id": "V2C_C0C_9a49204f52a114c8:q0",
+  "query_type": "semantic_question",
+  "query_view": "q0",
+  "requested_mode": "auto",
+  "result_count": 10,
+  "router_decision": "hybrid",
+  "router_mode_consistent": true,
+  "router_reason_codes": [
+    "semantic_question_dual_signal"
+  ],
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "runtime_error": false,
+  "runtime_error_type": null,
+  "target_video_best_rank": 2,
+  "target_video_hit": true
+}

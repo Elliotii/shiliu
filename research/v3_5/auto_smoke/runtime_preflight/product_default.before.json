@@ -1,0 +1,38 @@
+{
+  "api_request_schema": "ProductSearchRequest",
+  "api_route": "POST /api/search",
+  "backend_default_mode": "lexical",
+  "checks": {
+    "api_route_is_product_search": true,
+    "backend_schema_defaults_lexical": true,
+    "frontend_missing_mode_defaults_lexical": true,
+    "frontend_payload_sends_mode": true,
+    "template_first_mode_is_lexical": true
+  },
+  "effective_search_request_mode": "lexical",
+  "filters": {},
+  "frontend_default_mode": "lexical",
+  "frontend_request_payload": {
+    "filters": "current form filters",
+    "max_windows_per_video": 5,
+    "mode": "state.mode",
+    "query": "state.q",
+    "result_limit": 10,
+    "scope": "state.scope"
+  },
+  "frontend_search_component": "src/shiliu/templates/search.html#search-mode",
+  "product_top_k": 10,
+  "raw_top_k": 50,
+  "router_decision_fields": [],
+  "router_invoked": false,
+  "router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+  "scope": "all",
+  "source_files": [
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/templates/search.html",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/static/search.js",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/web.py",
+    "/Users/elliot/new-systems/agent-job-prep/Shiliu/src/shiliu/retrieval/product_search.py"
+  ],
+  "status": "resolved",
+  "view": "View P — Product Default"
+}

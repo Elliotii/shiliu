@@ -1,0 +1,125 @@
+{
+  "by_track": {
+    "frozen_v3_end_to_end": {
+      "failure_attribution_counts": {
+        "none": 3,
+        "upstream_evidence_resolution_failure": 1
+      },
+      "judge_eligible_case_count": 4,
+      "judge_input_adequate_count": 3,
+      "judge_input_inadequate_count": 1
+    },
+    "oracle_video_conditional": {
+      "failure_attribution_counts": {
+        "none": 1,
+        "upstream_evidence_resolution_failure": 2
+      },
+      "judge_eligible_case_count": 3,
+      "judge_input_adequate_count": 1,
+      "judge_input_inadequate_count": 2
+    }
+  },
+  "gold_opened_after_prediction": true,
+  "judge_eligible_case_count": 7,
+  "judge_input_adequate_count": 4,
+  "judge_input_inadequate_count": 3,
+  "per_case": [
+    {
+      "case_id": "CASE_001",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "judge_eligible",
+      "gold_status": "sufficient",
+      "judge_input_adequate": true
+    },
+    {
+      "case_id": "CASE_001",
+      "evaluation_track": "oracle_video_conditional",
+      "failure_attribution": null,
+      "gate_outcome": "judge_eligible",
+      "gold_status": "sufficient",
+      "judge_input_adequate": true
+    },
+    {
+      "case_id": "CASE_002",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": "upstream_evidence_resolution_failure",
+      "gate_outcome": "judge_eligible",
+      "gold_status": "sufficient",
+      "judge_input_adequate": false
+    },
+    {
+      "case_id": "CASE_002",
+      "evaluation_track": "oracle_video_conditional",
+      "failure_attribution": "upstream_evidence_resolution_failure",
+      "gate_outcome": "judge_eligible",
+      "gold_status": "sufficient",
+      "judge_input_adequate": false
+    },
+    {
+      "case_id": "CASE_003",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "terminal_unverifiable",
+      "gold_status": "sufficient",
+      "judge_input_adequate": null
+    },
+    {
+      "case_id": "CASE_003",
+      "evaluation_track": "oracle_video_conditional",
+      "failure_attribution": null,
+      "gate_outcome": "terminal_unverifiable",
+      "gold_status": "sufficient",
+      "judge_input_adequate": null
+    },
+    {
+      "case_id": "CASE_005",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "terminal_unverifiable",
+      "gold_status": "sufficient",
+      "judge_input_adequate": null
+    },
+    {
+      "case_id": "CASE_005",
+      "evaluation_track": "oracle_video_conditional",
+      "failure_attribution": "upstream_evidence_resolution_failure",
+      "gate_outcome": "judge_eligible",
+      "gold_status": "sufficient",
+      "judge_input_adequate": false
+    },
+    {
+      "case_id": "CASE_012",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "judge_eligible",
+      "gold_status": "insufficient",
+      "judge_input_adequate": true
+    },
+    {
+      "case_id": "CASE_013",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "judge_eligible",
+      "gold_status": "insufficient",
+      "judge_input_adequate": true
+    },
+    {
+      "case_id": "CASE_015",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "terminal_unverifiable",
+      "gold_status": "unverifiable",
+      "judge_input_adequate": null
+    },
+    {
+      "case_id": "CASE_017",
+      "evaluation_track": "frozen_v3_end_to_end",
+      "failure_attribution": null,
+      "gate_outcome": "terminal_unverifiable",
+      "gold_status": "insufficient",
+      "judge_input_adequate": null
+    }
+  ],
+  "prediction_freeze_sha256": "1172e4952d23a6179bbd5ee3766f41e1b48118c51fedf32d65fdeaf93330d982"
+}

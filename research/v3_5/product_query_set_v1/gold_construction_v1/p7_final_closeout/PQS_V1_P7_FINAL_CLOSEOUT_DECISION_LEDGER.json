@@ -1,0 +1,70 @@
+{
+  "decision_name": "Shiliu Product Query Set v1 P7 Final Closeout Decision",
+  "schema_version": "v3.5-pqs-v1-p7-final-closeout-v1",
+  "decision_date": "2026-07-26",
+  "decision_authority": "V3.5-B",
+  "entry_state": {
+    "p3": "accepted",
+    "p4": "accepted",
+    "p5": "accepted",
+    "p6": "accepted",
+    "p7a": "accepted",
+    "development_gold": {
+      "version": "DEVELOPMENT_GOLD_V1",
+      "query_count": 14,
+      "formally_sealed_by_v3_5_b": true,
+      "retrieval_sha256": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+      "evidence_sha256": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+      "sufficiency_sha256": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+      "case_status_sha256": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+    },
+    "frozen_gold": {
+      "version": "FROZEN_GOLD_V1",
+      "query_count": 10,
+      "formally_sealed_by_v3_5_b": true,
+      "retrieval_sha256": "2f53b9294a7211b4371aadc934d1ec1a178b2a0fa00ee1b9b4177737b7b4ca34",
+      "evidence_sha256": "b47235b273640fedf4754dfcb9983b733655ed80730d07ba12700987d4c30827",
+      "sufficiency_sha256": "ccc7b0bfe35e78c5eec50ccb3c972b327bd400437f442d70da94e3f9df07b69a",
+      "case_status_sha256": "67db16cfe9b4736ad2e8cd81ce77cd9d4b5f952506303b21c8abdb4cddba9259",
+      "seal_sha256": "166e7c463de06e31d6c831d97c00f54dcf149312fb77cb66505bf15985c584a8",
+      "manifest_sha256": "3978a4339f791c0faf102be9b565148f07836317b96df7a6a10116226b7725e9",
+      "audit_sha256": "b921cef2de6cfe05fbad9979007955b0fc3753f9e694957ae4c9e44772465ac2",
+      "guard_sha256": "e6b8047dab9b83a6c0f8c26633b869d227dd175188c32f660cf50aa4e8921e88"
+    },
+    "p7_final_closeout_started": false,
+    "p8_started": false
+  },
+  "closeout_scope": {
+    "mechanical_only": true,
+    "open_gold_semantics": false,
+    "modify_gold_files": false,
+    "rerun_annotation_or_review": false,
+    "run_product_pipeline": false,
+    "start_p8": false,
+    "required_total_query_count": 24,
+    "required_development_query_count": 14,
+    "required_frozen_query_count": 10,
+    "required_unresolved_case_count": 0
+  },
+  "required_outputs": {
+    "root": "research/v3_5/product_query_set_v1/gold_construction_v1/p7_final_closeout",
+    "files": [
+      "P7_PRODUCT_GOLD_CLOSEOUT_REPORT.md",
+      "p7_product_gold_v1.manifest.json",
+      "p7_product_gold_v1.audit.json",
+      "p7_product_gold_v1.execution_decision.json",
+      "p7_product_gold_v1.file_hash_manifest.jsonl",
+      "PQS_V1_P7_FINAL_CLOSEOUT_DECISION_LEDGER.json"
+    ]
+  },
+  "success_state": {
+    "execution_status": "complete",
+    "acceptance_status": "pending_v3_5_b_review",
+    "p7_status": "closeout_execution_candidate_ready",
+    "development_gold_formally_sealed": true,
+    "frozen_gold_formally_sealed": true,
+    "total_query_count": 24,
+    "unresolved_case_count": 0,
+    "p8_authorized": false
+  }
+}

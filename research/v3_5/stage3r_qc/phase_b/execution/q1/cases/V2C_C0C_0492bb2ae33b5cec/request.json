@@ -1,0 +1,18 @@
+{
+  "filters": {
+    "archived": null,
+    "favorite_time_from": null,
+    "favorite_time_to": null,
+    "folder_id": null,
+    "ignored": false,
+    "marked": null,
+    "reading_state": null,
+    "source_db_id": null,
+    "uploader": null
+  },
+  "max_windows_per_video": 2,
+  "mode": "lexical",
+  "query": "Python 数字类型和类型转换",
+  "result_limit": 10,
+  "scope": "all"
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "v3.5-b-f1a-stress-final-metrics-v1",
+  "status": "complete",
+  "evidence_bearing_cases": 20,
+  "complete_group_coverage": {
+    "numerator": 14,
+    "denominator": 20,
+    "rate": 0.7
+  },
+  "frozen_before_complete_group_coverage": {
+    "numerator": 11,
+    "denominator": 20,
+    "rate": 0.55
+  },
+  "candidate_count_total": 5362,
+  "invalid_candidate_count": 0,
+  "builder_latency_ms": {
+    "mean": 2447.371847857721,
+    "max": 5144.275875063613,
+    "min": 1237.2871250845492
+  },
+  "swap_count": {
+    "total": 77,
+    "mean": 3.85,
+    "max": 4,
+    "zero_swap_case_count": 0
+  },
+  "stress_scored_run_count": 1,
+  "optimization_authority": false,
+  "runtime_retrieval_calls": 0,
+  "runtime_embedding_calls": 0,
+  "runtime_llm_calls": 0,
+  "frozen_evaluation_gold_opened": false,
+  "source_artifact": "f1a_stress_regression.json",
+  "source_artifact_sha256": "5536dbb5c61e6811cc99a4465c8b4e9870dd21e67f72f7180419aa1390a0b598"
+}

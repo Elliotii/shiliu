@@ -1,0 +1,121 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "candidate_builder_version": {
+      "title": "Candidate Builder Version",
+      "type": "string"
+    },
+    "end_to_end_claim_eligible": {
+      "title": "End To End Claim Eligible",
+      "type": "boolean"
+    },
+    "evaluation_track": {
+      "enum": [
+        "frozen_v3_end_to_end",
+        "oracle_video_conditional"
+      ],
+      "title": "Evaluation Track",
+      "type": "string"
+    },
+    "evidence_bundle_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Evidence Bundle Id"
+    },
+    "evidence_candidate_set_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Evidence Candidate Set Id"
+    },
+    "evidence_resolution_status": {
+      "title": "Evidence Resolution Status",
+      "type": "string"
+    },
+    "failure_attribution": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Failure Attribution"
+    },
+    "original_query": {
+      "title": "Original Query",
+      "type": "string"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "search_candidate_set_id": {
+      "title": "Search Candidate Set Id",
+      "type": "string"
+    },
+    "selector_version": {
+      "title": "Selector Version",
+      "type": "string"
+    },
+    "source_languages": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Languages",
+      "type": "array"
+    },
+    "source_states": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source States",
+      "type": "array"
+    },
+    "sufficiency_request_contract_version": {
+      "const": "v3.5-sufficiency-request-v1",
+      "default": "v3.5-sufficiency-request-v1",
+      "title": "Sufficiency Request Contract Version",
+      "type": "string"
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "query_id",
+    "original_query",
+    "evaluation_track",
+    "end_to_end_claim_eligible",
+    "search_candidate_set_id",
+    "evidence_candidate_set_id",
+    "evidence_bundle_id",
+    "evidence_resolution_status",
+    "failure_attribution",
+    "candidate_builder_version",
+    "selector_version",
+    "source_states",
+    "source_languages",
+    "trace_id"
+  ],
+  "title": "SufficiencyRequest",
+  "type": "object"
+}

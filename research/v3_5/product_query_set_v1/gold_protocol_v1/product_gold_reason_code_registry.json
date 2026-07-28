@@ -1,0 +1,59 @@
+{
+  "registry_version": "PRODUCT_QUERY_GOLD_REASON_CODES_V1",
+  "gold_state": {
+    "retrieval_gold_state": [
+      "RG_KNOWN_RELEVANT",
+      "RG_ACCEPTABLE_ALTERNATIVE",
+      "RG_HARD_NEGATIVE_EXPLICIT",
+      "RG_UNJUDGED_OUTSIDE_POOL"
+    ],
+    "evidence_gold_state": [
+      "EG_COMPLETE_ACCEPTABLE_GROUP",
+      "EG_MATERIAL_ASPECT_SUPPORTED",
+      "EG_MATERIAL_ASPECT_MISSING",
+      "EG_MULTI_VIDEO_COMBINATION",
+      "EG_CROSS_LANGUAGE_SOURCE",
+      "EG_ASR_QUALITY_DEGRADED",
+      "EG_SOURCE_IDENTITY_UNCERTAIN",
+      "EG_SOURCE_UNAVAILABLE"
+    ],
+    "sufficiency_gold_state": [
+      "SG_ALL_MATERIAL_ASPECTS_SUPPORTED",
+      "SG_MEANINGFUL_MATERIAL_SUBSET_SUPPORTED",
+      "SG_MATERIAL_ASPECTS_MISSING",
+      "SG_NO_USABLE_MATERIAL_SUPPORT",
+      "SG_AUTHORITY_NOT_RELIABLY_REVIEWABLE",
+      "SG_SOURCE_LIMITATION_BLOCKS_REMAINDER"
+    ]
+  },
+  "downstream_failure_attribution": {
+    "retrieval": [
+      "RET_NO_ACCEPTABLE_VIDEO_RETRIEVED",
+      "RET_UNJUDGED_RETURN_REQUIRES_REVIEW"
+    ],
+    "builder": [
+      "BLD_GOLD_SOURCE_NOT_IN_CANDIDATE_SET",
+      "BLD_REQUIRED_REGION_NOT_IN_CANDIDATE_SET"
+    ],
+    "selector": [
+      "SEL_ACCEPTABLE_GROUP_AVAILABLE_NOT_SELECTED",
+      "SEL_REQUIRED_ASPECT_AVAILABLE_NOT_SELECTED"
+    ],
+    "gate": [
+      "GATE_INVALID_EVIDENCE_IDENTITY_ACCEPTED",
+      "GATE_VALID_EVIDENCE_IDENTITY_REJECTED"
+    ],
+    "judge": [
+      "JDG_FALSE_SUFFICIENT",
+      "JDG_FALSE_PARTIAL",
+      "JDG_FALSE_INSUFFICIENT",
+      "JDG_FALSE_UNVERIFIABLE"
+    ],
+    "source": [
+      "SRC_AUTHORITY_MISSING",
+      "SRC_TIMELINE_OR_SEGMENT_IDENTITY_FAILURE"
+    ]
+  },
+  "gold_objects_may_use_downstream_failure_codes": false,
+  "downstream_comparison_may_reference_gold_and_prediction": true
+}

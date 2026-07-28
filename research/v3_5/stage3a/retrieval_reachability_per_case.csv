@@ -1,0 +1,5 @@
+case_id,query,mode,scope,top_k,raw_unit_count,video_unit_count,transcript_chunk_count,product_video_count,target_video_present,target_transcript_chunk_present,serialized_candidate_count,serialized_video_candidate_count,structural_identity_equal,classification,failure_attribution,recommendation
+CASE_001,MCP,lexical,all,10,50,7,43,10,True,True,50,10,True,none,,Preserve Manifest v1 and use the frozen SearchCandidateSet in Track A.
+CASE_002,MemoryOS,lexical,all,10,2,2,0,2,True,False,2,2,True,video_level_candidate,,Authorize only original query + recalled video_id 40 + its frozen Raw Transcript for bounded within-video generation.
+CASE_003,MCP 与 Function Calling 的区别,lexical,all,10,0,0,0,0,False,False,0,0,True,true_v3_retrieval_miss,upstream_retrieval_failure,Preserve the empty frozen result and record upstream_retrieval_miss; do not retune or inject the target.
+CASE_005,哪些内容讨论了 Agent 评测信号设计？,lexical,all,10,0,0,0,0,False,False,0,0,True,true_v3_retrieval_miss,upstream_retrieval_failure,Preserve the empty frozen result and record upstream_retrieval_miss; do not retune or inject the target.

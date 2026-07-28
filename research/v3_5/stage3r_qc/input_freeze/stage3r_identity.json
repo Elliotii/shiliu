@@ -1,0 +1,9 @@
+{
+  "file_hash_entries_verified": 590,
+  "file_hash_failures": 0,
+  "manifest_path": "research/v3_5/stage3r/stage3r_manifest.json",
+  "manifest_sha256": "c85a816fd319e700d9a4c6177f96d4cf4f5575997e5690975a45482a60562130",
+  "track_a_case_artifact_count": 31,
+  "track_a_prediction_path": "research/v3_5/stage3r/prediction_freeze/track_a_predictions.jsonl",
+  "track_a_prediction_sha256": "6696f3a83449bdbb5df21f7b841bace705633b718a367dc549990238e9b3b4d4"
+}

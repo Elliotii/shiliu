@@ -1,0 +1,39 @@
+{"case_id":"C2C_16019b3c36a8945b","execution_query":"MSE 和交叉熵损失函数","frozen_runtime_normalized_query":"MSE 和交叉熵损失函数","kind":"q1","query_index":1}
+{"case_id":"C2C_16019b3c36a8945b","execution_query":"MSE 适用任务和异常值","frozen_runtime_normalized_query":"MSE 适用任务和异常值","kind":"q2","query_index":2}
+{"case_id":"C2C_16019b3c36a8945b","execution_query":"交叉熵适用任务和类别不平衡","frozen_runtime_normalized_query":"交叉熵适用任务和类别不平衡","kind":"q2","query_index":3}
+{"case_id":"C2C_16019b3c36a8945b","execution_query":"MSE 与交叉熵怎么选","frozen_runtime_normalized_query":"MSE 与交叉熵怎么选","kind":"q2","query_index":4}
+{"case_id":"C2C_a1c0207a1bc56a91","execution_query":"终端、命令行和命令的区别","frozen_runtime_normalized_query":"终端、命令行和命令的区别","kind":"q1","query_index":1}
+{"case_id":"C2C_a1c0207a1bc56a91","execution_query":"终端和命令行基础","frozen_runtime_normalized_query":"终端和命令行基础","kind":"q2","query_index":2}
+{"case_id":"C2C_a1c0207a1bc56a91","execution_query":"命令行命令怎么运行","frozen_runtime_normalized_query":"命令行命令怎么运行","kind":"q2","query_index":3}
+{"case_id":"C2C_a1c0207a1bc56a91","execution_query":"命令行误删文件安全","frozen_runtime_normalized_query":"命令行误删文件安全","kind":"q2","query_index":4}
+{"case_id":"C2C_ee3fac675fc7d408","execution_query":"AI 自动导入 Godot 精灵动画","frozen_runtime_normalized_query":"AI 自动导入 Godot 精灵动画","kind":"q1","query_index":1}
+{"case_id":"C2C_ee3fac675fc7d408","execution_query":"Godot 精灵动画自动导入","frozen_runtime_normalized_query":"Godot 精灵动画自动导入","kind":"q2","query_index":2}
+{"case_id":"C2C_ee3fac675fc7d408","execution_query":"AI 导入精灵动画流程","frozen_runtime_normalized_query":"AI 导入精灵动画流程","kind":"q2","query_index":3}
+{"case_id":"C2C_ee3fac675fc7d408","execution_query":"自动导入和手工导入对比","frozen_runtime_normalized_query":"自动导入和手工导入对比","kind":"q2","query_index":4}
+{"case_id":"C3C_56b2c368638a31c3","execution_query":"OpenSpec 项目需求管理","frozen_runtime_normalized_query":"OpenSpec 项目需求管理","kind":"q1","query_index":1}
+{"case_id":"C3C_56b2c368638a31c3","execution_query":"OpenSpec 使用流程","frozen_runtime_normalized_query":"OpenSpec 使用流程","kind":"q2","query_index":2}
+{"case_id":"C3C_56b2c368638a31c3","execution_query":"OpenSpec 减少需求返工","frozen_runtime_normalized_query":"OpenSpec 减少需求返工","kind":"q2","query_index":3}
+{"case_id":"C3C_56b2c368638a31c3","execution_query":"OpenSpec 项目实践","frozen_runtime_normalized_query":"OpenSpec 项目实践","kind":"q2","query_index":4}
+{"case_id":"C3C_98e93af3d9519c76","execution_query":"Home Rail 是什么","frozen_runtime_normalized_query":"Home Rail 是什么","kind":"q1","query_index":1}
+{"case_id":"C3C_98e93af3d9519c76","execution_query":"Home Rail 适用任务","frozen_runtime_normalized_query":"Home Rail 适用任务","kind":"q2","query_index":2}
+{"case_id":"C3C_98e93af3d9519c76","execution_query":"Home Rail 使用限制","frozen_runtime_normalized_query":"Home Rail 使用限制","kind":"q2","query_index":3}
+{"case_id":"C3C_98e93af3d9519c76","execution_query":"Home Rail 后续规划","frozen_runtime_normalized_query":"Home Rail 后续规划","kind":"q2","query_index":4}
+{"case_id":"V2C_C0C_0492bb2ae33b5cec","execution_query":"Python 数字类型和类型转换","frozen_runtime_normalized_query":"Python 数字类型和类型转换","kind":"q1","query_index":1}
+{"case_id":"V2C_C0C_0492bb2ae33b5cec","execution_query":"Python 数字类型","frozen_runtime_normalized_query":"Python 数字类型","kind":"q2","query_index":2}
+{"case_id":"V2C_C0C_0492bb2ae33b5cec","execution_query":"Python 类型转换注意事项","frozen_runtime_normalized_query":"Python 类型转换注意事项","kind":"q2","query_index":3}
+{"case_id":"V2C_C0C_185d322d5f9a00b3","execution_query":"应用从原型到云部署","frozen_runtime_normalized_query":"应用从原型到云部署","kind":"q1","query_index":1}
+{"case_id":"V2C_C0C_185d322d5f9a00b3","execution_query":"应用云部署流程","frozen_runtime_normalized_query":"应用云部署流程","kind":"q2","query_index":2}
+{"case_id":"V2C_C0C_185d322d5f9a00b3","execution_query":"自动化测试上线流程","frozen_runtime_normalized_query":"自动化测试上线流程","kind":"q2","query_index":3}
+{"case_id":"V2C_C0C_185d322d5f9a00b3","execution_query":"云部署回滚机制","frozen_runtime_normalized_query":"云部署回滚机制","kind":"q2","query_index":4}
+{"case_id":"V2C_C0C_958161474678bd3f","execution_query":"SFT completion-only NEFTune","frozen_runtime_normalized_query":"SFT completion-only NEFTune","kind":"q1","query_index":1}
+{"case_id":"V2C_C0C_958161474678bd3f","execution_query":"completion-only 作用","frozen_runtime_normalized_query":"completion-only 作用","kind":"q2","query_index":2}
+{"case_id":"V2C_C0C_958161474678bd3f","execution_query":"NEFTune 作用和调参","frozen_runtime_normalized_query":"NEFTune 作用和调参","kind":"q2","query_index":3}
+{"case_id":"V2C_C0C_958161474678bd3f","execution_query":"SFT completion-only 和 NEFTune 怎么选","frozen_runtime_normalized_query":"SFT completion-only 和 NEFTune 怎么选","kind":"q2","query_index":4}
+{"case_id":"V2C_C0C_9618a83c9df4f059","execution_query":"高质量 Skill 设计","frozen_runtime_normalized_query":"高质量 Skill 设计","kind":"q1","query_index":1}
+{"case_id":"V2C_C0C_9618a83c9df4f059","execution_query":"Skill 评测设计","frozen_runtime_normalized_query":"Skill 评测设计","kind":"q2","query_index":2}
+{"case_id":"V2C_C0C_9618a83c9df4f059","execution_query":"Skill 触发边界","frozen_runtime_normalized_query":"Skill 触发边界","kind":"q2","query_index":3}
+{"case_id":"V2C_C0C_9618a83c9df4f059","execution_query":"Skill 正文和目录结构","frozen_runtime_normalized_query":"Skill 正文和目录结构","kind":"q2","query_index":4}
+{"case_id":"V2C_C0C_9a49204f52a114c8","execution_query":"RAG 生产化和质量评测","frozen_runtime_normalized_query":"RAG 生产化和质量评测","kind":"q1","query_index":1}
+{"case_id":"V2C_C0C_9a49204f52a114c8","execution_query":"RAG 生产工程能力","frozen_runtime_normalized_query":"RAG 生产工程能力","kind":"q2","query_index":2}
+{"case_id":"V2C_C0C_9a49204f52a114c8","execution_query":"RAG 离线评测","frozen_runtime_normalized_query":"RAG 离线评测","kind":"q2","query_index":3}
+{"case_id":"V2C_C0C_9a49204f52a114c8","execution_query":"RAG 在线质量评测","frozen_runtime_normalized_query":"RAG 在线质量评测","kind":"q2","query_index":4}

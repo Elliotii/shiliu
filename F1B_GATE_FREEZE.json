@@ -1,0 +1,110 @@
+{
+  "schema_version": "v3.5-b-f1b-gate-freeze-v1",
+  "stage": "P10-B — F1B Single Major Cycle and Final Decision",
+  "frozen_before": {
+    "formal_builder": {
+      "version": "stage3b-acronym-w3.5-v1",
+      "status": "frozen_current_formal",
+      "root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+      "stage3b_run_manifest_sha256": "b6d567164274df97b7386143d976a7b2c0e828776f6b1746bebf15c0eea59e8d",
+      "selector_and_builder_module_before_sha256": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1"
+    },
+    "selector": {
+      "version": "v3.5-deterministic-fine-selector-v1",
+      "bundle_budget": 6,
+      "assembly_style": "greedy_per_video_relevance_first",
+      "root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+      "source_sha256": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1"
+    },
+    "product_compactness_percent": 83.09555256740688,
+    "product_mean_selector_latency_ms": 48.081785714285715,
+    "product_latency_observation_count": 14,
+    "product_latency_source": "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/blind_run/product_initial_baseline.predictions.jsonl",
+    "builder_complete_selector_hits": {
+      "numerator": 1,
+      "denominator": 6
+    },
+    "stress_bundle_hits": {
+      "numerator": 1,
+      "denominator": 20
+    },
+    "stress_invalid_identity_or_runtime": 0,
+    "stress_selected_candidate_count": "6_in_all_20_cases"
+  },
+  "frozen_asset_hashes": {
+    "formal_builder_hashes": {
+      "root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1",
+      "file_count": 2
+    },
+    "selector_before_hashes": {
+      "root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67",
+      "file_count": 1
+    },
+    "Evidence_Identity_Contract_V1_hashes": {
+      "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+      "root_sha256": "0b65d3bee751b3f1ca466b2bfe4e6984ef4d48a2319eb4a0fa6e99415a0fbb08",
+      "file_count": 4
+    },
+    "Development_Gold_hashes": {
+      "root_sha256": "f6332ff17cec180023cda34e3144390beb96559349a370ce34815ca6666698b0",
+      "file_count": 4,
+      "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+      "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+      "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92",
+      "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352"
+    },
+    "Product_input_hashes": {
+      "root_sha256": "fcbafeffaa8e90443e34159d7314bd3ca74381d217b8a6447f91055dffa6c7b6",
+      "file_count": 16
+    },
+    "Stress_input_hashes": {
+      "root_sha256": "57ce23a00fa6c2797796eda24d84a7b8511014c84f18c97b5e9813aada6639d5",
+      "file_count": 44
+    },
+    "projection_contract_hashes": {
+      "root_sha256": "fb92610e777a1f5e17e3da161c9be75b7615b5675853be4653f7adcb8fc6a6dd",
+      "file_count": 2,
+      "projection_source_sha256": "8d2752ed92fb96337af603a7768d47a628550b7796904dd760dc516d70e9cb7e",
+      "scorer_v4_freeze_seal_sha256": "e45b4c5604d2de9171086093ad2e26d09dcfd446f233a6397af9f86a4876b669"
+    }
+  },
+  "acceptance_gate_values": {
+    "product_development": {
+      "selector_hits_on_builder_complete_cases_minimum": {
+        "numerator": 4,
+        "denominator": 6
+      },
+      "recovered_previous_misses_minimum": {
+        "numerator": 3,
+        "denominator": 5
+      },
+      "Q006_regressions_maximum": 0,
+      "selector_to_builder_span_capture_ratio_minimum": 0.5,
+      "selector_to_builder_aspect_capture_ratio_minimum": 0.5,
+      "invalid_identity_or_timeline_maximum": 0
+    },
+    "engineering": {
+      "selected_candidate_budget_maximum_per_bundle": 6,
+      "budget_increase_allowed": false,
+      "product_compactness_minimum_percent": 73.09555256740688,
+      "product_mean_selector_latency_ms_maximum": 96.16357142857143
+    },
+    "stress_regression": {
+      "bundle_hit_minimum": {
+        "numerator": 1,
+        "denominator": 20
+      },
+      "invalid_identity_or_timeline_maximum": 0,
+      "selected_candidate_count_maximum_per_bundle": 6
+    },
+    "stress_absolute_guardrails": {
+      "required_span_recall_minimum": 0.05,
+      "required_aspect_coverage_minimum": 0.05,
+      "compactness_minimum_percent": 73.09555256740688,
+      "mean_selector_latency_ms_maximum": 100.0
+    }
+  },
+  "major_cycles_maximum": 1,
+  "major_cycles_consumed_at_freeze": 0,
+  "Frozen_Evaluation_accessed": false
+}

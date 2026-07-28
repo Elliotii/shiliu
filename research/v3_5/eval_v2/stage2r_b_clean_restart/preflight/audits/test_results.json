@@ -1,0 +1,8 @@
+{
+  "command": ".venv/bin/pytest -q tests/test_v3_5_eval_v2_stage2r_b_clean_restart.py tests/test_v3_5_eval_v2_safe_projection.py tests/test_v3_5_eval_v2_stage2r_a.py",
+  "passed": 23,
+  "failed": 0,
+  "full_repository_regression_claimed": false,
+  "py_compile_passed": true,
+  "git_diff_check_passed": true
+}

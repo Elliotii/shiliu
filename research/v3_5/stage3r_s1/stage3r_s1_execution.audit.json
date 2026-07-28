@@ -1,0 +1,56 @@
+{
+  "corpus": {
+    "labels": {
+      "insufficient": 7,
+      "partial": 9,
+      "sufficient": 11,
+      "unverifiable": 4
+    },
+    "records": 31,
+    "sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148"
+  },
+  "final_readiness_decision_unique": true,
+  "isolation": {
+    "external_calls": 0,
+    "heldout_accessed": false
+  },
+  "mapping": {
+    "ambiguous_mappings": 0,
+    "bridge_version": "v3.5-stage3r-segment-identity-bridge-v1",
+    "cross_source_mappings": 0,
+    "cross_timeline_mappings": 0,
+    "cross_version_mappings": 0,
+    "duplicate_canonical_keys": 0,
+    "exact_identity_matches": 457,
+    "gold_segment_references": 457,
+    "gold_segment_references_present_in_frozen_candidates": 274,
+    "gold_segments_identity_resolved": 457,
+    "mapping_valid": true,
+    "missing_gold_identity": 0,
+    "runtime_membership_occurrences": 4503,
+    "runtime_universe_physical_segments": 2667
+  },
+  "prediction_preservation": {
+    "per_case_prediction_files_unchanged": true,
+    "track_a_predictions_unchanged": true,
+    "track_a_sha256": "6696f3a83449bdbb5df21f7b841bace705633b718a367dc549990238e9b3b4d4",
+    "track_b_predictions_unchanged": true,
+    "track_b_sha256": "2f188746ccd432e4fc634592e36cd2f0e04e4c27a2bfb8ce9210483d9b9f83fe"
+  },
+  "rescoring": {
+    "canonical_identity_used": true,
+    "gold_group_or_span_and": true,
+    "old_invalid_metrics_reused": false,
+    "track_a_complete": true,
+    "track_b_complete": true
+  },
+  "runtime_files_modified": false,
+  "runtime_guards": {
+    "candidate_builder_calls": 0,
+    "prediction_runner_calls": 0,
+    "retrieval_calls": 0,
+    "selector_calls": 0
+  },
+  "stage3r_final_decision": "authorize_one_bounded_generic_stage3r_fix",
+  "stage3r_s1_status": "complete"
+}

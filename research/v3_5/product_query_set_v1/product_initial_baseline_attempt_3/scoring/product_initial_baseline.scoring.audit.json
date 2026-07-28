@@ -1,0 +1,17 @@
+{
+  "development_gold_first_open_at": "2026-07-26T16:16:59.818+00:00",
+  "development_gold_opened_after_prediction_seal": true,
+  "frozen_gold_opened": false,
+  "outside_pool_automatic_negative": false,
+  "prediction_modified_after_gold": false,
+  "prediction_rerun": false,
+  "prediction_sealed_at": "2026-07-26T16:16:32.152+00:00",
+  "prediction_sha256_after_gold": "b34f173ac99208f4adb72966880ab7e9cf97d3e27157084792502f103e709038",
+  "prediction_sha256_before_gold": "b34f173ac99208f4adb72966880ab7e9cf97d3e27157084792502f103e709038",
+  "scorer_module_sha256": "f3f7dabc56207cafc7ed17263ae7ee7c0d5dce82d3c69637ef640490edfa0c07",
+  "scores_recomputed_without_prediction_rerun": true,
+  "scoring_recompute_count": 2,
+  "scoring_recomputed_at": "2026-07-26T16:19:45.218+00:00",
+  "status": "complete",
+  "video_identity_normalization": "bilibili-prefix-canonical-v1"
+}

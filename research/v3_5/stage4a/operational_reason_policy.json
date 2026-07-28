@@ -1,0 +1,43 @@
+{
+  "policy_version": "v3.5-mechanical-gate-policy-v1",
+  "reason_to_action_family": {
+    "candidate_generation_failure": "evidence_resolution_action",
+    "execution_manifest_mismatch": "data_integrity_action",
+    "invalid_evidence_bundle": "data_integrity_action",
+    "language_unresolved": "source_recovery_action",
+    "no_search_candidate": "retrieval_action",
+    "no_supported_subtitle": "source_recovery_action",
+    "normalization_failure": "data_integrity_action",
+    "raw_source_unavailable": "source_recovery_action",
+    "search_candidate_set_mismatch": "data_integrity_action",
+    "selector_failed": "selector_recovery_action",
+    "source_unreadable": "source_recovery_action",
+    "source_version_mismatch": "data_integrity_action",
+    "title_only": "source_recovery_action",
+    "unknown_operational_state": "data_integrity_action",
+    "upstream_retrieval_failure": "retrieval_action"
+  },
+  "reason_to_terminal_projection": {
+    "candidate_generation_failure": "invalid",
+    "execution_manifest_mismatch": "invalid",
+    "invalid_evidence_bundle": "invalid",
+    "language_unresolved": "source_unverifiable",
+    "no_search_candidate": "source_unverifiable",
+    "no_supported_subtitle": "source_unverifiable",
+    "normalization_failure": "invalid",
+    "raw_source_unavailable": "source_unverifiable",
+    "search_candidate_set_mismatch": "invalid",
+    "selector_failed": "invalid",
+    "source_unreadable": "source_unverifiable",
+    "source_version_mismatch": "invalid",
+    "title_only": "source_unverifiable",
+    "unknown_operational_state": "invalid",
+    "upstream_retrieval_failure": "source_unverifiable"
+  },
+  "selector_aliases": {
+    "invalid_bundle_reference": "selector_failed",
+    "no_selected_bundle": "selector_failed",
+    "selector_abstain": "selector_failed",
+    "selector_failure": "selector_failed"
+  }
+}

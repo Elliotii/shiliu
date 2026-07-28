@@ -1,0 +1,61 @@
+{
+  "amendment_version": "v3.5-p8-scoring-amendment-v1",
+  "execution": {
+    "builder_rerun": false,
+    "gate_rerun": false,
+    "prediction_rerun": false,
+    "retrieval_rerun": false,
+    "scoring_recomputed_from_frozen_artifacts": true,
+    "selector_rerun": false,
+    "trace_rerun": false
+  },
+  "generated_at": "2026-07-26T17:46:05.114+00:00",
+  "governance": {
+    "checkpoint_1_derived_findings_amended": true,
+    "f1a_authorized": false,
+    "f1b_authorized": false,
+    "original_scoring_preserved_as_superseded": true,
+    "original_scoring_status": "superseded_by_scoring_amendment",
+    "p9_restarted": false,
+    "stage4_started": false,
+    "supersession_reason": "builder_failure_eligibility_defect"
+  },
+  "identity": {
+    "development_gold_hashes": {
+      "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+      "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+      "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+      "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+    },
+    "development_gold_layer_counts": {
+      "case_status": 14,
+      "evidence": 14,
+      "retrieval": 14,
+      "sufficiency": 14
+    },
+    "development_gold_seal_sha256": "1010fb635680bacc72c9aac8cbd096494370cd0709ed1d746754a0eade90cb5a",
+    "development_gold_unchanged": true,
+    "development_gold_version": "DEVELOPMENT_GOLD_V1",
+    "frozen_gold_opened": false,
+    "prediction_count": 14,
+    "prediction_hash_manifest_mismatches": [],
+    "prediction_seal_sha256": "069fcf9e3ec70cf28d23674a2752033e608bf46937c990176dd6fb52f9e04617",
+    "predictions_sha256": "b34f173ac99208f4adb72966880ab7e9cf97d3e27157084792502f103e709038",
+    "predictions_unchanged": true,
+    "seal_development_gold_opened": false,
+    "seal_frozen_gold_opened": false,
+    "seal_status": "sealed_before_gold_scoring",
+    "trace_count": 14,
+    "trace_root_sha256": "f8636d55680e4e3ef72b196f31afe8743c692d48c66ed0a647443679e7353071",
+    "traces_unchanged": true
+  },
+  "repair": {
+    "all_14_attributions_revalidated": true,
+    "generic_eligibility_rule_added": true,
+    "generic_non_builder_terminal": "gold_defined_evidence_absent",
+    "one_primary_outcome_per_query": true,
+    "q017_case_specific_rule_added": false,
+    "q017_primary_attribution": "gold_defined_evidence_absent"
+  },
+  "schema_version": "v3.5-p8-scoring-eligibility-v2"
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "v3.5-stage5-final-closeout-v1",
+  "outcome": "stage5_minimal_integration_pass_with_documented_limitations",
+  "Stage5_status": "formally_closed_pass_with_limitations",
+  "next_stage": "Pre_Frozen_Checklist",
+  "existing_architecture_reused": [
+    "FastAPI application factory and Application service composition",
+    "Product Search API, Search page, and SearchOrchestrator trace",
+    "EvidenceSearchService.search_library",
+    "formal SearchCandidateSet, EvidenceBundle, Gate, and Sufficiency contracts",
+    "existing application logs directory"
+  ],
+  "minimal_additions": [
+    "Stage5PipelineService",
+    "FrozenSemanticJudgeAdapter",
+    "POST /api/evidence-sufficiency",
+    "GET /api/evidence-sufficiency/traces/{trace_id}",
+    "additive Search-page Stage 5 panel",
+    "v3.5-stage5-root-trace-v1"
+  ],
+  "routing": {
+    "judge_eligible": "frozen Semantic Judge invoked",
+    "source_unverifiable": "Judge bypassed; terminal status preserved",
+    "invalid": "Judge bypassed; terminal status preserved"
+  },
+  "timeout": {
+    "maximum_observed_stage4b_latency_ms": 89173,
+    "integration_timeout_seconds": 180,
+    "above_observed_maximum": true
+  },
+  "tests": {
+    "focused_contract_fixture_dom_passed": 78,
+    "focused_failed": 0,
+    "repository_passed": 1371,
+    "repository_unrelated_historical_failures": 9,
+    "pre_existing_collection_blocker": "scripts/export_pqs_v1_authoring_packet.py missing"
+  },
+  "live_smoke": {
+    "judge_eligible": "pass",
+    "source_unverifiable_bypass": "pass",
+    "invalid_synthetic_bypass": "pass",
+    "browser_dom": "pass"
+  },
+  "error_mapping": {
+    "provider_or_timeout": "judge_timeout_or_provider_error",
+    "parse_or_validation": "structured_output_error",
+    "not_mapped_to_semantic_status": true
+  },
+  "frozen_behavior": {
+    "component_hashes_unchanged": true,
+    "semantic_judge_behavior_unchanged": true,
+    "Evidence_Identity_Contract_unchanged": true
+  },
+  "documented_limitations": [
+    "Track A remains constrained by Retrieval and Evidence Resolution.",
+    "Track B is an approved-span diagnostic projection, not full known-video Builder/Selector replay.",
+    "Semantic Judge latency remains high.",
+    "No repository-owned deployment proxy timeout configuration exists.",
+    "Browser smoke used an empty temporary corpus; formal evidence UI is fixture/DOM tested.",
+    "Unrelated historical repository tests remain red."
+  ],
+  "output_hashes": {
+    "STAGE5_EXISTING_INTEGRATION_AUDIT.md": "13c138ef087f82e01dffd55cf534a17218c5e5c9bb4aad1c0fb58587fa2b9186",
+    "STAGE5_API_INTEGRATION_CONTRACT.md": "b9093379015fd88af1e3016fb72e5f873ebae6f5d5bde7cd0a341d3b6073ed2e",
+    "STAGE5_TRACE_CONTRACT.md": "4ccd0716bda3ea40f5d3ea90829d766969e8e0f0fb53ff72137e2e09a78bde8c",
+    "STAGE5_INTEGRATION_TEST_RESULTS.json": "8c3bf69e1e3bc60030ff81297c79ce91df2ab60fb49975111f663364f50b84db",
+    "STAGE5_LIVE_SMOKE_RESULTS.json": "55b36c8d6b4969ed43a8433ece38b7b31d4ebfc56fa5cab41932c968c7f1c83e",
+    "STAGE5_INTEGRATION_FREEZE_SEAL.json": "c65b77dfb8fbce546e8054ec9d57af682db9b8be1c725f1d2b138326ee9d9461",
+    "STAGE5_FINAL_CLOSEOUT.md": "062fd7c8d000a65014af60274663e86693313b39aa5b90cae599a470f5eaa62a"
+  },
+  "Frozen_Evaluation_accessed": false,
+  "Final_Answer_generated": false,
+  "Agentic_Search_added": false,
+  "Pre_Frozen_Checklist_started": false,
+  "Session_can_be_closed": true
+}

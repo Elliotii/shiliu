@@ -1,0 +1,17 @@
+{
+  "audit_date": "2026-07-25",
+  "frontend": {
+    "search_component": "src/shiliu/templates/search.html + src/shiliu/static/search.js",
+    "initial_mode": "lexical",
+    "default_selected_option": "lexical",
+    "request_payload_mode_field": "mode",
+    "first_request_mode": "lexical"
+  },
+  "backend": {
+    "api_route": "POST /api/search",
+    "request_schema": "shiliu.retrieval.product_search.ProductSearchRequest",
+    "omitted_mode_default": "lexical",
+    "product_service": "ProductSearchService.search_with_raw",
+    "orchestrator_entrypoint": "SearchOrchestrator.search_raw"
+  }
+}

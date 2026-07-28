@@ -1,0 +1,16 @@
+{
+  "router_miss_case_ids": [
+    "V2C_C0C_958161474678bd3f"
+  ],
+  "router_miss_count": 1,
+  "router_miss_queries": [
+    {
+      "case_id": "V2C_C0C_958161474678bd3f",
+      "effective_mode": "lexical",
+      "query": "SFT completion-only NEFTune",
+      "query_id": "V2C_C0C_958161474678bd3f:q1",
+      "query_view": "q1",
+      "router_decision": "lexical"
+    }
+  ]
+}

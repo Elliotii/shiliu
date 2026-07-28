@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "CandidateRole": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "primary",
+            "complementary",
+            "context"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "role"
+      ],
+      "title": "CandidateRole",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "abstain_reason": {
+      "anyOf": [
+        {
+          "enum": [
+            "no_relevant_candidate",
+            "insufficient_candidate_coverage",
+            "conflicting_or_ambiguous",
+            "provider_unable_to_decide"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Abstain Reason"
+    },
+    "action": {
+      "enum": [
+        "select",
+        "abstain"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "candidate_roles": {
+      "items": {
+        "$ref": "#/$defs/CandidateRole"
+      },
+      "title": "Candidate Roles",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "v3.5-structured-fine-selector-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_candidate_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Selected Candidate Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "action",
+    "selected_candidate_ids",
+    "candidate_roles",
+    "abstain_reason"
+  ],
+  "title": "StructuredSelectorOutput",
+  "type": "object"
+}

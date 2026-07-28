@@ -1,0 +1,10 @@
+{
+  "execution_status": "complete",
+  "cycle_status": "reviewed_development_gold_candidate_ready",
+  "reviewed_case_count": 14,
+  "pending_user_adjudication": 0,
+  "acceptance_status": "pending_v3_5_b_review",
+  "development_gold_formally_sealed": false,
+  "frozen_cycle_authorized": false,
+  "p8_authorized": false
+}

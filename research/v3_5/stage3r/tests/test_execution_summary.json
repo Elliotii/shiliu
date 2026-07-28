@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "passed": 61,
+  "failed": 0,
+  "test_command": ".venv/bin/pytest -q tests/test_stage3r_projection_and_isolation.py tests/test_stage3r_freeze_and_scoring.py tests/test_v3_5_evidence_stage3a.py tests/test_v3_5_stage3a_input_projection.py tests/test_v3_5_stage3a_reachability.py tests/test_v3_5_stage3b_selector.py"
+}

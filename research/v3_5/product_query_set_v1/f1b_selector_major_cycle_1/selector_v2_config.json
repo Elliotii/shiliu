@@ -1,0 +1,41 @@
+{
+  "schema_version": "v3.5-b-f1b-selector-v2-config-v1",
+  "selector_version": "v3.5-deterministic-fine-selector-v2",
+  "config_id": "stage3a-selector-greedy-marginal-v2",
+  "max_candidates_per_bundle": 6,
+  "weights": {
+    "lexical_relevance": 0.55,
+    "builder_relevance": 0.25,
+    "query_atom_novelty": 1.1,
+    "new_segment": 0.45,
+    "temporal_region_novelty": 0.3,
+    "segment_redundancy": -0.8,
+    "temporal_overlap": -0.5,
+    "text_redundancy": -0.3
+  },
+  "temporal_region_seconds": 90.0,
+  "temporal_distance_cap_seconds": 180.0,
+  "bundle_objective": {
+    "query_coverage": 3.0,
+    "peak_relevance": 1.5,
+    "mean_relevance": 1.0,
+    "segment_diversity": 0.3,
+    "temporal_diversity": 0.5,
+    "mean_redundancy": -0.75,
+    "duration_penalty": -0.0005
+  },
+  "runtime_inputs": [
+    "existing_base_relevance_score",
+    "normalized_query_term_or_anchor_coverage",
+    "new_segment_coverage",
+    "temporal_region_novelty",
+    "same_video_bundle_context",
+    "text_or_segment_redundancy",
+    "temporal_overlap_redundancy",
+    "stable_deterministic_tie_break"
+  ],
+  "forbidden_runtime_inputs_present": false,
+  "query_specific_rules": 0,
+  "video_specific_rules": 0,
+  "Gold_free_at_runtime": true
+}

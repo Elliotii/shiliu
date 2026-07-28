@@ -1,0 +1,35 @@
+{
+  "batch_id": "DEV_BATCH_05",
+  "split": "development",
+  "query_ids": [
+    "PQS_V1_Q014",
+    "PQS_V1_Q015"
+  ],
+  "query_count": 2,
+  "query_set_version": "PQS_V1",
+  "protocol_version": "PRODUCT_QUERY_GOLD_PROTOCOL_V1",
+  "schema_hashes": {
+    "product_retrieval_gold.schema.json": "6017dc5eaabae1be34701e0a4941ed205ce0e16a7db3885b431d665366b397c0",
+    "product_evidence_gold.schema.json": "c6d065464e833d1eb36b27c2247e9362ab0040b10cd590451c6c8cdd22eb5947",
+    "product_sufficiency_gold.schema.json": "56054395bb3ab1997bc58474ad34759026c9f4bc774f9164dbe66aedffa638f3"
+  },
+  "reason_code_registry_sha256": "7d759383aeb20aa2730254e2785ac8fc867ef5ecaf8fbcd42909cdf0c83ca50b",
+  "review_policy_sha256": "45514dffb722b4c64c410b00980021889d4f869a827fef2d469c7a0f6538e545",
+  "navigation_bundle_path": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/gold_construction_v1/shared/neutral_library_navigation_index.jsonl",
+  "transcript_catalog_path": "/Users/elliot/new-systems/agent-job-prep/Shiliu/research/v3_5/product_query_set_v1/gold_construction_v1/shared/authoritative_transcript_identity_catalog.jsonl",
+  "annotation_status": "not_started",
+  "contains_real_gold": false,
+  "file_hashes": {
+    "README.md": "b6b933e51f5994c1502eec8d8e96bd6a9eb40131be8c9a00c7a38b9ae359a627",
+    "annotation_assignment.json": "ab84f581b69a6a0c622583cd95c1f4530dfcce5e8d126d528ba942b2b47a49ad",
+    "evidence_gold.template.jsonl": "4b217ec63110bd3fe0059a2ac6070789aa95db8a23ca2ae3b8a0b788aceb191e",
+    "independent_review_decision.template.jsonl": "dae4bd903de0b88da2226ee83986bc5dd658de28278b344a268b0cf58f3afe9e",
+    "initial_annotation_decision.template.jsonl": "ce8c8b663c9e205f8719dcdd6586b3ed33cda46650a0a39b2305daf97a0062dd",
+    "query_records.locked.jsonl": "6b230f251618034acd9075ba4c363bd2ebec0b85d62f4f8f52ca05942bcc1c25",
+    "retrieval_gold.template.jsonl": "4f89c93edc0d75c9c29a5e12273360d3c565b5a0ebdb8b19e87c2ad24b093e91",
+    "sufficiency_gold.template.jsonl": "6622e0a38dcd7619c0ca2a8300f8de627821c8a73e90b0a94b7b84ba72ddac7e",
+    "user_adjudication_decision.template.jsonl": "7a0c836938607b14b44cdcab0d93b117d6167d8829899e1adb7699633666b58f"
+  },
+  "packet_content_sha256": "a56e0ab0bde3f063c6840ba26585285529ca98d85581faa88009bac75b11754a",
+  "batch_manifest_self_hash_excluded": true
+}

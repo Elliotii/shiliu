@@ -1,0 +1,7 @@
+{
+  "forbidden_field_hits": [],
+  "gold_evidence_field_leakage": 0,
+  "gold_semantic_field_leakage": 0,
+  "human_decision_leakage": 0,
+  "runtime_projection_complete": true
+}

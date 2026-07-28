@@ -1,0 +1,80 @@
+{
+  "mechanisms": [
+    {
+      "counterexamples": [
+        "Q006, Q007, Q011, Q012, Q013 and Q019 reach complete groups under the same cap, so the cap alone is not sufficient; the failure requires complementary evidence to be displaced.",
+        "Q018 requires 236 segments and about 633.341 seconds, so full repair is outside the unchanged capacity."
+      ],
+      "definition": "All required evidence is present in Retrieval-mapped raw segments, but the lexical/anchor-region allocator reaches the fixed per-video candidate budget before the retained union contains every complementary required segment.",
+      "distinct_topics": [
+        "Harness evaluation",
+        "Loop Engineering",
+        "Harness optimization",
+        "coding specifications",
+        "Agent memory",
+        "industrial RAG"
+      ],
+      "estimated_addressable_failures": 5,
+      "evidence": {
+        "all_required_gold_segments_present_in_raw_mapped_union": true,
+        "all_primary_acceptable_videos_reach_candidate_cap": true,
+        "candidate_cap": 32,
+        "candidate_failure_count": 6
+      },
+      "mechanism_id": "bounded_candidate_pruning_coverage_gap",
+      "mechanism_tags": [
+        "candidate_budget_starvation",
+        "timeline_window_assembly_gap",
+        "adjacent_segment_under_expansion"
+      ],
+      "relevant_code_path": [
+        "src/shiliu/evidence/stage3a.py:349",
+        "src/shiliu/evidence/stage3a.py:398",
+        "src/shiliu/evidence/stage3a.py:480",
+        "src/shiliu/eval_v3_5/stage3b.py:49"
+      ],
+      "supporting_query_count": 6,
+      "supporting_query_ids": [
+        "PQS_V1_Q003",
+        "PQS_V1_Q004",
+        "PQS_V1_Q005",
+        "PQS_V1_Q008",
+        "PQS_V1_Q015",
+        "PQS_V1_Q018"
+      ]
+    },
+    {
+      "counterexamples": [
+        "Q005, Q008 and Q018 have segment-membership efficiency 1.0, so deduplication cannot be their primary mechanism."
+      ],
+      "definition": "Retained windows consume fixed slots with overlapping segment memberships while a boundary or internal complementary segment remains uncovered.",
+      "distinct_topics": [
+        "Harness evaluation",
+        "Loop Engineering",
+        "Agent memory"
+      ],
+      "estimated_addressable_failures": 3,
+      "evidence": {
+        "Q003_duplicate_memberships": 47,
+        "Q004_primary_video_duplicate_memberships": 58,
+        "Q015_duplicate_memberships": 17
+      },
+      "mechanism_id": "dedup_below_threshold_leaves_complement_gap",
+      "mechanism_tags": [
+        "candidate_dedup_suppresses_complement"
+      ],
+      "relevant_code_path": [
+        "src/shiliu/evidence/stage3a.py:481",
+        "src/shiliu/evidence/stage3a.py:494"
+      ],
+      "supporting_query_count": 3,
+      "supporting_query_ids": [
+        "PQS_V1_Q003",
+        "PQS_V1_Q004",
+        "PQS_V1_Q015"
+      ]
+    }
+  ],
+  "primary_generic_mechanism": "bounded_candidate_pruning_coverage_gap",
+  "schema_version": "v3.5-b-p9-f1a-mechanism-taxonomy-v1"
+}

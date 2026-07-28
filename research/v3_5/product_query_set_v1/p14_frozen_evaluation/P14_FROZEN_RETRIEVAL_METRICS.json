@@ -1,0 +1,104 @@
+{
+  "Hit_at_1": 0.8,
+  "Hit_at_10": 1.0,
+  "Hit_at_3": 0.8,
+  "Hit_at_5": 0.9,
+  "per_case": [
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q001",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q002",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": false,
+      "Hit_at_10": true,
+      "Hit_at_3": false,
+      "Hit_at_5": false,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q009",
+      "first_acceptable_rank": 8
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q010",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q016",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q020",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q021",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q022",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": true,
+      "Hit_at_10": true,
+      "Hit_at_3": true,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q023",
+      "first_acceptable_rank": 1
+    },
+    {
+      "Hit_at_1": false,
+      "Hit_at_10": true,
+      "Hit_at_3": false,
+      "Hit_at_5": true,
+      "acceptable_hit": true,
+      "case_id": "PQS_V1_Q024",
+      "first_acceptable_rank": 5
+    }
+  ],
+  "primary_retrieval_failure_count": 0,
+  "schema_version": "v3.5-pqs-v1-retrieval-metrics-v1",
+  "structured_filter_case_results": {
+    "reason": "Frozen set contains no separately frozen structured-filter scoring contract.",
+    "status": "not_applicable"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "labels": {
+    "insufficient": 7,
+    "partial": 9,
+    "sufficient": 11,
+    "unverifiable": 4
+  },
+  "path": "research/v3_5/stage3r/input/stage2r_final_corpus/development_gold.executable_31.jsonl",
+  "records": 31,
+  "sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148"
+}

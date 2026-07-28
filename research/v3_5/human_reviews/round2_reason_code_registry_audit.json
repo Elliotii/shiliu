@@ -1,0 +1,64 @@
+{
+  "automatic_renaming_performed": false,
+  "existing_registry_codes": [
+    "conflicting_evidence",
+    "language_unresolved",
+    "missing_key_condition",
+    "no_search_candidate",
+    "partial_aspect_coverage",
+    "search_candidate_but_no_supporting_evidence",
+    "selector_failed",
+    "semantic_neighbor_only",
+    "source_unreadable",
+    "source_version_mismatch",
+    "subtitle_missing",
+    "title_only"
+  ],
+  "new_candidate_codes": [
+    "asr_transcription_uncertainty",
+    "limited_aspect_coverage",
+    "no_approved_target",
+    "out_of_domain_negative_control",
+    "query_target_mismatch"
+  ],
+  "observed_reason_codes": [
+    "asr_transcription_uncertainty",
+    "limited_aspect_coverage",
+    "no_approved_target",
+    "out_of_domain_negative_control",
+    "query_target_mismatch",
+    "semantic_neighbor_only",
+    "title_only"
+  ],
+  "possible_aliases": [
+    {
+      "candidate": "limited_aspect_coverage",
+      "existing": "partial_aspect_coverage",
+      "assessment": "likely semantic alias; preserve original Human code until Stage 2C registry decision"
+    },
+    {
+      "candidate": "no_approved_target",
+      "existing": "no_search_candidate or search_candidate_but_no_supporting_evidence",
+      "assessment": "not necessarily identical; curated query-corpus authority should be represented explicitly"
+    },
+    {
+      "candidate": "query_target_mismatch",
+      "existing": "semantic_neighbor_only",
+      "assessment": "may co-occur but expresses a distinct target-intent mismatch"
+    }
+  ],
+  "recommended_stage2c_canonical_registry": {
+    "canonicalize_after_human_adjudication": true,
+    "preserve_as_distinct_candidates": [
+      "asr_transcription_uncertainty",
+      "no_approved_target",
+      "out_of_domain_negative_control",
+      "query_target_mismatch"
+    ],
+    "review_alias_pair": [
+      "limited_aspect_coverage",
+      "partial_aspect_coverage"
+    ]
+  },
+  "status": "draft_audit_only_not_registry_freeze"
+}

@@ -1,0 +1,219 @@
+{
+  "development_authorization_source": "user-supplied Stage 2R-C0 contract",
+  "sources": [
+    {
+      "candidate_case_ids": [
+        "V2C_C0_8b3008628cbab05b"
+      ],
+      "first_batch_case_count": 0,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV11wEb6uEwB/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV11wEb6uEwB:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:cc48edb617e0e9ce77dc0b466a6b2a41d6a44ba4fc771cc92aa4d838952be47f",
+      "source_video_id": "BV11wEb6uEwB",
+      "timeline_run_id": "timeline_cc48edb617e0e9ce",
+      "transcript_segment_count": 493
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_3a81491fa5d104fc"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": null,
+      "source_artifact_id": "unavailable:BV13QFxzCEXb:p1",
+      "source_availability": "unavailable_missing_raw_subtitle_and_raw_asr",
+      "source_failure_metadata": {
+        "failure_class": "no_authorized_raw_evidence_artifact",
+        "metadata_path": "/Users/elliot/Documents/Shiliu/videos/BV13QFxzCEXb/metadata.json",
+        "metadata_sha256": "ac9bb31751744cdf47738a596b5799c2c54582f6c3a7990956dfcda1cbf28edc",
+        "raw_asr_exists": false,
+        "raw_asr_path": "/Users/elliot/Documents/Shiliu/videos/BV13QFxzCEXb/asr-raw.json",
+        "raw_subtitle_exists": false,
+        "raw_subtitle_path": "/Users/elliot/Documents/Shiliu/videos/BV13QFxzCEXb/subtitle-raw.json",
+        "subtitle_segment_count": 0,
+        "subtitle_track": null
+      },
+      "source_language": "unknown",
+      "source_type": "unavailable",
+      "source_version": null,
+      "source_video_id": "BV13QFxzCEXb",
+      "timeline_run_id": null,
+      "transcript_segment_count": 0
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_b61f1024e1e5ee29"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": null,
+      "source_artifact_id": "unavailable:BV16jREBdEX5:p1",
+      "source_availability": "unavailable_missing_raw_subtitle_and_raw_asr",
+      "source_failure_metadata": {
+        "failure_class": "no_authorized_raw_evidence_artifact",
+        "metadata_path": "/Users/elliot/Documents/Shiliu/videos/BV16jREBdEX5/metadata.json",
+        "metadata_sha256": "bf77de4d97673113ce9ad64a02be9f33f0eb79777d2b485c621861a0f5f5732b",
+        "raw_asr_exists": false,
+        "raw_asr_path": "/Users/elliot/Documents/Shiliu/videos/BV16jREBdEX5/asr-raw.json",
+        "raw_subtitle_exists": false,
+        "raw_subtitle_path": "/Users/elliot/Documents/Shiliu/videos/BV16jREBdEX5/subtitle-raw.json",
+        "subtitle_segment_count": 0,
+        "subtitle_track": null
+      },
+      "source_language": "unknown",
+      "source_type": "unavailable",
+      "source_version": null,
+      "source_video_id": "BV16jREBdEX5",
+      "timeline_run_id": null,
+      "transcript_segment_count": 0
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_afb81bd37cc27a94"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV18NLx6fEAq/asr-raw.json",
+      "source_artifact_id": "raw_asr:BV18NLx6fEAq:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_asr",
+      "source_version": "sha256:81e3858f74f445f62f76471670e0598c4db4502431d2b488549e0ef62aeba864",
+      "source_video_id": "BV18NLx6fEAq",
+      "timeline_run_id": "timeline_81e3858f74f445f6",
+      "transcript_segment_count": 27
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_e99c3be04fad64f0"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1JLN2z4EZQ/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1JLN2z4EZQ:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:edf9d166300d37389489b51aa351588f8721eba12db215f9bce3edd4c3892cd5",
+      "source_video_id": "BV1JLN2z4EZQ",
+      "timeline_run_id": "timeline_edf9d166300d3738",
+      "transcript_segment_count": 462
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_df2edd3c87b214b9"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1UaPmzrESw/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1UaPmzrESw:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:72a2bb145b2baf986683a027f2813a591f11f0c5406b9efe7828e2839dde2d63",
+      "source_video_id": "BV1UaPmzrESw",
+      "timeline_run_id": "timeline_72a2bb145b2baf98",
+      "transcript_segment_count": 296
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_6d988672d4217fc1"
+      ],
+      "first_batch_case_count": 0,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1Up756vEK7/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1Up756vEK7:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:71efe6338add3e930c78663613364b1e5c90e8b010026dffd52aeac0a605379a",
+      "source_video_id": "BV1Up756vEK7",
+      "timeline_run_id": "timeline_71efe6338add3e93",
+      "transcript_segment_count": 54
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_1124fc602ff6a6c2"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1V39eBHERZ/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1V39eBHERZ:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:ac554eabe9ea7478b0f38a681d05cb3911db27d53395b04df2160b2b594e37c9",
+      "source_video_id": "BV1V39eBHERZ",
+      "timeline_run_id": "timeline_ac554eabe9ea7478",
+      "transcript_segment_count": 517
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_29747bf4e1c42dac"
+      ],
+      "first_batch_case_count": 0,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1hYwDzSE7A/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1hYwDzSE7A:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:06eb1682d4b6a416e1eb5cca078bced378e2d81ee47d9d01dba7d2324dbab635",
+      "source_video_id": "BV1hYwDzSE7A",
+      "timeline_run_id": "timeline_06eb1682d4b6a416",
+      "transcript_segment_count": 386
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_8d16dea22266c1cd"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1oa6uBXE8J/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1oa6uBXE8J:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:5b3f6473760e29bce827e3f8d1df65c89f94f0d5faa70c9497c9d3740a3e41ac",
+      "source_video_id": "BV1oa6uBXE8J",
+      "timeline_run_id": "timeline_5b3f6473760e29bc",
+      "transcript_segment_count": 1035
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_5148c07e3421d436"
+      ],
+      "first_batch_case_count": 0,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1pCGJ6ZEDH/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1pCGJ6ZEDH:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:2721c28d53c3b6058dc97e4eed9acc924e0d6906898f73502f923b110f3e14a3",
+      "source_video_id": "BV1pCGJ6ZEDH",
+      "timeline_run_id": "timeline_2721c28d53c3b605",
+      "transcript_segment_count": 184
+    },
+    {
+      "candidate_case_ids": [
+        "V2C_C0_bcb8a3bd1c3498de"
+      ],
+      "first_batch_case_count": 1,
+      "raw_source_path": "/Users/elliot/Documents/Shiliu/videos/BV1qTYizcEN3/subtitle-raw.json",
+      "source_artifact_id": "raw_subtitle:BV1qTYizcEN3:p1",
+      "source_availability": "available",
+      "source_failure_metadata": null,
+      "source_language": "zh",
+      "source_type": "raw_subtitle",
+      "source_version": "sha256:d2b65cd091530b0abb6d78a96405af8977ae53dd3bd6c97f16cef587949e645a",
+      "source_video_id": "BV1qTYizcEN3",
+      "timeline_run_id": "timeline_d2b65cd091530b0a",
+      "transcript_segment_count": 1378
+    }
+  ],
+  "sources_checked": 12,
+  "split_membership_consulted": false
+}

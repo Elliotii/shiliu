@@ -1,0 +1,39 @@
+{
+  "manifest_name": "Shiliu V3.5-B F1A Preimplementation Recovery Manifest",
+  "schema_version": "v3.5-b-f1a-preimplementation-recovery-v1",
+  "execution_date": "2026-07-27",
+  "role": "Recovery State Consolidator",
+  "authority_inputs": [
+    {
+      "path": "/Users/elliot/Downloads/F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_TASK.md",
+      "sha256": "db9f2e0f3688aedc7ebcd09b752677fefe72de7a1a7826f2ea3fe16900d25377"
+    },
+    {
+      "path": "/Users/elliot/Downloads/V3_5_F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_LEDGER.json",
+      "sha256": "b04e68b13202be71f9623c3bfe03dcb34168eb7c4203e3a0fa5f8a9e1c70db06"
+    },
+    {
+      "path": "/Users/elliot/Downloads/F1A_RECOVERY_FILESYSTEM_ACCESS_POLICY.json",
+      "sha256": "5ee37aece383d0c7f52da66e24303da1b8aae27c1fab935553bc0b655104c635"
+    },
+    {
+      "path": "F1A_CANDIDATE_BUILDER_BLOCKING_REPORT.md",
+      "sha256": "2585e89a48e11ebc9e4b8fbb9a232cd814a669e04a6e44a897487b43b48416b0"
+    }
+  ],
+  "authority_updates": [
+    "V3_5_CURRENT_STATE.md",
+    "03_V3_5_DECISION_AND_ARTIFACT_INDEX.md",
+    "02_PRODUCT_QUERY_SET_AND_REMAINING_V3_5_PLAN.md"
+  ],
+  "required_outputs": [
+    "F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_REPORT.md",
+    "f1a_preimplementation_recovery.manifest.json",
+    "f1a_preimplementation_recovery.audit.json",
+    "f1a_preimplementation_recovery.execution_decision.json",
+    "f1a_preimplementation_recovery.file_hash_manifest.jsonl",
+    "V3_5_F1A_PREIMPLEMENTATION_RECOVERY_AMENDMENT_LEDGER.json",
+    "F1A_RECOVERY_FILESYSTEM_ACCESS_POLICY.json"
+  ],
+  "hash_manifest_rule": "The hash manifest verifies every sibling required output except itself."
+}

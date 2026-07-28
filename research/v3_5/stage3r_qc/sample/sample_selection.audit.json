@@ -1,0 +1,10 @@
+{
+  "evidence_bearing_count_valid": true,
+  "heldout_accessed": false,
+  "insufficient_counted_as_evidence_bearing": false,
+  "insufficient_diagnostic_count_valid": true,
+  "new_cases_added": false,
+  "passed": true,
+  "required_query_types_covered": true,
+  "total_cases_valid": true
+}

@@ -1,0 +1,145 @@
+{
+  "schema_version": "v3.5-b-f1a-scorer-v4-final-evaluation-closeout-v1",
+  "title": "F1A Scorer v4 Freeze and Final Evaluation Closeout",
+  "frozen_contract_and_asset_integrity_verification": {
+    "contract_json_hash_matches_freeze_seal": true,
+    "contract_test_results_hash_matches_freeze_seal": true,
+    "canonicalizer_and_matcher_source_hashes_match_freeze_seal": true,
+    "builder_freeze_seal_valid": true,
+    "builder_source_and_config_unchanged": true,
+    "development_gold_hashes_unchanged": true,
+    "development_inputs_unchanged": true,
+    "stress_inputs_unchanged": true,
+    "acceptance_gates_unchanged": true
+  },
+  "scorer_v4_implementation": {
+    "runner": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/run_f1a_scorer_v4.py",
+    "projection_adapter": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_projection.py",
+    "matcher": "src/shiliu/eval_v3_5/scoring_identity_bridge.py",
+    "matcher_modified": false
+  },
+  "projection_semantics": {
+    "match_may_contribute_to_gold_span_coverage": true,
+    "non_match_may_contribute_to_gold_span_coverage": false,
+    "unverifiable_may_contribute_to_gold_span_coverage": false,
+    "unverifiable_reported_separately": true,
+    "one_to_many_preserved_span_union_coverage": true,
+    "gold_group_span_aspect_or_gate_semantics_changed": false
+  },
+  "builder_unchanged_proof": {
+    "builder_version": "stage3b-adaptive-swap-w3.5-v1",
+    "builder_freeze_seal_sha256": "12f98f1635b2afee62a8be3c6b94a6d9a0090242ffdec1afdb97632adf913f4b",
+    "builder_source_sha256": "cb7dd63864d6e6d546412e62d418eef896e589fd15500b6520906762be76a3f1",
+    "builder_config_sha256": "b6d567164274df97b7386143d976a7b2c0e828776f6b1746bebf15c0eea59e8d",
+    "builder_changed": false
+  },
+  "gold_free_tests": {
+    "evidence_identity_contract_v1": {"passed": 17, "failed": 0},
+    "scorer_v4_projection": {"passed": 4, "failed": 0},
+    "builder_freeze_and_contract": {"passed": 17, "failed": 0},
+    "legacy_direct_scoring_bridge": {
+      "passed": 9,
+      "failed": 1,
+      "failure": "legacy assertion expected source_type=official_subtitle while frozen contract canonicalizes generation lineage to official"
+    },
+    "all_required_gold_free_tests_passed": false
+  },
+  "six_preserved_evidence_identity_tests": {
+    "PQS_V1_Q006": "pass",
+    "PQS_V1_Q007": "pass",
+    "PQS_V1_Q011": "pass",
+    "PQS_V1_Q012": "pass",
+    "PQS_V1_Q013": "pass",
+    "PQS_V1_Q019": "pass",
+    "formal_group_span_aspect_scores_read_before_freeze": false
+  },
+  "scorer_v4_freeze_and_preflight": {
+    "freeze_seal_generated": true,
+    "freeze_seal_sha256": "e45b4c5604d2de9171086093ad2e26d09dcfd446f233a6397af9f86a4876b669",
+    "recorded_post_freeze_preflight_status": "pass",
+    "final_preflight_validity": false,
+    "reason": "preflight omitted the failing legacy direct bridge regression from its pass criterion"
+  },
+  "invalidation_history": {
+    "eval_v1": "invalid_due_to_identity_bridge_defect",
+    "eval_v2": "invalid_due_to_BVID_numeric_identity_defect",
+    "eval_v3": "invalid_due_to_source_type_identity_defect"
+  },
+  "development_eval_v4_metrics": {
+    "complete_group_coverage": "7/13",
+    "complete_group_coverage_rate": 0.5384615384615384,
+    "builder_primary_failures": 5,
+    "required_span_recall": 0.6923076923076923,
+    "required_aspect_coverage": 0.6923076923076923,
+    "existing_six_regressions": [],
+    "invalid_identity_count": 0,
+    "unverifiable_scoring_identity_count": 0,
+    "maximum_swap_count_per_query": 4,
+    "forced_swaps": false
+  },
+  "stress_eval_v4_metrics": {
+    "complete_group_coverage": "13/20",
+    "complete_group_coverage_rate": 0.65,
+    "invalid_identity_count": 0,
+    "unverifiable_scoring_identity_count": 0,
+    "maximum_swap_count_per_query": 4,
+    "forced_swaps": false
+  },
+  "eval_v4_validity": {
+    "valid": false,
+    "contract_hash_valid": true,
+    "matcher_hash_valid": true,
+    "scorer_v4_hash_valid": true,
+    "builder_hash_valid": true,
+    "gold_hash_valid": true,
+    "input_hashes_valid": true,
+    "formal_run_counts_exactly_one_each": true,
+    "systemic_all_zero_due_to_identity_or_projection_defect": false,
+    "new_known_scoring_infrastructure_defect": true,
+    "defects": [
+      "required direct bridge regression did not pass before freeze",
+      "candidate_cap_required_32 was projected from per-video top-32 to aggregate per-query candidate totals of 299 and 309"
+    ]
+  },
+  "original_acceptance_gates": {
+    "applied_to_algorithm_verdict": false,
+    "complete_group_coverage_minimum_8_of_13_observed": "7/13",
+    "builder_primary_failures_maximum_4_observed": 5,
+    "required_span_recall_minimum_69_23_percent_observed": 0.6923076923076923,
+    "required_aspect_coverage_minimum_69_23_percent_observed": 0.6923076923076923,
+    "existing_six_builder_hits_regressions_allowed_0_observed": 0,
+    "invalid_identity_source_timeline_maximum_0_observed": 0,
+    "candidate_cap_required_32_observed_per_video_in_frozen_traces": 32,
+    "candidate_cap_v4_projection_valid": false,
+    "maximum_swaps_per_query_required_4_observed": 4,
+    "forced_swaps_required_false_observed": false,
+    "stress_complete_group_coverage_minimum_11_of_20_observed": "13/20"
+  },
+  "final_outcome": "no_promotion_due_to_unresolved_evaluation_infrastructure",
+  "final_builder": "stage3b-acronym-w3.5-v1",
+  "new_builder_algorithm_result": "unresolved",
+  "change_status": {
+    "builder": false,
+    "evidence_identity_contract": false,
+    "canonicalizer": false,
+    "matcher": false,
+    "scorer_projection_after_freeze": false,
+    "development_gold": false,
+    "stress_inputs": false,
+    "acceptance_gates": false
+  },
+  "formal_run_counts": {"development": 1, "stress": 1},
+  "output_hashes": {
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/scorer_v4_manifest.json": "9a333c223708f653472b9f760fd2f7db1940de79b9364d4676bfefebd06a7b77",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/SCORER_V4_FREEZE_SEAL.json": "e45b4c5604d2de9171086093ad2e26d09dcfd446f233a6397af9f86a4876b669",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/scorer_v4_preflight.json": "05c99fe62867cb3dd9542ce8d7e026430fa3d346c235e08c612ad1ae9a719126",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/f1a_eval_v4_development_per_query.jsonl": "34332f1d5a9c0cf7b2242f345f9c9a5b33f190e15e46be7771e4186b138a9b1e",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/f1a_eval_v4_development_metrics.json": "a67bcdb68e6b8f48cbe81fc402b36aec654093abb22a40d5332a076e326cd11c",
+    "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scorer_v4_final_eval/f1a_eval_v4_stress_metrics.json": "967104516098725afcad7feb749319b2fe8157e0af0fcacd30c7db1a762a63af"
+  },
+  "F1A_closure_status": "closed_without_valid_algorithm_verdict",
+  "F1B_status": "not_started",
+  "Stage4_status": "not_started",
+  "P10_status": "not_started",
+  "session_can_be_closed": true
+}

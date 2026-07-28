@@ -1,0 +1,6 @@
+{
+  "mechanical_gate_policy_version": "v3.5-mechanical-gate-policy-v1",
+  "required_candidate_builder_version": "stage3b-acronym-w3.5-v1",
+  "required_selector_version": "v3.5-deterministic-fine-selector-v1",
+  "supported_bundle_contract_version": "v3.5-evidence-bundle-v1"
+}

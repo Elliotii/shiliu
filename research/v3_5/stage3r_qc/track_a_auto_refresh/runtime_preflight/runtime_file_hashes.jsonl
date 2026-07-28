@@ -1,0 +1,14 @@
+{"path": "src/shiliu/evidence/stage3a.py", "sha256": "34774d6c166680e7523010f9d1d950f9aa1b890487f46427279164cdedaed552", "size": 39031}
+{"path": "src/shiliu/evidence/contracts.py", "sha256": "8417574849f0f36450f455dfc9ba00b6457762d7acee739fc5c271f9569f23b7", "size": 6684}
+{"path": "src/shiliu/evidence/source.py", "sha256": "ba39ada4505b0b6eb65013ad0c70c4f3ee8c66acff1ad6d2919df5e5e5ec3754", "size": 9454}
+{"path": "src/shiliu/evidence/authority.py", "sha256": "54f4c31eec6b55d65915cacbc389bc75490d54debf2f9df28aafbc6974042160", "size": 4446}
+{"path": "src/shiliu/evidence/mapping.py", "sha256": "e30a4873eace5d5b8a91ca58536d2345a6bd5fa7cb0f343ad3d8b349cb5e7ff0", "size": 8262}
+{"path": "src/shiliu/evidence/search.py", "sha256": "6eaf05e757d2e2fbacbf2ffd7978c4fe1df8deefecf0816fb2cb0c53f5c22959", "size": 12041}
+{"path": "src/shiliu/eval_v3_5/stage3a.py", "sha256": "f0703a3762e059bf4cddf97a5ac30c01ef0db2648b257e14054a87f512faad34", "size": 27616}
+{"path": "src/shiliu/eval_v3_5/stage3a_inputs.py", "sha256": "d16076182d78fd00d8da131309c72dac7dec485efc2f0cc2b421d41ae6ea79f4", "size": 24039}
+{"path": "src/shiliu/retrieval/service.py", "sha256": "84eefb13b0516fa023beb3792947246ce1eaf9e910e4060e844e53c966a9922b", "size": 37582}
+{"path": "src/shiliu/retrieval/orchestrator.py", "sha256": "ec58192b8e5d1d69a81b131c1e98b800b5c2d088a43714387e68b04374948b2b", "size": 20064}
+{"path": "src/shiliu/retrieval/product_search.py", "sha256": "c10e78cc28b6c29d7dac288fcd7526a7bc9941110ec20abbac8d9415104a9c6d", "size": 25535}
+{"path": "src/shiliu/retrieval/consolidation.py", "sha256": "1dfcea26bb05f188f10e9f037020ce55fc58ba8be572e5748f3221a38f12f357", "size": 6853}
+{"path": "src/shiliu/retrieval/enrichment.py", "sha256": "a01051ac26451aaeffc7fd702b68a57e9eb90e11c8668ef0ad66e28ee719389c", "size": 15899}
+{"path": "src/shiliu/retrieval/hybrid.py", "sha256": "10876a95c04bb3dfda44f69d662500672a5ab255f385a1b16d4ea060cc5f8a99", "size": 4873}

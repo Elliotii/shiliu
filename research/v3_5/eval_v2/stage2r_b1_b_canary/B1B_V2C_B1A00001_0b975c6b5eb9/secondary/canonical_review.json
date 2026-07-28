@@ -1,0 +1,48 @@
+{
+  "case_id": "V2C_B1A00001",
+  "review": {
+    "acceptable_evidence_groups": [],
+    "boundary_notes": "",
+    "confidence": "high",
+    "conflict_notes": "",
+    "missing_aspects": [
+      "A1"
+    ],
+    "optional_context_spans": [],
+    "reason_codes": [
+      "topic_not_discussed"
+    ],
+    "required_aspects": [
+      {
+        "aspect_id": "A1",
+        "description": "该视频的完整原字幕实质性讨论 MCP"
+      }
+    ],
+    "required_spans": [],
+    "reviewed_full_transcript": true,
+    "status": "insufficient",
+    "supported_aspects": [],
+    "transcript_first_segment_id": "BV1zDTX6eEGu_seg_000001",
+    "transcript_last_segment_id": "BV1zDTX6eEGu_seg_000106"
+  },
+  "review_metadata": {
+    "case_input_sha256": "0b975c6b5eb91e2223b226e8896269a32b07354eae2f91299c323147375c33a0",
+    "completed_at": "2026-07-22T18:50:38.582216Z",
+    "latency_ms": 36639,
+    "output_schema_version": "v3.5-annotation-review-v2",
+    "packet_version": "v3.5-annotation-packet-v2",
+    "prompt_version": "v3.5-secondary-reviewer-draft-prompt-v2-query-grounded",
+    "repair_count": 0,
+    "reviewer_model": "deepseek-v4-pro",
+    "reviewer_provider": "deepseek",
+    "reviewer_role": "secondary",
+    "started_at": "2026-07-22T18:50:01.943216Z",
+    "usage": {
+      "cached_tokens": null,
+      "estimated_cost_usd": null,
+      "input_tokens": 16137,
+      "output_tokens": 2181
+    },
+    "validation_status": "valid"
+  }
+}

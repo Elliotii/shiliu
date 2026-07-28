@@ -1,0 +1,265 @@
+{
+  "schema_version": "v3.5-stage5-post-freeze-delta-audit-v1",
+  "audited_at": "2026-07-27T17:37:42Z",
+  "baseline": {
+    "path": "STAGE5_INTEGRATION_FREEZE_SEAL.json",
+    "sha256": "c65b77dfb8fbce546e8054ec9d57af682db9b8be1c725f1d2b138326ee9d9461",
+    "status": "valid_historical_snapshot"
+  },
+  "Frozen_Evaluation_content_accessed": false,
+  "files": [
+    {
+      "path": "src/shiliu/retrieval/service.py",
+      "original_freeze_hash": null,
+      "current_hash": "9a5240ed2d18224084d01c4cc7c0a6a4f0e6b2c298b48a4883ffe0fa01f4a562",
+      "change_category": "retrieval_filter_semantics",
+      "behavioral_effect": "Restores uploader case-insensitive exact matching and adds independent uploader_contains substring matching; ranking is unchanged.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": true,
+      "contract_fix_status": "completed"
+    },
+    {
+      "path": "src/shiliu/retrieval/models.py",
+      "original_freeze_hash": null,
+      "current_hash": "875103be49b65f204060b39546a69efb4bf486f1b837b5aaa5def8c40e0726fa",
+      "change_category": "retrieval_filter_semantics",
+      "behavioral_effect": "Adds nullable RetrievalFilters.uploader_contains; existing uploader field and defaults remain intact.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": true,
+      "contract_fix_status": "completed"
+    },
+    {
+      "path": "src/shiliu/retrieval/product_search.py",
+      "original_freeze_hash": null,
+      "current_hash": "b9652529f384830dc7b9666f8683c1187e2e0b772a17cc0e10515a96a1a2cd66",
+      "change_category": "api_integration",
+      "behavioral_effect": "Adds ProductSearchFilterRequest.uploader_contains while promoting legacy SearchFilterRequest instances without semantic change.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": true,
+      "contract_fix_status": "completed"
+    },
+    {
+      "path": "src/shiliu/retrieval/planner.py",
+      "original_freeze_hash": null,
+      "current_hash": "0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+      "change_category": "api_integration",
+      "behavioral_effect": "No final delta: the attempted additive field was removed so the frozen Auto Router source identity remains unchanged.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/sync.py",
+      "original_freeze_hash": null,
+      "current_hash": "d37b638f662c7d19fe5ab76ec3ec9ffc0067e776cc3f27483d1c685f4874931f",
+      "change_category": "operational_sync",
+      "behavioral_effect": "Retryable source failures enter cooldown and existing unavailable sources cannot fall back to legacy sync that could empty the live index.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/web.py",
+      "original_freeze_hash": "60bc93d5798f85591a22b44d27f1484665ef4170a50a2a5db81ad5be59fa674d",
+      "current_hash": "60bc93d5798f85591a22b44d27f1484665ef4170a50a2a5db81ad5be59fa674d",
+      "change_category": "api_integration",
+      "behavioral_effect": "No post-freeze content delta; existing Product Search and Stage 5 routes are reused.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/app.py",
+      "original_freeze_hash": "b25e58fb29106b51eddd6b5b011b0aeb95e69840c37330212649cf5e126de04b",
+      "current_hash": "7a67ace1161ec624c73d59e4d329ecb1e7c6e9a873fa51dc49cc27c60bdc37a7",
+      "change_category": "api_integration",
+      "behavioral_effect": "Uses explicit product_runtime configuration and shiliu-live-current corpus identity; Product sync and mutable indexes remain enabled.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/stage5.py",
+      "original_freeze_hash": "47dfa4d0db0f35c386bed9084f1fcb6f86709c6e6bda6a678f684677741552e3",
+      "current_hash": "06cf6ece4ad28e0a6830d5041b6aec7a9c744129578a2bc6ff35b8740f7eb5d2",
+      "change_category": "api_integration",
+      "behavioral_effect": "Adds LaunchAgent-safe Codex executable resolution only; frozen model, Prompt, Policy, temperature, retry, routing, and schemas are unchanged.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/runtime_modes.py",
+      "original_freeze_hash": null,
+      "current_hash": "07bba7a046400720a46d04de3ef0f71cd676beacdf02f2bf8f4c299957ff30cd",
+      "change_category": "api_integration",
+      "behavioral_effect": "Defines explicit mutable, sync-enabled product_runtime identity.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/eval_v3_5/runtime_guard.py",
+      "original_freeze_hash": null,
+      "current_hash": "65386280d9b8958f024fcd5eb172a1ab94a2f6abf588d125283dea282feaef4c",
+      "change_category": "api_integration",
+      "behavioral_effect": "Requires frozen_eval_runtime, sealed corpus identity, disabled sync/mutation, and exact database/lexical/dense artifact hashes.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/eval_v3_5/frozen_auto_smoke.py",
+      "original_freeze_hash": null,
+      "current_hash": "173d342c77af9939139e9dd0bf16b7d5b5707ac5e72ad9369db5a8c93f99b0c3",
+      "change_category": "api_integration",
+      "behavioral_effect": "Blocks before loading frozen inputs unless the runtime guard passes and the requested database path is sealed.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "research/scripts/run_frozen_auto_smoke.py",
+      "original_freeze_hash": null,
+      "current_hash": "ce8a8040c6b85f53736a41df9ef700f036a4d259133e3af6d9f4cebf0b115327",
+      "change_category": "api_integration",
+      "behavioral_effect": "Requires an explicit --runtime-seal and maps guard failures to a blocked attempt before runner execution.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/static/search.js",
+      "original_freeze_hash": "8f747a1ef2e1d3ec181ea9037071496b694d7fb6084a7a9ae14a1e8021f635f5",
+      "current_hash": "5c65baf7b85fd40fc8296ba05a9eca52db0a3c7b947a79864c7998521c07f5c6",
+      "change_category": "ui_only",
+      "behavioral_effect": "Sends uploader_contains, preserves safe DOM rendering, and centers portrait search covers.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": true,
+      "contract_fix_status": "completed"
+    },
+    {
+      "path": "src/shiliu/static/search.css",
+      "original_freeze_hash": "4e7628c609d8eba950ea03ef198dfcc050b392f450b7d1d94c23ff56faa5aaec",
+      "current_hash": "728203039aad22d3e219bfbd7b55c848aef7ef33cd7298295a4d7f18d11dd95c",
+      "change_category": "ui_only",
+      "behavioral_effect": "Centers fixed-size result covers and applies portrait-aware cropping without changing API data.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/static/app.js",
+      "original_freeze_hash": null,
+      "current_hash": "2d66379757081cedd1ea7ac64df71a7d1ee2099b21f4c9c32aefa82b7e02fee4",
+      "change_category": "ui_only",
+      "behavioral_effect": "Adds generic portrait and pillarbox classification for library covers.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/static/library.css",
+      "original_freeze_hash": null,
+      "current_hash": "acb64749e37c875e86d98527b393791fd893b3d8af122975be4610012dbe3ebe",
+      "change_category": "ui_only",
+      "behavioral_effect": "Keeps a fixed cover frame, card-colored background, centered crop, and bounded pillarbox zoom.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "src/shiliu/templates/search.html",
+      "original_freeze_hash": "37be11c66fee5da39f4fcfb87d5b331a08dd66d6d00296e08ccbd385e2b2d0f4",
+      "current_hash": "09ec49b8950518c302fd085e2f91e09d3f338cd9899861dbb0792bd787f10209",
+      "change_category": "ui_only",
+      "behavioral_effect": "Names the Product UI field uploader_contains and updates the search JavaScript cache version.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": true,
+      "contract_fix_status": "completed"
+    },
+    {
+      "path": "src/shiliu/templates/base.html",
+      "original_freeze_hash": null,
+      "current_hash": "1a77257d006c63885f5b292f990ce251d6fe82dbdd002639d8e862885d54dd7d",
+      "change_category": "ui_only",
+      "behavioral_effect": "Adds the Search navigation entry, template extension blocks, and static asset cache versions.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "tests/test_stage5_integration.py",
+      "original_freeze_hash": "974f728259b113efa5e9f30508ea190979cbe37afc9a1c62bd91b5aa23414f60",
+      "current_hash": "c395eaa88c886e5d14b2f1154e4283b81921de7368aebecd8a03695f5b393d4e",
+      "change_category": "test_only",
+      "behavioral_effect": "Adds exact/contains Stage 5 route compatibility and LaunchAgent transport resolution coverage.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "tests/test_stage5_runtime_isolation.py",
+      "original_freeze_hash": null,
+      "current_hash": "4c3a5e8e9214c5cfcbbe1bf8e10863f4dde35cbf5464baafe9af1765b05e83b2",
+      "change_category": "test_only",
+      "behavioral_effect": "Covers product runtime defaults, live-current rejection, hash failure, sync rejection, sealed synthetic preflight, and pre-load runner blocking.",
+      "formal_eval_path_affected": true,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "tests/test_search_page.py",
+      "original_freeze_hash": "a6588988fb9f7ab2dc8dd4697875a2e5bd4a64456df3f06b1e0e26c8c93ccfd2",
+      "current_hash": "5ea322a5b6568a4311eea5c29d61a96afc257b93b0d3361aa995302c4ae83a3c",
+      "change_category": "test_only",
+      "behavioral_effect": "Covers uploader_contains field wiring, safe DOM, static versions, and cover layout.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    },
+    {
+      "path": "tests/test_database_and_sync.py",
+      "original_freeze_hash": null,
+      "current_hash": "c7fff744c32897a4d7986eb7ba8fb41c0b73f2064c252f85da3dfaf78e3c8f0d",
+      "change_category": "test_only",
+      "behavioral_effect": "Covers cooldown recovery and prevention of legacy fallback for existing unavailable sources.",
+      "formal_eval_path_affected": false,
+      "requires_revalidation": true,
+      "requires_contract_fix": false,
+      "contract_fix_status": "not_required"
+    }
+  ],
+  "summary": {
+    "parent_hash_entries_unchanged": [
+      "src/shiliu/web.py"
+    ],
+    "formal_router_identity_preserved": true,
+    "uploader_contract_fix_completed": true,
+    "live_frozen_runtime_isolation_added": true,
+    "sync_repairs_retained": true,
+    "ui_repairs_retained": true,
+    "requires_current_integration_refreeze": true
+  }
+}

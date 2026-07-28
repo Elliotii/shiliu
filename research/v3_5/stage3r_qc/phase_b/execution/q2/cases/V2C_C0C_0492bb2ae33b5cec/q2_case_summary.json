@@ -1,0 +1,38 @@
+{
+  "all_intents_empty": true,
+  "hit_type": "none",
+  "intent_results": [
+    {
+      "empty_result": true,
+      "intent_index": 1,
+      "query": "Python 数字类型",
+      "reused_q1_result": false,
+      "target_hit": false,
+      "target_rank": null
+    },
+    {
+      "empty_result": true,
+      "intent_index": 2,
+      "query": "Python 类型转换注意事项",
+      "reused_q1_result": false,
+      "target_hit": false,
+      "target_rank": null
+    }
+  ],
+  "intents": [
+    "Python 数字类型",
+    "Python 类型转换注意事项"
+  ],
+  "logical_intent_count": 2,
+  "new_retrieval_call_count": 2,
+  "reused_q1_result_count": 0,
+  "target_best_rank": null,
+  "target_hit": false,
+  "target_hit_intents": [],
+  "target_per_intent_ranks": {
+    "1": null,
+    "2": null
+  },
+  "union_candidate_video_count": 0,
+  "unique_execution_query_count": 2
+}

@@ -1,0 +1,29 @@
+{
+  "c4_case_count": 2,
+  "c4_clean_seed_sha256": "8c62300f939599e3036ad61833b8347372b31d79b60ad5582468cac2ad4d3b99",
+  "c4_gold_count": 2,
+  "canonical_adjudication_count": 2,
+  "embedding_calls": 0,
+  "final_corpus_count": 31,
+  "final_corpus_sha256": "a337b52ef83c69a844425f673990b2fbe0f42307e3934b7f746e2c6a0af9f148",
+  "final_label_distribution": {
+    "insufficient": 7,
+    "partial": 9,
+    "sufficient": 11,
+    "total": 31,
+    "unverifiable": 4
+  },
+  "human_decision_count": 2,
+  "human_input_sha256": "0b84419ba41ea506f9e11e1bbf6d5f207bb0399bac4c8619a4dd0d8f5a8183f6",
+  "llm_calls": 0,
+  "network_calls": 0,
+  "next_action": "Stage 3R Expanded Development Re-run",
+  "prior_locked_corpus_sha256": "f627282cbace4feba8e8669e1c217319a77004dacfd1f694355a9b3679158e16",
+  "provider_calls": 0,
+  "reviewer_calls": 0,
+  "stage": "Stage 2R Development Corpus Expansion",
+  "stage3r_entered": false,
+  "stage3r_readiness": "ready",
+  "status": "complete",
+  "third_reviewer_calls": 0
+}

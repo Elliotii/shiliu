@@ -1,0 +1,60 @@
+{
+  "attempt_count": 3,
+  "attempts": [
+    {
+      "attempt": 1,
+      "failure_class": "unknown_http_400",
+      "http_status": 400,
+      "latency_ms": 3297,
+      "model_body_returned": false,
+      "payload_fingerprint": "4b7e9700d04be14a7949e2c7cb5b2d4f335f17743e3e0ee740bf6c0b4bace8a1",
+      "phase": "transport_diagnosis",
+      "request_id": null,
+      "retry_delay_ms": 500,
+      "safe_provider_error_code": "bad_response_status_code",
+      "safe_response_headers": [],
+      "success": false
+    },
+    {
+      "attempt": 2,
+      "failure_class": "unknown_http_400",
+      "http_status": 400,
+      "latency_ms": 1828,
+      "model_body_returned": false,
+      "payload_fingerprint": "4b7e9700d04be14a7949e2c7cb5b2d4f335f17743e3e0ee740bf6c0b4bace8a1",
+      "phase": "transport_diagnosis",
+      "request_id": null,
+      "retry_delay_ms": 1000,
+      "safe_provider_error_code": "bad_response_status_code",
+      "safe_response_headers": [],
+      "success": false
+    },
+    {
+      "attempt": 3,
+      "failure_class": "unknown_http_400",
+      "http_status": 400,
+      "latency_ms": 1545,
+      "model_body_returned": false,
+      "payload_fingerprint": "4b7e9700d04be14a7949e2c7cb5b2d4f335f17743e3e0ee740bf6c0b4bace8a1",
+      "phase": "transport_diagnosis",
+      "request_id": null,
+      "retry_delay_ms": 0,
+      "safe_provider_error_code": "bad_response_status_code",
+      "safe_response_headers": [],
+      "success": false
+    }
+  ],
+  "base_url_persisted": false,
+  "diagnostic_sha256": "71569ea0ce7db1cb778e445780fef8ec327b89015f4a91f906be22cc58ca70a9",
+  "eventual_model_body_returned": false,
+  "fixture": "non_formal_fixed_transport_fixture_v1",
+  "model": "gpt-5.6-terra",
+  "packet_byte_count": 1098,
+  "payload_content_persisted": false,
+  "payload_fingerprint": "4b7e9700d04be14a7949e2c7cb5b2d4f335f17743e3e0ee740bf6c0b4bace8a1",
+  "payload_fingerprint_consistent": true,
+  "provider_usage": "annotation_primary_review",
+  "raw_error_body_persisted": false,
+  "reasoning_effort": "high",
+  "response_model_echo": null
+}

@@ -788,6 +788,9 @@ class RetrievalService:
         if filters.uploader is not None:
             clauses.append("lower(u.uploader)=lower(?)")
             parameters.append(filters.uploader)
+        if filters.uploader_contains is not None:
+            clauses.append("instr(lower(u.uploader), lower(?)) > 0")
+            parameters.append(filters.uploader_contains)
         if filters.archived is not None:
             clauses.append("u.archived_at IS NOT NULL" if filters.archived else "u.archived_at IS NULL")
 

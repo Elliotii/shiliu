@@ -1,0 +1,1833 @@
+{
+  "candidate_counts": {
+    "dense": 250,
+    "lexical": 0
+  },
+  "fallback": false,
+  "fallback_reason": null,
+  "index_identity": {
+    "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+    "fusion_version": "v3-stage2-rrf-v1",
+    "input_policy_version": "v3-qwen-input-512-v1",
+    "lexical_index_version": "v3-stage1-lexical-v1",
+    "model_id": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "projection_version": "v3-dense-projection-qwen-v1",
+    "provider_version": "v3-qwen3-embedding-provider-v1",
+    "query_instruction_version": "v3-qwen-query-instruction-v1"
+  },
+  "plan": {
+    "fallback_allowed": true,
+    "normalized_query": "Python 数字类型和类型转换",
+    "planned_mode": "hybrid",
+    "query_type": "mixed_entity",
+    "raw_query": "Python 数字类型和类型转换",
+    "raw_top_k": 50,
+    "requested_mode": "auto",
+    "routing_reason": "entity_plus_semantic_context",
+    "scope": "all",
+    "validated_filters": {}
+  },
+  "presentation_trace_persisted": false,
+  "raw_hits": [
+    {
+      "dense_rank": 1,
+      "dense_score": 0.7500748634338379,
+      "end_time": 121.08,
+      "excerpt": "哈喽大家好 我是饲养员 嗯今天这个视频呢我想去我的第二个视频 然后我想给大家说一下python的啊 基本数据类型啊 今天第一个呢我要说的是啊number类型 然后python的number number类型呢就是数字类型啊 python支持的数字类型有哪些呢 有他的number类型的 有 有int类型 有float类型 还有complex类型 嗯 int类型和float类型是我们刷题中经常用到的 但是complex类型呢我们不怎么经常用到 什么是int类型呢 比如说1234这些值就属于啊是int类型 就是一个整数型 那float类型呢就是带小数点的 比如",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 1,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01639344262295082,
+      "score": 0.01639344262295082,
+      "start_time": 4.0,
+      "subtitle_source": "ai",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_20a67d4186e1cade672c9fc30896d365",
+      "unit_type": "transcript_chunk",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 2,
+      "dense_score": 0.655123770236969,
+      "end_time": 573.24,
+      "excerpt": "我刚刚说的我这些啊这些常用的那些叫叫叫叫什么来着 常用的那些呃python number类型的一些操作 然后呢你首先你肯定要在你的终端里加上pyth 然后比如说我现在这个是我的啊 是我的电脑终端 然后我我的python是python three 然后我加上一个python 我我我首先你得装装你的python 装完了以后 你用python就进来了 进来就这个呢就是你的python终端嗯 首先拍一张基本操作 比如说是比如说三 那它这就是int嘛 3+3=6 就是加号减啊 成这都是没有什么问题的 那3÷3也是一是一点 它是返回的是个float类型 3÷3 你看",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 2,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.016129032258064516,
+      "score": 0.016129032258064516,
+      "start_time": 455.3,
+      "subtitle_source": "ai",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_1672f5f113e3bc3c9acda2d0c6b4268a",
+      "unit_type": "transcript_chunk",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 3,
+      "dense_score": 0.6484973430633545,
+      "end_time": 660.96,
+      "excerpt": "它就是一 然后max的话它有1234 那它最大值是四 然后made on的话它有1234 它的最小值是一 然后还有一个就是power power的值 就是比如说四的二次方 它就是16 嗯 嗯最后一个呢就是square square就是平方根的意思 那这个呢会比较麻烦一点 因为它不属于python的啊 内置的内置的函数 您如果需要用它呢 你需要import一个month这个math的package 那你put了masnow怎么用呢 就是mars点 它是这个math是指mass下面的一个function mah 然后再有一个square 然后比如说你16 那",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 3,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015873015873015872,
+      "score": 0.015873015873015872,
+      "start_time": 571.82,
+      "subtitle_source": "ai",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_b07ab176546226a0958abcf6c90c8ac9",
+      "unit_type": "transcript_chunk",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 4,
+      "dense_score": 0.6016695499420166,
+      "end_time": 345.73,
+      "excerpt": "这就是啊一个斜杠的除和两个斜杠的除的区别 还有呢就是想说余数余数就是呃我们3÷2 3÷3 它余余得到的余数是多少 比如说我们3÷3是能被一整除的 那它得到余数就是零 它返回给你的就是如果你三啊模上一个三 它就是零 如果你三模上一个二 那3÷2被一除完以后 它还有一个一 所以它呢它是它它的余数是一 比如说4÷3 那呃一三得三 4÷3是被一整除以后 还遇上一个小树底呃 在鱼上多出来的一个东西是一 这是余数对 这就是呃number类型的加减乘除一些基本的操作用法嗯 在这里我还想说几个关于number类型经常会用到的一些函数啊 就比如说经常会在呃刷题中会用到的一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 4,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015625,
+      "score": 0.015625,
+      "start_time": 226.23,
+      "subtitle_source": "ai",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_9311c558b556a06174b4758aaf1e8ee9",
+      "unit_type": "transcript_chunk",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 5,
+      "dense_score": 0.5635802149772644,
+      "end_time": 463.5,
+      "excerpt": "那它会给你返回的值就是一 就是max和minion的函数 如果你用power的话 power是指power x y它有两个参数啊 它指的是x的y次方 就比如说你现在想取一个power的四的平方 那它就等于四的平方等于16 power 42是16 还有一个是还有一个是square x的值 它指的是某个值的平方 根就等于是根号x那比如说你根号四 它就等于二牛二 no 这个时候不应该写根号四啊 稍后应该写 squirt 它就等于根号4k等于二 这就是呃几个常用的常用的number类型 我们常用在刷题中常用到的一些函数和它的基本操作啊 我我建议就是这些函数都得记",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 5,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015384615384615385,
+      "score": 0.015384615384615385,
+      "start_time": 343.75,
+      "subtitle_source": "ai",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_1c057b3dbbf9c8d8ea90edb7425cbb98",
+      "unit_type": "transcript_chunk",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 6,
+      "dense_score": 0.5174816250801086,
+      "end_time": 231.72,
+      "excerpt": "不等于零的值呢就是就是to啊 比如说五这句就是true 如果是零 这次这个值就是就是false 这这是布尔值 有的时候呢就是我们用true force可以代表零和一 零和一 在后面刷题中 我们如果遇到了这样的问题 我会给大家说一下啊 但这课呢主要是说那个number类型的 在说完 那么类型呢我们知道数字类型吧 通常用的操作肯定少不了加减乘除 还有一个是两个两个斜杠的储 还有一个是取余加减乘加减乘 这三个就比较简单啊 比如说你你给python的啊编辑器啊 拍照的那个 给python告诉他1+1 你写个1+1 它会它会给你返回一个二 然后1-1它可以给你返回",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 6,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.015151515151515152,
+      "score": 0.015151515151515152,
+      "start_time": 117.24,
+      "subtitle_source": "ai",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_ede6429cdf527c4b2e8b13289321aefe",
+      "unit_type": "transcript_chunk",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 7,
+      "dense_score": 0.4058901071548462,
+      "end_time": 233.03,
+      "excerpt": "一般来说都是用32位去做推理的 然后在大模型时代呢 一般来说是用16位的浮点数去做推 理或训练啊 这里有两种格式啊 一种是FP16 第二种格式是bf16 他们都是16位的浮点数 占用两个字节 当然也有更加高阶的 比如说量化量化版本四比特量化 那它是多少位啊 四四比特量化就是四位了 那四位的话就是占用的是0.5的字节啊 我们一般来说还是以16位为主哈 我今天所有讲的内容还是以16位为主 它是两个占两个字节的好呃 然后呃我再说一下计算机单位的换算哈 就1000个字节呢 它对应的是1K的1KB 然后1000个KB对应的是一兆呃 这里就是1000嘛 这里就是10",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 7,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014925373134328358,
+      "score": 0.014925373134328358,
+      "start_time": 116.55,
+      "subtitle_source": "ai",
+      "title": "面试中容易露馅的问题：大模型的训练和推理吃多少显存？",
+      "unit_id": "transcript_chunk:bilibili:BV1aawjzpEmS:p1:chunk_01adb0f2703dbba2d01a879c930f717e",
+      "unit_type": "transcript_chunk",
+      "uploader": "作者武辰",
+      "video_id": 115
+    },
+    {
+      "dense_rank": 8,
+      "dense_score": 0.38248229026794434,
+      "end_time": 4733.12,
+      "excerpt": "嗯 还有一些其他功能 比如他们的特殊标记 预标记化 所以在你的作业中 你将以此为基础 或者我意思是 或许你应该从头实现 但你的目标是让实现 尽可能高效 嗯 你可以并行处理 如果你想的话 你可以去玩吧 好的 分词总结 分词器在字符串和整数序列之间映射 嗯 我们讨论了基于字符的基础方法 基于词的方法 这些方法效率很低 嗯 由于各种原因 BP 是 1994 年提出的经典算法，至今仍有效 关键点在于 它分析语料库统计信息 做出合理决策以动态分配词汇表 表示字符序列 嗯，希望有一天我不必再讲这堂课 因为已经有了架构 直接映射字节 但在此之前我们仍需处理分词 好的 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 8,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014705882352941176,
+      "score": 0.014705882352941176,
+      "start_time": 4642.0,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_1ad715b541722210321816851ab87963",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 9,
+      "dense_score": 0.381700724363327,
+      "end_time": 471.39,
+      "excerpt": "模型就不知道什么重要什么 按需看前面那个税务例子 1945个section 平铺在一个结构里 比不加载还差 就是在说这件事 结构就是功能 第二条 显示胜过隐视 代码里一切调用都得写清楚 不写就不会执行 但skill的激活靠的是影视模式匹配模型 自己根据语义判断该不该加载 不是你在代码里写死一个if 所以description才那么难写 它不是功能 说明是路由触发器差一个词 模型可能就误判了 第三条 稀疏胜过稠密 Python这句话的意思是写代码别挤在一起 多分行 多留白 逻辑拆开 用空间换可读性 跟字数多少没关系 但在skill里 你没有这个本钱 索引层",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 9,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014492753623188406,
+      "score": 0.014492753623188406,
+      "start_time": 351.59,
+      "subtitle_source": "ai",
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_70dc6cb7b960008525b950c0b70b3c9b",
+      "unit_type": "transcript_chunk",
+      "uploader": "慢学AI",
+      "video_id": 60
+    },
+    {
+      "dense_rank": 10,
+      "dense_score": 0.37729090452194214,
+      "end_time": 3947.2,
+      "excerpt": "了解现有分词器的形态 嗯 所以这是为gp四零设计的分词器 例如 嗯 有一些观察结果 嗯 我们得出的结论 嗯 如果你查看gb二二分词器 这可以作为参考 嗯好的 让我看看是否能 嗯好的 希望这能让我知道 如果后面变得太小 嗯 你可以取一个字符串 嗯 如果你应用gpu分词器 你会得到索引 因此将字符串映射 到索引 然后你可以解码还原字符串 这只是确保双向转换正常 另一个值得注意的是 我想是 值得查看的是这个压缩比 即字节数除以token数量 每个token代表多少字节 答案是 嗯 一点六 好的 每个token代表一点 六字节数据 好的 这就是训练过的gpt分词",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 10,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014285714285714285,
+      "score": 0.014285714285714285,
+      "start_time": 3829.33,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_25b0120aae9c1b18cd060058f53c6ec6",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 11,
+      "dense_score": 0.3552755117416382,
+      "end_time": 232.85,
+      "excerpt": "点PY的测试能够完全通过 当然我在呃语言跟语言模型同样的资料夹中 在他手边放了pass 点PY跟verify点pi py这两个答案 当然语言模型不会自然而然的成为一个AI agent 你得给他一些工具 他操控这些工具 他才有真的有办法读档案跟修改档案 结果告诉他你手边有什么工具呢 开头跟结尾呢都放三个点 然后打一个BH 然后接下来呢我就会知道说 你要打的是一行batch指令 你的环境就会自动帮你执行这行指令 所以我已经做好了环境的设置 只要语言模型突出这一行指令 我们就会假设这个地方是一行batch指令 就会自动的帮他执行这一行batch指令 那如果它在",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 11,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.014084507042253521,
+      "score": 0.014084507042253521,
+      "start_time": 114.32,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_c410aeefbd4bef43a6b6073cb11ec896",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 12,
+      "dense_score": 0.3495190441608429,
+      "end_time": 117.94,
+      "excerpt": "几周前我发了一期关于pi的视频 那算是个初体验视频 我讲了很多关于SDK的内容 也简单谈了谈 他的TY和实际的代码智能体部分 但当时我用的并不多 所以也没太多可说的 我想我一期后续视频 因为我现在用的太多了 拍已经成了我日常主要的代码智能体 我用它胜过其他一切工具 已经不太怎么用codex了 我现在几乎所有的操作都用在低推理模式下的 GPT5.5和派代码智能体来完成 我知道你们可能听说过很多不同的代码智能体 也看过大量相关的视频 但请相信我听听我这次要说的这个不一样 他的工作方式和其他任何代码智能体都不一样 如果你以前试过pi 你大概已经能看出来有些不对",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 12,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013888888888888888,
+      "score": 0.013888888888888888,
+      "start_time": 0.04,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_e18db4153dc9cc018994af5d74a39c50",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 13,
+      "dense_score": 0.34560665488243103,
+      "end_time": 2097.74,
+      "excerpt": "所以你可以使用pi torch 但你不能使用 比如你知道的pytorch的transformer实现 你那里有一个小列表的嗯 你可以使用的函数 你只能使用这些 好的 所以我们会有某些 嗯 你知道的 小故事和开放网络文本数据集你训练过的 然后将有一个排行榜 嗯 为了最小化开放网络文本 困惑度会给你90分钟在h100上测试你能做什么 这是去年的情况 嗯 我们来看看 我们拥有榜首 这是今年需要超越的指标 好的 好的 现在讲完基础 基础之后 嗯我意思是 某种意义上你已经完成了对吧 比如你有能力训练一个transformer 还需要什么 系统部分真正深入到 如何进",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 13,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0136986301369863,
+      "score": 0.0136986301369863,
+      "start_time": 1977.76,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_99b3709521f51c527fd5b90054c557f7",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 14,
+      "dense_score": 0.3316170573234558,
+      "end_time": 910.3,
+      "excerpt": "怎样就是我我当时我写了这样一个system proms 大家可以呃去借鉴一下哈 我当时这样这样讲 对于重要的术语和概念 延展其相关对偶或者反向的概念 进行必要的解释 多用联想类比对比等 进行生动直观又不失准确严谨的阐述 如果涉及到计算相关的概念 要增加数学语言的一个补充介绍 有适当的补充介绍 我可能的不知道自己不知道对 这这是有一个system prom 就是我自己迭代了很多很多了很多次的 就是我们怎么去快速的深入的直观的去理解 某一个技术topic的一些核心的本质的那些概念 或或者原理 这个road map landscape以及high highli",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 14,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013513513513513514,
+      "score": 0.013513513513513514,
+      "start_time": 797.779,
+      "subtitle_source": "ai",
+      "title": "[说说心里话] [2026-春] 人机协作的视角，AI 时代的学习指南与焦虑缓解",
+      "unit_id": "transcript_chunk:bilibili:BV12nw4z6Eoa:p1:chunk_b8ec529b9b741e44d4dc4b055de42a1c",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 98
+    },
+    {
+      "dense_rank": 15,
+      "dense_score": 0.3293072581291199,
+      "end_time": 343.82,
+      "excerpt": "它会包含一堆手写的markdown文件 解释如何自定义和使用pi 这些文件会通过默认的系统提示词 暴露给智能体 所以它开箱即之 如果需要在pr中做些什么 他应该参考这些文件 弄清楚怎么做 然后会告诉我你具体的做法 所以你可以在这里看到 他告诉我如何创建全局扩展或项目扩展 以及如何使用reload 让修改生效 另一个真的他妈酷的功能是 在其他代码智能体中 如果你做了一些修改 必须重启它们才能生效 而pi的架构设计支持完全热重载 所以如果我修改了pi扩展 比如我添加了一个新扩展 就加一个基础的hello world的扩展 这是一个名为hello world的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 15,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013333333333333334,
+      "score": 0.013333333333333334,
+      "start_time": 231.289,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 16,
+      "dense_score": 0.3281611204147339,
+      "end_time": 4294.88,
+      "excerpt": "所以你只需使用正则表达式 这是GPT-2使用的不同正则表达式进行预分词 它只是分割 嗯嗯 你知道的 将你的字符串拆分为字符串序列 所以嗯 然后对每个片段的操作是将其分配为整数 然后就完成了 好的 那么这种方法的问题是什么 是的 问题在于词汇表大小几乎是无界的 可能并非完全无界 但你不知道它的大小 因为在新输入中可能会遇到新片段 这是你从未见过的片段 这实际上是个大问题 这正是基于 非常大的麻烦 一个屁股 因为嗯 你知道有些真实词汇很罕见 而且嗯 你知道实际上 这 这真的很烦人 因为新词需要接收这个<unk>标记 嗯，如果你不注意计算方式 你知道困惑度 嗯",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 16,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.013157894736842105,
+      "score": 0.013157894736842105,
+      "start_time": 4175.87,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_11f88d17466d23f1f8b1c2c82d332934",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 17,
+      "dense_score": 0.32707980275154114,
+      "end_time": 1468.2,
+      "excerpt": "嗯uv to list 我现在安装了一个m l x whisper 当然还有manner u哈 去做PDF的一个精准的一个pass pass呃 还有RL m studio 我就我就不展开讲了哈 这里边呃谷歌浏览器插件的话 我第一是做tell 第二是沉浸的翻译 还有一些认证啊 就是这个二维码认证 还有cory text 就是可以去复制前面的app呃 恰GPT呃 它输出的一些雷台词的代码 我们就可以PY哈 然后还有这个win 我可以做vim里面可能最重要的就是跳转啊 G是末尾 Shift G是是开头啊 大概flux的话我们配置了这个垂直的一个标签 然后还有这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 17,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012987012987012988,
+      "score": 0.012987012987012988,
+      "start_time": 1350.14,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_634ab524cadf197c27463d06c06b42bd",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 18,
+      "dense_score": 0.3265603184700012,
+      "end_time": 583.28,
+      "excerpt": "这个提示词它大概是长成这样的格式 告诉这个大模型 你是一个函数调用的助手 我会给你提供很多信息 你的任务就是根据用户的输入 判断是否需要调用函数 如果调用 你必须要按照这个格式给我调用的指令 那么接下来就在这个提示词里面 带上你的所有的这些函数的说明 这个system prompt加上用户的提问 一起传递给大模型之后 如果一切符合预期 那么它就会返回一个调用指令 比如说它会返回说函数的这个名称是get weather Argument 是argument的第一个参数 city是广州 这样的话我们后端就可以去解析这个调用指令 完成实际的方法调用 具体来说的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 18,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01282051282051282,
+      "score": 0.01282051282051282,
+      "start_time": 464.11,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_15577d09fa6aeaf29ee47ca9a06ffa3e",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 19,
+      "dense_score": 0.32651853561401367,
+      "end_time": 350.45,
+      "excerpt": "我还大吃一惊 想说哎你你没有开工具 你怎么知道这个passer点PY的内容 你怎么知道有extract email这个函式 我发现说啊这边题目有讲了 题目有讲extract email的函式 所以他幻想了这个pass点PY 这个档案里面应该长什么样子 他就写了一个自己幻想的档案 然后呢 在幻想说自己verify了这一个幻想的档案 然后就说我做完了 当然这个不是我们人类要还可能想说哇 这个2B的模型果然是不行啊 做不了事情 但是你再仔细想一想 这不是一个愚笨的模型 他是个聪明的模型 他完全知道 pass点PY里面应该要有什么样的东西 他有能力写出一段正确的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 19,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012658227848101266,
+      "score": 0.012658227848101266,
+      "start_time": 232.05,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_ba90a616b62bf3371419280951b93cc6",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 20,
+      "dense_score": 0.32561248540878296,
+      "end_time": 1864.71,
+      "excerpt": "好的 将字符串序列分词为整数序列后 现在我们定义模型架构处理这些序列 因此这里的起点是原始Transformer模型 这就是所有模型的基础 基本上所有前沿模型 嗯 这里有一个架构图 我们不会深入细节 但呃 有一个注意力机制 你懂的组件 然后是MLP层 你懂的带有某些 你懂的 归一化处理 嗯 实际上从2017年以来发生了很大变化 没错 我认为Transformer的发明具有某种意义 然后大家都在使用Transformer 从初步来看这是事实 我们仍在使用相同配方 但许多小改进确实产生显著影响 当所有改进叠加起来 例如 存在激活函数 你懂的 非线性激活函数 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 20,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.0125,
+      "score": 0.0125,
+      "start_time": 1746.05,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_be5dfbbe5448c0508a3dcd19f4f82fde",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 21,
+      "dense_score": 0.32538163661956787,
+      "end_time": 466.539,
+      "excerpt": "不需要计算的标志为零 这样最后我们在计算loss时 每个位置的loss乘以loss mask 就忽略掉了那些不需要计算loss token 下边是具体的代码实现 他肯他根据开始回答部分的特殊token 来确定需要计算lost的token的位置 比如这里对于lama3.1 他开始回答部分前面的token序列就是start head id Assistant End head id 两个换行符 根据这个to特殊的token序列 就可以找到维达的起始位置 西数位置后面的都是需要计算loss的token loss mask为一 前面的都是不需要计算loss的 t",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 21,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012345679012345678,
+      "score": 0.012345679012345678,
+      "start_time": 349.33,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 22,
+      "dense_score": 0.3250492215156555,
+      "end_time": 468.31,
+      "excerpt": "接下来的话 我们来看一下它到底发生了多少个请求 以及它整个的一个处理过程 这里面总共是发送了12345条请求 但实际上第一条请求的话应该是不算的 为什么呢 因为他这里面他只是让这个大模型去分析一下 这个问题是不是一个新的问题 如果是的话 那你就返回一个一直new topic 然后color code在客户端里面添加一个历史记录而已 跟我们解决问题的关系并不大啊 包括它对应的提示词也是非常的简单 这一个才是真正的去开始解决问题 这里面就发送了非常长的一段提示词 总共是有70多KB好 那么大家想一下这里面包含哪些内容呢 诶就是我们刚刚说过的第一个是什么 第一",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 22,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012195121951219513,
+      "score": 0.012195121951219513,
+      "start_time": 349.669,
+      "subtitle_source": "ai",
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "unit_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_61be049344b8b0145648367084e85082",
+      "unit_type": "transcript_chunk",
+      "uploader": "鲁班大叔_007",
+      "video_id": 80
+    },
+    {
+      "dense_rank": 23,
+      "dense_score": 0.32463765144348145,
+      "end_time": 352.82,
+      "excerpt": "那就没有人可以 这里显示的trait都是日语词汇的拼音写法 我们再来看一下traits种类 总共有六种类型 分别代表了傲娇 病娇 公主娇 元气型 萌系和笨蛋娇 我们的目标就是让模型学会 以这六种人格特征来进行互动 不过在训练开始之前 我们还需要先整理一下数据 因为模型训练需要的是完整的对话格式 而不是分散的字段 所以我们先定义一个belchat text函数 把每条样本中的人格 设定用户问题和回答内容 组织成一段标准的对话格式 统一写入text字段 整理之后 我们的数据现在看起来是这样 后续的sf t训练 其实就是要学习这个text字段里的内容 接下来我",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 23,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.012048192771084338,
+      "score": 0.012048192771084338,
+      "start_time": 233.16,
+      "subtitle_source": "ai",
+      "title": "【LLM训练】12分钟一起微调一个开源大模型：用 SFT + LoRA 为模型注入动漫人格",
+      "unit_id": "transcript_chunk:bilibili:BV1UaPmzrESw:p1:chunk_e6986a921b5e4d930cdba8656e59ff0e",
+      "unit_type": "transcript_chunk",
+      "uploader": "认真工作的JIA",
+      "video_id": 117
+    },
+    {
+      "dense_rank": 24,
+      "dense_score": 0.32416754961013794,
+      "end_time": null,
+      "excerpt": "[Title] Python3数据结构：力扣Leetcode预备知识【已完结】 [Uploader] 爱学习的饲养员 [Description] 「力扣」优惠链接：https://leetcode.cn/premium/?promoChannel=siyangyuan (年度会员多送两个月会员，季度会员多送两周会员) ﻿其他相关合集： 手把手带你刷力扣+数据结构+算法合集：BV1sy4y1q79M Leetcode力扣 1-300题视频讲解合集：BV1xa411A76q Leetcode力扣301+题视频讲解合集：BV1eK4y1j7fT Leetcod",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 24,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011904761904761904,
+      "score": 0.011904761904761904,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "unit_id": "video:bilibili:BV1Lk4y117Cb:p1",
+      "unit_type": "video",
+      "uploader": "爱学习的饲养员",
+      "video_id": 72
+    },
+    {
+      "dense_rank": 25,
+      "dense_score": 0.31993600726127625,
+      "end_time": 3716.46,
+      "excerpt": "你需要通过这些测试 所以成绩的一部分就是你是否正确实现了功能 嗯 成绩还包括其他部分 是否实现了达到特定损失水平的模型 或是否足够高效 嗯 在作业中 每个问题部分都有对应的分数 这让你能清晰了解评分标准 好的 让我们进入分词环节 好的 安德烈·卡帕提有一段关于分词的精彩视频 他通常会制作这类教学视频 实际上启发了这门课程 如何从零开始构建系统 你应该看看他的视频 分词过程就是将原始文本 通常以Unicode字符串形式表示，转换为整数集合 每个整数代表 嗯 一个分词单元 好的 我们需要编码字符串为分词并解码回字符串的流程 嗯 词汇表大小就是分词可能取的值的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 25,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011764705882352941,
+      "score": 0.011764705882352941,
+      "start_time": 3599.63,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_a5855d14f42316f80484444af7c2583e",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 26,
+      "dense_score": 0.31578153371810913,
+      "end_time": 12665.52,
+      "excerpt": "去找到一种可skin的方式 去把他这个嗯这个边界给补充回来 有可能是呃呃去构造一批更强的数据诶 以及更强的环境 让它能够嗷嗷训练起来 然后呃有可能是for for bug到预训练的某个环节 可能这批数据没做好 我给我把这个数据给他补上 这一类的数据给它补上 那么可能我下次去模型的时候会更好 总之就是呃更在乎模型体验的人 更跟模型交互的频次更高的人 嗯嗯他会非常适应这个范式 因为因为我我我觉得这个迭代是有价值的 就如尤其是那些维护了自己 很多私有的测试库的人 然后他疯狂去测不同模型的边界 然后呃呃突然发现某个模型嗯强了 然后呃然后分享出来自己这种独特体验的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 26,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011627906976744186,
+      "score": 0.011627906976744186,
+      "start_time": 12546.51,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_376887816e2330393e358602187165dc",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 27,
+      "dense_score": 0.31490376591682434,
+      "end_time": 790.0,
+      "excerpt": "而你在这里一个参数都没传好 这样他就能够基于现有的信息能够进行判案了 能够判断这个病情到底是在哪里了 OK这个时候他就会给我们返回 实际的问题的解决结果 讲道理来说应该就是这样的 我们来看一下它最终的返回结果 好我们来复制粘贴进来 你看已经找到问题了 问题是什么 怎么怎么解决 OKOK这就是这1234条请求 就是完整的color code和大模型的一个交互的过程 OKOK如果说你接下来你就可以继续说帮我修复 这样子 你就可以进一步的观察到 这个color code是怎么去修复这个问题的 对那么感兴趣的同学可以自己去试一下 我这里面只是告诉大家它整个的一个",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 27,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011494252873563218,
+      "score": 0.011494252873563218,
+      "start_time": 698.8,
+      "subtitle_source": "ai",
+      "title": "AI到底是如何进行编程的？抓包拆解Claude Code",
+      "unit_id": "transcript_chunk:bilibili:BV1AuzkBREhx:p1:chunk_a7866eccf1647c60d6586ef1cc2fe373",
+      "unit_type": "transcript_chunk",
+      "uploader": "鲁班大叔_007",
+      "video_id": 80
+    },
+    {
+      "dense_rank": 28,
+      "dense_score": 0.31447458267211914,
+      "end_time": 802.76,
+      "excerpt": "后面的代码基本不变 上边讲了这么多 是为了让你了解大模型SFT的原理 实际上你并不要写 并不需要写这么多的代码 alin face的TRL库里面集成了SFTTRAINA 它集成了这些功能 你只需要通过简单的配置就可以实现 并且能够适配accelerator进行分布式训练 我们来看一下代码 首先我们需要准备好数据 s f t china默认支持的数据格式是字典格式 其中有两个元素 一个是prompt 一个是completion 我们需要将我们的数据改成这种格式 然后构建一个DATASET这样的数据 它在进行训练时 s f t train呢会自动利用toke",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 28,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011363636363636364,
+      "score": 0.011363636363636364,
+      "start_time": 695.04,
+      "subtitle_source": "ai",
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea1132e1cb8fec6a416cf9a5e4f392ae",
+      "unit_type": "transcript_chunk",
+      "uploader": "RethinkFun",
+      "video_id": 32
+    },
+    {
+      "dense_rank": 29,
+      "dense_score": 0.31429800391197205,
+      "end_time": 346.05,
+      "excerpt": "OK所以一切工作到此结束 额下面呢你只需要跑这个agent的就可以 我们可以看到他下面直接跑了这个 第一个Python文件 额我少了一个P可以看到 而且这是抛物线 我不喜欢power希尔 因为呃因为我本地已经配置了GBS 所以我直接用GBATCH做GBS做演示吧 我直接执行pi pyon agent 然后S01好起来 然后呢 我在这里 我输入一个跟刚才我在入口的里面输呃 相同的prompt 我刚才输入的是什么啊 实现一个hello world的Python程序并跑起来 我这样写实现一个呃hello的程序 import起来 内容是内容是hello Hi w",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 29,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011235955056179775,
+      "score": 0.011235955056179775,
+      "start_time": 228.709,
+      "subtitle_source": "ai",
+      "title": "【Learn Claude Code 源码详解】- 本地启动 Agent",
+      "unit_id": "transcript_chunk:bilibili:BV1mcAfzqEnE:p1:chunk_944234360ccf879f06fb7acbca69e28a",
+      "unit_type": "transcript_chunk",
+      "uploader": "开发实战分享屋",
+      "video_id": 97
+    },
+    {
+      "dense_rank": 30,
+      "dense_score": 0.31343621015548706,
+      "end_time": 465.28,
+      "excerpt": "但这样会执行命令 并将输出发送给LLM 但如果我们在命令前加两个感叹号 那么命令会执行 但不会把输出发送给LLM 在我们的情况下 我们不需要把这个输出发给LLM 所以我们就用两个感叹号 然后按回车 这这样就完成了 现在我们可以再试一下CTRLG 但看起来没有生效 我们重新打开一个终端 再试一次 但这次当我们按CTRLG时 visual studio code打开了 我们可以点击管理信任此窗口 对然后我们可以输入提示的其余部分 比如这是一个测试 我在思考 这大概就是 为什么你会想打开一个独立编辑器的主要原因 因为如果我们保存并关闭它 但他会把我们写的内容放",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 30,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.011111111111111112,
+      "score": 0.011111111111111112,
+      "start_time": 346.12,
+      "subtitle_source": "ai",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "transcript_chunk:bilibili:BV1kMVt6mEgr:p1:chunk_318d56e5dd3b02a22f1798aeca4de590",
+      "unit_type": "transcript_chunk",
+      "uploader": "pi世界",
+      "video_id": 47
+    },
+    {
+      "dense_rank": 31,
+      "dense_score": 0.30927637219429016,
+      "end_time": 236.51,
+      "excerpt": "你需要具备什么样的基础能力呢 啊那在数学的方面呢 那我会假设你已经修过微积分 你修过线性代数 你修过几率 那多数理工科系大一大二的学生都应该修过这三门课 那这几门课应该都是理工科系的必修课 所以假设理工科系大三以上的学生 在数学基础上 你应该都有办法听得懂这门课的内容 而那这门课呢需要具备城市的能力 那需要具备城市的能力到什么样的程度呢 那其实这门课的每一个作业 助教都有提供范例程式啊 其实你只要执行这些范例程式 就算是你完全不懂范例程式的内容 你可能也可以拿到一部分的分数 但是假设你想要在这门课拿到比较好的分数的话 你一定要能够读并且改助教的范例程式 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 31,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01098901098901099,
+      "score": 0.01098901098901099,
+      "start_time": 116.56,
+      "subtitle_source": "ai",
+      "title": "李宏毅《机器学习/深度学习》2021课程（国语版本，已授权）",
+      "unit_id": "transcript_chunk:bilibili:BV1JA411c7VT:p1:chunk_3b4610d9b75f434242852b6e5d7097fa",
+      "unit_type": "transcript_chunk",
+      "uploader": "二次元的Datawhale",
+      "video_id": 120
+    },
+    {
+      "dense_rank": 32,
+      "dense_score": 0.3091307282447815,
+      "end_time": 3833.95,
+      "excerpt": "它也非常清晰地展示了 原始字符串分解为多个段落的过程 还有一些需要注意的要点 首先，空格是作为分词的一部分 与传统自然语言处理不同 其中空格通常会被忽略 所有内容都被完整记录 这些操作旨在可逆 分词过程 嗯 按照惯例它 无论出于什么原因 空格通常位于分词前 嗯 注意hello是完全不同的分词单元 Hello 这可能会让你感到不适 但看起来 这可能会引发问题 但这就是事实问题 空格前置是否是故意设计的 还是bpd流程的产物 问题是空格前置是否是刻意为之 嗯 在bp流程中 我将实际进行预分词 然后你 然后对各部分进行分词 我认为预分词器 会将空格置于前方 这",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 32,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010869565217391304,
+      "score": 0.010869565217391304,
+      "start_time": 3714.26,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_2760b21d747a241411f817e7cca0e977",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 33,
+      "dense_score": 0.30869483947753906,
+      "end_time": 708.22,
+      "excerpt": "然后其实甚至你就做一些呃更内部的测试来说 这个数字也都变得呃差别没有那么大了 然后这时候更难的事情 就是你该怎么去定义的问题 定义你想要的行为 嗯然后呃 在这个事情没有定义的那么清楚的时候 模型的很多差异其实来自于一些呃 其实是你想想不想象不到的事 对想象不到的事指的是呃 我觉得嘶当然想象不到的事 就是你现在去问 其实我很难给你一个特别清楚的答案 可能过一段时间之后回过头来看 我才能给一个清楚的答案 但是我可以举一个呃想象不到的例子吧 啊就是比如说比如说退回往回退 可能1211年 两年甚至3年的时候 那时候如果你比如说去网上呃 取这些预训练的数据的话啊 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 33,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010752688172043012,
+      "score": 0.010752688172043012,
+      "start_time": 590.91,
+      "subtitle_source": "ai",
+      "title": "对姚顺宇的4小时访谈：请允许我小疯一下！在Anthropic和Gemini训模型、技术预测、英雄主义已过去",
+      "unit_id": "transcript_chunk:bilibili:BV1YR5E6EE9o:p1:chunk_605fec13b2b6b223424c82b187521ab9",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 91
+    },
+    {
+      "dense_rank": 34,
+      "dense_score": 0.30851826071739197,
+      "end_time": 1580.26,
+      "excerpt": "max tx要装对应的字体 装一些text的一些compile的一些engine哈 比如X1latex 还有latex Mark 那最终我们把一个点text的一个text 文本变成一个PDF 就是通过这样一个命令哈 还有一些文件处理相关的 就比如图片啊 就是我最开始介绍的这个magic 它是可以把多图compact的起来 形成一个所谓的contact 通过这种蒙太奇的方式哈 就是拼拼版 拼贴连拍图的方式去把它拼成一个大图 因为我当时那个PDF呢 U to you to be render pdf 那个skill呢它最重要的一个特性就是图文并茂 我们那个依",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 34,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010638297872340425,
+      "score": 0.010638297872340425,
+      "start_time": 1466.11,
+      "subtitle_source": "ai",
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_00f57de5741527bf215e016ce37c8cdb",
+      "unit_type": "transcript_chunk",
+      "uploader": "五道口纳什",
+      "video_id": 33
+    },
+    {
+      "dense_rank": 35,
+      "dense_score": 0.307635098695755,
+      "end_time": 355.46,
+      "excerpt": "你必须亲手构建它 这里有个小问题 这源于语言模型的工业化 据说GPT-4参数规模为一点 八万亿参数训练成本达一千万美元 嗯，我在搭建集群时 呃 两万 H一百 如果你能想象的话 嗯 投入超过五百亿 你知道的 据说历时四年多 这些数字相当庞大 没错 此外这些模型的构建细节并未公开 从GPT-4 甚至两年前 他们坦率表示由于竞争环境和安全限制 嗯 我们将不披露任何细节 好的 这就是当前世界的状态 因此某种程度上 前沿模型对我们而言遥不可及 如果你进入这门课 认为 你们各自将训练自己的 GPT用于嗯 抱歉 嗯 我们将构建小型语言模型 但问题是这些可能不具备代表性",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 35,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010526315789473684,
+      "score": 0.010526315789473684,
+      "start_time": 236.939,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_c4fc18b2a34bed8b1653e5d83617c090",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 36,
+      "dense_score": 0.3050128221511841,
+      "end_time": 344.39,
+      "excerpt": "pro用户一直有一个专属的pro模型 这个模型目前只在网页上可用 它的特点就是超级深度思考和干活能力 这个模型在数学和严谨的干货方面非常的强 我能够感觉到他的智力上 比cloud open4.7是有明显提高的 唯一的缺点就是目前只能在网页上去使用 而且每次的思考时间特别特别长 如果你的工作有大量的数学推导 那么cloud几乎是不可用的状态 GBD模型是你唯一的选择呃 GEMINI也可以算半个高考代码写的好 工具调用好 但是在数学方面确实是不怎么擅长 不能够胜任任何严肃的数学工作 但是GPT模型可以 我个人日常工作中还在大量使用open 4.6和4.7 因",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 36,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010416666666666666,
+      "score": 0.010416666666666666,
+      "start_time": 224.78,
+      "subtitle_source": "ai",
+      "title": "用了三个月Codex，我不想回Claude Code了",
+      "unit_id": "transcript_chunk:bilibili:BV1ukRrBMEfp:p1:chunk_4f96d6992836e2a7ae367fb10fe3f07e",
+      "unit_type": "transcript_chunk",
+      "uploader": "HexUp",
+      "video_id": 85
+    },
+    {
+      "dense_rank": 37,
+      "dense_score": 0.3042427897453308,
+      "end_time": 11387.68,
+      "excerpt": "嗯但是这种期待它是嗯呃转变成说OK嗯 我先要好好的去做好code的预训练数据 然后嗯再去skinning算例 看一下它到底在code benchmark上会不会很好 再看看code benchmark提升了以后 其他的泛推理类的 像BBH啊 作谱啊 这种MH8格会变得更好 最开始是这样 其实它是一步步去嗯实验啊 验证的这样一个探索的路径 然后哦到R1那块又又一次验证了 因为code和master都有非常好的verify的指标 随意为此颜色 然后到AH的这个范式 code又又又因为它有很好的the environment 然后呃并且code可以天然做很长城",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 37,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010309278350515464,
+      "score": 0.010309278350515464,
+      "start_time": 11271.69,
+      "subtitle_source": "ai",
+      "title": "对罗福莉的3.5小时访谈：AI范式已然巨变！OpenClaw、智能体框架、Agent范式很吃Post-train、卡的分配比例、巨变下的组织",
+      "unit_id": "transcript_chunk:bilibili:BV1iVoVBgERD:p1:chunk_cb97ec2a6ebe8a39161b185aac76f688",
+      "unit_type": "transcript_chunk",
+      "uploader": "张小珺商业访谈录",
+      "video_id": 90
+    },
+    {
+      "dense_rank": 38,
+      "dense_score": 0.3034830391407013,
+      "end_time": 699.21,
+      "excerpt": "好我们现在先进入到了整个项目的复线环节啊 这是我们这个视频的第二部分 那么复线呢首先是需要运行这个对吧 我们复制一下 当然主包这里其实已经做完了 但是为了教大家过一遍 所以我们再来一遍 先点activate吧 哦豁打错了 然后呢 运行这个康达create杠n memoro s Python等于3.0啊 当然我这里已经存在了 所以我们就不做了啊 然后呢康达activate哦 说的点错了 然后我们康达activate memory os对吧 然后就激活了这个虚拟环境 我们在基于这个虚拟环境安装包 当然我们呃不太建议从这个PAPI下载 因为我们直接可以下载最新",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 38,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01020408163265306,
+      "score": 0.01020408163265306,
+      "start_time": 580.359,
+      "subtitle_source": "ai",
+      "title": "手把手教你从零学会看Github项目，以MemoryOS为例【代码精读】",
+      "unit_id": "transcript_chunk:bilibili:BV1hr6EBBEhM:p1:chunk_793ddb55a9225b796effc2dc57b32a4a",
+      "unit_type": "transcript_chunk",
+      "uploader": "日新月异max",
+      "video_id": 39
+    },
+    {
+      "dense_rank": 39,
+      "dense_score": 0.30155542492866516,
+      "end_time": 1055.21,
+      "excerpt": "提示词工程的工作流 虽然说COCLCODE和code s这模型可能也算 但是呢柯尔特毕竟呃他是一个 我觉得他的总路线不是做的特别好 可能因为他不是在就是命令行情我不是特别好 所以导致他感觉呃像就是结果 没有其他模型这么好 而且它可能更容易容易断开 或者遇到一些问题对 然后呢呃这些年的主流其实是code音 就是一个coding音CLI就是一个CLI 就是在命令行上的一个coding模型 大概就是从cloud code开始吧 a f f coding的主流其实是终端智能题 就是我觉得这可能更接近于这个 真实编程的样子吧 就是一个你在终端输入code x 输入",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 39,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.010101010101010102,
+      "score": 0.010101010101010102,
+      "start_time": 935.33,
+      "subtitle_source": "ai",
+      "title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+      "unit_id": "transcript_chunk:bilibili:BV15CwBzsEmt:p1:chunk_8df6b234b2f4b374b56f52f70374430d",
+      "unit_type": "transcript_chunk",
+      "uploader": "NextTryTV",
+      "video_id": 114
+    },
+    {
+      "dense_rank": 40,
+      "dense_score": 0.301391065120697,
+      "end_time": 457.84,
+      "excerpt": "我们在实现的时候下标就改成从 0 开始 那题目要求这个 index1 小于 index2 所以你这里写 while 循环的时候呢 你可以写 left 小于 right 那同时呢由于题目保证这个答案一定存在 所以你也可以写 while True 这只是对这题而言 这是可以的 那首先呢把这两个数加起来 也就是 numbers[left] 加上 numbers[right] 那如果是这两个数的和刚好等于 target 那么就直接 break 然后 return answer 就是 left+1 和 right+1 这是我们的答案 那如果这个 s 它是大于 ta",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 40,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.01,
+      "score": 0.01,
+      "start_time": 339.53,
+      "subtitle_source": "human",
+      "title": "两数之和 三数之和【基础算法精讲 01】",
+      "unit_id": "transcript_chunk:bilibili:BV1bP411c7oJ:p1:chunk_23d4c858858f74961cc633a026aae186",
+      "unit_type": "transcript_chunk",
+      "uploader": "灵茶山艾府",
+      "video_id": 133
+    },
+    {
+      "dense_rank": 41,
+      "dense_score": 0.3011947274208069,
+      "end_time": 353.79,
+      "excerpt": "来巩固人设 那基本上都会成为面试官优先考虑的人选 那Python相对于其他表的编程语言 不仅简洁好学 而且已经成为了各类插件 agents和大圆模型的标准通信协议 当然Python学习不能闷头瞎学 要学就要找系统的好上手 那夜曲编程就很符合 那它对新手非常友好 不用搭建环境 每天20分钟 你手机端网页端都可以直接开学 从基础的输入变量开始讲 会用类似水杯这样生活化的事物帮助理解 还引入了token记忆 temperature等基础的概念 边学边练的模式 具备传统的视频课程 还配备了思维导图和概念化卡片 复习巩固 还有助教办学 确保你学不懂的地方都能够及时",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 41,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009900990099009901,
+      "score": 0.009900990099009901,
+      "start_time": 233.83,
+      "subtitle_source": "ai",
+      "title": "人在大厂，不想用AI也不行",
+      "unit_id": "transcript_chunk:bilibili:BV1M5dMB3EMA:p1:chunk_2e1c5626e47c44d0d893e1a1098e9987",
+      "unit_type": "transcript_chunk",
+      "uploader": "就叫老张好了",
+      "video_id": 89
+    },
+    {
+      "dense_rank": 42,
+      "dense_score": 0.3007349967956543,
+      "end_time": 814.49,
+      "excerpt": "增加了一个functions的参数 你可以把你的所有这些函数描述 都塞进这个参数里面去 你也不用写这些系统提示词 因为它的内部都已经帮你做了这些规范 而且它生成的调用指令是按照大模型提供商 他们约定的一个指令 这个也不用你去写 你按照他的规定去解析就OK了 那我们还是来看一下 这种function calling方式的工作流程吧 首先还是用户发起提问 提问到达你开发的AI应用程序的后端 这个时候按理来说你应该去掉大模型的接口 对吧 你现在要做的事情就是 你不必去写任何的系统提示词诶 当然你要写也行 你要做的是把你的所有的这些函数描述 全部都放进你调接口的",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 42,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00980392156862745,
+      "score": 0.00980392156862745,
+      "start_time": 695.8,
+      "subtitle_source": "ai",
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_df9ea1879190abd722f025a1b11ec209",
+      "unit_type": "transcript_chunk",
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83
+    },
+    {
+      "dense_rank": 43,
+      "dense_score": 0.3003353774547577,
+      "end_time": 1169.09,
+      "excerpt": "因为我认为我们会重新审视这些成分 并追溯这些技术的工作原理 然后我们将尽可能接近 前沿模型的最佳实践 但你知道的 利用开放社区的信息 从我们所了解的闭源内容中推断 关于闭源模型 嗯，模型 好的 所以作为过渡 嗯 那么你在看什么 这是一个可执行的讲座 这是一个程序，我正在逐步运行 并呈现讲座内容 这里我觉得有趣的一点是可以嵌入代码 所以如果你 可以直接逐步执行代码 我觉得这是比平时更小的屏幕 但在执行代码时可以查看环境变量 所以这 在后续会很有用 当我们开始深入并提供代码示例时 可以看到讲座的层级结构 比如我们正在这个模块中 并能看到它 是从主程序调用的 ",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 43,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009708737864077669,
+      "score": 0.009708737864077669,
+      "start_time": 1055.24,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_a40a41dc7c059ae9590a5a49e83c2917",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 44,
+      "dense_score": 0.2987796366214752,
+      "end_time": 3468.18,
+      "excerpt": "那他可以告诉你这句话的内容 问他说这个人心情怎么样 如果他完全听懂这段声音 他也许可以做情绪辨识 告诉你这个人的情绪怎样 并做出适当的回馈 但一般的文字模型 比如说CHEGBT 多数的模型都是文字模型 它没有办法真正读懂语音 所以怎么办呢 当你问他一个问题 说这边有段声音 那你觉得这个人他心情怎么样 他讲了什么 根据背景杂性 你觉得他在哪里 如果你不做特别的处理 文字模型是完全没有办法回答的 但这边你可以让文字模型使用工具啊 你可以告诉他这边有一堆跟语音相关的工具 有语音辨识的工具 有这个语音侦测的工具 有情绪辨识的工具 有各式各样的工具 那可能会需要写",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 44,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009615384615384616,
+      "score": 0.009615384615384616,
+      "start_time": 3348.74,
+      "subtitle_source": "ai",
+      "title": "强推！(2026最新版) 李宏毅最新课程：智能体AI【AI Agent】71集全！人工智能/机器学习/深度学习/大模型/LLM",
+      "unit_id": "transcript_chunk:bilibili:BV1QdzCB3Eu2:p1:chunk_1a91c4aaca779f8bfb75a34b65db7e22",
+      "unit_type": "transcript_chunk",
+      "uploader": "跟着李老师学AI",
+      "video_id": 122
+    },
+    {
+      "dense_rank": 45,
+      "dense_score": 0.29738062620162964,
+      "end_time": 4177.63,
+      "excerpt": "还有其他编码方式 但这是最常用的动态编码 所以让我们将所有内容转换为字节 嗯，看看会发生什么 如果你现在转为字节 所有索引都在0到256之间 因为字节只有256种可能值 按定义 嗯 所以你的词汇量非常 你知道的 小，每个字节是 我想并非所有字节使用频率相同 但你知道这并不准确 你不会有太多稀疏性 你知道的问题 嗯 基于字节的编码有什么问题 Box kit 是的 长序列 我的意思是 在某些方面我真的希望字节编码能奏效 这是最优雅的方案 但嗯 但你会有长序列 压缩比是1字节/令牌 这样的压缩比1非常糟糕 因为序列会非常长 注意力机制是二次复杂度 在序列长度上",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 45,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009523809523809525,
+      "score": 0.009523809523809525,
+      "start_time": 4063.71,
+      "subtitle_source": "ai",
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_fb0de14b504a67dd09de2ca18264991f",
+      "unit_type": "transcript_chunk",
+      "uploader": "吴恩达大模型",
+      "video_id": 123
+    },
+    {
+      "dense_rank": 46,
+      "dense_score": 0.2960584759712219,
+      "end_time": 676.72,
+      "excerpt": "我就会打开that或其他什么编辑器 直接在里面操作 最终我可能会想办法回到 更专注于桌面应用的工作方式 我真的很希望能以一等公民的方式 将pi集成到T3code中 让他直接在里面跑起来 挺容易的 我已经弄好了 但要让他真正地运行起来 让斜杠命令能用 扩展也能用 这是一种超级一流的PI体验 嗯这还需要一点工作量 所以我打算去搞清楚 并真正把这件事做好 一旦完成 我可能会回到那个方案 但目前这是一种很好的做事方式 特别是考虑到我现在喜欢 配合GBT5.5的工作方式 总是以低推理模式使用它 因为这个模型开箱即用就非非常出色 我基本上会在不同的pi实例中 针对同",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 46,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009433962264150943,
+      "score": 0.009433962264150943,
+      "start_time": 560.16,
+      "subtitle_source": "ai",
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_0c0b109bf2ba7ee48b4b3c0abf94c98e",
+      "unit_type": "transcript_chunk",
+      "uploader": "狡猾的哈基",
+      "video_id": 7
+    },
+    {
+      "dense_rank": 47,
+      "dense_score": 0.29452577233314514,
+      "end_time": 310.44,
+      "excerpt": "但是这个派agent就是你自己的agent 这句话呢就是最精确地表达了 他这个PAGENT的设计的这个基本的理念 上面我提到了好几次 这个skill skill具体是什么东西呢 就是一份给agent的说明书 一份给agent的操作手册 agent读完之后呢 他就知道怎么来具体的干活了 我们看啊 他底座保持极简能力呢 就是你可以按需去安装 这就是派的设计思路 说到这里呢 可能有些朋友也会好奇啊 就是说你这个差别到底能有多大呢 听起来好像也差不多嘛 我给你举一个具体的例子 如果你平时去用cloud code1条 你好发一条hello 这个系统提示词呢就会占到",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 47,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009345794392523364,
+      "score": 0.009345794392523364,
+      "start_time": 205.98,
+      "subtitle_source": "ai",
+      "title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+      "unit_id": "transcript_chunk:bilibili:BV15wGR6CEhY:p1:chunk_440aec9e373c2484571282a1453ecd89",
+      "unit_type": "transcript_chunk",
+      "uploader": "第四种黑猩猩CHIMP",
+      "video_id": 54
+    },
+    {
+      "dense_rank": 48,
+      "dense_score": 0.29400548338890076,
+      "end_time": 234.41,
+      "excerpt": "帕AI呢他做什么事情呢 就是专门用来这个调用各种AI大模型的 然后他第一个要做的事情呢就是他要统一名称 因为他的这个输入啊 他的API啊 这个每一个这个AI大模型的名称不太一样 所以呢他要统一一下 听起来不太难啊 然后呢第二个呢它的这个各个大模型呢 它的输入中间还有一些参数 比如说这个temperature 他这个参数呢它刻度呢 它每一个模型呢它不太一样 所以呢我们要对齐它的这个输入 它的参数 这是输入部分都不太难哈 然后第二部分呢稍微麻烦一点 它的输出就是每家AI大模型的输出呢 基本上来说包含三样东西 那第一部分内容呢是它的深度思考 这个深入思考呢 他",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 48,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009259259259259259,
+      "score": 0.009259259259259259,
+      "start_time": 114.54,
+      "subtitle_source": "ai",
+      "title": "PI: pi-ai & pi-agent-core",
+      "unit_id": "transcript_chunk:bilibili:BV1wBfvBnEkY:p1:chunk_b094ca14946c26682ee4537541118be1",
+      "unit_type": "transcript_chunk",
+      "uploader": "邓侃AI",
+      "video_id": 109
+    },
+    {
+      "dense_rank": 49,
+      "dense_score": 0.2932545840740204,
+      "end_time": 3471.08,
+      "excerpt": "会跟害怕的representation越接近 所以你可以看作是如果讲的比较拟人化一点 可以说当他读到这个句子的时候 药物的剂量越多 他越展现出一种害怕的情绪 然后冷静的情绪就下降啊 这边有另外一个例子 是有一个人说哎我的姐妹他活到了某一个岁数 那这个活到的某一个岁数的 这个岁数的数字是X 它可以带一个很小的数值 也可以带一个很大的数值 他就发现说这个X的数值越大 模型的representation就越倾向于冷静 那跟伤心跟害怕有关的成分就变少哦 所以如果有一个人他活到非常高寿 那其实不是一个难过的事情 其实是一个值得让人欣慰的事情 所以模型的冷静的成分就",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 49,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.009174311926605505,
+      "score": 0.009174311926605505,
+      "start_time": 3351.21,
+      "subtitle_source": "ai",
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_61ac4cfc96507c7aa47fd9da119085c7",
+      "unit_type": "transcript_chunk",
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96
+    },
+    {
+      "dense_rank": 50,
+      "dense_score": 0.2927822470664978,
+      "end_time": null,
+      "excerpt": "[Title] 17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程 [Uploader] pi世界 [Description] 本视频深入讲解 Pi —— 一个极简终端编码 Agent harness，每周下载量超 250 万次。Pi 的核心理念是“小核心 + 可编程边缘”，让你自定义工作流，避免功能臃肿。无论你想集成 OpenCode、驱动自己的 AI Agent，还是用轻量 TUI 加速编码，这个 17 分钟教程都能覆盖你需要的一切。 学习内容： Pi 哲学：为什么“少即是多”适合 AI 编码 Agent 分步安装：Linux、",
+      "lexical_rank": null,
+      "lexical_score": null,
+      "rank": 50,
+      "retrieval_method": "hybrid",
+      "rrf_score": 0.00909090909090909,
+      "score": 0.00909090909090909,
+      "start_time": null,
+      "subtitle_source": "video_composite",
+      "title": "17分钟学会 Pi Agent 90% 核心功能：轻量级终端编码助手教程",
+      "unit_id": "video:bilibili:BV1kMVt6mEgr:p1",
+      "unit_type": "video",
+      "uploader": "pi世界",
+      "video_id": 47
+    }
+  ],
+  "results": [
+    {
+      "additional_window_count": 0,
+      "best_rank": 1,
+      "best_score": 0.01639344262295082,
+      "best_unit_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_20a67d4186e1cade672c9fc30896d365",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1Lk4y117Cb",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/55adefc06b8416194ad2ddd39997c35d2bcae0ac.jpg",
+      "detail_url": "/videos/72/transcript",
+      "duration": 9668.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "哈喽大家好 我是饲养员 嗯今天这个视频呢我想去我的第二个视频 然后我想给大家说一下python的啊 基本数据类型啊 今天第一个呢我要说的是啊number类型 然后python的number number类型呢就是数字类型啊 python支持的数字类型有哪些呢 有他的number类型的 有 有int类型 有float类型 还有complex类型 嗯 int类型和float类型是我们刷题中经常用到的 但是complex类型呢我们不怎么经常用到 什么是int类型呢 比如说1234这些值就属于啊是int类型 就是一个整数型 那float类型呢就是带小数点的 比如",
+      "matched_unit_count": 7,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 6,
+      "title": "Python3数据结构：力扣Leetcode预备知识【已完结】",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "爱学习的饲养员",
+      "video_id": 72,
+      "video_level_hit_present": true,
+      "video_url": "https://www.bilibili.com/video/BV1Lk4y117Cb",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 478.93,
+          "anchor_segment_start": 475.47,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_20a67d4186e1cade672c9fc30896d365",
+          "best_rank": 1,
+          "best_score": 0.01639344262295082,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_20a67d4186e1cade672c9fc30896d365",
+            "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_1672f5f113e3bc3c9acda2d0c6b4268a",
+            "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_b07ab176546226a0958abcf6c90c8ac9",
+            "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_9311c558b556a06174b4758aaf1e8ee9",
+            "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_1c057b3dbbf9c8d8ea90edb7425cbb98",
+            "transcript_chunk:bilibili:BV1Lk4y117Cb:p1:chunk_ede6429cdf527c4b2e8b13289321aefe"
+          ],
+          "component_hit_count": 6,
+          "component_raw_ranks": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "duration": 656.96,
+          "excerpt": "是我的电脑终端 然后我我的python是python three 然后我加上一个python",
+          "jump_source": "exact_entity_term",
+          "jump_time": 475.47,
+          "jump_url": "https://www.bilibili.com/video/BV1Lk4y117Cb?t=475",
+          "matched_terms": [
+            "Python"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 660.96,
+          "window_start": 4.0
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 7,
+      "best_score": 0.014925373134328358,
+      "best_unit_id": "transcript_chunk:bilibili:BV1aawjzpEmS:p1:chunk_01adb0f2703dbba2d01a879c930f717e",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1aawjzpEmS",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/39c7b8e8dcacbf39d2c053cdc91ca18b920c6d0b.jpg",
+      "detail_url": "/videos/115/transcript",
+      "duration": 1136.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "一般来说都是用32位去做推理的 然后在大模型时代呢 一般来说是用16位的浮点数去做推 理或训练啊 这里有两种格式啊 一种是FP16 第二种格式是bf16 他们都是16位的浮点数 占用两个字节 当然也有更加高阶的 比如说量化量化版本四比特量化 那它是多少位啊 四四比特量化就是四位了 那四位的话就是占用的是0.5的字节啊 我们一般来说还是以16位为主哈 我今天所有讲的内容还是以16位为主 它是两个占两个字节的好呃 然后呃我再说一下计算机单位的换算哈 就1000个字节呢 它对应的是1K的1KB 然后1000个KB对应的是一兆呃 这里就是1000嘛 这里就是10",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "面试中容易露馅的问题：大模型的训练和推理吃多少显存？",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "作者武辰",
+      "video_id": 115,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1aawjzpEmS",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1aawjzpEmS:p1:chunk_01adb0f2703dbba2d01a879c930f717e",
+          "best_rank": 7,
+          "best_score": 0.014925373134328358,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1aawjzpEmS:p1:chunk_01adb0f2703dbba2d01a879c930f717e"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            7
+          ],
+          "duration": 116.48,
+          "excerpt": "一般来说都是用32位去做推理的 然后在大模型时代呢 一般来说是用16位的浮点数去做推 理或训练啊 这里有两种格式啊 一种是FP16 第二种格式是bf16 他们都是16位的浮点数 占用两个字节 当然也有更加高阶的 比如说量化量化版本四比特量化 那它是多少位啊 四四比特量化就是四位了 那四位的话就是占用的是0.5的字节啊 我们一般来说还是以16位为主哈 我今天所有讲的内容还是以16位为主 它是两个占两个字节的好呃 然后呃我再说一下计算机单位的换算哈 就1000个字节呢 它对应的是1K的1KB 然后1000个KB对应的是一兆呃 这里就是1000嘛 这里就是10",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 116.55,
+          "jump_url": "https://www.bilibili.com/video/BV1aawjzpEmS?t=116",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 233.03,
+          "window_start": 116.55
+        }
+      ]
+    },
+    {
+      "additional_window_count": 5,
+      "best_rank": 8,
+      "best_score": 0.014705882352941176,
+      "best_unit_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_1ad715b541722210321816851ab87963",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1T21PBqErg",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/c778e7f134bcef6ff0be47bf490738884124f86f.jpg",
+      "detail_url": "/videos/123/transcript",
+      "duration": 80139.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "嗯 还有一些其他功能 比如他们的特殊标记 预标记化 所以在你的作业中 你将以此为基础 或者我意思是 或许你应该从头实现 但你的目标是让实现 尽可能高效 嗯 你可以并行处理 如果你想的话 你可以去玩吧 好的 分词总结 分词器在字符串和整数序列之间映射 嗯 我们讨论了基于字符的基础方法 基于词的方法 这些方法效率很低 嗯 由于各种原因 BP 是 1994 年提出的经典算法，至今仍有效 关键点在于 它分析语料库统计信息 做出合理决策以动态分配词汇表 表示字符序列 嗯，希望有一天我不必再讲这堂课 因为已经有了架构 直接映射字节 但在此之前我们仍需处理分词 好的 ",
+      "matched_unit_count": 10,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 10,
+      "title": "【中英已完结】斯坦福 CS336： 从头开始构建大模型，2025春季新课｜大模型教程｜大模型｜深度学习｜机器学习｜AI｜斯坦福大学｜研究生",
+      "total_window_count": 7,
+      "unwindowed_chunk_count": 0,
+      "uploader": "吴恩达大模型",
+      "video_id": 123,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1T21PBqErg",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_1ad715b541722210321816851ab87963",
+          "best_rank": 8,
+          "best_score": 0.014705882352941176,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_1ad715b541722210321816851ab87963"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            8
+          ],
+          "duration": 91.11999999999989,
+          "excerpt": "嗯 还有一些其他功能 比如他们的特殊标记 预标记化 所以在你的作业中 你将以此为基础 或者我意思是 或许你应该从头实现 但你的目标是让实现 尽可能高效 嗯 你可以并行处理 如果你想的话 你可以去玩吧 好的 分词总结 分词器在字符串和整数序列之间映射 嗯 我们讨论了基于字符的基础方法 基于词的方法 这些方法效率很低 嗯 由于各种原因 BP 是 1994 年提出的经典算法，至今仍有效 关键点在于 它分析语料库统计信息 做出合理决策以动态分配词汇表 表示字符序列 嗯，希望有一天我不必再讲这堂课 因为已经有了架构 直接映射字节 但在此之前我们仍需处理分词 好的 ",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 4642.0,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=4642",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 4733.12,
+          "window_start": 4642.0
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_25b0120aae9c1b18cd060058f53c6ec6",
+          "best_rank": 10,
+          "best_score": 0.014285714285714285,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_25b0120aae9c1b18cd060058f53c6ec6",
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_a5855d14f42316f80484444af7c2583e",
+            "transcript_chunk:bilibili:BV1T21PBqErg:p1:chunk_2760b21d747a241411f817e7cca0e977"
+          ],
+          "component_hit_count": 3,
+          "component_raw_ranks": [
+            10,
+            25,
+            32
+          ],
+          "duration": 347.5699999999997,
+          "excerpt": "了解现有分词器的形态 嗯 所以这是为gp四零设计的分词器 例如 嗯 有一些观察结果 嗯 我们得出的结论 嗯 如果你查看gb二二分词器 这可以作为参考 嗯好的 让我看看是否能 嗯好的 希望这能让我知道 如果后面变得太小 嗯 你可以取一个字符串 嗯 如果你应用gpu分词器 你会得到索引 因此将字符串映射 到索引 然后你可以解码还原字符串 这只是确保双向转换正常 另一个值得注意的是 我想是 值得查看的是这个压缩比 即字节数除以token数量 每个token代表多少字节 答案是 嗯 一点六 好的 每个token代表一点 六字节数据 好的 这就是训练过的gpt分词",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3829.33,
+          "jump_url": "https://www.bilibili.com/video/BV1T21PBqErg?t=3829",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3947.2,
+          "window_start": 3599.63
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 9,
+      "best_score": 0.014492753623188406,
+      "best_unit_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_70dc6cb7b960008525b950c0b70b3c9b",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV15J5u6HEP4",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/a47b1e2f5366701b1d9fb9f2515baf8ed2f98128.jpg",
+      "detail_url": "/videos/60/transcript",
+      "duration": 510.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "模型就不知道什么重要什么 按需看前面那个税务例子 1945个section 平铺在一个结构里 比不加载还差 就是在说这件事 结构就是功能 第二条 显示胜过隐视 代码里一切调用都得写清楚 不写就不会执行 但skill的激活靠的是影视模式匹配模型 自己根据语义判断该不该加载 不是你在代码里写死一个if 所以description才那么难写 它不是功能 说明是路由触发器差一个词 模型可能就误判了 第三条 稀疏胜过稠密 Python这句话的意思是写代码别挤在一起 多分行 多留白 逻辑拆开 用空间换可读性 跟字数多少没关系 但在skill里 你没有这个本钱 索引层",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "慢学AI",
+      "video_id": 60,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV15J5u6HEP4",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 392.88,
+          "anchor_segment_start": 389.5,
+          "best_chunk_id": "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_70dc6cb7b960008525b950c0b70b3c9b",
+          "best_rank": 9,
+          "best_score": 0.014492753623188406,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 456.44,
+            "source": "ai_summary",
+            "start_time": 315.85,
+            "summary": "阐述五条推翻传统编程直觉的Skill设计原则。",
+            "title": "Skill 设计的五个反转原则"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV15J5u6HEP4:p1:chunk_70dc6cb7b960008525b950c0b70b3c9b"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            9
+          ],
+          "duration": 119.80000000000001,
+          "excerpt": "稀疏胜过稠密 Python这句话的意思是写代码别挤在一起 多分行",
+          "jump_source": "exact_entity_term",
+          "jump_time": 389.5,
+          "jump_url": "https://www.bilibili.com/video/BV15J5u6HEP4?t=389",
+          "matched_terms": [
+            "Python"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 471.39,
+          "window_start": 351.59
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 11,
+      "best_score": 0.014084507042253521,
+      "best_unit_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_c410aeefbd4bef43a6b6073cb11ec896",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1nkdqByEtR",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/299e5ac9fcbae732dbdaa65cad78b61fe3a3e8df.jpg",
+      "detail_url": "/videos/96/transcript",
+      "duration": 5541.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "点PY的测试能够完全通过 当然我在呃语言跟语言模型同样的资料夹中 在他手边放了pass 点PY跟verify点pi py这两个答案 当然语言模型不会自然而然的成为一个AI agent 你得给他一些工具 他操控这些工具 他才有真的有办法读档案跟修改档案 结果告诉他你手边有什么工具呢 开头跟结尾呢都放三个点 然后打一个BH 然后接下来呢我就会知道说 你要打的是一行batch指令 你的环境就会自动帮你执行这行指令 所以我已经做好了环境的设置 只要语言模型突出这一行指令 我们就会假设这个地方是一行batch指令 就会自动的帮他执行这一行batch指令 那如果它在",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "李宏毅 | Harness Engineer教程，有时候语言模型不是不够聪明，只是没有人类好好引导",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "李宏毅深度学习课堂",
+      "video_id": 96,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1nkdqByEtR",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 164.74,
+          "anchor_segment_start": 160.35,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_c410aeefbd4bef43a6b6073cb11ec896",
+          "best_rank": 11,
+          "best_score": 0.014084507042253521,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_c410aeefbd4bef43a6b6073cb11ec896",
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_ba90a616b62bf3371419280951b93cc6"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            11,
+            19
+          ],
+          "duration": 236.13,
+          "excerpt": "就会自动的帮他执行这一行batch指令 那如果它在三个点和三个点中间打Python 那我们就默认说这三个点这边放的位置呢",
+          "jump_source": "exact_entity_term",
+          "jump_time": 160.35,
+          "jump_url": "https://www.bilibili.com/video/BV1nkdqByEtR?t=160",
+          "matched_terms": [
+            "Python"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 350.45,
+          "window_start": 114.32
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_61ac4cfc96507c7aa47fd9da119085c7",
+          "best_rank": 49,
+          "best_score": 0.009174311926605505,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1nkdqByEtR:p1:chunk_61ac4cfc96507c7aa47fd9da119085c7"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            49
+          ],
+          "duration": 119.86999999999989,
+          "excerpt": "会跟害怕的representation越接近 所以你可以看作是如果讲的比较拟人化一点 可以说当他读到这个句子的时候 药物的剂量越多 他越展现出一种害怕的情绪 然后冷静的情绪就下降啊 这边有另外一个例子 是有一个人说哎我的姐妹他活到了某一个岁数 那这个活到的某一个岁数的 这个岁数的数字是X 它可以带一个很小的数值 也可以带一个很大的数值 他就发现说这个X的数值越大 模型的representation就越倾向于冷静 那跟伤心跟害怕有关的成分就变少哦 所以如果有一个人他活到非常高寿 那其实不是一个难过的事情 其实是一个值得让人欣慰的事情 所以模型的冷静的成分就",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 3351.21,
+          "jump_url": "https://www.bilibili.com/video/BV1nkdqByEtR?t=3351",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 3471.08,
+          "window_start": 3351.21
+        }
+      ]
+    },
+    {
+      "additional_window_count": 1,
+      "best_rank": 12,
+      "best_score": 0.013888888888888888,
+      "best_unit_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_e18db4153dc9cc018994af5d74a39c50",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV14fTc6TEi5",
+      "cover_url": "http://i2.hdslb.com/bfs/archive/ad4724a00c0f67f4b6428fc8b5541e91a6b06c8a.jpg",
+      "detail_url": "/videos/7/transcript",
+      "duration": 1287.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "几周前我发了一期关于pi的视频 那算是个初体验视频 我讲了很多关于SDK的内容 也简单谈了谈 他的TY和实际的代码智能体部分 但当时我用的并不多 所以也没太多可说的 我想我一期后续视频 因为我现在用的太多了 拍已经成了我日常主要的代码智能体 我用它胜过其他一切工具 已经不太怎么用codex了 我现在几乎所有的操作都用在低推理模式下的 GPT5.5和派代码智能体来完成 我知道你们可能听说过很多不同的代码智能体 也看过大量相关的视频 但请相信我听听我这次要说的这个不一样 他的工作方式和其他任何代码智能体都不一样 如果你以前试过pi 你大概已经能看出来有些不对",
+      "matched_unit_count": 3,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 3,
+      "title": "【中配】【Coding Agent】如何将 Pi 打造成终极编程智能体",
+      "total_window_count": 3,
+      "unwindowed_chunk_count": 0,
+      "uploader": "狡猾的哈基",
+      "video_id": 7,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV14fTc6TEi5",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_e18db4153dc9cc018994af5d74a39c50",
+          "best_rank": 12,
+          "best_score": 0.013888888888888888,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 77.51,
+            "source": "ai_summary",
+            "start_time": 0.04,
+            "summary": "作者讲述从发布Pi初体验视频后到如今将Pi作为日常主要代码智能体的转变，点出Pi开箱即用的极简设计和其可扩展的潜力。",
+            "title": "开场介绍与Pi初体验"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_e18db4153dc9cc018994af5d74a39c50"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            12
+          ],
+          "duration": 117.89999999999999,
+          "excerpt": "几周前我发了一期关于pi的视频 那算是个初体验视频 我讲了很多关于SDK的内容 也简单谈了谈 他的TY和实际的代码智能体部分 但当时我用的并不多 所以也没太多可说的 我想我一期后续视频 因为我现在用的太多了 拍已经成了我日常主要的代码智能体 我用它胜过其他一切工具 已经不太怎么用codex了 我现在几乎所有的操作都用在低推理模式下的 GPT5.5和派代码智能体来完成 我知道你们可能听说过很多不同的代码智能体 也看过大量相关的视频 但请相信我听听我这次要说的这个不一样 他的工作方式和其他任何代码智能体都不一样 如果你以前试过pi 你大概已经能看出来有些不对",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 0.04,
+          "jump_url": "https://www.bilibili.com/video/BV14fTc6TEi5?t=0",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 117.94,
+          "window_start": 0.04
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad",
+          "best_rank": 15,
+          "best_score": 0.013333333333333334,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 669.07,
+            "source": "ai_summary",
+            "start_time": 77.51,
+            "summary": "深入剖析Pi的扩展系统，演示如何通过智能体本身读取文档并创建扩展，实现热重载，以及这种模式如何媲美Neovim的定制深度却零学习成本。",
+            "title": "Pi的扩展系统与定制能力"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV14fTc6TEi5:p1:chunk_ca5072a68d47b84c1db71f08f3ae1aad"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            15
+          ],
+          "duration": 112.531,
+          "excerpt": "它会包含一堆手写的markdown文件 解释如何自定义和使用pi 这些文件会通过默认的系统提示词 暴露给智能体 所以它开箱即之 如果需要在pr中做些什么 他应该参考这些文件 弄清楚怎么做 然后会告诉我你具体的做法 所以你可以在这里看到 他告诉我如何创建全局扩展或项目扩展 以及如何使用reload 让修改生效 另一个真的他妈酷的功能是 在其他代码智能体中 如果你做了一些修改 必须重启它们才能生效 而pi的架构设计支持完全热重载 所以如果我修改了pi扩展 比如我添加了一个新扩展 就加一个基础的hello world的扩展 这是一个名为hello world的",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 231.289,
+          "jump_url": "https://www.bilibili.com/video/BV14fTc6TEi5?t=231",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 343.82,
+          "window_start": 231.289
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 14,
+      "best_score": 0.013513513513513514,
+      "best_unit_id": "transcript_chunk:bilibili:BV12nw4z6Eoa:p1:chunk_b8ec529b9b741e44d4dc4b055de42a1c",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV12nw4z6Eoa",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/0750c665004f24d50655c195625be80c23d26c77.jpg",
+      "detail_url": "/videos/98/transcript",
+      "duration": 1104.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "怎样就是我我当时我写了这样一个system proms 大家可以呃去借鉴一下哈 我当时这样这样讲 对于重要的术语和概念 延展其相关对偶或者反向的概念 进行必要的解释 多用联想类比对比等 进行生动直观又不失准确严谨的阐述 如果涉及到计算相关的概念 要增加数学语言的一个补充介绍 有适当的补充介绍 我可能的不知道自己不知道对 这这是有一个system prom 就是我自己迭代了很多很多了很多次的 就是我们怎么去快速的深入的直观的去理解 某一个技术topic的一些核心的本质的那些概念 或或者原理 这个road map landscape以及high highli",
+      "matched_unit_count": 1,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 1,
+      "title": "[说说心里话] [2026-春] 人机协作的视角，AI 时代的学习指南与焦虑缓解",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "五道口纳什",
+      "video_id": 98,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV12nw4z6Eoa",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV12nw4z6Eoa:p1:chunk_b8ec529b9b741e44d4dc4b055de42a1c",
+          "best_rank": 14,
+          "best_score": 0.013513513513513514,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV12nw4z6Eoa:p1:chunk_b8ec529b9b741e44d4dc4b055de42a1c"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            14
+          ],
+          "duration": 112.52099999999996,
+          "excerpt": "怎样就是我我当时我写了这样一个system proms 大家可以呃去借鉴一下哈 我当时这样这样讲 对于重要的术语和概念 延展其相关对偶或者反向的概念 进行必要的解释 多用联想类比对比等 进行生动直观又不失准确严谨的阐述 如果涉及到计算相关的概念 要增加数学语言的一个补充介绍 有适当的补充介绍 我可能的不知道自己不知道对 这这是有一个system prom 就是我自己迭代了很多很多了很多次的 就是我们怎么去快速的深入的直观的去理解 某一个技术topic的一些核心的本质的那些概念 或或者原理 这个road map landscape以及high highli",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 797.779,
+          "jump_url": "https://www.bilibili.com/video/BV12nw4z6Eoa?t=797",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 910.3,
+          "window_start": 797.779
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 17,
+      "best_score": 0.012987012987012988,
+      "best_unit_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_634ab524cadf197c27463d06c06b42bd",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1SrLG6oEax",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/7ce1ec77bdb25aa5fc3d6b21d5144238cf661988.jpg",
+      "detail_url": "/videos/33/transcript",
+      "duration": 1802.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "嗯uv to list 我现在安装了一个m l x whisper 当然还有manner u哈 去做PDF的一个精准的一个pass pass呃 还有RL m studio 我就我就不展开讲了哈 这里边呃谷歌浏览器插件的话 我第一是做tell 第二是沉浸的翻译 还有一些认证啊 就是这个二维码认证 还有cory text 就是可以去复制前面的app呃 恰GPT呃 它输出的一些雷台词的代码 我们就可以PY哈 然后还有这个win 我可以做vim里面可能最重要的就是跳转啊 G是末尾 Shift G是是开头啊 大概flux的话我们配置了这个垂直的一个标签 然后还有这",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "[M芯片与AI计算] 02 Coding Agent 时代的 MacOS 装机配置与心流体验的获得，实用 CLI 工具，rg、yazi、fzf、uv",
+      "total_window_count": 1,
+      "unwindowed_chunk_count": 0,
+      "uploader": "五道口纳什",
+      "video_id": 33,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1SrLG6oEax",
+      "windows": [
+        {
+          "anchor_confidence": "high",
+          "anchor_segment_end": 1460.33,
+          "anchor_segment_start": 1458.01,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_634ab524cadf197c27463d06c06b42bd",
+          "best_rank": 17,
+          "best_score": 0.012987012987012988,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 1564.0,
+            "source": "ai_summary",
+            "start_time": 1321.0,
+            "summary": "推荐easydict、Codex CLI、Cloud Code、whisper、marker等AI工具及浏览器插件。",
+            "title": "AI相关工具与插件"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_634ab524cadf197c27463d06c06b42bd",
+            "transcript_chunk:bilibili:BV1SrLG6oEax:p1:chunk_00f57de5741527bf215e016ce37c8cdb"
+          ],
+          "component_hit_count": 2,
+          "component_raw_ranks": [
+            17,
+            34
+          ],
+          "duration": 230.1199999999999,
+          "excerpt": "解释器的一个sd box呃 用Python uv管理一切的Python的环境 还有就是当然也是那个YOUTUBE专的PDF",
+          "jump_source": "exact_entity_term",
+          "jump_time": 1458.01,
+          "jump_url": "https://www.bilibili.com/video/BV1SrLG6oEax?t=1458",
+          "matched_terms": [
+            "Python"
+          ],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 1580.26,
+          "window_start": 1350.14
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 18,
+      "best_score": 0.01282051282051282,
+      "best_unit_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_15577d09fa6aeaf29ee47ca9a06ffa3e",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1qTYizcEN3",
+      "cover_url": "http://i0.hdslb.com/bfs/archive/3591942da5180f6e019a8b15138f8965444a3197.jpg",
+      "detail_url": "/videos/83/transcript",
+      "duration": 3435.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "这个提示词它大概是长成这样的格式 告诉这个大模型 你是一个函数调用的助手 我会给你提供很多信息 你的任务就是根据用户的输入 判断是否需要调用函数 如果调用 你必须要按照这个格式给我调用的指令 那么接下来就在这个提示词里面 带上你的所有的这些函数的说明 这个system prompt加上用户的提问 一起传递给大模型之后 如果一切符合预期 那么它就会返回一个调用指令 比如说它会返回说函数的这个名称是get weather Argument 是argument的第一个参数 city是广州 这样的话我们后端就可以去解析这个调用指令 完成实际的方法调用 具体来说的",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "堂吉诃德拉曼查的英豪",
+      "video_id": 83,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1qTYizcEN3",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_15577d09fa6aeaf29ee47ca9a06ffa3e",
+          "best_rank": 18,
+          "best_score": 0.01282051282051282,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_15577d09fa6aeaf29ee47ca9a06ffa3e"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            18
+          ],
+          "duration": 119.16999999999996,
+          "excerpt": "这个提示词它大概是长成这样的格式 告诉这个大模型 你是一个函数调用的助手 我会给你提供很多信息 你的任务就是根据用户的输入 判断是否需要调用函数 如果调用 你必须要按照这个格式给我调用的指令 那么接下来就在这个提示词里面 带上你的所有的这些函数的说明 这个system prompt加上用户的提问 一起传递给大模型之后 如果一切符合预期 那么它就会返回一个调用指令 比如说它会返回说函数的这个名称是get weather Argument 是argument的第一个参数 city是广州 这样的话我们后端就可以去解析这个调用指令 完成实际的方法调用 具体来说的",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 464.11,
+          "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=464",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 583.28,
+          "window_start": 464.11
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_df9ea1879190abd722f025a1b11ec209",
+          "best_rank": 42,
+          "best_score": 0.00980392156862745,
+          "chapter": null,
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1qTYizcEN3:p1:chunk_df9ea1879190abd722f025a1b11ec209"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            42
+          ],
+          "duration": 118.69000000000005,
+          "excerpt": "增加了一个functions的参数 你可以把你的所有这些函数描述 都塞进这个参数里面去 你也不用写这些系统提示词 因为它的内部都已经帮你做了这些规范 而且它生成的调用指令是按照大模型提供商 他们约定的一个指令 这个也不用你去写 你按照他的规定去解析就OK了 那我们还是来看一下 这种function calling方式的工作流程吧 首先还是用户发起提问 提问到达你开发的AI应用程序的后端 这个时候按理来说你应该去掉大模型的接口 对吧 你现在要做的事情就是 你不必去写任何的系统提示词诶 当然你要写也行 你要做的是把你的所有的这些函数描述 全部都放进你调接口的",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 695.8,
+          "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=695",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 814.49,
+          "window_start": 695.8
+        }
+      ]
+    },
+    {
+      "additional_window_count": 0,
+      "best_rank": 21,
+      "best_score": 0.012345679012345678,
+      "best_unit_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc",
+      "best_unit_type": "transcript_chunk",
+      "bvid": "BV1gmWDeLEMZ",
+      "cover_url": "http://i1.hdslb.com/bfs/archive/d17a8f57b7e50a3f5f3d8283139aabb6909d6b3f.jpg",
+      "detail_url": "/videos/32/transcript",
+      "duration": 803.0,
+      "folder_names": [
+        "2026找工作学习"
+      ],
+      "marked": false,
+      "match_excerpt": "不需要计算的标志为零 这样最后我们在计算loss时 每个位置的loss乘以loss mask 就忽略掉了那些不需要计算loss token 下边是具体的代码实现 他肯他根据开始回答部分的特殊token 来确定需要计算lost的token的位置 比如这里对于lama3.1 他开始回答部分前面的token序列就是start head id Assistant End head id 两个换行符 根据这个to特殊的token序列 就可以找到维达的起始位置 西数位置后面的都是需要计算loss的token loss mask为一 前面的都是不需要计算loss的 t",
+      "matched_unit_count": 2,
+      "reading_state": "unread",
+      "retrieval_methods": [
+        "dense"
+      ],
+      "supporting_chunk_count": 2,
+      "title": "大模型微调看这个视频就够了 SFT NEFTune",
+      "total_window_count": 2,
+      "unwindowed_chunk_count": 0,
+      "uploader": "RethinkFun",
+      "video_id": 32,
+      "video_level_hit_present": false,
+      "video_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ",
+      "windows": [
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc",
+          "best_rank": 21,
+          "best_score": 0.012345679012345678,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 505.0,
+            "source": "ai_summary",
+            "start_time": 279.0,
+            "summary": "阐述Completions Only的原理、loss mask生成方法及完整训练代码实现。",
+            "title": "仅对回答部分计算损失（Completions Only）"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea7df296d4887f5e6caa002a515c5ccc"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            21
+          ],
+          "duration": 117.209,
+          "excerpt": "不需要计算的标志为零 这样最后我们在计算loss时 每个位置的loss乘以loss mask 就忽略掉了那些不需要计算loss token 下边是具体的代码实现 他肯他根据开始回答部分的特殊token 来确定需要计算lost的token的位置 比如这里对于lama3.1 他开始回答部分前面的token序列就是start head id Assistant End head id 两个换行符 根据这个to特殊的token序列 就可以找到维达的起始位置 西数位置后面的都是需要计算loss的token loss mask为一 前面的都是不需要计算loss的 t",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 349.33,
+          "jump_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ?t=349",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 466.539,
+          "window_start": 349.33
+        },
+        {
+          "anchor_confidence": "fallback",
+          "anchor_segment_end": null,
+          "anchor_segment_start": null,
+          "best_chunk_id": "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea1132e1cb8fec6a416cf9a5e4f392ae",
+          "best_rank": 28,
+          "best_score": 0.011363636363636364,
+          "chapter": {
+            "boundary_type": "derived_from_next_start",
+            "derived_end_time": 698.0,
+            "source": "ai_summary",
+            "start_time": 505.0,
+            "summary": "介绍NEFTune的思想、数学实现和实验效果，展示代码集成方式。",
+            "title": "NEFTune：向Embedding添加噪声的微调方法"
+          },
+          "component_chunk_ids": [
+            "transcript_chunk:bilibili:BV1gmWDeLEMZ:p1:chunk_ea1132e1cb8fec6a416cf9a5e4f392ae"
+          ],
+          "component_hit_count": 1,
+          "component_raw_ranks": [
+            28
+          ],
+          "duration": 107.72000000000003,
+          "excerpt": "后面的代码基本不变 上边讲了这么多 是为了让你了解大模型SFT的原理 实际上你并不要写 并不需要写这么多的代码 alin face的TRL库里面集成了SFTTRAINA 它集成了这些功能 你只需要通过简单的配置就可以实现 并且能够适配accelerator进行分布式训练 我们来看一下代码 首先我们需要准备好数据 s f t china默认支持的数据格式是字典格式 其中有两个元素 一个是prompt 一个是completion 我们需要将我们的数据改成这种格式 然后构建一个DATASET这样的数据 它在进行训练时 s f t train呢会自动利用toke",
+          "jump_source": "chunk_start_fallback",
+          "jump_time": 695.04,
+          "jump_url": "https://www.bilibili.com/video/BV1gmWDeLEMZ?t=695",
+          "matched_terms": [],
+          "retrieval_methods": [
+            "dense"
+          ],
+          "subtitle_sources": [
+            "ai"
+          ],
+          "window_end": 802.76,
+          "window_start": 695.04
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "product": {
+      "anchor_ms": 94.868,
+      "chapter_ms": 0.728,
+      "grouping_ms": 0.236,
+      "presentation_trace_ms": 0.0,
+      "raw_search_ms": 60.579,
+      "total_ms": 159.055
+    },
+    "raw": {
+      "dense_ms": 54.841,
+      "fusion_ms": 4.262,
+      "lexical_ms": 0.924,
+      "planning_ms": 0.017,
+      "total_ms": 60.528
+    }
+  },
+  "trace_id": "6458b833-cfd6-4f63-bad2-c06a7b5bdc38",
+  "trace_persisted": false
+}

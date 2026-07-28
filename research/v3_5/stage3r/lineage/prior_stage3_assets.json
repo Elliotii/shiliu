@@ -1,0 +1,36 @@
+{
+  "assets": [
+    {
+      "path": "V3_5_STAGE3A_EVIDENCE_CANDIDATE_AND_BASELINE_REPORT.md",
+      "sha256": "3f872fe40d943ff35a5284ef6b29a159a483b2cd1b848fc6224e53d25fee72c9"
+    },
+    {
+      "path": "V3_5_STAGE3A_RETRIEVAL_REACHABILITY_AUDIT_REPORT.md",
+      "sha256": "f23764c09b205ea933a6754d9dc6ed8764e1b6176e3daf7a3b9bf0bf3a817644"
+    },
+    {
+      "path": "V3_5_STAGE3A_INPUT_PROJECTION_FINAL.md",
+      "sha256": "b9ff09e15e863ed390a25667d7f0251b0a92720c1548210e3d2421bd30a831ee"
+    },
+    {
+      "path": "V3_5_STAGE3B_STRUCTURED_FINE_SELECTOR_REPORT.md",
+      "sha256": "917380481df508241cc41eb874aca1635ec4c6c4c9623057274dcf9af4493739"
+    },
+    {
+      "path": "research/v3_5/stage3a_inputs/development_execution_manifest.8_cases.locked.jsonl",
+      "sha256": "ef08e5c262d9fc885ab38d81c90f10ce4be6820c31d931c03f0ecdcfe71a534e"
+    },
+    {
+      "path": "research/v3_5/stage3a_inputs/development_execution_manifest.lock.json",
+      "sha256": "ccf1304bf767ac5c8553c7a897c59bc0f693a7aa7f9323c2b014e49ce819085d"
+    },
+    {
+      "path": "research/v3_5/stage3a_inputs/development_execution_manifest.audit.json",
+      "sha256": "17a287ea6bd587c55d72202bed49c6f8cd64273dc2c382a9475e921f7f454420"
+    },
+    {
+      "path": "research/v3_5/stage3a_inputs/DEVELOPMENT_EXECUTION_INPUT_CONTRACT.md",
+      "sha256": "60f38e8d17d6f196ef939c917466f426a2bd7946602316ec76c2a693abf62d0e"
+    }
+  ]
+}

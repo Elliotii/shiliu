@@ -1,0 +1,60 @@
+{
+  "schema_version": "v3.5-b-f1a-before-v1",
+  "execution_id": "F1A_MAJOR_CYCLE_1_RECOVERY_EXECUTION",
+  "builder_version": "stage3b-acronym-w3.5-v1",
+  "eligible_builder_queries": 13,
+  "complete_group_coverage": {
+    "numerator": 6,
+    "denominator": 13,
+    "rate": 0.46153846153846156
+  },
+  "builder_primary_failures": 6,
+  "required_span_recall": 0.6538461538461539,
+  "required_aspect_coverage": 0.6538461538461539,
+  "candidate_count_total": 3504,
+  "candidate_count_cap_per_video": 32,
+  "mean_window_seconds": 14.276511700913192,
+  "invalid_candidate_count": 0,
+  "builder_latency_ms": {
+    "mean": 1081.733785714286,
+    "max": 1565.07,
+    "min": 531.944
+  },
+  "existing_successful_builder_query_ids": [
+    "PQS_V1_Q006",
+    "PQS_V1_Q007",
+    "PQS_V1_Q011",
+    "PQS_V1_Q012",
+    "PQS_V1_Q013",
+    "PQS_V1_Q019"
+  ],
+  "addressable_failure_query_ids": [
+    "PQS_V1_Q003",
+    "PQS_V1_Q004",
+    "PQS_V1_Q005",
+    "PQS_V1_Q008",
+    "PQS_V1_Q015"
+  ],
+  "non_goal_query_ids": [
+    "PQS_V1_Q018"
+  ],
+  "source": {
+    "scores_path": "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.scores.json",
+    "per_query_path": "research/v3_5/product_query_set_v1/product_initial_baseline_attempt_3/scoring_amendment_v1/p8_scoring_amendment.per_query.jsonl",
+    "scoring_version": "v3.5-p8-scoring-eligibility-v2"
+  },
+  "implementation_base_identity": {
+    "git_commit": "91a34061f8aebb216749c015a37a4ff1974f4f2a",
+    "dirty_tree_fingerprint_sha256": "f289996094bd1717f57d005edefdd325788655be0516f74b6bb95d6490fc171e",
+    "builder_source_hashes": {
+      "src/shiliu/evidence/stage3a.py": "34774d6c166680e7523010f9d1d950f9aa1b890487f46427279164cdedaed552"
+    },
+    "builder_config_hashes": {
+      "research/v3_5/stage3b/stage3b_run_manifest.json": "74a6e5cc2fef342b77022257ae4b623423342c8fc94adc74208e6028c728aba8"
+    },
+    "candidate_pool_and_trace_schema_hashes": {
+      "src/shiliu/evidence/stage3a.py": "34774d6c166680e7523010f9d1d950f9aa1b890487f46427279164cdedaed552"
+    }
+  },
+  "frozen_before_functional_modification": true
+}

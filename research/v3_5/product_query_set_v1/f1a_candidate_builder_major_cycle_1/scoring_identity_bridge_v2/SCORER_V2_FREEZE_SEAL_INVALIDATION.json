@@ -1,0 +1,8 @@
+{
+  "eval_started_before_correction": false,
+  "gold_opened_before_correction": false,
+  "preserved_initial_seal_path": "research/v3_5/product_query_set_v1/f1a_candidate_builder_major_cycle_1/scoring_identity_bridge_v2/SCORER_V2_FREEZE_SEAL.json",
+  "preserved_initial_seal_sha256": "0550c4085502dee070c92bffb4eb7a7e99959a9ddbb25e79efb9d676c2959c51",
+  "reason": "logical_schema_key_treated_as_path",
+  "status": "invalidated_due_to_preflight_manifest_resolution_defect"
+}

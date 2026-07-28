@@ -1,0 +1,53 @@
+{
+  "checks": {
+    "artifact_manifest_hash": true,
+    "backend_omitted_mode_auto": true,
+    "frontend_initial_mode_auto": true,
+    "snapshot_hash": true,
+    "wiring_version": true
+  },
+  "known_positive_contract": {
+    "default_applied": true,
+    "effective_mode": "lexical",
+    "request": {
+      "query": "MCP"
+    },
+    "router_decision": "lexical",
+    "router_invoked": true
+  },
+  "runtime_identity": {
+    "auto_router_version": "unversioned:SearchPlanner@sha256:0876dbaff9bb2d016496cc3cb823f200b9a93a06721947bebee472d6a5bdaa7e",
+    "candidate_builder_normalization_version": "v3.5-stage3b-asr-acronym-anchor-v1",
+    "candidate_builder_version": "stage3b-acronym-w3.5-v1",
+    "chunk_version": "v3.5-search-candidate-v1",
+    "declared_auto_router_version": "v3-search-planner-auto-v1",
+    "dense_provider": "v3-qwen3-embedding-provider-v1",
+    "deterministic_selector_version": "v3.5-deterministic-fine-selector-v1",
+    "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+    "filters": {},
+    "hybrid_rrf_version": "v3-stage2-rrf-v1",
+    "index": {
+      "chunk_count": 1412,
+      "dense_index_version": "v3-dense-qwen3-0.6b-mrl512-v1",
+      "embedding_dimension": 512,
+      "embedding_index_available": true,
+      "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+      "embedding_model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+      "embedding_provider": "v3-qwen3-embedding-provider-v1",
+      "embedding_vector_count": 1555,
+      "index_path": "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+      "index_sha256_or_manifest_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+      "index_version": "v3-stage1-lexical-v1",
+      "projection_version": "v3-dense-projection-qwen-v1",
+      "source_snapshot_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+      "video_count": 143
+    },
+    "index_identity": "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1",
+    "lexical_version": "v3-stage1-lexical-v1",
+    "raw_top_k": 50,
+    "scope": "all",
+    "selector_policy_version": "v3.5-deterministic-fine-selector-v1",
+    "snapshot_identity": "20260720T094346Z_c7663365",
+    "top_k": 10
+  }
+}

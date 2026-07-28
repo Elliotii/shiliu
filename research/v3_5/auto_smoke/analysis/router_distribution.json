@@ -1,0 +1,26 @@
+{
+  "exact_entity": {
+    "dense": 0,
+    "hybrid": 0,
+    "lexical": 3,
+    "other": 0
+  },
+  "q0": {
+    "dense": 0,
+    "hybrid": 10,
+    "lexical": 0,
+    "other": 0
+  },
+  "q1": {
+    "dense": 0,
+    "hybrid": 9,
+    "lexical": 1,
+    "other": 0
+  },
+  "q2": {
+    "dense": 0,
+    "hybrid": 29,
+    "lexical": 0,
+    "other": 0
+  }
+}

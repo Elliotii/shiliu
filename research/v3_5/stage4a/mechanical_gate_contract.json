@@ -1,0 +1,178 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action_family": {
+      "enum": [
+        "retrieval_action",
+        "evidence_resolution_action",
+        "selector_recovery_action",
+        "source_recovery_action",
+        "data_integrity_action",
+        "none"
+      ],
+      "title": "Action Family",
+      "type": "string"
+    },
+    "candidate_builder_version": {
+      "title": "Candidate Builder Version",
+      "type": "string"
+    },
+    "end_to_end_claim_eligible": {
+      "title": "End To End Claim Eligible",
+      "type": "boolean"
+    },
+    "evaluation_track": {
+      "enum": [
+        "frozen_v3_end_to_end",
+        "oracle_video_conditional"
+      ],
+      "title": "Evaluation Track",
+      "type": "string"
+    },
+    "evidence_bundle_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Evidence Bundle Id"
+    },
+    "evidence_candidate_set_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Evidence Candidate Set Id"
+    },
+    "evidence_ids_used": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids Used",
+      "type": "array"
+    },
+    "gate_decision_id": {
+      "title": "Gate Decision Id",
+      "type": "string"
+    },
+    "gate_outcome": {
+      "enum": [
+        "judge_eligible",
+        "source_unverifiable",
+        "invalid"
+      ],
+      "title": "Gate Outcome",
+      "type": "string"
+    },
+    "mechanical_gate_contract_version": {
+      "const": "v3.5-mechanical-sufficiency-gate-v1",
+      "default": "v3.5-mechanical-sufficiency-gate-v1",
+      "title": "Mechanical Gate Contract Version",
+      "type": "string"
+    },
+    "mechanical_gate_policy_version": {
+      "const": "v3.5-mechanical-gate-policy-v1",
+      "title": "Mechanical Gate Policy Version",
+      "type": "string"
+    },
+    "operational_reason_code": {
+      "anyOf": [
+        {
+          "enum": [
+            "upstream_retrieval_failure",
+            "no_search_candidate",
+            "candidate_generation_failure",
+            "selector_failed",
+            "raw_source_unavailable",
+            "no_supported_subtitle",
+            "title_only",
+            "source_unreadable",
+            "source_version_mismatch",
+            "language_unresolved",
+            "normalization_failure",
+            "invalid_evidence_bundle",
+            "execution_manifest_mismatch",
+            "search_candidate_set_mismatch",
+            "unknown_operational_state"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Operational Reason Code"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "search_candidate_set_id": {
+      "title": "Search Candidate Set Id",
+      "type": "string"
+    },
+    "selector_version": {
+      "title": "Selector Version",
+      "type": "string"
+    },
+    "semantic_judge_required": {
+      "title": "Semantic Judge Required",
+      "type": "boolean"
+    },
+    "terminal_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "source_unverifiable",
+            "invalid"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Terminal Status"
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "validation_errors": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Validation Errors",
+      "type": "array"
+    }
+  },
+  "required": [
+    "gate_decision_id",
+    "gate_outcome",
+    "terminal_status",
+    "operational_reason_code",
+    "action_family",
+    "semantic_judge_required",
+    "query_id",
+    "evaluation_track",
+    "end_to_end_claim_eligible",
+    "search_candidate_set_id",
+    "evidence_candidate_set_id",
+    "evidence_bundle_id",
+    "evidence_ids_used",
+    "mechanical_gate_policy_version",
+    "candidate_builder_version",
+    "selector_version",
+    "trace_id",
+    "validation_errors"
+  ],
+  "title": "MechanicalGateDecision",
+  "type": "object"
+}

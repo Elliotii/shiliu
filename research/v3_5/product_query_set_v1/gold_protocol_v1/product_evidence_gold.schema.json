@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "product_evidence_gold.schema.json",
+  "title": "Product Evidence Gold v1",
+  "description": "Transcript-authority evidence independent of Retrieval and Builder output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query_id",
+    "gold_version",
+    "required_aspects",
+    "aspect_evidence_options",
+    "acceptable_evidence_groups_logic",
+    "acceptable_evidence_groups",
+    "span_registry",
+    "optional_context_spans",
+    "source_review_state",
+    "review_state",
+    "reason_codes",
+    "builder_or_retrieval_output_limits_gold"
+  ],
+  "properties": {
+    "query_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gold_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_aspects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "aspect_id",
+          "description",
+          "materiality",
+          "query_text_basis"
+        ],
+        "properties": {
+          "aspect_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "materiality": {
+            "enum": [
+              "material",
+              "supporting"
+            ]
+          },
+          "query_text_basis": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "aspect_evidence_options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "aspect_id",
+          "alternative_sets_between",
+          "required_spans_within_set",
+          "alternative_sets"
+        ],
+        "properties": {
+          "aspect_id": {
+            "type": "string"
+          },
+          "alternative_sets_between": {
+            "const": "OR"
+          },
+          "required_spans_within_set": {
+            "const": "AND"
+          },
+          "alternative_sets": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "set_id",
+                "required_span_ids"
+              ],
+              "properties": {
+                "set_id": {
+                  "type": "string"
+                },
+                "required_span_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "acceptable_evidence_groups_logic": {
+      "const": "OR"
+    },
+    "acceptable_evidence_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "group_id",
+          "required_span_sets_within_group",
+          "required_span_sets"
+        ],
+        "properties": {
+          "group_id": {
+            "type": "string"
+          },
+          "required_span_sets_within_group": {
+            "const": "AND"
+          },
+          "required_span_sets": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "set_id",
+                "required_span_ids"
+              ],
+              "properties": {
+                "set_id": {
+                  "type": "string"
+                },
+                "required_span_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "span_registry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "span_id",
+          "video_id",
+          "segment_ids",
+          "start_time",
+          "end_time",
+          "quote_text",
+          "source_language",
+          "source_type",
+          "source_version",
+          "timeline_run_id",
+          "segment_identity_version",
+          "source_quality_flag",
+          "translated_gloss"
+        ],
+        "properties": {
+          "span_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "video_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "segment_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "start_time": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end_time": {
+            "type": "number",
+            "minimum": 0
+          },
+          "quote_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_language": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_type": {
+            "enum": [
+              "official_subtitle",
+              "asr_transcript"
+            ]
+          },
+          "source_version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timeline_run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "segment_identity_version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_quality_flag": {
+            "enum": [
+              "clean",
+              "minor_asr_noise",
+              "severe_asr_noise",
+              "timeline_uncertain",
+              "source_incomplete",
+              "source_unavailable"
+            ]
+          },
+          "translated_gloss": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "optional_context_spans": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "source_review_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authoritative_sources_reviewable",
+        "full_authoritative_transcript_reviewed",
+        "navigation_sources_used_as_gold_evidence"
+      ],
+      "properties": {
+        "authoritative_sources_reviewable": {
+          "type": "boolean"
+        },
+        "full_authoritative_transcript_reviewed": {
+          "type": "boolean"
+        },
+        "navigation_sources_used_as_gold_evidence": {
+          "const": false
+        }
+      }
+    },
+    "review_state": {
+      "enum": [
+        "draft",
+        "initial_complete",
+        "independent_review_complete",
+        "adjudication_required",
+        "adjudicated",
+        "blocked_by_source",
+        "sealed"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    },
+    "builder_or_retrieval_output_limits_gold": {
+      "const": false
+    }
+  },
+  "x-authority": {
+    "gold_evidence": [
+      "official_subtitle",
+      "asr_transcript"
+    ],
+    "navigation_only": [
+      "title",
+      "description",
+      "ai_summary",
+      "ai_chapter"
+    ]
+  },
+  "x-evidence-logic": {
+    "between_alternative_sets": "OR",
+    "within_required_span_set": "AND",
+    "between_acceptable_groups": "OR",
+    "within_group_required_span_sets": "AND",
+    "multi_video_groups_supported": true,
+    "discontinuous_regions_supported": true,
+    "partial_aspect_evidence_supported": true,
+    "optional_context_may_replace_required_span": false
+  }
+}

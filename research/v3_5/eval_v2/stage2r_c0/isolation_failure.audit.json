@@ -1,0 +1,20 @@
+{
+  "annotation_reviews_created": 0,
+  "blocked_reason": "gold_blind_isolation_violation",
+  "constructed_artifacts_safe_for_c1": false,
+  "direct_prohibited_query_pool_open": false,
+  "existing_pilot_assets_modified": false,
+  "final_gold_created": 0,
+  "freeze_manifest_modified": false,
+  "freeze_manifest_sha256": "d64d72ebd283fb86d798b9c026a230569d924cdcf2c77471b5a5e0b2c72df394",
+  "gold_or_gold_derived_asset_accessed": true,
+  "human_decisions_created": 0,
+  "isolation_violation_detected": true,
+  "provider_calls": 0,
+  "quarantine_path": "research/v3_5/eval_v2/stage2r_c0_unsafe_quarantine_20260723",
+  "quarantined_artifacts_must_not_be_used": true,
+  "reviewer_calls": 0,
+  "stage2r_c1_entered": false,
+  "status": "Stage 2R-C0 Blocked",
+  "unsafe_access_description": "An overly broad read-only repository scan returned existing Stage 3 Development execution data with locked-query/Gold-derived Case provenance outside the authorized C0 input set."
+}

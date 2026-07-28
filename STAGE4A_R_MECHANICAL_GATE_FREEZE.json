@@ -1,0 +1,94 @@
+{
+  "Development_Gold_hashes": {
+    "case_status": "9ba38a1f8cf636ebb9e80219cd85a41003743cb11f370a24d3946534378c6352",
+    "evidence": "b259a1b225a48558f5d1a6c4cb4909ea413e86116a1564b3fa724632ae88efc1",
+    "file_count": 4,
+    "retrieval": "b34188c269bf3a2410f8602fdb7d72908a96c822ac3b8f675d4f4c2b72b45679",
+    "root_sha256": "f6332ff17cec180023cda34e3144390beb96559349a370ce34815ca6666698b0",
+    "sufficiency": "11196158746bb2c12e457fcb36b87a1621e79dca0b2f628a4870ca5ec6c5de92"
+  },
+  "Development_input_hashes": {
+    "file_count": 16,
+    "root_sha256": "fcbafeffaa8e90443e34159d7314bd3ca74381d217b8a6447f91055dffa6c7b6"
+  },
+  "Evidence_Identity_Contract_V1_hashes": {
+    "contract_hash": "35691bc6833d44dd09252cc746b3e358e62917422865aba54cbb2d08582329c7",
+    "file_count": 4,
+    "root_sha256": "0b65d3bee751b3f1ca466b2bfe4e6984ef4d48a2319eb4a0fa6e99415a0fbb08"
+  },
+  "Frozen_Evaluation_accessed": false,
+  "Stress_input_hashes": {
+    "file_count": 44,
+    "root_sha256": "57ce23a00fa6c2797796eda24d84a7b8511014c84f18c97b5e9813aada6639d5"
+  },
+  "before_revalidation_sha256": "1aff3a0688361ad30e060ac56c66867ba48e53f4ed54c78c69b55d593c9d2fe2",
+  "canonical_matcher_hashes": {
+    "src/shiliu/eval_v3_5/scoring_identity_bridge.py": "e317a8056b39a409fe5e63b3a45950bc7c1c2f98e77bce6550fcb6e7a5d278c3"
+  },
+  "contract_schema_hashes": {
+    "research/v3_5/stage4a/mechanical_gate_contract.json": "18d7297bd1eb1ada2261ec58d7df40bd877b5d7b6d32db2cfed3b98ad06685b9",
+    "research/v3_5/stage4a/sufficiency_decision_contract.json": "fc3965c5f7c8537c216e6908271642952d7457618b36cf9f353842b67dea7755",
+    "research/v3_5/stage4a/sufficiency_request_contract.json": "2ae9e25c958f19782f12fbbb6d4e525e568805e9c76a4d0741de6fe61a544a6b"
+  },
+  "execution_source_hashes": {
+    "scripts/run_stage4a_r_mechanical_revalidation.py": "b98d18cddd3e90af696f1a17e67cdf4f432683e2a985a746b13e22e1d13c8a94"
+  },
+  "formal_Product_revalidation_run_count": 0,
+  "formal_Stress_revalidation_run_count": 0,
+  "formal_builder_hashes": {
+    "file_count": 2,
+    "root_sha256": "7f995a3c1c31eddd0eff6221494dd60032d00a155d431a68c58fb7cf55bbf3c1"
+  },
+  "formal_gate_version": "mechanical-gate-v1-r1",
+  "formal_selector_hashes": {
+    "file_count": 1,
+    "root_sha256": "350a2aa6fab58580fb259471a7a6b87fc206701189ebb7bff97d031613444c67"
+  },
+  "gate_config_hashes": {
+    "research/v3_5/stage4a/action_family_policy.json": "cf137b4c1181ed7e14727fb1d926934701ad307a4140ed46223b7956811d1f0f",
+    "research/v3_5/stage4a/mechanical_gate_policy.json": "f2cd82b9b20b0748321ae44d05adfa20ccbeb124ff008bdd72cab5409ce0872f",
+    "research/v3_5/stage4a/operational_reason_policy.json": "542f2aad1a19d2bac7b6404d43b5fa75d5cc309b1235563f5c48b1f18f4a40aa"
+  },
+  "gate_source_hashes": {
+    "src/shiliu/eval_v3_5/stage4a.py": "b38d39e35e34b9125138dddf772b6e2ed9ea1e9c05856f837f9ca619cbfb2227",
+    "src/shiliu/evidence/stage4.py": "5e7f99835977d1343727f98f8a39cef9175fbba09c9c3bfb35753d99ee5c53bf"
+  },
+  "reason_code_contract": {
+    "candidate_generation_failure": "invalid",
+    "execution_manifest_mismatch": "invalid",
+    "invalid_evidence_bundle": "invalid",
+    "language_unresolved": "source_unverifiable",
+    "no_search_candidate": "source_unverifiable",
+    "no_supported_subtitle": "source_unverifiable",
+    "normalization_failure": "invalid",
+    "raw_source_unavailable": "source_unverifiable",
+    "search_candidate_set_mismatch": "invalid",
+    "selector_failed": "invalid",
+    "source_unreadable": "source_unverifiable",
+    "source_version_mismatch": "invalid",
+    "title_only": "source_unverifiable",
+    "unknown_operational_state": "invalid",
+    "upstream_retrieval_failure": "source_unverifiable"
+  },
+  "schema_version": "v3.5-b-stage4a-r-mechanical-gate-freeze-v1",
+  "substantive_generic_revisions_maximum": 1,
+  "substantive_generic_revisions_used": 1,
+  "terminal_projection_contract": {
+    "exactly_one_terminal_status_per_case": true,
+    "invalid_is_terminal": true,
+    "judge_eligible_requires_semantic_judge": true,
+    "semantic_sufficiency_evaluated": false,
+    "source_unverifiable_is_terminal": true,
+    "statuses": [
+      "judge_eligible",
+      "source_unverifiable",
+      "invalid"
+    ]
+  },
+  "test_hashes": {
+    "stage4a_r_gold_free_test_results.json": "9460c6bb3e6e4eb98c0de23772d883dab22d74ff6b39be6f0582254f12f43c27",
+    "tests/test_stage4a_r_mechanical_gate.py": "c5ccdbc6a2d56171a70971747ab0b50c5a35b0d286385443de3aadf987079807",
+    "tests/test_v3_5_stage4a_eval.py": "611061c400bf74085f0d2887c2e262ca9ab895a531b22b5991dc9474bdaf0a6e",
+    "tests/test_v3_5_stage4a_gate.py": "c414dd5265bfc8c01c7a5e562d30955826ee0dcb12e98d879639dfaf4a47081e"
+  }
+}

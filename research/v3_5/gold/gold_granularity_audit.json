@@ -1,0 +1,273 @@
+{
+  "audit_version": "v3.5-gold-granularity-audit-v1",
+  "automatic_semantic_edits": false,
+  "blocking_provenance_errors": 0,
+  "cases_audited": 10,
+  "groups": [
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2"
+      ],
+      "case_id": "CASE_001",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "none",
+      "query": "MCP",
+      "required_aspects": [
+        "A1",
+        "A2"
+      ],
+      "segment_count": 5,
+      "span_count": 1,
+      "union_duration_seconds": 11.72
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass_with_documented_breadth",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "case_id": "CASE_003",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "The continuous comparison is broad but jointly establishes Function Calling, MCP, and their relationship.",
+      "query": "MCP 与 Function Calling 的区别",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "segment_count": 19,
+      "span_count": 1,
+      "union_duration_seconds": 52.53
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass_with_documented_breadth",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "case_id": "CASE_007",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "Two complementary spans cover pipeline optimization and the evaluation/feedback loop.",
+      "query": "RAG 项目怎么做工业优化",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "segment_count": 38,
+      "span_count": 2,
+      "union_duration_seconds": 103.301
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2"
+      ],
+      "case_id": "CASE_008",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "none",
+      "query": "Agent 长期记忆为什么越总结越可能有害？",
+      "required_aspects": [
+        "A1",
+        "A2"
+      ],
+      "segment_count": 7,
+      "span_count": 1,
+      "union_duration_seconds": 18.621
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2"
+      ],
+      "case_id": "CASE_008",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G2",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "none",
+      "query": "Agent 长期记忆为什么越总结越可能有害？",
+      "required_aspects": [
+        "A1",
+        "A2"
+      ],
+      "segment_count": 5,
+      "span_count": 1,
+      "union_duration_seconds": 11.8
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass_with_documented_breadth",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6"
+      ],
+      "case_id": "CASE_009",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "Six non-contiguous spans each cover a distinct required enterprise-agent design aspect.",
+      "query": "如何设计企业智能客服 Agent？",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6"
+      ],
+      "segment_count": 113,
+      "span_count": 6,
+      "union_duration_seconds": 243.55
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass_with_documented_breadth",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "case_id": "CASE_010",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "Three complementary spans cover gates, stochastic-error control, and concrete CI checks.",
+      "query": "AI 编程中的测试循环如何提高交付质量？",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "segment_count": 56,
+      "span_count": 3,
+      "union_duration_seconds": 89.05
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2"
+      ],
+      "case_id": "CASE_002",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "none",
+      "query": "MemoryOS",
+      "required_aspects": [
+        "A1",
+        "A2"
+      ],
+      "segment_count": 23,
+      "span_count": 1,
+      "union_duration_seconds": 63.73
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass",
+      "authorized_supported_aspects": [
+        "A3"
+      ],
+      "case_id": "CASE_004",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "none",
+      "query": "RAG",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "segment_count": 2,
+      "span_count": 1,
+      "union_duration_seconds": 9.75
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass_with_documented_breadth",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "case_id": "CASE_005",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "Four complementary spans map to four distinct required evaluation-design aspects.",
+      "query": "哪些内容讨论了 Agent 评测信号设计？",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "segment_count": 25,
+      "span_count": 4,
+      "union_duration_seconds": 151.62
+    },
+    {
+      "appears_minimally_sufficient": true,
+      "audit_classification": "pass",
+      "authorized_supported_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "case_id": "CASE_011",
+      "each_span_supports_authorized_aspect": true,
+      "group_id": "G1",
+      "group_structure": "required_spans_AND",
+      "obvious_unrelated_lead_in_or_tail": false,
+      "potential_granularity_concern": "none",
+      "query": "Pi Agent 插件与配置",
+      "required_aspects": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "segment_count": 8,
+      "span_count": 2,
+      "union_duration_seconds": 26.51
+    }
+  ],
+  "groups_audited": 11,
+  "needs_human_granularity_review": 0,
+  "status": "passed"
+}
