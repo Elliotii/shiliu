@@ -307,6 +307,9 @@ def test_fast_ask_partial_and_model_declared_insufficient(app_paths) -> None:
     assert insufficient["status"] == "insufficient"
     assert insufficient["termination_reason"] == "answer_ready"
     assert insufficient["answer_blocks"] == insufficient["citations"] == []
+    assert insufficient["limitations"] == [
+        "本次检索未找到足以回答该问题的可靠字幕证据"
+    ]
 
 
 def test_unknown_citation_repairs_once_and_repair_failure_fails_closed(

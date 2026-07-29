@@ -3,6 +3,8 @@ from __future__ import annotations
 from shiliu.ask.citations import stable_citation_id
 from shiliu.ask.context import TranscriptContextBuilder, fuse_evidence
 from shiliu.ask.contracts import EvidenceSegment, TranscriptEvidenceSpan
+from shiliu.ask.answer import _answer_messages, _repair_messages
+from shiliu.ask.validation import ValidationIssue
 
 
 def _span(
@@ -105,3 +107,26 @@ def test_context_merges_overlapping_spans_and_enforces_budgets() -> None:
     )
     assert truncated.truncated is True
     assert len(truncated.spans) <= 1
+
+
+def test_initial_and_repair_prompts_share_strict_grounding_boundary() -> None:
+    context = TranscriptContextBuilder().build(
+        query="是否所有视频都没有这个协议？",
+        normalized_intent="检查有限证据",
+        spans=(_span(),),
+    )
+    initial = _answer_messages(query="问题", context=context)[0]["content"]
+    repair = _repair_messages(
+        query="问题",
+        context=context,
+        issues=(ValidationIssue("bad", "$", "invalid"),),
+    )[0]["content"]
+
+    for prompt in (initial, repair):
+        assert "bounded samples" in prompt
+        assert "does not prove that it is absent from the entire collection" in prompt
+        assert "本次检索未找到足以回答该问题的可靠字幕证据" in prompt
+        assert "Limitations may describe only retrieval scope" in prompt
+        assert "directly support the complete material statement" in prompt
+        assert "never attach it mechanically" in prompt
+        assert "never combine unrelated samples" in prompt

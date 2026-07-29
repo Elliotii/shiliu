@@ -11,6 +11,24 @@ from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.validation import ValidationIssue, validate_grounded_answer
 
 
+_GROUNDING_BOUNDARY_INSTRUCTIONS = (
+    "Retrieval and transcript context are bounded samples; a fact not appearing "
+    "in this context does not prove that it is absent from the entire collection. "
+    "For universal or negative-scope questions such as whether something never "
+    "appears or no video contains it, make a scope-wide conclusion only when "
+    "transcript evidence directly supports that full scope. If direct support is "
+    "missing, return status insufficient with empty answer_blocks and use the "
+    "scope-honest limitation 本次检索未找到足以回答该问题的可靠字幕证据. "
+    "Limitations may describe only retrieval scope, evidence gaps, truncation, "
+    "Provider failures, or deterministic stop boundaries; they must not carry "
+    "uncited material factual claims. Every citation_id must directly support the "
+    "complete material statement in its answer block. An ID being present in the "
+    "citation allowlist is necessary but not sufficient: never attach it "
+    "mechanically, and never combine unrelated samples to claim collection-wide "
+    "absence."
+)
+
+
 @dataclass(frozen=True)
 class GroundedAnswerResult:
     draft: GroundedAnswerDraft | None
@@ -327,6 +345,7 @@ def _answer_messages(
                 "citation_allowlist. Split independently supported facts into separate "
                 "blocks. Use partial or insufficient when evidence does not cover the "
                 "question. Do not emit answer or claims fields."
+                f"\nGrounding boundary: {_GROUNDING_BOUNDARY_INSTRUCTIONS}"
                 f"\nRequired JSON Schema: {schema}"
             ),
         },
@@ -361,6 +380,7 @@ def _repair_messages(
                 "context and citation allowlist. Do not retrieve, invent evidence, "
                 "introduce citation IDs, or mechanically substitute an arbitrary ID. "
                 "Every returned block must be fully grounded and cited."
+                f"\nGrounding boundary: {_GROUNDING_BOUNDARY_INSTRUCTIONS}"
                 f"\nRequired JSON Schema: {schema}"
             ),
         },

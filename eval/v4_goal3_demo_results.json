@@ -1,0 +1,99 @@
+{
+  "demo_record_version": "v4-goal3-demo-v1",
+  "status": "complete_real_backend_plus_browser_visual_validation",
+  "browser_validation": {
+    "desktop_width": 1280,
+    "mobile_width": 390,
+    "mobile_horizontal_overflow": false,
+    "fixture_data": true,
+    "notes": "Desktop/mobile interaction and edge-state rendering used fictional fixture data; real Search/Fast/Deep quality and runtime fields below come from the current local database snapshot and configured DeepSeek Provider."
+  },
+  "demos": [
+    {
+      "demo": "A_search_evidence",
+      "query": "MCP",
+      "mode": "direct_search",
+      "status": "complete",
+      "termination_reason": "retrieval_complete",
+      "latency_ms": 71.649,
+      "citations": 16,
+      "trace_summary": {
+        "executed_mode": "lexical",
+        "video_count": 10,
+        "window_count": 16,
+        "trace_persisted": true,
+        "jump_urls_valid": true
+      },
+      "limitations": [
+        "真实检索使用当前本地数据库的临时 SQLite 快照；浏览器展开交互另用虚构 Fixture 验证。"
+      ],
+      "user_visible_result": "真实 MCP 关键词检索返回 10 个视频组、16 个字幕窗口，全部 Bilibili 跳转 URL 含有效 t=；浏览器另验证首窗、展开第二窗和共享 Evidence Card。",
+      "verification": "real_local_snapshot_plus_browser_scripted"
+    },
+    {
+      "demo": "B_fast_grounded_rag",
+      "query": "MCP 是什么，它如何连接模型与外部工具？",
+      "mode": "fast",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "latency_ms": 54395.041,
+      "citations": 5,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 50,
+        "context_span_count": 12,
+        "context_truncated": true
+      },
+      "limitations": [
+        "回答仅基于提供的视频转录文本，可能未涵盖 MCP 协议全部技术细节或最新发展。",
+        "上下文预算已截断部分候选证据。"
+      ],
+      "user_visible_result": "真实 Provider 返回两个有序 Answer Blocks 和 5 个现行字幕 Citation；浏览器验证稳定编号、分组 Evidence、时间跳转与默认可见 User Trace。",
+      "verification": "real_provider_eval_plus_browser_scripted"
+    },
+    {
+      "demo": "C_deep_agentic_search",
+      "query": "工具调用失败后，视频建议怎样调整并继续完成任务？",
+      "mode": "deep",
+      "status": "complete",
+      "termination_reason": "answer_ready",
+      "latency_ms": 45852.801,
+      "citations": 2,
+      "trace_summary": {
+        "decision_rounds": 3,
+        "tool_calls": 2,
+        "visited_video_count": 8,
+        "visited_segment_count": 247,
+        "navigation_result_count": 8,
+        "evidence_candidate_dropped_count": 30,
+        "policy_version": "v4-deep-policy-v1"
+      },
+      "limitations": [],
+      "user_visible_result": "真实 Provider 通过 3 个决策轮次和 2 次工具调用返回 complete、两个 Answer Blocks 与两个现行 Citation；浏览器验证共享 Renderer、Deep 指标、懒加载 Developer Trace 与 Policy Version。",
+      "verification": "real_provider_eval_plus_browser_scripted"
+    },
+    {
+      "demo": "D_honest_failure",
+      "query": "收藏内容是否介绍了“Shiliu-X9 量子检索协议”？",
+      "mode": "fast",
+      "status": "insufficient",
+      "termination_reason": "answer_ready",
+      "latency_ms": 51133.003,
+      "citations": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 59,
+        "context_span_count": 12,
+        "repair_used": true
+      },
+      "limitations": [
+        "收藏的内容中未提及“Shiliu-X9 量子检索协议”。",
+        "上下文预算已截断部分候选证据。"
+      ],
+      "user_visible_result": "真实 Provider 经一次结构修复后仍拒绝虚构答案，返回 insufficient、0 Answer Blocks、0 Citation；浏览器验证限制文案、User Trace 与显式 Fast-to-Deep。",
+      "verification": "real_provider_eval_plus_browser_scripted"
+    }
+  ]
+}

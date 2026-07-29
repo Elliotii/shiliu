@@ -5,6 +5,7 @@ from typing import Any, Callable
 
 from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.deep.contracts import AgentDecision, DeepSearchState
+from shiliu.ask.deep.policy import DEEP_POLICY_INSTRUCTIONS
 
 
 class AgentDecisionService:
@@ -108,16 +109,7 @@ def _decision_messages(
         {
             "role": "system",
             "content": (
-                "Choose exactly one bounded search action. Return JSON matching the "
-                "schema. Navigation is navigation_only and is never factual evidence. "
-                "Only transcript_evidence citation IDs may resolve questions. Start "
-                "from the user query and, when there are no observations yet, normally "
-                "begin with search_navigation. React to observations, use focused "
-                "transcript search for promising videos, read an authoritative window "
-                "when a hit needs adjacent context, avoid repeated scoped queries and "
-                "windows, and finish when the available transcript evidence can "
-                "support a useful answer. Do not answer the question in this action."
-                f"\nRequired JSON Schema: {schema}"
+                DEEP_POLICY_INSTRUCTIONS + f"\nRequired JSON Schema: {schema}"
             ),
         },
         {

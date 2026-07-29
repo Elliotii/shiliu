@@ -169,6 +169,14 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             {"sources": _core(request).db.list_sources(active_only=True)},
         )
 
+    @web.get("/ask", response_class=HTMLResponse)
+    async def ask_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "ask.html",
+            {"sources": _core(request).db.list_sources(active_only=True)},
+        )
+
     @web.get("/taxonomy", response_class=HTMLResponse)
     async def taxonomy_page(request: Request) -> HTMLResponse:
         core = _core(request)

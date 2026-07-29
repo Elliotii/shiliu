@@ -1,0 +1,49 @@
+{
+  "manifest_version": "v4-goal3-six-case-v1",
+  "policy_version": "v4-deep-policy-v1",
+  "notes": "Ordinary product questions without target answers or Gold spans. AI summaries may navigate; only current transcript/ASR spans may support answers.",
+  "cases": [
+    {
+      "case_id": "direct_fact_mcp",
+      "category": "direct_fact_or_single_topic",
+      "query": "MCP 是什么，它如何连接模型与外部工具？",
+      "modes": ["fast", "deep"],
+      "demo_role": "fast_success_and_mode_comparison"
+    },
+    {
+      "case_id": "single_topic_context_compression",
+      "category": "direct_fact_or_single_topic",
+      "query": "收藏视频如何解释上下文压缩，它主要解决什么问题？",
+      "modes": ["fast"],
+      "demo_role": null
+    },
+    {
+      "case_id": "contextual_tool_failure",
+      "category": "contextual_transcript_question",
+      "query": "工具调用失败后，视频建议怎样调整并继续完成任务？",
+      "modes": ["fast", "deep"],
+      "demo_role": "deep_replanning"
+    },
+    {
+      "case_id": "cross_video_context_management",
+      "category": "cross_video_comparison",
+      "query": "不同视频如何比较上下文管理与上下文工程的做法？",
+      "modes": ["fast", "deep"],
+      "demo_role": "deep_success"
+    },
+    {
+      "case_id": "partial_universal_claim",
+      "category": "partial_support",
+      "query": "这些视频是否证明自动上下文压缩在所有 Agent 任务中都更好？",
+      "modes": ["fast"],
+      "demo_role": "honest_partial"
+    },
+    {
+      "case_id": "no_evidence_quantum_protocol",
+      "category": "no_reliable_evidence",
+      "query": "收藏内容是否介绍了“Shiliu-X9 量子检索协议”？",
+      "modes": ["fast", "deep"],
+      "demo_role": "honest_insufficient"
+    }
+  ]
+}

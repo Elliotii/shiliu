@@ -1,6 +1,6 @@
 # Shiliu V4 Design Proposal
 
-Status: `goal_1_complete`
+Status: `implemented_and_integration_accepted`
 Date: `2026-07-29`
 Scope: `Shiliu V4 only`
 
@@ -20,9 +20,10 @@ user-complete capabilities:
 Both modes share one Grounded Answer, Timestamp Citation, Evidence display, and
 product response contract.
 
-This document freezes the V4 product and architecture direction needed to begin
-implementation. It does not freeze individual prompts, exact Tool names,
-LangGraph node names, Eval case counts, or performance thresholds.
+This document records the implemented and accepted V4 product and architecture
+direction. It does not freeze individual prompts, exact Tool names,
+LangGraph node names, Eval content beyond the approved initial six-Query
+envelope, or performance thresholds.
 
 ## 2. Design principles
 
@@ -76,6 +77,23 @@ Demo comparison surface.
 `/ask` reuses the existing transcript evidence cards, expandable evidence
 windows, and Bilibili timestamp jump behavior. It must not create a second
 independent Search UI foundation.
+
+Product behavior is frozen as follows:
+
+- `快速回答` is the default mode;
+- V4 does not automatically route or escalate between Fast and Deep;
+- when Fast returns `partial` or `insufficient`, the page offers an explicit
+  “使用深入搜索继续” action that preserves the Query and filters;
+- the common filter subset is available behind a collapsed scope control rather
+  than competing with the primary question flow;
+- both modes render through the same Answer Block, Citation, Evidence card,
+  limitation, and result-state components.
+
+The top-level product navigation exposes `/ask` as “问答” and keeps `/search`
+as the direct Evidence search surface. The Search implementation may be
+refactored to extract a thin shared Evidence renderer and styles, but Goal 3
+must not clone the current Search JavaScript into an independent Ask UI
+foundation.
 
 ### 3.2 Shared Ask product contract
 
@@ -677,19 +695,27 @@ V4 records one lightweight event stream and exposes two projections.
 
 ### 9.1 User trace summary
 
-The default product layer may show:
+The default product layer shows a concise summary:
 
-- current search target;
+- Fast or Deep mode;
 - videos examined;
 - transcript Evidence found;
-- why search continued;
-- why the run answered, partially answered, or stopped;
+- retrieval, Decision, and Tool counts where relevant;
+- Context truncation or dropped Evidence counts when non-zero;
+- a user-facing explanation of why the run answered, partially answered, or
+  stopped;
 - total latency;
 - final Citation sources.
 
+The user summary is visible by default. Deep may additionally show a bounded
+observable action timeline such as Navigation, transcript search, transcript
+window read, and finalization. It must not expose hidden chain-of-thought,
+unbounded prompts, or full internal subtitle payloads.
+
 ### 9.2 Developer trace
 
-The expandable layer may show:
+The developer projection is collapsed by default and fetched from the existing
+Ask Trace endpoint only when needed. It may show:
 
 - Query Understanding and rewrites;
 - Agent Action and bounded observation summaries;
@@ -703,9 +729,16 @@ The expandable layer may show:
 - deterministic guard decisions;
 - termination reason.
 
+Deep Search uses a static Policy version recorded in Trace so retained Eval and
+Demo runs remain reproducible. This is a thin constant and Trace field, not a
+Skill registry, dynamic policy loader, or Policy Platform.
+
 Trace is not a general Observability Dashboard. Persistent Trace should favor
 IDs, hashes, bounded summaries, and metrics rather than copying full subtitle
 corpora or sensitive user data.
+
+V4 does not add Trace persistence. A process restart may make an in-memory Trace
+unavailable; durable storage and resume remain deferred.
 
 ## 10. Work classification
 
@@ -827,14 +860,24 @@ User value:
 
 Included:
 
-- `/ask` page and Fast/Deep selector;
-- reuse of existing Search evidence cards and timestamp jumps;
-- user and developer Trace projections;
-- progress events when they fit without blocking delivery;
-- a small historical/real Query regression set;
-- groundedness, Citation validity, Agent stop, latency, cost, and failure review;
+- `/ask` page with Fast as the default and an explicit Fast/Deep selector;
+- explicit Fast `partial`/`insufficient` to Deep continuation, without automatic
+  routing;
+- a thin shared Evidence renderer extracted from the current Search evidence
+  cards, expandable context, and timestamp jumps;
+- loading, error, `complete`, `partial`, and `insufficient` product states;
+- default-visible user Trace summary and collapsed developer Trace projection;
+- static Deep Policy version recorded in Trace;
+- an initial retained set of six ordinary real Queries spanning direct fact,
+  contextual, cross-video, partial-support, and no-evidence behavior;
+- deterministic contract, Citation, Identity, Version, budget, stop, latency,
+  usage, truncation, and dropped-Evidence checks;
+- lightweight human supportedness, usefulness, coverage, and status-honesty
+  review;
 - targeted refinement driven by observed failures;
-- README and Demo update;
+- a four-part Demo covering direct Evidence Search, Fast answer, Deep answer,
+  and honest partial/insufficient behavior;
+- README and product-boundary update;
 - V4 final integration and concise implementation handoff.
 
 Not included:
@@ -842,11 +885,15 @@ Not included:
 - a general Eval platform;
 - exhaustive or sealed V3.5-style governance;
 - automatic routing;
+- Trace persistence or a general Observability Dashboard;
+- token streaming or new SSE/WebSocket infrastructure;
 - production SLA claims.
 
 ## 12. Acceptance direction
 
-Exact thresholds and case counts are intentionally not frozen yet.
+The initial retained Query set is six ordinary real questions. Exact quality,
+latency, token, and cost thresholds are intentionally not frozen; the small set
+is reported per Case and must not be used to claim a production SLA.
 
 V4 acceptance must demonstrate:
 
@@ -859,8 +906,13 @@ V4 acceptance must demonstrate:
 - partial and insufficient outcomes remain visible;
 - both modes use identical Answer/Citation response contracts;
 - `/ask` reuses existing evidence presentation;
+- Fast is the default and Deep escalation is explicit rather than automatic;
+- user Trace is understandable without exposing hidden reasoning;
+- developer Trace remains bounded and is collapsed by default;
 - serious Unsupported Claims are retained and analyzed;
 - latency, DeepSeek usage, Tool calls, and limitations are reported;
+- any new mechanism is justified by repeated material failure rather than a
+  single anecdote;
 - deterministic tests pass.
 
 ## 13. Main risks and mitigations
@@ -897,17 +949,22 @@ The following are reconsidered only after a recorded real failure:
 
 ## 15. Next action
 
-The design and Goal 1 research integration are approved. Goal 1 completed
-implementation, deterministic/full regression verification, real DeepSeek
-Vertical Slice validation, and Main Session Integration Review on 2026-07-29.
-Goal 2 completed implementation, deterministic/full regression verification,
-real DeepSeek Vertical Slice validation, a bounded Integration Repair, and Main
-Session Integration Acceptance on 2026-07-29. The next action is:
+Goal 1 completed implementation, deterministic/full regression verification,
+real DeepSeek Vertical Slice validation, and Main Session Integration Review.
+Goal 2 completed implementation, real DeepSeek Vertical Slice validation, a
+bounded Integration Repair, and Main Session Integration Acceptance. Goal 3
+completed `/ask`, shared Evidence UI, User/Developer Trace, the six-Query real
+lightweight Eval, four-part Demo, a bounded Integration Repair, and Main Session
+Second Integration Acceptance on 2026-07-29.
 
 ```text
-discuss and approve the bounded Goal 3 product, lightweight Eval, and Demo plan
-before preparing a Goal 3 Execution Prompt
+Goal 1 complete
+→ Goal 2 complete
+→ Goal 3 complete
+→ V4 implementation and integration accepted
 ```
 
-Goal 3 must integrate the accepted Fast and Deep backends without creating a
-new Answer, Citation, Navigation, Trace, Tool, Policy, or Eval platform.
+V4 does not continue into Deferred mechanisms by default. Any V5 work,
+production SLA program, larger Eval, adaptive routing, independent Navigation
+Index, Reranker, Runtime Semantic Judge, Context Compaction, Streaming, or
+durable Agent Runtime requires a new user decision and scope.

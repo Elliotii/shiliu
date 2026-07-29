@@ -1,0 +1,1567 @@
+{
+  "result_version": "v4-goal3-lightweight-eval-v1",
+  "manifest_version": "v4-goal3-six-case-v1",
+  "policy_version": "v4-deep-policy-v1",
+  "generated_at": "2026-07-29T09:03:49+00:00",
+  "real_provider": true,
+  "database_mode": "temporary_snapshot",
+  "results": [
+    {
+      "case_id": "contextual_tool_failure",
+      "category": "contextual_transcript_question",
+      "query": "工具调用失败后，视频建议怎样调整并继续完成任务？",
+      "mode": "deep",
+      "demo_role": "deep_replanning",
+      "policy_version": "v4-deep-policy-v1",
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "partial",
+        "status_honesty": "pass",
+        "notes": "两项建议均由对应字幕直接支持，且可执行；覆盖面集中在子代理交接与带 ID 数据合并，没有覆盖 Fast 中出现的换方法、修脚本等其他策略。"
+      },
+      "run_id": "ask_run_f368ce97da2b4cc3881002574845f150",
+      "status": "complete",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 2,
+      "citation_count": 2,
+      "limitations": [],
+      "latency_ms": 45852.801,
+      "provider_usage": {
+        "query_analysis": null,
+        "agent_action": [
+          {
+            "role": "agent_action",
+            "prompt_tokens": 984,
+            "completion_tokens": 69,
+            "total_tokens": 1053,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 216
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 5612,
+            "completion_tokens": 91,
+            "total_tokens": 5703,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 4844
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 19850,
+            "completion_tokens": 394,
+            "total_tokens": 20244,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 19082
+          }
+        ],
+        "grounded_answer": [
+          {
+            "prompt_tokens": 2804,
+            "completion_tokens": 1759,
+            "total_tokens": 4563,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1532
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 2548,
+            "latency_ms": 27647.38258300349,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 3,
+      "tool_calls": 2,
+      "repair_used": false,
+      "context_truncated": false,
+      "evidence_candidate_dropped_count": 30,
+      "trace_summary": {
+        "query_count": 2,
+        "retrieval_count": 1,
+        "valid_evidence_count": 6,
+        "stale_evidence_count": 0,
+        "context_span_count": 5,
+        "context_truncated": false,
+        "repair_used": false,
+        "latency_ms": 45852.801,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 3,
+        "tool_calls": 2,
+        "visited_video_count": 8,
+        "visited_segment_count": 247,
+        "navigation_result_count": 8,
+        "evidence_candidate_dropped_count": 30
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "将子代理的执行结果写入文件，由主代理读取该文件以解决握手问题，避免直接输出导致的数据混乱或丢失。",
+            "citation_ids": [
+              "citation_v1_bd0834f77ade84e6e28cfbe51d0bfd0cf07231e54bc63b75e93d22486a52260f",
+              "citation_v1_5186638044b5776485a30973667f4bd39c3f9800402a18740870039ee66232bd"
+            ]
+          },
+          {
+            "text": "使用代码精确合并数据，特别是当数据包含ID时，以保证匹配的准确性。",
+            "citation_ids": [
+              "citation_v1_5186638044b5776485a30973667f4bd39c3f9800402a18740870039ee66232bd"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_bd0834f77ade84e6e28cfbe51d0bfd0cf07231e54bc63b75e93d22486a52260f",
+            "video_title": "Harness 优化 08 和 sub-agent 握手的注意点",
+            "source_type": "ai",
+            "time_range": [
+              0.0,
+              119.62
+            ],
+            "quote_excerpt": "朋友们继续来说优化\n哈哈哈哈好吧\n这个视频呢主要来说的内容是大模型\n它的执行代码\n并且调用sub agent的时候\n有些时候这不是一直是这样子\n是出尔反尔\n或者是有时候是这样子\n有时候是那样子\n在他调用SAENT去执行完SUBAGENT的内容\n返回了数据回来\n有时候这个握手握不好\n这握手握不好\n比方说你让他这里\n假设这是使用个stop agent来执行的\n这是skill\n我没办法改这个颜色\n靠\n不知道怎么改\n白色改不了\n不管了\n你看着难受也没办法啊\n哎这这里是skill点MD好执行这个skill\n他是没agent来执行\n但是我这件事情好复杂\n我让一个上agent来执行这个事情\n可不可以飞了\n可以肯定可以嘛啊\n调用个什么agent来执行好了\n他执行完之后\n待会有个数据\n白果有个数据\n这是他的结果\n这个数据呢他要把这个数据交给他\n没有教好\n因为你在这里如果比方说搞个什么呃\nclaw minus p那样子执行对吧\n执行完之后\n那个最后的数据怎么样返回给他呢\n唉这不是很好处理\n那可以怎么操作呢\n这是一个握手的问题\n把这个数据执行完之后\n写在一个文件里面\n让他去读这个文件就OK了\n好吧\n这是你可",
+            "jump_url": "https://www.bilibili.com/video/BV19jTT6FErv?t=0"
+          },
+          {
+            "citation_id": "citation_v1_5186638044b5776485a30973667f4bd39c3f9800402a18740870039ee66232bd",
+            "video_title": "Harness 优化 08 和 sub-agent 握手的注意点",
+            "source_type": "ai",
+            "time_range": [
+              351.63,
+              464.04
+            ],
+            "quote_excerpt": "很困难\n就在这这这里说涉及到的是什agent啊\n这没agent是不是吧\n没准靠这个sa on sa准呢得出这个数据给他\n给完他之后呢\n哎这里还没毛病\n这数据呢交给这个让他去处理\n处理完之后\n你交给他的话\n同时他这里本身还是存在的\n你只是多了一份呃\n复制一份给他好吧\n然后呢他有了那个进来的那个数据\n他得出来的是这么个结果\n这个结果呢他给了他哎\n现在他有两个数据了\n这两个数据你让你让他用代码\n把这两个给拼到一起好吧\n你不要不要自己让那么群去拼这个事情\n因为这个涉及到里面有id\n没有id的话呢\n它匹配起来用代码匹配的比较精准\nOK了\n匹配完之后哎这个已经执行完了\n这整个雪球滚给他\n他又给多你一个数据好吧\n这里有时间日期了\n地址吗\n他把这个给他\n这里本身是有这个的\n你再用代码去把它给拼起来\n这个雪球就这么滚是吧\n这样子的话呢\n并且交接握手的时候\n你要写成个文件\n不要说直接这里output给他啊\n我尝试了这个效果不是很好\n你要写成一个文件\n让另外这边去读那个文件\n再做这些处理就行了\n这就是涉及到这个大模型\n它调用什么A准的时候握手的事情\n这手握得好\n这球接得住\n他接下来的所有的一系列的事情都执行",
+            "jump_url": "https://www.bilibili.com/video/BV19jTT6FErv?t=351"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "contextual_tool_failure",
+      "category": "contextual_transcript_question",
+      "query": "工具调用失败后，视频建议怎样调整并继续完成任务？",
+      "mode": "fast",
+      "demo_role": "deep_replanning",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "partial",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "修脚本、换方法/代理与文件交接有直接材料；减少询问和独立助手属于相关但较间接的扩展建议。回答可执行且覆盖多种失败恢复路径，并用 partial 与截断限制诚实标注。"
+      },
+      "run_id": "ask_run_717f8a0f98fd472ab8a47bb6c744bf05",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 5,
+      "citation_count": 5,
+      "limitations": [
+        "建议主要基于特定工具（Claude Code、Codex、Pi等）的实践经验，可能不完全适用于所有AI Agent平台。",
+        "部分建议需要Agent具备自主修复或更换工具的能力，低能力模型可能无法实现。",
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 36125.504,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 86,
+          "completion_tokens": 82,
+          "total_tokens": 168,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 86
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8056,
+            "completion_tokens": 1375,
+            "total_tokens": 9431,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 847
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7800,
+            "latency_ms": 27344.435791950673,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 90,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 36125.504,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "让AI Agent自行检查和修复脚本中的错误：当工具调用或脚本执行失败时，可以让Agent（如Pi）自行检查skill脚本中的bug并修复，通常能够成功恢复运行。",
+            "citation_ids": [
+              "citation_v1_a704696b479435c37c0d7a6e59ee875dbc4c9e5841cc9beffe838d777b55065a"
+            ]
+          },
+          {
+            "text": "遇到工具调用超时或失败时，Agent（如Codex）会主动更换方法或添加代理（如镜像网站）继续尝试，直到任务成功。",
+            "citation_ids": [
+              "citation_v1_1fc4ec8a0493c14ebee6535e32f27b650696bb801955fd655a1130087aabd9f6"
+            ]
+          },
+          {
+            "text": "当Sub-Agent返回数据握手不畅时，可以让Sub-Agent将结果写入文件，再由主Agent读取文件来获取数据，避免直接传递失败。",
+            "citation_ids": [
+              "citation_v1_bd0834f77ade84e6e28cfbe51d0bfd0cf07231e54bc63b75e93d22486a52260f"
+            ]
+          },
+          {
+            "text": "如果Agent频繁中断询问用户，可以在指令中明确要求其自主执行，减少询问，或改用低成本模型执行后续步骤。",
+            "citation_ids": [
+              "citation_v1_6c0ba711fb82fe868a8c9646ee09886fb47b080a308512eb421ae1fe588d6364"
+            ]
+          },
+          {
+            "text": "使用独立的AI聊天助手进行交叉验证或救火：将当前问题或计划提交给另一个模型，寻求更稳妥的替代路径或风险提示。",
+            "citation_ids": [
+              "citation_v1_93fb81f31bf83f1399469f24b71e96f8ac78d4fa9109e08969fcb44f4c05957c"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_6c0ba711fb82fe868a8c9646ee09886fb47b080a308512eb421ae1fe588d6364",
+            "video_title": "superpowers 使用心得分享！竟还能优化？",
+            "source_type": "ai",
+            "time_range": [
+              575.78,
+              695.489
+            ],
+            "quote_excerpt": "code review一次\n我那这个地方就完了\n我跟我大家讲\n如果这个地方派发了五个SUBBA镜头\n他就要去走这么多\n而且里面的token消耗的巨大\n大家自己在使用的时候\n你没有发现吗\n托克消耗巨大\n就是因为这两个步骤他要他要去REVIE\n很详细的突围\n效果太大了\n想都不敢想真的\n所以那这个地方可以把他模型给换一下\n前面这个时候我们用高用高级模型\n或者就用4.5都可以\n你后面咱们用一些低级模型照着抄就可以了\n这是他的一个破跌\n第二个不好的地方\n第三个呃\n第三个就是我们可能会要求要求他说额\n你不要再问我了\n就是他他的一个硬性要求是一定会有闸门\n一定会去问问用户\n但是我们有一种情况就是说以及其实已经需求很明确了\n编甚至编写计划我们都可以不用去看\n因为编写计划一般来说编写计划用的是高级模型\n我们看个DER啊\n他自己去写就可以了\n但是我就算跟他说了\n说你不要再问我了\n你自己往下去执行吧\n他依然还要再问你\n这是因为他的一个流程所设计而导致的\n然后他就会不平\n然后他会不断的频繁的去问你\n那你该怎么办\n对不对\n你其实你可能在多并行的一个终端开发\n你会有薪资负担的\n这是他的一个第三个不好的点啊\n咳下一",
+            "jump_url": "https://www.bilibili.com/video/BV1iRXaBnESX?t=575"
+          },
+          {
+            "citation_id": "citation_v1_93fb81f31bf83f1399469f24b71e96f8ac78d4fa9109e08969fcb44f4c05957c",
+            "video_title": "15分钟Claude Code小白入门",
+            "source_type": "ai",
+            "time_range": [
+              698.16,
+              928.68
+            ],
+            "quote_excerpt": "我再给一个我自己日常使用的一个小建议\n前面也顺带提到过\n就是在使用cloud code\n或者是在这个使用web coding的时候\n旁边一定要开一个这个独立的AI聊天助手\n你随便选一个主流的大模型都行\n这样做呢其实有两个很现实的好处\n第一个呢就是随时救火\n你遇到不明白的按钮啊\n报错啊\n流程可以直接把问题丢给他\n问\ngold code是这两年最强的代码智能体之一\n主流的大模型啊\n基本上都能知道它的常见的用法\n更常见的一些坑\n所以呢能给你立即的解释清楚\n第二点就是提高复杂任务的这个成功率\n有时候一个项目做不成\n是一开始方案就不够稳定\n但cloud code给出他的方案之后\n我们再用另外一个模型做一次交叉的验证\n往往能补出你没想到的一些风险点\n一些边界的条件\n甚至给出更简单的这些替代的路径\n具体来说呢\n你可以把cloud code刚刚生成的这个计划\n直接复制粘贴进来\n然后问他这么两个\n一个呢\n就是这份计划当中最大的风险跟缺点是什么\n另外一个啊就是有没有更稳妥\n更简单\n成功率更高的实现路径\n然后把GEMINI生成的这个方案再粘贴回给cloud code\n让cloud code基于新的建议更新计",
+            "jump_url": "https://www.bilibili.com/video/BV1KJ61BBEB1?t=698"
+          },
+          {
+            "citation_id": "citation_v1_a704696b479435c37c0d7a6e59ee875dbc4c9e5841cc9beffe838d777b55065a",
+            "video_title": "Pi Agent：比Claude Code和Codex更适合普通人的AI工具",
+            "source_type": "ai",
+            "time_range": [
+              839.74,
+              949.94
+            ],
+            "quote_excerpt": "像我跑任务啊这么长一段的这工具调用跟执行\n大概花费呢是0.3\n按美元的额度\n但实际支出要低得多\n因为订阅一个200美元的套餐\n你就能用一个月5000到1万美元的\n这样API的额度\n更关键的是啊\n派其实他的上下文提示词很短\ntoken消耗呢比其他代码智能提要低很多很多\n第四个功能啊\n我们给派来增加这个生成图片的功能\n接下来呢我们就来安装这个\n现在的最强的深度模型g p t image two\n好安装好了\n这个skill的原理啊\n其实是调用codex里面的g p t image to来生图\n如果你订阅了g p t plus或者pro\n就可以把生图能力也交给派去使用了\n我们来试一下这个SK形态\n一个对话窗口\n我们还是给刚刚我们生成的这个新闻啊来配图\n根据这个文件的第一条AI新闻\n用g p t image two生成一张适合短视频封面的图片\n风格是简洁的3D科技感的图片\n好任务完成了\n我们先来看一下第一条新闻是什么\n就是open ni的推理模型\n在数学难题上找到新的构造\n看一下这个图片非常不错啊\n就是完全符合了我们的要求\n有这个科技感\n然后主题也是刚刚那个AI新闻的那个主题\n这个skill有个",
+            "jump_url": "https://www.bilibili.com/video/BV15wGR6CEhY?t=839"
+          },
+          {
+            "citation_id": "citation_v1_bd0834f77ade84e6e28cfbe51d0bfd0cf07231e54bc63b75e93d22486a52260f",
+            "video_title": "Harness 优化 08 和 sub-agent 握手的注意点",
+            "source_type": "ai",
+            "time_range": [
+              0.0,
+              119.62
+            ],
+            "quote_excerpt": "朋友们继续来说优化\n哈哈哈哈好吧\n这个视频呢主要来说的内容是大模型\n它的执行代码\n并且调用sub agent的时候\n有些时候这不是一直是这样子\n是出尔反尔\n或者是有时候是这样子\n有时候是那样子\n在他调用SAENT去执行完SUBAGENT的内容\n返回了数据回来\n有时候这个握手握不好\n这握手握不好\n比方说你让他这里\n假设这是使用个stop agent来执行的\n这是skill\n我没办法改这个颜色\n靠\n不知道怎么改\n白色改不了\n不管了\n你看着难受也没办法啊\n哎这这里是skill点MD好执行这个skill\n他是没agent来执行\n但是我这件事情好复杂\n我让一个上agent来执行这个事情\n可不可以飞了\n可以肯定可以嘛啊\n调用个什么agent来执行好了\n他执行完之后\n待会有个数据\n白果有个数据\n这是他的结果\n这个数据呢他要把这个数据交给他\n没有教好\n因为你在这里如果比方说搞个什么呃\nclaw minus p那样子执行对吧\n执行完之后\n那个最后的数据怎么样返回给他呢\n唉这不是很好处理\n那可以怎么操作呢\n这是一个握手的问题\n把这个数据执行完之后\n写在一个文件里面\n让他去读这个文件就OK了\n好吧\n这是你可",
+            "jump_url": "https://www.bilibili.com/video/BV19jTT6FErv?t=0"
+          },
+          {
+            "citation_id": "citation_v1_1fc4ec8a0493c14ebee6535e32f27b650696bb801955fd655a1130087aabd9f6",
+            "video_title": "【个人AI科研工作流分享】如何8天实现能24小时在小红书收获近千赞藏评的小研究",
+            "source_type": "ai",
+            "time_range": [
+              1394.19,
+              1629.07
+            ],
+            "quote_excerpt": "然后他就在上面去找\n找到之后他就开始去往GITHUB上下载\n已经走上正轨\n然后呢这个时候他就开始去去下载\n但是发现连GITHUB超时了\n因为我可能没有挂代理\n然后然后他就开始换方法\n换发完了之后呢\n还说还不行\n然后就开始给我加上了一个镜像网站做代理\n结果就是成功\n你可以看到他在这里\n就像一个专业的程序员一样\n耐心的给我解决一个一个问题\n然后其实你可能用cursor的话\n如果他可能他可能挂了\n他就开始找你了\n他就不会帮你一直解决这个问题\n但是呢呃code x可能他还是实践的会稍微好一些\n他可以一直帮你去解决问题\n直到完成主人的需求\n我觉得这是非常惊艳的一点\n接着呢其实我们这可能很经常会遇到一个问题\n就是实验监测问题\n这里可能也是cursor会经常长放弃一点\n就比如说你运行一个程序\n它很久它会给你返回的\n说哦这车序要运行很久\n那你自己看吧\n但是呢code s不会这样\n它会开\n你启动实验之后呢\n他就开始\n这是一个很复杂的模型\n它就要停用很久\n他就跟我说啊\n看起看起来是启动起来了\n他可能第一次比较慢\n然后他就给我等\n能等待是code x呃\n虽然科S现在可能也可以\n然后但是他可能时间更好\n就是能",
+            "jump_url": "https://www.bilibili.com/video/BV15CwBzsEmt?t=1394"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "cross_video_context_management",
+      "category": "cross_video_comparison",
+      "query": "不同视频如何比较上下文管理与上下文工程的做法？",
+      "mode": "deep",
+      "demo_role": "deep_success",
+      "policy_version": "v4-deep-policy-v1",
+      "manual_review": {
+        "supportedness": "partial",
+        "usefulness": "partial",
+        "coverage": "partial",
+        "status_honesty": "pass",
+        "notes": "上下文管理与 loop 工程各自陈述有材料，但把 loop 工程等同于上下文工程并进一步归纳静态/动态差异属于推断；结果明确以 partial 和 limitations 披露未找到直接对比证据。"
+      },
+      "run_id": "ask_run_d48e353c298d4fed9e6d213a8abbd398",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 3,
+      "citation_count": 5,
+      "limitations": [
+        "证据来自不同视频片段，未发现直接对比上下文管理与上下文工程的内容，回答基于各自片段的描述进行推断。",
+        "上下文工程的具体实践仅提及loop工程，可能无法覆盖所有上下文工程的形式。"
+      ],
+      "latency_ms": 75408.136,
+      "provider_usage": {
+        "query_analysis": null,
+        "agent_action": [
+          {
+            "role": "agent_action",
+            "prompt_tokens": 980,
+            "completion_tokens": 60,
+            "total_tokens": 1040,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 212
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 9594,
+            "completion_tokens": 88,
+            "total_tokens": 9682,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 8826
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 25890,
+            "completion_tokens": 88,
+            "total_tokens": 25978,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 25122
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 25917,
+            "completion_tokens": 90,
+            "total_tokens": 26007,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 25149
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 28557,
+            "completion_tokens": 511,
+            "total_tokens": 29068,
+            "prompt_tokens_details": {
+              "cached_tokens": 896
+            },
+            "prompt_cache_hit_tokens": 896,
+            "prompt_cache_miss_tokens": 27661
+          }
+        ],
+        "grounded_answer": [
+          {
+            "prompt_tokens": 3590,
+            "completion_tokens": 2245,
+            "total_tokens": 5835,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1578
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 3334,
+            "latency_ms": 38697.68670760095,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 5,
+      "tool_calls": 4,
+      "repair_used": false,
+      "context_truncated": false,
+      "evidence_candidate_dropped_count": 96,
+      "trace_summary": {
+        "query_count": 4,
+        "retrieval_count": 3,
+        "valid_evidence_count": 7,
+        "stale_evidence_count": 0,
+        "context_span_count": 6,
+        "context_truncated": false,
+        "repair_used": false,
+        "latency_ms": 75408.136,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 5,
+        "tool_calls": 4,
+        "visited_video_count": 8,
+        "visited_segment_count": 357,
+        "navigation_result_count": 8,
+        "evidence_candidate_dropped_count": 96
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "上下文管理聚焦于在对话或任务中高效组织、注入和压缩上下文信息。其做法包括记忆系统的高信噪比设计（不存储可从代码推导的内容）、动态相关性召回（仅加载与当前对话相关的记忆）、分层加载策略（如指令记忆的条件规则和双轨注入），以及将知识和经验打包为可复用的skill（视为一种上下文税，需在正确时刻提供正确信息）。",
+            "citation_ids": [
+              "citation_v1_55c937dca6eb249a04a613188d8dcfafc824607622c86cd528c7621d8cf8fb7f",
+              "citation_v1_b1c7c66885101df8c03d35548a2569aac6459cf0cfb0797419a0b7be2d97fe47",
+              "citation_v1_5399b2c00e4ca1eb1d4c7357d5f9b0f9d79b34fe7138f78e981131c705d03822"
+            ]
+          },
+          {
+            "text": "上下文工程（如loop工程）则更侧重于构建自主循环的任务执行流程。其核心是收敛，通过设置可验证的目标（go）和触发条件（trigger），让AI在循环中不断判断和调整，直至完成。目标需要可被模型判断和验证，以控制成本、避免无限循环。",
+            "citation_ids": [
+              "citation_v1_3c371f818fc0550a9a9b0ff924ca57a596c705d2d984ca93880010c7b914de2c"
+            ]
+          },
+          {
+            "text": "两者的主要差异在于：上下文管理是静态、结构化的信息注入与压缩机制，关注信息密度和检索效率；上下文工程则是动态、过程导向的工作流设计，关注任务收敛与执行控制。两者互为补充：上下文管理为上下文工程提供必要的知识基础，上下文工程则依赖这些上下文来做出符合目标的决策。",
+            "citation_ids": [
+              "citation_v1_55c937dca6eb249a04a613188d8dcfafc824607622c86cd528c7621d8cf8fb7f",
+              "citation_v1_3c371f818fc0550a9a9b0ff924ca57a596c705d2d984ca93880010c7b914de2c",
+              "citation_v1_ae2b6df7402b0a8bf226ab169b51fc1c0041fb5a4f7bfd93daf2fbef71f0b78c"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_55c937dca6eb249a04a613188d8dcfafc824607622c86cd528c7621d8cf8fb7f",
+            "video_title": "Claude Code 的记忆机制到底强在哪？六维记忆体系深度解析，一节视频讲透指令记忆、长期记忆、Session Memory 与 AutoDream",
+            "source_type": "ai",
+            "time_range": [
+              464.3,
+              582.4
+            ],
+            "quote_excerpt": "大部分人设计反馈系统\n本能的只想着记录负面纠正\n大家在弹幕里扣个一\n看\n看有多少人之前也是这么想的\n第三种project的类型不可从代码推导的项目上下文\n比如项目的截止日期\n设计目标团队协作约定\n注意这里有个规则\n相对日期必须转为绝对日期\n下周五这种说法过几天就没意义了\n必须存成2026年4月10日\n第四种reference类型外部系统的指针\n比如某个linear issue的链接\nGRAPHA面板地址\nslack频道\n同样重要的是\n系统明确规定了什么不能存代码模式\n架构分析文件路径\nget历史调试方案\n这些全都不存\n为什么\n因为他们可以从代码本身推导出来\n代码就是最权威的来源\n存一份副本只会过时产生矛盾\n这个设计理念在我看来非常高明\n它让记忆系统保持高性噪比\n避免变成一个什么都往里塞的万能笔记本\n长期记忆在存储上采用了两层结构\n第一层是memory md\n它是一个纯索引文件\n每行就是一个指向具体记忆文件的链接\n加上一句话摘要不超过150个字符\n整个文件限制在200行\n25KB以内\n第二层是具体的记忆文件\n比如user profile md\nFeedback testing md\n每个",
+            "jump_url": "https://www.bilibili.com/video/BV1z6SXBzEYh?t=464"
+          },
+          {
+            "citation_id": "citation_v1_b1c7c66885101df8c03d35548a2569aac6459cf0cfb0797419a0b7be2d97fe47",
+            "video_title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+            "source_type": "ai",
+            "time_range": [
+              116.52,
+              235.85
+            ],
+            "quote_excerpt": "也让其他skill更难被正确调用\n第三层运行时长篇参考文档模板脚本特殊案例\n这些可能有用\n但每次都直接加载\n太贵了\n所以更适合放在附件里\n等模型真正需要读取时再付成本\n三层合在一起\n索引body附件越早进上下文税率越高\n索引最贵\n所有绘画都要看body次之\n加载后会跟着任务走一段时间\n直到上下文压缩或任务边界出现\n附件最便宜\n用到才读\n这也解释了为什么给模型更多资料\n不一定会让它更强\nperplexity的税务skill\n早期把1945个税法章节\n全塞进一个文件\n结果比不加载还差\n后来重构成三层嵌套\n先定位大的领域\n再进入更细的主题\n还配了快速参考指南\n帮模型更快定位效果\n反过来\n模型做税务任务的表现超过了只用通用工具\n模型需要的不是一座资料山\n他需要的是一条在正确时刻\n找到正确资料的路径\n三层税讲完了\n既然是税\n下一个问题就是什么样的skill值得交这笔钱\n本质上这是上下文经济学\n你写的每一行字都在向所有用户\n所有绘画收取成本\n值不值\n全看这一行字\n能不能帮模型做一个他自己做不好的判断\n四种情况值得写\n第一模型缺了这段上下文就会稳定做错\n如公司内部流程\n产品专用规范业务特有标准\n第二",
+            "jump_url": "https://www.bilibili.com/video/BV15J5u6HEP4?t=116"
+          },
+          {
+            "citation_id": "citation_v1_3c371f818fc0550a9a9b0ff924ca57a596c705d2d984ca93880010c7b914de2c",
+            "video_title": "loop工程核心",
+            "source_type": "ai",
+            "time_range": [
+              0.0,
+              183.36
+            ],
+            "quote_excerpt": "今天我们来讲解loop工程的一个核心啊\n我们了解了loop工程核心之后呢\n其实我们就可以把loop工程呢\n应用在我们自己的实际的生产项目中了\n那首先路普工程是什么呢\n实际它其实是这样的一张图啊\n它整个的一个workflow呢\n不管是我们串啊\n它其实是一个workflow的\n在这个过程中呢\n它其实会经过判断和思考\n然后重新进行一个loop这样的一个循环\n你可以理解成他一直在做一个workflow\n直到有一时刻\n他判断整个任务都完成了\n它就结束了\n那它的核心呢其实是收敛\n收敛是路部工程的一个核心\n如果不收敛的话\n整个这个槽循环的话会一直运行起来\n一直运行起来\n运行到你所有的费用都花光了\n其实整个任务还没有完成\n那我们看一下loop工程里边\n它的核心呢其实是有两块部分的\n第一块部分呢叫trigger\n第二部分叫go\n就是我们有要有一个触发嘛\n比如说手动触发也好\n定时任务触发也好啊\n呃根据一些action进行触发\n比如说GITHUB的这个action触发也可以\n就是你会有一个触发器去触发\n你上边我们说的这个workflow\n第二点呢你要有一个go\n你要有一个目标\n你要做什么呀对吧\n然后这个目标",
+            "jump_url": "https://www.bilibili.com/video/BV1c6Mw6AE6X?t=0"
+          },
+          {
+            "citation_id": "citation_v1_5399b2c00e4ca1eb1d4c7357d5f9b0f9d79b34fe7138f78e981131c705d03822",
+            "video_title": "Claude Code 的记忆机制到底强在哪？六维记忆体系深度解析，一节视频讲透指令记忆、长期记忆、Session Memory 与 AutoDream",
+            "source_type": "ai",
+            "time_range": [
+              229.24,
+              348.89
+            ],
+            "quote_excerpt": "然后反转顺序变成从根到cw d的顺序处理\n这意味着离你当前工作目录越近的规则\n文件加载越靠后\n模型对它的关注度就越高\n换句话说\n最后加载的规则优先级最高\n这个设计非常巧妙\n它既保证了全局策略的基础约束力\n又给了每个项目甚至每个子目录足够的灵活性\n除了基本的加载逻辑指令记忆\n还支持三种扩展机制\n第一种是at include递归包含\n你可以在一个cloud点MD里用at语法引用其他文件\n最多递归五层深度\n还有循环检测\n防止无限递归\n这样你就可以把指令模块化组织\n而不是把所有规则堆在一个大文件里\n第二种是条件规则\n你可以在点cloud的RTS目录下放规则文件\n通过front matter里的path字段指定\n这条规则只在访问特定路径时才生效\n比如你可以写一条规则\n说只有在操作src components目录下的文件时\n才应用这套react组件规范\n匹配引擎用的是pick match\n支持完整的globe语法\n第三种是嵌套记忆附件\n当工具访问CWD子目录中的文件时\n系统会自动加载该目录链上的额外规则\n这背后其实说明了一个重要的设计理念\ncloud code的指令记忆不是一股脑全部加载的\n而是有",
+            "jump_url": "https://www.bilibili.com/video/BV1z6SXBzEYh?t=229"
+          },
+          {
+            "citation_id": "citation_v1_ae2b6df7402b0a8bf226ab169b51fc1c0041fb5a4f7bfd93daf2fbef71f0b78c",
+            "video_title": "Perplexity：每个 Skill都要征税，别再随便写了，搞不好入不敷出",
+            "source_type": "ai",
+            "time_range": [
+              470.0,
+              505.7
+            ],
+            "quote_excerpt": "才说明它重要\n一个差的skill是上下文债务重复常识污染\n注意制造误触发\n一个好的skill是压缩资产\n让agent在正确时间看到正确信息\n把团队的判断边界和经验变成可复用的结构\nagent系统的竞争正在从谁接了更多工具\n进入下一个阶段\n谁更懂得管理上下文\n这一期讲了\n为什么skill是一种税\n下一期我们一起来看看perplexity具体怎么做的\n一条skill\n怎么设计\n怎么压缩\n怎么评估\n怎么维护\n这里是慢学AI\n我们下期再见",
+            "jump_url": "https://www.bilibili.com/video/BV15J5u6HEP4?t=470"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "cross_video_context_management",
+      "category": "cross_video_comparison",
+      "query": "不同视频如何比较上下文管理与上下文工程的做法？",
+      "mode": "fast",
+      "demo_role": "deep_success",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "fail",
+        "usefulness": "fail",
+        "coverage": "fail",
+        "status_honesty": "pass",
+        "notes": "Provider 输出达到长度上限，未形成可修复的结构化 Answer Block；没有内容可供支持性、可用性或覆盖度审阅。系统诚实返回 insufficient/provider_error，未伪装成功。"
+      },
+      "run_id": "ask_run_c0f44b0c77d445408c14f5935e25c179",
+      "status": "insufficient",
+      "termination_reason": "provider_error",
+      "answer_block_count": 0,
+      "citation_count": 0,
+      "limitations": [
+        "模型服务故障，未形成可修复的结构化输出"
+      ],
+      "latency_ms": 88845.81,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 83,
+          "completion_tokens": 77,
+          "total_tokens": 160,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 83
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 7753,
+            "completion_tokens": 4096,
+            "total_tokens": 11849,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 4096
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7497,
+            "finish_reason": "length",
+            "latency_ms": 76805.6517499499,
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 78,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 88845.81,
+        "termination_reason": "provider_error",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [],
+        "citations": []
+      }
+    },
+    {
+      "case_id": "direct_fact_mcp",
+      "category": "direct_fact_or_single_topic",
+      "query": "MCP 是什么，它如何连接模型与外部工具？",
+      "mode": "deep",
+      "demo_role": "fast_success_and_mode_comparison",
+      "policy_version": "v4-deep-policy-v1",
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "定义、Host/Client/Server 连接和工具描述注入均能在对应字幕中定位；回答直接解决问题，并以 partial 诚实说明未深入消息格式与传输实现。"
+      },
+      "run_id": "ask_run_ab059dd8b0a8427a8171720e7426f579",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 3,
+      "citation_count": 4,
+      "limitations": [
+        "提供的证据未深入 MCP 协议的具体交互细节（如消息格式、传输方式）等实现层面信息。"
+      ],
+      "latency_ms": 65265.409,
+      "provider_usage": {
+        "query_analysis": null,
+        "agent_action": [
+          {
+            "role": "agent_action",
+            "prompt_tokens": 986,
+            "completion_tokens": 67,
+            "total_tokens": 1053,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 218
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 7965,
+            "completion_tokens": 87,
+            "total_tokens": 8052,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 7197
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 23899,
+            "completion_tokens": 112,
+            "total_tokens": 24011,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 23131
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 24263,
+            "completion_tokens": 309,
+            "total_tokens": 24572,
+            "prompt_tokens_details": {
+              "cached_tokens": 896
+            },
+            "prompt_cache_hit_tokens": 896,
+            "prompt_cache_miss_tokens": 23367
+          }
+        ],
+        "grounded_answer": [
+          {
+            "prompt_tokens": 3155,
+            "completion_tokens": 2347,
+            "total_tokens": 5502,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1806
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 2899,
+            "latency_ms": 39488.090166822076,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 4,
+      "tool_calls": 3,
+      "repair_used": false,
+      "context_truncated": false,
+      "evidence_candidate_dropped_count": 44,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 1,
+        "valid_evidence_count": 7,
+        "stale_evidence_count": 0,
+        "context_span_count": 5,
+        "context_truncated": false,
+        "repair_used": false,
+        "latency_ms": 65265.409,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 4,
+        "tool_calls": 3,
+        "visited_video_count": 8,
+        "visited_segment_count": 288,
+        "navigation_result_count": 8,
+        "evidence_candidate_dropped_count": 44
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "MCP（模型上下文协议）是大模型的标准化工具箱，使大模型能够利用这些工具与外部互动、获取信息并完成具体任务。它是一种用于标准化应用程序向大模型提供上下文的协议。",
+            "citation_ids": [
+              "citation_v1_9027ac2c4658b45b62946db874aef1b9a21c9868f0839ee38f04c3207c2c47e7",
+              "citation_v1_75c004af8e3573c18b49b433438b29c7794dd2125c55c2f4321f789c9b78d70f"
+            ]
+          },
+          {
+            "text": "MCP通过核心架构连接模型与外部工具：MCP host（AI应用）内部包含MCP client，与MCP server通信。工具在MCP server上实现，通过MCP协议暴露给host，模型借助host调用这些工具。MCP统一了工具接口和数据格式，使得工具提供方与AI应用解耦，实现跨语言、远程或本地的工具复用。",
+            "citation_ids": [
+              "citation_v1_75c004af8e3573c18b49b433438b29c7794dd2125c55c2f4321f789c9b78d70f",
+              "citation_v1_50fa96889cc9a3293e867317bd22dffe328b5d6384e0610183280ec6c8af2054",
+              "citation_v1_3a6ec454d6eb0cc2364748090f90b75d9fde96f37a9cf13fa138664d4d294aee"
+            ]
+          },
+          {
+            "text": "MCP通过将工具的名称、参数格式和调用示例全部注入大模型的上下文，使模型了解可用的工具及其用法，从而能够决定何时及如何调用工具。",
+            "citation_ids": [
+              "citation_v1_9027ac2c4658b45b62946db874aef1b9a21c9868f0839ee38f04c3207c2c47e7"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_9027ac2c4658b45b62946db874aef1b9a21c9868f0839ee38f04c3207c2c47e7",
+            "video_title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+            "source_type": "ai",
+            "time_range": [
+              579.04,
+              814.92
+            ],
+            "quote_excerpt": "填上校验码就登录完成了\n然后我们可以使用这个命令查看一下open cloud上面的医术列表\n或者使用这个命令给我自己创建一个新的仓库\n我们看到这里仓库就创建出来了\n更多命令的是使用方法\n可以参考GITHUB官方CLI的文档\n后续我们的视频里面还会介绍更多好用的官方CLI工具\nMCP全称是模型上下文协议\n简单来说\nMCP就是AA大模型的标准化工具箱\n大模型可以利用这些工具与外界互动获取信息\n并且完成具体任务\n不过由于MCP协议设计之初存在的一些问题\n越来越多的公司开源社区开始放弃MCP转而拥抱CLI\n比如AI搜索巨头PROPLEXITY在2026年3月宣布放弃MCP\n全面转向CLI化\n还有现象级的开源产品open cloud\n从一开始就拒绝支持MCP\n在26年3月\n开发者社区掀起了一个讨论热潮\n主题就是MCP已死\nCLI永生\n我认为MCP对比CLI主要有以下几个劣势\n首先MCP上下文占用较高\nMCP需要将所有的工具名字参数格式\n还有调用示例全部注入上下文\n每新增一个MCP工具都要占用大量的token开销\n而CLI则可以让A自己学习用法\n使用渐进式披露的方式来减少token消耗\nscale",
+            "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=579"
+          },
+          {
+            "citation_id": "citation_v1_75c004af8e3573c18b49b433438b29c7794dd2125c55c2f4321f789c9b78d70f",
+            "video_title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+            "source_type": "ai",
+            "time_range": [
+              2071.24,
+              2193.93
+            ],
+            "quote_excerpt": "比如说cursor就是一个agent\n还有就是你写的其他的接入了大模型能力的\n这些普通的一些前后端应用等等\n而NCP协议它是用于标准化这些应用程序\n像LM提供上下文的一个一个协议\n上下文\n这里指的就是说模型决策的时候\n它可以访问到的所有的信息\n比如说用户的输入是上下文\n历史对话信息是上下文\n外部的工具信息也是上下文\n就是我们刚才说的那个函数描述\n还有外部数据源的信息\n比如说你们公司数据库内部的一些数据\n还有提示词\n其实它也是一种上下文\n当然大家看NCP官方文档的时候\n会发现在他这里\nTools resources\n还有prompts\n这些都是分开来定义的\n他是作为不同的能力嗯\n但是大家会发现一个问题\n就是你外部的这些数据源\n是不是也可以通过工具去获取到\n再比如说提示词\n你是不是也可以通过方法获取\n比如说我去通过方法拉一些公司配置\n平台的配置等等\n所以其实其实很多东西\n他都可以用工具的这个概念去收束\n所以我们等一下也重点只讲工具这个部分\n因为它也是涵盖了整个NCP的核心的原理\n也是现在最常用的\n好的\n我们现在来看一下NCP的核心架构\n虽然说它是一个协议\n但是它规定了说\n我们的AI应用程序",
+            "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=2071"
+          },
+          {
+            "citation_id": "citation_v1_50fa96889cc9a3293e867317bd22dffe328b5d6384e0610183280ec6c8af2054",
+            "video_title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+            "source_type": "ai",
+            "time_range": [
+              927.34,
+              1046.769
+            ],
+            "quote_excerpt": "现在你想给你开发的另外一个AI应用\n去接入这个工具\n或者说别人开发了一个类似的方法\n你想接入进来\n你要做的一件事情就是去copy代码\n你要完整的copy这个方法\n并且copy这个方法所对应的这个函数描述\n你想要接几个方法\n你就要copy几次\n这个还是比较繁琐的一个事情\n另外繁琐本身并不是一个致命的问题\n致命的问题就是你有的时候你根本就用不了\n这个就是工具复用困难的问题\n因为你比如说你想介入别人的方法\n但很有可能因为环境问题\n或者各种依赖问题等等\n你copy的代码它不一定能跑\n还有就是很多企业或者说公司内部的团队\n他愿意去对外提供自己的一些能力\n但是他并不太愿意随意公布他的圆满\n也就是说他不给你代码\n给你copy\n还有一个就是跨语言的代码\n这个是真的\n你你copy了也没有用\n所以怎么去解决这些问题呢\n大家可以想一下\n如果是你的话\n你会怎么去解决这个问题\n就假设现在完全没有MCP协议\n或者任何成熟的解决方案\n只有摆在你眼前的这些必须要愉悦的困难\n因为你不克服的话\n这个AI应用的开发会举步维艰\n而且整一个整一个AI的这个生态\n也都不太对开发者不太友好\n那么其实我们会发现刚才说的这些问题\n无非",
+            "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=927"
+          },
+          {
+            "citation_id": "citation_v1_3a6ec454d6eb0cc2364748090f90b75d9fde96f37a9cf13fa138664d4d294aee",
+            "video_title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+            "source_type": "ai",
+            "time_range": [
+              1849.35,
+              1967.02
+            ],
+            "quote_excerpt": "我最终对外都统一暴露一个统一的接口\n比如说我现在假设都统一暴露出HTTP的接口\n哪怕我内部是调这个RPC\n我对外我再包一层HTTP不就行了\n那这样的话\n这种远程服务的接入方式就统一下来了\n并且我不光是要统一协议\n我还要统一交互的各种数据格式\n我还要保证说这个HTTP的这个服务\n这个接口\n它要给我提供\n至少能提供我的这个函数描述的这个列表\n并且能够帮助我去调用这些工具\n给我返回一个结果\n这个是它这个接口必须要实现的两个功能\n而且我的数据交换的格式也必须要统一下来\n其实我觉得这个MCP本质上\n它也无非就是在所有已有的这些API的基础上\n又对外包了一层\n采用统一的API做了一些统一的实现\n唉毕竟著名的计算机科学家鲁迅曾经说过\n在计算机的世界里\n没有什么是加一个抽象层解决不了的问题\n而且不光是说这个远程服务\n我们需要统一下来一种协议\n为什么说必须要做这个本地进程间的\n这个通信协议的统一\n为什么会有这一块的强需求\n或者说我想到\n我第一次看NCP协议文档的时候\n那个问题为什么要用STT协议\n这个不是那么的常见啊对吧\n其实无非就是说回到最初的起点\n我们想让大模型帮我们调工具做事\n我们想让大模型能够直",
+            "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=1849"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "direct_fact_mcp",
+      "category": "direct_fact_or_single_topic",
+      "query": "MCP 是什么，它如何连接模型与外部工具？",
+      "mode": "fast",
+      "demo_role": "fast_success_and_mode_comparison",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "MCP 定义与 Client/Server 解耦、统一接口的解释均有多段字幕支持；答案覆盖“是什么”和“如何连接”，partial 与技术细节/截断限制一致。"
+      },
+      "run_id": "ask_run_614077011a234a47838b8f2392eda89f",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 2,
+      "citation_count": 5,
+      "limitations": [
+        "回答仅基于提供的视频转录文本，可能未涵盖MCP协议的全部技术细节或最新发展。",
+        "部分解释基于讲述者的观点，可能存在主观性。",
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 54395.041,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 86,
+          "completion_tokens": 73,
+          "total_tokens": 159,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 86
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 7531,
+            "completion_tokens": 2676,
+            "total_tokens": 10207,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2152
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7275,
+            "latency_ms": 42428.942082915455,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 50,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 54395.041,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "MCP（模型上下文协议）是由Anthropic在2024年11月提出的开放协议，旨在标准化AI应用向大语言模型提供上下文的方式。它充当了大模型的“标准化工具箱”，允许模型发现、理解并调用外部工具，从而与外部世界互动和完成任务。",
+            "citation_ids": [
+              "citation_v1_ba4b46041ca0c9510c74ae5bbd914d00ef375b6a89e281b134b90251db5225b5",
+              "citation_v1_1dbb3af4fef538cae17c3120381ff7b20a20bcbed81648865cd0ce76f8241af0",
+              "citation_v1_0f63b9f48fab01dc735a86c0e55330e1947133b3944a26b9ac83d31915a493d5"
+            ]
+          },
+          {
+            "text": "MCP通过客户端-服务器架构连接模型与外部工具：AI应用（Host）内嵌MCP Client，与独立的MCP Server建立连接。MCP Server将各种工具或数据源统一封装成标准接口，通过stdio或SSE等传输协议与Client通信。Client负责获取工具列表并向Server发出调用请求，模型则根据用户意图生成对工具的调用指令，由Client执行并返回结果。这样实现了模型与外部工具的松耦合连接，提高了工具的复用性和兼容性。",
+            "citation_ids": [
+              "citation_v1_0f63b9f48fab01dc735a86c0e55330e1947133b3944a26b9ac83d31915a493d5",
+              "citation_v1_8fafed186fcabc8b9069262106eb0ff71ea4dbe4826f39508e103fa003dcf16c",
+              "citation_v1_50fa96889cc9a3293e867317bd22dffe328b5d6384e0610183280ec6c8af2054"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_ba4b46041ca0c9510c74ae5bbd914d00ef375b6a89e281b134b90251db5225b5",
+            "video_title": "为什么巨头都在做CLI(命令行界面)？比MCP有哪些优势？",
+            "source_type": "ai",
+            "time_range": [
+              579.04,
+              831.84
+            ],
+            "quote_excerpt": "填上校验码就登录完成了\n然后我们可以使用这个命令查看一下open cloud上面的医术列表\n或者使用这个命令给我自己创建一个新的仓库\n我们看到这里仓库就创建出来了\n更多命令的是使用方法\n可以参考GITHUB官方CLI的文档\n后续我们的视频里面还会介绍更多好用的官方CLI工具\nMCP全称是模型上下文协议\n简单来说\nMCP就是AA大模型的标准化工具箱\n大模型可以利用这些工具与外界互动获取信息\n并且完成具体任务\n不过由于MCP协议设计之初存在的一些问题\n越来越多的公司开源社区开始放弃MCP转而拥抱CLI\n比如AI搜索巨头PROPLEXITY在2026年3月宣布放弃MCP\n全面转向CLI化\n还有现象级的开源产品open cloud\n从一开始就拒绝支持MCP\n在26年3月\n开发者社区掀起了一个讨论热潮\n主题就是MCP已死\nCLI永生\n我认为MCP对比CLI主要有以下几个劣势\n首先MCP上下文占用较高\nMCP需要将所有的工具名字参数格式\n还有调用示例全部注入上下文\n每新增一个MCP工具都要占用大量的token开销\n而CLI则可以让A自己学习用法\n使用渐进式披露的方式来减少token消耗\nscale",
+            "jump_url": "https://www.bilibili.com/video/BV1G29EBGE8b?t=579"
+          },
+          {
+            "citation_id": "citation_v1_1dbb3af4fef538cae17c3120381ff7b20a20bcbed81648865cd0ce76f8241af0",
+            "video_title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+            "source_type": "ai",
+            "time_range": [
+              585.169,
+              819.569
+            ],
+            "quote_excerpt": "能够操作工具的这样一个问题\n这样一个需求呢这个就是function call\n可以看一下OpenAI的这篇官方的协议文档\nfunction call的基本原理就大概就是说\n首先用户发起提问\n然后我们在提示词里面约束大于模型\n返回一个规定格式的调用指令\n它可能是一个JASON格式\n它包含了说你要调用的这个函数\n它叫做什么名字\n你要调用的这些参数是什么\n当模型按照规范给你写好这个调用指令之后\n其实你完全可以在服务端去反序列化这个JASON解析这个调用指令\n然后去实现真正的函数调用\n拿到结果之后\n你再发起第二轮的这个lm call\n调用这个大模型\n让他根据返回的结果去进行后续的回答\n这样的话相当于通过这个工程这里的手段巧妙地实现了模型\n调用工具可以理解成模型还是只负责说我们的服务端负责去做\n有了function call之后\n大家当时纷纷的去给自己的这些AI应用程序去接入了一些外部的能力\n但是实际上大家会发现很多外部能力它其实是可以复用的\n重复性工作\n比如说你们老板让你去搞一下什么异常请求的AI自动归因\n然后隔壁团队老板说\n诶搞一下异常指标的这些自动告警监控等等\n那么可能你们两个团队都需要用",
+            "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=585"
+          },
+          {
+            "citation_id": "citation_v1_0f63b9f48fab01dc735a86c0e55330e1947133b3944a26b9ac83d31915a493d5",
+            "video_title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+            "source_type": "ai",
+            "time_range": [
+              1964.84,
+              2309.819
+            ],
+            "quote_excerpt": "所以说总而言之\n我们还是需要一个全新的一个方案\n一个架构\n一个协议去解决我们最初遇到的问题\n让大模型掉工具\n那我现在画出来的这个架构\n其实已经是NCP协议的一个\n比较标准的一个架构了\n只是这些名字我还没有改过来\n好了我们现在已经从问题出发\n得到了整一个方案设计的思路\n那我们现在就看一下这个思路\n它最终是被怎么实现的吧\n也就是这个NCP协议它到底是什么东西\n其实我觉得有了前面这些铺垫\n后面很多问题都会变得非常好理解\n首先NCP协议\n它是去年11月诞生的一个非常新的协议\n是一家美国人工智能初创公司提出的\n这个是它的官方文档\n大家最好还是去看一下\n在官方文档中对它的定义是NCP\n它是一个开放协议\n对它本质上是一个协议\n它是什么协议呢\n它是用于that standardizes how applications\nProvide context to large language models\n用于标准化应用程序\n向大云模型提供上下文的方式\n的这样一种开放协议\n其实这句话涉及到很多核心的概念\n首先什么是这个语境下的应用程序\n它指的其实就是各种集成了大模型能力的\n具体的应用\n比如说大家用的各种聊天",
+            "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=1964"
+          },
+          {
+            "citation_id": "citation_v1_50fa96889cc9a3293e867317bd22dffe328b5d6384e0610183280ec6c8af2054",
+            "video_title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+            "source_type": "ai",
+            "time_range": [
+              927.34,
+              1046.769
+            ],
+            "quote_excerpt": "现在你想给你开发的另外一个AI应用\n去接入这个工具\n或者说别人开发了一个类似的方法\n你想接入进来\n你要做的一件事情就是去copy代码\n你要完整的copy这个方法\n并且copy这个方法所对应的这个函数描述\n你想要接几个方法\n你就要copy几次\n这个还是比较繁琐的一个事情\n另外繁琐本身并不是一个致命的问题\n致命的问题就是你有的时候你根本就用不了\n这个就是工具复用困难的问题\n因为你比如说你想介入别人的方法\n但很有可能因为环境问题\n或者各种依赖问题等等\n你copy的代码它不一定能跑\n还有就是很多企业或者说公司内部的团队\n他愿意去对外提供自己的一些能力\n但是他并不太愿意随意公布他的圆满\n也就是说他不给你代码\n给你copy\n还有一个就是跨语言的代码\n这个是真的\n你你copy了也没有用\n所以怎么去解决这些问题呢\n大家可以想一下\n如果是你的话\n你会怎么去解决这个问题\n就假设现在完全没有MCP协议\n或者任何成熟的解决方案\n只有摆在你眼前的这些必须要愉悦的困难\n因为你不克服的话\n这个AI应用的开发会举步维艰\n而且整一个整一个AI的这个生态\n也都不太对开发者不太友好\n那么其实我们会发现刚才说的这些问题\n无非",
+            "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=927"
+          },
+          {
+            "citation_id": "citation_v1_8fafed186fcabc8b9069262106eb0ff71ea4dbe4826f39508e103fa003dcf16c",
+            "video_title": "什么是Function Calling与MCP协议？它们为何要这样设计？",
+            "source_type": "ai",
+            "time_range": [
+              1736.94,
+              1967.02
+            ],
+            "quote_excerpt": "更合理\n好处更多\n首先一个就是值得清晰的问题\n然后就是一些安全健全的这些逻辑的一些问题\n你不能让一个client去畅通无阻地访问\n所有人的服务\n还有就是你这样一对一的关系\n你可以大家各自去保持各自独立的一个连接\n那么整体的架构确定下来之后\n我们刚才写了一长串要标准化的东西\n首先就是你的工具\nclient和工具server之间的这种接入方式肯定得统一\n至少说远程服务我要统一一种方式\n本地服务我要统一一种方式\n我们可以想象\n就是说你在工具server里面的这些工具\n它并不一定都是简单的\n这些本地代码就可以实现的\n比如说一个简单的一些两数之和之类的\n这些处理逻辑\n实际实际生产商肯定不是这样\n你可能第一个工具内部去掉了一些HTTP的接口\n第二个工具调WEBSOCKET接口\n第三个工具调RPC的接口\n去访问了公司的一些其他的微服务等等\n那么对于这个server也是类似的\n你可能内部掉了SDK\n或者说直接使用了本地代码\n什么都没调\n或者说你调用了一些操作系统\n底层的一些API等等\n那么说到这\n我想到一个问题\n就是我不知道大家一开始看NCP协议的\n这些文档的时候\n有没有想过就是他和API有什么区别\n",
+            "jump_url": "https://www.bilibili.com/video/BV1qTYizcEN3?t=1736"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "no_evidence_quantum_protocol",
+      "category": "no_reliable_evidence",
+      "query": "收藏内容是否介绍了“Shiliu-X9 量子检索协议”？",
+      "mode": "deep",
+      "demo_role": "honest_insufficient",
+      "policy_version": "v4-deep-policy-v1",
+      "manual_review": {
+        "supportedness": "partial",
+        "usefulness": "pass",
+        "coverage": "partial",
+        "status_honesty": "partial",
+        "notes": "回答正确拒绝虚构协议，但五段无关样本不能单独证明整个收藏库均未提及；partial/provider_error 披露了停止边界，不过 limitations 未明确说明引用仅是抽样反证材料。"
+      },
+      "run_id": "ask_run_b53de29691bf49acb2b1957f88fc9cd0",
+      "status": "partial",
+      "termination_reason": "provider_error",
+      "answer_block_count": 1,
+      "citation_count": 5,
+      "limitations": [
+        "深入搜索在确定性停止边界触发后使用已有证据回答"
+      ],
+      "latency_ms": 41559.366,
+      "provider_usage": {
+        "query_analysis": null,
+        "agent_action": [
+          {
+            "role": "agent_action",
+            "prompt_tokens": 991,
+            "completion_tokens": 68,
+            "total_tokens": 1059,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 223
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 7483,
+            "completion_tokens": 97,
+            "total_tokens": 7580,
+            "prompt_tokens_details": {
+              "cached_tokens": 896
+            },
+            "prompt_cache_hit_tokens": 896,
+            "prompt_cache_miss_tokens": 6587
+          }
+        ],
+        "grounded_answer": [
+          {
+            "prompt_tokens": 2834,
+            "completion_tokens": 1438,
+            "total_tokens": 4272,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1181
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 2578,
+            "latency_ms": 24319.284833967686,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 3,
+      "tool_calls": 2,
+      "repair_used": false,
+      "context_truncated": false,
+      "evidence_candidate_dropped_count": 44,
+      "trace_summary": {
+        "query_count": 2,
+        "retrieval_count": 1,
+        "valid_evidence_count": 6,
+        "stale_evidence_count": 0,
+        "context_span_count": 5,
+        "context_truncated": false,
+        "repair_used": false,
+        "latency_ms": 41559.366,
+        "termination_reason": "provider_error",
+        "decision_rounds": 3,
+        "tool_calls": 2,
+        "visited_video_count": 8,
+        "visited_segment_count": 247,
+        "navigation_result_count": 8,
+        "evidence_candidate_dropped_count": 44
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "收藏内容未介绍“Shiliu-X9 量子检索协议”，所有提供的转录证据中均未提及该协议。",
+            "citation_ids": [
+              "citation_v1_7d3a2744b49826e4669c11c080493a5d03bf60336c0af38d25efdb5ee679fcbf",
+              "citation_v1_e3c55dc1f6f1f05d845d8d690c54636ffab3e305d396c9fc4526c70d2c525200",
+              "citation_v1_ad7768d78eb073a6f8f2c9cc7ee088e552a30ae07a3b51794f083f50bf660444",
+              "citation_v1_e59e3fa3e7eb5bb6d17bd18911388403fb7ba094aec79f3ffece64cf37316a9e",
+              "citation_v1_2457c7046b139a45b5ce665eb69555224012e19787e42bc844b0250edfc6e799"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_7d3a2744b49826e4669c11c080493a5d03bf60336c0af38d25efdb5ee679fcbf",
+            "video_title": "[开源] Agentic RAG项目实战",
+            "source_type": "ai",
+            "time_range": [
+              1.44,
+              229.87
+            ],
+            "quote_excerpt": "那我现在来简单介绍一下我的这个项目啊\n关于这些项目细节我先暂时不说了\n呃我们直接来启动一下看看吧\n首先启动一下我们的docker\nOK接下来呢去启动我们的服务呃\n这个项目结构我一会说一下\nOK了\n我们的项目已经启动完成\n直接进入我们的页面\n呃我给大家提前看一下\n这是我已经上传过的一些文档啊\n他主要做的是一个RG的一个系统吧\n呃怎么给大家看呢\n给大家看一下我之前预测的一些问题吧\n比如问他消费者权益保护法第七条之甚\n他会先检索知识库\n然后分块检索\n然后什么合并\n然后检索完成评估下这个文档评估通过之后\n他就会输出我们的答案是流式输出的啊\n然后这里检索过程呢也是直观的表达出来了\n然后呢再问一些复杂的问题吧\n我看看有没有复杂的问题\n唉这个问题很复杂啊\n我们直接来问他一下这个复杂的问题\n看他怎么回答\n额这个复杂的问题他也是评估相关性通过了\n假如这里评估相关性\n它不通过的话\n他会进行一次额查询重写也是有三种策略的\n对他进行查回查询重写的呃\n这个我在我的项目里也是写的\n有\n比如说呃就这两种\n一种是steve back\n一种是这个假设文档嵌入两种方法\n然后也是通过一个路由选择的\n然后回到我们这里\n他已经",
+            "jump_url": "https://www.bilibili.com/video/BV1vQwJzTEdz?t=1"
+          },
+          {
+            "citation_id": "citation_v1_e3c55dc1f6f1f05d845d8d690c54636ffab3e305d396c9fc4526c70d2c525200",
+            "video_title": "Agent Memory竟然能用操作系统来实现：MemoryOS【论文精读】",
+            "source_type": "ai",
+            "time_range": [
+              1738.34,
+              1858.27
+            ],
+            "quote_excerpt": "所以我们的段一他的这个记忆是越牢固的\n那么我们的这个热力值呢就是对应的这个越多\n所以说我们段一有十页面\n那么它的interaction就是越大的\n那么l interaction就是这么来的\n然后n visit就是我们检索这个段的时候\n对应的次数次数好\n然后以上就讲完了\n我们整个更新机制\n最后我们再讲了一下\n我们尝试记忆是怎么更新的\n因为我们会发现呢\n短时到终始终始到常识\n然后我们常识不可能是一个无限存储的向量\n或者一个库的\n我们常识也会有遗忘的\n所以他怎么去移换这个蚕丝记忆呢\n它主要也是用了一个先进先出的机制\n然后他设置了一下\n就是呃我记得他的原论文好像是提到了\n在实验设置中提到了有100条吧\n一百一百条常识记忆\n然后100条常识记如果超过了这个数量的话\n那么我们就用先进先出的法则\n把这个最老的一个记忆弹出去\n那么以上就是我们常识记忆的更新嗯\n然后有一些具体的细节呢\n我们等会再总结中讲吧\n最后是我们记忆的检索\n那我们检索就非常简单了\n那么就是基于这个query\n去检索我们的短时记忆\n中时记忆和长时记忆\n对不对\n然后通过一个检索算子\n然后具体来说呢\n短时记忆的检索就是把所有的对话页丢进去",
+            "jump_url": "https://www.bilibili.com/video/BV1oa6uBXE8J?t=1738"
+          },
+          {
+            "citation_id": "citation_v1_ad7768d78eb073a6f8f2c9cc7ee088e552a30ae07a3b51794f083f50bf660444",
+            "video_title": "Agent Memory竟然能用操作系统来实现：MemoryOS【论文精读】",
+            "source_type": "ai",
+            "time_range": [
+              2433.47,
+              2552.93
+            ],
+            "quote_excerpt": "其实就是用户发出一个query\n我系统从这三个方面这三个记忆里面去检索额\n短期记忆检索其实就是把N个对话丢进去\n也就是七个对话\n然后中期记忆呢它其实是两阶段吧\n首先是检索段嗯\n通过query和segment摘要计算一个相似度\n然后选出top m个段\n比如找到你旅游的这个段或者旅游饮食\n然后玩乐这是几个段\n然后从这所有的段里面呢\n再细化查找top k个最相关的具体的对话页\n然后呃最后这个长期记忆的检索呢\n就是通过这个语义向量\n从我们的右侧user的知识库和这个agent的特征里面\n检索大概N条这个事实或偏好\n然后把最后做一个生成\n生成的话其实就prom的组装嘛\n把我们检索到的三部分就是短期记忆\n中期记和长期记忆\n以及我们最近的一个问题\n然后拼接成PROMP\n最后未给大模型做一个推理\n那么这样就保证了我们的连贯和个性化\n最后问题四的话其实不太重要了\n但是因为本人最开始不是做N2P的\n所以查了一些比较额表格相关的一些知识吧\n最后看了一下这个单跳多跳\n我个人认为比较有意思\n首先呃这其实是推理里面的一个概念\n单挑的话就是只检索一条问题呃\n只检索一次历史记录就能够回答\n就相当于只做一次记忆提取\n比",
+            "jump_url": "https://www.bilibili.com/video/BV1oa6uBXE8J?t=2433"
+          },
+          {
+            "citation_id": "citation_v1_e59e3fa3e7eb5bb6d17bd18911388403fb7ba094aec79f3ffece64cf37316a9e",
+            "video_title": "[开源] RAG 项目框架及源码详解",
+            "source_type": "ai",
+            "time_range": [
+              0.4,
+              119.64
+            ],
+            "quote_excerpt": "大家好呀\n这期视频呢我就给大家讲解一下\n我这个项目的整体架构\n还有一些核心代码的梳理吧\n然后这个呢也是AI帮我做的一个presentation呃\n前面这些点都是看一看得了\n然后呢这个其实我项目比较关键的一点\n就是用了这个long graph的一个呃\n状态机的一个节点的这个过程\n它还有一个grader裁判模型\n然后呢他会去检索\n他会去判断你检索的内容和你这个想要的答案\n就是你的问题是否是完完全相关的\n如果不相关的话\n他就会去让你去重写这个节点\n如果是相关的话\n那就去生成\n然后呢这一部分呢是embedding部分啊\n我们用了一个密集检索和稀疏矩阵检索的\n两部分的一个混合检索\n然后通过RF把它们融合在一起\n这个是另一个创新点\n就是使用了一个unto merge的一个trunk\n它可以把文档被分割成三个层级\n然后呢最细层级的L3进入限量库\n然后如果命中的话\n他就会去顺藤摸瓜唤醒剩下的L2\nL1来补足的\n来补足上下文\nOK然后我们可以看一下这个架构了\n首先呢是一个状态图啊\n用户先提问\n然后呢进行一个检索\n进行一个混合检索\n检索完之后呢进行一个打分\n如果不相关的话呢\n就会进行一个查询重写\n查询重写",
+            "jump_url": "https://www.bilibili.com/video/BV1wMQjBCEpZ?t=0"
+          },
+          {
+            "citation_id": "citation_v1_2457c7046b139a45b5ce665eb69555224012e19787e42bc844b0250edfc6e799",
+            "video_title": "Agent Memory竟然能用操作系统来实现：MemoryOS【论文精读】",
+            "source_type": "ai",
+            "time_range": [
+              1973.85,
+              2091.68
+            ],
+            "quote_excerpt": "这个应该是闭源的吧\n然后一个千万2.57B\n额相当于是一个比较小一点的开源模型\n然后最后呢他还在这个单跳\n多跳和这个时序\n以及这个开放域的一些问答上面\n取得了很好的效果\n呃实验部分的话\n我想是后面基于我个人的一些实验效果\n来跟大家讲\n我觉得这样会比较嗯清晰懂一些\n所以本人将直接先给大家跳到这个呃消融吧\n然后消融的话主要是这个图\n就是他如果没有这个短时记忆和长时记忆\n没有这个dialog chain\n或者甚至没有这个MEMORROS\n那么它的记忆效果就特别差\n那么就是做了一个每个模块的一个分解吧\n然后证明了每个模块的作用\n最后做了一个参数实验\n就是这个K的参数嗯\n然后这个K的参数的话呃\n在哪里\n在这里就在这个位置\n对不同数据集不同的这个做了一个K\n那么大家可以发现K取十的时候\n其实已经达到了一个非常不错的效果\n所以最后作者也是把K好像是取到了十吧\n对就是检索十个相关的页面\n对这个中石记忆检索十个页\n十个对话页\n然后我们最后来看一下这个conclusion\nconclusion呢写的我个人感觉比较中规中矩\n就是讲的是整个故事的一个总结\n就是受到了这个记忆管理机制的一个启发呢\n我参考了操作系",
+            "jump_url": "https://www.bilibili.com/video/BV1oa6uBXE8J?t=1973"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "no_evidence_quantum_protocol",
+      "category": "no_reliable_evidence",
+      "query": "收藏内容是否介绍了“Shiliu-X9 量子检索协议”？",
+      "mode": "fast",
+      "demo_role": "honest_insufficient",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "没有生成 Answer Block 或 Citation，并直接说明收藏证据不足；insufficient/answer_ready 与限制文案一致，避免了对虚构协议作答。"
+      },
+      "run_id": "ask_run_3294233e209249ab84d5d0630c982152",
+      "status": "insufficient",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 0,
+      "citation_count": 0,
+      "limitations": [
+        "收藏的内容中未提及“Shiliu-X9 量子检索协议”。",
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 51133.003,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 88,
+          "completion_tokens": 87,
+          "total_tokens": 175,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 88
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8041,
+            "completion_tokens": 2339,
+            "total_tokens": 10380,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2236
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7785,
+            "latency_ms": 37149.7857500799,
+            "finish_reason": "stop",
+            "retry_count": 0
+          },
+          {
+            "prompt_tokens": 8036,
+            "completion_tokens": 232,
+            "total_tokens": 8268,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 187
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 8036,
+            "latency_ms": 7365.044500213116,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": true,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 59,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": true,
+        "latency_ms": 51133.003,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [],
+        "citations": []
+      }
+    },
+    {
+      "case_id": "partial_universal_claim",
+      "category": "partial_support",
+      "query": "这些视频是否证明自动上下文压缩在所有 Agent 任务中都更好？",
+      "mode": "fast",
+      "demo_role": "honest_partial",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "partial",
+        "usefulness": "pass",
+        "coverage": "partial",
+        "status_honesty": "pass",
+        "notes": "“不能证明所有任务都更好”的结论由记忆压缩错误材料支持，但第二条权限管理引用与结论关联弱；答案正确反驳全称命题，并用 partial/limitations 限定覆盖范围。"
+      },
+      "run_id": "ask_run_50827bb688004a0bb3bfbd442bd04b09",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 1,
+      "citation_count": 2,
+      "limitations": [
+        "视频讨论未涵盖所有Agent任务场景，证据仅基于特定案例分析。",
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 41982.851,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 87,
+          "completion_tokens": 85,
+          "total_tokens": 172,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 87
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8016,
+            "completion_tokens": 1729,
+            "total_tokens": 9745,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1535
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7760,
+            "latency_ms": 30378.0539999716,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 80,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 41982.851,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "这些视频没有证明自动上下文压缩在所有Agent任务中都更好。证据显示，自动上下文压缩存在错误分类和丢条件等问题，可能导致经验总结失真，并非在所有场景下都优于其他方法。",
+            "citation_ids": [
+              "citation_v1_5a701b7955568f5f16896f90def2388f6f5f3de7365678b892c0808b237acf9a",
+              "citation_v1_331a8d907acbadbba2cb6c63f4b2af449b23b0e3a79de3bc58338b41c875faed"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_5a701b7955568f5f16896f90def2388f6f5f3de7365678b892c0808b237acf9a",
+            "video_title": "Agent 记忆越总结越有害？三种错误机制",
+            "source_type": "ai",
+            "time_range": [
+              117.48,
+              236.73
+            ],
+            "quote_excerpt": "哪怕该停下来打开商品\nagent也更想继续翻页\n第一种机制叫分错组\n整合记忆之前模型要先判断哪些经历算同一类\n先分对组\n后面才可能总结对\n如果一堆经历本来就不是一类\n后面再怎么压缩\n也很难压出好经验\n模型并不是完全不会分组\n如果给模型一点自主权\n让他自己决定怎么管理记忆\n他最后能慢慢形成一个比较干净的精力库\n里面能覆盖六类问题\n但这个过程需要时间\n如果系统逼他每一步都总结\n每次又只给他一小批新例子\n他就很容易急着下结论\n结果就是不同类型的问题被合并成同一条记忆\n论文\n把这种错误叫错误分类\n说人话就是把不同科目的错题混在一起\n硬写一条通用解法\n几何题\n数独题\n图形裁剪题看起来都是找规律\n但底层解法完全不同\n题型还没分清\n就开始总结经验\n这条经验从第一步就歪了\n第二种机制是丢条件\n就算分组分对了\n压缩文字时还是会出问题\n每总结一次记忆都会被磨平一点\n像一件事\n被人反复转述\n第一遍还有时间地点\n前提转述几轮以后只剩下一句\n听起来很通用的话\n一条经验真正有用\n常常靠的是它的使用条件\n比如W8\n原本应该是在搜索结果不匹配时可以翻下一页\n但压缩以后很容易变成继续点next找更多商品\n少了不匹配时\n",
+            "jump_url": "https://www.bilibili.com/video/BV1pCGJ6ZEDH?t=117"
+          },
+          {
+            "citation_id": "citation_v1_331a8d907acbadbba2cb6c63f4b2af449b23b0e3a79de3bc58338b41c875faed",
+            "video_title": "Claude Code 源码分析与复刻实现",
+            "source_type": "ai",
+            "time_range": [
+              1267.17,
+              1501.51
+            ],
+            "quote_excerpt": "就是权限最这个最紧的那个人会赢\n他这个propermission mode要要要踹很多地方\n比如说你当前运行的模式\n你是plan模式啊\n还是auto模式\n还是bypass permission模式对吧\n这个时候涉及到权限的确认\n然后呢有的时候你在hook里面呃\n会设置权限\n然后classifier这个是它内部定义好了\n就是要用用模型来分析某些工具是不是需要人类确认\n是不是需要全信确认\n所以这两个完全来路不同\n然后第三个呢是bash classifier\n就是最危险的是bash命令\n也就是说你在命令行里面\n其实它可以运行任何的这种batch命令对吧\n它可以RM啊\nremove the whole folder啊\n这样的话呢就是危险的命令\n这种命令是默认这肯定是不准许执行的嗯\n还有规则引擎就是事先写好的一些规则对吧\n我们写好就是我们在这个cloud的点CONJASON里面定义的那些CONFIG\n有一些你可以让执行\n有些不执行\n这是以写死的引擎\n然后呢\n所以这些东西在一起要通过一个atomic竞争的关系\n看哪个风险\n这个哪个是把关把最好的\n然后去执行\n那么这个是权限竞争\n就是权限管理这个方向",
+            "jump_url": "https://www.bilibili.com/video/BV15HXCBkEKY?t=1267"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "single_topic_context_compression",
+      "category": "direct_fact_or_single_topic",
+      "query": "收藏视频如何解释上下文压缩，它主要解决什么问题？",
+      "mode": "fast",
+      "demo_role": null,
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "partial",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "上下文暴涨、压缩与隔离的主干解释有直接材料，第三条权限管理引用与回答不相关；核心问题已覆盖，partial 与候选证据截断诚实一致。"
+      },
+      "run_id": "ask_run_44daf9a0b1d349b98ed867eee1e862e5",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 1,
+      "citation_count": 3,
+      "limitations": [
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 37954.853,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 85,
+          "completion_tokens": 75,
+          "total_tokens": 160,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 85
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8202,
+            "completion_tokens": 1352,
+            "total_tokens": 9554,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1098
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7946,
+            "latency_ms": 25879.400415811688,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 80,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 37954.853,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "navigation_not_cited": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "在收藏的视频中，上下文压缩指的是在长对话或复杂任务中，当上下文信息过多时，通过丢弃不重要的部分（如工具调用的原始结果、中间过程数据），只保留关键信息，从而缩减上下文长度。它主要解决上下文暴涨（context explosion）带来的问题，例如上下文过长导致注意力稀释、模型智力下降、噪音干扰决策等。",
+            "citation_ids": [
+              "citation_v1_d008af8a6c6cba110dc27bac2712ecae140c78bd9c907bbb84fadad4abbf2a14",
+              "citation_v1_e55e6bba811bd4d20a708cebeb9c95d7f51304eeecabf7fcf3b64d8882f7c84c",
+              "citation_v1_331a8d907acbadbba2cb6c63f4b2af449b23b0e3a79de3bc58338b41c875faed"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_d008af8a6c6cba110dc27bac2712ecae140c78bd9c907bbb84fadad4abbf2a14",
+            "video_title": "Claude Code 源码分析与复刻实现",
+            "source_type": "ai",
+            "time_range": [
+              231.23,
+              350.55
+            ],
+            "quote_excerpt": "不是把工具的名字和一个一句话的描述扔给他\n然后呢让模型看一下啊\n那我这100个里面我可能要调用第二个和第12个\n然后呢再去把第二个和第12个的工具的详细的内容\n再分别动态拿出来啊\n这种东西就是harness\n还有呃记忆对吧\n记忆你多少轮\n这个过程当中\n用户的一些话语\n比如说强调了这个东西要记住他就写入本地的markdown文件\n然后记忆如果多了行数太大\n那记忆文件太大怎么办\n再把记忆文件抽成memory点MD呃\n每一行都是一个索引\n然后这个索引呢指向了一个另外一个文件\n那个文件那个markdown文件是整体的记忆的一个完整的内容\n所以他不断的就做这个抽象和索引都干的这个事儿\n再有就是上下文压缩\n随着你这个对话越来越长\n你越来越多的时候嗯\n如何缓解上下文这个暴涨的问题呢\n嗯三个方向啊\n第一个方向是最简单的模型\n现在已经从256K\n128K已经变到一个million了\n所以它比较大啊\n这是最暴力的方式\n第二个方式呢就是嗯肯定是超过上下文以后做压缩\n就你有很多很多轮长对话之后\n他做一个压缩\n这个压缩呢也并不是一个非常简单的\n把所有的对话128K的对话扔给达模型\n你做个简单压缩\n这个里面把重要",
+            "jump_url": "https://www.bilibili.com/video/BV15HXCBkEKY?t=231"
+          },
+          {
+            "citation_id": "citation_v1_e55e6bba811bd4d20a708cebeb9c95d7f51304eeecabf7fcf3b64d8882f7c84c",
+            "video_title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+            "source_type": "ai",
+            "time_range": [
+              1050.0,
+              1401.32
+            ],
+            "quote_excerpt": "但是最终却发现退回到单agent的架构设计\n然后去进一步优化提示词\n优化工具等描述\n反而会达到更好的效果\n所以他在这里总结了三种情况下使用多agent架构效果会优于单agent的架构\n如果你不属于这三种情况\n可能得慎重考虑\n第一种情况就是你的这个业务中会存在上下文爆炸\n或者上下文污染等等问题\n这个会导致模型智力的下降\n那么就需要通过多agent多个子agent来相互隔离上下文\n然后第二个情况就是当你的这个任务可以并行运行的时候\n可以通过多agent的架构来提速\n第三个就是当你拆分不同的子agent\n可以去改善工具决策的效果\n或者能够让任务更加聚焦\n这些情况下可能使用多一阵的架构会更好\n与此同时\nENTHROPIC还提出了一个常见的工程实现的错误\n就是他发现这些开发者们特别喜欢\n就是按照职能工作类型来划分不同的子类整合\n就像刚刚说的一个A真的写代码\n一个测试\n一个review\n但是在这种模式下\nagent之间大量的tokens都消耗在了解释上下文\n解释彼此的工作上面\n所以他提出就是说\n也就是说谁掌握信息\n谁就把这一块负责到底\n只有当这个任务需要的背景信息\n上下文知识完全不同的时候\n可能我",
+            "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=1050"
+          },
+          {
+            "citation_id": "citation_v1_331a8d907acbadbba2cb6c63f4b2af449b23b0e3a79de3bc58338b41c875faed",
+            "video_title": "Claude Code 源码分析与复刻实现",
+            "source_type": "ai",
+            "time_range": [
+              1267.17,
+              1501.51
+            ],
+            "quote_excerpt": "就是权限最这个最紧的那个人会赢\n他这个propermission mode要要要踹很多地方\n比如说你当前运行的模式\n你是plan模式啊\n还是auto模式\n还是bypass permission模式对吧\n这个时候涉及到权限的确认\n然后呢有的时候你在hook里面呃\n会设置权限\n然后classifier这个是它内部定义好了\n就是要用用模型来分析某些工具是不是需要人类确认\n是不是需要全信确认\n所以这两个完全来路不同\n然后第三个呢是bash classifier\n就是最危险的是bash命令\n也就是说你在命令行里面\n其实它可以运行任何的这种batch命令对吧\n它可以RM啊\nremove the whole folder啊\n这样的话呢就是危险的命令\n这种命令是默认这肯定是不准许执行的嗯\n还有规则引擎就是事先写好的一些规则对吧\n我们写好就是我们在这个cloud的点CONJASON里面定义的那些CONFIG\n有一些你可以让执行\n有些不执行\n这是以写死的引擎\n然后呢\n所以这些东西在一起要通过一个atomic竞争的关系\n看哪个风险\n这个哪个是把关把最好的\n然后去执行\n那么这个是权限竞争\n就是权限管理这个方向",
+            "jump_url": "https://www.bilibili.com/video/BV15HXCBkEKY?t=1267"
+          }
+        ]
+      }
+    }
+  ]
+}

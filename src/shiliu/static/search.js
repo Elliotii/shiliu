@@ -1,6 +1,8 @@
 (() => {
   const root = document.querySelector('[data-search-page]');
   if (!root) return;
+  const evidenceUI = window.ShiliuEvidenceUI;
+  if (!evidenceUI) return;
 
   const form = root.querySelector('[data-search-form]');
   const queryInput = form.elements.q;
@@ -26,35 +28,12 @@
     hybrid: '结合关键词和语义结果',
   };
   const readingLabels = {unread: '未阅', in_progress: '正在阅读', read: '已阅'};
-  const sourceLabels = {human: '人工字幕', ai: 'AI 字幕', asr: 'ASR 转录'};
   const preciseSources = new Set(['exact_query_phrase', 'exact_entity_term', 'keyword_overlap']);
-
-  const element = (tag, className, text) => {
-    const node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined && text !== null) node.textContent = String(text);
-    return node;
-  };
+  const {element, formatDuration, formatTime, renderEvidenceCard} = evidenceUI;
 
   const showState = name => {
     Object.entries(states).forEach(([key, node]) => { node.hidden = key !== name; });
     if (name !== 'success') resultList.replaceChildren();
-  };
-
-  const formatTime = value => {
-    const seconds = Math.max(0, Math.floor(Number(value) || 0));
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const rest = seconds % 60;
-    return hours ? `${hours}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}` : `${minutes}:${String(rest).padStart(2, '0')}`;
-  };
-
-  const formatDuration = value => {
-    const seconds = Math.max(0, Math.round(Number(value) || 0));
-    const minutes = Math.floor(seconds / 60);
-    const rest = seconds % 60;
-    if (!minutes) return `${rest}秒`;
-    return rest ? `${minutes}分${rest}秒` : `${minutes}分钟`;
   };
 
   const dateEpoch = (value, endOfDay = false) => {
@@ -121,36 +100,33 @@
     return {query: state.q, mode: state.mode, scope: state.scope, result_limit: 10, max_windows_per_video: 5, filters};
   };
 
-  const appendMeta = (container, text, className = '') => container.append(element('span', className, text));
+  const appendMeta = (container, text, className = '') => {
+    const item = document.createElement('span');
+    item.className = className;
+    item.textContent = text;
+    container.append(item);
+  };
 
   const renderWindow = (windowValue, id) => {
-    const section = element('section', 'evidence-window');
-    section.id = id;
-    const heading = element('div', 'window-heading');
-    heading.append(element('strong', '', `相关片段 ${formatTime(windowValue.window_start)}–${formatTime(windowValue.window_end)}`));
-    heading.append(element('span', 'window-duration', `持续 ${formatDuration(windowValue.duration)}`));
-    section.append(heading);
-    if (windowValue.chapter) {
-      section.append(element('p', 'chapter-label', `AI 章节：${windowValue.chapter.title || '未命名章节'}`));
-      if (windowValue.chapter.summary) section.append(element('p', 'chapter-summary', windowValue.chapter.summary));
-    }
-    section.append(element('p', 'window-excerpt', windowValue.excerpt || '该时间段暂无可显示的字幕摘录。'));
-    const footer = element('div', 'window-footer');
-    const tags = element('div', 'subtitle-tags');
-    (windowValue.subtitle_sources || []).forEach(source => tags.append(element('span', 'subtitle-tag', sourceLabels[source] || '字幕')));
-    footer.append(tags);
-    if (windowValue.jump_url) {
-      const precise = preciseSources.has(windowValue.jump_source);
-      const label = precise ? `从 ${formatTime(windowValue.jump_time)} 播放` : `从相关片段 ${formatTime(windowValue.jump_time)} 开始`;
-      const link = element('a', 'jump-link', label);
-      link.href = windowValue.jump_url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.dataset.jumpSource = precise ? 'precise' : 'fallback';
-      footer.append(link);
-    }
-    section.append(footer);
-    return section;
+    const precise = preciseSources.has(windowValue.jump_source);
+    return renderEvidenceCard({
+      tagName: 'section',
+      className: 'evidence-window',
+      id,
+      title: '相关字幕片段',
+      startTime: windowValue.window_start,
+      endTime: windowValue.window_end,
+      quote: windowValue.excerpt,
+      sourceTypes: windowValue.subtitle_sources || [],
+      durationText: `持续 ${formatDuration(windowValue.duration)}`,
+      contextLabel: windowValue.chapter ? `AI 章节（仅导航）：${windowValue.chapter.title || '未命名章节'}` : '',
+      contextSummary: windowValue.chapter?.summary || '',
+      jumpUrl: windowValue.jump_url,
+      jumpLabel: precise
+        ? `从 ${formatTime(windowValue.jump_time)} 播放`
+        : `从相关片段 ${formatTime(windowValue.jump_time)} 开始`,
+      jumpSource: precise ? 'precise' : 'fallback',
+    });
   };
 
   const renderResult = (result, index, warningVideoIds) => {
@@ -249,23 +225,23 @@
   };
 
   const renderFormalEvidence = evidence => {
-    const card = element('article', 'formal-evidence-card');
-    card.dataset.evidenceId = evidence.evidence_id;
-    const heading = element('div', 'formal-evidence-heading');
-    heading.append(element('h3', '', evidence.title_or_available_video_metadata || `Video ${evidence.video_id}`));
-    heading.append(element('span', 'evidence-range', `${formatTime(evidence.start_time)}–${formatTime(evidence.end_time)}`));
-    card.append(heading, element('p', 'authoritative-quote', evidence.quote_text));
-    const meta = element('dl', 'evidence-identity');
-    [
-      ['Evidence ID', evidence.evidence_id],
-      ['Segment IDs', (evidence.segment_ids || []).join(', ')],
-      ['Source', `${evidence.source_language || 'und'} · ${evidence.source_type || 'unknown'}`],
-      ['Selector', evidence.selector_method],
-    ].forEach(([term, value]) => {
-      meta.append(element('dt', '', term), element('dd', '', value || '—'));
+    return renderEvidenceCard({
+      className: 'formal-evidence-card',
+      evidenceId: evidence.evidence_id,
+      videoId: evidence.video_id,
+      eyebrow: 'AUTHORITATIVE TRANSCRIPT',
+      title: evidence.title_or_available_video_metadata || `Video ${evidence.video_id}`,
+      startTime: evidence.start_time,
+      endTime: evidence.end_time,
+      quote: evidence.quote_text,
+      sourceType: evidence.source_type,
+      metadata: [
+        ['Evidence ID', evidence.evidence_id],
+        ['Segment IDs', (evidence.segment_ids || []).join(', ')],
+        ['Source', `${evidence.source_language || 'und'} · ${evidence.source_type || 'unknown'}`],
+        ['Selector', evidence.selector_method],
+      ],
     });
-    card.append(meta);
-    return card;
   };
 
   const renderPipeline = data => {

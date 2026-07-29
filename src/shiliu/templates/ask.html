@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}拾流 · 问答{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/ask.css?v=1">{% endblock %}
+{% block content %}
+<main class="ask-shell" data-ask-page>
+  <header class="ask-hero">
+    <p class="eyebrow">ASK YOUR COLLECTION</p>
+    <h1>问收藏，答案回到原字幕。</h1>
+    <p class="muted">快速回答适合明确问题；深入搜索会先导航视频，再逐步读取权威字幕证据。</p>
+  </header>
+
+  <form class="ask-form" data-ask-form novalidate>
+    <label class="ask-query-label" for="ask-query">你想了解什么？</label>
+    <div class="ask-query-row">
+      <textarea id="ask-query" name="q" rows="3" maxlength="500" placeholder="例如：MCP 如何连接模型与外部工具？"></textarea>
+      <button class="primary ask-submit" type="submit" data-ask-submit>开始回答</button>
+    </div>
+
+    <fieldset class="mode-selector" data-mode-selector>
+      <legend>回答方式</legend>
+      <label class="mode-option">
+        <input type="radio" name="mode" value="fast" checked>
+        <span><strong>快速回答</strong><small>适合明确事实、概念和单主题问题</small></span>
+      </label>
+      <label class="mode-option">
+        <input type="radio" name="mode" value="deep">
+        <span><strong>深入搜索</strong><small>适合跨视频比较、复杂问题或需要逐步寻找证据的问题</small></span>
+      </label>
+    </fieldset>
+
+    <details class="ask-scope" data-ask-scope>
+      <summary>限定范围 <span data-filter-count></span></summary>
+      <div class="ask-filter-grid">
+        <label for="ask-folder">收藏夹
+          <select id="ask-folder" name="folder_id">
+            <option value="">全部收藏夹</option>
+            {% for source in sources %}<option value="{{ source.folder_id }}">{{ source.folder_title }}</option>{% endfor %}
+          </select>
+        </label>
+        <label for="ask-reading">阅读状态
+          <select id="ask-reading" name="reading_state">
+            <option value="">全部</option>
+            <option value="unread">未阅</option>
+            <option value="in_progress">正在阅读</option>
+            <option value="read">已阅</option>
+          </select>
+        </label>
+        <label for="ask-marked">关注
+          <select id="ask-marked" name="marked">
+            <option value="">全部</option>
+            <option value="true">仅关注</option>
+            <option value="false">未关注</option>
+          </select>
+        </label>
+        <label for="ask-uploader">UP 主（名称包含）
+          <input id="ask-uploader" name="uploader_contains" type="text" maxlength="200">
+        </label>
+        <label for="ask-from">收藏时间从
+          <input id="ask-from" name="favorite_time_from" type="date">
+        </label>
+        <label for="ask-to">收藏时间至
+          <input id="ask-to" name="favorite_time_to" type="date">
+        </label>
+        <div class="ask-filter-checks">
+          <label><input name="archived" type="checkbox"> 包含归档</label>
+          <label><input name="ignored" type="checkbox"> 包含忽略</label>
+        </div>
+        <button class="ghost" type="button" data-clear-filters>清除限定</button>
+      </div>
+    </details>
+  </form>
+
+  <section class="ask-state ask-idle" data-idle-state>
+    <h2>同一份证据，两种寻找方式</h2>
+    <p>回答只引用当前版本的原字幕或 ASR；标题、简介和 AI 总结只帮助深入搜索导航。</p>
+    <div class="ask-examples" aria-label="问题示例">
+      <button type="button" data-example-query="MCP 是什么，它如何连接模型与外部工具？">MCP 如何连接工具？</button>
+      <button type="button" data-example-query="不同视频如何讨论上下文管理的方法？">比较上下文管理方法</button>
+    </div>
+    <a class="search-evidence-link" href="/search">只想自己查证？前往搜索证据</a>
+  </section>
+
+  <section class="ask-state ask-loading" data-loading-state hidden aria-live="polite">
+    <span class="loading-mark" aria-hidden="true"></span>
+    <div>
+      <h2 data-loading-title>正在检索字幕并生成有依据的回答……</h2>
+      <p>已等待 <strong data-elapsed-time>0 秒</strong></p>
+      <small>页面只显示真实等待时间；离开页面会忽略本次结果，但不代表服务器端运行已取消。</small>
+    </div>
+  </section>
+
+  <section class="ask-state ask-error" data-error-state hidden role="alert">
+    <p class="result-kicker">REQUEST ERROR</p>
+    <h2 data-error-title>回答请求失败</h2>
+    <p data-error-message>请稍后重试。</p>
+    <div class="state-actions">
+      <button class="primary" type="button" data-retry-ask>重试</button>
+      <button class="ghost" type="button" data-edit-question>修改问题</button>
+    </div>
+  </section>
+
+  <section class="ask-result" data-result-state hidden>
+    <header class="result-header">
+      <div>
+        <p class="result-kicker">GROUNDED ANSWER</p>
+        <h2 data-result-title>回答</h2>
+      </div>
+      <span class="status-badge" data-status-badge></span>
+    </header>
+    <p class="termination-copy" data-termination-copy></p>
+    <div class="answer-blocks" data-answer-blocks></div>
+    <section class="limitations-panel" data-limitations-panel hidden>
+      <h3>限制与未覆盖内容</h3>
+      <ul data-limitations-list></ul>
+    </section>
+    <div class="continue-deep" data-continue-deep hidden>
+      <div><strong>需要继续查找？</strong><span>保留当前问题和限定范围，明确切换到深入搜索。</span></div>
+      <button class="primary" type="button" data-use-deep>使用深入搜索继续</button>
+    </div>
+
+    <section class="evidence-section" data-evidence-section>
+      <div class="section-heading">
+        <div><p class="result-kicker">AUTHORITATIVE EVIDENCE</p><h2>字幕证据</h2></div>
+        <span data-evidence-count></span>
+      </div>
+      <div class="citation-groups" data-citation-groups></div>
+    </section>
+
+    <section class="user-trace" data-user-trace>
+      <div class="section-heading">
+        <div><p class="result-kicker">RUN SUMMARY</p><h2>本次回答如何完成</h2></div>
+      </div>
+      <dl class="trace-metrics" data-trace-metrics></dl>
+      <ol class="action-timeline" data-action-timeline hidden></ol>
+    </section>
+
+    <details class="developer-trace" data-developer-trace>
+      <summary>开发者 Trace <span>按需读取，不影响已经返回的回答</span></summary>
+      <div class="developer-trace-body" data-developer-trace-body>
+        <p>展开后读取本次内存 Trace。</p>
+      </div>
+    </details>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/ask.js?v=2"></script>{% endblock %}

@@ -621,3 +621,202 @@ Repair 可能成为完整回答的一部分。Deep Search 如果把全部时间�
   但 Fast 默认行为和历史 Provider API 语义必须保持不变。
 - 该包络是 Vertical Slice 的第一版安全值，不是生产 SLA；调整必须依据真实
   延迟、成本与回答质量，并由主 Session 记录。
+
+## D-020 — `/ask` 默认 Fast，Deep 只由用户显式选择或继续
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: goal_3_product_behavior
+```
+
+**决定**
+
+- `/ask` 默认选择“快速回答”。
+- V4 不自动判断或切换 Fast/Deep。
+- Fast 返回 `partial` 或 `insufficient` 时，展示“使用深入搜索继续”，并保留
+  原 Query 和筛选条件。
+- 顶部产品导航将 `/ask` 表达为“问答”，保留 `/search` 作为“搜索证据”。
+
+**理由**
+
+Fast 是成本和交互上更适合默认使用的完整 Grounded RAG；Deep 是用户可理解的
+显式深度选择。自动升级会隐藏成本、延迟和运行语义，也会提前引入尚未被真实
+数据证明必要的 Adaptive Router。
+
+**未采用**
+
+- Deep 作为默认模式。
+- Fast 失败后后台自动升级。
+- 在 V4 建设 Fast/Deep Adaptive Router。
+
+**影响**
+
+Goal 3 必须实现显式模式选择和 Fast-to-Deep 继续操作；两条路径仍使用同一个
+Ask Contract 和结果页面。
+
+## D-021 — Goal 3 使用默认可见用户 Trace 与折叠开发者 Trace
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: goal_3_trace_projection
+```
+
+**决定**
+
+- 用户 Trace 摘要默认可见，使用产品语言展示模式、耗时、Evidence、搜索范围
+  和停止原因。
+- 开发者 Trace 默认折叠，按需从现有 `/api/ask/traces/{run_id}` 读取。
+- Deep 可以展示有界 Tool/Observation 行动时间线，但不得展示隐藏推理、完整
+  Prompt 或无界字幕正文。
+- Deep Policy 使用静态 Version 并记录在 Trace，用于复现实验；不建设 Skill
+  Registry、动态 Policy Loader 或 Policy Platform。
+- Goal 3 不增加 Trace 持久化。
+
+**理由**
+
+用户需要知道答案依据和搜索为何停止，开发者需要诊断成本、预算和失败；两者
+信息密度和安全边界不同。双投影能够复用同一运行数据而不把内部 Trace 直接
+暴露为产品界面。
+
+**影响**
+
+Trace 文案和投影是 Goal 3 的薄展示适配。Token Streaming、SSE/WebSocket
+基础设施、持久化 Trace 和通用 Observability Dashboard 继续延后。
+
+## D-022 — Goal 3 使用六条普通真实 Query 的轻量 Eval
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: goal_3_lightweight_eval
+```
+
+**决定**
+
+Goal 3 初始保留六条普通真实 Query，覆盖：
+
+- 两条明确事实或单主题问题；
+- 一条需要字幕上下文的问题；
+- 一条跨视频比较问题；
+- 一条只有部分支持的问题；
+- 一条没有可靠 Evidence 的问题。
+
+Fast 运行全部 Case；Deep 运行复杂、跨视频和无证据 Case，并抽取一条简单
+问题作为模式对照。每个 Case 保留确定性合同/Citation/Identity/Version/
+预算检查、Latency/Usage/Truncation/Dropped Evidence，以及轻量人工
+Supportedness、Usefulness、Coverage 和 Status Honesty 结论。
+
+**理由**
+
+Goal 3 需要以真实失败决定是否优化 Navigation、Context、Selection 或 Agent
+Action，但六条样本不足以支撑生产 SLA、单一总分或大型 Acceptance Gate。
+逐 Case 保留成功与失败，可以提供工程决策信号而不重建 V3.5 Eval 治理。
+
+**未采用**
+
+- Runtime Semantic Judge。
+- 大型 Frozen Eval、密封运行或多 Reviewer 审批链。
+- 通用 Eval Platform。
+- 从少量 Case 推导生产 SLA。
+
+**影响**
+
+只有重复出现且材料性影响回答的失败，才能触发 Goal 3 内的有界修正：
+Navigation 先修 Projection/Query；Candidate 丢失先调确定性包络；Action
+漂移先修 Prompt/Schema。Independent Index、Reranker、Native Tool Calling
+和 Automatic Context Compaction 仍需主 Session 重新授权。
+
+## D-023 — Goal 3 Demo 固定覆盖 Search、Fast、Deep 与诚实失败
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: goal_3_demo
+```
+
+**决定**
+
+V4 Demo 至少包含四段：
+
+1. `/search` 直接搜索原字幕证据；
+2. `/ask` Fast 返回带时间戳引用的回答；
+3. `/ask` Deep 展示 Navigation、Transcript Search/Window、Replanning 和共享
+   Grounded Answer；
+4. 对证据不足的问题展示 `partial` 或 `insufficient`，不编造答案。
+
+Demo 与 README 必须明确：AI 总结只帮助导航，原字幕是事实权威，Fast/Deep
+共享 Answer/Citation，系统在没有足够证据时会明确停止。
+
+**理由**
+
+四段路径同时展示 V4 的产品价值、两种模式差异、可核验 Grounding 和诚实失败
+边界，且无需建设额外 Demo 平台。
+
+**影响**
+
+Goal 3 最终报告必须保留 Demo Query、模式、结果、Citation 跳转、Trace 摘要、
+Latency/Usage 和已知限制；不得宣称未经验证的生产 SLA。
+
+## D-024 — Goal 3 Integration Acceptance 与 V4 完成
+
+```yaml
+status: accepted
+date: 2026-07-29
+scope: goal_3_acceptance_and_v4_completion
+```
+
+**决定**
+
+- 接受 Goal 3 的 `/ask` 产品入口、Fast/Deep 显式双模式、共享 Evidence UI、
+  用户/开发者 Trace、六 Case 轻量 Eval 和四段 Demo。
+- 接受主 Session 首次 Integration Review 发现的两个 Blocking Findings 已由
+  有界 Repair 关闭：
+  - 有限 Retrieval/Context 不得外推整个收藏库不存在；
+  - Eval Checker 必须真实计算 Contract、Status/Termination、Citation
+    Resolution 和当前字幕重建，不能硬编码或依赖空 Navigation 字段。
+- 接受经明确授权完成的 3 Fast + 1 Deep 定向复跑；原 6 Fast + 4 Deep 结果
+  保持不变，不为追求通过而重采样。
+- Goal Session 对 `single_topic_context_compression` 的一条 Citation 曾因只读
+  前 500 字 `quote_excerpt` 而误判为弱支持。主 Session 按当前 Source Version
+  和相同 Stable Citation ID 重建完整 232.71–467.59 秒字幕，确认其直接包含
+  “一旦触发自动压缩，性能就直接下降”，因此撤销该误判，不再触发 Prompt
+  调优或 Provider 重跑。
+- Goal 1、Goal 2、Goal 3 均通过主 Session Integration Acceptance，V4 状态
+  记为完成。
+
+**理由**
+
+Goal 3 已闭合用户可见产品入口、共享 Grounding 展示、诚实失败、轻量质量反馈
+和可演示路径。两个真实阻塞项已经通过共享 Answer Boundary、薄确定性保护和
+真实 Checker 修复；第二次 Integration Review 没有发现剩余代码阻塞。
+
+完整 Citation 与有界 Review Excerpt 具有不同用途。Excerpt 截断不能作为证据
+不存在的依据；需要判断材料性 Supportedness 时，应按 Stable Citation 重建当前
+权威字幕。该更正修复的是人工审阅事实，不需要新增 Runtime Semantic Judge。
+
+**接受但不升级为 V4 阻塞的观察**
+
+- 一个 Fast 全称问题安全但偏保守地返回 `insufficient`；
+- 一个 Fast 跨视频 Case 出现 Provider 长度失败；
+- Deep 和 Fast 的真实延迟、Token 成本仍较高；
+- Fast Context Truncation 频繁，但当前没有重复材料性证据证明关键事实稳定丢失；
+- Trace 仍为内存态，浏览器取消不等于服务器端取消。
+
+**未触发**
+
+- Independent Navigation Index；
+- Reranker；
+- Runtime Semantic Judge；
+- Automatic Context Compaction；
+- Native Tool Calling；
+- Fast/Deep 自动路由；
+- Streaming、Persistence、Memory、HITL 或新的 Eval/Trace 平台。
+
+**影响**
+
+- `V4_MASTER_STATE.md` 更新为三个纵向 Goal 完成；
+- Goal 3 的实现报告追加主 Session 第二次 Integration Review；
+- 后续 V5、生产 SLA、扩大 Eval 或 Deferred 能力需要新的用户讨论与授权，不
+  得作为 V4 遗留实现继续展开。

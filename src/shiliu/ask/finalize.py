@@ -181,6 +181,25 @@ class AnswerFinalizer:
                 context_truncated=context.truncated,
                 repair_used=answer.repair_used,
             )
+        if answer.draft.status == "insufficient":
+            limitations = [
+                "本次检索未找到足以回答该问题的可靠字幕证据"
+            ]
+            if context.truncated:
+                limitations.append("上下文预算已截断部分候选证据")
+            if termination_reason != "answer_ready":
+                limitations.append(
+                    _insufficient_stop_limitation(termination_reason)
+                )
+            return self._insufficient(
+                limitations=limitations,
+                termination_reason=termination_reason,
+                stale_count=len(stale_reasons),
+                trace=trace,
+                context_span_count=len(context.spans),
+                context_truncated=context.truncated,
+                repair_used=answer.repair_used,
+            )
         used_ids = {
             citation_id
             for block in answer.draft.answer_blocks
@@ -256,3 +275,16 @@ class AnswerFinalizer:
             repair_used=repair_used,
             trace=trace,
         )
+
+
+def _insufficient_stop_limitation(
+    termination_reason: TerminationReason,
+) -> str:
+    return {
+        "budget_exhausted": "本次搜索已达到确定性预算或时间边界",
+        "no_new_evidence": "继续搜索没有发现新的有效字幕证据",
+        "repeated_search": "后续搜索开始重复已有结果",
+        "provider_error": "模型服务未能生成可验证的结构化回答",
+        "evidence_unavailable": "相关线索的当前字幕证据不可用或已过期",
+        "answer_ready": "本次检索未找到足以回答该问题的可靠字幕证据",
+    }[termination_reason]

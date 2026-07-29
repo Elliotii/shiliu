@@ -2,9 +2,9 @@
 
 ```yaml
 document_role: current_state_authority
-status: goal_2_complete
-implementation_status: goal_2_complete
-current_phase: goal_3_planning_ready
+status: v4_complete
+implementation_status: goals_1_2_3_complete
+current_phase: main_session_integration_accepted
 last_updated: 2026-07-29
 ```
 
@@ -29,7 +29,11 @@ V4 继承 V0–V3.5 的真实 Retrieval、Evidence、Identity、Sufficiency 和�
 - 新增 `/ask`，显式提供“快速回答”和“深入搜索”两种模式。
 - 保留 `/search`，用于直接搜索证据库、手动查证、Debug 和 Demo 对比。
 - `/ask` 复用现有字幕证据卡、证据展开和 B 站时间点跳转能力。
+- `/ask` 默认选择“快速回答”；V4 不做 Fast/Deep 自动路由。
+- Fast 返回 `partial` 或 `insufficient` 时，提供保留原 Query 和筛选条件的
+  “使用深入搜索继续”显式操作，不自动升级。
 - Fast 与 Deep 使用同一个 Ask 输出合同、Answer/Citation 规则和 Evidence 展示层。
+- 用户 Trace 摘要默认可见；开发者 Trace 默认折叠并按需读取。
 - Fast 使用普通 Service Pipeline；Deep 使用最薄的 LangGraph `StateGraph`。
 - 最终事实证据默认只能来自当前 Source Version 可验证的原字幕 `TranscriptEvidenceSpan`。
 - 标题、简介、AI 总结、User Notes 和整理稿只用于导航、查询扩展与视频选择，不能作为首版 Citation 事实来源。
@@ -97,7 +101,7 @@ final_answer_reserve_seconds: 210
 |---|---|---|
 | Goal 1 — Complete Grounded RAG | `complete` | 从 Query Analysis、单次 Retrieval 物化、Evidence Context 到 Grounded Answer/Citation，完成 Fast 闭环 |
 | Goal 2 — Independent Agentic Search | `complete` | 从用户 Query 独立导航视频并渐进读取字幕，用有界 StateGraph 完成 Deep 闭环 |
-| Goal 3 — Product Integration、Lightweight Eval 与 Demo | `not_started` | 完成 `/ask`、共享证据展示、轻量离线 Eval、Trace 摘要和可演示闭环 |
+| Goal 3 — Product Integration、Lightweight Eval 与 Demo | `complete` | 完成 `/ask`、共享证据展示、轻量离线 Eval、Trace 摘要和可演示闭环 |
 
 不得新增独立的 Navigation、Provider、Citation、Trace、Eval、Framework 或 Persistence Goal。相关薄适配随上述纵向链完成。
 
@@ -119,6 +123,9 @@ final_answer_reserve_seconds: 210
 - 仅服务 DeepSeek V4 Runtime 的 Provider 薄扩展。
 - LangGraph 薄 Node 包装、状态进度事件和 Trace Summary。
 - 复用现有字幕证据卡、展开和 B 站跳转所需的前后端适配。
+- Search/Ask 共用的薄 Evidence Renderer、终止原因文案和 Deep Policy Version
+  Trace 字段。
+- 只服务 Goal 3 的小型 Eval Runner 与保留结果文件。
 
 ### `deferred`
 
@@ -131,6 +138,9 @@ final_answer_reserve_seconds: 210
 - LangGraph Cloud 与 LangSmith Runtime Dependency。
 - 通用 LLM SDK 或 Provider Platform。
 - User Notes 与整理稿作为 Citation 来源；二者首版导航优先级也较低。
+- Fast/Deep 自动路由、Trace 持久化、通用 Observability Dashboard。
+- 新建 SSE/WebSocket 进度基础设施；只有现有事件可无阻塞复用时才作为薄增强。
+- 通用 Skill/Policy Registry。
 
 ## 7. 已完成工作
 
@@ -149,6 +159,7 @@ final_answer_reserve_seconds: 210
   - `V4_DECISION_LEDGER.md`
   - `V4_G1_EXECUTION_PROMPT.md`
   - `V4_G2_EXECUTION_PROMPT.md`
+  - `V4_G3_EXECUTION_PROMPT.md`
 - Goal 1 — Complete Grounded RAG 已实现并通过主 Session Integration Review：
   - `POST /api/ask` Fast 模式；
   - Query Analysis 与最多两个 bounded rewrites；
@@ -181,67 +192,110 @@ final_answer_reserve_seconds: 210
     Blocking Finding 已完成有界修正。
 - Goal 2 Integration Review 的正式实现报告为：
   - `V4_G2_IMPLEMENTATION_REPORT.md`
+- Goal 3 的产品入口、默认模式、显式 Deep 升级、Trace 两层投影、轻量 Eval、
+  优化触发条件和四段 Demo 计划已讨论并批准。
+- Goal 3 — Product Integration、Lightweight Eval 与 Demo 已实现并通过主
+  Session 第二次 Integration Review：
+  - 新增 `/ask` 页面，Fast 默认、Deep 显式选择，Fast `partial` /
+    `insufficient` 可保留 Query 继续 Deep；
+  - `/ask` 与 `/search` 共用薄 Evidence Renderer、权威字幕卡、折叠展开、
+    Citation 定位和 Bilibili 时间跳转；
+  - 用户 Trace 默认可见，Developer Trace 默认折叠并按需读取；
+  - Deep Trace 保留 `v4-deep-policy-v1`、有界 Action、Observation、Usage、
+    Budget 和 Stop 信息，不暴露隐藏推理或完整 Prompt；
+  - 完成六条普通 Query、6 Fast + 4 Deep 的真实轻量 Eval、10/10 人工审阅和
+    Search/Fast/Deep/Honest Failure 四段 Demo；
+  - 主 Session 首次 Integration Review 发现有限样本被表述为全库否定，以及
+    Eval Checker 硬编码/空洞通过两个 Blocking Findings；
+  - 有界 Repair 收紧 Fast/Deep 共享 Answer Boundary，为 `insufficient`
+    增加范围诚实保护，将 Checker 改为真实 Schema、Status/Termination、
+    Citation Resolution 和当前字幕重建检查；
+  - 经明确授权只复跑 3 Fast + 1 Deep，Fast/Deep 无证据 Case 均不再外推全库
+    缺失，原 10 次结果保持不变；
+  - Goal Session 对一条 Citation 的初审因 500 字 excerpt 截断产生误判；主
+    Session 通过当前 Source Version 和 Stable Citation 重建确认完整字幕直接
+    支持 Answer Block，未触发额外 Provider 调用；
+  - 定向、默认全套、浏览器 Fixture、JavaScript、Compileall、Pip 和 Diff
+    验证通过，无剩余 Blocking Finding。
+- Goal 3 Integration Review 的正式实现报告和 Repair 结果为：
+  - `V4_G3_IMPLEMENTATION_REPORT.md`
+  - `eval/v4_goal3_repair_results.json`
 
 ## 8. 尚未完成
 
-- 尚未创建正式 `/ask` 页面；当前共享 Ask API 的 Fast 与 Deep 模式均已完成。
-- 尚未建立 V4 轻量离线 Eval 与端到端 Demo。
+V4 三个纵向 Goal 和高层完成条件均已完成。以下不属于 V4 未完成项：
+
+- Deferred 能力；
+- 生产 SLA；
+- 大规模质量评测；
+- V5 个性化、主动行为或长期 Agent Runtime。
 
 ## 9. 验证基线
 
-Goal 2 主 Session 第二次 Integration Review 独立复跑：
+Goal 3 实现与有界 Repair 最终验证：
 
 ```text
-24 passed（Goal 2 与 Integration Repair 定向）
-12 passed（Fast Ask API）
-75 passed（Retrieval / Evidence 定向）
-1446 passed，4 deselected（默认全套）
+97 passed（Goal 3 扩展定向）
+1457 passed，4 deselected（默认全套）
 1 existing Starlette/httpx deprecation warning
+Compileall、Pip Check、三个 JavaScript Check、git diff --check passed
 ```
 
-Goal 1 Session 使用真实 DeepSeek、真实字幕和本机数据库只读快照完成三条
-Fast Query Vertical Slice，实测延迟约 37.6–112.1 秒。Goal 2 Session 使用
-真实 DeepSeek、真实字幕、本机数据库临时只读快照和真实 Retrieval 完成
-Navigation-first、Focused Transcript、Window/Replanning 与失败路径运行。
-Goal 2 修正只改变 Deadline 和 Stop 边界，主 Session 已确认无需重复真实
-Provider 调用。
+主 Session 第二次 Integration Review 另独立复跑 57 项 Goal 3 Repair、Ask、
+Deep 和 Search 定向测试及默认完整测试集，结果通过。
 
-## 10. 当前已知风险与待实测项
+真实验证历史：
 
-- 视频级 Navigation Projection 已在 Goal 2 真实 Query 中成功工作，当前未发现
-  材料性 Recall 失败；仍需在 Goal 3 轻量 Eval 中扩大观察，失败后才考虑独立
-  Navigation Index。
+- Goal 1 使用真实 DeepSeek、真实字幕和本机数据库只读快照完成三条 Fast
+  Vertical Slice，实测延迟约 37.6–112.1 秒；
+- Goal 2 使用真实 DeepSeek、真实字幕、本机数据库临时只读快照和真实
+  Retrieval 完成 Navigation-first、Focused Transcript、Window/Replanning
+  与失败路径运行；
+- Goal 3 使用真实 DeepSeek 和临时数据库快照完成 6 Fast + 4 Deep 初始矩阵；
+- Goal 3 Repair 在明确授权下只复跑 3 Fast + 1 Deep，没有重采样；
+- 四条 Repair 结果的 10 项确定性检查全部通过，人工审阅完成 4/4；
+- 原 `eval/v4_goal3_results.json` SHA-256 保持
+  `65cc177742492459a5f3f3032f24b5d0495921dc7cc57b9a2fc4745c9e0d5b2e`。
+
+## 10. 当前已知边界与后续观察项
+
+- 视频级 Navigation Projection 在 Goal 2 Vertical Slice 和 Goal 3 轻量 Eval
+  中均未出现材料性 Recall 失败，不触发 Independent Navigation Index。
 - Source Version 变化后的 Stale Skip 已实现并测试；真实产品运行中的发生频率仍未知。
 - Goal 1 Vertical Slice 实测 Provider 延迟约 37.6–112.1 秒，Provider 是主要成本。
-- 三条真实 Fast Query 均发生 Context Truncation，Grounded Answer Prompt 约 7.7k Tokens。
-- Block 级 Citation 是否足够、是否需要更细的句子级结构，必须依据 Goal 1 真实失败决定。
-- 真实跨视频 Query 使用一次 Repair 后成功；Repair 频率和整体 Fail-closed 对有效回答保留率的影响仍需轻量 Eval。
+- Goal 3 六条真实 Fast 运行均发生 Context Truncation；当前没有重复证据证明
+  关键事实稳定落在预算之外，不触发 Reranker 或 Automatic Context Compaction。
+- 一条 Fast 跨视频结果因 Provider 长度上限诚实返回
+  `insufficient/provider_error`；复杂跨视频问题仍适合用户显式选择 Deep。
+- `partial_universal_claim` Repair 结果安全但偏保守地返回 `insufficient`；
+  这是 Usefulness/Coverage 的观察项，不是 Grounding 阻塞。
 - Goal 2 Window/Replanning 真实 Case 的四次 Agent Decision 共消耗 58,396
-  Tokens；Navigation Context 和 Policy 的成本效益需要在 Goal 3 轻量 Eval 中
-  观察。
+  Tokens；Deep 的 Provider 延迟与 Token 成本仍是明确产品边界。
 - Goal 2 当前单 Tool Evidence 包络在两个真实 Case 中分别丢弃 42、44 个
-  Candidate Span；只有反复证明关键证据被排除时，才重新考虑选择策略或
-  Reranker。
+  Candidate Span；Goal 3 未证明这造成重复材料性回答失败。
 - 真实无证据 Case 出现一次严格 Agent Action Schema 漂移；当前
-  Fail-closed 行为正确，发生频率仍需 Goal 3 观察。
+  `insufficient/provider_error` Fail-closed 行为正确。
 - LangGraph `1.2.10` 已与项目依赖共同通过完整测试；项目代码只使用低层
   `StateGraph`，没有接入 Checkpointer、Persistence、Memory、HITL、
   Prebuilt Agent、LangGraph Cloud 或 LangSmith Runtime。
-- 轻量 Eval 的具体 Case、指标和阈值尚未冻结，应由已实现的纵向闭环反推，而非预建平台。
+- Goal 3 Eval 的 `quote_excerpt` 是有界审阅材料而非完整 Citation；人工
+  Supportedness 判断若涉及截断范围外内容，必须按 Stable Citation 重建当前
+  权威字幕。
+- 质量、延迟、Token 和成本阈值未冻结；六条轻量 Case 不支持生产 SLA 或大型
+  总分 Gate。
 
-这些均不改变当前三 Goal 架构。
+这些均为已披露边界或后续产品观察项，不阻塞 V4 完成，也不自动授权 Deferred
+能力。
 
 ## 11. 当前下一步
 
 ```text
 Goal 1 已完成并通过 Integration Review
 → Goal 2 已完成并通过第二次 Integration Review
-→ 与用户讨论 Goal 3 的有界产品、轻量 Eval 与 Demo 计划
-→ 形成 V4 Goal 3 Execution Prompt
-→ 再启动独立 Goal 3 Execution Session
+→ Goal 3 已完成有界 Repair 并通过第二次 Integration Review
+→ V4 三个纵向 Goal 与高层完成条件全部完成
+→ 保持 V4 完成基线
 ```
 
-在用户确认 Goal 3 计划前不创建 Goal 3 Execution Prompt，也不开始 Goal 3
-实现。Goal 3 必须以已接受的 Fast/Deep 后端为基础，完成 `/ask` 产品入口、
-共享 Evidence 展示、轻量 Eval、Trace 摘要和 Demo；不得把 Policy、Tool、
-Navigation、Trace 或 Eval 拆成新平台。
+后续如需启动 V5、扩大 Eval、调整生产质量/延迟目标或重新考虑 Deferred 能力，
+必须由用户另行讨论和授权；不得把这些事项倒写为 V4 未完成。

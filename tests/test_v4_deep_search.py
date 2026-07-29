@@ -603,6 +603,7 @@ def test_deep_api_replans_navigation_search_window_and_shared_answer(
     assert body["trace_summary"]["decision_rounds"] == 4
     assert body["trace_summary"]["tool_calls"] == 3
     trace = client.get(f"/api/ask/traces/{body['run_id']}").json()["trace"]
+    assert trace["policy_version"] == "v4-deep-policy-v1"
     actions = [
         event["action"]["kind"]
         for event in trace["events"]

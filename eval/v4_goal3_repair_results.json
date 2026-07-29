@@ -1,0 +1,448 @@
+{
+  "result_version": "v4-goal3-lightweight-eval-v1",
+  "manifest_version": "v4-goal3-six-case-v1",
+  "policy_version": "v4-deep-policy-v1",
+  "generated_at": "2026-07-29T10:06:37+00:00",
+  "real_provider": true,
+  "database_mode": "temporary_snapshot",
+  "results": [
+    {
+      "case_id": "no_evidence_quantum_protocol",
+      "category": "no_reliable_evidence",
+      "query": "收藏内容是否介绍了“Shiliu-X9 量子检索协议”？",
+      "mode": "deep",
+      "demo_role": "honest_insufficient",
+      "policy_version": "v4-deep-policy-v1",
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "Deep 对无证据问题返回 insufficient/provider_error，回答块与引用均为空；未用无关样本外推全库结论，并明确披露模型服务未生成可验证结构化回答。"
+      },
+      "run_id": "ask_run_30e5b44826c54cbd9ebb9149e4dbffe5",
+      "status": "insufficient",
+      "termination_reason": "provider_error",
+      "answer_block_count": 0,
+      "citation_count": 0,
+      "limitations": [
+        "本次检索未找到足以回答该问题的可靠字幕证据",
+        "模型服务未能生成可验证的结构化回答"
+      ],
+      "latency_ms": 28980.798,
+      "provider_usage": {
+        "query_analysis": null,
+        "agent_action": [
+          {
+            "role": "agent_action",
+            "prompt_tokens": 991,
+            "completion_tokens": 68,
+            "total_tokens": 1059,
+            "prompt_tokens_details": {
+              "cached_tokens": 896
+            },
+            "prompt_cache_hit_tokens": 896,
+            "prompt_cache_miss_tokens": 95
+          },
+          {
+            "role": "agent_action",
+            "prompt_tokens": 7483,
+            "completion_tokens": 97,
+            "total_tokens": 7580,
+            "prompt_tokens_details": {
+              "cached_tokens": 7424
+            },
+            "prompt_cache_hit_tokens": 7424,
+            "prompt_cache_miss_tokens": 59
+          }
+        ],
+        "grounded_answer": [
+          {
+            "prompt_tokens": 3012,
+            "completion_tokens": 249,
+            "total_tokens": 3261,
+            "prompt_tokens_details": {
+              "cached_tokens": 512
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 217
+            },
+            "prompt_cache_hit_tokens": 512,
+            "prompt_cache_miss_tokens": 2500,
+            "latency_ms": 5917.165750171989,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 3,
+      "tool_calls": 2,
+      "repair_used": false,
+      "context_truncated": false,
+      "evidence_candidate_dropped_count": 44,
+      "trace_summary": {
+        "query_count": 2,
+        "retrieval_count": 1,
+        "valid_evidence_count": 6,
+        "stale_evidence_count": 0,
+        "context_span_count": 5,
+        "context_truncated": false,
+        "repair_used": false,
+        "latency_ms": 28980.798,
+        "termination_reason": "provider_error",
+        "decision_rounds": 3,
+        "tool_calls": 2,
+        "visited_video_count": 8,
+        "visited_segment_count": 247,
+        "navigation_result_count": 8,
+        "evidence_candidate_dropped_count": 44
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "citations_reconstruct_from_current_transcript": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [],
+        "citations": []
+      }
+    },
+    {
+      "case_id": "no_evidence_quantum_protocol",
+      "category": "no_reliable_evidence",
+      "query": "收藏内容是否介绍了“Shiliu-X9 量子检索协议”？",
+      "mode": "fast",
+      "demo_role": "honest_insufficient",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "Fast 对无证据问题返回 bounded insufficient，回答块与引用均为空；限制项只说明本次检索证据不足及上下文截断，没有声称整库不存在相关内容。"
+      },
+      "run_id": "ask_run_9d43c208e59e49328537c7ad72cf4fcc",
+      "status": "insufficient",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 0,
+      "citation_count": 0,
+      "limitations": [
+        "本次检索未找到足以回答该问题的可靠字幕证据",
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 19838.116,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 88,
+          "completion_tokens": 87,
+          "total_tokens": 175,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 88
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8219,
+            "completion_tokens": 271,
+            "total_tokens": 8490,
+            "prompt_tokens_details": {
+              "cached_tokens": 512
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 231
+            },
+            "prompt_cache_hit_tokens": 512,
+            "prompt_cache_miss_tokens": 7707,
+            "latency_ms": 7446.977000217885,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 59,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 19838.116,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "citations_reconstruct_from_current_transcript": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [],
+        "citations": []
+      }
+    },
+    {
+      "case_id": "partial_universal_claim",
+      "category": "partial_support",
+      "query": "这些视频是否证明自动上下文压缩在所有 Agent 任务中都更好？",
+      "mode": "fast",
+      "demo_role": "honest_partial",
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "partial",
+        "coverage": "partial",
+        "status_honesty": "pass",
+        "notes": "输出安全且没有无支持断言或弱引用，但过于保守地返回 insufficient，未利用现有反例证据给出受限范围内的有用回答，因此 usefulness 与 coverage 仅为 partial。"
+      },
+      "run_id": "ask_run_224d3b7f20274bfca26b40af2dbade9d",
+      "status": "insufficient",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 0,
+      "citation_count": 0,
+      "limitations": [
+        "本次检索未找到足以回答该问题的可靠字幕证据",
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 36746.72,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 87,
+          "completion_tokens": 85,
+          "total_tokens": 172,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 87
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8194,
+            "completion_tokens": 655,
+            "total_tokens": 8849,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 623
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 8194,
+            "latency_ms": 14997.69812496379,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 80,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 36746.72,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "citations_reconstruct_from_current_transcript": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [],
+        "citations": []
+      }
+    },
+    {
+      "case_id": "single_topic_context_compression",
+      "category": "direct_fact_or_single_topic",
+      "query": "收藏视频如何解释上下文压缩，它主要解决什么问题？",
+      "mode": "fast",
+      "demo_role": null,
+      "policy_version": null,
+      "manual_review": {
+        "supportedness": "pass",
+        "usefulness": "pass",
+        "coverage": "pass",
+        "status_honesty": "pass",
+        "notes": "主 Session 复核当前 Source Version 的完整 Citation 后确认：d008 支撑上下文压缩方式，e55e 支撑上下文爆炸与智力下降，0e3e 的完整 232.71–467.59 秒字幕明确包含“一旦触发自动压缩，性能就直接下降”，直接支持对应材料性表述。原 partial 是只读取前 500 字 quote_excerpt 导致的误判。"
+      },
+      "run_id": "ask_run_6d33a60d7eac432dbda55de0bcc506b5",
+      "status": "partial",
+      "termination_reason": "answer_ready",
+      "answer_block_count": 2,
+      "citation_count": 3,
+      "limitations": [
+        "上下文预算已截断部分候选证据"
+      ],
+      "latency_ms": 90485.581,
+      "provider_usage": {
+        "query_analysis": {
+          "prompt_tokens": 85,
+          "completion_tokens": 75,
+          "total_tokens": 160,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 85
+        },
+        "agent_action": null,
+        "grounded_answer": [
+          {
+            "prompt_tokens": 8380,
+            "completion_tokens": 2775,
+            "total_tokens": 11155,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2466
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 8380,
+            "latency_ms": 49911.62058385089,
+            "finish_reason": "stop",
+            "retry_count": 0
+          }
+        ]
+      },
+      "decision_rounds": 0,
+      "tool_calls": 0,
+      "repair_used": false,
+      "context_truncated": true,
+      "evidence_candidate_dropped_count": 0,
+      "trace_summary": {
+        "query_count": 3,
+        "retrieval_count": 3,
+        "valid_evidence_count": 80,
+        "stale_evidence_count": 0,
+        "context_span_count": 12,
+        "context_truncated": true,
+        "repair_used": false,
+        "latency_ms": 90485.581,
+        "termination_reason": "answer_ready",
+        "decision_rounds": 0,
+        "tool_calls": 0,
+        "visited_video_count": 0,
+        "visited_segment_count": 0,
+        "navigation_result_count": 0,
+        "evidence_candidate_dropped_count": 0
+      },
+      "deterministic_checks": {
+        "contract_valid": true,
+        "answer_block_citations_present": true,
+        "citation_ids_resolve": true,
+        "source_identity_current": true,
+        "source_version_current": true,
+        "segments_current": true,
+        "citations_reconstruct_from_current_transcript": true,
+        "stale_not_cited": true,
+        "status_termination_valid": true,
+        "budget_respected": true
+      },
+      "review_material": {
+        "answer_blocks": [
+          {
+            "text": "上下文压缩是指在对话越来越长时，通过丢弃不重要的内容（如工具调用返回的原始列表结果），只保留重要部分，来最大化token的信息密度，从而缓解上下文暴涨的问题。",
+            "citation_ids": [
+              "citation_v1_d008af8a6c6cba110dc27bac2712ecae140c78bd9c907bbb84fadad4abbf2a14"
+            ]
+          },
+          {
+            "text": "上下文压缩主要解决上下文爆炸问题，避免因上下文过长导致模型注意力稀释、智力下降，以及因上下文满触发自动压缩而造成的性能损失。",
+            "citation_ids": [
+              "citation_v1_d008af8a6c6cba110dc27bac2712ecae140c78bd9c907bbb84fadad4abbf2a14",
+              "citation_v1_e55e6bba811bd4d20a708cebeb9c95d7f51304eeecabf7fcf3b64d8882f7c84c",
+              "citation_v1_0e3ec00d067a80d7a43742b0d23a4253cae445a49059fae67620a73875b8f316"
+            ]
+          }
+        ],
+        "citations": [
+          {
+            "citation_id": "citation_v1_d008af8a6c6cba110dc27bac2712ecae140c78bd9c907bbb84fadad4abbf2a14",
+            "video_title": "Claude Code 源码分析与复刻实现",
+            "source_type": "ai",
+            "time_range": [
+              231.23,
+              350.55
+            ],
+            "quote_excerpt": "不是把工具的名字和一个一句话的描述扔给他\n然后呢让模型看一下啊\n那我这100个里面我可能要调用第二个和第12个\n然后呢再去把第二个和第12个的工具的详细的内容\n再分别动态拿出来啊\n这种东西就是harness\n还有呃记忆对吧\n记忆你多少轮\n这个过程当中\n用户的一些话语\n比如说强调了这个东西要记住他就写入本地的markdown文件\n然后记忆如果多了行数太大\n那记忆文件太大怎么办\n再把记忆文件抽成memory点MD呃\n每一行都是一个索引\n然后这个索引呢指向了一个另外一个文件\n那个文件那个markdown文件是整体的记忆的一个完整的内容\n所以他不断的就做这个抽象和索引都干的这个事儿\n再有就是上下文压缩\n随着你这个对话越来越长\n你越来越多的时候嗯\n如何缓解上下文这个暴涨的问题呢\n嗯三个方向啊\n第一个方向是最简单的模型\n现在已经从256K\n128K已经变到一个million了\n所以它比较大啊\n这是最暴力的方式\n第二个方式呢就是嗯肯定是超过上下文以后做压缩\n就你有很多很多轮长对话之后\n他做一个压缩\n这个压缩呢也并不是一个非常简单的\n把所有的对话128K的对话扔给达模型\n你做个简单压缩\n这个里面把重要",
+            "jump_url": "https://www.bilibili.com/video/BV15HXCBkEKY?t=231"
+          },
+          {
+            "citation_id": "citation_v1_e55e6bba811bd4d20a708cebeb9c95d7f51304eeecabf7fcf3b64d8882f7c84c",
+            "video_title": "近年AI应用技术串讲与优质文档分享｜Agent、Skill、OpenClaw、Harness……",
+            "source_type": "ai",
+            "time_range": [
+              1050.0,
+              1401.32
+            ],
+            "quote_excerpt": "但是最终却发现退回到单agent的架构设计\n然后去进一步优化提示词\n优化工具等描述\n反而会达到更好的效果\n所以他在这里总结了三种情况下使用多agent架构效果会优于单agent的架构\n如果你不属于这三种情况\n可能得慎重考虑\n第一种情况就是你的这个业务中会存在上下文爆炸\n或者上下文污染等等问题\n这个会导致模型智力的下降\n那么就需要通过多agent多个子agent来相互隔离上下文\n然后第二个情况就是当你的这个任务可以并行运行的时候\n可以通过多agent的架构来提速\n第三个就是当你拆分不同的子agent\n可以去改善工具决策的效果\n或者能够让任务更加聚焦\n这些情况下可能使用多一阵的架构会更好\n与此同时\nENTHROPIC还提出了一个常见的工程实现的错误\n就是他发现这些开发者们特别喜欢\n就是按照职能工作类型来划分不同的子类整合\n就像刚刚说的一个A真的写代码\n一个测试\n一个review\n但是在这种模式下\nagent之间大量的tokens都消耗在了解释上下文\n解释彼此的工作上面\n所以他提出就是说\n也就是说谁掌握信息\n谁就把这一块负责到底\n只有当这个任务需要的背景信息\n上下文知识完全不同的时候\n可能我",
+            "jump_url": "https://www.bilibili.com/video/BV1zSDMBUE5o?t=1050"
+          },
+          {
+            "citation_id": "citation_v1_0e3ec00d067a80d7a43742b0d23a4253cae445a49059fae67620a73875b8f316",
+            "video_title": "解读Deepseek V4带来的杠杆机会，顺便聊聊我实践出的Token Efficiency",
+            "source_type": "ai",
+            "time_range": [
+              232.71,
+              467.59
+            ],
+            "quote_excerpt": "尤其是看了他那句\n等华为芯片大规模交付后还会降价的话之后\n我不禁有点冒冷汗\n好像我买pro600确实有点冲动\n有点草率了\n因为deep seek v4flash真的是又强又快又便宜\n我们不用去理解DBCKV4的技术细节啊\n我们只需要记住几个简单的结论\n第一个就是上下文压缩\n他的上下文特别省显存\n然后他的推理成本也很低\n这个就让它有很大的降价空间\n还有一个100万的上下文\n这个很可怕\n还有就是国产芯片\n这也是它降价的一个重要的原因\n这些一切所有带给用户的最终结论就是\n它既保证了质量\n我们看一下这个deep sk v4flash的价格\n缓存命中两分钱\n1000000token\n你没听错\n每百万token就是两分钱\n几乎就是白送\n我补充一个关键的常识啊\n你们知道在agent的任务中\ntoken消耗是怎么分布了\n当然这是只是一个大概的一个估算啊\n就是90%是在缓存\n10%是在输出的\n缓存就是输入嘛代码文档\n历史对话全部都在缓存里\n所以如果以后缓存都不要钱了\n你可以想象整体的成本就是打一折\n两块钱一个亿的缓存\n这是不是就跟不要钱差不多了\n所以根本不敢想象\n下半年华为升腾如果大规模交付的话\n可能t",
+            "jump_url": "https://www.bilibili.com/video/BV1TfRfBJEZw?t=232"
+          }
+        ]
+      }
+    }
+  ]
+}

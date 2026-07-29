@@ -13,6 +13,7 @@ from shiliu.ask.deep.contracts import DeepSearchState
 from shiliu.ask.deep.decision import AgentDecisionService
 from shiliu.ask.deep.graph import DeepSearchGraph
 from shiliu.ask.deep.navigation import NavigationService
+from shiliu.ask.deep.policy import DEEP_POLICY_VERSION
 from shiliu.ask.deep.reducer import DeepStateReducer
 from shiliu.ask.deep.transcript import (
     TranscriptSearchService,
@@ -150,6 +151,7 @@ class DeepSearchService:
             "run_id": run_id,
             "query": request.query,
             "mode": "deep",
+            "policy_version": DEEP_POLICY_VERSION,
             "started_at": started,
             "budget": self.budget.__dict__,
             "finalization_started_at": finalization_started,

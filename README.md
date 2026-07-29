@@ -1,92 +1,147 @@
-# 拾流 Shiliu — V0–V3.5 Final Baseline
+# 拾流 Shiliu — Grounded Ask 与字幕证据搜索
 
-拾流是一个本地运行的 Bilibili 收藏阅读、检索和证据充分性系统。截至
-V3.5，项目已经完成从收藏同步与内容处理，到可搜索视频证据库，再到细粒度
-Evidence 与 Sufficiency 判断的完整基础链；它尚不生成最终答案，也不是
-Agentic Search 系统。
+拾流是一个本地运行的 Bilibili 收藏阅读、检索和问答系统。V4 在既有
+Retrieval、Evidence、Source Version 和时间轴能力上提供两个互补入口：
 
-当前仓库状态以以下文件为准：
-
-- `SHILIU_V0_TO_V3_5_FINAL_CLOSEOUT.md`
-- `SHILIU_V0_TO_V3_5_FINAL_REPOSITORY_MANIFEST.md`
-- `SHILIU_V0_TO_V3_5_FINAL_REPOSITORY_MANIFEST.json`
-- `V3_CLOSEOUT.md`
-- `V3_5_FINAL_CLOSEOUT.md`
-
-`V3_CURRENT_STATE.md` 与 `V3_5_CURRENT_STATE.md` 仅保留为历史状态记录，已经
-标记为 superseded。
-
-## 已完成能力
-
-### V0–V2：产品与数据管线
-
-- 多收藏夹同步、增量导入和后台处理；
-- 字幕优先、受限 ASR fallback、原始 Artifact 保存；
-- AI 整理与结构化摘要；
-- 阅读状态、Mark、归档和人工 Markdown 笔记；
-- FastAPI、Jinja、SQLite 和本地文件资产组成的产品界面。
-
-### V3：检索
-
-- 可重建、可增量维护的 Video/Transcript Retrieval Unit；
-- FTS5 Lexical、Qwen Dense、RRF Hybrid 和确定性 Auto Router；
-- 产品过滤、同视频聚合、证据窗口和粗粒度时间跳转；
-- `POST /api/search`、Web Search、Raw/Presentation Trace 与类型化错误；
-- 冻结 Snapshot、人工 pooled/judged Gold 和正式 Retrieval Eval。
-
-V3 的正式决定和收口见 `SHILIU_V3_VERSION_DECISION.md` 与
-`V3_CLOSEOUT.md`。
-
-### V3.5：Evidence 与 Sufficiency
-
-- Evidence Identity、Source Version、Timeline、Segment 和时间范围；
-- `SearchCandidateSet` 到 `EvidenceCandidateSet` / `EvidenceBundle`；
-- 固定 Candidate Builder、Fine Selector、Mechanical Gate；
-- Semantic Sufficiency 四状态判断；
-- `POST /api/evidence-sufficiency`、Trace 查询和 Search UI 集成；
-- Product Query Set、Development/Frozen 分离、预测先冻结后开 Gold 的正式评测。
-
-V3.5 的成熟度是：
-
-```yaml
-implementation: implemented
-integration: minimally_product_integrated
-operation: limited_pilot
-evaluation: formally_evaluated_below_target
-maturity: partial
+```text
+/ask    基于权威字幕生成有时间戳引用的回答
+/search 直接搜索字幕证据，供手动查证与调试
 ```
 
-## 明确限制
+## `/ask`：快速回答与深入搜索
 
-- V3.5 Frozen Evaluation 的 Retrieval Hit@10 为 1.0，但 Candidate Builder
-  complete-group availability 为 0.0，EvidenceBundle complete-group hit 为
-  0.0，Semantic four-state accuracy 为 0.2。
-- Semantic Judge 仍有明显延迟，生产代理超时配置不在仓库内。
-- Fine Builder/Selector 是冻结历史实现，不应成为后续版本不可替换的硬依赖。
-- Final Answer generation、Agentic Search、Memory、Harness 和自动补证闭环均未实现。
-- 当前能力不是已经证明稳定日常使用的 `production-used`。
+`/ask` 使用同一个页面和同一个结构化 `AskResponse` 渲染两种模式：
 
-README 只记录聚合结果。具体 Eval Query、Gold、视频标识、字幕证据和逐 Case
-结果只存在于受访问边界约束的正式 Artifact 中，不在总览文档展开。
+- **快速回答（默认）**：一次 Query Analysis、有限 Rewrite、字幕检索和
+  Grounded Answer，适合明确事实、概念和单主题问题。
+- **深入搜索（显式选择）**：先导航可能相关的视频，再逐步搜索或读取原字幕
+  窗口，并在确定性 Round、Tool、Context 和时间预算内停止，适合跨视频比较
+  或复杂问题。
 
-## 开发运行
+系统不会自动把 Fast 升级成 Deep。Fast 返回 `partial` 或 `insufficient` 时，
+页面会提供“使用深入搜索继续”，保留问题和限定范围；只有用户再次提交才会
+运行 Deep。
+
+回答状态：
+
+- `complete`：当前字幕证据覆盖了材料性回答；
+- `partial`：只回答了证据支持的部分，限制会单独列出；
+- `insufficient`：没有生成事实答案，避免把噪声或不可验证内容包装成成功。
+
+`status` 表示回答充分度，`termination_reason` 则解释运行为何停止，例如证据
+已足够、后续搜索重复、没有新证据、预算耗尽、Provider 错误或当前字幕证据
+不可用。
+
+## Citation 与事实权威
+
+每个 Answer Block 都绑定本次响应中的 Stable Citation ID。页面用 `[1][2]`
+作为本次响应内的阅读编号；点击编号会展开、滚动并高亮对应 Evidence Card。
+Evidence Card 展示：
+
+- 视频标题；
+- 人工字幕、AI 字幕或 ASR 来源；
+- 权威字幕 Quote 与时间范围；
+- 当前 Source Version / Timeline / Segment 等折叠身份信息；
+- 带 `t=` 时间参数的 Bilibili 跳转链接。
+
+事实权威只来自当前 Source Version 可重建的原字幕或 ASR Segment。标题、
+简介、AI 总结、User Notes 和整理稿可以帮助 Deep 导航与选视频，但不会进入
+事实 Evidence Card，也不能成为最终 Citation。
+
+`/ask` 与 `/search` 共用薄 `evidence-ui.js` / `evidence-ui.css` 渲染基础，
+包括时间格式、字幕来源、证据卡和 Bilibili 跳转；两页仍保留各自的产品状态机。
+
+## Trace 与运行边界
+
+结果页默认显示面向用户的运行摘要，包括模式、耗时、检索/证据数量、停止原因
+以及 Deep 的 Decision、Tool、访问范围和被预算包络丢弃的候选数。
+
+开发者 Trace 默认折叠，展开时才请求：
+
+```text
+GET /api/ask/traces/{run_id}
+```
+
+它展示有界 Action、Observation Summary、Usage、Guard、错误和静态 Deep
+Policy Version `v4-deep-policy-v1`，不展示隐藏推理、Secrets、完整 Prompt 或
+无界字幕 Corpus。Trace 只保存在当前进程内；服务重启后 404 不影响已经返回的
+Answer 和 Citation。
+
+V4 最终答案一次性返回，不做 Token Streaming，也没有服务器端取消、任务队列、
+Checkpoint 或 Durable Resume。浏览器离开页面只会忽略旧 Response，不表示
+服务器端运行已经取消。真实 Provider 延迟可能达到数十秒或数分钟，Deep 页面
+会显示本地真实等待时间，但不会伪造 Round 或 Tool 进度。
+
+## 本地运行
 
 ```bash
 python -m venv .venv
 .venv/bin/pip install -e '.[test]'
-.venv/bin/python -m pytest
 .venv/bin/shiliu serve
 ```
 
-默认服务监听 `127.0.0.1:18520`。本地状态和内容目录可通过
-`SHILIU_STATE_DIR` 与 `SHILIU_CONTENT_DIR` 覆盖。
+默认监听 `127.0.0.1:18520`：
 
-默认 `pytest` 是确定性核心套件。需要外部历史 workspace 或本机产品数据库的
-测试使用 `external_artifact` 标记；需要实时 Provider 的测试使用
-`live_provider` 标记，必须通过单独命令显式执行。
+```text
+http://127.0.0.1:18520/ask
+http://127.0.0.1:18520/search
+```
 
-## 本地数据政策
+本地状态和内容目录可通过 `SHILIU_STATE_DIR` 与 `SHILIU_CONTENT_DIR` 覆盖。
+
+## 验证
+
+Goal 3 页面、Fast/Deep、Search 与共享 Evidence 定向回归：
+
+```bash
+.venv/bin/python -m pytest \
+  tests/test_v4_ask_page.py \
+  tests/test_v4_ask_contracts.py \
+  tests/test_v4_fast_ask_api.py \
+  tests/test_v4_deep_search.py \
+  tests/test_product_search_api.py \
+  tests/test_boundaries_and_web.py \
+  tests/test_v1.py
+```
+
+默认确定性全套：
+
+```bash
+.venv/bin/python -m pytest
+```
+
+使用完全虚构的字幕与响应验证 Loading、Complete、Partial、Insufficient、
+Citation 定位、Trace 404、Deep Trace 和 `/search` 展开：
+
+```bash
+.venv/bin/python scripts/run_v4_goal3_ui_fixture.py
+# 打开 http://127.0.0.1:18522/ask 或 /search
+```
+
+六条普通 Query Manifest 位于 `eval/v4_goal3_cases.json`。真实 Eval Runner
+使用本机数据库临时快照，不修改产品数据库：
+
+```bash
+.venv/bin/python scripts/run_v4_goal3_eval.py --mode fast
+.venv/bin/python scripts/run_v4_goal3_eval.py --mode deep
+```
+
+真实 Eval 会把普通 Query 与有界字幕 Evidence Context 发送到当前配置的
+DeepSeek Provider；只应在数据持有者明确授权后运行。结果按 Case 保留合同、
+Citation、Identity/Version、预算、Latency、Usage 和人工审阅，不计算生产
+SLA 或大型总分。
+
+默认 `pytest` 不调用实时 Provider。需要外部历史 workspace 或本机产品数据库
+的测试仍使用 `external_artifact` 标记；实时 Provider 测试使用
+`live_provider` 标记并须显式执行。
+
+## 历史基础与数据政策
+
+V0–V3.5 完成了收藏同步、字幕/ASR、内容整理、FTS5/Qwen/RRF Retrieval、
+Evidence Identity、Source Version、Timeline 和 Segment 基础。V4 复用这些
+技术资产，但不把历史 Candidate Builder、Semantic Judge 或重型 Eval 治理
+接入 Ask Runtime。
 
 仓库不提交个人数据库、完整收藏数据、Provider 原始日志、模型缓存、批量中间
-Trace、临时导出和可再生运行目录。正式仓库只保留最终 Closeout、Manifest、
-必要 Seal/结果、最小测试 Fixture；未脱敏 Case-level Trace 不进入最终包。
+Trace 或 Secrets。Goal 3 Eval 结果只保留有界回答与 Quote 摘录。V4 不宣称
+生产 SLA、通用 Research Agent，也不包含 V5 个性化或主动行为。
