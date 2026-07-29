@@ -854,7 +854,9 @@ Schema、Citation Allowlist、Source Version 复验和最多一次 Repair。
 **影响**
 
 Fast/Deep 继续共享同一个 Grounded Answer 层。No-evidence 仍必须诚实
-`insufficient`；有限反例和有限比较不能伪装成全库结论。
+`insufficient`；有限反例和有限比较不能伪装成全库结论。H1 的 Cross-video
+指令与确定性测试被接受，但 Fast After 唯一在线样本因 Provider Failure 没有
+生成可评价答案，因此其在线质量不宣称已验证。
 
 ## D-026 — V4.1 Deep 采用确定性 DecisionView，完整 Runtime State 不变
 
@@ -899,7 +901,7 @@ Corpus/Query 的 Deep After 分别为 13,128 和 15,237，下降 55.7% 和 57.9%
 LangGraph Node 继续只调用现有 Decision Service；Domain 投影逻辑保持框架无关。
 Window Guard 仍用完整 Runtime Segment Set 验证模型选择的有界合法 Anchor。
 
-## D-027 — V4.1 接受 Crash-safe E2E 与 Hardening Closeout
+## D-027 — V4.1 接受 Crash-safe E2E 与有界 Partial Closeout
 
 ```yaml
 status: accepted
@@ -913,15 +915,26 @@ scope: v4_1_h3_acceptance
   `run_end_to_end()` 未执行；
 - 接受 4 Fast Before + 4 Fast After + 2 Deep Before + 2 Deep After；
 - 实际消耗 12 Product Run、34 Logical Provider Invocation、34 HTTP Attempt，
-  Thinking Off 和新 Fixed Replay 均为 0；
-- 接受所有 Run 的 WAL、原子 Checkpoint、Campaign Identity、去重、最坏预算
+  本 Continuation 矩阵的 Thinking Off 和新 Fixed Replay 均为 0；H0 已完成
+  的 Thinking Off 调查实验仍只按 H0 报告披露，且未进入正式 Runtime；
+- 接受所有 Run 的 WAL、原子 Checkpoint、有界 Campaign Identity、去重、最坏预算
   预留、当前 Citation 重建、四维复核和 0600/`.h0/` 隐私边界；
-- 接受 H1/H2 正式改动及最终完整回归，V4.1 状态为 `complete`。
+- 接受 H1/H2 正式改动及最终完整回归；
+- 接受 H1 的 No-evidence、Single-topic、Universal/Partial-support 三类成功
+  Paired Evidence，以及 H2 两类成功 Paired Evidence；
+- Fast After Cross-video 没有形成可评价答案，不宣称其在线质量通过；
+- V4.1 状态为 `partial`，并以 `closed_with_known_evidence_gap` 结束本轮，
+  不通过追加重采样改变结论。
 
 **事故与边界**
 
 - Fast After Cross-video 出现一次非连续 Provider Failure；产品诚实
-  fail-closed，未 Repair、未重跑，也未触发两次连续失败停机；
+  fail-closed，未 Repair、未重跑，也未触发两次连续失败停机；Checkpoint
+  复核为 Supportedness/Status Honesty pass、Coverage/Usefulness fail；
+- Campaign Identity 保存 Base URL Hash、三个角色 Model 和统一 Baseline 标签，
+  但没有逐角色表达 Thinking/Reasoning，也未把角色配置所在的
+  `src/shiliu/app.py` 纳入 Source Digest；本次没有发现实际配置漂移，但该
+  Harness 不能声称完整的角色级配置漂移保护；
 - 首次默认全套命令缺少仓库 `PYTHONPATH`，仅产生收集错误且未执行测试；按项目
   既有导入环境重跑后 1,498 passed、4 deselected；
 - Fast E2E Checkpoint 保留总延迟但未保留逐 Provider 调用延迟分布；因此不能
@@ -933,4 +946,37 @@ scope: v4_1_h3_acceptance
 
 V4 正式 Provider 配置、模型、Reasoning、Temperature、Retrieval、Context
 Selection、Ask Contract、Citation、Tool、Budget、Graph 和产品入口均未改变。
-V4.1 进入完成态；后续只按新授权处理新的产品/评测范围。
+V4 三个纵向 Goal 和 V4 完成状态保持不变。V4.1 以有界 `partial` 关闭；后续
+只按新授权处理新的产品/评测范围。
+
+## D-028 — Fast/Deep 用户反馈记录推迟到 V5 早期
+
+```yaml
+status: accepted
+date: 2026-07-30
+scope: v5_early_product_observation
+```
+
+**决定**
+
+- V4.1 不新增反馈按钮、用户遥测或 Fast/Deep 对比基础设施；
+- V5 早期可采用薄反馈记录：
+  - 单次回答的“有帮助 / 没帮助”；
+  - 可选原因标签；
+  - 同一问题同时存在 Fast 与 Deep 结果时的模式偏好；
+- 首版只记录必要的 Run、Mode、产品版本和反馈结果；私人 Query、Answer、
+  Transcript 或 Raw Provider Response 不因反馈能力自动新增持久化；
+- 反馈数据不作为 Runtime Semantic Judge、自动路由、模型训练授权或正式
+  Eval 的替代。
+
+**理由**
+
+真实用户反馈能够补充轻量 Eval 难以覆盖的产品感受，并帮助判断 Fast
+Cross-video、延迟和 Deep 增量价值是否值得继续投入。但用户通常在对 Fast
+不满意时才继续选择 Deep，数据存在明显自选择偏差，不能直接证明某一模式总体
+更优。
+
+**影响**
+
+V4.1 不因新增产品观测需求重新开工。若 V4 在 V5 前即将面向持续真实用户开放，
+可由用户另行授权一个薄 Instrumentation Slice；否则随 V5 产品规划讨论。

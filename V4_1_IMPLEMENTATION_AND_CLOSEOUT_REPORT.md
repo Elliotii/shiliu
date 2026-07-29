@@ -5,7 +5,8 @@ document_role: v4_1_implementation_and_closeout
 date: 2026-07-30
 branch: codex/v4.1-hardening
 baseline_commit: cbf264be2571c3d62775c064445de8a1ba17880a
-v4_1_status: complete
+v4_1_status: partial
+closeout_state: closed_with_known_evidence_gap
 provider_configuration: baseline_only_unchanged
 legacy_h0_dual_configuration_e2e_executed: false
 formal_provider_or_runtime_configuration_changed: false
@@ -13,16 +14,24 @@ formal_provider_or_runtime_configuration_changed: false
 
 ## 1. Outcome
 
-V4.1 按 `V4_1_CONTINUATION_EXECUTION_PROMPT.md` 的 Phase 0–7 顺序完成：
+V4.1 按 `V4_1_CONTINUATION_EXECUTION_PROMPT.md` 的 Phase 0–7 顺序完成执行，
+并以 `partial` 正式关闭：
 
 1. 更正 H0 报告口径并实现 crash-safe 分阶段 E2E harness；
 2. 完成 Fast Before、H1 和 Fast After；
 3. 完成 Deep Before、H2 和 Deep After；
 4. 完成 H3 全套验证、状态/决策同步和本 Closeout。
 
-没有调用 Thinking Off、Reduced Reasoning、新 Provider 或旧 H0 双配置 E2E；
-没有修改 `max_tokens`、Retrieval、Context Selection、Ask Contract、Citation
-Identity、Source Authority、Tool、Budget、Graph 拓扑或产品入口。
+`partial` 只表示 Fast After 的 Cross-video 在线质量因一次 Provider Failure
+没有获得可评价的成功样本，不表示 V4 主版本回退，也不表示已经证明 H1 造成
+产品回归。H1 实现与三类成功验证、H2 实现与完整 Paired Evidence、全量回归和
+Fail-closed 行为均被接受；本轮不通过重采样把缺失证据改写为通过。
+
+本 Continuation 矩阵没有调用 Thinking Off、Reduced Reasoning、新 Provider
+或旧 H0 双配置 E2E；H0 Fixed Replay 中已经完成并披露的 Thinking Off 实验不
+计入本矩阵，也没有进入正式 Runtime。没有修改 `max_tokens`、Retrieval、
+Context Selection、Ask Contract、Citation Identity、Source Authority、Tool、
+Budget、Graph 拓扑或产品入口。
 
 ## 2. Phase 0 — Crash-safe E2E Harness
 
@@ -30,7 +39,7 @@ Identity、Source Authority、Tool、Budget、Graph 拓扑或产品入口。
 
 - 每个 Run 前原子持久化 `in_flight` WAL；
 - 每个 Run 使用 Phase、Case、Mode、Code-state、Manifest、Query Hash、
-  Corpus、Source Code 和 Provider Configuration Identity；
+  Corpus、Source Code 和有界 Provider Identity；
 - Provider 返回后立即保存有界指标；Review 前和 Review 中使用显式状态；
 - 任意未知 `in_flight`、Provider 后私有对象丢失或 Review 中断均阻断恢复，
   不自动重放；
@@ -57,6 +66,15 @@ Identity、Source Authority、Tool、Budget、Graph 拓扑或产品入口。
 
 Checkpoint 未持久化私人 Prompt、Answer 正文、Transcript/Navigation 正文、
 API Key 或 Raw Provider Response。隐私 Key 扫描和正文字符串扫描均通过。
+
+现有 Provider Identity 保存 Base URL Hash、三个角色 Model 和统一的
+`baseline_only` 标签，但把 Thinking/Reasoning 记录为单一 Grounded Answer
+配置，没有逐角色表达 `query_analysis`、`agent_action` 的 Thinking Off，也未
+将负责角色配置的 `src/shiliu/app.py` 纳入 Source Digest。因此它足以标识本次
+已声明的 Baseline Campaign，但不能被表述为完整的角色级 Provider Configuration
+漂移保护。本次执行没有发现实际配置变化；该限制不改变已完成 Run 的结果，但
+必须保留在 Closeout 中。此一次性 Runner 不授权继续调用；未来若建设新的真实
+Eval Harness，必须改为角色级配置身份。
 
 ## 3. H1 — Fast Answer Hardening
 
@@ -94,6 +112,12 @@ Cross-video After 是一次明确 Provider Failure，不是 Schema/Citation/
 Supportedness 输出退化；前一相同 Corpus/Query 的 Before 已生成当前 Evidence
 支持的有限综合，后续不同 Query 成功恢复，故未触发“连续两次 Provider
 Failure”停止条件。该 Query 没有额外 Run、重采样或本地伪造结果。
+
+Checkpoint 人工复核将该 After Run 记为 `supportedness=pass`、
+`status_honesty=pass`、`coverage=fail`、`usefulness=fail`。由于没有生成可用
+的证据综合，它不能证明 H1 Cross-video 在线质量通过，也不能证明 H1 导致质量
+回归。H1 的正式接受范围因此是实现、确定性测试以及其余三类成功 Fast Paired
+Evidence；Cross-video 在线质量保留为未证明的后续产品观察项。
 
 ## 4. H2 — Deterministic Deep DecisionView
 
@@ -154,7 +178,7 @@ authorized:
   product_e2e_runs_max: 12
   logical_provider_invocations_max: 56
   transport_http_attempts_max: 112
-actual:
+continuation_actual:
   product_e2e_runs: 12
   logical_provider_invocations: 34
   transport_http_attempts: 34
@@ -228,6 +252,8 @@ Harness/Test：
 
 Authority/Closeout：
 
+- `V4_1_H0_INVESTIGATION_PROMPT.md`
+- `V4_1_CONTINUATION_EXECUTION_PROMPT.md`
 - `V4_1_H0_INVESTIGATION_REPORT.md`
 - `V4_MASTER_STATE.md`
 - `V4_DECISION_LEDGER.md`
@@ -239,11 +265,16 @@ Authority/Closeout：
 ## 8. Acceptance Recommendation
 
 ```yaml
-recommend_main_session_accept: true
+recommend_main_session_accept_runtime_changes: true
+recommend_main_session_closeout_status: partial
 recommend_main_session_push_after_review: true
-remaining_blocking_finding: none
+remaining_blocking_finding_for_partial_closeout: none
+unproven_online_quality:
+  - fast_cross_video_after
 ```
 
-建议 Main Session 接受 V4.1 H1/H2 正式改动和 crash-safe E2E 证据，并在复核
-本地 Commit 后 Push。新的 Provider Replay、E2E、配置调整、V5 或 Deferred
-能力不包含在本 Closeout 授权中。
+建议 Main Session 接受 V4.1 H1/H2 正式改动、H2 Paired Evidence、H1 三类
+成功 Paired Evidence 和 crash-safe E2E 记录，以 `partial` 关闭并在复核本地
+Commit 后 Push。Fast Cross-video After 不宣称通过，也不为改变状态追加
+Provider 重跑。新的 Provider Replay、E2E、配置调整、V5 或 Deferred 能力不
+包含在本 Closeout 授权中。

@@ -2,9 +2,9 @@
 
 ```yaml
 document_role: current_state_authority
-status: v4_1_complete
-implementation_status: goals_1_2_3_and_v4_1_hardening_complete
-current_phase: v4_1_runtime_and_context_hardening_complete
+status: v4_complete_v4_1_partial_closed
+implementation_status: goals_1_2_3_complete_v4_1_hardening_partially_accepted
+current_phase: v4_1_closed_with_known_evidence_gap
 last_updated: 2026-07-30
 ```
 
@@ -139,6 +139,8 @@ final_answer_reserve_seconds: 210
 - 通用 LLM SDK 或 Provider Platform。
 - User Notes 与整理稿作为 Citation 来源；二者首版导航优先级也较低。
 - Fast/Deep 自动路由、Trace 持久化、通用 Observability Dashboard。
+- Fast/Deep 用户反馈记录与偏好比较；建议在 V5 早期以薄记录实现，不作为
+  Runtime Judge、自动路由或离线 Eval 的替代。
 - 新建 SSE/WebSocket 进度基础设施；只有现有事件可无阻塞复用时才作为薄增强。
 - 通用 Skill/Policy Registry。
 
@@ -283,6 +285,13 @@ Deep 和 Search 定向测试及默认完整测试集，结果通过。
   权威字幕。
 - 质量、延迟、Token 和成本阈值未冻结；六条轻量 Case 不支持生产 SLA 或大型
   总分 Gate。
+- V4.1 Fast After 的 Cross-video Run 因一次 Provider Failure 没有生成可用
+  Answer；Fail-closed 正确，但该样本的 `coverage/usefulness` 均为 fail，因此
+  H1 Cross-video 在线质量仍未证明。没有通过重采样把它改写为通过。
+- V4.1 E2E Campaign Identity 保存 Base URL Hash、三个角色 Model 和统一
+  Baseline 标签，但没有逐角色表达 Thinking/Reasoning，也未把角色配置所在的
+  `src/shiliu/app.py` 纳入 Source Digest；本次未发现实际配置漂移，但该 Harness
+  不能声称完整的角色级 Provider Configuration 漂移保护。
 
 这些均为已披露边界或后续产品观察项，不阻塞 V4 完成，也不自动授权 Deferred
 能力。
@@ -294,6 +303,7 @@ Goal 1 已完成并通过 Integration Review
 → Goal 2 已完成并通过第二次 Integration Review
 → Goal 3 已完成有界 Repair 并通过第二次 Integration Review
 → V4 三个纵向 Goal 与高层完成条件全部完成
+→ V4.1 Hardening 实现完成，以 partial 关闭一项未证明的 Fast Cross-video 在线质量
 → 保持 V4 完成基线
 ```
 
@@ -303,14 +313,15 @@ Goal 1 已完成并通过 Integration Review
 ## 12. V4.1 Runtime and Context Hardening
 
 ```yaml
-v4_1_status: complete
+v4_1_status: partial
+closeout_state: closed_with_known_evidence_gap
 date: 2026-07-30
 branch: codex/v4.1-hardening
 provider_configuration: baseline_unchanged
 formal_runtime_scope:
   - shared_grounded_answer_boundary
   - deterministic_deep_decision_view
-provider_e2e:
+continuation_provider_e2e:
   completed_runs: 12
   logical_provider_invocations: 34
   transport_http_attempts: 34
@@ -320,7 +331,7 @@ provider_e2e:
 
 V4.1 在不改变 Retrieval、Context Selection、Ask Contract、Citation Identity、
 Source Authority、Tool、Budget、Graph 拓扑、产品入口、Provider、模型或
-`max_tokens` 的前提下完成：
+`max_tokens` 的前提下完成实现并以 `partial` 关闭：
 
 - H0 报告口径更正，以及独立于旧 H0 双配置路径的 crash-safe baseline-only
   E2E harness；
@@ -339,6 +350,8 @@ Paired baseline-only E2E 使用相同 Manifest、Query Hash、Corpus SHA-256
 - Fast Before/After 各 4 Run；No-evidence、Single-topic 和 Universal/
   Partial-support 验收通过。Fast After 的 Cross-video Run 出现一次独立
   `provider_error`，诚实 fail-closed，未 Repair、未重跑、未错误归因给 H1；
+  该 Run 的 Supportedness/Status Honesty 通过，但 Coverage/Usefulness 失败，
+  因而不宣称 H1 Cross-video 在线质量已经验证；
 - Deep Before/After 各 2 Run。两条 Deep Run 的累计 Prompt Tokens 分别从
   29,605 降至 13,128（55.7%）和从 36,149 降至 15,237（57.9%）；Decision
   Round 从 3 增至 4，但 Navigation/Transcript/Replanning、Evidence Coverage、
@@ -360,7 +373,17 @@ Compileall、Pip Check、ask.js、search.js、git diff --check passed
 
 - `V4_1_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md`
 
-V4.1 没有采用 Thinking Off、Reduced Reasoning、新 Provider、Reranker、
-Runtime Judge、LLM Summary、Memory、Persistence、Multi-Agent、Streaming、
-自动路由或新平台。后续如需新的真实 Provider 调用或扩大范围，仍需 Main
-Session 独立授权。
+接受边界：
+
+- H1 的正式实现、确定性测试和 No-evidence、Single-topic、Universal/
+  Partial-support 三类成功 Paired Evidence 被接受；
+- H2 的正式实现和两类成功 Paired Evidence 被接受；
+- H1 Cross-video 在线质量保留为未证明观察项，不回退代码，也不追加 Provider
+  重采样；
+- V4 三个纵向 Goal 和 V4 完成状态不受 V4.1 `partial` Closeout 影响。
+
+V4.1 正式 Runtime 没有采用 Thinking Off、Reduced Reasoning、新 Provider、
+Reranker、Runtime Judge、LLM Summary、Memory、Persistence、Multi-Agent、
+Streaming、自动路由或新平台。H0 Fixed Replay 曾在调查包络内测试 Thinking
+Off，但结论是不采用；该实验与消耗由 H0 报告单独披露。后续如需新的真实
+Provider 调用或扩大范围，仍需 Main Session 独立授权。
