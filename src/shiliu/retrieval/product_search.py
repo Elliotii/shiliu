@@ -284,23 +284,33 @@ class ProductSearchService:
                         f"ALTER TABLE retrieval_search_presentations ADD COLUMN {name} {definition}"
                     )
 
-    def search(self, request: ProductSearchRequest) -> ProductSearchResponse:
+    def search(
+        self, request: ProductSearchRequest, *, video_ids: tuple[int, ...] = ()
+    ) -> ProductSearchResponse:
+        if video_ids:
+            return self.search_with_raw(request, video_ids=video_ids)[1]
         return self.search_with_raw(request)[1]
 
     def search_with_raw(
-        self, request: ProductSearchRequest
+        self,
+        request: ProductSearchRequest,
+        *,
+        video_ids: tuple[int, ...] = (),
     ) -> tuple[RawSearchResponse, ProductSearchResponse]:
         started = time.monotonic()
         raw_top_k = min(100, max(50, request.result_limit * 5))
         raw_started = time.monotonic()
-        raw = self.raw_search.search_raw(
-            SearchRequest(
-                query=request.query,
-                mode=request.mode,
-                scope=request.scope,
-                raw_top_k=raw_top_k,
-                filters=request.filters,
-            )
+        raw_request = SearchRequest(
+            query=request.query,
+            mode=request.mode,
+            scope=request.scope,
+            raw_top_k=raw_top_k,
+            filters=request.filters,
+        )
+        raw = (
+            self.raw_search.search_raw(raw_request, video_ids=video_ids)
+            if video_ids
+            else self.raw_search.search_raw(raw_request)
         )
         product_plan = _product_plan(raw, request)
         raw_ms = _milliseconds(raw_started)

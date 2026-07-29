@@ -793,6 +793,10 @@ class RetrievalService:
             parameters.append(filters.uploader_contains)
         if filters.archived is not None:
             clauses.append("u.archived_at IS NOT NULL" if filters.archived else "u.archived_at IS NULL")
+        if filters.video_ids:
+            placeholders = ",".join("?" for _ in filters.video_ids)
+            clauses.append(f"u.video_id IN ({placeholders})")
+            parameters.extend(filters.video_ids)
 
         folder_clauses: list[str] = []
         if filters.source_db_id is not None:

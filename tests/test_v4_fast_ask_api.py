@@ -14,6 +14,7 @@ from shiliu.ask.contracts import (
     GroundedAnswerDraft,
     QueryAnalysis,
 )
+from shiliu.ask.deep.contracts import AgentDecision
 from shiliu.domain import FavoriteItem, SubtitleSegment
 from shiliu.domain import PipelineError
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
@@ -32,9 +33,10 @@ class _Provider:
         self.answer_modes = list(answer_modes)
         self.query_calls = 0
         self.answer_calls = 0
+        self.agent_calls = 0
 
     def generate_structured(
-        self, *, role, messages, response_schema, max_tokens
+        self, *, role, messages, response_schema, max_tokens, timeout_seconds=None
     ):
         if role == "query_analysis":
             self.query_calls += 1
@@ -46,6 +48,23 @@ class _Provider:
                     language="zh",
                 ),
                 {"prompt_tokens": 10, "completion_tokens": 8},
+            )
+        if role == "agent_action":
+            self.agent_calls += 1
+            action = (
+                {
+                    "action": {
+                        "kind": "search_transcripts",
+                        "query": "MCP",
+                        "video_ids": [],
+                    }
+                }
+                if self.agent_calls == 1
+                else {"action": {"kind": "finish", "summary": "证据已找到"}}
+            )
+            return _Reply(
+                AgentDecision.model_validate(action),
+                {"prompt_tokens": 20, "completion_tokens": 10},
             )
         self.answer_calls += 1
         serialized = "\n".join(value["content"] for value in messages)
@@ -521,5 +540,18 @@ def test_no_evidence_and_deep_mode_are_typed(app_paths) -> None:
     deep = client.post(
         "/api/ask", json={"query": "MCP", "mode": "deep"}
     )
-    assert deep.status_code == 501
-    assert deep.json()["error"]["code"] == "ask_mode_not_implemented"
+    assert deep.status_code == 200
+    deep_body = deep.json()
+    assert deep_body["mode"] == "deep"
+    assert deep_body["status"] == "complete"
+    assert deep_body["termination_reason"] == "answer_ready"
+    assert deep_body["trace_summary"]["decision_rounds"] == 2
+    assert deep_body["trace_summary"]["tool_calls"] == 1
+    trace = client.get(
+        f"/api/ask/traces/{deep_body['run_id']}"
+    ).json()["trace"]
+    assert [
+        event["action"]["kind"]
+        for event in trace["events"]
+        if event["event_type"] == "decision"
+    ] == ["search_transcripts", "finish"]

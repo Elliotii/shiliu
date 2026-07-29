@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import time
 from typing import Any, Callable
 
 from shiliu.ask.context import ContextBuildResult
@@ -50,6 +51,8 @@ class GroundedAnswerService:
         *,
         query: str,
         context: ContextBuildResult,
+        deadline: float | None = None,
+        clock: Callable[[], float] = time.monotonic,
     ) -> GroundedAnswerResult:
         usage: list[dict[str, Any]] = []
         try:
@@ -78,7 +81,14 @@ class GroundedAnswerService:
             provider,
             messages=_answer_messages(query=query, context=context),
             usage=usage,
+            timeout_seconds=_remaining(deadline, clock),
         )
+        if _deadline_reached(deadline, clock):
+            return _deadline_result(
+                usage=usage,
+                provider_call_count=1,
+                transport_retry_count=first_call.transport_retry_count,
+            )
         if first_call.draft is not None:
             issues = validate_grounded_answer(
                 first_call.draft,
@@ -136,11 +146,23 @@ class GroundedAnswerService:
                 issues=issues,
             ),
             usage=usage,
+            timeout_seconds=_remaining(deadline, clock),
         )
         total_transport_retries = (
             first_call.transport_retry_count
             + repair_call.transport_retry_count
         )
+        if _deadline_reached(deadline, clock):
+            return _deadline_result(
+                usage=usage,
+                provider_call_count=2,
+                transport_retry_count=total_transport_retries,
+                repair_used=True,
+                repair_calls=1,
+                initial_validation_errors=issues,
+                initial_provider_error=first_call.error,
+                initial_provider_error_code=first_call.error_code,
+            )
         if repair_call.draft is not None:
             repair_issues = validate_grounded_answer(
                 repair_call.draft,
@@ -201,15 +223,19 @@ class GroundedAnswerService:
         *,
         messages: list[dict[str, str]],
         usage: list[dict[str, Any]],
+        timeout_seconds: float | None = None,
     ) -> _ProviderCallResult:
         response: object | None = None
         try:
-            response = provider.generate_structured(  # type: ignore[attr-defined]
-                role="grounded_answer",
-                messages=messages,
-                response_schema=GroundedAnswerDraft,
-                max_tokens=4096,
-            )
+            kwargs: dict[str, Any] = {
+                "role": "grounded_answer",
+                "messages": messages,
+                "response_schema": GroundedAnswerDraft,
+                "max_tokens": 4096,
+            }
+            if timeout_seconds is not None:
+                kwargs["timeout_seconds"] = timeout_seconds
+            response = provider.generate_structured(**kwargs)  # type: ignore[attr-defined]
             value = getattr(response, "output", response)
             draft = (
                 value
@@ -370,3 +396,49 @@ def _error_code(exc: Exception, *, fallback: str | None = None) -> str:
 
 def _error_text(exc: Exception) -> str:
     return f"{type(exc).__name__}: {exc}"[:500]
+
+
+def _remaining(
+    deadline: float | None, clock: Callable[[], float]
+) -> float | None:
+    if deadline is None:
+        return None
+    remaining = deadline - clock()
+    if remaining <= 0:
+        raise TimeoutError("grounded answer deadline exhausted")
+    return remaining
+
+
+def _deadline_reached(
+    deadline: float | None, clock: Callable[[], float]
+) -> bool:
+    return deadline is not None and clock() >= deadline
+
+
+def _deadline_result(
+    *,
+    usage: list[dict[str, Any]],
+    provider_call_count: int,
+    transport_retry_count: int,
+    repair_used: bool = False,
+    repair_calls: int = 0,
+    initial_validation_errors: tuple[ValidationIssue, ...] = (),
+    initial_provider_error: str | None = None,
+    initial_provider_error_code: str | None = None,
+) -> GroundedAnswerResult:
+    message = "grounded answer exceeded total runtime deadline"
+    return GroundedAnswerResult(
+        draft=None,
+        repair_used=repair_used,
+        usage=tuple(usage),
+        answer_calls=1,
+        repair_calls=repair_calls,
+        provider_call_count=provider_call_count,
+        transport_retry_count=transport_retry_count,
+        initial_validation_errors=initial_validation_errors,
+        initial_provider_error=initial_provider_error,
+        initial_provider_error_code=initial_provider_error_code,
+        validation_errors=(),
+        provider_error=message,
+        provider_error_code="deadline_exhausted",
+    )

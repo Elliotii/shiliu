@@ -45,6 +45,7 @@ class SearchExecution:
     request: ProductSearchRequest
     raw_response: RawSearchResponse
     product_response: ProductSearchResponse
+    video_ids: tuple[int, ...] = ()
 
 
 class EvidenceSearchService:
@@ -71,13 +72,24 @@ class EvidenceSearchService:
         """Compatibility wrapper for callers that still submit a free request."""
         return self.materialize_execution(self.execute_search(request))
 
-    def execute_search(self, request: ProductSearchRequest) -> SearchExecution:
-        raw, product = self.product_search.search_with_raw(request)
+    def execute_search(
+        self,
+        request: ProductSearchRequest,
+        *,
+        video_ids: tuple[int, ...] = (),
+    ) -> SearchExecution:
+        if video_ids:
+            raw, product = self.product_search.search_with_raw(
+                request, video_ids=video_ids
+            )
+        else:
+            raw, product = self.product_search.search_with_raw(request)
         return SearchExecution(
             execution_id=f"search_execution_{uuid4().hex}",
             request=request,
             raw_response=raw,
             product_response=product,
+            video_ids=tuple(dict.fromkeys(video_ids)),
         )
 
     def materialize_execution(
@@ -100,7 +112,14 @@ class EvidenceSearchService:
         return SearchCandidateSet(
             contract_version=SEARCH_CANDIDATE_CONTRACT_VERSION,
             original_query=request.query,
-            request_parameters=request.model_dump(mode="json"),
+            request_parameters={
+                **request.model_dump(mode="json"),
+                **(
+                    {"internal_video_ids": list(execution.video_ids)}
+                    if execution.video_ids
+                    else {}
+                ),
+            },
             search_trace_id=raw.trace_id,
             presentation_trace_id=product.trace_id,
             trace_persisted=raw.trace_persisted,

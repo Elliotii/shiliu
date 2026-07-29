@@ -241,3 +241,169 @@ def test_historical_provider_methods_keep_single_http_attempt(
     assert error.value.code == "provider_retryable"
     assert calls == 1
     assert error.value.completion_metadata["retry_count"] == 0
+
+
+class _ProviderClock:
+    def __init__(self, value: float = 1000) -> None:
+        self.value = value
+
+    def __call__(self) -> float:
+        return self.value
+
+    def advance(self, seconds: float) -> None:
+        self.value += seconds
+
+
+def _structured_provider() -> OpenAICompatibleProvider:
+    return OpenAICompatibleProvider(
+        base_url="https://example.com/v1",
+        api_key="secret",
+        model="demo",
+        timeout_seconds=120,
+        thinking_enabled=False,
+    )
+
+
+def _query_analysis_response(url: str) -> httpx.Response:
+    return httpx.Response(
+        200,
+        request=httpx.Request("POST", url),
+        json={
+            "id": "deadline-test",
+            "choices": [
+                {
+                    "message": {
+                        "content": (
+                            '{"normalized_intent":"MCP",'
+                            '"search_queries":[],"entities":["MCP"],'
+                            '"language":"zh"}'
+                        )
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+        },
+    )
+
+
+def test_structured_provider_httpx_timeout_at_deadline_is_not_retryable() -> None:
+    clock = _ProviderClock()
+    calls = 0
+
+    class DeadlineClient:
+        def __init__(self, *, timeout):
+            self.timeout = float(timeout)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def post(self, url, *, headers, json):
+            nonlocal calls
+            calls += 1
+            clock.advance(self.timeout)
+            raise httpx.ReadTimeout(
+                "invocation deadline elapsed",
+                request=httpx.Request("POST", url),
+            )
+
+    with (
+        patch("shiliu.llm.time.monotonic", clock),
+        patch("shiliu.llm.httpx.Client", DeadlineClient),
+        pytest.raises(PipelineError) as error,
+    ):
+        _structured_provider().generate_structured(
+            role="query_analysis",
+            messages=[{"role": "user", "content": "MCP"}],
+            response_schema=QueryAnalysis,
+            timeout_seconds=3,
+        )
+    assert error.value.code == "deadline_exhausted"
+    assert error.value.retryable is False
+    assert error.value.completion_metadata["retry_count"] == 0
+    assert calls == 1
+
+
+def test_structured_provider_retries_network_error_while_deadline_remains() -> None:
+    clock = _ProviderClock()
+    calls = 0
+    timeouts: list[float] = []
+
+    class RecoveringClient:
+        def __init__(self, *, timeout):
+            self.timeout = float(timeout)
+            timeouts.append(self.timeout)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def post(self, url, *, headers, json):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                clock.advance(1)
+                raise httpx.ConnectError(
+                    "temporary network failure",
+                    request=httpx.Request("POST", url),
+                )
+            return _query_analysis_response(url)
+
+    with (
+        patch("shiliu.llm.time.monotonic", clock),
+        patch("shiliu.llm.httpx.Client", RecoveringClient),
+    ):
+        response = _structured_provider().generate_structured(
+            role="query_analysis",
+            messages=[{"role": "user", "content": "MCP"}],
+            response_schema=QueryAnalysis,
+            timeout_seconds=10,
+        )
+    assert response.output.normalized_intent == "MCP"
+    assert response.retry_count == 1
+    assert calls == 2
+    assert timeouts == [pytest.approx(10), pytest.approx(9)]
+
+
+def test_structured_provider_does_not_retry_after_network_error_uses_deadline() -> None:
+    clock = _ProviderClock()
+    calls = 0
+
+    class ExpiredNetworkClient:
+        def __init__(self, *, timeout):
+            self.timeout = float(timeout)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def post(self, url, *, headers, json):
+            nonlocal calls
+            calls += 1
+            clock.advance(self.timeout)
+            raise httpx.ConnectError(
+                "network failure consumed deadline",
+                request=httpx.Request("POST", url),
+            )
+
+    with (
+        patch("shiliu.llm.time.monotonic", clock),
+        patch("shiliu.llm.httpx.Client", ExpiredNetworkClient),
+        pytest.raises(PipelineError) as error,
+    ):
+        _structured_provider().generate_structured(
+            role="query_analysis",
+            messages=[{"role": "user", "content": "MCP"}],
+            response_schema=QueryAnalysis,
+            timeout_seconds=4,
+        )
+    assert error.value.code == "deadline_exhausted"
+    assert error.value.retryable is False
+    assert error.value.completion_metadata["retry_count"] == 0
+    assert calls == 1

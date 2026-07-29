@@ -245,6 +245,7 @@ class Application:
                 product_search=self.product_search,
                 provider_factory=self.provider,
                 runtime_corpus_identity=self.runtime_config.corpus_identity,
+                artifacts=self.artifacts,
             )
         return self._ask_service
 
@@ -277,14 +278,14 @@ class Application:
             "taxonomy_content_type_purity",
             "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
         }
-        is_ask_light = role == "query_analysis"
+        is_ask_light = role in {"query_analysis", "agent_action"}
         model_role = "formal_summary" if role.startswith("taxonomy_") else role
         return OpenAICompatibleProvider(
             base_url=self.config.llm_base_url,
             api_key=api_key,
             model=self.config.model_for(model_role),
             timeout_seconds=180 if is_transcript or role in {
-                "query_analysis", "grounded_answer"
+                "query_analysis", "agent_action", "grounded_answer"
             } else 600,
             thinking_enabled=(
                 False

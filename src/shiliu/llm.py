@@ -142,8 +142,9 @@ class OpenAICompatibleProvider:
         messages: list[dict[str, str]],
         response_schema: type[SchemaT],
         max_tokens: int | None = None,
+        timeout_seconds: float | None = None,
     ) -> StructuredCompletionResponse[SchemaT]:
-        if role not in {"query_analysis", "grounded_answer"}:
+        if role not in {"query_analysis", "agent_action", "grounded_answer"}:
             raise PipelineError(
                 f"不支持的结构化运行时角色：{role}",
                 code="bad_provider_config",
@@ -154,6 +155,7 @@ class OpenAICompatibleProvider:
             max_tokens=max_tokens or (1200 if role == "query_analysis" else 4096),
             response_format={"type": "json_object"},
             transport_retries=1,
+            timeout_seconds=timeout_seconds,
         )
         try:
             output = parse_json_content(response.content, response_schema)
@@ -187,10 +189,16 @@ class OpenAICompatibleProvider:
         allow_incomplete: bool = False,
         response_format: dict[str, str] | None = None,
         transport_retries: int = 0,
+        timeout_seconds: float | None = None,
     ) -> CompletionResponse:
         if transport_retries < 0:
             raise ValueError("transport_retries must not be negative")
         started = time.monotonic()
+        invocation_deadline = (
+            started + timeout_seconds
+            if timeout_seconds is not None
+            else None
+        )
         body: dict[str, Any] = {"model": self.model, "messages": messages}
         if self.thinking_enabled is not None:
             body["thinking"] = {"type": "enabled" if self.thinking_enabled else "disabled"}
@@ -205,7 +213,23 @@ class OpenAICompatibleProvider:
         retry_count = 0
         for attempt in range(transport_retries + 1):
             try:
-                with httpx.Client(timeout=self.timeout_seconds) as client:
+                invocation_remaining = (
+                    timeout_seconds - (time.monotonic() - started)
+                    if timeout_seconds is not None
+                    else None
+                )
+                effective_timeout = (
+                    min(self.timeout_seconds, invocation_remaining)
+                    if invocation_remaining is not None
+                    else self.timeout_seconds
+                )
+                if effective_timeout <= 0:
+                    raise PipelineError(
+                        "模型调用已超过运行截止时间",
+                        code="deadline_exhausted",
+                        retryable=False,
+                    )
+                with httpx.Client(timeout=effective_timeout) as client:
                     response = client.post(
                         f"{self.base_url}/chat/completions",
                         headers=self.headers,
@@ -214,6 +238,12 @@ class OpenAICompatibleProvider:
                     self._raise_for_status(response)
                 break
             except PipelineError as exc:
+                if exc.retryable and _deadline_reached(invocation_deadline):
+                    error = _deadline_error()
+                    _attach_failure_metadata(
+                        error, started=started, retry_count=retry_count
+                    )
+                    raise error from exc
                 if exc.retryable and attempt < transport_retries:
                     retry_count += 1
                     continue
@@ -222,6 +252,12 @@ class OpenAICompatibleProvider:
                 )
                 raise
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
+                if _deadline_reached(invocation_deadline):
+                    error = _deadline_error()
+                    _attach_failure_metadata(
+                        error, started=started, retry_count=retry_count
+                    )
+                    raise error from exc
                 if attempt < transport_retries:
                     retry_count += 1
                     continue
@@ -235,6 +271,12 @@ class OpenAICompatibleProvider:
                 )
                 raise error from exc
             except httpx.HTTPError as exc:
+                if _deadline_reached(invocation_deadline):
+                    error = _deadline_error()
+                    _attach_failure_metadata(
+                        error, started=started, retry_count=retry_count
+                    )
+                    raise error from exc
                 if attempt < transport_retries:
                     retry_count += 1
                     continue
@@ -327,6 +369,18 @@ class OpenAICompatibleProvider:
         if status == 400 and any(token in body for token in ("context", "token", "too long", "maximum")):
             raise PipelineError("字幕超过模型上下文限制，未做静默截断", code="context_too_large", retryable=False)
         raise PipelineError(f"模型服务配置或请求无效（HTTP {status}）", code="bad_provider_config", retryable=False)
+
+
+def _deadline_reached(deadline: float | None) -> bool:
+    return deadline is not None and time.monotonic() >= deadline
+
+
+def _deadline_error() -> PipelineError:
+    return PipelineError(
+        "模型调用已超过运行截止时间",
+        code="deadline_exhausted",
+        retryable=False,
+    )
 
 
 def _attach_failure_metadata(

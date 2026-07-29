@@ -100,6 +100,12 @@ class TraceSummary(_StrictModel):
     repair_used: bool
     latency_ms: float = Field(ge=0)
     termination_reason: TerminationReason
+    decision_rounds: int = Field(default=0, ge=0)
+    tool_calls: int = Field(default=0, ge=0)
+    visited_video_count: int = Field(default=0, ge=0)
+    visited_segment_count: int = Field(default=0, ge=0)
+    navigation_result_count: int = Field(default=0, ge=0)
+    evidence_candidate_dropped_count: int = Field(default=0, ge=0)
 
 
 class AskResponse(_StrictModel):

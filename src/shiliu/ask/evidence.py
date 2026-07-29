@@ -26,6 +26,7 @@ from shiliu.retrieval.product_search import build_bilibili_jump_url
 class MaterializationResult:
     spans: tuple[TranscriptEvidenceSpan, ...]
     stale_reasons: tuple[str, ...]
+    dropped_span_count: int = 0
 
 
 class TranscriptEvidenceMaterializer:
@@ -214,6 +215,7 @@ class TranscriptEvidenceMaterializer:
                     "query_index": query_index,
                     "rank": candidate.raw_rank,
                     "retrieval_method": candidate.retrieval_method,
+                    "video_ids": list(execution.video_ids),
                 },
             ),
             segments=tuple(

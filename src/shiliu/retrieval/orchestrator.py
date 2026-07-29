@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 import json
 import sqlite3
@@ -186,7 +186,9 @@ class SearchOrchestrator:
                 """
             )
 
-    def search(self, request: SearchRequest) -> RawSearchResponse:
+    def search(
+        self, request: SearchRequest, *, video_ids: tuple[int, ...] = ()
+    ) -> RawSearchResponse:
         trace_id = str(uuid4())
         started = time.monotonic()
         planning_started = time.monotonic()
@@ -204,7 +206,12 @@ class SearchOrchestrator:
                 )
             raise error from exc
         planning_ms = _milliseconds(planning_started)
-        filters = request.filters.retrieval_filters()
+        if len(video_ids) > 8 or any(value <= 0 for value in video_ids):
+            raise ValueError("video_ids must contain at most 8 positive IDs")
+        filters = replace(
+            request.filters.retrieval_filters(),
+            video_ids=tuple(dict.fromkeys(video_ids)),
+        )
         include_ignored = request.filters.ignored
         executed_mode = plan.planned_mode
         fallback = False
@@ -306,8 +313,12 @@ class SearchOrchestrator:
                     pass
             raise mapped from exc
 
-    def search_raw(self, request: SearchRequest) -> RawSearchResponse:
+    def search_raw(
+        self, request: SearchRequest, *, video_ids: tuple[int, ...] = ()
+    ) -> RawSearchResponse:
         """Named Stage 4A boundary used by post-retrieval product presentation."""
+        if video_ids:
+            return self.search(request, video_ids=video_ids)
         return self.search(request)
 
     def get_trace(self, trace_id: str) -> dict[str, object] | None:

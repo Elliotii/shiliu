@@ -900,13 +900,14 @@ The following are reconsidered only after a recorded real failure:
 The design and Goal 1 research integration are approved. Goal 1 completed
 implementation, deterministic/full regression verification, real DeepSeek
 Vertical Slice validation, and Main Session Integration Review on 2026-07-29.
-The bounded Goal 2 plan and 360/150/210-second runtime envelope were approved
-on 2026-07-29. The next action is:
+Goal 2 completed implementation, deterministic/full regression verification,
+real DeepSeek Vertical Slice validation, a bounded Integration Repair, and Main
+Session Integration Acceptance on 2026-07-29. The next action is:
 
 ```text
-start a separate bounded Goal 2 Execution Session using
-V4_G2_EXECUTION_PROMPT.md
+discuss and approve the bounded Goal 3 product, lightweight Eval, and Demo plan
+before preparing a Goal 3 Execution Prompt
 ```
 
-Goal 2 must preserve the shared Ask, Answer, Citation, Evidence, Provider and
-Trace contracts established by the accepted Goal 1 implementation.
+Goal 3 must integrate the accepted Fast and Deep backends without creating a
+new Answer, Citation, Navigation, Trace, Tool, Policy, or Eval platform.

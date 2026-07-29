@@ -53,6 +53,7 @@ class RetrievalFilters:
     uploader: str | None = None
     uploader_contains: str | None = None
     archived: bool | None = None
+    video_ids: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
