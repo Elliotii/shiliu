@@ -68,7 +68,23 @@ def validate_grounded_answer(
     allowlist = set(context.citation_allowlist)
     span_by_id = {value.citation_id: value for value in context.spans}
     used: set[str] = set()
+    normalized_blocks: dict[str, int] = {}
     for block_index, block in enumerate(draft.answer_blocks):
+        normalized_text = " ".join(block.text.casefold().split()).rstrip("。.!！?")
+        previous_index = normalized_blocks.get(normalized_text)
+        if previous_index is not None:
+            issues.append(
+                ValidationIssue(
+                    "duplicate_answer_block",
+                    f"answer_blocks.{block_index}.text",
+                    (
+                        "answer block repeats the normalized text of "
+                        f"answer_blocks.{previous_index}"
+                    ),
+                )
+            )
+        else:
+            normalized_blocks[normalized_text] = block_index
         if not block.citation_ids:
             issues.append(
                 ValidationIssue(

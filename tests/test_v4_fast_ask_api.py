@@ -95,6 +95,15 @@ class _Provider:
                 ],
                 limitations=[],
             )
+        elif mode == "duplicate":
+            draft = GroundedAnswerDraft(
+                status="complete",
+                answer_blocks=[
+                    AnswerBlock(text="同一个材料结论。", citation_ids=[citation_id]),
+                    AnswerBlock(text=" 同一个材料结论! ", citation_ids=[citation_id]),
+                ],
+                limitations=[],
+            )
         elif mode == "partial":
             draft = GroundedAnswerDraft(
                 status="partial",
@@ -341,6 +350,53 @@ def test_unknown_citation_repairs_once_and_repair_failure_fails_closed(
     assert failed_trace["answer_calls"] == 1
     assert failed_trace["repair_calls"] == 1
     assert failed_trace["answer_provider_call_count"] == 2
+
+
+def test_duplicate_answer_blocks_trigger_one_bounded_repair(app_paths) -> None:
+    provider = _Provider(answer_modes=("duplicate", "complete"))
+    core, _ = _application(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP"}
+    ).json()
+    trace = core.ask_service.get_trace(body["run_id"])
+
+    assert body["status"] == "complete"
+    assert body["trace_summary"]["repair_used"] is True
+    assert provider.answer_calls == 2
+    assert [
+        value["code"] for value in trace["initial_answer_validation_errors"]
+    ] == ["duplicate_answer_block"]
+
+
+def test_grounded_answer_prompt_distinguishes_finite_counterexample_and_synthesis(
+    app_paths,
+) -> None:
+    class CapturingProvider(_Provider):
+        answer_system: str = ""
+
+        def generate_structured(
+            self, *, role, messages, response_schema, max_tokens, timeout_seconds=None
+        ):
+            if role == "grounded_answer":
+                self.answer_system = messages[0]["content"]
+            return super().generate_structured(
+                role=role,
+                messages=messages,
+                response_schema=response_schema,
+                max_tokens=max_tokens,
+                timeout_seconds=timeout_seconds,
+            )
+
+    provider = CapturingProvider()
+    core, _ = _application(app_paths, provider)
+    TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP"}
+    )
+
+    assert "direct counterexample" in provider.answer_system
+    assert "not a complete collection-wide audit" in provider.answer_system
+    assert "For cross-video questions" in provider.answer_system
+    assert "material, non-duplicate point" in provider.answer_system
 
 
 def test_invalid_structured_output_still_allows_one_repair(app_paths) -> None:

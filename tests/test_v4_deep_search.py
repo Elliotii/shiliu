@@ -19,6 +19,7 @@ from shiliu.ask import AskService
 from shiliu.ask.contracts import AskRequest, AnswerBlock, GroundedAnswerDraft
 from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.deep.contracts import AgentDecision, ToolObservation
+from shiliu.ask.deep.decision import DecisionViewProjector, _decision_messages
 from shiliu.ask.deep.navigation import NavigationService
 from shiliu.ask.deep.reducer import DeepStateReducer, action_key
 from shiliu.ask.deep.transcript import TranscriptSearchService, TranscriptWindowReader
@@ -316,12 +317,12 @@ def _dynamic_policy(round_number: int, payload: dict[str, object]):
             }
         }
     if round_number == 3:
-        evidence = payload["transcript_evidence"]
-        assert isinstance(evidence, list) and evidence
+        anchors = payload["window_anchors"]
+        assert isinstance(anchors, list) and anchors
         return {
             "action": {
                 "kind": "read_transcript_window",
-                "anchor_segment_id": evidence[0]["segment_ids"][-1],
+                "anchor_segment_id": anchors[0]["anchor_segment_id"],
                 "before": 1,
                 "after": 1,
             }
@@ -341,6 +342,119 @@ def test_action_contract_is_strict_and_bounded() -> None:
     )
     assert decision.action.query == "MCP"
     assert decision.action.video_ids == [3, 2]
+
+
+def test_decision_view_is_deterministic_bounded_and_keeps_legal_anchors(
+    app_paths,
+) -> None:
+    provider = _ScriptedProvider(_dynamic_policy)
+    core, _ = _make_core(app_paths, provider)
+    deep = core.ask_service.deep_service
+    search = TranscriptSearchService(
+        evidence_search=deep.evidence_search,
+        materializer=deep.materializer,
+    ).search("MCP", filters=ProductSearchFilterRequest())
+    state = deep._initial_state(
+        "projection", AskRequest(query="MCP", mode="deep"), 1000
+    )
+    state["evidence_spans"] = list(search.spans)
+    state["visited_segment_ids"] = [
+        f"visited-segment-{index}" for index in range(60)
+    ]
+    state["visited_video_ids"] = list(range(1, 25))
+    state["previous_queries"] = [f"query-{index}" for index in range(24)]
+    original_ids = [
+        tuple(value.segment_ids) for value in state["evidence_spans"]
+    ]
+
+    projector = DecisionViewProjector(DeepSearchBudget())
+    first = projector.project(state, now=1001)
+    second = projector.project(state, now=1001)
+
+    assert first == second
+    assert first["question"] == first["priority_open_question"] == "MCP"
+    assert "visited_segment_ids" not in first
+    assert first["visited_summary"]["segment_count"] == 60
+    assert len(first["visited_summary"]["recent_video_ids"]) == 8
+    assert len(first["previous_scoped_query_keys"]) == 12
+    assert all(
+        "segment_ids" not in value for value in first["transcript_evidence"]
+    )
+    legal = {
+        segment_id
+        for span in state["evidence_spans"]
+        for segment_id in span.segment_ids
+    }
+    assert {
+        value["anchor_segment_id"] for value in first["window_anchors"]
+    }.issubset(legal)
+    assert original_ids == [
+        tuple(value.segment_ids) for value in state["evidence_spans"]
+    ]
+
+
+def test_decision_view_materially_reduces_scripted_high_cost_payload() -> None:
+    state = {
+        "query": "原始问题",
+        "open_questions": ["当前问题"] * 6,
+        "resolved_questions": [{"question": "已解决"}] * 6,
+        "last_action": {"kind": "search_transcripts", "query": "问题"},
+        "last_observation_summary": "观察" * 500,
+        "navigation_documents": [],
+        "evidence_spans": [],
+        "visited_video_ids": list(range(1, 25)),
+        "visited_segment_ids": [f"segment-{index:03d}" for index in range(60)],
+        "previous_queries": [f"query-{index:02d}" for index in range(24)],
+        "decision_rounds": 3,
+        "tool_calls": 3,
+        "search_deadline": 1200,
+        "total_deadline": 1300,
+    }
+    from shiliu.ask.deep.contracts import NavigationDocument
+
+    state["navigation_documents"] = [
+        NavigationDocument(
+            video_id=index,
+            bvid=f"BV{index:010d}",
+            title="标题" * 20,
+            uploader="作者" * 10,
+            description="描述" * 200,
+            summary_sections=["摘要" * 200] * 4,
+            matched_excerpt="匹配" * 200,
+            matched_sources=["title"],
+            source_labels={},
+            metadata={},
+        )
+        for index in range(1, 9)
+    ]
+    old_shape = {
+        "question": state["query"],
+        "open_questions": state["open_questions"],
+        "resolved_questions": state["resolved_questions"],
+        "last_action": state["last_action"],
+        "last_observation_summary": state["last_observation_summary"][:1000],
+        "navigation_documents": [
+            {
+                "video_id": value.video_id,
+                "title": value.title,
+                "uploader": value.uploader,
+                "description": value.description[:400],
+                "summary_sections": value.summary_sections[:4],
+                "matched_excerpt": value.matched_excerpt[:400],
+            }
+            for value in state["navigation_documents"]
+        ],
+        "visited_video_ids": state["visited_video_ids"][-24:],
+        "visited_segment_ids": state["visited_segment_ids"][-60:],
+        "previous_scoped_query_keys": state["previous_queries"][-24:],
+    }
+    projected = DecisionViewProjector(DeepSearchBudget()).project(
+        state, now=1001
+    )
+    old_chars = len(json.dumps(old_shape, ensure_ascii=False))
+    new_chars = len(json.dumps(projected, ensure_ascii=False))
+
+    assert new_chars <= old_chars * 0.60
     invalid = [
         {"action": {"kind": "unknown", "query": "MCP"}},
         {"action": {"kind": "search_navigation", "query": ""}},

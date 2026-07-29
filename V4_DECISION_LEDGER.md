@@ -3,7 +3,7 @@
 ```yaml
 document_role: accepted_decision_record
 status: active
-last_updated: 2026-07-29
+last_updated: 2026-07-30
 ```
 
 本文件只记录已经确认、会约束后续实现的 V4 决策。候选想法、纯实现细节和尚未到决策时点的问题不进入 Ledger。
@@ -820,3 +820,117 @@ Goal 3 已闭合用户可见产品入口、共享 Grounding 展示、诚实失�
 - Goal 3 的实现报告追加主 Session 第二次 Integration Review；
 - 后续 V5、生产 SLA、扩大 Eval 或 Deferred 能力需要新的用户讨论与授权，不
   得作为 V4 遗留实现继续展开。
+
+## D-025 — V4.1 采用共享 Grounded Answer 的有限反例与综合边界
+
+```yaml
+status: accepted
+date: 2026-07-30
+scope: v4_1_h1_grounded_answer_hardening
+```
+
+**决定**
+
+- 有限 Retrieval/Transcript Context 不能证明全库或全称命题；
+- 一个当前 Source Version 可验证、直接反驳 “always” 主张的字幕反例，可以
+  支持带 Citation 的有限 `partial` 结论，但必须声明这不是完整全库审计；
+- Cross-video 只综合当前 Transcript Evidence。缺少全库覆盖不应单独阻止有用
+  的有限比较，也不得把不足证据扩写为完整结论；
+- Answer Block 必须材料性、简洁且不重复；规范化后完全重复的 Block 进入现有
+  一次 Repair，而不是增加 Semantic Judge。
+
+**理由**
+
+H0 Fixed Replay 证明旧边界会把“有限样本不能证明全称”错误推广成“直接反例
+也不能否定全称”，并在跨视频与输出纪律上存在不稳定。H1 的修正保持现有
+Schema、Citation Allowlist、Source Version 复验和最多一次 Repair。
+
+**未采用**
+
+- Runtime Semantic/Sufficiency Judge；
+- Reranker、Context Compaction 或 Retrieval 改动；
+- 新 Answer Contract、模型或 `max_tokens`。
+
+**影响**
+
+Fast/Deep 继续共享同一个 Grounded Answer 层。No-evidence 仍必须诚实
+`insufficient`；有限反例和有限比较不能伪装成全库结论。
+
+## D-026 — V4.1 Deep 采用确定性 DecisionView，完整 Runtime State 不变
+
+```yaml
+status: accepted
+date: 2026-07-30
+scope: v4_1_h2_deep_decision_context
+```
+
+**决定**
+
+AgentAction Provider 只消费由 `DecisionViewProjector` 从完整
+`DeepRuntimeState` 生成的确定性有界投影。投影保留：
+
+- Original Query 和优先/有界 Open Questions；
+- 有界 Resolved Questions、Latest Action/Observation；
+- Evidence Inventory 与来自完整 Runtime 的合法 Window Anchors；
+- Previous Query/Visited 摘要；
+- 精确剩余 Decision/Tool/时间/Context Budget；
+- 现有静态 Policy 和 Action Schema。
+
+首版移除每条 Evidence 的完整 `segment_ids`、重复长 Navigation Summary
+Sections 和最近 60 个逐项 Visited Segment IDs。完整 Evidence Spans、Visited
+Sets、Events、Source Identity 和所有确定性 Guard 输入仍留在 Runtime State。
+
+**理由**
+
+Deep Before 两条真实运行累计 Prompt Tokens 为 29,605 和 36,149。相同
+Corpus/Query 的 Deep After 分别为 13,128 和 15,237，下降 55.7% 和 57.9%；
+虽然 Decision Round 各增加一次，但 Replanning、Evidence Coverage、Citation
+和回答质量没有下降，跨视频质量反而改善。
+
+**未采用**
+
+- LLM Rolling Summary、Memory、Persistence、Checkpointer 或 HITL；
+- Multi-Agent/Subgraph、Native Tool Calling 或 Graph 拓扑修改；
+- Tool、Budget、Finalizer、Citation Identity 或 Fact Authority 修改；
+- 通用 Context Platform。
+
+**影响**
+
+LangGraph Node 继续只调用现有 Decision Service；Domain 投影逻辑保持框架无关。
+Window Guard 仍用完整 Runtime Segment Set 验证模型选择的有界合法 Anchor。
+
+## D-027 — V4.1 接受 Crash-safe E2E 与 Hardening Closeout
+
+```yaml
+status: accepted
+date: 2026-07-30
+scope: v4_1_h3_acceptance
+```
+
+**决定**
+
+- 接受 Continuation 专用 baseline-only E2E harness；旧 H0 双配置
+  `run_end_to_end()` 未执行；
+- 接受 4 Fast Before + 4 Fast After + 2 Deep Before + 2 Deep After；
+- 实际消耗 12 Product Run、34 Logical Provider Invocation、34 HTTP Attempt，
+  Thinking Off 和新 Fixed Replay 均为 0；
+- 接受所有 Run 的 WAL、原子 Checkpoint、Campaign Identity、去重、最坏预算
+  预留、当前 Citation 重建、四维复核和 0600/`.h0/` 隐私边界；
+- 接受 H1/H2 正式改动及最终完整回归，V4.1 状态为 `complete`。
+
+**事故与边界**
+
+- Fast After Cross-video 出现一次非连续 Provider Failure；产品诚实
+  fail-closed，未 Repair、未重跑，也未触发两次连续失败停机；
+- 首次默认全套命令缺少仓库 `PYTHONPATH`，仅产生收集错误且未执行测试；按项目
+  既有导入环境重跑后 1,498 passed、4 deselected；
+- Fast E2E Checkpoint 保留总延迟但未保留逐 Provider 调用延迟分布；因此不能
+  从本矩阵单独归因 Provider 与非 Provider 延迟，Closeout 只报告可证明指标；
+- 未使用的数值上限不是可继续调用的余额；本次一次性 12-Run 矩阵完成后，任何
+  新 Provider 调用仍需 Main Session 新授权。
+
+**影响**
+
+V4 正式 Provider 配置、模型、Reasoning、Temperature、Retrieval、Context
+Selection、Ask Contract、Citation、Tool、Budget、Graph 和产品入口均未改变。
+V4.1 进入完成态；后续只按新授权处理新的产品/评测范围。

@@ -2,10 +2,10 @@
 
 ```yaml
 document_role: current_state_authority
-status: v4_complete
-implementation_status: goals_1_2_3_complete
-current_phase: main_session_integration_accepted
-last_updated: 2026-07-29
+status: v4_1_complete
+implementation_status: goals_1_2_3_and_v4_1_hardening_complete
+current_phase: v4_1_runtime_and_context_hardening_complete
+last_updated: 2026-07-30
 ```
 
 本文件只维护拾流 V4 的当前真实状态、已确认边界、已知风险和下一步动作。产品与架构细节以 `V4_DESIGN_PROPOSAL.md` 为准；关键取舍及其理由以 `V4_DECISION_LEDGER.md` 为准。
@@ -299,3 +299,68 @@ Goal 1 已完成并通过 Integration Review
 
 后续如需启动 V5、扩大 Eval、调整生产质量/延迟目标或重新考虑 Deferred 能力，
 必须由用户另行讨论和授权；不得把这些事项倒写为 V4 未完成。
+
+## 12. V4.1 Runtime and Context Hardening
+
+```yaml
+v4_1_status: complete
+date: 2026-07-30
+branch: codex/v4.1-hardening
+provider_configuration: baseline_unchanged
+formal_runtime_scope:
+  - shared_grounded_answer_boundary
+  - deterministic_deep_decision_view
+provider_e2e:
+  completed_runs: 12
+  logical_provider_invocations: 34
+  transport_http_attempts: 34
+  thinking_off_calls: 0
+  fixed_replay_calls: 0
+```
+
+V4.1 在不改变 Retrieval、Context Selection、Ask Contract、Citation Identity、
+Source Authority、Tool、Budget、Graph 拓扑、产品入口、Provider、模型或
+`max_tokens` 的前提下完成：
+
+- H0 报告口径更正，以及独立于旧 H0 双配置路径的 crash-safe baseline-only
+  E2E harness；
+- H1 共享 Grounded Answer hardening：明确有限样本与直接反例的逻辑边界，
+  支持带 Citation 的有限 `partial` 结论，改善当前字幕范围内的跨视频综合，并
+  对完全重复 Answer Block 做确定性拒绝/一次既有 Repair；
+- H2 `DeepRuntimeState → Deterministic DecisionViewProjector → existing
+  AgentAction Provider`：完整 Runtime State 和 Guard 不变，模型投影移除完整
+  Evidence `segment_ids`、重复长 Navigation Summary Sections 和最近 60 个
+ 逐项 Visited Segment IDs，同时保留合法 Window Anchor、Evidence Inventory、
+  工作清单、最近观察和精确剩余预算。
+
+Paired baseline-only E2E 使用相同 Manifest、Query Hash、Corpus SHA-256
+`e3e803b9288755e8dd220efb0a21e345b49f9b1585765e592f2f178069614286`：
+
+- Fast Before/After 各 4 Run；No-evidence、Single-topic 和 Universal/
+  Partial-support 验收通过。Fast After 的 Cross-video Run 出现一次独立
+  `provider_error`，诚实 fail-closed，未 Repair、未重跑、未错误归因给 H1；
+- Deep Before/After 各 2 Run。两条 Deep Run 的累计 Prompt Tokens 分别从
+  29,605 降至 13,128（55.7%）和从 36,149 降至 15,237（57.9%）；Decision
+  Round 从 3 增至 4，但 Navigation/Transcript/Replanning、Evidence Coverage、
+  Citation 与四维质量均保持或改善；
+- 12 个 Run 均有 Provider 前 WAL、逐 Run 原子 Checkpoint、当前 Citation
+  重建和进程内四维复核；所有 Checkpoint 终态完整，无未知 `in_flight`。
+
+最终验证：
+
+```text
+68 passed（H0/H1/H2 定向）
+61 passed（/ask、/search、Fast/Deep、Evidence UI 定向）
+1498 passed，4 deselected（默认完整套件）
+Compileall、Pip Check、ask.js、search.js、git diff --check passed
+1 existing Starlette/httpx deprecation warning
+```
+
+正式 Closeout：
+
+- `V4_1_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md`
+
+V4.1 没有采用 Thinking Off、Reduced Reasoning、新 Provider、Reranker、
+Runtime Judge、LLM Summary、Memory、Persistence、Multi-Agent、Streaming、
+自动路由或新平台。后续如需新的真实 Provider 调用或扩大范围，仍需 Main
+Session 独立授权。

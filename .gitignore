@@ -16,6 +16,7 @@ htmlcov/
 .env.*
 !.env.example
 /.cache/
+/.h0/
 /cache/
 temporary_exports/
 reports/data/
