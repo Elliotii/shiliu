@@ -3,8 +3,10 @@
 ```yaml
 document_role: current_state_authority
 status: v4_complete_v4_1_partial_closed
-implementation_status: goals_1_2_3_complete_v4_1_hardening_partially_accepted
-current_phase: v4_1_closed_with_known_evidence_gap
+implementation_status: goals_1_2_3_and_v4_1_implementation_complete
+runtime_changes_status: v4_1_h1_h2_accepted
+current_phase: v4_v4_1_formally_archived
+archive_state: final
 last_updated: 2026-07-30
 ```
 
@@ -264,15 +266,26 @@ Deep 和 Search 定向测试及默认完整测试集，结果通过。
 - 视频级 Navigation Projection 在 Goal 2 Vertical Slice 和 Goal 3 轻量 Eval
   中均未出现材料性 Recall 失败，不触发 Independent Navigation Index。
 - Source Version 变化后的 Stale Skip 已实现并测试；真实产品运行中的发生频率仍未知。
-- Goal 1 Vertical Slice 实测 Provider 延迟约 37.6–112.1 秒，Provider 是主要成本。
+- Goal 1 Vertical Slice 实测总延迟约 37.6–112.1 秒；V4.1 没有证明 Fast
+  整体延迟改善。H0 Thinking Off 配置组合的中位延迟显著降低，但同时改变
+  Thinking、Reasoning Effort 和 Temperature，并伴随材料性质量退化，不能作
+  单变量因果解释；正式 Runtime 保持 Baseline，也不能把全部波动归因于
+  DeepSeek 服务端。
 - Goal 3 六条真实 Fast 运行均发生 Context Truncation；当前没有重复证据证明
   关键事实稳定落在预算之外，不触发 Reranker 或 Automatic Context Compaction。
-- 一条 Fast 跨视频结果因 Provider 长度上限诚实返回
-  `insufficient/provider_error`；复杂跨视频问题仍适合用户显式选择 Deep。
-- `partial_universal_claim` Repair 结果安全但偏保守地返回 `insufficient`；
-  这是 Usefulness/Coverage 的观察项，不是 Grounding 阻塞。
-- Goal 2 Window/Replanning 真实 Case 的四次 Agent Decision 共消耗 58,396
-  Tokens；Deep 的 Provider 延迟与 Token 成本仍是明确产品边界。
+- V4 Goal 3 曾有一条 Fast 跨视频结果因 Provider 长度上限诚实返回
+  `insufficient/provider_error`；V4.1 H1 已收紧跨视频综合边界，但 Fast After
+  又因一次独立 Provider Failure 缺少成功在线样本。复杂跨视频问题仍适合用户
+  显式选择 Deep。
+- Goal 3 Repair 的 `partial_universal_claim` 曾安全但偏保守地返回
+  `insufficient`；该历史问题已由 V4.1 H1 修正。当前权威字幕中的直接反例可以
+  形成带 Citation、有限范围且明确非全库审计的 `partial` 回答，不再把该问题
+  列为当前未解决项。
+- V4 原始 Goal 2 Window/Replanning Case 的四次 Agent Decision 曾消耗 58,396
+  Tokens。V4.1 H2 在两条 Paired Deep Case 中将累计 Prompt Tokens 分别降低
+  55.7% 和 57.9%，合计降低 56.9%；总延迟降低约 20.1%，同时保留或改善
+  Replanning、Evidence Coverage、Citation 和四维人工质量。两条 Case 尚不能
+  证明所有 Deep Query 都获得相同比例收益。
 - Goal 2 当前单 Tool Evidence 包络在两个真实 Case 中分别丢弃 42、44 个
   Candidate Span；Goal 3 未证明这造成重复材料性回答失败。
 - 真实无证据 Case 出现一次严格 Agent Action Schema 漂移；当前
@@ -304,7 +317,8 @@ Goal 1 已完成并通过 Integration Review
 → Goal 3 已完成有界 Repair 并通过第二次 Integration Review
 → V4 三个纵向 Goal 与高层完成条件全部完成
 → V4.1 Hardening 实现完成，以 partial 关闭一项未证明的 Fast Cross-video 在线质量
-→ 保持 V4 完成基线
+→ V4 / V4.1 正式封存
+→ 可以开始讨论拾流后续版本
 ```
 
 后续如需启动 V5、扩大 Eval、调整生产质量/延迟目标或重新考虑 Deferred 能力，
@@ -314,7 +328,10 @@ Goal 1 已完成并通过 Integration Review
 
 ```yaml
 v4_1_status: partial
+implementation_complete: true
+runtime_changes_accepted: true
 closeout_state: closed_with_known_evidence_gap
+remaining_blocking_finding: none
 date: 2026-07-30
 branch: codex/v4.1-hardening
 provider_configuration: baseline_unchanged
@@ -327,6 +344,8 @@ continuation_provider_e2e:
   transport_http_attempts: 34
   thinking_off_calls: 0
   fixed_replay_calls: 0
+unproven_online_quality:
+  - fast_cross_video_after
 ```
 
 V4.1 在不改变 Retrieval、Context Selection、Ask Contract、Citation Identity、
@@ -372,6 +391,7 @@ Compileall、Pip Check、ask.js、search.js、git diff --check passed
 正式 Closeout：
 
 - `V4_1_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md`
+- `V4_V4_1_FINAL_ARCHIVE_CLOSEOUT.md`
 
 接受边界：
 
@@ -387,3 +407,23 @@ Reranker、Runtime Judge、LLM Summary、Memory、Persistence、Multi-Agent、
 Streaming、自动路由或新平台。H0 Fixed Replay 曾在调查包络内测试 Thinking
 Off，但结论是不采用；该实验与消耗由 H0 报告单独披露。后续如需新的真实
 Provider 调用或扩大范围，仍需 Main Session 独立授权。
+
+## 13. Final Archive
+
+```yaml
+v4_status: complete
+goal_1: complete
+goal_2: complete
+goal_3: complete
+remaining_v4_blocking_finding: none
+v4_1_status: partial
+v4_1_implementation_complete: true
+v4_1_runtime_changes_accepted: true
+v4_1_closeout_state: closed_with_known_evidence_gap
+remaining_v4_1_blocking_finding: none
+archive_file: V4_V4_1_FINAL_ARCHIVE_CLOSEOUT.md
+```
+
+V4 / V4.1 已正式结束。`partial` 只保留 Fast Cross-video After 缺少成功在线
+样本这一项证据缺口，不触发重采样或继续修复。后续版本必须围绕新的产品命题
+重新讨论和授权，不得从 Deferred 清单自动生成 Backlog。

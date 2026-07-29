@@ -3,19 +3,21 @@
 ```yaml
 document_role: planning_session_handoff
 audience: Shiliu main WebGPT planning session
-scope: Shiliu V4 only
-status: V4 implementation and integration accepted
-date: 2026-07-29
-branch: codex/v4-main
-commit: cbf264be2571c3d62775c064445de8a1ba17880a
-historical_scope: V4 completion baseline before V4.1
+scope: Shiliu V4 and V4.1 final state
+status: V4 complete; V4.1 partial closed; formally archived
+date: 2026-07-30
+v4_baseline_branch: codex/v4-main
+v4_baseline_commit: cbf264be2571c3d62775c064445de8a1ba17880a
+archive_branch: codex/v4.1-hardening
 current_state_authority: V4_MASTER_STATE.md
+final_archive_authority: V4_V4_1_FINAL_ARCHIVE_CLOSEOUT.md
 ```
 
-> 后续状态说明：本文冻结 V4 完成基线，不承担 V4.1 Closeout 权威。V4.1
-> Hardening 的当前状态为有界 `partial` Closeout；H1/H2 实现均保留，具体接受
-> 边界以 `V4_MASTER_STATE.md`、`V4_DECISION_LEDGER.md` 和
-> `V4_1_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md` 为准。
+> 最终状态说明：V4 三个 Goal 均为 `complete`；V4.1 实现完成、Runtime 改动
+> 被接受，并以有界 `partial` 正式关闭。`partial` 只表示 Fast Cross-video
+> After 因一次 Provider Failure 缺少成功在线样本，不表示产品或实现回退。
+> 最终边界以 `V4_V4_1_FINAL_ARCHIVE_CLOSEOUT.md`、`V4_MASTER_STATE.md` 和
+> `V4_DECISION_LEDGER.md` 为准。
 
 ## 1. 阅读目的
 
@@ -584,6 +586,23 @@ original_eval_result_hash: unchanged
 
 测试证明代码和边界可靠，但六条真实 Eval 不能证明生产质量泛化。
 
+V4.1 最终验证：
+
+```yaml
+directed_h0_h1_h2: 68_passed
+product_regression: 61_passed
+default_full_suite: 1498_passed_4_deselected
+continuation_e2e:
+  product_runs: 12
+  logical_provider_invocations: 34
+  transport_http_attempts: 34
+  automatic_resampling: false
+```
+
+H1 三类成功 Fast Paired Evidence 和 H2 两类 Paired Evidence 被接受；Fast
+Cross-video After 因一次 Provider Failure 没有形成可评价答案，因此只保留为
+未证明在线质量，不作为 Blocking Finding。
+
 ---
 
 ## 12. 当前主要风险
@@ -602,32 +621,44 @@ Goal 1 Fast Vertical Slice 实测约 37.6–112.1 秒。Goal 3 Fast 也出现约
 - 浏览器 Abort 只防止旧 Response 覆盖；
 - Provider 调用可能在用户离开页面后继续运行。
 
+V4.1 没有证明 Fast 整体延迟改善。H0 的 Thinking Off 配置组合中位延迟显著
+降低，但对照同时改变 Thinking、Reasoning Effort 和 Temperature，并伴随
+材料性错误拒答和 Unknown Citation Repair。正式 Runtime 因此保持 Baseline；
+当前证据也不能把 Fast 波动完全归因于 DeepSeek 服务端。
+
 ### 12.2 Deep Token 与成本
 
-一个 Goal 2 Window/Replanning Case 的四次 Agent Decision 使用约 58,396
-Tokens。
+V4 原始 Goal 2 Window/Replanning Case 的四次 Agent Decision 曾使用约
+58,396 Tokens。
 
-Deep 有明确上界，但仍可能昂贵，因此应继续由用户显式选择。
+V4.1 通过 Deterministic DecisionView，在两条 Paired Deep Case 中将累计
+Prompt Tokens 分别降低 55.7% 和 57.9%，合计降低 56.9%；总延迟降低约
+20.1%，同时保留或改善 Replanning、Evidence Coverage、Citation 和四维人工
+质量。
+
+该结果尚未证明所有 Deep Query 都能获得相同比例收益。Deep 仍有明确成本上界，
+并继续由用户显式选择。
 
 ### 12.3 Fast Context Truncation
 
 Goal 3 六条真实 Fast 运行均发生 Context Truncation。
 
 当前没有重复证据证明关键 Evidence 稳定落在预算之外，因此没有触发 Reranker
-或 Automatic Context Compaction。但这是重要观察信号。
+或 Automatic Context Compaction。Multi-query 重复 Citation 已在 Fusion 阶段
+去重，Cross-video 和 Universal Case 仍保留多个视频；Diversity Selector 同样
+未被触发。
 
-### 12.4 保守拒答
+### 12.4 历史保守拒答（已修正）
 
-Repair 后的全称问题安全地返回 `insufficient`，但未充分利用已有反例生成更有用
-的有限范围回答。
+Goal 3 Repair 后的全称问题曾安全地返回 `insufficient`，但未充分利用已有反例
+生成有限范围回答。该历史问题已由 V4.1 H1 修正：
 
-当前优先级是：
+- 有限 Retrieval/Transcript Context 不能证明完整全库或全称命题；
+- 当前权威字幕中的直接反例可以形成带 Citation、有限范围且明确非全库审计的
+  `partial` 回答；
+- No-evidence 仍必须诚实 `insufficient`。
 
-```text
-范围诚实
->
-无证据的高覆盖率
-```
+该全称命题保守拒答不再列为当前未解决项。
 
 ### 12.5 Provider 可靠性
 
@@ -840,13 +871,19 @@ V5 应围绕一个清晰的产品假设展开，而不是清空 V4 Deferred 列�
    - 当前状态、完成边界、风险与 Deferred 权威。
 3. `V4_DECISION_LEDGER.md`
    - 关键产品和架构决策、理由与未采用方案。
-4. `V4_DESIGN_PROPOSAL.md`
+4. `V4_V4_1_FINAL_ARCHIVE_CLOSEOUT.md`
+   - V4 / V4.1 最终状态、证据缺口、明确关闭项与版本过渡。
+5. `V4_1_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md`
+   - V4.1 H1/H2 实现、Paired Evidence 与有界 `partial` Closeout。
+6. `V4_1_H0_INVESTIGATION_REPORT.md`
+   - Provider 配置组合、Deep Payload 和 Fast Context Diagnostics。
+7. `V4_DESIGN_PROPOSAL.md`
    - 完整产品与技术架构。
-5. `V4_G1_IMPLEMENTATION_REPORT.md`
+8. `V4_G1_IMPLEMENTATION_REPORT.md`
    - Fast Grounded RAG 实现和验证。
-6. `V4_G2_IMPLEMENTATION_REPORT.md`
+9. `V4_G2_IMPLEMENTATION_REPORT.md`
    - Independent Agentic Search、LangGraph 和预算实现。
-7. `V4_G3_IMPLEMENTATION_REPORT.md`
+10. `V4_G3_IMPLEMENTATION_REPORT.md`
    - `/ask`、UI、Trace、真实 Eval、Demo 和 Integration Repair。
 
 `eval/v4_goal3_results.json` 与 `eval/v4_goal3_repair_results.json` 是真实运行证据，

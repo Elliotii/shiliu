@@ -2,7 +2,7 @@
 
 ```yaml
 document_role: accepted_decision_record
-status: active
+status: archived_v4_v4_1
 last_updated: 2026-07-30
 ```
 
@@ -980,3 +980,45 @@ Cross-video、延迟和 Deep 增量价值是否值得继续投入。但用户通
 
 V4.1 不因新增产品观测需求重新开工。若 V4 在 V5 前即将面向持续真实用户开放，
 可由用户另行授权一个薄 Instrumentation Slice；否则随 V5 产品规划讨论。
+
+## D-029 — V4 / V4.1 正式封存并允许进入新版本规划
+
+```yaml
+status: accepted
+date: 2026-07-30
+scope: v4_v4_1_final_archive
+```
+
+**决定**
+
+- V4 Goal 1、Goal 2、Goal 3 保持 `complete`，V4 剩余 Blocking Finding 为零；
+- V4.1 实现完成、H1/H2 Runtime 改动被接受，以 `partial` 和
+  `closed_with_known_evidence_gap` 正式关闭，剩余 Blocking Finding 为零；
+- `partial` 只保留 `fast_cross_video_after` 缺少成功在线样本这一项证据缺口；
+- 不为改变状态标签追加 Provider 调用、重采样或继续建设一次性 Crash-safe
+  Harness；
+- V4 / V4.1 的最终封存权威为
+  `V4_V4_1_FINAL_ARCHIVE_CLOSEOUT.md`，并由 `V4_MASTER_STATE.md` 和本 Ledger
+  共同维护状态与决策依据；
+- 下一版本可以开始讨论，但必须围绕新的产品命题，不得从 V4 Deferred 清单
+  自动生成 Backlog。
+
+**当前仍存在的证据边界**
+
+- Fast Cross-video After 缺少成功在线样本；
+- Fast 整体延迟改善未证明；
+- Deep Token/Latency 改善只由两条 Paired Case 证明，尚未证明全查询泛化；
+- Provider 服务端波动未被当前小样本完全归因。
+
+**明确关闭**
+
+- 为改变状态重跑 Cross-video；
+- 继续 Thinking 校准；
+- Reranker、Context Compaction、Runtime Judge、Native Tool Calling；
+- Streaming、Cancellation、Memory、Multi-Agent；
+- 扩大 Eval 或继续建设本次 Harness。
+
+**影响**
+
+V4 / V4.1 不再存在活动 Goal。Merge、Tag 和 Release 继续由用户单独决定，本次
+封存不自动合并默认分支，也不自动创建 Tag 或 Release。
