@@ -1,0 +1,1880 @@
+# 拾流 V5 上游项目与研究资料注册表
+# 生成日期：2026-07-30
+# 注意：本表是研究/采用状态表，不是实施授权；本地状态须由主 Codex 现场核验。
+
+registry_metadata:
+  registry_id: shiliu_v5_upstream_and_research_registry
+  schema_version: '1.0'
+  generated_at: '2026-07-30T08:22:00+08:00'
+  status: live_audited_pre_v5_a
+  purpose: 维护拾流 V5 外部项目、论文、官方资料、索引和本地研究备忘录的当前权威状态：来源、本地存在性、版本、License、研究深度、版本相关性、使用历史、当前采用判断和下一研究触发条件。
+  authority_boundary: 本注册表是研究与采用状态表，不是实施授权。只有进入已接受的 Version Charter / Stage Contract 且 implementation_authorized=true 的机制才可正式实施。
+  upstream_files:
+  - 拾流_V5及后续版本规划_现阶段整合版.md
+  - 00_拾流V5主Codex角色权限与Session治理.md
+  - 001_拾流V5开发研究与证据治理规范.md
+  - 02_拾流V4_V4_1至V5技术事实交接.md
+  planning_source_documents:
+  - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+  - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  - 拾流_V5及后续版本规划_现阶段整合版.md
+  local_state_policy: V5 主 Codex 已于 2026-07-30 扫描正式仓库、references/upstreams 和嵌套 Git 仓库；27 个本 Registry 资源均未发现本地副本，故 local.status 统一核验为 absent。历史本地引用 bilibili-cli 不属于本 Registry，不改变这些结果。
+  maintenance_policy:
+    registry_records: 每个资源的最新权威状态
+    research_log_records: 具有材料意义的研究 Episode 与判断变化
+    log_every_page_view: false
+    update_on:
+    - 本地 Clone/下载或版本变化
+    - 固定新的 Commit/Release
+    - 完成关键源码或测试研究
+    - 完成 Spike
+    - 形成或修改 Adoption Decision
+    - 在具体版本/阶段实际使用
+    - License、维护状态或官方能力发生材料变化
+    - 候选被拒绝、淘汰或旧判断被替代
+    approval: 子版本 Session提出更新；V5 主 Session在阶段验收时核对并更新 Program 级当前状态。
+allowed_values:
+  resource_type:
+  - source_repository
+  - official_documentation
+  - research_paper
+  - product
+  - release_note
+  - issue_or_pull_request
+  - secondary_article
+  - index_repository
+  - local_research_memo
+  local_status:
+  - unknown
+  - absent
+  - metadata_only
+  - partial_checkout
+  - full_clone
+  - archived
+  - stale
+  research_status:
+  - indexed
+  - initial_reconnaissance
+  - docs_reviewed
+  - source_reviewed
+  - tests_reviewed
+  - spike_completed
+  - adopted
+  - rejected
+  - superseded
+  adoption_status:
+  - candidate
+  - adopted
+  - conditional
+  - deferred
+  - rejected
+  recommended_mode:
+  - direct_dependency
+  - adapter_integration
+  - copy_and_adapt
+  - reimplement_pattern
+  - product_or_behavior_reference
+  - test_reference
+  - research_spike
+  - defer
+  - reject
+  usage_level:
+  - indexed_only
+  - product_reference
+  - design_reference
+  - source_candidate
+  - source_reference
+  - copied_and_adapted
+  - direct_dependency
+  - test_reference
+global_rules:
+  download_does_not_equal_adoption: true
+  research_does_not_equal_implementation_authorization: true
+  implementation_authorized_default: false
+  official_source_preferred: true
+  fixed_commit_required_for_source_level_research: true
+  license_must_be_rechecked_before_code_copy: true
+  large_upstream_mirrors_committed_by_default: false
+  material_research_episode_logging_only: true
+  current_roadmap_priority:
+    V5-A:
+    - deer_flow
+    - arex_paper
+    - youtu_agent
+    V5-B:
+    - deeptutor
+    - weknora
+    V5-C:
+    - local_memo_self_evolution
+    - survey_what_when_how_self_evolving
+    V5-D:
+    - searchcli
+    - skilladaptor
+    - hdso_paper
+    - skillos_paper
+    - muse_autoskill_paper
+    - youtu_agent
+    conditional:
+    - youtu_graphrag
+resources:
+- id: deer_flow
+  name: ByteDance DeerFlow
+  type: source_repository
+  priority: P0
+  source:
+    official_url: https://github.com/bytedance/deer-flow
+    secondary_urls:
+    - https://github.com/bytedance/deer-flow/blob/main/README_zh.md
+    - https://github.com/bytedance/deer-flow/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: MIT
+    verified: true
+    verification_source: https://github.com/bytedance/deer-flow/blob/main/LICENSE
+    notes: 主仓库许可证已由官方 LICENSE 核验；仓库内个别公共 Skill 可能带独立许可证，复制时仍需逐项检查。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_readme
+    - official_docs
+    - license
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    mechanisms:
+    - research_goal
+    - typed_blocker
+    - continuation_predicate
+    - no_progress
+    - checkpoint_lineage
+    - thread_mutation_guard
+    - branch_and_replay_semantics
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - copy_and_adapt
+    - reimplement_pattern
+    - test_reference
+    summary: V5-A 最高优先级源码研究候选。重点借鉴 Goal、Typed Blocker、Continuation、No-progress、Checkpoint Lineage 与用户输入抢占；不引入完整 Super Agent、Sandbox、IM
+      Gateway 或通用 Subagent 平台。
+    risks:
+    - 完整 Runtime 规模远超拾流需求
+    - Branch/Replay 不自动回滚外部副作用
+    - 仓库变化快，正式研究必须固定 Commit
+    - 局部 Skill 可能存在不同许可证
+    unresolved_questions:
+    - 与拾流现有 LangGraph StateGraph 和 DecisionView 的精确接点
+    - Goal Evaluator、Continuation 与 No-progress 的当前源码符号和测试
+    - 产品副作用幂等与 DeerFlow 线程语义的差异
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: roadmap formation
+    level: design_reference
+    result: 强化 V5-A Durable Goal-driven / Recursive Research Runtime 规划。
+    local_artifacts:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_A_version_charter
+  - before_V5_A_goal_and_continuation_stage
+  - upstream_major_change
+  notes: null
+- id: arex_paper
+  name: 'AREX: Towards a Recursively Self-Improving Agent for Deep Research'
+  type: research_paper
+  priority: P0
+  source:
+    official_url: https://arxiv.org/abs/2607.21461
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2607.21461
+    notes: 论文页面已核验；论文/源码复用许可需在正式采用前重新检查。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_abstract
+    - paper_html_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    mechanisms:
+    - inner_research_loop
+    - outer_constraint_audit
+    - provisional_synthesis
+    - targeted_follow_up
+    - compact_improvement_state
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - reimplement_pattern
+    - product_or_behavior_reference
+    - test_reference
+    summary: 用于 V5-A 的 Inner Research Loop + Outer Goal/Constraint Audit。只吸收发现—验证结构和改进状态，不引入 Agentic Mid-training、强化学习或模型参数更新。
+    risks:
+    - 原论文主要收益与训练方案绑定
+    - 外层自审不能获得修改 Evidence Authority 或 Completion Gate 的权限
+    - 若无确定性状态合同，容易退化为自由 Reflection
+    unresolved_questions:
+    - 是否存在可复用官方代码
+    - 如何将 constraint-wise audit 映射为拾流 Required Aspects 与 Citation
+    - 如何用现有 DecisionView 投影 compact improvement state
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-A refinement
+    level: design_reference
+    result: 将 V5-A 从 Durable Runtime 扩展为 Durable Recursive Research Runtime。
+    local_artifacts:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_A_version_charter
+  - if_outer_audit_contract_is_unclear
+  notes: null
+- id: deeptutor
+  name: HKUDS DeepTutor
+  type: source_repository
+  priority: P0
+  source:
+    official_url: https://github.com/HKUDS/DeepTutor
+    secondary_urls:
+    - https://arxiv.org/abs/2604.26962
+    - https://github.com/HKUDS/DeepTutor/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: Apache-2.0
+    verified: true
+    verification_source: https://github.com/HKUDS/DeepTutor/blob/main/LICENSE
+    notes: 正式复制或派生时仍需保留许可证和版权通知。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_readme
+    - release_notes
+    - license
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-B
+    mechanisms:
+    - l1_append_only_trace
+    - l2_curated_facts
+    - l3_cross_surface_synthesis
+    - memory_lineage
+    - read_memory
+    - write_memory
+    - idempotent_memory_write
+    - editable_memory_ui
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - reimplement_pattern
+    - copy_and_adapt
+    - product_or_behavior_reference
+    summary: V5-B 三层可审计知识与 Memory 的主要源码研究候选。借鉴文件/层级/Lineage/可编辑写入；拾流需重新定义为 L1 Evidence/Event、L2 Grounded Fact、L3 Research
+      Synthesis。
+    risks:
+    - DeepTutor 的个性化学习语义不能直接当作拾流事实权威
+    - 完整产品范围远超拾流
+    - 正式复制前需核查当前 Commit 和第三方组件
+    unresolved_questions:
+    - 三层 Memory 的当前目录、对象合同和写入测试
+    - Memory Graph 如何映射到 SQLite + Filesystem Artifacts
+    - 幂等写入、删除和用户修正的精确实现
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-B formation
+    level: design_reference
+    result: 形成 Evidence → Grounded Fact → Research Synthesis 三层结构。
+    local_artifacts:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_B_version_charter
+  - before_V5_B_lineage_stage
+  - upstream_major_release
+  notes: null
+- id: weknora
+  name: Tencent WeKnora
+  type: source_repository
+  priority: P1
+  source:
+    official_url: https://github.com/Tencent/WeKnora
+    secondary_urls:
+    - https://github.com/Tencent/WeKnora/blob/main/README_CN.md
+    - https://github.com/Tencent/WeKnora/releases
+    - https://github.com/Tencent/WeKnora/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: MIT
+    verified: true
+    verification_source: https://github.com/Tencent/WeKnora/blob/main/LICENSE
+    notes: 主项目为 MIT；LICENSE 同时列出第三方组件及其独立条款，复制或集成时必须逐项核验。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_readme
+    - official_docs
+    - releases
+    - license
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-B
+    mechanisms:
+    - wiki_mode
+    - auto_wiki
+    - topic_page
+    - interlinked_markdown
+    - async_generation_pipeline
+    - knowledge_browsing
+    - observability_reference
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    - reimplement_pattern
+    summary: 主要作为 V5-B Topic Page / Auto-Wiki 产品形态和异步生成流程参考。V4 已完成 Fast/Deep，不再把 WeKnora 作为 RAG/Agentic Search 基础，也不直接采用其企业知识平台。
+    risks:
+    - Wiki 页面不天然满足拾流 Claim-level Citation 与 Source Version Lineage
+    - 企业多租户、Connector、RBAC 和多后端属于过度范围
+    - 第三方组件许可证需单独核验
+    unresolved_questions:
+    - Wiki 任务状态、更新和重建流程的当前源码实现
+    - 页面间关系如何绑定拾流 Grounded Fact / Transcript Evidence
+    - 是否有适合局部复制的异步任务或前端组件
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-B productization
+    level: product_reference
+    result: 将 Topic Page 确立为 V5-B 主要用户可见输出之一。
+    local_artifacts:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_B_topic_page_stage
+  - if_async_wiki_generation_is_selected
+  notes: null
+- id: youtu_agent
+  name: TencentCloudADP Youtu-Agent
+  type: source_repository
+  priority: P1
+  source:
+    official_url: https://github.com/TencentCloudADP/youtu-agent
+    secondary_urls:
+    - https://tencentcloudadp.github.io/youtu-agent/eval/
+    - https://github.com/TencentCloudADP/youtu-agent/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: MIT
+    verified: true
+    verification_source: https://github.com/TencentCloudADP/youtu-agent/blob/main/LICENSE
+    notes: 官方 LICENSE 标注 MIT。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_readme
+    - official_eval_docs
+    - release_page
+    - license
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-B
+    - V5-D
+    mechanisms:
+    - benchmark_abstraction
+    - dataset_environment_rollout_judge_separation
+    - experiment_id
+    - restart_step
+    - trajectory_record
+    - experience_record
+    - baseline_candidate_comparison
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - reimplement_pattern
+    - test_reference
+    summary: 用于跨 V5 的薄 Experiment / Benchmark 合同，重点借鉴 Dataset、Environment、Rollout、Judge、exp_id 与恢复；不采用完整 Agent Framework、Hydra
+      平台、Training-Free GRPO 或模型训练。
+    risks:
+    - 完整框架会遮蔽拾流自身 Runtime
+    - 训练和大规模 Rollout 超出路线
+    - 部分 Trace/DB 能力可能仍处于规划或变化中
+    unresolved_questions:
+    - 当前 Benchmark/Processor/DataManager 的源码和测试边界
+    - restart_step 与拾流 Attempt/Checkpoint 的可复用程度
+    - 最小 Experiment Manifest 应保留哪些字段
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: evaluation lane formation
+    level: design_reference
+    result: 形成薄 Dataset/Environment/Rollout/Judge/Experiment Identity 规划。
+    local_artifacts:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_A_replayable_trace_stage
+  - before_V5_D_experiment_pipeline
+  - upstream_eval_api_change
+  notes: null
+- id: searchcli
+  name: Volcengine SearchCLI
+  type: source_repository
+  priority: P0
+  source:
+    official_url: https://github.com/volcengine/SearchCLI
+    secondary_urls:
+    - https://developer.volcengine.com/articles/7667161751409917994
+    - https://github.com/volcengine/SearchCLI/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: Apache-2.0
+    verified: true
+    verification_source: https://github.com/volcengine/SearchCLI/blob/main/LICENSE
+    notes: 贡献上游 PR 还需注意官方 CLA；本地借鉴仍需遵守 Apache-2.0 通知与修改说明要求。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_readme
+    - official_engineering_article
+    - license
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - plan_run_report_compare_apply
+    - dry_run
+    - confirmation_gate
+    - read_after_write_verification
+    - checkpoint_resume
+    - cache_identity
+    - candidate_configuration
+    - agent_cli_boundary
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - copy_and_adapt
+    - reimplement_pattern
+    - product_or_behavior_reference
+    - test_reference
+    summary: V5-D 实验治理和 CLI 流程的最高优先工程案例。借鉴 Agent 负责判断、CLI 负责确定性执行，以及 plan/run/report/compare/promote/rollback 边界；不迁移其 Volcengine
+      搜索服务和 SPA 算法。
+    risks:
+    - 依赖火山引擎账号和服务的部分不可直接用于拾流
+    - 搜索配置空间比拾流的 Skill/Policy 对象更规整
+    - 当前仓库快速演进，正式采用必须固定 Commit
+    unresolved_questions:
+    - search tune 相关命令、Checkpoint、Cache Identity 与 Apply 的当前源码符号
+    - 哪些 CLI 组件可局部复制而不引入服务依赖
+    - 如何映射为 shiliu improve diagnose/plan/run/report/compare/promote/rollback
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-D refinement
+    level: design_reference
+    result: 形成 Candidate、Plan、Paired Run、Report、Promotion/rollback 的工程流程。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_version_charter
+  - before_V5_D_experiment_cli_stage
+  - upstream_major_change
+  notes: null
+- id: skilladaptor
+  name: ZJUNLP SkillAdaptor
+  type: source_repository
+  priority: P0
+  source:
+    official_url: https://github.com/zjunlp/SkillAdaptor
+    secondary_urls:
+    - https://arxiv.org/abs/2606.01311
+    - https://github.com/zjunlp/SkillAdaptor/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: MIT
+    verified: true
+    verification_source: https://github.com/zjunlp/SkillAdaptor
+    notes: 官方仓库 README 与 LICENSE 标明 MIT。
+  research:
+    status: docs_reviewed
+    depth:
+    - paper_abstract
+    - official_readme
+    - repository_structure
+    - license
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - step_level_failure_attribution
+    - first_actionable_fault
+    - skill_responsibility_linking
+    - targeted_skill_revision
+    - acceptance_checks
+    - held_out_validation
+    - retrieval_gated_skill_injection
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - research_spike
+    - copy_and_adapt
+    - reimplement_pattern
+    - test_reference
+    summary: V5-D 步骤级失败归因与 Skill 维护的高优先源码 Spike 候选。适合研究 Localizer/Linker/Reviser/Validator 分层和固定任务 Manifest，不应直接让其修改拾流 Active
+      Skill。
+    risks:
+    - 面向通用 Agent SKILL.md，需重写为拾流 Search Skill 语义
+    - 失败归因仍可能由 LLM 误诊
+    - 正式采用前必须检查当前代码质量、测试和依赖
+    unresolved_questions:
+    - CLI、Trajectory Schema、dry-run 与 Validator 的真实源码合同
+    - 能否仅抽取归因和候选包结构
+    - 与拾流 TraceStep / FailureAttribution 的映射
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-D refinement
+    level: source_candidate
+    result: 将 Step-level Attribution 加入 V5-D 核心闭环。
+    local_artifacts:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_failure_attribution_stage
+  - before_any_code_copy
+  notes: null
+- id: skillos_paper
+  name: 'SkillOS: Learning Skill Curation for Self-Evolving Agents'
+  type: research_paper
+  priority: P1
+  source:
+    official_url: https://arxiv.org/abs/2605.06614
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2605.06614
+    notes: 当前注册的是论文；代码仓库与复用许可待正式研究核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_abstract
+    - paper_html_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - executor_curator_separation
+    - external_skill_repo
+    - insert_update_delete
+    - related_task_stream
+    - delayed_skill_value
+    - skill_repo_compactness
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - reimplement_pattern
+    - test_reference
+    summary: 用于 Executor/Curator 逻辑隔离、Skill 生命周期和相关任务流 Eval。明确拒绝训练 Curator、强化学习和模型参数更新。
+    risks:
+    - 主要结论与其训练设置绑定
+    - 相关任务提升可能来自任务相似性而非通用策略
+    - Markdown Skill 丰富不等于可执行或泛化
+    unresolved_questions:
+    - 是否存在官方代码和许可证
+    - 相关任务流如何构造成拾流 Failure Family
+    - Skill merge/deprecate 的低成本实现
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-D refinement
+    level: design_reference
+    result: 加入 Related-task Generalization、Curator/Executor 分离与 Skill 生命周期。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_skill_lifecycle_stage
+  - if_official_code_is_released
+  notes: null
+- id: hdso_paper
+  name: Hypothesis-Driven Skill Optimization for LLM Agents
+  type: research_paper
+  priority: P0
+  source:
+    official_url: https://arxiv.org/abs/2606.22330
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2606.22330
+    notes: 论文页面已核验；代码与复用许可待正式研究。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_abstract
+    - paper_html_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - falsifiable_improvement_hypothesis
+    - explicit_validation_plan
+    - paired_control_treatment
+    - approved_skill_repository
+    - progressive_disclosure
+    - frozen_executor_and_curator
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - reimplement_pattern
+    - test_reference
+    summary: V5-D 最适合的核心方法参考之一：从 Trace 形成可证伪 Hypothesis，明确 Baseline/Treatment 验证后才进入 Approved Repository；不做开放式记忆累积。
+    risks:
+    - 论文实验域与拾流不同
+    - Curator 假设质量本身需要评测
+    - 不能让 Candidate 改变 Verifier 或 Promotion Gate
+    unresolved_questions:
+    - 是否有官方代码与许可证
+    - Hypothesis Ledger 的最小字段
+    - 配对 Run 和 Progressive Disclosure 如何映射到拾流
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-D refinement
+    level: design_reference
+    result: 将可证伪 Hypothesis 和 Paired Replay 设为 V5-D 正式流程。
+    local_artifacts:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_hypothesis_stage
+  - if_official_code_is_released
+  notes: null
+- id: muse_autoskill_paper
+  name: 'MUSE-Autoskill: Self-Evolving Agents via Skill Creation, Memory, Management, and Evaluation'
+  type: research_paper
+  priority: P1
+  source:
+    official_url: https://arxiv.org/abs/2605.27366
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2605.27366
+    notes: 当前仅核验论文；代码仓库与许可证待正式研究。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_abstract
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - skill_package
+    - skill_creation
+    - skill_memory
+    - skill_management
+    - skill_evaluation
+    - skill_refinement
+    - unit_tests_for_skills
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - reimplement_pattern
+    - product_or_behavior_reference
+    - test_reference
+    summary: 用于 Search Skill 作为长期、可测试资产的目录和生命周期参考，例如 skill.yaml、SKILL.md、related/regression tests 与 Skill-level Experience。
+    risks:
+    - 完整框架可能扩大成通用 SkillOS
+    - Skill-level Memory 可能造成 Context 和维护膨胀
+    - 论文收益未证明适用于视频搜索策略
+    unresolved_questions:
+    - 是否有官方代码与许可证
+    - 哪些 Skill Package 字段对拾流是必要的
+    - 如何限制 Skill 数量与 Context 开销
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-D asset design
+    level: design_reference
+    result: 形成结构化 SearchSkill 目录和测试资产设想。
+    local_artifacts:
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_skill_package_stage
+  - if_official_code_is_released
+  notes: null
+- id: youtu_graphrag
+  name: TencentCloudADP Youtu-GraphRAG
+  type: source_repository
+  priority: P2
+  source:
+    official_url: https://github.com/TencentCloudADP/youtu-graphrag
+    secondary_urls:
+    - https://arxiv.org/abs/2508.19855
+    - https://github.com/TencentCloudADP/youtu-graphrag/blob/main/LICENSE
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: Youtu-GraphRAG License (academic-only custom license)
+    verified: true
+    verification_source: https://github.com/TencentCloudADP/youtu-graphrag/blob/main/LICENSE
+    notes: 许可证明确限制为学术用途，禁止商业或生产用途；不得按 MIT 项目处理。拾流虽不公开/商业化，任何复制或集成仍需单独审查。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_readme
+    - license
+    - paper_metadata
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - Post-V5
+    - conditional
+    mechanisms:
+    - schema_guided_graph_construction
+    - multi_hop_reasoning
+    - schema_aware_decomposition
+    - agentic_retrieval
+    - relation_aware_evaluation
+  current_assessment:
+    adoption_status: conditional
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    - research_spike
+    summary: 仅在真实 Held-out/Eval 反复证明关系型多跳失败后研究。默认不实现，不复制生产代码；可先借鉴 Query Decomposition、Failure Taxonomy 和 Relation-aware Eval。
+    risks:
+    - 自定义 academic-only 许可证限制
+    - 图构建和维护成本高
+    - 关系若无法绑定 Transcript Evidence 会破坏权威链
+    - 容易为了展示 GraphRAG 制造伪需求
+    unresolved_questions:
+    - 拾流是否存在重复、材料性的关系型多跳失败
+    - 是否有稳定可维护 Schema
+    - 仅做算法 Spike 是否也符合许可证要求
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: conditional extension review
+    level: design_reference
+    result: 保持 Eval-gated，默认 do_not_implement。
+    local_artifacts:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - repeated_multi_hop_failure_in_heldout_eval
+  - stable_schema_exists
+  - before_any_clone_or_code_use_due_to_license
+  notes: null
+- id: survey_modern_agentic_self_improvement
+  name: 'Self-Improvements in Modern Agentic Systems: A Survey'
+  type: research_paper
+  priority: reference
+  source:
+    official_url: https://arxiv.org/abs/2607.13104
+    secondary_urls:
+    - https://github.com/selfimproving-agent/awesome-Self-Improving-Agents
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2607.13104
+    notes: 论文及配套索引的许可证需分别核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-B
+    - V5-C
+    - V5-D
+    mechanisms:
+    - foundation_model_plus_scaffold
+    - mutable_scaffold_surfaces
+    - versionability
+    - rollback
+    - protected_components
+    - experiment_comparability
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    summary: 作为 Scaffold 分类与 Experiment Identity 检查框架：区分 Prompt、Memory、Tool、Control Logic，不把所有改动混称为自进化。
+    risks:
+    - 分类范围宽，不能直接导出架构
+    - Scaffold 可修改不等于 Runtime Agent 有修改权限
+    unresolved_questions:
+    - 正式版本和配套索引的当前状态
+    - 哪些分类需要进入 ScaffoldFingerprint
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: cross-version governance
+    level: design_reference
+    result: 强化 Protected Boundary 和 ScaffoldFingerprint。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_experiment_identity
+  - if_candidate_surfaces_expand
+  notes: null
+- id: index_modern_agentic_self_improvement
+  name: awesome-Self-Improving-Agents (Ren et al. companion index)
+  type: index_repository
+  priority: reference
+  source:
+    official_url: https://github.com/selfimproving-agent/awesome-Self-Improving-Agents
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: 索引仓库 License 待主 Codex 核验。
+  research:
+    status: indexed
+    depth:
+    - planning_index_reference
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - research_discovery
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 仅用于发现论文和项目，不作为实验结论或实施依据。
+    risks:
+    - 索引可能过时或混合不同强度来源
+    unresolved_questions:
+    - 本地是否需要 Clone
+    - 当前维护状态和 License
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 作为自改进研究入口。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - when_new_self_improvement_mechanism_is_needed
+  notes: null
+- id: survey_long_horizon_agents
+  name: 'Towards Long-Horizon Agents: Foundation, Evolution, Harness, Optimization, Application, and Frontier'
+  type: research_paper
+  priority: reference
+  source:
+    official_url: https://openreview.net/pdf?id=HyhfhlbWGh
+    secondary_urls:
+    - https://github.com/RUC-NLPIR/Awesome-Long-Horizon-Agents
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://openreview.net/pdf?id=HyhfhlbWGh
+    notes: 论文与配套索引 License 待核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-D
+    mechanisms:
+    - h1_single_context
+    - h2_cross_session_reliability
+    - h3_cross_task_experience_reuse
+    - harness_layers
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    summary: 用于严格区分 V5-A 的 H2 Reliability 与 V5-D 的有限 H3 Experience Reuse。
+    risks:
+    - 综述分类不能直接决定路线
+    - H3 不应提前掩盖 H2 基础问题
+    unresolved_questions:
+    - 正式论文版本
+    - 适合拾流的 H2/H3 Eval 最小集合
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: version boundary refinement
+    level: design_reference
+    result: 明确跨 Session 与跨任务改进分层。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_A_charter
+  - before_V5_D_charter
+  notes: null
+- id: index_long_horizon_agents
+  name: Awesome-Long-Horizon-Agents
+  type: index_repository
+  priority: reference
+  source:
+    official_url: https://github.com/RUC-NLPIR/Awesome-Long-Horizon-Agents
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: License 待主 Codex 核验。
+  research:
+    status: indexed
+    depth:
+    - planning_index_reference
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-D
+    mechanisms:
+    - research_discovery
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 长程 Agent 论文地图，仅用于发现资料。
+    risks:
+    - 索引内容不等于经过验证的工程方案
+    unresolved_questions:
+    - 是否需要本地 Clone
+    - 当前维护状态
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 辅助长程 Agent 资料检索。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - when_V5_A_needs_additional_long_horizon_sources
+  notes: null
+- id: survey_experience_meta_evolution
+  name: 'Self-Improving Agents in the Era of Experience: A Survey of Self- to Meta-Evolution'
+  type: research_paper
+  priority: reference
+  source:
+    official_url: https://openreview.net/forum?id=IUltZSgLMm
+    secondary_urls:
+    - https://github.com/FrontisAI/Awesome-Self-Improving-Agents
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://openreview.net/forum?id=IUltZSgLMm
+    notes: 论文与配套索引 License 待核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-B
+    - V5-D
+    mechanisms:
+    - raw_trace_vs_diagnosis_vs_experience_vs_skill
+    - mutable_harness
+    - experience_assets
+    - meta_evaluation_of_improvement_mechanism
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    summary: 用于区分 Trace、Diagnosis、Experience Record、Candidate Skill、Active Skill 与 Runtime Policy。
+    risks:
+    - Meta-Evolution 容易造成过度范围
+    - 不应引入 Meta-Agent
+    unresolved_questions:
+    - Failure Analyzer/Curator 自身的最小 Eval
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: system experience lane
+    level: design_reference
+    result: 形成独立 SystemExperienceRecord 与 V5-D 候选生命周期。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_B_system_experience_stage
+  - before_V5_D_curator_eval
+  notes: null
+- id: index_frontis_self_improving_agents
+  name: FrontisAI Awesome-Self-Improving-Agents
+  type: index_repository
+  priority: reference
+  source:
+    official_url: https://github.com/FrontisAI/Awesome-Self-Improving-Agents
+    secondary_urls:
+    - https://frontisai.github.io/Awesome-Self-Improving-Agents/
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: License 待主 Codex 核验。
+  research:
+    status: indexed
+    depth:
+    - planning_index_reference
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - research_discovery
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 仅用于发现 Experience、Harness、Skill、Memory 与安全相关工作。
+    risks:
+    - 索引不是实验结论
+    unresolved_questions:
+    - 当前维护状态和 License
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 作为 Experience-driven Agent 研究入口。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - when_new_V5_D_sources_are_needed
+  notes: null
+- id: survey_what_when_how_self_evolving
+  name: 'A Survey of Self-Evolving Agents: On Path to Artificial Super Intelligence'
+  type: research_paper
+  priority: reference
+  source:
+    official_url: https://arxiv.org/abs/2507.21046
+    secondary_urls:
+    - https://github.com/CharlesQ9/Self-Evolving-Agents
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2507.21046
+    notes: 论文与索引 License 待核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-C
+    - V5-D
+    mechanisms:
+    - what_to_evolve
+    - when_to_evolve
+    - how_to_evolve
+    - retention
+    - generalization
+    - efficiency
+    - safety
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - test_reference
+    summary: 作为 What/When/How 与 Retention/Generalization/Regression 的检查表，不直接导出架构。
+    risks:
+    - 分类过宽
+    - 包含模型训练与种群方法等非拾流范围
+    unresolved_questions:
+    - 哪些 Eval 维度应进入 V5-D 最小 Contract
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: completeness checklist
+    level: design_reference
+    result: 补充 Retention、Generalization 和 Negative Transfer 检查。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_eval_contract
+  notes: null
+- id: index_charlesq9_self_evolving_agents
+  name: CharlesQ9 Self-Evolving-Agents Index
+  type: index_repository
+  priority: reference
+  source:
+    official_url: https://github.com/CharlesQ9/Self-Evolving-Agents
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: License 待主 Codex 核验。
+  research:
+    status: indexed
+    depth:
+    - planning_index_reference
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - research_discovery
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 论文配套索引，仅用于发现资料。
+    risks:
+    - 不能用索引替代论文和源码核验
+    unresolved_questions:
+    - 当前维护状态与 License
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 作为 What/When/How 分类资料入口。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - when_taxonomy_sources_need_refresh
+  notes: null
+- id: survey_four_component_feedback_loop
+  name: 'A Comprehensive Survey of Self-Evolving AI Agents: A New Paradigm Bridging Foundation Models and Lifelong Agentic
+    Systems'
+  type: research_paper
+  priority: reference
+  source:
+    official_url: https://arxiv.org/abs/2508.07407
+    secondary_urls:
+    - https://github.com/EvoAgentX/Awesome-Self-Evolving-Agents
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://arxiv.org/abs/2508.07407
+    notes: 论文与索引 License 待核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - system_inputs
+    - agent_system
+    - environment
+    - optimisers
+    - responsibility_separation
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    summary: 用于分离输入、Executor、Environment 和 Candidate Proposer/Optimiser 的责任。
+    risks:
+    - Optimiser 不应被误解为必须训练模型
+    - 分类不能替代本地架构审查
+    unresolved_questions:
+    - 哪些角色适合逻辑隔离而非多 Agent
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: role separation
+    level: design_reference
+    result: 强化 Executor/Analyzer/Curator/Verifier/Human 分工。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - before_V5_D_role_contract
+  notes: null
+- id: index_evoagentx_self_evolving_agents
+  name: EvoAgentX Awesome-Self-Evolving-Agents
+  type: index_repository
+  priority: reference
+  source:
+    official_url: https://github.com/EvoAgentX/Awesome-Self-Evolving-Agents
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: License 待主 Codex 核验。
+  research:
+    status: indexed
+    depth:
+    - planning_index_reference
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - research_discovery
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 四组件综述配套索引，仅用于发现资料。
+    risks:
+    - 索引不构成工程证据
+    unresolved_questions:
+    - 维护状态和 License
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 作为 Self-Evolving Agent 资料入口。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - when_V5_D_research_map_needs_refresh
+  notes: null
+- id: survey_environment_driven_coevolution
+  name: 'A Systematic Survey of Self-Evolving Agents: From Model-Centric to Environment-Driven Co-Evolution'
+  type: research_paper
+  priority: reference
+  source:
+    official_url: https://www.techrxiv.org/doi/10.36227/techrxiv.177203250.05832634
+    secondary_urls:
+    - https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6626878
+    - https://github.com/XMUDeepLIT/Awesome-Self-Evolving-Agents
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: https://www.techrxiv.org/doi/10.36227/techrxiv.177203250.05832634
+    notes: 论文与索引 License 待核验。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - paper_summary
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-B
+    - V5-D
+    mechanisms:
+    - model_centric_vs_environment_centric
+    - harness_improvement
+    - environment_feedback
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 用于强调拾流改进主要发生在 Environment/Harness，而非模型参数。
+    risks:
+    - 概念范围宽，不能直接形成实现方案
+    unresolved_questions:
+    - 是否需要在面试叙事中使用该分类
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: scope clarification
+    level: design_reference
+    result: 进一步排除模型训练和参数级自进化。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - if_self_evolution_positioning_is_reconsidered
+  notes: null
+- id: index_xmudeepLit_self_evolving_agents
+  name: XMUDeepLIT Awesome-Self-Evolving-Agents
+  type: index_repository
+  priority: reference
+  source:
+    official_url: https://github.com/XMUDeepLIT/Awesome-Self-Evolving-Agents
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: License 待主 Codex 核验。
+  research:
+    status: indexed
+    depth:
+    - planning_index_reference
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - research_discovery
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 环境中心自进化综述配套索引，仅用于发现资料。
+    risks:
+    - 索引不是实验结论
+    unresolved_questions:
+    - 维护状态和 License
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 作为 Environment-driven 研究入口。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - when_environment_driven_sources_are_needed
+  notes: null
+- id: volcengine_searchcli_engineering_article
+  name: 火山引擎：开源 Agent 驱动的搜索自迭代技术
+  type: official_documentation
+  priority: P1
+  source:
+    official_url: https://developer.volcengine.com/articles/7667161751409917994
+    secondary_urls:
+    - https://juejin.cn/post/7667109400314150939
+    - https://my.oschina.net/u/6210722/blog/19728179
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: 文章内容版权与转载许可不等于 SearchCLI 代码许可证。
+  research:
+    status: docs_reviewed
+    depth:
+    - official_engineering_article
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - agent_skills_cli_responsibility_split
+    - plan_before_expensive_run
+    - bounded_concurrency
+    - checkpoint_resume
+    - candidate_not_auto_release
+  current_assessment:
+    adoption_status: candidate
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    summary: SearchCLI 工程背景和流程说明；用于理解责任层与候选发布边界，不能替代仓库源码。
+    risks:
+    - 结果数据由项目方报告
+    - 转载不能替代官方文章和源码
+    unresolved_questions:
+    - 文章描述与当前仓库实现是否完全一致
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: V5-D engineering review
+    level: design_reference
+    result: 强化 Plan、Checkpoint、Candidate/Production 分离。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - before_SearchCLI_source_review
+  notes: null
+- id: tencent_self_evolution_secondary_article
+  name: 腾讯新闻：Agent 开始“自我进化”
+  type: secondary_article
+  priority: reference
+  source:
+    official_url: https://news.qq.com/rain/a/20260727A09TB500
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: 二手文章，只作为线索。
+  research:
+    status: initial_reconnaissance
+    depth:
+    - secondary_article_review
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-D
+    mechanisms:
+    - research_discovery
+    - skill_curation_discussion
+  current_assessment:
+    adoption_status: deferred
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 用于发现 Skill、Curator 和自进化研究线索，不作为权威技术结论。
+    risks:
+    - 二手概括可能简化或误读论文
+    - 不能依据其中实验数字做采用决策
+    unresolved_questions: []
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: source discovery
+    level: indexed_only
+    result: 发现后续论文线索。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+  next_research_triggers:
+  - only_when_tracing_original_sources
+  notes: null
+- id: local_memo_external_projects
+  name: 拾流后续可参考的外部项目与机制研究交接
+  type: local_research_memo
+  priority: P0
+  source:
+    official_url: null
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现该研究备忘录。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: 用户项目内部研究备忘录，不作为上游代码许可依据。
+  research:
+    status: docs_reviewed
+    depth:
+    - full_local_memo
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-B
+    - V5-D
+    - Post-V5
+    mechanisms:
+    - upstream_project_index
+    - initial_priority
+    - research_questions
+    - adoption_candidates
+  current_assessment:
+    adoption_status: adopted
+    recommended_modes:
+    - product_or_behavior_reference
+    summary: 第一份主要外部项目研究输入。提供 WeKnora、Youtu-Agent、DeepTutor、DeerFlow、Youtu-GraphRAG 的候选机制和研究问题；不是冻结架构或实施授权。
+    risks:
+    - 形成时间早于后续路线修订，原优先级不可机械继承
+    - 部分判断需由主 Codex 对当前源码重新核验
+    unresolved_questions:
+    - 该文件在拾流仓库内的真实路径
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: roadmap formation
+    level: design_reference
+    result: 作为外部项目采用判断的第一份主要输入。
+    local_artifacts:
+    - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - initial_main_codex_alignment
+  - before_researching_any_of_its_projects
+  notes: null
+- id: local_memo_self_evolution
+  name: 第二项目：自进化 Agent 资料的外部研究输入与讨论建议
+  type: local_research_memo
+  priority: P0
+  source:
+    official_url: null
+    secondary_urls: []
+  local:
+    status: absent
+    path: null
+    release_or_commit: null
+    fetched_at: null
+    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现该研究备忘录。
+  license:
+    name: null
+    verified: false
+    verification_source: null
+    notes: 用户项目内部研究备忘录，不作为论文或代码许可依据。
+  research:
+    status: docs_reviewed
+    depth:
+    - full_local_memo
+    - planning_analysis
+    last_reviewed_at: '2026-07-30'
+    reviewed_by:
+    - planning_session
+    source_reports:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+  relevance:
+    versions:
+    - V5-A
+    - V5-B
+    - V5-C
+    - V5-D
+    mechanisms:
+    - h2_vs_h3
+    - trace_experience_skill_policy_separation
+    - executor_curator_verifier
+    - related_task_stream
+    - promotion_and_rollback
+    - failure_injection
+  current_assessment:
+    adoption_status: adopted
+    recommended_modes:
+    - product_or_behavior_reference
+    - test_reference
+    summary: 第二份主要研究输入，原面向 Pi，但其 Scaffold、Experience、Skill 生命周期和受控改进思想已选择性映射到拾流。模型训练、RL 和开放式自进化被排除。
+    risks:
+    - 原文面向 Coding Agent，不可直接平移 Schema
+    - 其候选问题不代表拾流当前一定存在相应缺口
+    unresolved_questions:
+    - 该文件在拾流仓库内的真实路径
+    implementation_authorized: false
+  usage_history:
+  - version: V5 planning
+    stage: roadmap refinement
+    level: design_reference
+    result: 强化 V5-D，反向要求 V5-A/B/C 提前铺设 Trace、Experience 和 Feedback 基础。
+    local_artifacts:
+    - 第二项目_自进化Agent资料外部研究输入与讨论建议.md
+    - 拾流_V5及后续版本规划_现阶段整合版.md
+  next_research_triggers:
+  - initial_main_codex_alignment
+  - before_V5_D_version_charter
+  notes: null
+initial_main_codex_audit_tasks:
+- 核验拾流正式仓库内本注册表与两份研究备忘录的真实路径。
+- 检查 references/upstreams 或等价目录，更新所有 local.status、path、release_or_commit 和 fetched_at。
+- 对本地已有 Clone 核验 official remote、HEAD、License 和是否脏工作区。
+- 不得在首次对齐阶段下载所有候选项目；只记录当前真实存在状态。
+- V5-A 启动前优先对 DeerFlow、AREX 和 Youtu-Agent 做 Initial Reconnaissance。
+- 正式进入具体 Stage 前再做固定 Commit 的 Just-in-time Source/Test Review。
+- 任何代码复制或直接依赖前重新核验 License、第三方组件和 Attribution 要求。
+- Youtu-GraphRAG 因 academic-only 自定义许可证，任何 Clone、Spike 或代码使用前必须单独审查。
