@@ -1,7 +1,9 @@
 # V5-A 有界上游研究报告：AREX
 
 ```yaml
-report_status: draft_pending_main_review
+report_status: pending_final_main_acceptance
+revised_at: 2026-07-31
+main_review_round_1: evidence_boundary_confirmed
 registry_id: arex_paper
 paper_title: "AREX: Towards a Recursively Self-Improving Agent for Deep Research"
 paper_version: arXiv:2607.21461v2
@@ -18,7 +20,7 @@ tests_reviewed: false
 tests_executed: false
 weights_downloaded: false
 provider_runs_performed: false
-adoption_status: proposal_pending_main_review
+adoption_status: training_independent_patterns_only_reference_confirmed
 implementation_authorized: false
 ```
 
@@ -214,12 +216,12 @@ key-step annotations 属于训练/离线监督，不是运行时可直接取得�
 - 不让 Restart 删除或覆盖旧 Attempt/Checkpoint。
 - 不把论文 benchmark improvement 当作拾流产品质量证据。
 
-## 8. Adoption Decision Proposal
+## 8. Main Review Decision / Adoption Boundary
 
 ```yaml
 upstream_id: arex_paper
-decision_status: proposed_pending_main_review
-proposed_decision: training_independent_patterns_only
+decision_status: pending_final_main_acceptance
+main_review_round_1_decision: training_independent_patterns_only_reference
 patterns:
   - inner_research
   - outer_constraint_audit
@@ -231,6 +233,7 @@ prompt_copy: false
 code_copy: false
 direct_dependency: false
 implementation_authorized: false
+stage_1_implementation: prohibited
 required_shiliu_overrides:
   - stable_transcript_evidence_and_citation_validation
   - deterministic_constraint_gate
@@ -240,7 +243,7 @@ required_shiliu_overrides:
   - unknown_external_in_flight_fail_closed
 ```
 
-该提案只允许主 Session 后续授权“独立重实现模式”。它不构成采用论文模型或代码的决定。
+V5 主 Session 第一轮独立审查已确认该 reference-only 边界：不采用模型、权重、Prompt、代码或 confidence gate，Stage 1 不实现 AREX 模式。任何未来独立重实现仍需对应 Stage Contract 授权。
 
 ## 9. Registry Update Proposal（未直接修改）
 
@@ -267,8 +270,14 @@ review_evidence:
   tests_executed: false
   weights_downloaded: false
   provider_run: false
-adoption_status: candidate_pending_main_decision
-adoption_proposal: training_independent_patterns_only
+adoption_status: training_independent_patterns_only_reference_confirmed_by_main_review
+adoption_boundary:
+  model: rejected
+  weights: rejected
+  prompt_copy: rejected
+  code_copy: rejected
+  confidence_gate: rejected
+stage_1_implementation: prohibited
 implementation_authorized: false
 ```
 
@@ -279,7 +288,7 @@ implementation_authorized: false
 建议主 Session 追加：
 
 ```json
-{"timestamp":"2026-07-30","session":"Shiliu V5-A Version Session","upstream_id":"arex_paper","event_type":"bounded_paper_and_official_artifact_review","paper":"arXiv:2607.21461v2","paper_license":"arXiv perpetual non-exclusive license","official_repository":"https://huggingface.co/BAAI/AREX-Turbo","commit":"129812742df4a5de27980ed07bda78d9d27c7370","repository_license":"Apache-2.0","paper_reviewed":true,"official_source_reviewed":"limited_inference_subset","tests_reviewed":false,"tests_executed":false,"weights_downloaded":false,"provider_runs":false,"outcome":"training_independent_patterns_only_proposed_pending_main_review","implementation_authorized":false}
+{"timestamp":"2026-07-31","session":"V5 main session","upstream_id":"arex_paper","event_type":"main_review_reference_boundary_confirmed","paper":"arXiv:2607.21461v2","paper_license":"arXiv perpetual non-exclusive license","official_repository":"https://huggingface.co/BAAI/AREX-Turbo","commit":"129812742df4a5de27980ed07bda78d9d27c7370","repository_license":"Apache-2.0","paper_reviewed":true,"official_source_reviewed":"limited_inference_subset","tests_reviewed":false,"tests_executed":false,"weights_downloaded":false,"provider_runs":false,"outcome":"training_independent_patterns_only_design_reference","model_adopted":false,"prompt_copied":false,"code_copied":false,"confidence_gate_adopted":false,"stage_1_implementation":false,"implementation_authorized":false}
 ```
 
 ## 11. Evidence Classification
@@ -307,8 +316,8 @@ implementation_authorized: false
 4. 是否要求未来独立研究 AREX 完整代码若官方另行发布；该动作不属于当前 Stage 1。
 
 ```yaml
-research_report_status: draft_pending_main_review
-adoption_decision_status: proposal_pending_main_review
+research_report_status: pending_final_main_acceptance
+adoption_decision_status: main_review_reference_boundary_confirmed
 implementation_authorized: false
 provider_runs_performed: false
 ```

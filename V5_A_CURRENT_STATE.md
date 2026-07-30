@@ -1,16 +1,17 @@
 # 拾流 V5-A Current State
 
 ```yaml
-as_of: 2026-07-30
+as_of: 2026-07-31
 version_session: Shiliu V5-A Version Session
 state_authority: V5-A execution-session observation
 formal_acceptance_authority: V5 main session
 branch: codex/v5-a
 startup_head: 2feccbccaa288f67071d22460eb220d50b19d871
+first_recon_commit: f6a2d7ee0d3a96a750886e879f89d4d419916810
 product_baseline_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
 artifact_commit: reported_in_main_session_handoff
-charter_status: draft_pending_main_review
-stage_1_contract_status: draft_pending_main_review
+charter_status: pending_final_main_acceptance
+stage_1_contract_status: pending_final_main_acceptance
 product_implementation_started: false
 provider_runs_performed: false
 ```
@@ -24,8 +25,8 @@ provider_runs_performed: false
 | DB/Index/Corpus/Provider 配置核验 | completed_read_only | 未执行 migration、未访问 secret 值、未访问 Keychain、未发 Provider 请求 |
 | V4 产品源码审计 | completed_bounded | Deep、DecisionView、Evidence/Citation、Trace、DB 与路由已核验 |
 | V4.1 Harness 审计 | completed_bounded | continuation 与 H0 checkpoint/failure tests 已核验 |
-| DeerFlow 研究 | source_and_tests_reviewed_not_executed | 官方提交与 License 固定；定向源码和测试审阅；未采用 |
-| AREX 研究 | paper_and_limited_official_source_reviewed | 论文 v2、官方最小推理源码和 License 固定；无测试可审 |
+| DeerFlow 研究 | main_review_confirmed_reference_only | 固定提交、MIT 与证据边界通过；主 Session 接受为 pattern-only 设计/测试参考；未执行上游测试 |
+| AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
 | 产品实现 | not_started | 本轮没有 Runtime、测试、Migration、Prompt、Tool Contract 或 UI 修改 |
 
@@ -42,6 +43,19 @@ provider_runs_performed: false
   - `768e11a`：V4.1 hardening
   - `cbf264b`：V4 product completion
 - 本文件不会嵌入其自身提交 SHA；最终 handoff 报告给出实际研究提交。
+
+## 2.1 V5 主 Session 第一轮独立审查
+
+V5 主 Session 于 2026-07-31 确认：
+
+- 五 Stage 依赖序列方向接受。
+- live baseline 已独立只读复核并接受。
+- 122 项无 Provider 定向测试独立重跑通过。
+- DeerFlow 接受为 `pattern_only_reimplementation` 设计/测试参考。
+- AREX 接受为 `training_independent_patterns_only` 设计参考；Stage 1 不实现其模式。
+- 上述决定均不授予产品实现、Provider 运行或 live migration 权限。
+
+本轮按审查意见修订文档，整体仍处于 `pending_final_main_acceptance`。
 
 ## 3. Live DB / Index / Corpus
 
@@ -82,7 +96,7 @@ provider_runs_performed: false
 - `src/shiliu/runtime_modes.py` 中产品 corpus identity 是 `shiliu-live-current`。
 - `shiliu-live-current` 是运行逻辑身份；`shiliu_lexical` / `shiliu_dense` 是物理索引名称，不能混为一谈。
 - 内容根目录有 155 个 `BV*` artifact 目录，数据库 `artifact_dir` 非空去重值也是 155。
-- Program Current State 记录的 150 已发生漂移；V5-A 只报告，不修改 Program 文件。
+- Program Current State 记录的 150 已发生漂移；V5 主 Session 已于 2026-07-31 独立复核并接受 155 baseline。V5-A 只同步版本文档，不修改 Program 文件。
 
 ## 4. Provider 配置边界
 
@@ -137,7 +151,7 @@ provider_runs_performed: false
 - License：MIT
 - 相关 Goal、Blocker、Continuation、No-progress、Checkpoint Lineage、Mutation Guard、User Input/Interrupt、Branch/Replay、Run ownership/recovery 与失败测试已定向审阅。
 - 上游测试未执行；没有安装依赖、复制源码或加入正式依赖。
-- Adoption 状态：`pattern_only_reimplementation_proposed_pending_main_review`。
+- 主 Session 决定：接受为 `pattern_only_reimplementation` 的设计/测试参考；不采用依赖、源码或 Prompt；实现权限仍只能来自相应 Stage Contract。
 
 ### AREX
 
@@ -147,7 +161,7 @@ provider_runs_performed: false
 - 论文发布许可：arXiv perpetual non-exclusive license。
 - 官方仓库代码/模型许可：Apache-2.0。
 - 官方代码只提供最小单轮 action generation 与 prompts；没有完整 outer loop、工具执行器、训练管线、评估 Harness 或测试。
-- Adoption 状态：`training_independent_patterns_only_proposed_pending_main_review`。
+- 主 Session 决定：接受为 `training_independent_patterns_only` 的设计参考；不采用模型、权重、Prompt、代码或 confidence gate；Stage 1 不实现 AREX 模式。
 
 ### youtu_agent
 
@@ -166,31 +180,33 @@ provider_runs_performed: false
 
 工作树本身没有 `.venv`；首次尝试在测试收集前因 `.venv/bin/python` 不存在退出，随后使用主仓库既有共享环境完成上述测试。没有联网安装依赖。
 
+V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通过；同样只有既有 Starlette/httpx warning。
+
 ## 9. 当前未证明项
 
-- Stage 1 产品 schema 与 API 尚未被主 Session 接受。
+- 修订后的 Stage 1 Contract 尚待主 Session 最终接受，产品 schema/API 尚未获得实现授权。
 - 没有产品 ResearchTask Runtime、持久 checkpoint 或 SideEffectRecord 实现。
 - 没有执行 DeerFlow 上游测试或完整依赖集成。
 - AREX 公开仓库不能复现论文的完整递归系统或训练结论。
-- 没有运行 Provider，因此没有 V5-A 产品质量结论。
+- 没有运行 Provider，因此没有 V5-A 产品质量结论；Stage 2/3 的接线与运行范围须由各自 Contract 决定并另行授权。
 - 没有证明 branch/replay 与拾流现有 live corpus 的集成行为。
 - 没有证明跨进程 cancel、lease takeover 或未知 external side effect 的产品实现。
 
 ## 10. 下一动作
 
-V5 主 Session 应先审阅：
+V5 主 Session 应最终复审：
 
 1. `V5_A_VERSION_CHARTER.md`
 2. `V5_A_STAGE_1_CONTRACT.md`
-3. 两份上游研究报告中的 Registry / Research Log 更新建议与 Adoption Decision Proposal
-4. 155 内容目录的现场 baseline update
+3. `V5_A_DECISION_LEDGER.md` 对第一轮主审决定和修订契约的同步
+4. 两份上游报告中已确认的 reference-only 边界及仍未执行项
 
-未经主 Session 决定，V5-A 不开始产品实现。
+未经主 Session 最终接受并另行授权，V5-A 不开始产品实现。
 
 ```yaml
-charter_status: draft_pending_main_review
-stage_1_contract_status: draft_pending_main_review
+charter_status: pending_final_main_acceptance
+stage_1_contract_status: pending_final_main_acceptance
 product_implementation_started: false
 provider_runs_performed: false
-next_action: main_session_charter_and_stage_1_review
+next_action: main_session_final_document_review
 ```

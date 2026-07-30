@@ -1,7 +1,9 @@
 # V5-A 有界上游研究报告：DeerFlow
 
 ```yaml
-report_status: draft_pending_main_review
+report_status: pending_final_main_acceptance
+revised_at: 2026-07-31
+main_review_round_1: evidence_boundary_confirmed
 research_scope: bounded_official_source_and_failure_test_review
 registry_id: deer_flow
 official_repository: https://github.com/bytedance/deer-flow
@@ -13,7 +15,7 @@ source_reviewed: true
 tests_reviewed: true
 tests_executed: false
 provider_runs_performed: false
-adoption_status: proposal_pending_main_review
+adoption_status: pattern_only_reimplementation_reference_confirmed
 adoption_type_proposed: pattern_only_reimplementation
 implementation_authorized: false
 ```
@@ -268,12 +270,12 @@ loop middleware 对重复 tool call hash 设置 warning/hard threshold，并按�
 - 新系统对 missing parent 使用 chronological legacy fallback。
 - 把 workspace snapshot 当作通用 SideEffectRecord。
 
-## 6. Adoption Decision Proposal
+## 6. Main Review Decision / Adoption Boundary
 
 ```yaml
 upstream_id: deer_flow
-decision_status: proposed_pending_main_review
-proposed_decision: pattern_only_reimplementation
+decision_status: pending_final_main_acceptance
+main_review_round_1_decision: pattern_only_reimplementation_reference
 direct_dependency: false
 source_copy: false
 prompt_copy: false
@@ -295,7 +297,7 @@ required_shiliu_overrides:
   - unknown_external_in_flight_fail_closed
 ```
 
-理由：适合吸收的是协议和失败测试思想，不是框架整体。正式 Adoption 决定必须由 V5 主 Session 写入 Program Decision Ledger。
+V5 主 Session 第一轮独立审查已确认：适合吸收的是协议和失败测试思想，不是框架整体；不采用依赖、源码或 Prompt。该决定不授权实现，正式 Program 文件仍由主 Session 更新。
 
 ## 7. Registry Update Proposal（未直接修改）
 
@@ -321,8 +323,11 @@ research_scope:
   - user_input_interrupt
   - branch_replay
   - run_ownership_recovery
-adoption_status: candidate_pending_main_decision
-adoption_proposal: pattern_only_reimplementation
+adoption_status: pattern_only_reimplementation_reference_confirmed_by_main_review
+adoption_boundary:
+  dependency: rejected
+  source_copy: rejected
+  prompt_copy: rejected
 implementation_authorized: false
 ```
 
@@ -333,7 +338,7 @@ implementation_authorized: false
 建议主 Session 追加一条类似事件：
 
 ```json
-{"timestamp":"2026-07-30","session":"Shiliu V5-A Version Session","upstream_id":"deer_flow","event_type":"bounded_official_source_and_tests_review","official_repository":"https://github.com/bytedance/deer-flow","commit":"0d8e11ad492bfa1a15b4409cc744ee66d6d188c0","license":"MIT","scope":["goal","blocker","continuation","no_progress","checkpoint_lineage","mutation_guard","user_input_interrupt","branch_replay","ownership_recovery","related_failure_tests"],"tests_executed":false,"provider_runs":false,"outcome":"pattern_only_reimplementation_proposed_pending_main_review","implementation_authorized":false}
+{"timestamp":"2026-07-31","session":"V5 main session","upstream_id":"deer_flow","event_type":"main_review_reference_boundary_confirmed","official_repository":"https://github.com/bytedance/deer-flow","commit":"0d8e11ad492bfa1a15b4409cc744ee66d6d188c0","license":"MIT","scope":["goal","blocker","continuation","no_progress","checkpoint_lineage","mutation_guard","user_input_interrupt","branch_replay","ownership_recovery","related_failure_tests"],"tests_executed":false,"provider_runs":false,"outcome":"pattern_only_reimplementation_design_and_test_reference","dependency_adopted":false,"source_copied":false,"prompt_copied":false,"implementation_authorized":false}
 ```
 
 ## 9. Tests / Evidence Classification
@@ -359,8 +364,8 @@ implementation_authorized: false
 - 上游模式能否在拾流 schema 与证据不变量下工作，须在被接受的 Stage Contract 中独立实现和测试。
 
 ```yaml
-research_report_status: draft_pending_main_review
-adoption_decision_status: proposal_pending_main_review
+research_report_status: pending_final_main_acceptance
+adoption_decision_status: main_review_reference_boundary_confirmed
 implementation_authorized: false
 provider_runs_performed: false
 ```
