@@ -19,6 +19,10 @@ stage_1_final_submission_head: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
 stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
 stage_1_accepted_at: 2026-07-31T02:21:31+08:00
 stage_1_main_acceptance_decision: accept
+stage_2_planning_baseline: fc4708eacb93e9b6b3d479d50e096cc95dd6be31
+stage_2_contract: V5_A_STAGE_2_CONTRACT.md
+stage_2_contract_status: draft_pending_main_review
+stage_2_implementation_authorized: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -42,6 +46,7 @@ live_database_migration_performed: false
 | AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
+| Stage 2 Contract / JIT 计划 | draft_pending_main_review | 已在正式 Stage 1 接受基线 `fc4708e` 上完成定向源码审计与 Contract 草案；未开始 Stage 2 产品实现 |
 
 ## 2. Git 与基线
 
@@ -222,6 +227,21 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 - 增加 service/API 对抗、fault rollback、stale owner、hash mismatch、并发与
   replay 测试。
 
+## 8.3 Stage 2 Contract 的 JIT 审计
+
+- 定向读取了 Stage 1 acceptance/Contract/Report、Version Charter、Program
+  Current State 和必要的 Stage/证据/Session 治理材料。
+- 源码审计覆盖 Stage 1 research kernel/schema、V4 Evidence/Citation/shared
+  finalization、retrieval execution/materialization、Deep typed action、
+  DecisionView/reducer/budget 和 navigation/transcript boundaries。
+- 复用边界、持久 Evidence/Artifact 语义、ownership/checkpoint/SideEffect
+  交互、预算/停止条件和测试矩阵已冻结在 `V5_A_STAGE_2_CONTRACT.md` 草案。
+- 无 Provider探索性机械测试：41 passed；覆盖 Evidence contracts、held-out
+  evidence mechanics、shared Citation/Context 和 V4 Deep。唯一 warning 是既有
+  Starlette/httpx deprecation warning。
+- 未修改 Runtime、产品测试、Prompt、Tool Contract、UI 或 Program 权威文件；
+  未下载新的上游源码/依赖。
+
 ## 9. Stage 1 验收与当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -236,9 +256,15 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 准备 Stage 2 Contract 和 Just-in-time 实施计划，
-并继续自主负责具体技术方案。主 Session 在 Stage 2 正式边界进行轻量目标与证据
-审阅。当前尚未授权 Stage 2 产品实施、Provider 运行或 live DB migration。
+同一个 V5-A Version Session 已完成 `V5_A_STAGE_2_CONTRACT.md` 草案和
+Just-in-time 实施计划，等待主 Session 进行轻量 Stage 边界审阅。定向审计确认
+可以在 Stage 1 kernel 上复用 V4 的 source/version/citation authority、shared
+grounding、strict action、DecisionView 和 budget 设计；不能继承一次性内存
+graph/trace、DecisionView-as-state 或 segment-ID-only progress。
+
+当前尚未授权 Stage 2 产品实施、Provider 运行或 live DB migration。Stage 2
+Contract 建议允许新的 Stage-2-specific versioned prompt/Provider wiring，但任何
+真实 Provider 运行仍须单独授权。
 
 ```yaml
 charter_status: accepted
@@ -246,8 +272,10 @@ stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
 stage_1_status: accepted
 stage_1_self_accepted: false
+stage_2_contract_status: draft_pending_main_review
+stage_2_implementation_authorized: false
 product_implementation_started: true
 provider_runs_performed: false
 live_database_migration_performed: false
-next_action: V5_A_stage_2_contract_preparation
+next_action: V5_main_session_stage_2_contract_review
 ```
