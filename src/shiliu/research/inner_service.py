@@ -521,16 +521,21 @@ class InnerResearchService:
             ).fetchone()
             if goal is None or str(task["active_goal_id"]) != str(goal["goal_id"]):
                 raise ResearchConflict("Attempt/Goal 不属于当前 active Goal")
+            execution_objective = self._effective_objective(
+                connection,
+                attempt_id=request.attempt_id,
+                goal_objective=str(goal["objective"]),
+            )
             state = self._state_from_checkpoint(
                 latest,
                 task_id=task_id,
                 goal_id=str(goal["goal_id"]),
                 attempt_id=request.attempt_id,
-                objective=str(goal["objective"]),
+                objective=execution_objective,
                 now=now,
             )
         self._assert_state_open(state)
-        return state, str(goal["objective"])
+        return state, execution_objective
 
     def _commit_durable_stop(
         self,
@@ -575,12 +580,17 @@ class InnerResearchService:
             ).fetchone()
             if goal is None or str(task["active_goal_id"]) != str(goal["goal_id"]):
                 raise ResearchConflict("Attempt/Goal 不属于当前 active Goal")
+            execution_objective = self._effective_objective(
+                connection,
+                attempt_id=request.attempt_id,
+                goal_objective=str(goal["objective"]),
+            )
             state = self._state_from_checkpoint(
                 latest,
                 task_id=task_id,
                 goal_id=str(goal["goal_id"]),
                 attempt_id=request.attempt_id,
-                objective=str(goal["objective"]),
+                objective=execution_objective,
                 now=now_value,
             )
             self._assert_state_open(state)
@@ -723,17 +733,22 @@ class InnerResearchService:
             ).fetchone()
             if goal is None or str(task["active_goal_id"]) != str(goal["goal_id"]):
                 raise ResearchConflict("Attempt/Goal 不属于当前 active Goal")
+            execution_objective = self._effective_objective(
+                connection,
+                attempt_id=request.attempt_id,
+                goal_objective=str(goal["objective"]),
+            )
             state = self._state_from_checkpoint(
                 latest,
                 task_id=task_id,
                 goal_id=str(goal["goal_id"]),
                 attempt_id=request.attempt_id,
-                objective=str(goal["objective"]),
+                objective=execution_objective,
                 now=now_value,
             )
             self._assert_state_open(state)
             expected_key = self._action_key(
-                state.phase, state, str(goal["objective"])
+                state.phase, state, execution_objective
             )
             if (
                 prepared.kind != "provisional_synthesis"
@@ -1046,12 +1061,17 @@ class InnerResearchService:
             ).fetchone()
             if goal is None or str(task["active_goal_id"]) != str(goal["goal_id"]):
                 raise ResearchConflict("Attempt/Goal 不属于当前 active Goal")
+            execution_objective = self._effective_objective(
+                connection,
+                attempt_id=request.attempt_id,
+                goal_objective=str(goal["objective"]),
+            )
             state = self._state_from_checkpoint(
                 latest,
                 task_id=task_id,
                 goal_id=str(goal["goal_id"]),
                 attempt_id=request.attempt_id,
-                objective=str(goal["objective"]),
+                objective=execution_objective,
                 now=now_value,
             )
             self._assert_state_open(state)
@@ -1061,7 +1081,7 @@ class InnerResearchService:
             if budget_dimension is not None:
                 raise _PreActionBudgetExhausted(budget_dimension)
             expected_key = self._action_key(
-                state.phase, state, str(goal["objective"])
+                state.phase, state, execution_objective
             )
             if (
                 prepared.kind != self._phase_action_kind(state.phase)
@@ -1145,7 +1165,7 @@ class InnerResearchService:
                     action_id=action_id,
                     originating_checkpoint_id=latest_id,
                     owner_epoch=request.owner_epoch,
-                    query=str(goal["objective"]),
+                    query=execution_objective,
                     now=now,
                 )
                 if created_use:
@@ -1214,7 +1234,7 @@ class InnerResearchService:
                     ) = self._synthesize(
                         connection,
                         state=state,
-                        objective=str(goal["objective"]),
+                        objective=execution_objective,
                         checkpoint_id=checkpoint_id,
                         owner_epoch=request.owner_epoch,
                         now=now,
@@ -1312,7 +1332,7 @@ class InnerResearchService:
                         str(goal["goal_id"]),
                         request.attempt_id,
                         checkpoint_id,
-                        str(goal["objective"]),
+                        execution_objective,
                         artifact_data["answer_status"],
                         _json(artifact_data["answer_blocks"]),
                         _json(artifact_data["limitations"]),
@@ -1896,6 +1916,26 @@ class InnerResearchService:
             """,
             (attempt_id,),
         ).fetchone()
+
+    @staticmethod
+    def _effective_objective(
+        connection: sqlite3.Connection,
+        *,
+        attempt_id: str,
+        goal_objective: str,
+    ) -> str:
+        seed = connection.execute(
+            """
+            SELECT targeted_objective FROM research_continuation_seeds
+            WHERE child_attempt_id=?
+            """,
+            (attempt_id,),
+        ).fetchone()
+        return (
+            str(seed["targeted_objective"])
+            if seed is not None
+            else goal_objective
+        )
 
     def _current_spans(
         self, use_ids: list[str]

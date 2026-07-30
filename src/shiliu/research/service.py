@@ -314,6 +314,15 @@ class ResearchTaskService:
             "evidence_use_ids_json",
             "evidence_ids_json",
             "validation_observation_ids_json",
+            "evaluator_policy_json",
+            "proposal_json",
+            "observation_ids_json",
+            "reason_codes_json",
+            "budget_before_json",
+            "budget_after_json",
+            "state_payload_json",
+            "carry_evidence_ids_json",
+            "evaluator_policy_versions_json",
         ):
             if name in value:
                 raw = value.pop(name)
@@ -467,6 +476,25 @@ class ResearchTaskService:
                 "provisional_artifacts": (
                     "SELECT * FROM research_provisional_artifacts WHERE task_id=? "
                     "ORDER BY created_at, artifact_id"
+                ),
+                "outer_audits": (
+                    "SELECT * FROM research_outer_audits WHERE task_id=? "
+                    "ORDER BY rowid"
+                ),
+                "constraint_observations": (
+                    "SELECT cao.* FROM research_constraint_audit_observations cao "
+                    "JOIN research_outer_audits oa ON oa.audit_id=cao.audit_id "
+                    "JOIN research_constraint_specs cs "
+                    "ON cs.constraint_id=cao.constraint_id "
+                    "WHERE cao.task_id=? ORDER BY oa.rowid, cs.ordinal"
+                ),
+                "continuation_decisions": (
+                    "SELECT * FROM research_continuation_decisions WHERE task_id=? "
+                    "ORDER BY rowid"
+                ),
+                "continuation_seeds": (
+                    "SELECT * FROM research_continuation_seeds WHERE task_id=? "
+                    "ORDER BY rowid"
                 ),
             }
             value: dict[str, Any] = {"task": self._decode_row(task)}

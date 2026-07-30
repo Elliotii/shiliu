@@ -32,6 +32,7 @@ from shiliu.ask.deep.navigation import NavigationService
 from shiliu.ask.deep.transcript import TranscriptSearchService, TranscriptWindowReader
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.research.inner_service import InnerResearchService
+from shiliu.research.outer_service import OuterResearchService
 from shiliu.research.inner_tools import LocalInnerToolAdapter
 from shiliu.research.service import ResearchTaskService
 from shiliu.stage5 import Stage5PipelineService
@@ -63,6 +64,7 @@ class Application:
         self.db.initialize()
         self.research = ResearchTaskService(self.db)
         self._research_inner: InnerResearchService | None = None
+        self._research_outer: OuterResearchService | None = None
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,
@@ -306,6 +308,16 @@ class Application:
                 provider_runs_authorized=False,
             )
         return self._research_inner
+
+    @property
+    def research_outer(self) -> OuterResearchService:
+        if self._research_outer is None:
+            self._research_outer = OuterResearchService(
+                db=self.db,
+                kernel=self.research,
+                provider_runs_authorized=False,
+            )
+        return self._research_outer
 
     def provider(self, role: str = "formal_summary") -> OpenAICompatibleProvider:
         try:

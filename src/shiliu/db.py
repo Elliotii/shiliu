@@ -8,10 +8,13 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
-from shiliu.research.schema import initialize_research_schema
+from shiliu.research.schema import (
+    initialize_research_schema,
+    prepare_research_schema_v9,
+)
 
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 
 def utc_now() -> str:
@@ -26,6 +29,7 @@ class Database:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._backup_before_migration()
         with self.connect() as connection:
+            prepare_research_schema_v9(connection)
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS schema_meta (

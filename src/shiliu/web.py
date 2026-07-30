@@ -48,6 +48,7 @@ from shiliu.research.inner_contracts import (
     ContinueInnerResearchRequest,
     RevalidateInnerEvidenceRequest,
 )
+from shiliu.research.outer_contracts import AdvanceOuterResearchRequest
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 from shiliu.stage5 import Stage5PipelineRequest
 
@@ -519,6 +520,42 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 status_code=exc.http_status,
             )
         return JSONResponse({"ok": True, "outcome": outcome, "inner": inner})
+
+    @web.post("/api/research/tasks/{task_id}/outer/advance")
+    async def advance_outer_research(
+        task_id: str,
+        payload: AdvanceOuterResearchRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_outer.advance, task_id, payload
+            )
+            outer = await asyncio.to_thread(
+                core.research_outer.get_outer_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "outer": outer})
+
+    @web.get("/api/research/tasks/{task_id}/outer")
+    async def get_outer_research(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            outer = await asyncio.to_thread(
+                _core(request).research_outer.get_outer_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outer": outer})
 
     @web.post("/api/evidence-sufficiency")
     async def evidence_sufficiency(

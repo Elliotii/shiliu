@@ -19,14 +19,22 @@ from shiliu.research.errors import (
     ResearchValidationError,
     SimulatedCrash,
 )
+from shiliu.research.outer_contracts import (
+    AdvanceOuterResearchRequest,
+    OuterAdvanceResponse,
+    OuterBudgetLedger,
+)
 
 __all__ = [
     "AnswerStatus",
+    "AdvanceOuterResearchRequest",
     "AttemptCause",
     "AttemptStatus",
     "CreateResearchTaskRequest",
     "DeterministicEffectAdapter",
     "FailureClass",
+    "OuterAdvanceResponse",
+    "OuterBudgetLedger",
     "ResearchCommandRequest",
     "ResearchConflict",
     "ResearchError",

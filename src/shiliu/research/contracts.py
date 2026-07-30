@@ -54,6 +54,8 @@ class TerminationReason(str, Enum):
     EXTERNAL_SIDE_EFFECT_UNKNOWN = "external_side_effect_unknown"
     PROVIDER_ERROR = "provider_error"
     IMPLEMENTATION_ERROR = "implementation_error"
+    TARGETED_CONTINUATION = "targeted_continuation"
+    CONSTRAINT_UNSATISFIED = "constraint_unsatisfied"
 
 
 class FailureClass(str, Enum):
@@ -135,3 +137,7 @@ class ResearchTaskResponse(StrictModel):
     evidence_uses: list[dict[str, Any]] = Field(default_factory=list)
     evidence_validations: list[dict[str, Any]] = Field(default_factory=list)
     provisional_artifacts: list[dict[str, Any]] = Field(default_factory=list)
+    outer_audits: list[dict[str, Any]] = Field(default_factory=list)
+    constraint_observations: list[dict[str, Any]] = Field(default_factory=list)
+    continuation_decisions: list[dict[str, Any]] = Field(default_factory=list)
+    continuation_seeds: list[dict[str, Any]] = Field(default_factory=list)
