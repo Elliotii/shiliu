@@ -17,7 +17,8 @@ tests_executed: false
 provider_runs_performed: false
 adoption_status: adopted
 adoption_type: pattern_only_reimplementation
-usage_level: design_and_test_reference_only
+usage_level: design_reference
+recommended_modes: [reimplement_pattern, test_reference]
 role: upstream_design_and_failure_test_reference
 qualifier: no_dependency_no_source_copy_no_prompt_copy_stage_contract_authority_required
 implementation_authorized: false
@@ -328,7 +329,8 @@ research_scope:
   - run_ownership_recovery
 adoption_status: adopted
 adoption_type: pattern_only_reimplementation
-usage_level: design_and_test_reference_only
+usage_level: design_reference
+recommended_modes: [reimplement_pattern, test_reference]
 role: upstream_design_and_failure_test_reference
 qualifier: no_dependency_no_source_copy_no_prompt_copy_stage_contract_authority_required
 adoption_boundary:

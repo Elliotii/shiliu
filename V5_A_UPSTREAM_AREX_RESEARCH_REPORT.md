@@ -22,7 +22,7 @@ weights_downloaded: false
 provider_runs_performed: false
 adoption_status: adopted
 adoption_type: training_independent_patterns_only
-usage_level: design_reference_only
+usage_level: design_reference
 role: recursive_research_design_reference
 qualifier: no_model_no_weights_no_prompt_no_code_no_confidence_gate_stage_1_excluded
 implementation_authorized: false
@@ -276,7 +276,7 @@ review_evidence:
   provider_run: false
 adoption_status: adopted
 adoption_type: training_independent_patterns_only
-usage_level: design_reference_only
+usage_level: design_reference
 role: recursive_research_design_reference
 qualifier: no_model_no_weights_no_prompt_no_code_no_confidence_gate_stage_1_excluded
 adoption_boundary:
