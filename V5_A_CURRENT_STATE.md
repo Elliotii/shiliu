@@ -28,6 +28,7 @@ stage_2_implementation_authorized: true
 stage_2_implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
 stage_2_main_acceptance_round_1: rework
 stage_2_rework_round_1_commit: 0ad5823724913874fd72afdbf2808d9f274f1c8e
+stage_2_main_acceptance_round_2: rework_budget_accounting_and_evidence_cap
 stage_2_status: resubmitted_for_main_acceptance
 stage_2_self_accepted: false
 charter_status: accepted
@@ -54,7 +55,7 @@ external_live_database_change_observed: true
 | AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
-| Stage 2 产品实现 | resubmitted_for_main_acceptance | 主验收 Round 1 的 durable budget-stop 与 synthesis failure 两项 bounded rework 已提交；Stage 2 定向测试现为 29 项；未自我验收 |
+| Stage 2 产品实现 | resubmitted_for_main_acceptance | 主验收 Round 1 原始两项已复审通过；Round 2 的 synthesis context 记账与 evidence cap hard-stop 两项 bounded rework 已提交；Stage 2 定向测试现为 33 项；未自我验收 |
 
 ## 2. Git 与基线
 
@@ -300,6 +301,30 @@ V5 主 Session 第一轮正式验收决定为 `rework`，总体 Stage 2 方向�
 replay、payload mismatch、context/validator failure、stale-owner race 和
 `SimulatedCrash` exclusion。Stage 2 29 项、联合定向 139 项及默认无 Provider
 1568 项回归全部通过；最终稳定测试窗口 live DB 指纹仍为
+`248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
+94,588,928 bytes / `2026-07-31T03:25:48+0800`。
+
+## 8.6 Stage 2 Main Acceptance Bounded Rework Round 2
+
+V5 主 Session 已确认 Round 1 的两项原始修复通过，但继续发现两个同一预算
+不变量缺口：成功 synthesis 的 context 消费未持久记账，以及 EvidenceUse 已达
+上限后仍可调用 window tool。V5-A 保持已接受 Contract 不变，完成以下限定修复：
+
+1. `synthesis_context_characters` 精确定义为最终 committed
+   `ContextBuildResult.model_context` 的 Python 字符数。只有 synthesis、validator
+   与 artifact transaction 成功时才在同一 checkpoint 单调扣账；Event 记录累计值。
+   rollback、failure、replay、restart 和 takeover 不虚扣、不重置、不重复扣账；
+   service 对注入 builder 的输出另行执行剩余额度上限。
+2. durable EvidenceUse count 已达上限且当前 phase 将执行 transcript search/window
+   时，在 action/tool 前进入既有 fenced durable-stop transaction；原子提交 stopped
+   checkpoint、`inner_budget_exhausted` Event 与 CommandReceipt，分类为
+   `termination_reason=budget_exhausted / failure_class=none`。
+
+新增 public service/API 对抗覆盖 exact-once context accounting、server cap、
+artifact fault rollback、evidence cap no-tool stop、restart、replay、payload
+mismatch 与 takeover。Stage 2 suite 为 33 项，联合定向为 143 项，默认无
+Provider 全回归为 1572 passed、4 deselected、7 warnings；`compileall` 与
+`diff --check` 通过。稳定窗口 live DB 仍为 schema 7，SHA-256/size/mtime 保持：
 `248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
 94,588,928 bytes / `2026-07-31T03:25:48+0800`。
 

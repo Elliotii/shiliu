@@ -1207,7 +1207,11 @@ class InnerResearchService:
             if prepared.kind == "provisional_synthesis":
                 artifact_id = _id("provisional")
                 try:
-                    artifact_data, synthesis_observations = self._synthesize(
+                    (
+                        artifact_data,
+                        synthesis_observations,
+                        synthesis_context_characters,
+                    ) = self._synthesize(
                         connection,
                         state=state,
                         objective=str(goal["objective"]),
@@ -1220,6 +1224,9 @@ class InnerResearchService:
                 except Exception as exc:
                     raise _SynthesisImplementationError(exc) from exc
                 pending_observations.extend(synthesis_observations)
+                state.budget.synthesis_context_characters += (
+                    synthesis_context_characters
+                )
                 state.provisional_artifact_ids.append(artifact_id)
                 state.phase = "complete"
                 state.answer_status = artifact_data["answer_status"]
@@ -1349,6 +1356,9 @@ class InnerResearchService:
                     "answer_status": state.answer_status,
                     "termination_reason": state.termination_reason,
                     "failure_class": state.failure_class,
+                    "synthesis_context_characters": (
+                        state.budget.synthesis_context_characters
+                    ),
                     "state_hash": state_hash,
                 },
                 command_id=request.command_id,
@@ -1526,6 +1536,7 @@ class InnerResearchService:
     ) -> tuple[
         dict[str, Any],
         list[tuple[str, str, CurrentnessResult]],
+        int,
     ]:
         spans: list[TranscriptEvidenceSpan] = []
         observations: list[tuple[str, str, CurrentnessResult]] = []
@@ -1559,6 +1570,15 @@ class InnerResearchService:
             normalized_intent=objective,
             spans=tuple(spans),
         )
+        context_characters = len(context.model_context)
+        remaining_context_characters = (
+            self.MAX_CONTEXT_CHARACTERS
+            - state.budget.synthesis_context_characters
+        )
+        if context_characters > remaining_context_characters:
+            raise ValueError(
+                "synthesis context exceeded the server-side character budget"
+            )
         if context.spans:
             blocks = [
                 AnswerBlock(
@@ -1613,7 +1633,7 @@ class InnerResearchService:
             "owner_epoch": owner_epoch,
             "created_at": now,
         }
-        return data, observations
+        return data, observations, context_characters
 
     def _insert_observations(
         self,
@@ -1818,6 +1838,18 @@ class InnerResearchService:
             and state.budget.window_reads >= self.MAX_WINDOW_READS
         ):
             return "window_reads"
+        if (
+            state.phase in {"transcript_search", "transcript_window"}
+            and state.budget.materialized_evidence_uses
+            >= self.MAX_EVIDENCE_USES
+        ):
+            return "materialized_evidence_uses"
+        if (
+            state.phase == "provisional_synthesis"
+            and state.budget.synthesis_context_characters
+            >= self.MAX_CONTEXT_CHARACTERS
+        ):
+            return "synthesis_context_characters"
         if (
             now - _parse_iso(state.budget.started_at)
         ).total_seconds() >= self.MAX_RUNTIME_SECONDS:

@@ -9,6 +9,7 @@ import sqlite3
 import pytest
 from fastapi.testclient import TestClient
 
+from shiliu.ask.context import TranscriptContextBuilder
 from shiliu.app import Application
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.db import Database, SCHEMA_VERSION
@@ -267,6 +268,11 @@ def test_durable_inner_loop_runs_one_action_per_checkpoint_and_stays_nonterminal
     assert persisted["state"]["answer_status"] == "valid_partial"
     assert persisted["state"]["termination_reason"] == "answer_ready"
     assert persisted["state"]["failure_class"] == "none"
+    assert (
+        0
+        < persisted["state"]["budget"]["synthesis_context_characters"]
+        <= core.research_inner.MAX_CONTEXT_CHARACTERS
+    )
     task = core.research.get_task("inner-e2e")
     assert task["task"]["status"] == "running"
     assert task["task"]["terminal_result_id"] is None
@@ -281,6 +287,141 @@ def test_durable_inner_loop_runs_one_action_per_checkpoint_and_stays_nonterminal
         materializer=TranscriptEvidenceMaterializer(core.db),
     )
     assert restarted.get_inner_state("inner-e2e")["state"] == persisted["state"]
+
+
+def test_api_synthesis_context_is_exactly_charged_once_across_replay_restart_and_takeover(
+    app_paths,
+) -> None:
+    core, _ = _fixture_core(app_paths)
+    run = _start(core, "synthesis-context-accounting")
+    for index in range(4):
+        _continue(core.research_inner, run, index)
+
+    class _RecordingContextBuilder(TranscriptContextBuilder):
+        def __init__(self) -> None:
+            super().__init__(total_character_budget=12_000)
+            self.calls = 0
+            self.last_context = None
+
+        def build(self, **kwargs):
+            self.calls += 1
+            self.last_context = super().build(**kwargs)
+            return self.last_context
+
+    builder = _RecordingContextBuilder()
+    service = InnerResearchService(
+        db=core.db,
+        kernel=core.research,
+        tools=core.research_inner.tools,
+        materializer=TranscriptEvidenceMaterializer(core.db),
+        context_builder=builder,
+    )
+    core._research_inner = service
+    client = TestClient(create_web_app(core))
+    payload = {
+        "command_id": "synthesis-context-accounting:commit",
+        "attempt_id": run["attempt_id"],
+        "owner_id": run["owner_id"],
+        "owner_epoch": run["owner_epoch"],
+        "expected_state_version": run["state_version"],
+        "expected_checkpoint_id": run["checkpoint_id"],
+    }
+    response = client.post(
+        "/api/research/tasks/synthesis-context-accounting/inner/continue",
+        json=payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["outcome"]["phase"] == "complete"
+    assert builder.calls == 1
+    assert builder.last_context is not None
+    expected_characters = len(builder.last_context.model_context)
+    assert 0 < expected_characters <= service.MAX_CONTEXT_CHARACTERS
+    assert (
+        response.json()["inner"]["state"]["budget"][
+            "synthesis_context_characters"
+        ]
+        == expected_characters
+    )
+    event = core.research.get_task("synthesis-context-accounting")["events"][-1]
+    assert event["payload"]["synthesis_context_characters"] == expected_characters
+
+    before_replay = _research_lengths(core, "synthesis-context-accounting")
+    replay = client.post(
+        "/api/research/tasks/synthesis-context-accounting/inner/continue",
+        json=payload,
+    )
+    assert replay.status_code == 200
+    assert replay.json()["outcome"]["deduplicated"] is True
+    assert builder.calls == 1
+    assert (
+        replay.json()["inner"]["state"]["budget"][
+            "synthesis_context_characters"
+        ]
+        == expected_characters
+    )
+    assert _research_lengths(core, "synthesis-context-accounting") == before_replay
+
+    restarted = InnerResearchService(
+        db=core.db,
+        kernel=core.research,
+        tools=core.research_inner.tools,
+        materializer=TranscriptEvidenceMaterializer(core.db),
+    )
+    assert (
+        restarted.get_inner_state("synthesis-context-accounting")["state"][
+            "budget"
+        ]["synthesis_context_characters"]
+        == expected_characters
+    )
+
+    with core.db.connect() as connection:
+        connection.execute(
+            """
+            UPDATE research_tasks SET lease_until=?
+            WHERE task_id='synthesis-context-accounting'
+            """,
+            ((datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),),
+        )
+    takeover = core.research.claim_owner(
+        task_id="synthesis-context-accounting",
+        command_id="synthesis-context-accounting:takeover",
+        owner_id="new-owner",
+        expected_state_version=int(response.json()["outcome"]["state_version"]),
+        lease_seconds=300,
+    )
+    assert int(takeover["owner_epoch"]) == int(run["owner_epoch"]) + 1
+    assert (
+        restarted.get_inner_state("synthesis-context-accounting")["state"][
+            "budget"
+        ]["synthesis_context_characters"]
+        == expected_characters
+    )
+
+
+def test_synthesis_context_over_server_limit_rolls_back_and_fails_durably(
+    app_paths,
+) -> None:
+    core, _ = _fixture_core(app_paths)
+    run = _start(core, "synthesis-context-limit")
+    for index in range(4):
+        _continue(core.research_inner, run, index)
+    service = InnerResearchService(
+        db=core.db,
+        kernel=core.research,
+        tools=core.research_inner.tools,
+        materializer=TranscriptEvidenceMaterializer(core.db),
+    )
+    service.MAX_CONTEXT_CHARACTERS = 1
+
+    result, _ = _continue(service, run, 4)
+    assert result["phase"] == "stopped"
+    assert result["stop_reason"] == "implementation_error"
+    persisted = service.get_inner_state("synthesis-context-limit")
+    assert persisted["state"]["budget"]["synthesis_context_characters"] == 0
+    assert persisted["state"]["termination_reason"] == "implementation_error"
+    assert persisted["state"]["failure_class"] == "implementation_failure"
+    assert persisted["provisional_artifacts"] == []
+    assert persisted["inner_actions"][-1]["status"] == "failed"
 
 
 def test_inner_command_replay_is_idempotent_and_payload_mismatch_fails_closed(
@@ -626,11 +767,23 @@ def test_artifact_fault_rolls_back_action_checkpoint_observations_and_artifact(
     assert len(after["events"]) == len(before["events"])
     assert len(after["command_receipts"]) == len(before["command_receipts"])
     assert _counts(core.db, "artifact-fault") == before_counts
+    assert (
+        service.get_inner_state("artifact-fault")["state"]["budget"][
+            "synthesis_context_characters"
+        ]
+        == 0
+    )
 
     service.fault_injector = lambda _point: None
     recovered = service.continue_run("artifact-fault", request)
     assert recovered["phase"] == "complete"
     assert _counts(core.db, "artifact-fault")["research_provisional_artifacts"] == 1
+    assert (
+        service.get_inner_state("artifact-fault")["state"]["budget"][
+            "synthesis_context_characters"
+        ]
+        > 0
+    )
 
 
 def test_takeover_fences_old_inner_worker_before_tool_or_mutation(app_paths) -> None:
@@ -777,6 +930,7 @@ def test_budget_stop_is_persisted_and_survives_restart(app_paths) -> None:
         ("runtime_seconds", 1),
         ("decision_rounds", 4),
         ("window_reads", 3),
+        ("materialized_evidence_uses", 3),
     ),
 )
 def test_pre_action_hard_budget_exhaustion_commits_one_durable_stop(
@@ -801,6 +955,8 @@ def test_pre_action_hard_budget_exhaustion_commits_one_durable_stop(
         service.MAX_DECISION_ROUNDS = 1
     elif dimension == "window_reads":
         service.MAX_WINDOW_READS = 0
+    elif dimension == "materialized_evidence_uses":
+        service.MAX_EVIDENCE_USES = 1
     run = _start(core, f"budget-{dimension}")
     with core.db.connect() as connection:
         connection.execute(
@@ -814,6 +970,41 @@ def test_pre_action_hard_budget_exhaustion_commits_one_durable_stop(
         _continue(service, run, index)
     if dimension == "runtime_seconds":
         clock.advance(361)
+    if dimension == "materialized_evidence_uses":
+        old_owner = str(run["owner_id"])
+        old_epoch = int(run["owner_epoch"])
+        with core.db.connect() as connection:
+            connection.execute(
+                "UPDATE research_tasks SET lease_until=? WHERE task_id=?",
+                (
+                    (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),
+                    run["task_id"],
+                ),
+            )
+        takeover = core.research.claim_owner(
+            task_id=str(run["task_id"]),
+            command_id="evidence-budget:takeover",
+            owner_id="new-owner",
+            expected_state_version=int(run["state_version"]),
+            lease_seconds=300,
+        )
+        run["owner_id"] = "new-owner"
+        run["owner_epoch"] = int(takeover["owner_epoch"])
+        run["state_version"] = int(takeover["state_version"])
+        stale_calls_before = len(adapter.calls)
+        with pytest.raises(ResearchConflict):
+            service.continue_run(
+                str(run["task_id"]),
+                ContinueInnerResearchRequest(
+                    command_id="evidence-budget:stale-owner",
+                    attempt_id=str(run["attempt_id"]),
+                    owner_id=old_owner,
+                    owner_epoch=old_epoch,
+                    expected_state_version=int(run["state_version"]),
+                    expected_checkpoint_id=str(run["checkpoint_id"]),
+                ),
+            )
+        assert len(adapter.calls) == stale_calls_before
     before = _research_lengths(core, str(run["task_id"]))
     tool_calls_before = len(adapter.calls)
     request = ContinueInnerResearchRequest(
@@ -842,6 +1033,9 @@ def test_pre_action_hard_budget_exhaustion_commits_one_durable_stop(
     assert state["answer_status"] == "not_produced"
     assert state["termination_reason"] == "budget_exhausted"
     assert state["failure_class"] == "none"
+    event = core.research.get_task(str(run["task_id"]))["events"][-1]
+    assert event["event_type"] == "inner_budget_exhausted"
+    assert event["payload"]["budget_dimension"] == dimension
 
     replay = service.continue_run(str(run["task_id"]), request)
     assert replay["checkpoint_id"] == stopped["checkpoint_id"]
@@ -962,6 +1156,82 @@ def test_api_runtime_budget_exhaustion_returns_durable_stop_and_replays_once(
     }
 
 
+def test_api_evidence_budget_exhaustion_stops_before_window_and_replays_once(
+    app_paths,
+) -> None:
+    core, _ = _fixture_core(app_paths)
+    span = core.research_inner.tools.search(
+        "MCP", video_ids=(), query_index=0
+    ).spans[0]
+    adapter = DeterministicInnerToolAdapter(search_spans=(span,))
+    service = InnerResearchService(
+        db=core.db,
+        kernel=core.research,
+        tools=adapter,
+        materializer=TranscriptEvidenceMaterializer(core.db),
+    )
+    service.MAX_EVIDENCE_USES = 1
+    core._research_inner = service
+    run = _start(core, "evidence-budget-api")
+    for index in range(3):
+        _continue(service, run, index)
+    assert [value["kind"] for value in adapter.calls] == [
+        "navigation",
+        "transcript_search",
+    ]
+
+    client = TestClient(create_web_app(core))
+    payload = {
+        "command_id": "evidence-budget-api:stop",
+        "attempt_id": run["attempt_id"],
+        "owner_id": run["owner_id"],
+        "owner_epoch": run["owner_epoch"],
+        "expected_state_version": run["state_version"],
+        "expected_checkpoint_id": run["checkpoint_id"],
+    }
+    before = _research_lengths(core, "evidence-budget-api")
+    response = client.post(
+        "/api/research/tasks/evidence-budget-api/inner/continue",
+        json=payload,
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["outcome"]["action_id"] is None
+    assert body["outcome"]["budget_dimension"] == "materialized_evidence_uses"
+    assert body["inner"]["state"]["phase"] == "stopped"
+    assert body["inner"]["state"]["answer_status"] == "not_produced"
+    assert body["inner"]["state"]["termination_reason"] == "budget_exhausted"
+    assert body["inner"]["state"]["failure_class"] == "none"
+    assert [value["kind"] for value in adapter.calls] == [
+        "navigation",
+        "transcript_search",
+    ]
+    after = _research_lengths(core, "evidence-budget-api")
+    assert after["inner_actions"] == before["inner_actions"]
+    assert after["checkpoints"] == before["checkpoints"] + 1
+    assert after["events"] == before["events"] + 1
+    assert after["command_receipts"] == before["command_receipts"] + 1
+
+    replay = client.post(
+        "/api/research/tasks/evidence-budget-api/inner/continue",
+        json=payload,
+    )
+    assert replay.status_code == 200
+    assert replay.json()["outcome"]["deduplicated"] is True
+    assert _research_lengths(core, "evidence-budget-api") == after
+    assert not any(
+        value["kind"] == "transcript_window" for value in adapter.calls
+    )
+    mismatch = client.post(
+        "/api/research/tasks/evidence-budget-api/inner/continue",
+        json={**payload, "expected_checkpoint_id": "forged"},
+    )
+    assert mismatch.status_code == 409
+    assert not any(
+        value["kind"] == "transcript_window" for value in adapter.calls
+    )
+
+
 def test_local_action_failure_persists_orthogonal_failure_dimensions(
     app_paths,
 ) -> None:
@@ -985,6 +1255,7 @@ def test_local_action_failure_persists_orthogonal_failure_dimensions(
     assert state["state"]["answer_status"] == "not_produced"
     assert state["state"]["termination_reason"] == "implementation_error"
     assert state["state"]["failure_class"] == "implementation_failure"
+    assert state["state"]["budget"]["synthesis_context_characters"] == 0
     assert state["inner_actions"][-1]["status"] == "failed"
     event = core.research.get_task("inner-failure")["events"][-1]
     assert event["payload"]["failure_class"] == (
@@ -1033,6 +1304,7 @@ def test_synthesis_context_failure_rolls_back_then_commits_durable_failure_once(
     assert state["state"]["answer_status"] == "not_produced"
     assert state["state"]["termination_reason"] == "implementation_error"
     assert state["state"]["failure_class"] == "implementation_failure"
+    assert state["state"]["budget"]["synthesis_context_characters"] == 0
     assert state["inner_actions"][-1]["status"] == "failed"
     assert state["inner_actions"][-1]["error_code"] == (
         "synthesis_implementation_error"

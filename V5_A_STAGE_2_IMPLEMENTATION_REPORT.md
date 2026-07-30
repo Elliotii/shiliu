@@ -10,6 +10,7 @@ accepted_contract_commit: 2037f39a9ec610d84ad4306a4f6c5fb693fdc3e7
 implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
 main_acceptance_round_1: rework
 rework_round_1_commit: 0ad5823724913874fd72afdbf2808d9f274f1c8e
+main_acceptance_round_2: rework_budget_accounting_and_evidence_cap
 stage_2_self_accepted: false
 provider_runs_authorized: false
 provider_runs_performed: false
@@ -68,6 +69,16 @@ Main Acceptance bounded rework round 1 提交 `0ad5823` 仅修改：
 内部异常回滚后可无限重试两项缺口；没有修改 schema、Prompt、Tool Contract、
 UI、Provider wiring 或 Program 权威文件。
 
+Main Acceptance bounded rework round 2 只修改：
+
+- `src/shiliu/research/inner_service.py`
+- `tests/test_v5_a_stage2_inner_loop.py`
+- 本 Implementation Report 与 `V5_A_CURRENT_STATE.md`
+
+该轮关闭 synthesis context 持久记账和 EvidenceUse 上限与 hard-stop 状态机
+不一致两项缺口。Stage 2 Contract 未修改：EvidenceUse 上限仍按 §5.5 的 hard
+budget 语义执行；没有扩张 schema、Stage、Provider 或产品表面。
+
 ## 3. 持久模型与不变量
 
 | 合同对象 | 实现证据 | 状态 |
@@ -98,18 +109,18 @@ derived view 表达。artifact 后 source drift 必须通过显式 revalidation 
 | 跨 Task/Attempt identity 与隔离 | global identity 收敛；每个 Attempt 独立 use/provenance/validation/allowlist/budget | pass |
 | Provisional grounding | bounded context + citation allowlist + shared grounded-answer validator；无证据时 `valid_insufficient` | pass |
 | 正交结果维度 | checkpoint 保存 `answer_status`、`termination_reason`、`failure_class`；insufficient/budget/implementation failure 不丢信息 | pass |
-| Budget/progress/stop | 服务端 action/round/window/evidence/context/time limits；pre-action runtime/decision/window exhaustion 不执行 tool/action，原子发布 stopped checkpoint/Event/receipt | pass |
+| Budget/progress/stop | 服务端 action/round/window/evidence/context/time limits；pre-action runtime/decision/window/evidence/context exhaustion 不执行 tool/action，原子发布 stopped checkpoint/Event/receipt；成功 synthesis 按最终 `model_context` 精确、事务性记账 | pass |
 | Idempotency/crash/race | command payload hash、action key、unique constraints、fault rollback、same-command race 与 cross-Task identity race | pass |
 | Ownership/lease | takeover/stale owner/late tool response 均在 commit 前被 fence；无 mutation/receipt 漂移 | pass |
 | Product API | `POST inner/continue`、`GET inner`、`POST inner/revalidate`；provider mode 未授权时 fail closed | pass |
-| Stage 1/V4 regression | 139 项联合定向与 1568 项默认无 Provider回归通过 | pass |
+| Stage 1/V4 regression | 143 项联合定向与 1572 项默认无 Provider回归通过 | pass |
 | Provider | real mode 禁用；logical calls/transport attempts 0；Stage 1 deterministic SideEffect tests 继续通过 | not_exercised |
 | Live schema 8 migration | 只在临时 SQLite 执行；live DB 保持 schema 7 | not_exercised |
 | Outer audit/recursive continuation | 未实现 | correctly_out_of_scope |
 
 ## 5. 定向机械测试证据
 
-Stage 2 suite：`29 passed`。
+Stage 2 suite：`33 passed`。
 
 关键测试：
 
@@ -135,20 +146,23 @@ Stage 2 suite：`29 passed`。
 - `test_concurrent_same_command_commits_one_action_checkpoint_and_receipt`
 - `test_live_db_sentinel_is_not_touched_by_stage2_temp_migration`
 - `test_pre_action_hard_budget_exhaustion_commits_one_durable_stop`
-  （parameterized：runtime、decision、window）
+  （parameterized：runtime、decision、window、materialized evidence use）
 - `test_api_runtime_budget_exhaustion_returns_durable_stop_and_replays_once`
+- `test_api_evidence_budget_exhaustion_stops_before_window_and_replays_once`
+- `test_api_synthesis_context_is_exactly_charged_once_across_replay_restart_and_takeover`
+- `test_synthesis_context_over_server_limit_rolls_back_and_fails_durably`
 - `test_synthesis_context_failure_rolls_back_then_commits_durable_failure_once`
 - `test_api_validator_failure_returns_controlled_durable_failure_result`
 - `test_synthesis_failure_stale_owner_race_cannot_commit_failure_state`
 - `test_synthesis_simulated_crash_is_not_misclassified_as_failure`
 
-联合定向 suite：`139 passed`，包括：
+联合定向 suite：`143 passed`，包括：
 
 | 范围 | 数量 |
 | --- | ---: |
 | Stage 1 kernel | 37 |
 | Stage 1 API | 4 |
-| Stage 2 inner loop | 29 |
+| Stage 2 inner loop | 33 |
 | Evidence contracts | 10 |
 | V3.5 evidence mechanics | 10 |
 | V4 context/citations | 4 |
@@ -180,12 +194,33 @@ Round 1 新增证据进一步证明：
 - takeover race 使旧 owner 的 failure commit 被拒绝；`SimulatedCrash`、unresolved
   SideEffect 和正常 insufficient 路径不被误分类。
 
+Round 2 新增证据进一步证明：
+
+- `synthesis_context_characters` 的计量单位冻结为最终提交给 grounded
+  synthesis/validator 的 `ContextBuildResult.model_context` Python 字符数；该
+  context 包含 objective、normalized intent、citation allowlist、结构化 evidence
+  元数据与 quote text。
+- 只有 synthesis、grounded validation 与 artifact transaction 成功时，消费量才
+  在同一 checkpoint 内单调加到 BudgetLedger；Event 同步记录累计值。crash、
+  builder/validator failure 或 server cap violation 会先回滚，账本保持原值。
+- command replay 不重建 context、不重复扣账；restart 与 owner takeover 从同一
+  checkpoint 恢复累计值。service 另行验证本次 context 不超过剩余额度，不能仅
+  信任注入的 builder 配置。
+- 当 durable `materialized_evidence_uses` 已达上限，且下一 phase 为
+  `transcript_search` 或 `transcript_window` 时，统一走既有 guarded durable-stop
+  transaction；不调用 evidence-producing adapter，不创建 action，以
+  `termination_reason=budget_exhausted / failure_class=none` 提交唯一
+  checkpoint、Event 与 CommandReceipt。
+- service/API 对抗测试覆盖 no-tool stop、restart、replay、payload mismatch、
+  takeover 后仍按持久上限停止并拒绝旧 owner、exact-once context accounting、
+  artifact fault rollback 与超限 fail closed。
+
 ## 6. 默认无 Provider 回归
 
 最终稳定运行：
 
 ```text
-1568 passed, 4 deselected, 7 warnings in 40.45s
+1572 passed, 4 deselected, 7 warnings
 ```
 
 默认 pytest marker 排除 `external_artifact` 与 `live_provider`。warnings：
@@ -282,9 +317,9 @@ deterministic adapter 推导 Provider quality。
 accept / partial_accept / rework / pause / reject
 ```
 
-V5-A 建议基于 `022c081` + bounded rework `0ad5823`、29 项 Stage 2 定向测试、
-139 项联合定向回归、1568 项默认无 Provider回归和最终稳定 live DB 窗口进行
-独立轻量复审。外部
+V5-A 建议基于 `022c081` + bounded rework `0ad5823` + 本轮 Round 2 提交、
+33 项 Stage 2 定向测试、143 项联合定向回归、1572 项默认无 Provider回归和
+最终稳定 live DB 窗口进行独立轻量复审。外部
 scheduled sync 事件需作为环境事实保留，但不应被表述为 V5-A 执行了 Stage 2
 live migration。
 
