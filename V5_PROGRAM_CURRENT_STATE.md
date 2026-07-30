@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-07-30T22:09:29+08:00
+> Updated at: 2026-07-31T01:08:24+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -9,11 +9,11 @@
 ```yaml
 resume_anchor:
   current_subversion: V5_A
-  current_stage: startup_and_reconnaissance
+  current_stage: V5_A_STAGE_1
   accepted_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
   active_execution_session: 019fb35a-d022-7a32-b963-3327adda8135
   pending_decision: none
-  next_action: monitor_V5_A_startup_and_reconnaissance_then_review_charter_and_stage_1
+  next_action: V5_A_session_implements_authorized_stage_1
   roadmap_reconsideration_open: false
 ```
 
@@ -50,7 +50,7 @@ repository:
 
 ```yaml
 program:
-  V5_A: preparing
+  V5_A: active
   V5_B: not_started
   V5_C: not_started
   V5_D: not_started
@@ -63,19 +63,28 @@ program:
 
 ```yaml
 current:
-  charter: draft_not_created
-  stage_contract: none
+  charter:
+    path: V5_A_VERSION_CHARTER.md
+    status: accepted
+  stage_contract:
+    path: V5_A_STAGE_1_CONTRACT.md
+    status: authorized
+  main_review:
+    path: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
+    decision: accept
   execution_session:
     role: Shiliu V5-A Version Session
     thread_id: 019fb35a-d022-7a32-b963-3327adda8135
     execution_branch: codex/v5-a
     worktree: /Users/elliot/.codex/worktrees/3324/Shiliu
-    assignment: startup_and_reconnaissance_only
+    assignment: V5_A_STAGE_1_Durable_Task_Kernel_and_Safety_Envelope
   baseline: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  report_pending: true
+  startup_report_accepted: true
+  stage_1_implementation_started: false
+  stage_1_report_pending: true
 ```
 
-用户已批准 V5-A 规划和首批启动与侦察包。V5-A 处于 `preparing`；唯一活跃的 V5-A 子版本 Session 已创建，Version Charter 和 Stage 1 Contract 尚待其起草。
+V5-A 启动与侦察结果、Version Charter 和 Stage 1 Contract 已由主 Session 独立复核并接受。唯一活跃的 V5-A 子版本 Session 已获得 Stage 1 有界实施授权；产品实现尚未开始。
 
 ---
 
@@ -103,7 +112,7 @@ accepted_results:
 # 5. Current Blockers
 
 - 技术阻塞：无。
-- 用户已授权创建 V5-A 子版本 Session与执行首批研究/规划任务。
+- Stage 1 可按已接受 Contract 开始；Provider 与 live DB Migration 仍未授权。
 
 ---
 
@@ -113,15 +122,21 @@ accepted_results:
 V5_A_candidates:
   deer_flow:
     local_status: absent
-    adoption_status: candidate
-    implementation_authorized: false
+    adoption_status: adopted
+    adoption_type: pattern_only_reimplementation
+    usage_level: design_reference
+    stage_1_selected_patterns_implementation_authorized: true
+    dependency_or_source_copy_authorized: false
   arex_paper:
     local_status: absent
-    adoption_status: candidate
+    adoption_status: adopted
+    adoption_type: training_independent_patterns_only
+    usage_level: design_reference
+    stage_1_implementation_authorized: false
     implementation_authorized: false
   youtu_agent:
     local_status: absent
-    adoption_status: candidate
+    adoption_status: deferred
     implementation_authorized: false
 historical_non_registry_reference:
   bilibili_cli:
@@ -132,14 +147,16 @@ historical_non_registry_reference:
     working_tree: clean
 ```
 
-Registry 的 27 个 V5 研究资源均已完成仓库内存在性扫描，当前均为 `absent`；这不改变其 Research 或 Adoption 状态。
+Registry 的正式仓库存在性口径仍为 `absent`；V5-A 使用的临时有界研究 checkout 不进入产品树，也不构成依赖或源码采用。
 
 ---
 
 # 7. Known Evidence Gaps
 
-- 尚未对 DeerFlow、AREX 或 Youtu-Agent 完成固定版本的源码、测试或 Spike 研究。
-- 尚未冻结 V5-A 的 Schema、Framework、Commit、Goal 数量或版本内部顺序。
+- DeerFlow 已完成固定 Commit 的有界源码/相关失败测试审阅，但上游测试未执行。
+- AREX 已完成论文 v2 与官方最小推理仓库审阅；完整 outer loop、训练管线和测试不可由当前公开仓库复现。
+- V5-A 已冻结 Version Charter 与 Stage 1 Contract；具体表名、文件结构和内部实现仍未冻结。
+- Stage 1 尚未实现或验收，跨进程 ownership、unknown in-flight 和 child Task lineage 仍为 `unproven`。
 - 本轮没有运行 Provider；V4.1 已归档的 Cross-video Provider Failure 不重跑、不改判。
 - V4/V4.1 Commit 尚未合入本地 `main`，也没有 V4/V4.1 Tag；这是现场 Git 事实，不是产品回归。
 
@@ -181,7 +198,8 @@ v4_v4_1_live_audit:
     completed_videos: 140
     retrieval_search_traces: 145
     retrieval_search_presentations: 115
-    content_video_directories: 150
+    content_video_directories: 155
+    distinct_nonempty_artifact_directories_in_database: 155
     ask_or_research_task_persistence_tables_present: false
   runtime_boundary:
     ask_trace_storage: in_process_memory
@@ -216,4 +234,4 @@ v4_v4_1_live_audit:
 
 # 9. Next Authorized Action
 
-跟踪唯一活跃的 V5-A 子版本 Session完成首批源码侦察、DeerFlow/AREX 研究、Version Charter Draft 和 Stage 1 Contract Draft；随后由主 Session独立审查。首批不得开始产品实施、运行 Provider、执行 Migration 或正式采用上游。
+由唯一活跃的 V5-A 子版本 Session 按 `V5_A_STAGE_1_CONTRACT.md` 实施 Durable Task Kernel and Safety Envelope。允许产品 kernel、schema/migration 源码、临时 DB migration tests、无 Provider deterministic adapter、最小 API、ownership/idempotency/lineage/failure tests 与既有回归；禁止 live DB Migration、Provider、Prompt、Tool Contract、UI、上游代码复制、Push/Merge/Tag 和自我验收。

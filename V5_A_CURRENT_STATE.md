@@ -9,9 +9,11 @@ branch: codex/v5-a
 startup_head: 2feccbccaa288f67071d22460eb220d50b19d871
 first_recon_commit: f6a2d7ee0d3a96a750886e879f89d4d419916810
 product_baseline_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-artifact_commit: reported_in_main_session_handoff
-charter_status: pending_final_main_acceptance
-stage_1_contract_status: pending_final_main_acceptance
+artifact_commit: 0fd038effc321a0b2ec964c9628ba379924c4643
+main_acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
+charter_status: accepted
+stage_1_contract_status: authorized
+stage_1_implementation_authorized: true
 product_implementation_started: false
 provider_runs_performed: false
 ```
@@ -55,7 +57,7 @@ V5 主 Session 于 2026-07-31 确认：
 - AREX 接受为 `training_independent_patterns_only` 设计参考；Stage 1 不实现其模式。
 - 上述决定均不授予产品实现、Provider 运行或 live migration 权限。
 
-本轮按审查意见修订文档，整体仍处于 `pending_final_main_acceptance`。
+主 Session 最终复核已接受修订后的 Charter、研究边界和 Stage 1 Contract，并授权按 Contract 开始 Stage 1 实施；当前仍未开始产品实现。
 
 ## 3. Live DB / Index / Corpus
 
@@ -184,7 +186,7 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 
 ## 9. 当前未证明项
 
-- 修订后的 Stage 1 Contract 尚待主 Session 最终接受，产品 schema/API 尚未获得实现授权。
+- Stage 1 Contract 已获授权，但产品 schema/API 尚未实施或验收。
 - 没有产品 ResearchTask Runtime、持久 checkpoint 或 SideEffectRecord 实现。
 - 没有执行 DeerFlow 上游测试或完整依赖集成。
 - AREX 公开仓库不能复现论文的完整递归系统或训练结论。
@@ -194,19 +196,13 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 
 ## 10. 下一动作
 
-V5 主 Session 应最终复审：
-
-1. `V5_A_VERSION_CHARTER.md`
-2. `V5_A_STAGE_1_CONTRACT.md`
-3. `V5_A_DECISION_LEDGER.md` 对第一轮主审决定和修订契约的同步
-4. 两份上游报告中已确认的 reference-only 边界及仍未执行项
-
-未经主 Session 最终接受并另行授权，V5-A 不开始产品实现。
+V5-A 下一步按已接受的 `V5_A_STAGE_1_CONTRACT.md` 实施 Durable Task Kernel and Safety Envelope，并在完成后向主 Session 提交 Implementation Report。不得运行 Provider 或对 live DB 执行 Migration。
 
 ```yaml
-charter_status: pending_final_main_acceptance
-stage_1_contract_status: pending_final_main_acceptance
+charter_status: accepted
+stage_1_contract_status: authorized
+stage_1_implementation_authorized: true
 product_implementation_started: false
 provider_runs_performed: false
-next_action: main_session_final_document_review
+next_action: V5_A_stage_1_implementation
 ```

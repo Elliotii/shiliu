@@ -3,21 +3,23 @@
 ```yaml
 stage: V5-A Stage 1
 title: Durable Task Kernel and Safety Envelope
-contract_status: pending_final_main_acceptance
+contract_status: authorized
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-30
 revised_at: 2026-07-31
 main_review_round_1: completed
+accepted_at: 2026-07-31T01:08:24+08:00
+acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
 product_baseline_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-implementation_authorized: false
+implementation_authorized: true
 implementation_started: false
 provider_runs_authorized: false
 provider_runs_performed: false
 live_database_migration_authorized: false
 ```
 
-> 本文件已根据 V5 主 Session 第一轮独立审查修订，现等待最终验收。它不授权当前 Session 立即实施，也不接受自身结果。
+> 本文件已经 V5 主 Session 最终接受并授权实施。该授权不等于 Stage 1 完成或验收；V5-A 仍不得自我接受结果。
 
 ## 1. Stage 使命
 
@@ -576,7 +578,7 @@ unknown_in_flight_fail_closed: unproven_until_implemented
 provider_behavior: not_exercised
 product_quality: not_exercised
 live_migration: not_exercised
-stage_result: revised_contract_pending_final_main_acceptance
+stage_result: authorized_not_implemented
 ```
 
 ## 14. 暂停条件
@@ -592,21 +594,15 @@ stage_result: revised_contract_pending_final_main_acceptance
 - baseline 漂移改变成功标准。
 - 需要采用上游代码/依赖、修改长期路线或跨版本协调。
 
-## 15. 请求 V5 主 Session 决定
+## 15. 主 Session 授权结果
 
-1. 是否最终接受修订后的 Task/Attempt/Result 终态模型与 child Task lineage。
-2. 是否最终接受 answer status、termination reason、failure class 三维 Result contract。
-3. 是否最终接受 Stage 1 强制 single-active-owner lease/epoch fence。
-4. 是否最终接受 CommandReceipt 与 Task-scoped SideEffect idempotency contract。
-5. 是否接受“Stage 1 提供最小 API、最终 UI 延后”的产品切片。
-6. 是否接受 branch/replay 在 Stage 1 仅完成 lineage contract 与失败测试、完整控制面延后到 Stage 4。
-7. 是否授权 schema/migration 源码与临时 DB 测试；live DB migration 继续禁止。
-8. 是否授权 V5-A 在最终接受后开始产品实现。
+V5 主 Session 已接受本 Contract 的状态模型、三维 Result、single-active-owner lease/epoch fence、CommandReceipt、Task-scoped SideEffect、最小 API 切片和 Stage 1 branch/replay 边界，并授权本文件第 8 节所列实施范围。第 9 节禁止项继续有效。
 
 ```yaml
-charter_status: pending_final_main_acceptance
-stage_1_contract_status: pending_final_main_acceptance
+charter_status: accepted
+stage_1_contract_status: authorized
+stage_1_implementation_authorized: true
 product_implementation_started: false
 provider_runs_performed: false
-next_action: main_session_final_document_review
+next_action: V5_A_stage_1_implementation
 ```

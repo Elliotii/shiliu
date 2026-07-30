@@ -1,9 +1,11 @@
 # V5-A 有界上游研究报告：AREX
 
 ```yaml
-report_status: pending_final_main_acceptance
+report_status: accepted
 revised_at: 2026-07-31
 main_review_round_1: evidence_boundary_confirmed
+accepted_at: 2026-07-31T01:08:24+08:00
+acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
 registry_id: arex_paper
 paper_title: "AREX: Towards a Recursively Self-Improving Agent for Deep Research"
 paper_version: arXiv:2607.21461v2
@@ -224,7 +226,7 @@ key-step annotations 属于训练/离线监督，不是运行时可直接取得�
 
 ```yaml
 upstream_id: arex_paper
-decision_status: pending_final_main_acceptance
+decision_status: accepted
 main_review_round_1_decision: training_independent_patterns_only_reference
 patterns:
   - inner_research
@@ -249,12 +251,12 @@ required_shiliu_overrides:
 
 V5 主 Session 第一轮独立审查已确认该 reference-only 边界：不采用模型、权重、Prompt、代码或 confidence gate，Stage 1 不实现 AREX 模式。任何未来独立重实现仍需对应 Stage Contract 授权。
 
-## 9. Registry Update Proposal（未直接修改）
+## 9. Registry Update（主 Session 已执行）
 
-建议 V5 主 Session 更新 `arex_paper` 条目时把论文许可与代码许可分开记录：
+主 Session 已更新 `arex_paper` 条目，并将论文许可与代码许可分开记录：
 
 ```yaml
-source_last_checked: 2026-07-30
+source_last_checked: 2026-07-31
 paper:
   arxiv_id: "2607.21461"
   version: v2
@@ -291,9 +293,9 @@ implementation_authorized: false
 
 `adoption_status` 已使用 Program Registry 允许枚举；其受限含义由 `adoption_type`、`usage_level`、`role`、`qualifier`、`stage_1_implementation` 与 `implementation_authorized` 共同表达。
 
-## 10. Research Log Update Proposal（未直接修改）
+## 10. Research Log Update（主 Session 已执行）
 
-建议主 Session 追加：
+主 Session 已追加权威事件 `UR-20260731-016`；以下是报告阶段保留的摘要记录：
 
 ```json
 {"timestamp":"2026-07-31","session":"V5 main session","upstream_id":"arex_paper","event_type":"main_review_reference_boundary_confirmed","paper":"arXiv:2607.21461v2","paper_license":"arXiv perpetual non-exclusive license","official_repository":"https://huggingface.co/BAAI/AREX-Turbo","commit":"129812742df4a5de27980ed07bda78d9d27c7370","repository_license":"Apache-2.0","paper_reviewed":true,"official_source_reviewed":"limited_inference_subset","tests_reviewed":false,"tests_executed":false,"weights_downloaded":false,"provider_runs":false,"outcome":"training_independent_patterns_only_design_reference","model_adopted":false,"prompt_copied":false,"code_copied":false,"confidence_gate_adopted":false,"stage_1_implementation":false,"implementation_authorized":false}
@@ -316,16 +318,13 @@ implementation_authorized: false
 | Provider / model behavior | not_exercised |
 | 论文效果向拾流的迁移 | unproven |
 
-## 12. 请求 V5 主 Session 的决定
+## 12. 主 Session 接受结果
 
-1. 是否接受 `training_independent_patterns_only` Adoption Proposal。
-2. 是否在 Registry 中分开记录论文许可和代码许可。
-3. 是否接受“官方代码只完成 limited inference subset review”的证据分类。
-4. 是否要求未来独立研究 AREX 完整代码若官方另行发布；该动作不属于当前 Stage 1。
+主 Session 已接受 `training_independent_patterns_only` Adoption Proposal、分离的论文/代码许可记录和 `limited_inference_subset` 证据分类。若官方未来发布完整 outer loop、训练管线或测试，将在相关 Stage 前形成新的有界研究 Episode；该动作不属于 Stage 1。
 
 ```yaml
-research_report_status: pending_final_main_acceptance
-adoption_decision_status: main_review_reference_boundary_confirmed
+research_report_status: accepted
+adoption_decision_status: accepted
 implementation_authorized: false
 provider_runs_performed: false
 ```

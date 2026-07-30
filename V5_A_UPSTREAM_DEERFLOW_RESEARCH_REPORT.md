@@ -1,9 +1,11 @@
 # V5-A 有界上游研究报告：DeerFlow
 
 ```yaml
-report_status: pending_final_main_acceptance
+report_status: accepted
 revised_at: 2026-07-31
 main_review_round_1: evidence_boundary_confirmed
+accepted_at: 2026-07-31T01:08:24+08:00
+acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
 research_scope: bounded_official_source_and_failure_test_review
 registry_id: deer_flow
 official_repository: https://github.com/bytedance/deer-flow
@@ -278,13 +280,14 @@ loop middleware 对重复 tool call hash 设置 warning/hard threshold，并按�
 
 ```yaml
 upstream_id: deer_flow
-decision_status: pending_final_main_acceptance
+decision_status: accepted
 main_review_round_1_decision: pattern_only_reimplementation_reference
 direct_dependency: false
 source_copy: false
 prompt_copy: false
 test_copy: false
 implementation_authorized: false
+stage_1_pattern_implementation_authorized: true
 candidate_patterns:
   - typed_blocker_and_continuation_gate
   - durable_completion_receipt_before_continuation
@@ -301,14 +304,14 @@ required_shiliu_overrides:
   - unknown_external_in_flight_fail_closed
 ```
 
-V5 主 Session 第一轮独立审查已确认：适合吸收的是协议和失败测试思想，不是框架整体；不采用依赖、源码或 Prompt。该决定不授权实现，正式 Program 文件仍由主 Session 更新。
+V5 主 Session 最终审查已确认：适合吸收的是协议和失败测试思想，不是框架整体；不采用依赖、源码或 Prompt。该研究决定本身不授权实现；Stage 1 的 selected Shiliu-native patterns 由已接受的 Stage Contract 单独授权。
 
-## 7. Registry Update Proposal（未直接修改）
+## 7. Registry Update（主 Session 已执行）
 
-建议 V5 主 Session 复核并更新 `03_拾流V5上游项目与研究资料注册表.yaml` 中 `deer_flow` 条目：
+主 Session 已复核并更新 `03_拾流V5上游项目与研究资料注册表.yaml` 中 `deer_flow` 条目：
 
 ```yaml
-source_last_checked: 2026-07-30
+source_last_checked: 2026-07-31
 official_repository: https://github.com/bytedance/deer-flow
 pinned_commit: 0d8e11ad492bfa1a15b4409cc744ee66d6d188c0
 license: MIT
@@ -337,14 +340,15 @@ adoption_boundary:
   dependency: rejected
   source_copy: rejected
   prompt_copy: rejected
-implementation_authorized: false
+implementation_authorized: true
+implementation_authority_scope: V5-A Stage 1 selected Shiliu-native patterns only
 ```
 
 `adoption_status` 已使用 Program Registry 允许枚举；其受限含义由 `adoption_type`、`usage_level`、`role`、`qualifier` 与 `implementation_authorized` 共同表达。
 
-## 8. Research Log Update Proposal（未直接修改）
+## 8. Research Log Update（主 Session 已执行）
 
-建议主 Session 追加一条类似事件：
+主 Session 已追加权威事件 `UR-20260731-015`；以下是报告阶段保留的摘要记录：
 
 ```json
 {"timestamp":"2026-07-31","session":"V5 main session","upstream_id":"deer_flow","event_type":"main_review_reference_boundary_confirmed","official_repository":"https://github.com/bytedance/deer-flow","commit":"0d8e11ad492bfa1a15b4409cc744ee66d6d188c0","license":"MIT","scope":["goal","blocker","continuation","no_progress","checkpoint_lineage","mutation_guard","user_input_interrupt","branch_replay","ownership_recovery","related_failure_tests"],"tests_executed":false,"provider_runs":false,"outcome":"pattern_only_reimplementation_design_and_test_reference","dependency_adopted":false,"source_copied":false,"prompt_copied":false,"implementation_authorized":false}
@@ -373,8 +377,9 @@ implementation_authorized: false
 - 上游模式能否在拾流 schema 与证据不变量下工作，须在被接受的 Stage Contract 中独立实现和测试。
 
 ```yaml
-research_report_status: pending_final_main_acceptance
-adoption_decision_status: main_review_reference_boundary_confirmed
+research_report_status: accepted
+adoption_decision_status: accepted
 implementation_authorized: false
+stage_1_pattern_implementation_authorized: true
 provider_runs_performed: false
 ```

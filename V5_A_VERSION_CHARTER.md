@@ -1,22 +1,25 @@
-# 拾流 V5-A Version Charter（Revised Draft）
+# 拾流 V5-A Version Charter
 
 ```yaml
-document_status: pending_final_main_acceptance
+document_status: accepted
 version_session: Shiliu V5-A Version Session
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-30
 revised_at: 2026-07-31
 main_review_round_1: completed
+accepted_at: 2026-07-31T01:08:24+08:00
+acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
 product_baseline_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
 startup_commit: 2feccbccaa288f67071d22460eb220d50b19d871
-implementation_authorized: false
+implementation_authorized: true
+implementation_authority_scope: V5_A_STAGE_1_CONTRACT_only
 product_implementation_started: false
 provider_runs_authorized: false
 provider_runs_performed: false
 ```
 
-> 本文件已根据 V5 主 Session 第一轮独立审查修订，现等待最终验收。它不构成自我验收、Stage 开工授权、长期路线变更或 Provider 运行授权。
+> 本文件已经 V5 主 Session 最终接受。实施权限仅来自已授权的具体 Stage Contract；本 Charter 不授权长期路线变更或 Provider 运行。
 
 ## 1. 版本使命
 
@@ -223,16 +226,15 @@ V5 主 Session 已于 2026-07-31 独立只读复核并接受该 baseline update�
 - 新 UI/Tool Contract/Prompt 变更超出已接受 Stage。
 - 需要 V5-B/C/D 协调或跨版本授权。
 
-## 12. 请求 V5 主 Session 的决定
+## 12. 主 Session 接受结果
 
-1. 最终接受、继续修订或拒绝本 Revised Charter。
-2. 最终审阅 `V5_A_STAGE_1_CONTRACT.md` 的状态模型、ownership fence、CommandReceipt、SideEffect 与测试要求。
-3. 决定是否在最终接受 Stage 1 Contract 后另行授权 Stage 1 产品实施。
+V5 主 Session 已接受本 Charter、五阶段依赖序列、155 live baseline 与 reference-only 上游边界，并通过 `V5_A_STAGE_1_CONTRACT.md` 授权 Stage 1 实施。真实 Provider 运行仍未授权。
 
 ```yaml
-charter_status: pending_final_main_acceptance
-stage_1_contract_status: pending_final_main_acceptance
+charter_status: accepted
+stage_1_contract_status: authorized
+stage_1_implementation_authorized: true
 product_implementation_started: false
 provider_runs_performed: false
-next_action: main_session_final_document_review
+next_action: V5_A_stage_1_implementation
 ```
