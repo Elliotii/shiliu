@@ -22,6 +22,7 @@ stage_1_main_acceptance_decision: accept
 stage_2_planning_baseline: fc4708eacb93e9b6b3d479d50e096cc95dd6be31
 stage_2_contract: V5_A_STAGE_2_CONTRACT.md
 stage_2_contract_status: draft_pending_main_review
+stage_2_main_review_round_1: rework_evidence_record_semantics
 stage_2_implementation_authorized: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
@@ -236,6 +237,9 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
   DecisionView/reducer/budget 和 navigation/transcript boundaries。
 - 复用边界、持久 Evidence/Artifact 语义、ownership/checkpoint/SideEffect
   交互、预算/停止条件和测试矩阵已冻结在 `V5_A_STAGE_2_CONTRACT.md` 草案。
+- 主 Session 第一轮合同审阅总体方向通过，仅要求拆分全局 immutable evidence
+  identity、Task/Attempt-scoped use/provenance 与 append-only currentness
+  observation；限定修订已完成并等待复审。
 - 无 Provider探索性机械测试：41 passed；覆盖 Evidence contracts、held-out
   evidence mechanics、shared Citation/Context 和 V4 Deep。唯一 warning 是既有
   Starlette/httpx deprecation warning。

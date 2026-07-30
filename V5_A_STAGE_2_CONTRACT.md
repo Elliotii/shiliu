@@ -7,6 +7,8 @@ contract_status: draft_pending_main_review
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-31
+revised_at: 2026-07-31
+main_review_round_1: rework_evidence_record_semantics
 version_charter: V5_A_VERSION_CHARTER.md
 stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
 baseline_branch: codex/v5-a
@@ -52,8 +54,9 @@ Stage 2 完成后，受控 `/research` 产品入口至少能够：
    只缩小搜索空间，不成为事实证据。
 4. 将 transcript candidate 经 exact chunk replay/materialization 绑定到当前
    `source_artifact_id`、`source_version`、`timeline_run_id` 和有序 segment identity。
-5. 在数据库中持久化 evidence identity、retrieval provenance、有效性状态、
-   action receipt、预算消耗和语义进展，而不是只保存在 graph 内存中。
+5. 在数据库中分别持久化 immutable evidence identity、Task-scoped use/provenance
+   关联和 append-only validation observation，以及 action receipt、预算消耗和
+   语义进展，而不是只保存在 graph 内存中。
 6. 从持久 evidence set 构造 bounded DecisionView，并可在完整 checkpoint 后
    进程重启继续；不会重复已收据化的动作。
 7. 生成或由 deterministic adapter 模拟生成 provisional synthesis；每个事实
@@ -106,7 +109,8 @@ baseline:
 
 - durable inner-loop state schema 与 checkpoint codec；
 - Research Task 与 retrieval/evidence provenance 的持久关联；
-- immutable EvidenceRecord 和 provisional synthesis artifact；
+- immutable EvidenceIdentityRecord、Task-scoped EvidenceUse/Provenance、
+  append-only EvidenceValidationObservation 和 provisional synthesis artifact；
 - action-level receipt/dedupe、预算 ledger 和语义 progress fingerprint；
 - Stage 1 ownership/checkpoint/SideEffect 与 inner actions 的集成；
 - restart/crash/race/stale-source 下的恢复与 fail-closed；
@@ -203,35 +207,114 @@ DecisionView、最后一个 Event 文本或客户端请求体猜测真实状态�
 任何离开 SQLite transaction、可能计费或无法由本地状态证明 exactly-once 的
 动作必须使用 Stage 1 SideEffectRecord。
 
-### 5.3 ResearchEvidenceRecord
+### 5.3 Evidence Identity、Task Use 与 Currentness Observation
 
-EvidenceRecord 是不可变、可重建的证据身份，至少持久化：
+Stage 2 明确拆分三类事实，不能合并成一个可变 `EvidenceRecord`。
 
-- `evidence_id` / citation identity version
-- Task / Goal / Attempt / producing action / checkpoint lineage
+#### 5.3.1 EvidenceIdentityRecord
+
+`EvidenceIdentityRecord` 是全局稳定、不可变、可重建的内容身份，至少持久化：
+
+- `evidence_id` 与 citation identity version
 - video/source identity
 - `source_artifact_id`
-- `source_version` 与 `source_version_authority`
+- `source_version`
 - `timeline_run_id`
 - ordered `segment_ids` 与 `segment_ordinals`
 - start/end time
-- parent retrieval chunk IDs
-- bounded retrieval provenance：execution ID、search trace、query fingerprint、
-  rank、method、index identity
-- materialization/mapping policy versions
 - quote hash；可选受限 preview 只能用于展示，不能成为 authority
-- validity state、invalid/stale reason、validated timestamps
+- canonical identity payload hash
+- created time
 
-规则：
+`evidence_id` 只由 source/version/timeline/ordered segments 等内容身份决定，不含
+Task、Goal、Attempt、query、rank、owner epoch、validation time 或 current/stale
+状态。相同内容可由不同 Task 安全复用这一只读 identity；任何调用方都不得修改、
+换绑或删除其历史身份。
 
-1. EvidenceRecord 只有 exact materialization 成功后才能创建。
-2. `evidence_id` 以 source/version/timeline/ordered segments 为语义身份；
-   相同证据由不同 query 找到时合并 provenance，不复制事实身份。
-3. 使用时从 authoritative source 重建或验证 quote/timing/citation；DB preview
+并发创建相同 identity 必须由 canonical unique key/CAS（或等价数据库约束）
+收敛到同一行。冲突行的 canonical payload/hash 必须完全一致；若相同
+`evidence_id` 对应不同 payload，必须 fail closed，不能 last-write-wins。
+
+#### 5.3.2 EvidenceUseRecord 与 EvidenceProvenanceRecord
+
+`EvidenceUseRecord` 是不可变关联，将全局内容身份绑定到一次具体研究使用，
+至少包含：
+
+- `evidence_use_id`
+- `evidence_id`
+- Task / Goal / Attempt
+- first producing action / originating checkpoint
+- owner epoch
+- fixed use purpose
+- canonical use payload hash
+- created time
+
+隔离范围固定为 Attempt：同一 `(task_id, attempt_id, evidence_id)` 只有一个
+canonical EvidenceUseRecord。同一 Task 的后续 Attempt、不同 Task 或 child Task
+必须创建各自的 use record；不得借用另一 Task/Attempt 的 provenance、validation
+或 citation allowlist membership。
+
+每次检索发现该 identity 的来源单独写入 append-only
+`EvidenceProvenanceRecord`，至少包含：
+
+- `provenance_id` / `evidence_use_id`
+- producing action、execution ID、search trace
+- query fingerprint、rank、method、index identity
+- parent retrieval chunk IDs
+- `source_version_authority`
+- materialization/mapping policy versions
+- observed/materialized time
+- canonical provenance hash
+
+同一 query 或 replay 的重复 provenance 以
+`(evidence_use_id, canonical_provenance_hash)` 去重；不同 query 的 provenance
+追加新行，不更新或“合并覆盖”旧行。读取层可按稳定顺序派生聚合视图，但聚合视图
+不是新的事实权威。
+
+#### 5.3.3 EvidenceValidationObservation
+
+每次 exact materialization 成功、checkpoint 使用或 artifact commit 前对现有
+identity/use 的校验都追加不可变 `EvidenceValidationObservation`，至少包含：
+
+- `observation_id`
+- `evidence_use_id` / `evidence_id`
+- Task / Goal / Attempt / checkpoint（适用时）
+- validation policy/version 与 authority mode
+- expected source version / observed source version
+- outcome：current、stale、missing、invalid 或 typed error
+- reason code
+- owner epoch
+- observed time
+
+初始 materialization 若未通过 exact mapping/authority validation，不创建
+EvidenceIdentity、EvidenceUse 或 current observation；失败只进入对应
+InnerActionRecord/Event。已存在 identity/use 在后续校验中才可能产生 stale、
+missing 或 invalid observation。
+
+`current` / `stale` 是“在某个 authority、policy 和 observed time 下”的观察，
+不是 EvidenceIdentityRecord 的可变属性。新的 stale observation 不修改旧 identity、
+旧 provenance 或旧 observation，也不得把 identity 原地换绑到新 source version。
+需要新版本证据时，必须 materialize 新的 `EvidenceIdentityRecord` 和当前
+Task/Attempt-scoped use。
+
+用于 checkpoint、ProgressDelta 或 synthesis commit 的 currentness，必须由同一
+guarded command 为该 Task/Attempt、目标 checkpoint 和 exact evidence use 新产生
+的 observation 派生；不能使用另一 Task/Attempt 的 observation，也不能仅依赖
+缓存字段。读取“现在是否 current”时也必须从 scoped append-only observations
+派生，并在需要作新提交时重新校验。stale/invalid use 不进入当前 citation
+allowlist，不计入有效 progress。
+
+共同规则：
+
+1. identity 只有 exact materialization 成功后才能创建；candidate 不能创建
+   evidence identity。
+2. 使用时从 authoritative source 重建或验证 quote/timing/citation；DB preview
    与 retrieval excerpt 不能覆盖 source。
-4. source version 漂移时旧 record 保留为审计历史并标记 stale；不得原地换绑到
-   新 version 或复用旧 citation ID。
-5. stale evidence 不进入 current allowlist，也不计入有效 progress。
+3. global identity dedupe 只复用不可变内容；Task isolation、ownership、
+   provenance、budget、progress 和 currentness 全部留在 scoped association/
+   observation 层。
+4. identity insertion、use/provenance/observation append 仍受 current owner
+   fence、expected state/checkpoint 和事务 guard 保护。
 
 ### 5.4 ProvisionalSynthesisArtifact
 
@@ -243,10 +326,11 @@ Stage 2 必须提交 immutable provisional artifact，至少包含：
 - answer status
 - ordered answer blocks与每个 block 的 citation IDs
 - limitations
-- evidence-set fingerprint 和实际使用的 EvidenceRecord IDs
+- evidence-set fingerprint、实际使用的 EvidenceUseRecord IDs 与对应
+  EvidenceIdentityRecord IDs
 - generation/validator policy version
 - provider SideEffect/response reference（若未来另获运行授权）
-- validation outcome、source revalidation time
+- commit-time EvidenceValidationObservation IDs
 - created time
 
 它是可审计的内层产物，不是 Evidence，不是 outer GoalAudit，也不是自动的
@@ -265,7 +349,7 @@ max_research_actions: 12
 max_focused_videos_per_action: 8
 max_window_each_side: 4
 max_consecutive_no_progress: 2
-max_materialized_evidence_records: 24
+max_materialized_evidence_uses_per_attempt: 24
 max_synthesis_context_characters: 12000
 max_total_runtime_seconds: 360
 provider_logical_calls_when_not_separately_authorized: 0
@@ -297,7 +381,8 @@ Navigation / retrieval hit
         ↓ exact replay + current source binding
 Materialized transcript span
   = eligible evidence
-        ↓ immutable EvidenceRecord + current validation
+        ↓ immutable EvidenceIdentity + Task-scoped EvidenceUse
+        ↓ append-only currentness observation
 Citation allowlist
   = synthesis may reference
         ↓ pre-commit source revalidation
@@ -343,8 +428,9 @@ reserve + commit receipt
 
 ### 6.3 Ownership
 
-所有 inner-loop mutation、EvidenceRecord commit、artifact commit、budget update、
-checkpoint 和 SideEffect transition 都校验：
+所有 inner-loop mutation、EvidenceIdentity insertion、EvidenceUse/Provenance/
+ValidationObservation append、artifact commit、budget update、checkpoint 和
+SideEffect transition 都校验：
 
 - Task 非 terminal；
 - expected Task state version；
@@ -355,7 +441,8 @@ checkpoint 和 SideEffect transition 都校验：
 - Attempt/Goal lineage 一致。
 
 失去 lease 的旧 worker即使拿到迟到 retrieval/provider 响应，也不得写入
-EvidenceRecord、artifact、checkpoint 或 receipt。
+EvidenceUse、provenance、validation observation、artifact、checkpoint 或 receipt；
+也不得借全局 identity 的幂等插入绕过 scoped owner fence。
 
 ## 7. Provider、Prompt、Migration 与产品边界
 
@@ -443,12 +530,22 @@ success 或 Goal 已满足。
 
 ### 9.1 Evidence 与 citation
 
-- 同 source/version/timeline/ordered segments 多 query 命中只形成一个 evidence identity，
-  provenance 合并且顺序稳定。
+- 同 source/version/timeline/ordered segments 在跨 Task/Attempt 并发命中时只形成
+  一个 immutable EvidenceIdentityRecord；canonical payload mismatch fail closed。
+- 每个 Task/Attempt 形成独立 EvidenceUseRecord；另一 Task/Attempt 的 provenance、
+  validation observation、allowlist membership 和 budget/progress 均不可见、不可复用。
+- 同 Attempt 多 query 命中同一 identity 只形成一个 use；不同 provenance
+  append-only 保存，重复 provenance hash 去重，读取聚合顺序稳定。
 - retrieval candidate、navigation snippet、summary/note 均不能进入 citation allowlist。
 - exact mapping mismatch、cross-timeline、missing source、index not current fail closed。
 - source version 在 search 后、materialize 前和 artifact commit 前发生漂移；
-  旧 EvidenceRecord 保留但 stale，artifact 不得引用。
+  追加 stale EvidenceValidationObservation，不改写 identity/use/provenance 历史，
+  artifact 不得引用该 stale use。
+- artifact commit 后 source 才漂移时，旧 artifact 与其 commit-time observation
+  保持不可变审计历史；追加新的 stale observation，当前产品视图不得把旧 artifact
+  继续表示为 current。
+- 同一 identity 的 current/stale observations 并发提交时各自 append；提交边界只
+  使用本 Task/Attempt、正确 owner epoch 和对应 checkpoint 的 observation 派生状态。
 - forged/unknown citation、无 citation factual block、重复 citation、不足结果带
   answer block 均被 deterministic validation 拒绝。
 - restart 后从持久 identity 重建 quote/timing/jump URL，与原 authoritative
@@ -456,8 +553,9 @@ success 或 Goal 已满足。
 
 ### 9.2 Checkpoint、crash 与 replay
 
-- 每个成功 action 与 EvidenceRecord、budget、Event、checkpoint、receipt
-  同事务；任一 fault point 回滚无半提交。
+- 每个成功 action 与 EvidenceUse/Provenance/ValidationObservation、budget、
+  Event、checkpoint、receipt 同事务；任一 fault point 回滚无半提交。全局
+  immutable identity 如已由并发事务存在，只能复用相同 canonical payload。
 - 完整 checkpoint 后进程重启，pending action、budget、evidence set 和
   no-progress counter 不重置。
 - crash 发生在 retrieval 完成但 commit 前：重放不产生重复 action/evidence。
@@ -503,8 +601,9 @@ Implementation Report 必须提供：
 1. baseline、实际 commits、diff 范围和 clean working tree；
 2. Contract 逐项满足矩阵；
 3. schema/migration source 与临时 DB upgrade/rollback/fault 证据；
-4. evidence identity、source drift、citation validation、restart、crash、race、
-   idempotency、ownership、budget、no-progress 的测试名称与结果；
+4. evidence identity/use/provenance/currentness isolation、source drift、
+   citation validation、restart、crash、race、idempotency、ownership、budget、
+   no-progress 的测试名称与结果；
 5. 完整 Stage 2 定向 suite 与默认无 Provider回归结果；
 6. live DB 前后 SHA-256、size、mtime；
 7. Provider logical calls/transport attempts 为 0，credential/Keychain 未访问；
@@ -565,7 +664,8 @@ Contract 获接受后按以下依赖顺序实施；这些是执行工作包，�
 逐步审批点：
 
 1. **Persistent state first**：定义 versioned inner state codec、BudgetLedger、
-   Action/Evidence/Artifact records 和临时 DB migration tests。
+   Action、immutable EvidenceIdentity、scoped EvidenceUse/Provenance、
+   append-only ValidationObservation、Artifact records 和临时 DB migration tests。
 2. **Authority adapter**：将现有 EvidenceSearch/Materializer/Citation 包装成
    Task-scoped、可收据化的纯输入输出边界，先完成 stale/mapping 对抗测试。
 3. **Durable action engine**：接入 Stage 1 owner fence、command receipt、
