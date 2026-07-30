@@ -15,8 +15,10 @@ from shiliu.ask.validation import validate_grounded_answer
 from shiliu.db import Database
 from shiliu.research.errors import (
     ResearchConflict,
+    ResearchError,
     ResearchUnsafeState,
     ResearchValidationError,
+    SimulatedCrash,
 )
 from shiliu.research.inner_contracts import (
     ContinueInnerResearchRequest,
@@ -46,6 +48,7 @@ from shiliu.research.service import ResearchTaskService
 
 Clock = Callable[[], datetime]
 FaultInjector = Callable[[str], None]
+GroundedValidator = Callable[..., Any]
 
 
 def _utc_clock() -> datetime:
@@ -92,6 +95,18 @@ class _PreparedAction:
     error_detail: str | None = None
 
 
+class _PreActionBudgetExhausted(RuntimeError):
+    def __init__(self, dimension: str) -> None:
+        super().__init__(dimension)
+        self.dimension = dimension
+
+
+class _SynthesisImplementationError(RuntimeError):
+    def __init__(self, cause: Exception) -> None:
+        super().__init__(f"{type(cause).__name__}: {cause}")
+        self.cause = cause
+
+
 class InnerResearchService:
     MAX_DECISION_ROUNDS = 6
     MAX_RESEARCH_ACTIONS = 12
@@ -112,6 +127,7 @@ class InnerResearchService:
         materializer: TranscriptEvidenceMaterializer | None = None,
         authority: PersistentEvidenceAuthority | None = None,
         context_builder: TranscriptContextBuilder | None = None,
+        grounded_validator: GroundedValidator = validate_grounded_answer,
         clock: Clock = _utc_clock,
         fault_injector: FaultInjector | None = None,
         provider_runs_authorized: bool = False,
@@ -124,6 +140,7 @@ class InnerResearchService:
         self.context_builder = context_builder or TranscriptContextBuilder(
             total_character_budget=self.MAX_CONTEXT_CHARACTERS
         )
+        self.grounded_validator = grounded_validator
         self.clock = clock
         self.fault_injector = fault_injector or (lambda _point: None)
         self.provider_runs_authorized = provider_runs_authorized
@@ -140,6 +157,16 @@ class InnerResearchService:
         if preflight is not None:
             return {**preflight, "deduplicated": True}
         state, objective = self._load_state(task_id, request)
+        budget_dimension = self._pre_action_budget_dimension(
+            state, self._now()
+        )
+        if budget_dimension is not None:
+            return self._commit_durable_stop(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                budget_dimension=budget_dimension,
+            )
         if request.execution_mode == "provider":
             if not self.provider_runs_authorized:
                 raise ResearchUnsafeState(
@@ -149,12 +176,29 @@ class InnerResearchService:
                 "Provider wiring 只可经 SideEffect protocol 调用；当前入口未启用"
             )
         prepared = self._prepare_action(state, objective)
-        return self._commit(
-            task_id=task_id,
-            request=request,
-            payload_hash=payload_hash,
-            prepared=prepared,
-        )
+        try:
+            return self._commit(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                prepared=prepared,
+            )
+        except _PreActionBudgetExhausted as exc:
+            return self._commit_durable_stop(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                budget_dimension=exc.dimension,
+            )
+        except _SynthesisImplementationError as exc:
+            self.fault_injector("before_inner_failure_commit")
+            return self._commit_implementation_failure(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                prepared=prepared,
+                cause=exc.cause,
+            )
 
     def get_inner_state(self, task_id: str) -> dict[str, Any]:
         with self.db.connect() as connection:
@@ -485,8 +529,359 @@ class InnerResearchService:
                 objective=str(goal["objective"]),
                 now=now,
             )
-        self._assert_state_can_continue(state, now)
+        self._assert_state_open(state)
         return state, str(goal["objective"])
+
+    def _commit_durable_stop(
+        self,
+        *,
+        task_id: str,
+        request: ContinueInnerResearchRequest,
+        payload_hash: str,
+        budget_dimension: str,
+    ) -> dict[str, Any]:
+        now_value = self._now()
+        now = _iso(now_value)
+        with self.kernel._transaction() as connection:
+            existing = self.kernel._existing_receipt(
+                connection,
+                task_id=task_id,
+                command_id=request.command_id,
+                payload_hash=payload_hash,
+                owner_id=request.owner_id,
+                owner_epoch=request.owner_epoch,
+                now=now_value,
+            )
+            if existing is not None:
+                return {**existing, "deduplicated": True}
+            task = self.kernel._task(connection, task_id)
+            attempt = self.kernel._attempt(connection, request.attempt_id)
+            self.kernel._assert_nonterminal(task)
+            self.kernel._assert_expected(task, request.expected_state_version)
+            self.kernel._assert_owner(
+                task,
+                owner_id=request.owner_id,
+                owner_epoch=request.owner_epoch,
+                now=now_value,
+            )
+            self._assert_attempt(task_id, attempt, request.owner_epoch)
+            latest = self._latest_checkpoint(connection, request.attempt_id)
+            latest_id = str(latest["checkpoint_id"]) if latest else None
+            if latest_id != request.expected_checkpoint_id:
+                raise ResearchConflict("stale expected checkpoint")
+            goal = connection.execute(
+                "SELECT * FROM research_goals WHERE goal_id=?",
+                (str(attempt["goal_id"]),),
+            ).fetchone()
+            if goal is None or str(task["active_goal_id"]) != str(goal["goal_id"]):
+                raise ResearchConflict("Attempt/Goal 不属于当前 active Goal")
+            state = self._state_from_checkpoint(
+                latest,
+                task_id=task_id,
+                goal_id=str(goal["goal_id"]),
+                attempt_id=request.attempt_id,
+                objective=str(goal["objective"]),
+                now=now_value,
+            )
+            self._assert_state_open(state)
+            actual_dimension = self._pre_action_budget_dimension(
+                state, now_value
+            )
+            if actual_dimension is None or actual_dimension != budget_dimension:
+                raise ResearchConflict("hard budget stop condition 已变化")
+            self._assert_no_unresolved_side_effect(connection, task_id)
+            stopped = state.model_copy(deep=True)
+            stopped.phase = "stopped"
+            stopped.stop_reason = "budget_exhausted"
+            stopped.termination_reason = "budget_exhausted"
+            stopped.failure_class = "none"
+            checkpoint_id = _id("checkpoint")
+            stopped.last_complete_checkpoint_id = checkpoint_id
+            state_json = _json(stopped.model_dump(mode="json"))
+            state_hash = hashlib.sha256(state_json.encode("utf-8")).hexdigest()
+            sequence = int(latest["sequence"]) + 1 if latest else 1
+            connection.execute(
+                """
+                INSERT INTO research_checkpoints(
+                    checkpoint_id, task_id, goal_id, attempt_id,
+                    parent_checkpoint_id, sequence, state_schema_version,
+                    state_hash, state_payload_json, is_complete,
+                    owner_epoch, created_at
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                """,
+                (
+                    checkpoint_id,
+                    task_id,
+                    str(goal["goal_id"]),
+                    request.attempt_id,
+                    latest_id,
+                    sequence,
+                    INNER_RESEARCH_STATE_SCHEMA_VERSION,
+                    state_hash,
+                    state_json,
+                    request.owner_epoch,
+                    now,
+                ),
+            )
+            self.fault_injector("after_inner_budget_stop_checkpoint_insert")
+            connection.execute(
+                """
+                UPDATE research_tasks
+                SET state_version=state_version+1, updated_at=?
+                WHERE task_id=?
+                """,
+                (now, task_id),
+            )
+            self.kernel._event(
+                connection,
+                task_id=task_id,
+                goal_id=str(goal["goal_id"]),
+                attempt_id=request.attempt_id,
+                checkpoint_id=checkpoint_id,
+                event_type="inner_budget_exhausted",
+                payload={
+                    "budget_dimension": budget_dimension,
+                    "phase": stopped.phase,
+                    "answer_status": stopped.answer_status,
+                    "termination_reason": stopped.termination_reason,
+                    "failure_class": stopped.failure_class,
+                    "state_hash": state_hash,
+                },
+                command_id=request.command_id,
+                owner_epoch=request.owner_epoch,
+                now=now,
+            )
+            response = {
+                "task_id": task_id,
+                "attempt_id": request.attempt_id,
+                "action_id": None,
+                "action_kind": None,
+                "checkpoint_id": checkpoint_id,
+                "state_version": request.expected_state_version + 1,
+                "phase": "stopped",
+                "evidence_use_ids": list(stopped.evidence_use_ids),
+                "provisional_artifact_id": None,
+                "stop_reason": "budget_exhausted",
+                "budget_dimension": budget_dimension,
+                "deduplicated": False,
+            }
+            self.kernel._insert_receipt(
+                connection,
+                task_id=task_id,
+                command_id=request.command_id,
+                command_type="continue_inner_budget_stop",
+                payload_hash=payload_hash,
+                outcome_reference=checkpoint_id,
+                response=response,
+                owner_epoch=request.owner_epoch,
+                now=now,
+            )
+            self.fault_injector("after_inner_budget_stop_receipt_insert")
+        return response
+
+    def _commit_implementation_failure(
+        self,
+        *,
+        task_id: str,
+        request: ContinueInnerResearchRequest,
+        payload_hash: str,
+        prepared: _PreparedAction,
+        cause: Exception,
+    ) -> dict[str, Any]:
+        now_value = self._now()
+        now = _iso(now_value)
+        with self.kernel._transaction() as connection:
+            existing = self.kernel._existing_receipt(
+                connection,
+                task_id=task_id,
+                command_id=request.command_id,
+                payload_hash=payload_hash,
+                owner_id=request.owner_id,
+                owner_epoch=request.owner_epoch,
+                now=now_value,
+            )
+            if existing is not None:
+                return {**existing, "deduplicated": True}
+            task = self.kernel._task(connection, task_id)
+            attempt = self.kernel._attempt(connection, request.attempt_id)
+            self.kernel._assert_nonterminal(task)
+            self.kernel._assert_expected(task, request.expected_state_version)
+            self.kernel._assert_owner(
+                task,
+                owner_id=request.owner_id,
+                owner_epoch=request.owner_epoch,
+                now=now_value,
+            )
+            self._assert_attempt(task_id, attempt, request.owner_epoch)
+            latest = self._latest_checkpoint(connection, request.attempt_id)
+            latest_id = str(latest["checkpoint_id"]) if latest else None
+            if latest_id != request.expected_checkpoint_id:
+                raise ResearchConflict("stale expected checkpoint")
+            goal = connection.execute(
+                "SELECT * FROM research_goals WHERE goal_id=?",
+                (str(attempt["goal_id"]),),
+            ).fetchone()
+            if goal is None or str(task["active_goal_id"]) != str(goal["goal_id"]):
+                raise ResearchConflict("Attempt/Goal 不属于当前 active Goal")
+            state = self._state_from_checkpoint(
+                latest,
+                task_id=task_id,
+                goal_id=str(goal["goal_id"]),
+                attempt_id=request.attempt_id,
+                objective=str(goal["objective"]),
+                now=now_value,
+            )
+            self._assert_state_open(state)
+            expected_key = self._action_key(
+                state.phase, state, str(goal["objective"])
+            )
+            if (
+                prepared.kind != "provisional_synthesis"
+                or state.phase != "provisional_synthesis"
+                or prepared.action_key != expected_key
+            ):
+                raise ResearchConflict(
+                    "implementation failure 与 durable synthesis phase 不一致"
+                )
+            self._assert_no_unresolved_side_effect(connection, task_id)
+            action_id = _id("inner_action")
+            checkpoint_id = _id("checkpoint")
+            error_detail = (
+                f"{type(cause).__name__} during provisional_synthesis"
+            )
+            connection.execute(
+                """
+                INSERT INTO research_inner_actions(
+                    action_id, task_id, goal_id, attempt_id,
+                    originating_checkpoint_id, action_kind,
+                    action_schema_version, action_key, request_hash,
+                    request_json, status, owner_epoch,
+                    retrieval_execution_id, retrieval_trace_id, side_effect_id,
+                    observation_json, error_code, error_detail,
+                    created_at, started_at, completed_at
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'failed', ?, NULL, NULL,
+                         NULL, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    action_id,
+                    task_id,
+                    str(goal["goal_id"]),
+                    request.attempt_id,
+                    latest_id,
+                    prepared.kind,
+                    INNER_ACTION_SCHEMA_VERSION,
+                    prepared.action_key,
+                    canonical_hash(prepared.request_payload),
+                    _json(prepared.request_payload),
+                    request.owner_epoch,
+                    _json({"generation": "rolled_back_before_failure_commit"}),
+                    "synthesis_implementation_error",
+                    error_detail,
+                    now,
+                    now,
+                    now,
+                ),
+            )
+            failed_prepared = _PreparedAction(
+                kind=prepared.kind,
+                action_key=prepared.action_key,
+                request_payload=prepared.request_payload,
+                observation={
+                    "generation": "rolled_back_before_failure_commit"
+                },
+                error_code="synthesis_implementation_error",
+                error_detail=error_detail,
+            )
+            failed = self._advance_state(
+                state,
+                action_id=action_id,
+                prepared=failed_prepared,
+                new_use_ids=[],
+                new_evidence_ids=[],
+                stale_reasons=[],
+                now=now_value,
+            )
+            failed.last_complete_checkpoint_id = checkpoint_id
+            state_json = _json(failed.model_dump(mode="json"))
+            state_hash = hashlib.sha256(state_json.encode("utf-8")).hexdigest()
+            sequence = int(latest["sequence"]) + 1 if latest else 1
+            connection.execute(
+                """
+                INSERT INTO research_checkpoints(
+                    checkpoint_id, task_id, goal_id, attempt_id,
+                    parent_checkpoint_id, sequence, state_schema_version,
+                    state_hash, state_payload_json, is_complete,
+                    owner_epoch, created_at
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                """,
+                (
+                    checkpoint_id,
+                    task_id,
+                    str(goal["goal_id"]),
+                    request.attempt_id,
+                    latest_id,
+                    sequence,
+                    INNER_RESEARCH_STATE_SCHEMA_VERSION,
+                    state_hash,
+                    state_json,
+                    request.owner_epoch,
+                    now,
+                ),
+            )
+            self.fault_injector("after_inner_failure_checkpoint_insert")
+            connection.execute(
+                """
+                UPDATE research_tasks
+                SET state_version=state_version+1, updated_at=?
+                WHERE task_id=?
+                """,
+                (now, task_id),
+            )
+            self.kernel._event(
+                connection,
+                task_id=task_id,
+                goal_id=str(goal["goal_id"]),
+                attempt_id=request.attempt_id,
+                checkpoint_id=checkpoint_id,
+                event_type="inner_action_failed",
+                payload={
+                    "action_id": action_id,
+                    "action_kind": prepared.kind,
+                    "phase": failed.phase,
+                    "stop_reason": failed.stop_reason,
+                    "answer_status": failed.answer_status,
+                    "termination_reason": failed.termination_reason,
+                    "failure_class": failed.failure_class,
+                    "state_hash": state_hash,
+                },
+                command_id=request.command_id,
+                owner_epoch=request.owner_epoch,
+                now=now,
+            )
+            response = InnerContinueResponse(
+                task_id=task_id,
+                attempt_id=request.attempt_id,
+                action_id=action_id,
+                action_kind="provisional_synthesis",
+                checkpoint_id=checkpoint_id,
+                state_version=request.expected_state_version + 1,
+                phase="stopped",
+                evidence_use_ids=list(failed.evidence_use_ids),
+                stop_reason="implementation_error",
+            ).model_dump(mode="json")
+            self.kernel._insert_receipt(
+                connection,
+                task_id=task_id,
+                command_id=request.command_id,
+                command_type="continue_inner_failure",
+                payload_hash=payload_hash,
+                outcome_reference=checkpoint_id,
+                response=response,
+                owner_epoch=request.owner_epoch,
+                now=now,
+            )
+            self.fault_injector("after_inner_failure_receipt_insert")
+        return response
 
     def _prepare_action(
         self, state: InnerResearchState, objective: str
@@ -659,7 +1054,12 @@ class InnerResearchService:
                 objective=str(goal["objective"]),
                 now=now_value,
             )
-            self._assert_state_can_continue(state, now_value)
+            self._assert_state_open(state)
+            budget_dimension = self._pre_action_budget_dimension(
+                state, now_value
+            )
+            if budget_dimension is not None:
+                raise _PreActionBudgetExhausted(budget_dimension)
             expected_key = self._action_key(
                 state.phase, state, str(goal["objective"])
             )
@@ -806,14 +1206,19 @@ class InnerResearchService:
             artifact_data: dict[str, Any] | None = None
             if prepared.kind == "provisional_synthesis":
                 artifact_id = _id("provisional")
-                artifact_data, synthesis_observations = self._synthesize(
-                    connection,
-                    state=state,
-                    objective=str(goal["objective"]),
-                    checkpoint_id=checkpoint_id,
-                    owner_epoch=request.owner_epoch,
-                    now=now,
-                )
+                try:
+                    artifact_data, synthesis_observations = self._synthesize(
+                        connection,
+                        state=state,
+                        objective=str(goal["objective"]),
+                        checkpoint_id=checkpoint_id,
+                        owner_epoch=request.owner_epoch,
+                        now=now,
+                    )
+                except (SimulatedCrash, ResearchError):
+                    raise
+                except Exception as exc:
+                    raise _SynthesisImplementationError(exc) from exc
                 pending_observations.extend(synthesis_observations)
                 state.provisional_artifact_ids.append(artifact_id)
                 state.phase = "complete"
@@ -1169,7 +1574,7 @@ class InnerResearchService:
                     "无 Provider deterministic extractive synthesis；尚未执行 Outer Goal Audit"
                 ],
             )
-            issues = validate_grounded_answer(
+            issues = self.grounded_validator(
                 draft,
                 context=context,
                 materializer=self.materializer,
@@ -1391,29 +1796,51 @@ class InnerResearchService:
             ),
         )
 
-    def _assert_state_can_continue(
-        self, state: InnerResearchState, now: datetime
-    ) -> None:
+    @staticmethod
+    def _assert_state_open(state: InnerResearchState) -> None:
         if state.phase in {"complete", "stopped"}:
             raise ResearchUnsafeState(
                 f"inner run 已停止，phase={state.phase}"
             )
+
+    def _pre_action_budget_dimension(
+        self, state: InnerResearchState, now: datetime
+    ) -> str | None:
         if state.budget.research_actions >= self.MAX_RESEARCH_ACTIONS:
-            raise ResearchUnsafeState("inner research action budget 已耗尽")
+            return "research_actions"
         if (
             state.phase in {"plan", "provisional_synthesis"}
             and state.budget.decision_rounds >= self.MAX_DECISION_ROUNDS
         ):
-            raise ResearchUnsafeState("inner decision budget 已耗尽")
+            return "decision_rounds"
         if (
             state.phase == "transcript_window"
             and state.budget.window_reads >= self.MAX_WINDOW_READS
         ):
-            raise ResearchUnsafeState("inner window budget 已耗尽")
+            return "window_reads"
         if (
             now - _parse_iso(state.budget.started_at)
         ).total_seconds() >= self.MAX_RUNTIME_SECONDS:
-            raise ResearchUnsafeState("inner runtime budget 已耗尽")
+            return "runtime_seconds"
+        return None
+
+    @staticmethod
+    def _assert_no_unresolved_side_effect(
+        connection: sqlite3.Connection, task_id: str
+    ) -> None:
+        unresolved = int(
+            connection.execute(
+                """
+                SELECT COUNT(*) FROM research_side_effects
+                WHERE task_id=? AND status IN ('in_flight', 'unknown')
+                """,
+                (task_id,),
+            ).fetchone()[0]
+        )
+        if unresolved:
+            raise ResearchUnsafeState(
+                "存在 unresolved SideEffect，不能提交 inner checkpoint"
+            )
 
     @staticmethod
     def _assert_attempt(
