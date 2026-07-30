@@ -3,27 +3,32 @@
 ```yaml
 stage: V5-A Stage 2
 title: Evidence-backed Inner Research Loop
-contract_status: draft_pending_main_review
+contract_status: accepted_by_v5_main
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-31
 revised_at: 2026-07-31
 main_review_round_1: rework_evidence_record_semantics
+accepted_contract_commit: 2037f39a9ec610d84ad4306a4f6c5fb693fdc3e7
 version_charter: V5_A_VERSION_CHARTER.md
 stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
 baseline_branch: codex/v5-a
-baseline_commit: fc4708eacb93e9b6b3d479d50e096cc95dd6be31
-implementation_authorized: false
-implementation_started: false
+baseline_commit: 2037f39a9ec610d84ad4306a4f6c5fb693fdc3e7
+implementation_authorized: true
+implementation_started: true
+implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
+implementation_status: submitted_for_main_acceptance
+stage_2_self_accepted: false
 provider_wiring_proposed: true
 provider_runs_authorized: false
 provider_runs_performed: false
 live_database_migration_authorized: false
+live_database_migration_performed_by_v5_a: false
 ```
 
-> 本文件是 Stage 2 的实施边界草案，不是实施提交，也不构成自我验收。只有
-> V5 主 Session 接受本 Contract 后，V5-A 才能开始本阶段产品实现。即使
-> Contract 被接受，也不自动授权真实 Provider 运行或 live DB migration。
+> 本文件已由 V5 主 Session 接受为 Stage 2 实施边界。实现提交与本文件均不构成
+> V5-A 自我验收；正式 Stage 2 验收仍由 V5 主 Session 决定。Contract 接受不
+> 自动授权真实 Provider 运行或 live DB migration。
 
 ## 1. Stage 使命
 
@@ -689,12 +694,14 @@ Contract 获接受后按以下依赖顺序实施；这些是执行工作包，�
 3. 确认真实 Provider runs 与 live DB migration 仍保持未授权；建议确认。
 
 ```yaml
-stage_2_contract_status: draft_pending_main_review
-stage_2_implementation_authorized: false
-stage_2_product_implementation_started: false
+stage_2_contract_status: accepted_by_v5_main
+stage_2_implementation_authorized: true
+stage_2_product_implementation_started: true
+stage_2_status: submitted_for_main_acceptance
+stage_2_self_accepted: false
 provider_runs_authorized: false
 provider_runs_performed: false
 live_database_migration_authorized: false
 live_database_migration_performed: false
-next_action: V5_main_session_stage_2_contract_review
+next_action: V5_main_session_stage_2_acceptance
 ```

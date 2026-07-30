@@ -21,9 +21,13 @@ stage_1_accepted_at: 2026-07-31T02:21:31+08:00
 stage_1_main_acceptance_decision: accept
 stage_2_planning_baseline: fc4708eacb93e9b6b3d479d50e096cc95dd6be31
 stage_2_contract: V5_A_STAGE_2_CONTRACT.md
-stage_2_contract_status: draft_pending_main_review
+stage_2_contract_status: accepted_by_v5_main
+stage_2_accepted_contract_commit: 2037f39a9ec610d84ad4306a4f6c5fb693fdc3e7
 stage_2_main_review_round_1: rework_evidence_record_semantics
-stage_2_implementation_authorized: false
+stage_2_implementation_authorized: true
+stage_2_implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
+stage_2_status: submitted_for_main_acceptance
+stage_2_self_accepted: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -31,7 +35,8 @@ stage_1_status: accepted
 stage_1_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
-live_database_migration_performed: false
+stage_2_live_database_migration_performed: false
+external_live_database_change_observed: true
 ```
 
 ## 1. 本轮范围状态
@@ -47,7 +52,7 @@ live_database_migration_performed: false
 | AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
-| Stage 2 Contract / JIT 计划 | draft_pending_main_review | 已在正式 Stage 1 接受基线 `fc4708e` 上完成定向源码审计与 Contract 草案；未开始 Stage 2 产品实现 |
+| Stage 2 产品实现 | submitted_for_main_acceptance | 已在接受的 Contract commit `2037f39` 上提交 durable inner loop、schema 8 源码、Evidence Authority、provisional artifact、最小 API 与 21 项 Stage 2 定向测试；未自我验收 |
 
 ## 2. Git 与基线
 
@@ -246,29 +251,63 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 - 未修改 Runtime、产品测试、Prompt、Tool Contract、UI 或 Program 权威文件；
   未下载新的上游源码/依赖。
 
-## 9. Stage 1 验收与当前未证明项
+## 8.4 Stage 2 实施与验证
+
+- 产品实现提交：`022c0813f63bf5cad6419c81c817d9f9b85a72bf`。
+- 新增 schema 8 源码与六类持久表：InnerAction、EvidenceIdentity、
+  Attempt-scoped EvidenceUse、append-only Provenance/ValidationObservation
+  和 immutable ProvisionalArtifact。
+- `continue` 每次只提交一个 action；action、evidence、budget/progress、
+  checkpoint、Event 与 CommandReceipt 在同一事务内发布。
+- 当前字幕 raw source/version/timeline/ordered segments 是 citation authority；
+  navigation 只做候选缩小。artifact 提交前重建并校验 evidence，提交后漂移通过
+  显式 fenced revalidation command 追加 observation，不改写历史 identity/artifact。
+- 版本化 checkpoint state 持久保存预算、semantic progress 与正交
+  `answer_status / termination_reason / failure_class`；provisional answer 不终结
+  Task 或 Attempt。
+- Stage 2 定向 suite：21 passed；Stage 1 + Evidence/Citation + retrieval +
+  Fast/Deep 联合定向回归：131 passed；最终默认无 Provider 回归：
+  1560 passed、4 deselected、7 warnings。
+- `diff --check` 与 `compileall` 通过。warning 仅为既有 Starlette/httpx
+  deprecation，以及六条 multiprocessing `fork()` deprecation。
+- Stage 2 migration 仅在临时数据库执行。最终稳定测试窗口内 live DB
+  SHA-256/size/mtime 前后均为
+  `248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
+  94,588,928 bytes / `2026-07-31T03:25:48+0800`。
+- 首次全量测试窗口恰逢用户环境中既有 `shiliu sync --scheduled` 独立进程启动；
+  该外部进程把 live DB 从 schema 6 升至 Stage 1 schema 7 并创建
+  `shiliu.pre-v7.backup.db`。V5-A 未启动、终止或干预该进程，也未对 live DB
+  执行 Stage 2 schema 8 migration。该环境事件已保留为验收限制，不以第一次
+  前后 hash 作为“不变”证据。
+- Provider logical calls 与 transport attempts 为 0；未访问 credential/Keychain。
+  详细矩阵见 `V5_A_STAGE_2_IMPLEMENTATION_REPORT.md`。
+
+## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
   `V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md`。
-- live DB schema 7 migration 未执行；真实 live upgrade 行为仍为 `not_exercised`。
+- V5-A 未执行任何 live migration；但既有外部 scheduled sync 已在本轮测试期间
+  将 live DB 从 schema 6 升至已接受的 Stage 1 schema 7。Stage 2 schema 8 的
+  live upgrade 仍为 `not_exercised`。
 - 真实断电/SIGKILL、多主机长期 lease soak、真实 external side-effect reconciliation
   仍为 `unproven`。
 - 没有执行 DeerFlow 上游测试或完整依赖集成。
 - AREX 公开仓库不能复现论文的完整递归系统或训练结论。
 - 没有运行 Provider，因此没有 V5-A 产品质量结论；Stage 2/3 的接线与运行范围须由各自 Contract 决定并另行授权。
 - 仅证明 Stage 1 branch/replay identity/source lineage；完整控制面和 live corpus 集成仍未实施。
+- Stage 2 未证明真实 Provider 的质量、成本、延迟或恢复语义；provider execution
+  mode 明确 fail closed。
+- Stage 2 schema 8 的 live migration、真实断电/SIGKILL、多主机长期 soak、
+  production-scale retention/performance 与 Outer Goal Audit 仍未执行或证明。
+- 首次回归期间的外部 scheduled sync/live schema 7 migration 使“整个会话期间
+  live DB 完全不变”不可成立；只有外部进程结束后的最终稳定测试窗口满足
+  hash/size/mtime 不变。
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已完成 `V5_A_STAGE_2_CONTRACT.md` 草案和
-Just-in-time 实施计划，等待主 Session 进行轻量 Stage 边界审阅。定向审计确认
-可以在 Stage 1 kernel 上复用 V4 的 source/version/citation authority、shared
-grounding、strict action、DecisionView 和 budget 设计；不能继承一次性内存
-graph/trace、DecisionView-as-state 或 segment-ID-only progress。
-
-当前尚未授权 Stage 2 产品实施、Provider 运行或 live DB migration。Stage 2
-Contract 建议允许新的 Stage-2-specific versioned prompt/Provider wiring，但任何
-真实 Provider 运行仍须单独授权。
+同一个 V5-A Version Session 已完成 Stage 2 产品实现、自测与实施报告，并提交
+V5 主 Session 进行正式阶段验收。Stage 2 不自我接受，也不自行开始 Stage 3。
+真实 Provider 运行与 live DB schema 8 migration 仍未授权。
 
 ```yaml
 charter_status: accepted
@@ -276,10 +315,13 @@ stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
 stage_1_status: accepted
 stage_1_self_accepted: false
-stage_2_contract_status: draft_pending_main_review
-stage_2_implementation_authorized: false
+stage_2_contract_status: accepted_by_v5_main
+stage_2_implementation_authorized: true
+stage_2_status: submitted_for_main_acceptance
+stage_2_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
-live_database_migration_performed: false
-next_action: V5_main_session_stage_2_contract_review
+stage_2_live_database_migration_performed: false
+external_live_database_change_observed: true
+next_action: V5_main_session_stage_2_acceptance
 ```
