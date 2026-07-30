@@ -40,9 +40,14 @@ stage_3_implementation_started: true
 stage_3_implementation_completed: true
 stage_3_implementation_commit: 788d01c
 stage_3_main_acceptance_round_1: rework_evaluator_authority_and_context_budget
-stage_3_rework_round_1_commit: this_bounded_rework_commit
-stage_3_status: resubmitted_for_main_acceptance
+stage_3_rework_round_1_commit: 9b2725f6ebe3db25828c72174f34bd1b91388368
+stage_3_user_acceptance: complete_pass
+stage_3_status: accepted_by_user_pending_main_record
 stage_3_self_accepted: false
+stage_4_contract: V5_A_STAGE_4_CONTRACT.md
+stage_4_contract_status: draft_pending_main_review
+stage_4_implementation_authorized: false
+stage_4_implementation_started: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -69,7 +74,8 @@ external_live_database_change_observed: true
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
-| Stage 3 产品实现 | resubmitted_for_main_acceptance | Main Acceptance Round 1 两项 bounded rework 已完成：server-owned evaluator authority 与全 gate context/candidate hard bound；36 项定向测试通过，未自我验收 |
+| Stage 3 产品实现 | accepted_by_user_pending_main_record | 用户已确认 Stage 3 完整通过；返工提交 `9b2725f`，36 项定向与 1608 项默认无 Provider 回归通过；V5-A 不代替主 Session 创建正式接受记录 |
+| Stage 4 Contract | draft_pending_main_review | 已完成 HITL/operational-control JIT 审计并起草精简 Contract；未开始实现 |
 
 ## 2. Git 与基线
 
@@ -442,6 +448,39 @@ V5-A 未启动、终止或干预它；待其结束后以新指纹为前置基线
 项全回归，回归后 SHA/size/mtime 不变。Provider、凭据/Keychain、live
 migration 与 Stage 4 均未运行。
 
+## 8.10 Stage 3 接受输入与 Stage 4 Contract 准备
+
+用户已确认 Stage 3 完整通过。当前本地 `codex/v5-main` 仍停在 Stage 1 接受
+提交 `fc4708e`，尚无 Stage 3 正式接受文件或可同步 baseline；V5-A 因此记录为
+`accepted_by_user_pending_main_record`，不自行创建 Program 级接受事实。
+
+Stage 4 规划以干净分支 `codex/v5-a` / `9b2725f` 为代码基线。JIT 审计确认：
+
+- 可继承 owner lease/epoch、state/checkpoint guard、CommandReceipt、SideEffect、
+  retry/resume/cancel 和 source-checkpoint lineage 原语；
+- `waiting_user` 尚无独立 InputRequest/HumanDecision，worker owner 与控制者权限
+  也未分离；
+- 当前 cancel 是同步 terminal helper，没有 cooperative interrupt 或
+  cancel-pending/unknown-effect 协议；
+- unknown SideEffect 解析缺少 immutable human resolution identity；
+- branch/replay 只有低层 Attempt 验证，尚无不改写 source/sibling 的产品级派生
+  Task 模型；
+- 通用 resume 不能无类型地重写 Stage 2/3 checkpoint，恢复必须保持 domain
+  checkpoint schema 与预算。
+
+据此创建 `V5_A_STAGE_4_CONTRACT.md`，冻结最小 control plane：
+immutable ControlRequest/InputRequest、append-only disposition/HumanDecision、
+SideEffectResolution、TaskDerivation、control generation/fence、
+interrupt/cancel、显式 retry 与隔离的 branch/replay。正式 UI、Provider、live
+migration、Prompt/Tool Contract、通用调度与 Stage 5 Eval 继续禁止。
+
+规划期只读 baseline 为 source schema 9、live schema 7、SHA-256
+`ff8bc543d116e1d354d446686bcc56adaf4513941163ddce2ee645ad4d1c3eaa`、
+94,588,928 bytes、mtime `2026-07-31T05:29:51+0800`、157/140 videos/completed、
+integrity ok。Stage 1 控制原语与 Stage 3 gate 的 77 项无 Provider 定向测试通过，
+仅既有 Starlette/httpx TestClient warning。没有执行 Provider、live migration
+或产品 Runtime 改动。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -469,10 +508,10 @@ migration 与 Stage 4 均未运行。
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已根据用户对完整 Stage 2 和 Stage 3 Contract 的
-接受/授权完成 Stage 3 实施，并完成 Main Acceptance Round 1 的两项 bounded
-rework，现重新提交 V5 主 Session 轻量复审。Stage 3 不自我接受、不开始
-Stage 4；真实 Provider 与 live schema 9 migration 仍未授权。
+同一个 V5-A Version Session 已根据用户对 Stage 3 完整通过的确认，完成 Stage 4
+JIT 审计与 Contract Draft。当前只请求主 Session 记录 Stage 3 接受 baseline 并
+审阅 Stage 4 Contract；Stage 4 尚未获实施授权。真实 Provider 与 live schema
+10 migration 仍未授权。
 
 ```yaml
 charter_status: accepted
@@ -489,13 +528,17 @@ stage_3_implementation_authorized: true
 stage_3_implementation_started: true
 stage_3_implementation_completed: true
 stage_3_main_acceptance_round_1: rework_evaluator_authority_and_context_budget
-stage_3_rework_round_1_commit: this_bounded_rework_commit
-stage_3_status: resubmitted_for_main_acceptance
+stage_3_rework_round_1_commit: 9b2725f6ebe3db25828c72174f34bd1b91388368
+stage_3_user_acceptance: complete_pass
+stage_3_status: accepted_by_user_pending_main_record
 stage_3_self_accepted: false
+stage_4_contract_status: draft_pending_main_review
+stage_4_implementation_authorized: false
+stage_4_implementation_started: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_3_rework_review
+next_action: V5_main_session_stage_3_record_and_stage_4_contract_review
 ```
