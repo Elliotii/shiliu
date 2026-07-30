@@ -26,7 +26,9 @@ stage_2_accepted_contract_commit: 2037f39a9ec610d84ad4306a4f6c5fb693fdc3e7
 stage_2_main_review_round_1: rework_evidence_record_semantics
 stage_2_implementation_authorized: true
 stage_2_implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
-stage_2_status: submitted_for_main_acceptance
+stage_2_main_acceptance_round_1: rework
+stage_2_rework_round_1_commit: 0ad5823724913874fd72afdbf2808d9f274f1c8e
+stage_2_status: resubmitted_for_main_acceptance
 stage_2_self_accepted: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
@@ -52,7 +54,7 @@ external_live_database_change_observed: true
 | AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
-| Stage 2 产品实现 | submitted_for_main_acceptance | 已在接受的 Contract commit `2037f39` 上提交 durable inner loop、schema 8 源码、Evidence Authority、provisional artifact、最小 API 与 21 项 Stage 2 定向测试；未自我验收 |
+| Stage 2 产品实现 | resubmitted_for_main_acceptance | 主验收 Round 1 的 durable budget-stop 与 synthesis failure 两项 bounded rework 已提交；Stage 2 定向测试现为 29 项；未自我验收 |
 
 ## 2. Git 与基线
 
@@ -265,9 +267,9 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 - 版本化 checkpoint state 持久保存预算、semantic progress 与正交
   `answer_status / termination_reason / failure_class`；provisional answer 不终结
   Task 或 Attempt。
-- Stage 2 定向 suite：21 passed；Stage 1 + Evidence/Citation + retrieval +
-  Fast/Deep 联合定向回归：131 passed；最终默认无 Provider 回归：
-  1560 passed、4 deselected、7 warnings。
+- Stage 2 定向 suite：29 passed；Stage 1 + Evidence/Citation + retrieval +
+  Fast/Deep 联合定向回归：139 passed；最终默认无 Provider 回归：
+  1568 passed、4 deselected、7 warnings。
 - `diff --check` 与 `compileall` 通过。warning 仅为既有 Starlette/httpx
   deprecation，以及六条 multiprocessing `fork()` deprecation。
 - Stage 2 migration 仅在临时数据库执行。最终稳定测试窗口内 live DB
@@ -281,6 +283,25 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
   前后 hash 作为“不变”证据。
 - Provider logical calls 与 transport attempts 为 0；未访问 credential/Keychain。
   详细矩阵见 `V5_A_STAGE_2_IMPLEMENTATION_REPORT.md`。
+
+## 8.5 Stage 2 Main Acceptance Bounded Rework Round 1
+
+V5 主 Session 第一轮正式验收决定为 `rework`，总体 Stage 2 方向通过，只要求
+关闭两项持久停止缺口。`0ad5823` 已完成：
+
+1. runtime、decision、window 等 pre-action hard budget exhaustion 统一走
+   guarded durable-stop transaction；不执行被阻止的 tool/action，不创建伪 action，
+   原子提交 stopped checkpoint、Event、CommandReceipt 与正交结果维度。
+2. synthesis/context/validator 内部异常先使原 transaction 全量回滚，再以相同
+   owner epoch、expected state/checkpoint 进入独立 failure transaction；提交唯一
+   failed action、failure checkpoint、Event 与 receipt。
+
+新增 public service/API 测试覆盖 runtime/decision/window、restart、takeover、
+replay、payload mismatch、context/validator failure、stale-owner race 和
+`SimulatedCrash` exclusion。Stage 2 29 项、联合定向 139 项及默认无 Provider
+1568 项回归全部通过；最终稳定测试窗口 live DB 指纹仍为
+`248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
+94,588,928 bytes / `2026-07-31T03:25:48+0800`。
 
 ## 9. 当前未证明项
 
@@ -306,7 +327,7 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 ## 10. 下一动作
 
 同一个 V5-A Version Session 已完成 Stage 2 产品实现、自测与实施报告，并提交
-V5 主 Session 进行正式阶段验收。Stage 2 不自我接受，也不自行开始 Stage 3。
+V5 主 Session 进行 bounded rework 后复审。Stage 2 不自我接受，也不自行开始 Stage 3。
 真实 Provider 运行与 live DB schema 8 migration 仍未授权。
 
 ```yaml
@@ -317,7 +338,7 @@ stage_1_status: accepted
 stage_1_self_accepted: false
 stage_2_contract_status: accepted_by_v5_main
 stage_2_implementation_authorized: true
-stage_2_status: submitted_for_main_acceptance
+stage_2_status: resubmitted_for_main_acceptance
 stage_2_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false

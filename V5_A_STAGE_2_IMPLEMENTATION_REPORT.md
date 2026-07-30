@@ -3,11 +3,13 @@
 ```yaml
 stage: V5-A Stage 2
 title: Evidence-backed Inner Research Loop
-report_status: submitted_for_main_acceptance
+report_status: resubmitted_for_main_acceptance
 acceptance_authority: V5 main session
 baseline_branch: codex/v5-a
 accepted_contract_commit: 2037f39a9ec610d84ad4306a4f6c5fb693fdc3e7
 implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
+main_acceptance_round_1: rework
+rework_round_1_commit: 0ad5823724913874fd72afdbf2808d9f274f1c8e
 stage_2_self_accepted: false
 provider_runs_authorized: false
 provider_runs_performed: false
@@ -57,6 +59,15 @@ live migration 均未运行。
 未修改 V4 Prompt、model choice、Tool Contract、正式 UI、Program Current
 State、Program Decision Ledger、Registry、Research Log 或长期路线；未加入新依赖。
 
+Main Acceptance bounded rework round 1 提交 `0ad5823` 仅修改：
+
+- `src/shiliu/research/inner_service.py`
+- `tests/test_v5_a_stage2_inner_loop.py`
+
+该提交关闭 pre-action hard-budget 非持久停止，以及 synthesis/context/validator
+内部异常回滚后可无限重试两项缺口；没有修改 schema、Prompt、Tool Contract、
+UI、Provider wiring 或 Program 权威文件。
+
 ## 3. 持久模型与不变量
 
 | 合同对象 | 实现证据 | 状态 |
@@ -68,7 +79,7 @@ State、Program Decision Ledger、Registry、Research Log 或长期路线；未�
 | Provenance | 每次发现 append-only；`(use, provenance_hash)` 去重；不覆盖旧 query/rank/trace | pass |
 | ValidationObservation | current/stale/missing/invalid/error append-only；绑定 Task/Goal/Attempt/checkpoint/owner epoch | pass |
 | ProvisionalArtifact | immutable；绑定 Task/Goal/Attempt/checkpoint/use/evidence/validation IDs 和 policy versions | pass |
-| Atomic publication | action、use/provenance/observation、artifact、budget、checkpoint、Event、receipt 同事务 | pass |
+| Atomic publication | action、use/provenance/observation、artifact、budget、checkpoint、Event、receipt 同事务；synthesis 异常先完整回滚，再独立 fenced failure commit | pass |
 | Owner/checkpoint fence | commit 前后二次校验 current owner/epoch/lease/state version/parent checkpoint/Attempt lineage | pass |
 | SideEffect guard | `in_flight`/`unknown` 阻止 checkpoint/artifact；复用已接受 Stage 1 SideEffect protocol | pass |
 
@@ -87,18 +98,18 @@ derived view 表达。artifact 后 source drift 必须通过显式 revalidation 
 | 跨 Task/Attempt identity 与隔离 | global identity 收敛；每个 Attempt 独立 use/provenance/validation/allowlist/budget | pass |
 | Provisional grounding | bounded context + citation allowlist + shared grounded-answer validator；无证据时 `valid_insufficient` | pass |
 | 正交结果维度 | checkpoint 保存 `answer_status`、`termination_reason`、`failure_class`；insufficient/budget/implementation failure 不丢信息 | pass |
-| Budget/progress/stop | 服务端 action/round/window/evidence/context/time limits；content identity 而非 segment-only 判 progress；stop 持久化 | pass |
+| Budget/progress/stop | 服务端 action/round/window/evidence/context/time limits；pre-action runtime/decision/window exhaustion 不执行 tool/action，原子发布 stopped checkpoint/Event/receipt | pass |
 | Idempotency/crash/race | command payload hash、action key、unique constraints、fault rollback、same-command race 与 cross-Task identity race | pass |
 | Ownership/lease | takeover/stale owner/late tool response 均在 commit 前被 fence；无 mutation/receipt 漂移 | pass |
 | Product API | `POST inner/continue`、`GET inner`、`POST inner/revalidate`；provider mode 未授权时 fail closed | pass |
-| Stage 1/V4 regression | 131 项联合定向与 1560 项默认无 Provider回归通过 | pass |
+| Stage 1/V4 regression | 139 项联合定向与 1568 项默认无 Provider回归通过 | pass |
 | Provider | real mode 禁用；logical calls/transport attempts 0；Stage 1 deterministic SideEffect tests 继续通过 | not_exercised |
 | Live schema 8 migration | 只在临时 SQLite 执行；live DB 保持 schema 7 | not_exercised |
 | Outer audit/recursive continuation | 未实现 | correctly_out_of_scope |
 
 ## 5. 定向机械测试证据
 
-Stage 2 suite：`21 passed`。
+Stage 2 suite：`29 passed`。
 
 关键测试：
 
@@ -123,14 +134,21 @@ Stage 2 suite：`21 passed`。
 - `test_concurrent_cross_task_materialization_converges_on_one_identity`
 - `test_concurrent_same_command_commits_one_action_checkpoint_and_receipt`
 - `test_live_db_sentinel_is_not_touched_by_stage2_temp_migration`
+- `test_pre_action_hard_budget_exhaustion_commits_one_durable_stop`
+  （parameterized：runtime、decision、window）
+- `test_api_runtime_budget_exhaustion_returns_durable_stop_and_replays_once`
+- `test_synthesis_context_failure_rolls_back_then_commits_durable_failure_once`
+- `test_api_validator_failure_returns_controlled_durable_failure_result`
+- `test_synthesis_failure_stale_owner_race_cannot_commit_failure_state`
+- `test_synthesis_simulated_crash_is_not_misclassified_as_failure`
 
-联合定向 suite：`131 passed`，包括：
+联合定向 suite：`139 passed`，包括：
 
 | 范围 | 数量 |
 | --- | ---: |
 | Stage 1 kernel | 37 |
 | Stage 1 API | 4 |
-| Stage 2 inner loop | 21 |
+| Stage 2 inner loop | 29 |
 | Evidence contracts | 10 |
 | V3.5 evidence mechanics | 10 |
 | V4 context/citations | 4 |
@@ -144,12 +162,30 @@ artifact 和 receipt publication；异常后 action/evidence/checkpoint/Event/re
 reserve → in-flight → receipt、reserve/receipt fault、takeover rebind、
 unknown recovery、hash mismatch 和 concurrent replay。
 
+Round 1 新增证据进一步证明：
+
+- runtime、decision、window budget 在 action 前耗尽时不调用 adapter、不创建
+  action，只提交一次 `phase=stopped` checkpoint、`inner_budget_exhausted`
+  Event 和 CommandReceipt；replay 返回同一 receipt，payload mismatch 只追加
+  Stage 1 既有的 rejection audit Event。
+- budget stop 持久保存 `answer_status`，并记录
+  `termination_reason=budget_exhausted / failure_class=none`；restart 与 takeover
+  后不能复活或重置预算。
+- context builder 或 grounded validator 抛出内部异常时，原 synthesis transaction
+  完整回滚；随后在相同 owner epoch、expected state/checkpoint 下提交唯一 failed
+  action、failure checkpoint、Event 和 receipt。
+- failure state 记录 `termination_reason=implementation_error`、
+  `failure_class=implementation_failure`，API 返回受控结果且不回显内部 exception
+  message；restart/replay 不再次执行 builder/validator。
+- takeover race 使旧 owner 的 failure commit 被拒绝；`SimulatedCrash`、unresolved
+  SideEffect 和正常 insufficient 路径不被误分类。
+
 ## 6. 默认无 Provider 回归
 
 最终稳定运行：
 
 ```text
-1560 passed, 4 deselected, 7 warnings in 19.57s
+1568 passed, 4 deselected, 7 warnings in 40.45s
 ```
 
 默认 pytest marker 排除 `external_artifact` 与 `live_provider`。warnings：
@@ -246,13 +282,14 @@ deterministic adapter 推导 Provider quality。
 accept / partial_accept / rework / pause / reject
 ```
 
-V5-A 建议基于 `022c081`、21 项 Stage 2 定向测试、131 项联合定向回归、
-1560 项默认无 Provider回归和最终稳定 live DB 窗口进行独立轻量验收。外部
+V5-A 建议基于 `022c081` + bounded rework `0ad5823`、29 项 Stage 2 定向测试、
+139 项联合定向回归、1568 项默认无 Provider回归和最终稳定 live DB 窗口进行
+独立轻量复审。外部
 scheduled sync 事件需作为环境事实保留，但不应被表述为 V5-A 执行了 Stage 2
 live migration。
 
 ```yaml
-stage_2_status: submitted_for_main_acceptance
+stage_2_status: resubmitted_for_main_acceptance
 stage_2_self_accepted: false
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
