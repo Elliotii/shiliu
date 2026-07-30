@@ -8,6 +8,8 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
+from pydantic import ValidationError
+
 from shiliu.db import Database
 from shiliu.research.errors import (
     ResearchConflict,
@@ -27,6 +29,7 @@ from shiliu.research.outer_contracts import (
     ConstraintEvaluation,
     OuterAdvanceResponse,
     OuterBudgetLedger,
+    RegisteredConstraintEvaluator,
 )
 from shiliu.research.schema import (
     COMPACT_IMPROVEMENT_SCHEMA_VERSION,
@@ -82,10 +85,11 @@ class OuterResearchService:
     MAX_TOTAL_INNER_ACTIONS = 24
     MAX_TOTAL_EVIDENCE_USES = 48
     MAX_OUTER_CONTEXT_CHARACTERS = 8_000
+    MAX_CANDIDATE_CHARACTERS = 4_000
     MAX_RUNTIME_SECONDS = 900
-    AUDIT_POLICY_VERSION = "v5-a-stage3-deterministic-gate-v1"
-    EVALUATOR_REGISTRY_VERSION = "v5-a-stage3-evaluator-registry-v1"
-    CANDIDATE_SCHEMA_VERSION = "v5-a-stage3-audit-candidate-v1"
+    AUDIT_POLICY_VERSION = "v5-a-stage3-deterministic-gate-v2"
+    EVALUATOR_REGISTRY_VERSION = "v5-a-stage3-evaluator-registry-v2"
+    CANDIDATE_SCHEMA_VERSION = "v5-a-stage3-audit-candidate-v2"
 
     def __init__(
         self,
@@ -96,6 +100,9 @@ class OuterResearchService:
         clock: Clock = _utc_clock,
         fault_injector: FaultInjector | None = None,
         provider_runs_authorized: bool = False,
+        registered_evaluators: tuple[
+            RegisteredConstraintEvaluator, ...
+        ] = (),
     ) -> None:
         self.db = db
         self.kernel = kernel
@@ -103,6 +110,23 @@ class OuterResearchService:
         self.clock = clock
         self.fault_injector = fault_injector or (lambda _point: None)
         self.provider_runs_authorized = provider_runs_authorized
+        self.registered_evaluators: dict[
+            tuple[str, str], RegisteredConstraintEvaluator
+        ] = {}
+        for supplied in registered_evaluators:
+            registration = RegisteredConstraintEvaluator.model_validate(
+                supplied.model_dump(mode="json")
+            )
+            key = (
+                registration.constraint_scope,
+                _normalized(registration.exact_text),
+            )
+            if key in self.registered_evaluators:
+                raise ValueError(
+                    "duplicate server evaluator registration for exact constraint"
+                )
+            self._validate_registration(registration)
+            self.registered_evaluators[key] = registration.model_copy(deep=True)
 
     def _now(self) -> datetime:
         value = self.clock()
@@ -114,6 +138,22 @@ class OuterResearchService:
         self, task_id: str, request: AdvanceOuterResearchRequest
     ) -> dict[str, Any]:
         try:
+            request = AdvanceOuterResearchRequest.model_validate(
+                request.model_dump(mode="json")
+            )
+        except ValidationError as exc:
+            raise ResearchValidationError(
+                "outer advance request 不符合 bounded schema"
+            ) from exc
+        candidate_payload = self._candidate_payload(request)
+        if (
+            candidate_payload is not None
+            and len(_json(candidate_payload)) > self.MAX_CANDIDATE_CHARACTERS
+        ):
+            raise ResearchValidationError(
+                "audit candidate 超过 canonical serialized-size limit"
+            )
+        try:
             return self._advance(task_id, request)
         except (ResearchError, SimulatedCrash):
             raise
@@ -123,6 +163,60 @@ class OuterResearchService:
                 request=request,
                 cause=exc,
             )
+
+    @staticmethod
+    def _candidate_payload(
+        request: AdvanceOuterResearchRequest,
+    ) -> dict[str, Any] | None:
+        return (
+            request.candidate.model_dump(mode="json")
+            if request.candidate is not None
+            else None
+        )
+
+    @staticmethod
+    def _validate_registration(
+        registration: RegisteredConstraintEvaluator,
+    ) -> None:
+        parameters = registration.parameters
+        if registration.evaluator_kind == "minimum_current_evidence":
+            if set(parameters) != {"minimum"}:
+                raise ValueError(
+                    "registered minimum_current_evidence only accepts minimum"
+                )
+            minimum = parameters.get("minimum")
+            if (
+                isinstance(minimum, bool)
+                or not isinstance(minimum, int)
+                or minimum < 1
+            ):
+                raise ValueError(
+                    "registered minimum_current_evidence requires minimum >= 1"
+                )
+        elif registration.evaluator_kind == "answer_status":
+            if set(parameters) != {"allowed"}:
+                raise ValueError(
+                    "registered answer_status only accepts allowed"
+                )
+            allowed = parameters.get("allowed")
+            valid = {"valid_success", "valid_partial", "valid_insufficient"}
+            if (
+                not isinstance(allowed, list)
+                or not allowed
+                or any(value not in valid for value in allowed)
+            ):
+                raise ValueError(
+                    "registered answer_status requires bounded valid allowed values"
+                )
+        elif registration.evaluator_kind == "natural_language":
+            unknown = set(parameters) - {"gap_policy"}
+            if unknown or parameters.get("gap_policy") not in {
+                None,
+                "targeted_evidence_once",
+            }:
+                raise ValueError("invalid registered natural-language gap policy")
+        elif parameters:
+            raise ValueError("grounded_answer registration accepts no parameters")
 
     def _advance(
         self, task_id: str, request: AdvanceOuterResearchRequest
@@ -171,45 +265,93 @@ class OuterResearchService:
             specs, snapshot_hash = self._constraint_snapshot(
                 connection, task=task, goal=goal, now=now
             )
-            candidate_id = self._insert_candidate(
-                connection,
-                request=request,
-                task_id=task_id,
-                goal_id=str(goal["goal_id"]),
-                artifact_id=str(artifact["artifact_id"]),
-                now=now,
-            )
-            validation_ids, current_by_use = self._observe_artifact_evidence(
-                connection,
-                task_id=task_id,
-                goal_id=str(goal["goal_id"]),
-                attempt_id=request.attempt_id,
-                checkpoint_id=request.expected_checkpoint_id,
-                artifact=artifact,
-                owner_epoch=request.owner_epoch,
-                now=now,
-            )
-            evaluations = self._evaluate_constraints(
-                connection,
-                specs=specs,
-                artifact=artifact,
-                current_by_use=current_by_use,
-                validation_ids=validation_ids,
-            )
             budget_before = self._budget(connection, goal, now_value)
-            decision, target, reason_codes, blocker = self._decide(
-                connection,
-                goal_id=str(goal["goal_id"]),
-                evaluations=evaluations,
-                required_constraint_ids={
-                    str(value["constraint_id"])
-                    for value in specs
-                    if bool(value["is_required"])
-                },
-                artifact=artifact,
-                budget=budget_before,
-                current_by_use=current_by_use,
+            context_characters = len(
+                _json(
+                    {
+                        "candidate": self._candidate_payload(request),
+                        "constraints": [
+                            {
+                                "constraint_id": value["constraint_id"],
+                                "constraint_scope": value["constraint_scope"],
+                                "original_text": value["original_text"],
+                                "constraint_kind": value["constraint_kind"],
+                                "evaluator_policy": value["evaluator_policy"],
+                            }
+                            for value in specs
+                        ],
+                        "artifact": {
+                            "artifact_id": str(artifact["artifact_id"]),
+                            "answer_status": str(artifact["answer_status"]),
+                            "evidence_use_ids": list(
+                                json.loads(str(artifact["evidence_use_ids_json"]))
+                            ),
+                        },
+                    }
+                )
             )
+            context_overflow = (
+                budget_before.outer_context_characters + context_characters
+                > self.MAX_OUTER_CONTEXT_CHARACTERS
+            )
+            if context_overflow:
+                candidate_id = None
+                validation_ids: list[str] = []
+                current_by_use: dict[
+                    str, tuple[str, str, CurrentnessResult]
+                ] = {}
+                evaluations = [
+                    ConstraintEvaluation(
+                        constraint_id=str(value["constraint_id"]),
+                        status="unknown",
+                        recoverability="not_applicable",
+                        reason_codes=["outer_context_budget_prevented_gate"],
+                    )
+                    for value in specs
+                ]
+                decision = self._stop_decision(artifact)
+                target = None
+                reason_codes = ["outer_budget:outer_context_characters"]
+                blocker = "budget_exhausted"
+            else:
+                candidate_id = self._insert_candidate(
+                    connection,
+                    request=request,
+                    task_id=task_id,
+                    goal_id=str(goal["goal_id"]),
+                    artifact_id=str(artifact["artifact_id"]),
+                    now=now,
+                )
+                validation_ids, current_by_use = self._observe_artifact_evidence(
+                    connection,
+                    task_id=task_id,
+                    goal_id=str(goal["goal_id"]),
+                    attempt_id=request.attempt_id,
+                    checkpoint_id=request.expected_checkpoint_id,
+                    artifact=artifact,
+                    owner_epoch=request.owner_epoch,
+                    now=now,
+                )
+                evaluations = self._evaluate_constraints(
+                    connection,
+                    specs=specs,
+                    artifact=artifact,
+                    current_by_use=current_by_use,
+                    validation_ids=validation_ids,
+                )
+                decision, target, reason_codes, blocker = self._decide(
+                    connection,
+                    goal_id=str(goal["goal_id"]),
+                    evaluations=evaluations,
+                    required_constraint_ids={
+                        str(value["constraint_id"])
+                        for value in specs
+                        if bool(value["is_required"])
+                    },
+                    artifact=artifact,
+                    budget=budget_before,
+                    current_by_use=current_by_use,
+                )
             progress_fingerprint = self._progress_fingerprint(
                 evaluations=evaluations,
                 artifact=artifact,
@@ -246,30 +388,11 @@ class OuterResearchService:
                 blocker = "semantic_no_progress"
                 reason_codes = ["semantic_no_progress_limit"]
 
-            context_characters = len(
-                _json(
-                    {
-                        "candidate": request.candidate,
-                        "constraints": [
-                            {
-                                "constraint_id": value["constraint_id"],
-                                "constraint_kind": value["constraint_kind"],
-                                "evaluator_policy": value["evaluator_policy"],
-                            }
-                            for value in specs
-                        ],
-                        "artifact": {
-                            "artifact_id": str(artifact["artifact_id"]),
-                            "answer_status": str(artifact["answer_status"]),
-                            "evidence_use_ids": list(current_by_use),
-                        },
-                    }
-                )
-            )
             budget_after = budget_before.model_copy(deep=True)
             budget_after.outer_audits += 1
             budget_after.consecutive_semantic_no_progress = no_progress
-            budget_after.outer_context_characters += context_characters
+            if not context_overflow:
+                budget_after.outer_context_characters += context_characters
             if decision == "targeted_continue":
                 budget_after.targeted_continuations += 1
                 target_fingerprint = canonical_hash(
@@ -312,21 +435,27 @@ class OuterResearchService:
                         if value[2].outcome == "current"
                     )
 
-            exhausted = self._exhausted_dimension(budget_after, now_value)
-            if exhausted is not None and decision == "targeted_continue":
+            exhausted = (
+                "outer_context_characters"
+                if context_overflow
+                else self._exhausted_dimension(budget_after, now_value)
+            )
+            if exhausted is not None:
+                had_target = decision == "targeted_continue"
                 decision = self._stop_decision(artifact)
                 target = None
                 blocker = "budget_exhausted"
                 reason_codes = [f"outer_budget:{exhausted}"]
-                budget_after.targeted_continuations = (
-                    budget_before.targeted_continuations
-                )
-                budget_after.distinct_targeted_objectives = (
-                    budget_before.distinct_targeted_objectives
-                )
-                budget_after.total_evidence_uses = (
-                    budget_before.total_evidence_uses
-                )
+                if had_target:
+                    budget_after.targeted_continuations = (
+                        budget_before.targeted_continuations
+                    )
+                    budget_after.distinct_targeted_objectives = (
+                        budget_before.distinct_targeted_objectives
+                    )
+                    budget_after.total_evidence_uses = (
+                        budget_before.total_evidence_uses
+                    )
 
             audit_id = _id("outer_audit")
             observation_ids = [
@@ -960,33 +1089,44 @@ class OuterResearchService:
         goal: sqlite3.Row,
         now: str,
     ) -> tuple[list[dict[str, Any]], str]:
-        evidence_policy = json.loads(str(goal["evidence_policy_json"]))
-        outer = evidence_policy.get("outer_audit") or {}
-        objective_policy = dict(outer.get("objective") or {})
-        constraint_policies = list(outer.get("constraints") or [])
         source = [
-            ("objective", str(goal["objective"]), objective_policy),
+            ("objective", str(goal["objective"])),
             *[
                 (
                     "success_constraint",
                     str(text),
-                    (
-                        dict(constraint_policies[index])
-                        if index < len(constraint_policies)
-                        else {}
-                    ),
                 )
-                for index, text in enumerate(
+                for text in (
                     json.loads(str(goal["success_constraints_json"]))
                 )
             ],
         ]
         specs: list[dict[str, Any]] = []
-        for ordinal, (scope, text, policy) in enumerate(source):
-            kind = str(policy.get("kind") or "natural_language")
-            evaluator_version = str(
-                policy.get("evaluator_policy_version")
-                or self.EVALUATOR_REGISTRY_VERSION
+        for ordinal, (scope, text) in enumerate(source):
+            registration = self.registered_evaluators.get(
+                (scope, _normalized(text))
+            )
+            kind = (
+                registration.evaluator_kind
+                if registration is not None
+                else "natural_language"
+            )
+            evaluator_version = (
+                registration.evaluator_policy_version
+                if registration is not None
+                else self.EVALUATOR_REGISTRY_VERSION
+            )
+            policy = (
+                {
+                    "authority": "server_registry",
+                    "registration_id": registration.registration_id,
+                    **registration.parameters,
+                }
+                if registration is not None
+                else {
+                    "authority": "unregistered_natural_language",
+                    "registration_id": None,
+                }
             )
             canonical = {
                 "constraint_schema_version": CONSTRAINT_SPEC_SCHEMA_VERSION,
@@ -997,7 +1137,11 @@ class OuterResearchService:
                 "original_text": text,
                 "normalized_text": _normalized(text),
                 "constraint_kind": kind,
-                "is_required": bool(policy.get("required", True)),
+                "is_required": (
+                    True
+                    if scope == "objective" or registration is None
+                    else registration.required
+                ),
                 "evaluator_policy": policy,
                 "evaluator_policy_version": evaluator_version,
             }
@@ -1005,8 +1149,11 @@ class OuterResearchService:
             canonical["constraint_id"] = constraint_id
             payload_hash = canonical_hash(canonical)
             existing = connection.execute(
-                "SELECT * FROM research_constraint_specs WHERE constraint_id=?",
-                (constraint_id,),
+                """
+                SELECT * FROM research_constraint_specs
+                WHERE goal_id=? AND ordinal=?
+                """,
+                (str(goal["goal_id"]), ordinal),
             ).fetchone()
             if existing is None:
                 connection.execute(
@@ -1038,8 +1185,13 @@ class OuterResearchService:
                         now,
                     ),
                 )
-            elif str(existing["canonical_payload_hash"]) != payload_hash:
-                raise ResearchConflict("ConstraintSpec identity payload mismatch")
+            elif (
+                str(existing["constraint_id"]) != constraint_id
+                or str(existing["canonical_payload_hash"]) != payload_hash
+            ):
+                raise ResearchConflict(
+                    "ConstraintSpec/server evaluator registry identity mismatch"
+                )
             specs.append(canonical)
         snapshot_hash = canonical_hash(
             {
@@ -1083,8 +1235,8 @@ class OuterResearchService:
                 goal_id,
                 request.attempt_id,
                 artifact_id,
-                _json(request.candidate),
-                canonical_hash(request.candidate),
+                _json(self._candidate_payload(request)),
+                canonical_hash(self._candidate_payload(request)),
                 request.owner_epoch,
                 now,
             ),

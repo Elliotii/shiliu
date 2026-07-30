@@ -13,10 +13,61 @@ Recoverability = Literal[
 OuterDecision = Literal[
     "accept", "targeted_continue", "stop_partial", "stop_insufficient", "blocked"
 ]
+RegisteredEvaluatorKind = Literal[
+    "grounded_answer",
+    "minimum_current_evidence",
+    "answer_status",
+    "natural_language",
+]
 
 
 class _StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class AuditCandidateInput(_StrictModel):
+    proposed_status: ConstraintStatus | None = None
+    evidence_refs: list[str] = Field(default_factory=list, max_length=24)
+    gap: str | None = Field(default=None, max_length=500)
+    targeted_objective: str | None = Field(default=None, max_length=500)
+    reason_codes: list[str] = Field(default_factory=list, max_length=16)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+
+    @field_validator("evidence_refs")
+    @classmethod
+    def bound_evidence_refs(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 128 for value in values):
+            raise ValueError("evidence_ref must contain 1..128 characters")
+        return values
+
+    @field_validator("reason_codes")
+    @classmethod
+    def bound_reason_codes(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 100 for value in values):
+            raise ValueError("reason_code must contain 1..100 characters")
+        return values
+
+
+class RegisteredConstraintEvaluator(_StrictModel):
+    registration_id: str = Field(min_length=1, max_length=100)
+    constraint_scope: Literal["objective", "success_constraint"]
+    exact_text: str = Field(min_length=1, max_length=1000)
+    evaluator_kind: RegisteredEvaluatorKind
+    evaluator_policy_version: str = Field(min_length=1, max_length=100)
+    required: bool = True
+    parameters: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator(
+        "registration_id",
+        "exact_text",
+        "evaluator_policy_version",
+    )
+    @classmethod
+    def normalize_registry_text(cls, value: str) -> str:
+        normalized = " ".join(value.split())
+        if not normalized:
+            raise ValueError("value must not be blank")
+        return normalized
 
 
 class AdvanceOuterResearchRequest(_StrictModel):
@@ -27,7 +78,7 @@ class AdvanceOuterResearchRequest(_StrictModel):
     expected_state_version: int = Field(ge=0)
     expected_checkpoint_id: str = Field(min_length=1)
     execution_mode: OuterExecutionMode = "deterministic"
-    candidate: dict[str, Any] | None = None
+    candidate: AuditCandidateInput | None = None
 
     @field_validator(
         "command_id", "attempt_id", "owner_id", "expected_checkpoint_id"

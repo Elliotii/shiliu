@@ -39,7 +39,9 @@ stage_3_implementation_authorized: true
 stage_3_implementation_started: true
 stage_3_implementation_completed: true
 stage_3_implementation_commit: 788d01c
-stage_3_status: submitted_for_main_acceptance
+stage_3_main_acceptance_round_1: rework_evaluator_authority_and_context_budget
+stage_3_rework_round_1_commit: this_bounded_rework_commit
+stage_3_status: resubmitted_for_main_acceptance
 stage_3_self_accepted: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
@@ -67,7 +69,7 @@ external_live_database_change_observed: true
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
-| Stage 3 产品实现 | submitted_for_main_acceptance | 用户已接受 Contract 并授权实施；durable outer audit、deterministic gate、atomic targeted child、aggregate budget、minimal API 与 28 项定向测试已完成；未自我验收 |
+| Stage 3 产品实现 | resubmitted_for_main_acceptance | Main Acceptance Round 1 两项 bounded rework 已完成：server-owned evaluator authority 与全 gate context/candidate hard bound；36 项定向测试通过，未自我验收 |
 
 ## 2. Git 与基线
 
@@ -400,6 +402,46 @@ SHA-256/size/mtime 为
 94,588,928 bytes / `2026-07-31T04:27:14+0800`。schema 9 只在 pytest 临时
 SQLite 执行；Provider/凭据/Keychain/live migration 均未运行。
 
+## 8.9 Stage 3 Main Acceptance Bounded Rework Round 1
+
+V5 主 Session 已确认并不重开 Stage 3 的持久模型、candidate/observation 分离、
+atomic continuation、child EvidenceUse isolation、fence、migration、最小 API 与
+原 28 项定向测试。正式决定为 `rework`，仅要求关闭 evaluator authority 与
+context/candidate budget 两项边界。
+
+本轮限定修复完成：
+
+1. `_constraint_snapshot()` 不再读取客户端可写的
+   `evidence_policy.outer_audit` 来选择 evaluator。只有服务端注入 registry 中按
+   constraint scope 与 normalized exact text 明确绑定的 evaluator 才具有
+   `satisfied` 写权限；registration identity、policy/version 与参数进入 immutable
+   ConstraintSpec。未注册 objective/constraint 固定为
+   `natural_language + unknown/needs_user`。伪造 client policy 即使伴随 current
+   EvidenceUse 和 `valid_partial` artifact，也不能提交 `valid_success`。
+2. candidate 改为 strict typed/bounded schema，并增加 4,000 canonical
+   serialized-character service cap；超限在 transaction 前 fail closed，不持久化
+   payload 或 receipt。outer context 在 candidate/currentness/evaluator 执行前
+   计算；投影超限时不执行 gate、不持久 candidate/currentness observation，原子
+   提交 `budget_exhausted` audit/checkpoint/Event/receipt。该 guard 对 accept、
+   targeted continuation、stop 与 block 全部一致，且保留 owner/checkpoint fence。
+
+新增 direct service/public API 对抗测试覆盖虚假“月球由奶酪构成”约束、合法
+server registration、accept-path context overflow、oversized candidate、replay、
+payload mismatch、takeover/stale owner、receipt fault rollback 与 restart。
+Stage 3 suite 为 36 项；Stage 1/2/3、Evidence/Citation、V4 Fast/Deep 与 retrieval
+联合定向为 180 项；默认无 Provider 全回归为
+`1608 passed, 4 deselected, 7 warnings`。最终稳定窗口 live DB 仍为 schema 7，
+SHA-256/size/mtime 保持
+`ff8bc543d116e1d354d446686bcc56adaf4513941163ddce2ee645ad4d1c3eaa` /
+94,588,928 bytes / `2026-07-31T05:29:51+0800`。
+
+此前一次回归后的只读核验与既有外部 `shiliu sync --scheduled`（PID 11856，
+run 322，05:27:15–05:29:51+08:00）重叠，该外部进程把指纹从
+`a6e2d883...` 改为 `ff8bc543...`，但未改变 schema/size/videos/completed。
+V5-A 未启动、终止或干预它；待其结束后以新指纹为前置基线重新完成上述 1608
+项全回归，回归后 SHA/size/mtime 不变。Provider、凭据/Keychain、live
+migration 与 Stage 4 均未运行。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -428,8 +470,9 @@ SQLite 执行；Provider/凭据/Keychain/live migration 均未运行。
 ## 10. 下一动作
 
 同一个 V5-A Version Session 已根据用户对完整 Stage 2 和 Stage 3 Contract 的
-接受/授权完成 Stage 3 实施，并提交 V5 主 Session 正式阶段验收。Stage 3 不
-自我接受、不开始 Stage 4；真实 Provider 与 live schema 9 migration 仍未授权。
+接受/授权完成 Stage 3 实施，并完成 Main Acceptance Round 1 的两项 bounded
+rework，现重新提交 V5 主 Session 轻量复审。Stage 3 不自我接受、不开始
+Stage 4；真实 Provider 与 live schema 9 migration 仍未授权。
 
 ```yaml
 charter_status: accepted
@@ -445,12 +488,14 @@ stage_3_contract_status: accepted_by_user_for_implementation
 stage_3_implementation_authorized: true
 stage_3_implementation_started: true
 stage_3_implementation_completed: true
-stage_3_status: submitted_for_main_acceptance
+stage_3_main_acceptance_round_1: rework_evaluator_authority_and_context_budget
+stage_3_rework_round_1_commit: this_bounded_rework_commit
+stage_3_status: resubmitted_for_main_acceptance
 stage_3_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_3_acceptance
+next_action: V5_main_session_stage_3_rework_review
 ```

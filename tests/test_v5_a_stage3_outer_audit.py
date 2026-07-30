@@ -14,10 +14,14 @@ from shiliu.domain import FavoriteItem, SubtitleSegment
 from shiliu.research.errors import (
     ResearchConflict,
     ResearchUnsafeState,
+    ResearchValidationError,
     SimulatedCrash,
 )
 from shiliu.research.inner_contracts import ContinueInnerResearchRequest
-from shiliu.research.outer_contracts import AdvanceOuterResearchRequest
+from shiliu.research.outer_contracts import (
+    AdvanceOuterResearchRequest,
+    RegisteredConstraintEvaluator,
+)
 from shiliu.research.outer_service import OuterResearchService
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
 from shiliu.web import create_web_app
@@ -33,6 +37,9 @@ STAGE3_TABLES = {
     "research_continuation_seeds",
     "research_outer_result_links",
 }
+
+OBJECTIVE_TEXT = "生成一份包含当前可重建引用的研究回答"
+CONSTRAINT_TEXT = "至少包含一条当前可重建证据"
 
 
 class MutableClock:
@@ -73,8 +80,9 @@ def _fixture_core(app_paths):
             )
             for index, text in enumerate(
                 (
-                    "外层审计逐项检查目标约束。",
-                    "持久证据必须能按当前来源重建。",
+                    OBJECTIVE_TEXT,
+                    CONSTRAINT_TEXT,
+                    "研究持久证据并判断月球构成",
                     "只有确定性 evaluator 可以通过 gate。",
                     "可恢复缺口创建带 lineage 的子 Attempt。",
                     "预算耗尽必须形成持久停止。",
@@ -126,12 +134,56 @@ def _policy(*, constraint_kind: str = "minimum_current_evidence", minimum: int =
     }
 
 
-def _start(core: Application, task_id: str, *, policy=None, owner="worker"):
+def _registered_evaluators(
+    *, minimum: int = 1
+) -> tuple[RegisteredConstraintEvaluator, ...]:
+    return (
+        RegisteredConstraintEvaluator(
+            registration_id="stage3-test-grounded-objective",
+            constraint_scope="objective",
+            exact_text=OBJECTIVE_TEXT,
+            evaluator_kind="grounded_answer",
+            evaluator_policy_version="stage3-test-evaluator-v1",
+        ),
+        RegisteredConstraintEvaluator(
+            registration_id="stage3-test-evidence-count",
+            constraint_scope="success_constraint",
+            exact_text=CONSTRAINT_TEXT,
+            evaluator_kind="minimum_current_evidence",
+            evaluator_policy_version="stage3-test-evaluator-v1",
+            parameters={"minimum": minimum},
+        ),
+    )
+
+
+def _start(
+    core: Application,
+    task_id: str,
+    *,
+    policy=None,
+    owner="worker",
+    registered=True,
+    registry_minimum=1,
+    objective=OBJECTIVE_TEXT,
+    success_constraints=None,
+):
+    if registered:
+        core._research_outer = OuterResearchService(
+            db=core.db,
+            kernel=core.research,
+            registered_evaluators=_registered_evaluators(
+                minimum=registry_minimum
+            ),
+        )
     core.research.create_task(
         command_id=f"create:{task_id}",
         task_id=task_id,
-        objective="外层审计",
-        success_constraints=["引用当前字幕"],
+        objective=objective,
+        success_constraints=(
+            list(success_constraints)
+            if success_constraints is not None
+            else [CONSTRAINT_TEXT]
+        ),
         evidence_policy=policy if policy is not None else _policy(),
     )
     claim = core.research.claim_owner(
@@ -280,6 +332,7 @@ def test_candidate_confidence_has_no_gate_authority_and_natural_language_blocks(
         core,
         "outer-candidate",
         policy={"authority": "live_current_exact_replay"},
+        registered=False,
     )
     _finish_inner(core, run)
     result = core.research_outer.advance(
@@ -304,11 +357,73 @@ def test_candidate_confidence_has_no_gate_authority_and_natural_language_blocks(
     assert core.research.get_task("outer-candidate")["task"]["status"] == "waiting_user"
 
 
+@pytest.mark.parametrize("via_api", [False, True])
+def test_client_cannot_grant_evaluator_authority_to_false_natural_constraint(
+    app_paths, via_api
+) -> None:
+    core = _fixture_core(app_paths)
+    malicious_policy = {
+        "authority": "live_current_exact_replay",
+        "outer_audit": {
+            "objective": {"kind": "grounded_answer"},
+            "constraints": [
+                {"kind": "minimum_current_evidence", "minimum": 1}
+            ],
+        },
+    }
+    run = _start(
+        core,
+        f"outer-forged-authority-{via_api}",
+        policy=malicious_policy,
+        registered=False,
+        objective="研究持久证据并判断月球构成",
+        success_constraints=["必须证明月球完全由奶酪构成"],
+    )
+    _finish_inner(core, run)
+    inner = core.research_inner.get_inner_state(str(run["task_id"]))
+    assert inner["state"]["answer_status"] == "valid_partial"
+    assert inner["evidence_uses"]
+    request = _outer_request(
+        run, f"outer-forged-authority-{via_api}:audit"
+    )
+    if via_api:
+        response = TestClient(create_web_app(core)).post(
+            f"/api/research/tasks/{run['task_id']}/outer/advance",
+            json=request.model_dump(mode="json"),
+        )
+        assert response.status_code == 200
+        result = response.json()["outcome"]
+    else:
+        result = core.research_outer.advance(str(run["task_id"]), request)
+    assert result["decision"] == "blocked"
+    assert result["answer_status"] != "valid_success"
+    assert result["termination_reason"] == "needs_user_input"
+    persisted = core.research.get_task(str(run["task_id"]))
+    assert persisted["task"]["status"] == "waiting_user"
+    assert persisted["task"]["terminal_result_id"] is None
+    outer = core.research_outer.get_outer_state(str(run["task_id"]))
+    assert {
+        value["constraint_kind"] for value in outer["constraint_specs"]
+    } == {"natural_language"}
+    assert {
+        value["evaluator_policy"]["authority"]
+        for value in outer["constraint_specs"]
+    } == {"unregistered_natural_language"}
+    assert {
+        value["status"] for value in outer["constraint_observations"]
+    } == {"unknown"}
+
+
 def test_recoverable_gap_atomically_creates_retry_child_seed_and_scoped_uses(
     app_paths,
 ) -> None:
     core = _fixture_core(app_paths)
-    run = _start(core, "outer-continue", policy=_policy(minimum=99))
+    run = _start(
+        core,
+        "outer-continue",
+        policy=_policy(minimum=99),
+        registry_minimum=99,
+    )
     _finish_inner(core, run)
     parent_use_ids = {
         value["evidence_use_id"]
@@ -368,10 +483,12 @@ def test_replay_is_exactly_once_and_payload_mismatch_fails_closed(app_paths) -> 
     assert replay["deduplicated"] is True
     assert replay["audit_id"] == first["audit_id"]
     assert _counts(core, "outer-replay") == before
+    mismatched_payload = request.model_dump(mode="json")
+    mismatched_payload["candidate"] = {"gap": "changed"}
     with pytest.raises(ResearchConflict):
         core.research_outer.advance(
             "outer-replay",
-            request.model_copy(update={"candidate": {"changed": True}}),
+            AdvanceOuterResearchRequest.model_validate(mismatched_payload),
         )
     assert _counts(core, "outer-replay") == before
 
@@ -396,7 +513,12 @@ def test_continuation_fault_points_roll_back_every_stage3_write(
 ) -> None:
     core = _fixture_core(app_paths)
     task_id = f"fault-{fault_point}"
-    run = _start(core, task_id, policy=_policy(minimum=99))
+    run = _start(
+        core,
+        task_id,
+        policy=_policy(minimum=99),
+        registry_minimum=99,
+    )
     _finish_inner(core, run)
     before = _counts(core, task_id)
 
@@ -408,6 +530,7 @@ def test_continuation_fault_points_roll_back_every_stage3_write(
         db=core.db,
         kernel=core.research,
         fault_injector=inject,
+        registered_evaluators=_registered_evaluators(minimum=99),
     )
     with pytest.raises(SimulatedCrash):
         service.advance(task_id, _outer_request(run, f"{task_id}:audit"))
@@ -423,7 +546,12 @@ def test_continuation_fault_points_roll_back_every_stage3_write(
 
 def test_stale_owner_and_unresolved_side_effect_have_no_outer_drift(app_paths) -> None:
     core = _fixture_core(app_paths)
-    run = _start(core, "outer-fences", policy=_policy(minimum=99))
+    run = _start(
+        core,
+        "outer-fences",
+        policy=_policy(minimum=99),
+        registry_minimum=99,
+    )
     _finish_inner(core, run)
     before = _counts(core, "outer-fences")
     with pytest.raises(ResearchConflict):
@@ -558,7 +686,12 @@ def test_outer_budget_is_aggregate_and_repeated_target_stops_after_child(
     app_paths,
 ) -> None:
     core = _fixture_core(app_paths)
-    run = _start(core, "outer-repeat", policy=_policy(minimum=99))
+    run = _start(
+        core,
+        "outer-repeat",
+        policy=_policy(minimum=99),
+        registry_minimum=99,
+    )
     _finish_inner(core, run)
     first = core.research_outer.advance(
         "outer-repeat", _outer_request(run, "outer-repeat:audit-1")
@@ -599,9 +732,18 @@ def test_outer_hard_budget_prevents_child_and_commits_honest_terminal_stop(
 ) -> None:
     core = _fixture_core(app_paths)
     task_id = f"outer-budget-{dimension}"
-    run = _start(core, task_id, policy=_policy(minimum=99))
+    run = _start(
+        core,
+        task_id,
+        policy=_policy(minimum=99),
+        registry_minimum=99,
+    )
     _finish_inner(core, run)
-    service = OuterResearchService(db=core.db, kernel=core.research)
+    service = OuterResearchService(
+        db=core.db,
+        kernel=core.research,
+        registered_evaluators=_registered_evaluators(minimum=99),
+    )
     setattr(service, attribute, limit)
     result = service.advance(
         task_id, _outer_request(run, f"{task_id}:audit")
@@ -616,6 +758,181 @@ def test_outer_hard_budget_prevents_child_and_commits_honest_terminal_stop(
     assert outer["outer_audits"][0]["reason_codes"] == [
         f"outer_budget:{dimension}"
     ]
+
+
+@pytest.mark.parametrize("via_api", [False, True])
+def test_accept_path_context_overflow_durably_stops_before_gate(
+    app_paths, via_api
+) -> None:
+    core = _fixture_core(app_paths)
+    task_id = f"outer-accept-context-{via_api}"
+    run = _start(core, task_id)
+    _finish_inner(core, run)
+    service = OuterResearchService(
+        db=core.db,
+        kernel=core.research,
+        registered_evaluators=_registered_evaluators(),
+    )
+    service.MAX_OUTER_CONTEXT_CHARACTERS = 1
+    core._research_outer = service
+    request = _outer_request(run, f"{task_id}:audit")
+    if via_api:
+        response = TestClient(create_web_app(core)).post(
+            f"/api/research/tasks/{task_id}/outer/advance",
+            json=request.model_dump(mode="json"),
+        )
+        assert response.status_code == 200
+        result = response.json()["outcome"]
+    else:
+        result = service.advance(task_id, request)
+    assert result["decision"] in {"stop_partial", "stop_insufficient"}
+    assert result["termination_reason"] == "budget_exhausted"
+    assert result["answer_status"] != "valid_success"
+    persisted = core.research.get_task(task_id)
+    assert persisted["task"]["status"] == "terminal"
+    outer = service.get_outer_state(task_id)
+    audit = outer["outer_audits"][0]
+    assert audit["blocker"] == "budget_exhausted"
+    assert audit["reason_codes"] == [
+        "outer_budget:outer_context_characters"
+    ]
+    assert audit["budget_after"]["outer_context_characters"] == 0
+    assert outer["audit_candidates"] == []
+    replay = service.advance(task_id, request)
+    assert replay["deduplicated"] is True
+    assert replay["audit_id"] == result["audit_id"]
+
+
+def test_context_overflow_stop_preserves_takeover_fence(app_paths) -> None:
+    core = _fixture_core(app_paths)
+    task_id = "outer-context-takeover"
+    run = _start(core, task_id)
+    _finish_inner(core, run)
+    stale_request = _outer_request(run, f"{task_id}:stale-audit")
+    with core.db.connect() as connection:
+        connection.execute(
+            "UPDATE research_tasks SET lease_until=? WHERE task_id=?",
+            (
+                (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),
+                task_id,
+            ),
+        )
+    takeover = core.research.claim_owner(
+        task_id=task_id,
+        command_id=f"{task_id}:takeover",
+        owner_id="new-owner",
+        expected_state_version=int(run["state_version"]),
+        lease_seconds=300,
+    )
+    service = OuterResearchService(
+        db=core.db,
+        kernel=core.research,
+        registered_evaluators=_registered_evaluators(),
+    )
+    service.MAX_OUTER_CONTEXT_CHARACTERS = 1
+    before = _counts(core, task_id)
+    with pytest.raises(ResearchConflict):
+        service.advance(task_id, stale_request)
+    assert _counts(core, task_id) == before
+    current_request = stale_request.model_copy(
+        update={
+            "command_id": f"{task_id}:current-audit",
+            "owner_id": "new-owner",
+            "owner_epoch": int(takeover["owner_epoch"]),
+            "expected_state_version": int(takeover["state_version"]),
+        }
+    )
+    stopped = service.advance(task_id, current_request)
+    assert stopped["termination_reason"] == "budget_exhausted"
+    assert service.get_outer_state(task_id)["outer_audits"][0][
+        "owner_epoch"
+    ] == takeover["owner_epoch"]
+
+
+def test_context_overflow_stop_fault_rolls_back_then_retries_once(app_paths) -> None:
+    core = _fixture_core(app_paths)
+    task_id = "outer-context-fault"
+    run = _start(core, task_id)
+    _finish_inner(core, run)
+    request = _outer_request(run, f"{task_id}:audit")
+
+    def inject(point: str) -> None:
+        if point == "after_outer_receipt_insert":
+            raise SimulatedCrash(point)
+
+    crashing = OuterResearchService(
+        db=core.db,
+        kernel=core.research,
+        registered_evaluators=_registered_evaluators(),
+        fault_injector=inject,
+    )
+    crashing.MAX_OUTER_CONTEXT_CHARACTERS = 1
+    before = _counts(core, task_id)
+    receipts_before = len(
+        core.research.get_task(task_id)["command_receipts"]
+    )
+    with pytest.raises(SimulatedCrash):
+        crashing.advance(task_id, request)
+    assert _counts(core, task_id) == before
+    assert (
+        len(core.research.get_task(task_id)["command_receipts"])
+        == receipts_before
+    )
+    assert core.research.get_task(task_id)["task"]["status"] == "running"
+
+    restarted = OuterResearchService(
+        db=core.db,
+        kernel=core.research,
+        registered_evaluators=_registered_evaluators(),
+    )
+    restarted.MAX_OUTER_CONTEXT_CHARACTERS = 1
+    stopped = restarted.advance(task_id, request)
+    assert stopped["termination_reason"] == "budget_exhausted"
+    replay = restarted.advance(task_id, request)
+    assert replay["deduplicated"] is True
+    assert replay["audit_id"] == stopped["audit_id"]
+
+
+@pytest.mark.parametrize("via_api", [False, True])
+def test_oversized_candidate_fails_closed_before_any_persistence(
+    app_paths, via_api
+) -> None:
+    core = _fixture_core(app_paths)
+    task_id = f"outer-candidate-size-{via_api}"
+    run = _start(core, task_id)
+    _finish_inner(core, run)
+    candidate = {
+        "evidence_refs": [f"{index:02d}" + "e" * 126 for index in range(24)],
+        "reason_codes": [f"{index:02d}" + "r" * 98 for index in range(16)],
+        "gap": "g" * 500,
+        "targeted_objective": "t" * 500,
+        "confidence": 0.5,
+    }
+    request = _outer_request(
+        run,
+        f"{task_id}:audit",
+        candidate=candidate,
+    )
+    before = _counts(core, task_id)
+    receipts_before = len(
+        core.research.get_task(task_id)["command_receipts"]
+    )
+    if via_api:
+        response = TestClient(create_web_app(core)).post(
+            f"/api/research/tasks/{task_id}/outer/advance",
+            json=request.model_dump(mode="json"),
+        )
+        assert response.status_code == 400
+        assert response.json()["error"]["code"] == "research_validation_error"
+    else:
+        with pytest.raises(ResearchValidationError):
+            core.research_outer.advance(task_id, request)
+    assert _counts(core, task_id) == before
+    assert (
+        len(core.research.get_task(task_id)["command_receipts"])
+        == receipts_before
+    )
+    assert core.research.get_task(task_id)["task"]["status"] == "running"
 
 
 def test_takeover_fences_old_owner_and_new_owner_reuses_same_lineage(app_paths) -> None:
@@ -667,7 +984,27 @@ def test_optional_unknown_constraint_does_not_block_required_gate(app_paths) -> 
             ],
         },
     }
-    run = _start(core, "outer-optional", policy=policy)
+    run = _start(
+        core,
+        "outer-optional",
+        policy=policy,
+        registered=False,
+    )
+    core._research_outer = OuterResearchService(
+        db=core.db,
+        kernel=core.research,
+        registered_evaluators=(
+            _registered_evaluators()[0],
+            RegisteredConstraintEvaluator(
+                registration_id="stage3-test-optional-natural-language",
+                constraint_scope="success_constraint",
+                exact_text=CONSTRAINT_TEXT,
+                evaluator_kind="natural_language",
+                evaluator_policy_version="stage3-test-evaluator-v1",
+                required=False,
+            ),
+        ),
+    )
     _finish_inner(core, run)
     result = core.research_outer.advance(
         "outer-optional", _outer_request(run, "outer-optional:audit")
