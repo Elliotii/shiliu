@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-07-30T22:05:37+08:00
+> Updated at: 2026-07-30T22:09:29+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,9 +11,9 @@ resume_anchor:
   current_subversion: V5_A
   current_stage: startup_and_reconnaissance
   accepted_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  active_execution_session: pending_creation
+  active_execution_session: 019fb35a-d022-7a32-b963-3327adda8135
   pending_decision: none
-  next_action: create_V5_A_execution_branch_and_subversion_session
+  next_action: monitor_V5_A_startup_and_reconnaissance_then_review_charter_and_stage_1
   roadmap_reconsideration_open: false
 ```
 
@@ -65,12 +65,17 @@ program:
 current:
   charter: draft_not_created
   stage_contract: none
-  execution_session: pending_creation
+  execution_session:
+    role: Shiliu V5-A Version Session
+    thread_id: 019fb35a-d022-7a32-b963-3327adda8135
+    execution_branch: codex/v5-a
+    worktree: /Users/elliot/.codex/worktrees/3324/Shiliu
+    assignment: startup_and_reconnaissance_only
   baseline: 483fd46bca1d7141a696fda4b2d1e093a55f209b
   report_pending: true
 ```
 
-用户已批准 V5-A 规划和首批启动与侦察包。V5-A 处于 `preparing`；Version Charter、Stage Contract 和执行 Session 尚未创建。
+用户已批准 V5-A 规划和首批启动与侦察包。V5-A 处于 `preparing`；唯一活跃的 V5-A 子版本 Session 已创建，Version Charter 和 Stage 1 Contract 尚待其起草。
 
 ---
 
@@ -211,4 +216,4 @@ v4_v4_1_live_audit:
 
 # 9. Next Authorized Action
 
-提交 `V5_A_SUBVERSION_STARTUP_PACKAGE.md`，建立 `codex/v5-a` 独立执行边界，创建唯一活跃的 V5-A 子版本 Session，并执行首批源码侦察、DeerFlow/AREX 研究、Version Charter Draft 和 Stage 1 Contract Draft。首批不得开始产品实施、运行 Provider、执行 Migration 或正式采用上游。
+跟踪唯一活跃的 V5-A 子版本 Session完成首批源码侦察、DeerFlow/AREX 研究、Version Charter Draft 和 Stage 1 Contract Draft；随后由主 Session独立审查。首批不得开始产品实施、运行 Provider、执行 Migration 或正式采用上游。
