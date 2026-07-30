@@ -11,7 +11,7 @@ from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
 from shiliu.research.schema import initialize_research_schema
 
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 
 def utc_now() -> str:

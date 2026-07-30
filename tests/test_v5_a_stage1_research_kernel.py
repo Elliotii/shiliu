@@ -123,7 +123,9 @@ def task_version(service: ResearchTaskService, task_id: str = "task-1") -> int:
     return int(service.get_task(task_id)["task"]["state_version"])
 
 
-def test_schema_7_migrates_only_temporary_database_and_is_idempotent(app_paths) -> None:
+def test_schema_8_preserves_stage1_and_migrates_temporary_database_idempotently(
+    app_paths,
+) -> None:
     app_paths.database.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(app_paths.database)
     connection.executescript(
@@ -139,8 +141,8 @@ def test_schema_7_migrates_only_temporary_database_and_is_idempotent(app_paths) 
     db.initialize()
     db.initialize()
 
-    assert SCHEMA_VERSION == 7
-    assert app_paths.database.with_name("shiliu.pre-v7.backup.db").is_file()
+    assert SCHEMA_VERSION == 8
+    assert app_paths.database.with_name("shiliu.pre-v8.backup.db").is_file()
     with db.connect() as migrated:
         version = migrated.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
@@ -153,7 +155,7 @@ def test_schema_7_migrates_only_temporary_database_and_is_idempotent(app_paths) 
         }
         integrity = migrated.execute("PRAGMA integrity_check").fetchone()[0]
         foreign_key_violations = migrated.execute("PRAGMA foreign_key_check").fetchall()
-    assert version == "7"
+    assert version == "8"
     assert RESEARCH_TABLES.issubset(tables)
     assert integrity == "ok"
     assert foreign_key_violations == []

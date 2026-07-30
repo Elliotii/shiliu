@@ -44,6 +44,10 @@ from shiliu.research.contracts import (
     ResearchCommandRequest,
 )
 from shiliu.research.errors import ResearchError
+from shiliu.research.inner_contracts import (
+    ContinueInnerResearchRequest,
+    RevalidateInnerEvidenceRequest,
+)
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 from shiliu.stage5 import Stage5PipelineRequest
 
@@ -458,6 +462,63 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "outcome": outcome, "research": research})
+
+    @web.post("/api/research/tasks/{task_id}/inner/continue")
+    async def continue_inner_research(
+        task_id: str,
+        payload: ContinueInnerResearchRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_inner.continue_run, task_id, payload
+            )
+            inner = await asyncio.to_thread(
+                core.research_inner.get_inner_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "inner": inner})
+
+    @web.get("/api/research/tasks/{task_id}/inner")
+    async def get_inner_research(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            inner = await asyncio.to_thread(
+                _core(request).research_inner.get_inner_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "inner": inner})
+
+    @web.post("/api/research/tasks/{task_id}/inner/revalidate")
+    async def revalidate_inner_evidence(
+        task_id: str,
+        payload: RevalidateInnerEvidenceRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_inner.revalidate_evidence, task_id, payload
+            )
+            inner = await asyncio.to_thread(
+                core.research_inner.get_inner_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "inner": inner})
 
     @web.post("/api/evidence-sufficiency")
     async def evidence_sufficiency(

@@ -131,3 +131,7 @@ class ResearchTaskResponse(StrictModel):
     results: list[dict[str, Any]]
     command_receipts: list[dict[str, Any]]
     side_effects: list[dict[str, Any]]
+    inner_actions: list[dict[str, Any]] = Field(default_factory=list)
+    evidence_uses: list[dict[str, Any]] = Field(default_factory=list)
+    evidence_validations: list[dict[str, Any]] = Field(default_factory=list)
+    provisional_artifacts: list[dict[str, Any]] = Field(default_factory=list)

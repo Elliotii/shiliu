@@ -303,6 +303,17 @@ class ResearchTaskService:
             "payload_json",
             "response_json",
             "request_json",
+            "observation_json",
+            "segment_ids_json",
+            "segment_ordinals_json",
+            "index_identity_json",
+            "parent_chunk_ids_json",
+            "mapping_policy_versions_json",
+            "answer_blocks_json",
+            "limitations_json",
+            "evidence_use_ids_json",
+            "evidence_ids_json",
+            "validation_observation_ids_json",
         ):
             if name in value:
                 raw = value.pop(name)
@@ -440,6 +451,22 @@ class ResearchTaskService:
                 "side_effects": (
                     "SELECT * FROM research_side_effects WHERE task_id=? "
                     "ORDER BY created_at, side_effect_id"
+                ),
+                "inner_actions": (
+                    "SELECT * FROM research_inner_actions WHERE task_id=? "
+                    "ORDER BY created_at, action_id"
+                ),
+                "evidence_uses": (
+                    "SELECT * FROM research_evidence_uses WHERE task_id=? "
+                    "ORDER BY created_at, evidence_use_id"
+                ),
+                "evidence_validations": (
+                    "SELECT * FROM research_evidence_validations WHERE task_id=? "
+                    "ORDER BY observed_at, observation_id"
+                ),
+                "provisional_artifacts": (
+                    "SELECT * FROM research_provisional_artifacts WHERE task_id=? "
+                    "ORDER BY created_at, artifact_id"
                 ),
             }
             value: dict[str, Any] = {"task": self._decode_row(task)}

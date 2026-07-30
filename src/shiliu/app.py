@@ -28,6 +28,11 @@ from shiliu.retrieval import (
 from shiliu.sync import SyncService
 from shiliu.evidence import EvidenceSearchService
 from shiliu.runtime_modes import PRODUCT_RUNTIME_CONFIG
+from shiliu.ask.deep.navigation import NavigationService
+from shiliu.ask.deep.transcript import TranscriptSearchService, TranscriptWindowReader
+from shiliu.ask.evidence import TranscriptEvidenceMaterializer
+from shiliu.research.inner_service import InnerResearchService
+from shiliu.research.inner_tools import LocalInnerToolAdapter
 from shiliu.research.service import ResearchTaskService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
@@ -57,6 +62,7 @@ class Application:
         self.db = Database(self.paths.database)
         self.db.initialize()
         self.research = ResearchTaskService(self.db)
+        self._research_inner: InnerResearchService | None = None
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,
@@ -267,6 +273,39 @@ class Application:
                 trace_dir=self.paths.logs_dir / "stage5_traces",
             )
         return self._stage5_pipeline
+
+    @property
+    def research_inner(self) -> InnerResearchService:
+        if self._research_inner is None:
+            materializer = TranscriptEvidenceMaterializer(self.db)
+            evidence_search = EvidenceSearchService(
+                db=self.db,
+                product_search=self.product_search,
+                authority_mode="live_current_exact_replay",
+                runtime_corpus_identity=self.runtime_config.corpus_identity,
+            )
+            tools = LocalInnerToolAdapter(
+                navigation=NavigationService(
+                    db=self.db,
+                    artifacts=self.artifacts,
+                    product_search=self.product_search,
+                ),
+                transcripts=TranscriptSearchService(
+                    evidence_search=evidence_search,
+                    materializer=materializer,
+                    max_spans_per_search=6,
+                    max_characters_per_search=6000,
+                ),
+                windows=TranscriptWindowReader(self.db, materializer),
+            )
+            self._research_inner = InnerResearchService(
+                db=self.db,
+                kernel=self.research,
+                tools=tools,
+                materializer=materializer,
+                provider_runs_authorized=False,
+            )
+        return self._research_inner
 
     def provider(self, role: str = "formal_summary") -> OpenAICompatibleProvider:
         try:
