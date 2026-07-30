@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-07-31T01:08:24+08:00
+> Updated at: 2026-07-31T02:21:31+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -9,11 +9,11 @@
 ```yaml
 resume_anchor:
   current_subversion: V5_A
-  current_stage: V5_A_STAGE_1
-  accepted_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
+  current_stage: V5_A_STAGE_2_CONTRACT_PREPARATION
+  accepted_commit: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
   active_execution_session: 019fb35a-d022-7a32-b963-3327adda8135
   pending_decision: none
-  next_action: V5_A_session_implements_authorized_stage_1
+  next_action: V5_A_session_prepares_stage_2_contract
   roadmap_reconsideration_open: false
 ```
 
@@ -68,23 +68,26 @@ current:
     status: accepted
   stage_contract:
     path: V5_A_STAGE_1_CONTRACT.md
-    status: authorized
+    status: fulfilled_and_accepted
   main_review:
-    path: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
+    path: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
     decision: accept
   execution_session:
     role: Shiliu V5-A Version Session
     thread_id: 019fb35a-d022-7a32-b963-3327adda8135
     execution_branch: codex/v5-a
     worktree: /Users/elliot/.codex/worktrees/3324/Shiliu
-    assignment: V5_A_STAGE_1_Durable_Task_Kernel_and_Safety_Envelope
-  baseline: 483fd46bca1d7141a696fda4b2d1e093a55f209b
+    assignment: V5_A_STAGE_2_contract_preparation_only
+  baseline: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
   startup_report_accepted: true
-  stage_1_implementation_started: false
-  stage_1_report_pending: true
+  stage_1_implementation_started: true
+  stage_1_status: accepted
+  stage_1_report_pending: false
 ```
 
-V5-A 启动与侦察结果、Version Charter 和 Stage 1 Contract 已由主 Session 独立复核并接受。唯一活跃的 V5-A 子版本 Session 已获得 Stage 1 有界实施授权；产品实现尚未开始。
+V5-A Stage 1 已完成一轮有界返工并由主 Session 正式接受。唯一活跃的 V5-A
+子版本 Session 继续主导该子版本；当前只进入 Stage 2 Contract 与
+Just-in-time 实施计划准备，不开始 Stage 2 产品实施。
 
 ---
 
@@ -105,6 +108,20 @@ accepted_results:
     archive_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
     provider_configuration_changed: false
     known_provider_failure_proves_algorithm_regression: false
+  V5_A_STAGE_1:
+    status: accepted
+    accepted_baseline: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
+    implementation_commit: c8a3f9f054b6793dade3e353fbf61fd8a583ec06
+    bounded_rework_commit: ecbea72b483487a4a64d46d286719e89d024e22f
+    acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
+    capabilities:
+      - durable_research_task_kernel
+      - schema_7_source_and_temporary_database_migration_tests
+      - ownership_lease_and_epoch_fence
+      - command_receipt_and_payload_deduplication
+      - task_scoped_side_effect_protocol
+      - checkpoint_restart_and_lineage
+      - minimal_research_JSON_API
 ```
 
 ---
@@ -112,7 +129,8 @@ accepted_results:
 # 5. Current Blockers
 
 - 技术阻塞：无。
-- Stage 1 可按已接受 Contract 开始；Provider 与 live DB Migration 仍未授权。
+- Stage 2 Contract 尚未起草或接受；Stage 2 产品实施尚未授权。
+- Provider 与 live DB Migration 仍未授权。
 
 ---
 
@@ -155,8 +173,11 @@ Registry 的正式仓库存在性口径仍为 `absent`；V5-A 使用的临时有
 
 - DeerFlow 已完成固定 Commit 的有界源码/相关失败测试审阅，但上游测试未执行。
 - AREX 已完成论文 v2 与官方最小推理仓库审阅；完整 outer loop、训练管线和测试不可由当前公开仓库复现。
-- V5-A 已冻结 Version Charter 与 Stage 1 Contract；具体表名、文件结构和内部实现仍未冻结。
-- Stage 1 尚未实现或验收，跨进程 ownership、unknown in-flight 和 child Task lineage 仍为 `unproven`。
+- V5-A Version Charter 已接受；Stage 1 Contract 已履行并验收。
+- Stage 1 已在临时 SQLite、进程重开、线程竞争和故障注入层面机械验证 ownership、
+  unknown in-flight 和 child Task lineage；真实断电、长时间多进程/多主机 lease
+  soak、真实 external SideEffect reconciliation 与 live schema 7 upgrade 仍为
+  `unproven` 或 `not_exercised`。
 - 本轮没有运行 Provider；V4.1 已归档的 Cross-video Provider Failure 不重跑、不改判。
 - V4/V4.1 Commit 尚未合入本地 `main`，也没有 V4/V4.1 Tag；这是现场 Git 事实，不是产品回归。
 
@@ -234,4 +255,9 @@ v4_v4_1_live_audit:
 
 # 9. Next Authorized Action
 
-由唯一活跃的 V5-A 子版本 Session 按 `V5_A_STAGE_1_CONTRACT.md` 实施 Durable Task Kernel and Safety Envelope。允许产品 kernel、schema/migration 源码、临时 DB migration tests、无 Provider deterministic adapter、最小 API、ownership/idempotency/lineage/failure tests 与既有回归；禁止 live DB Migration、Provider、Prompt、Tool Contract、UI、上游代码复制、Push/Merge/Tag 和自我验收。
+由唯一活跃的 V5-A 子版本 Session 基于已接受的 Stage 1 baseline 准备 Stage 2
+Contract 和 Just-in-time 实施计划。V5-A 自主负责 Stage 2 的具体技术设计与拆分；
+主 Session 只在正式边界进行轻量目标、证据和授权审阅。
+
+当前允许只读源码核验、必要的有界研究和无 Provider 探索性机械测试；禁止 Stage 2
+产品实施、Provider、live DB Migration、凭据访问、Push/Merge/Tag 和自我验收。

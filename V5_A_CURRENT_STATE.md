@@ -15,10 +15,14 @@ accepted_implementation_base: a8dae62a9796d8d9d70afb883ab5f2c1a707403f
 stage_1_implementation_commit: c8a3f9f054b6793dade3e353fbf61fd8a583ec06
 stage_1_main_acceptance_round_1: rework
 stage_1_rework_round_1_commit: ecbea72b483487a4a64d46d286719e89d024e22f
+stage_1_final_submission_head: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
+stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
+stage_1_accepted_at: 2026-07-31T02:21:31+08:00
+stage_1_main_acceptance_decision: accept
 charter_status: accepted
-stage_1_contract_status: authorized
+stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
-stage_1_status: submitted_for_main_acceptance
+stage_1_status: accepted
 stage_1_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
@@ -37,7 +41,7 @@ live_database_migration_performed: false
 | DeerFlow 研究 | main_review_confirmed_reference_only | 固定提交、MIT 与证据边界通过；主 Session 接受为 pattern-only 设计/测试参考；未执行上游测试 |
 | AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
-| Stage 1 产品实现 | submitted_for_main_acceptance | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试已提交；未改 Prompt、Tool Contract 或 UI |
+| Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 
 ## 2. Git 与基线
 
@@ -64,7 +68,7 @@ V5 主 Session 于 2026-07-31 确认：
 - AREX 接受为 `training_independent_patterns_only` 设计参考；Stage 1 不实现其模式。
 - 上述决定均不授予产品实现、Provider 运行或 live migration 权限。
 
-主 Session 最终复核已接受修订后的 Charter、研究边界和 Stage 1 Contract，并授权按 Contract 开始 Stage 1 实施。V5-A 已基于 `a8dae62` 完成 Stage 1 实施与自测，提交 `c8a3f9f`。主验收 Round 1 决定为 `rework`；两项 bounded 修复已提交为 `ecbea72`，当前等待主 Session 复审。
+主 Session 最终复核已接受修订后的 Charter、研究边界和 Stage 1 Contract，并授权按 Contract 开始 Stage 1 实施。V5-A 基于 `a8dae62` 完成 Stage 1 实施与自测，提交 `c8a3f9f`。主验收 Round 1 决定为 `rework`；两项 bounded 修复提交为 `ecbea72`。主 Session 独立复验 41 项 Stage 1 测试、1539 项默认无 Provider 回归和两条自定义对抗路径后，已正式接受 Stage 1。
 
 ## 3. Live DB / Index / Corpus
 
@@ -218,9 +222,10 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 - 增加 service/API 对抗、fault rollback、stale owner、hash mismatch、并发与
   replay 测试。
 
-## 9. 当前未证明项
+## 9. Stage 1 验收与当前未证明项
 
-- Stage 1 已实施并由 V5-A 完成机械验证，但尚未由 V5 主 Session 正式接受。
+- Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
+  `V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md`。
 - live DB schema 7 migration 未执行；真实 live upgrade 行为仍为 `not_exercised`。
 - 真实断电/SIGKILL、多主机长期 lease soak、真实 external side-effect reconciliation
   仍为 `unproven`。
@@ -231,16 +236,18 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 
 ## 10. 下一动作
 
-V5 主 Session 对 `V5_A_STAGE_1_IMPLEMENTATION_REPORT.md`、实现提交和测试证据进行独立验收，决定 `accept / partial_accept / rework / pause / reject`。V5-A 不自行开始 Stage 2。
+同一个 V5-A Version Session 准备 Stage 2 Contract 和 Just-in-time 实施计划，
+并继续自主负责具体技术方案。主 Session 在 Stage 2 正式边界进行轻量目标与证据
+审阅。当前尚未授权 Stage 2 产品实施、Provider 运行或 live DB migration。
 
 ```yaml
 charter_status: accepted
-stage_1_contract_status: authorized
+stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
-stage_1_status: submitted_for_main_acceptance
+stage_1_status: accepted
 stage_1_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
 live_database_migration_performed: false
-next_action: V5_main_session_stage_1_acceptance
+next_action: V5_A_stage_2_contract_preparation
 ```

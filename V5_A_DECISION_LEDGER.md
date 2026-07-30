@@ -21,5 +21,7 @@ final_main_review: accepted
 final_accepted_decisions: 9
 stage_1_implementation_authorized: true
 implementation_authority_scope: V5_A_STAGE_1_CONTRACT_only
-next_action: V5_A_stage_1_implementation
+stage_1_status: accepted
+stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
+next_action: V5_A_stage_2_contract_preparation
 ```

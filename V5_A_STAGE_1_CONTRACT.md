@@ -1,9 +1,9 @@
-# 拾流 V5-A Stage 1 Contract（Revised Draft）
+# 拾流 V5-A Stage 1 Contract
 
 ```yaml
 stage: V5-A Stage 1
 title: Durable Task Kernel and Safety Envelope
-contract_status: authorized
+contract_status: fulfilled_and_accepted
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-30
@@ -11,15 +11,18 @@ revised_at: 2026-07-31
 main_review_round_1: completed
 accepted_at: 2026-07-31T01:08:24+08:00
 acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
+stage_accepted_at: 2026-07-31T02:21:31+08:00
+stage_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
 product_baseline_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
 implementation_authorized: true
-implementation_started: false
+implementation_started: true
+implementation_completed: true
 provider_runs_authorized: false
 provider_runs_performed: false
 live_database_migration_authorized: false
 ```
 
-> 本文件已经 V5 主 Session 最终接受并授权实施。该授权不等于 Stage 1 完成或验收；V5-A 仍不得自我接受结果。
+> 本 Contract 已由 V5 主 Session 接受并完成授权实施；Stage 1 实现经过一轮有界返工后，已由主 Session 正式验收。验收证据和未证明边界见 `V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md`。
 
 ## 1. Stage 使命
 
@@ -570,15 +573,15 @@ Stage 1 只建立身份和 lineage contract，不要求完整产品能力：
 ## 13. 本 Stage 结果分类模板
 
 ```yaml
-mechanical_contract_tests: unproven_until_implemented
-restart_recovery: unproven_until_implemented
-ownership_fence: unproven_until_implemented
-command_receipt_deduplication: unproven_until_implemented
-unknown_in_flight_fail_closed: unproven_until_implemented
+mechanical_contract_tests: verified
+restart_recovery: mechanically_verified
+ownership_fence: mechanically_verified
+command_receipt_deduplication: mechanically_verified
+unknown_in_flight_fail_closed: mechanically_verified
 provider_behavior: not_exercised
 product_quality: not_exercised
 live_migration: not_exercised
-stage_result: authorized_not_implemented
+stage_result: accepted
 ```
 
 ## 14. 暂停条件
@@ -598,11 +601,17 @@ stage_result: authorized_not_implemented
 
 V5 主 Session 已接受本 Contract 的状态模型、三维 Result、single-active-owner lease/epoch fence、CommandReceipt、Task-scoped SideEffect、最小 API 切片和 Stage 1 branch/replay 边界，并授权本文件第 8 节所列实施范围。第 9 节禁止项继续有效。
 
+实现提交 `c8a3f9f` 与有界返工提交 `ecbea72` 已完成 Contract 范围；主 Session
+在独立复验后通过 `V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md` 正式接受。
+本结果不授权 Stage 2 产品实施、Provider 运行或 live DB migration。
+
 ```yaml
 charter_status: accepted
-stage_1_contract_status: authorized
+stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
-product_implementation_started: false
+stage_1_status: accepted
+product_implementation_started: true
 provider_runs_performed: false
-next_action: V5_A_stage_1_implementation
+live_database_migration_performed: false
+next_action: V5_A_stage_2_contract_preparation
 ```
