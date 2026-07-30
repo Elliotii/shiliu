@@ -517,6 +517,46 @@ class ResearchTaskService:
                 """,
                 (owner_epoch, task_id),
             )
+            reserved_effects = connection.execute(
+                """
+                SELECT side_effect_id, attempt_id, owner_epoch
+                FROM research_side_effects
+                WHERE task_id=? AND status='reserved' AND owner_epoch < ?
+                ORDER BY created_at, side_effect_id
+                """,
+                (task_id, owner_epoch),
+            ).fetchall()
+            for effect in reserved_effects:
+                previous_epoch = int(effect["owner_epoch"])
+                rebound = connection.execute(
+                    """
+                    UPDATE research_side_effects
+                    SET owner_epoch=?, updated_at=?
+                    WHERE side_effect_id=? AND status='reserved' AND owner_epoch=?
+                    """,
+                    (
+                        owner_epoch,
+                        now,
+                        str(effect["side_effect_id"]),
+                        previous_epoch,
+                    ),
+                )
+                if rebound.rowcount != 1:
+                    raise ResearchConflict("reserved SideEffect takeover CAS 失败")
+                self._event(
+                    connection,
+                    task_id=task_id,
+                    attempt_id=str(effect["attempt_id"]),
+                    event_type="side_effect_reserved_rebound",
+                    payload={
+                        "side_effect_id": str(effect["side_effect_id"]),
+                        "previous_owner_epoch": previous_epoch,
+                        "new_owner_epoch": owner_epoch,
+                    },
+                    command_id=command_id,
+                    owner_epoch=owner_epoch,
+                    now=now,
+                )
             self.fault_injector("after_owner_claim")
             self._event(
                 connection,
@@ -533,6 +573,9 @@ class ResearchTaskService:
                 "owner_epoch": owner_epoch,
                 "lease_until": expires,
                 "state_version": expected_state_version + 1,
+                "rebound_reserved_side_effect_ids": [
+                    str(effect["side_effect_id"]) for effect in reserved_effects
+                ],
             }
             self._insert_receipt(
                 connection,
@@ -671,14 +714,47 @@ class ResearchTaskService:
             ).fetchone()
             if active is not None:
                 raise ResearchConflict("Task 已存在非终态 Attempt")
-            if parent_attempt_id is not None:
+            attempt_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM research_attempts WHERE task_id=?",
+                    (task_id,),
+                ).fetchone()[0]
+            )
+            if cause is AttemptCause.INITIAL:
+                if (
+                    attempt_count != 0
+                    or parent_attempt_id is not None
+                    or source_checkpoint_id is not None
+                ):
+                    raise ResearchValidationError(
+                        "initial 只能创建首个 Attempt，且不得携带 parent/source"
+                    )
+            elif cause is AttemptCause.RESUME:
+                raise ResearchValidationError(
+                    "resume 不创建新 Attempt；必须调用 resume_attempt"
+                )
+            elif cause is AttemptCause.GOAL_REVISION:
+                raise ResearchValidationError(
+                    "goal_revision 只能由 revise_goal 原子创建 Goal 与 Attempt"
+                )
+            elif cause is AttemptCause.RETRY:
+                if parent_attempt_id is None or source_checkpoint_id is not None:
+                    raise ResearchValidationError(
+                        "retry 必须提供同 Task terminal parent，且不得伪造 source"
+                    )
                 parent = self._attempt(connection, parent_attempt_id)
                 if (
                     str(parent["task_id"]) != task_id
                     or str(parent["status"]) != "terminal"
                 ):
-                    raise ResearchValidationError("parent Attempt 必须属于同一 Task 且已终态")
-            if cause in {AttemptCause.BRANCH, AttemptCause.REPLAY}:
+                    raise ResearchValidationError(
+                        "retry parent Attempt 必须属于同一 Task 且已终态"
+                    )
+            elif cause in {AttemptCause.BRANCH, AttemptCause.REPLAY}:
+                if parent_attempt_id is None:
+                    raise ResearchValidationError(
+                        "branch/replay 必须提供 source Attempt lineage"
+                    )
                 if source_checkpoint_id is None:
                     raise ResearchValidationError("branch/replay 必须提供 source checkpoint")
                 source = connection.execute(
@@ -690,6 +766,10 @@ class ResearchTaskService:
                 source_attempt = self._attempt(
                     connection, str(source["attempt_id"])
                 )
+                if str(source_attempt["attempt_id"]) != parent_attempt_id:
+                    raise ResearchValidationError(
+                        "branch/replay parent Attempt 与 source checkpoint 不一致"
+                    )
                 if str(source_attempt["status"]) != "terminal":
                     raise ResearchValidationError("source Attempt 必须已终态")
                 source_task_id = str(source["task_id"])
@@ -721,6 +801,8 @@ class ResearchTaskService:
                     raise ResearchValidationError(
                         "source checkpoint 不属于当前 Task 或其祖先"
                     )
+            else:  # pragma: no cover - the enum is closed, retained as fail-closed guard.
+                raise ResearchValidationError(f"不支持的 Attempt cause: {cause}")
             ordinal = int(
                 connection.execute(
                     "SELECT COALESCE(MAX(ordinal), 0) + 1 FROM research_attempts WHERE task_id=?",
@@ -2001,6 +2083,15 @@ class ResearchTaskService:
                 lease_seconds=command.lease_seconds,
             )
         if kind == "start_attempt":
+            if command.cause not in {
+                AttemptCause.INITIAL,
+                AttemptCause.BRANCH,
+                AttemptCause.REPLAY,
+            }:
+                raise ResearchValidationError(
+                    "start_attempt 只接受 initial/branch/replay；"
+                    "resume、retry、goal_revision 必须使用各自专用 command"
+                )
             return self.start_attempt(
                 task_id=task_id,
                 command_id=command.command_id,

@@ -448,6 +448,175 @@ def test_takeover_fault_rolls_back_epoch_owner_event_and_receipt(research) -> No
     assert takeover["owner_epoch"] == 2
 
 
+def test_reserved_side_effect_rebinds_atomically_on_takeover_and_executes_once(
+    research,
+) -> None:
+    db, clock, adapter, service = research
+    attempt = bootstrap(service)
+    reserved = service.reserve_side_effect(
+        task_id="task-1",
+        attempt_id=attempt["attempt_id"],
+        command_id="reserve-old-owner",
+        owner_id="worker-a",
+        owner_epoch=1,
+        expected_state_version=2,
+        effect_kind="test_write",
+        idempotency_key="rebind-key",
+        request_payload={"value": 1},
+    )
+    clock.advance(31)
+
+    def fault(point: str) -> None:
+        if point == "after_owner_claim":
+            raise SimulatedCrash(point)
+
+    crashing = ResearchTaskService(
+        db, clock=clock, effect_adapter=adapter, fault_injector=fault
+    )
+    with pytest.raises(SimulatedCrash):
+        claim(
+            crashing,
+            owner_id="worker-b",
+            command_id="takeover-rebind-crash",
+            expected=reserved["state_version"],
+        )
+    after_crash = service.get_task("task-1")
+    assert after_crash["task"]["owner_id"] == "worker-a"
+    assert after_crash["task"]["owner_epoch"] == 1
+    assert after_crash["task"]["state_version"] == reserved["state_version"]
+    assert after_crash["side_effects"][0]["owner_epoch"] == 1
+    assert all(
+        event["event_type"] != "side_effect_reserved_rebound"
+        for event in after_crash["events"]
+    )
+
+    takeover = claim(
+        service,
+        owner_id="worker-b",
+        command_id="takeover-rebind",
+        expected=reserved["state_version"],
+    )
+    assert takeover["owner_epoch"] == 2
+    assert takeover["rebound_reserved_side_effect_ids"] == [
+        reserved["side_effect_id"]
+    ]
+    assert (
+        claim(
+            service,
+            owner_id="worker-b",
+            command_id="takeover-rebind",
+            expected=reserved["state_version"],
+        )
+        == takeover
+    )
+    rebound = service.get_task("task-1")
+    assert rebound["side_effects"][0]["owner_epoch"] == 2
+    assert rebound["side_effects"][0]["status"] == "reserved"
+    assert rebound["events"][-2]["event_type"] == "side_effect_reserved_rebound"
+
+    with pytest.raises(ResearchConflict, match="owner fence"):
+        service.transition_side_effect(
+            task_id="task-1",
+            side_effect_id=reserved["side_effect_id"],
+            command_id="stale-start-after-rebind",
+            owner_id="worker-a",
+            owner_epoch=1,
+            expected_state_version=takeover["state_version"],
+            target_status="in_flight",
+        )
+
+    completed = service.execute_deterministic_side_effect(
+        task_id="task-1",
+        attempt_id=attempt["attempt_id"],
+        command_id="continue-rebound-effect",
+        owner_id="worker-b",
+        owner_epoch=2,
+        expected_state_version=takeover["state_version"],
+        effect_kind="test_write",
+        idempotency_key="rebind-key",
+        request_payload={"value": 1},
+    )
+    replay = service.execute_deterministic_side_effect(
+        task_id="task-1",
+        attempt_id=attempt["attempt_id"],
+        command_id="continue-rebound-effect",
+        owner_id="worker-b",
+        owner_epoch=2,
+        expected_state_version=takeover["state_version"],
+        effect_kind="test_write",
+        idempotency_key="rebind-key",
+        request_payload={"value": 1},
+    )
+    assert completed["status"] == "succeeded"
+    assert replay["deduplicated"] is True
+    assert len(adapter.calls) == 1
+    state = service.get_task("task-1")
+    assert len(state["side_effects"]) == 1
+    assert state["side_effects"][0]["owner_epoch"] == 2
+
+    with pytest.raises(ResearchUnsafeState, match="request hash"):
+        service.reserve_side_effect(
+            task_id="task-1",
+            attempt_id=attempt["attempt_id"],
+            command_id="rebound-hash-mismatch",
+            owner_id="worker-b",
+            owner_epoch=2,
+            expected_state_version=completed["state_version"],
+            effect_kind="test_write",
+            idempotency_key="rebind-key",
+            request_payload={"value": 2},
+        )
+    assert len(service.get_task("task-1")["side_effects"]) == 1
+
+
+def test_concurrent_rebound_reserved_effect_continuation_has_one_execution(
+    research,
+) -> None:
+    _db, clock, adapter, service = research
+    attempt = bootstrap(service)
+    reserved = service.reserve_side_effect(
+        task_id="task-1",
+        attempt_id=attempt["attempt_id"],
+        command_id="reserve-before-concurrent-takeover",
+        owner_id="worker-a",
+        owner_epoch=1,
+        expected_state_version=2,
+        effect_kind="test_write",
+        idempotency_key="concurrent-rebind-key",
+        request_payload={"same": True},
+    )
+    clock.advance(31)
+    takeover = claim(
+        service,
+        owner_id="worker-b",
+        command_id="concurrent-takeover",
+        expected=reserved["state_version"],
+    )
+
+    def execute(command_id: str):
+        try:
+            return service.execute_deterministic_side_effect(
+                task_id="task-1",
+                attempt_id=attempt["attempt_id"],
+                command_id=command_id,
+                owner_id="worker-b",
+                owner_epoch=2,
+                expected_state_version=takeover["state_version"],
+                effect_kind="test_write",
+                idempotency_key="concurrent-rebind-key",
+                request_payload={"same": True},
+            )
+        except ResearchConflict as exc:
+            return exc
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        values = list(pool.map(execute, ["continue-a", "continue-b"]))
+    assert sum(isinstance(value, dict) for value in values) == 1
+    assert sum(isinstance(value, ResearchConflict) for value in values) == 1
+    assert len(adapter.calls) == 1
+    assert len(service.get_task("task-1")["side_effects"]) == 1
+
+
 def test_stale_owner_cannot_commit_result_or_reserve_side_effect(research) -> None:
     _db, clock, _adapter, service = research
     attempt = bootstrap(service)
@@ -583,6 +752,98 @@ def test_start_resume_and_retry_command_replays_are_semantically_idempotent(
     state = service.get_task("task-1")
     assert len(state["attempts"]) == 2
     assert sum(event["event_type"] == "attempt_resumed" for event in state["events"]) == 1
+
+
+def test_public_start_attempt_rejects_cause_and_lineage_bypasses_without_drift(
+    research,
+) -> None:
+    _db, _clock, _adapter, service = research
+    create_task(service)
+    claim(service)
+
+    invalid_before_initial = (
+        {
+            "cause": AttemptCause.INITIAL,
+            "parent_attempt_id": "forged-parent",
+        },
+        {"cause": AttemptCause.RESUME},
+        {"cause": AttemptCause.RETRY},
+        {"cause": AttemptCause.GOAL_REVISION},
+        {"cause": AttemptCause.BRANCH, "source_checkpoint_id": "forged-checkpoint"},
+        {"cause": AttemptCause.REPLAY, "parent_attempt_id": "forged-parent"},
+    )
+    for index, cause_fields in enumerate(invalid_before_initial):
+        before = service.get_task("task-1")
+        with pytest.raises(ResearchValidationError):
+            service.start_attempt(
+                task_id="task-1",
+                command_id=f"invalid-start-before:{index}",
+                owner_id="worker-a",
+                owner_epoch=1,
+                expected_state_version=1,
+                **cause_fields,
+            )
+        assert service.get_task("task-1") == before
+
+    attempt = start(service)
+    checkpoint = service.commit_checkpoint(
+        task_id="task-1",
+        attempt_id=attempt["attempt_id"],
+        command_id="cause-guard-checkpoint",
+        owner_id="worker-a",
+        owner_epoch=1,
+        expected_state_version=2,
+        expected_checkpoint_id=None,
+        state_payload={"guard": True},
+    )
+    service.complete_attempt(
+        task_id="task-1",
+        attempt_id=attempt["attempt_id"],
+        command_id="cause-guard-terminal-attempt",
+        owner_id="worker-a",
+        owner_epoch=1,
+        expected_state_version=checkpoint["state_version"],
+        checkpoint_id=checkpoint["checkpoint_id"],
+        answer_status=AnswerStatus.VALID_INSUFFICIENT,
+        termination_reason=TerminationReason.NO_NEW_EVIDENCE,
+        failure_class=FailureClass.NONE,
+        reason_detail="prepare historical Attempt",
+        task_terminal=False,
+        next_task_status=TaskStatus.READY,
+    )
+
+    invalid_after_history = (
+        {"cause": AttemptCause.INITIAL},
+        {"cause": AttemptCause.RESUME},
+        {"cause": AttemptCause.RETRY},
+        {
+            "cause": AttemptCause.RETRY,
+            "parent_attempt_id": attempt["attempt_id"],
+            "source_checkpoint_id": checkpoint["checkpoint_id"],
+        },
+        {"cause": AttemptCause.GOAL_REVISION},
+        {
+            "cause": AttemptCause.BRANCH,
+            "parent_attempt_id": "not-the-source-attempt",
+            "source_checkpoint_id": checkpoint["checkpoint_id"],
+        },
+        {
+            "cause": AttemptCause.REPLAY,
+            "parent_attempt_id": attempt["attempt_id"],
+        },
+    )
+    for index, cause_fields in enumerate(invalid_after_history):
+        before = service.get_task("task-1")
+        with pytest.raises(ResearchValidationError):
+            service.start_attempt(
+                task_id="task-1",
+                command_id=f"invalid-start-after:{index}",
+                owner_id="worker-a",
+                owner_epoch=1,
+                expected_state_version=4,
+                **cause_fields,
+            )
+        assert service.get_task("task-1") == before
 
 
 def test_stale_checkpoint_and_checkpoint_fault_fail_closed(research) -> None:
@@ -937,6 +1198,7 @@ def test_branch_and_replay_use_read_only_checkpoint_from_current_or_ancestor_tas
         owner_epoch=1,
         expected_state_version=1,
         cause=AttemptCause.BRANCH,
+        parent_attempt_id=original_attempt["attempt_id"],
         source_checkpoint_id=source["checkpoint_id"],
     )
     child_state = service.get_task(child["task_id"])
@@ -986,6 +1248,7 @@ def test_branch_and_replay_use_read_only_checkpoint_from_current_or_ancestor_tas
             owner_epoch=1,
             expected_state_version=1,
             cause=AttemptCause.REPLAY,
+            parent_attempt_id=unrelated_attempt["attempt_id"],
             source_checkpoint_id=unrelated_source["checkpoint_id"],
         )
 
@@ -1240,6 +1503,8 @@ def test_external_call_crash_stays_in_flight_and_never_auto_replays(research) ->
         command_id="takeover",
         expected=5,
     )
+    assert takeover["rebound_reserved_side_effect_ids"] == []
+    assert service.get_task("task-1")["side_effects"][0]["owner_epoch"] == 1
     recovered = service.recover_in_flight(
         task_id="task-1",
         command_id="recover",

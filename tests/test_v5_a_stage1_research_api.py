@@ -113,6 +113,68 @@ def test_research_api_conflicts_are_explicit_and_not_found_is_404(app_paths) -> 
     assert mismatch.json()["error"]["code"] == "research_conflict"
 
 
+def test_research_api_start_attempt_cause_cannot_bypass_lineage(app_paths) -> None:
+    core = Application(app_paths)
+    client = TestClient(create_web_app(core))
+    assert client.post(
+        "/api/research/tasks",
+        json={
+            "task_id": "cause-guard-api",
+            "command_id": "create-cause-guard-api",
+            "objective": "公共命令 cause guard",
+        },
+    ).status_code == 200
+    assert client.post(
+        "/api/research/tasks/cause-guard-api/commands",
+        json={
+            "kind": "claim_owner",
+            "command_id": "claim-cause-guard-api",
+            "owner_id": "api-worker",
+            "expected_state_version": 0,
+            "lease_seconds": 60,
+        },
+    ).status_code == 200
+
+    invalid_commands = (
+        {"cause": "initial", "parent_attempt_id": "forged-parent"},
+        {"cause": "resume"},
+        {"cause": "retry"},
+        {"cause": "goal_revision"},
+        {"cause": "branch", "source_checkpoint_id": "forged-checkpoint"},
+        {"cause": "replay", "parent_attempt_id": "forged-parent"},
+    )
+    for index, cause_fields in enumerate(invalid_commands):
+        before = core.research.get_task("cause-guard-api")
+        response = client.post(
+            "/api/research/tasks/cause-guard-api/commands",
+            json={
+                "kind": "start_attempt",
+                "command_id": f"invalid-cause-api:{index}",
+                "owner_id": "api-worker",
+                "owner_epoch": 1,
+                "expected_state_version": 1,
+                **cause_fields,
+            },
+        )
+        assert response.status_code == 400
+        assert response.json()["error"]["code"] == "research_validation_error"
+        assert core.research.get_task("cause-guard-api") == before
+
+    valid = client.post(
+        "/api/research/tasks/cause-guard-api/commands",
+        json={
+            "kind": "start_attempt",
+            "command_id": "valid-initial-api",
+            "owner_id": "api-worker",
+            "owner_epoch": 1,
+            "expected_state_version": 1,
+            "cause": "initial",
+        },
+    )
+    assert valid.status_code == 200
+    assert valid.json()["research"]["attempts"][0]["cause"] == "initial"
+
+
 def test_research_api_terminal_retry_returns_child_task(app_paths) -> None:
     core = Application(app_paths)
     client = TestClient(create_web_app(core))
