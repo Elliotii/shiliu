@@ -29,13 +29,18 @@ stage_2_implementation_commit: 022c0813f63bf5cad6419c81c817d9f9b85a72bf
 stage_2_main_acceptance_round_1: rework
 stage_2_rework_round_1_commit: 0ad5823724913874fd72afdbf2808d9f274f1c8e
 stage_2_main_acceptance_round_2: rework_budget_accounting_and_evidence_cap
-stage_2_status: resubmitted_for_main_acceptance
+stage_2_user_acceptance: accept
+stage_2_status: accepted_by_user_pending_main_record
 stage_2_self_accepted: false
 stage_3_contract: V5_A_STAGE_3_CONTRACT.md
-stage_3_contract_status: draft_pending_main_review
+stage_3_contract_status: accepted_by_user_for_implementation
 stage_3_planning_baseline: fafcf48cf3c8703e9d665992da96c8b74de20fff
-stage_3_implementation_authorized: false
-stage_3_implementation_started: false
+stage_3_implementation_authorized: true
+stage_3_implementation_started: true
+stage_3_implementation_completed: true
+stage_3_implementation_commit: 788d01c
+stage_3_status: submitted_for_main_acceptance
+stage_3_self_accepted: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -44,6 +49,7 @@ stage_1_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
+stage_3_live_database_migration_performed: false
 external_live_database_change_observed: true
 ```
 
@@ -60,8 +66,8 @@ external_live_database_change_observed: true
 | AREX 研究 | main_review_confirmed_reference_only | 论文 v2、官方最小推理仓库与证据边界通过；主 Session 接受为 training-independent patterns-only 设计参考 |
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
-| Stage 2 产品实现 | resubmitted_for_main_acceptance | 主验收 Round 1 原始两项已复审通过；Round 2 的 synthesis context 记账与 evidence cap hard-stop 两项 bounded rework 已提交；Stage 2 定向测试现为 33 项；未自我验收 |
-| Stage 3 Contract/JIT 计划 | draft_pending_main_review | 已完成 Outer Goal Audit、deterministic gate、targeted child Attempt、outer aggregate budget 与 no-progress 的精简 Contract；Stage 2 正式接受与本 Contract 接受均为实施入口门槛 |
+| Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
+| Stage 3 产品实现 | submitted_for_main_acceptance | 用户已接受 Contract 并授权实施；durable outer audit、deterministic gate、atomic targeted child、aggregate budget、minimal API 与 28 项定向测试已完成；未自我验收 |
 
 ## 2. Git 与基线
 
@@ -337,9 +343,10 @@ Provider 全回归为 1572 passed、4 deselected、7 warnings；`compileall` 与
 ## 8.7 Stage 3 Contract 与 JIT 实施准备
 
 当前分支 HEAD 为 Stage 2 Round 2 提交 `fafcf48`，工作树在规划开始时干净；
-本地仓库尚无 V5 主 Session 的 Stage 2 正式接受记录。因此
-`V5_A_STAGE_3_CONTRACT.md` 保持 `draft_pending_main_review`，
-`implementation_authorized=false`。
+本地仓库在规划提交时尚无 V5 主 Session 的 Stage 2 正式接受记录，因此当时
+`V5_A_STAGE_3_CONTRACT.md` 以 `draft_pending_main_review`、
+`implementation_authorized=false` 提交。其后用户已直接接受完整 Stage 2 与
+Stage 3 Contract，并授权本轮实施；当前状态见第 8.8 节。
 
 JIT 源码审计确认：
 
@@ -368,6 +375,31 @@ SHA-256/size/mtime 为
 `248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
 94,588,928 bytes / `2026-07-31T03:25:48+0800`。
 
+## 8.8 Stage 3 实施与验证
+
+用户已明确接受 `V5_A_STAGE_3_CONTRACT.md` 并授权实施。产品/测试提交
+`788d01c` 完成：
+
+- schema 9 migration source 与 ConstraintSpec、AuditCandidate、
+  ConstraintAuditObservation、OuterAudit、CompactImprovementState、
+  ContinuationDecision/Seed、Result linkage；
+- registered deterministic evaluator gate，candidate/confidence 无权威，
+  unsupported natural language 保持 unknown/needs-user；
+- commit-time currentness guard 与 immutable EvidenceIdentity/Attempt-scoped
+  EvidenceUse 边界；
+- parent Result/terminalization + retry child/Trace/Seed + child-scoped carry
+  use/currentness 的单事务 publication；
+- outer aggregate budget、identity-based semantic progress、repeated target/
+  no-progress、durable block/stop 与独立 fenced implementation-failure；
+- 最小 outer advance/status API；未授权 provider mode fail closed。
+
+验证结果：Stage 3 28 项、联合定向 155 项、默认无 Provider
+`1600 passed, 4 deselected, 7 warnings`；`compileall` 与 `diff --check` 通过。
+最终稳定窗口 live DB 保持 schema 7，SHA-256/size/mtime 为
+`a6e2d883e9df563296d8fb147a17480374817e99d653d5ad4562e6ff0843c0e9` /
+94,588,928 bytes / `2026-07-31T04:27:14+0800`。schema 9 只在 pytest 临时
+SQLite 执行；Provider/凭据/Keychain/live migration 均未运行。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -384,17 +416,20 @@ SHA-256/size/mtime 为
 - Stage 2 未证明真实 Provider 的质量、成本、延迟或恢复语义；provider execution
   mode 明确 fail closed。
 - Stage 2 schema 8 的 live migration、真实断电/SIGKILL、多主机长期 soak、
-  production-scale retention/performance 与 Outer Goal Audit 仍未执行或证明。
+  production-scale retention/performance 仍未执行或证明。
+- Stage 3 已证明 deterministic outer gate、targeted continuation 与安全分类；
+  任意自然语言语义满足、真实 Provider audit/target generation、live schema 9、
+  完整 HITL/interrupt/branch/replay 控制面和 held-out product quality 仍为
+  `not_exercised` 或 `unproven`。
 - 首次回归期间的外部 scheduled sync/live schema 7 migration 使“整个会话期间
   live DB 完全不变”不可成立；只有外部进程结束后的最终稳定测试窗口满足
   hash/size/mtime 不变。
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已完成 Stage 2 Round 2 返工并提交主 Session 复审，
-同时完成 Stage 3 Contract/JIT 计划 Draft。Stage 2 不自我接受；在 Stage 2 正式
-接受和 Stage 3 Contract 获授权前不开始 Stage 3 产品实现。真实 Provider 运行与
-live DB schema 8/未来 schema 9 migration 仍未授权。
+同一个 V5-A Version Session 已根据用户对完整 Stage 2 和 Stage 3 Contract 的
+接受/授权完成 Stage 3 实施，并提交 V5 主 Session 正式阶段验收。Stage 3 不
+自我接受、不开始 Stage 4；真实 Provider 与 live schema 9 migration 仍未授权。
 
 ```yaml
 charter_status: accepted
@@ -404,14 +439,18 @@ stage_1_status: accepted
 stage_1_self_accepted: false
 stage_2_contract_status: accepted_by_v5_main
 stage_2_implementation_authorized: true
-stage_2_status: resubmitted_for_main_acceptance
+stage_2_status: accepted_by_user_pending_main_record
 stage_2_self_accepted: false
-stage_3_contract_status: draft_pending_main_review
-stage_3_implementation_authorized: false
-stage_3_implementation_started: false
+stage_3_contract_status: accepted_by_user_for_implementation
+stage_3_implementation_authorized: true
+stage_3_implementation_started: true
+stage_3_implementation_completed: true
+stage_3_status: submitted_for_main_acceptance
+stage_3_self_accepted: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
+stage_3_live_database_migration_performed: false
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_2_acceptance_then_stage_3_contract_review
+next_action: V5_main_session_stage_3_acceptance
 ```

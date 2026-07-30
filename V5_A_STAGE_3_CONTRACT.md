@@ -3,7 +3,7 @@
 ```yaml
 stage: V5-A Stage 3
 title: Outer Goal Audit and Recursive Continuation
-contract_status: draft_pending_main_review
+contract_status: accepted_by_user_for_implementation
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-31
@@ -11,9 +11,10 @@ version_charter: V5_A_VERSION_CHARTER.md
 execution_branch: codex/v5-a
 planning_head: fafcf48cf3c8703e9d665992da96c8b74de20fff
 stage_2_submission_head: fafcf48cf3c8703e9d665992da96c8b74de20fff
+stage_2_user_acceptance_received: true
 stage_2_formal_acceptance_record_present: false
-implementation_authorized: false
-implementation_started: false
+implementation_authorized: true
+implementation_started: true
 provider_wiring_proposed: true
 provider_runs_authorized: false
 provider_runs_performed: false
@@ -22,8 +23,8 @@ live_database_migration_performed: false
 stage_3_self_accepted: false
 ```
 
-> 本 Contract 是待 V5 主 Session 审阅的实施边界草案，不构成 Stage 2 接受、
-> Stage 3 实施授权、真实 Provider 运行授权或 live migration 授权。
+> 用户已明确接受本 Contract 并授权 Stage 3 实施。该授权不构成真实 Provider
+> 运行、live migration、Stage 3 自我验收或 Program 级验收记录。
 
 ## 1. 入口门槛与使命
 
@@ -35,8 +36,9 @@ Stage 3 实施前必须同时满足：
    后续主审修改；
 4. V5 主 Session 接受本 Contract 并明确授权实施。
 
-当前仓库尚无 Stage 2 正式接受记录，因此本轮只能准备 Contract 与
-Just-in-time 计划。
+当前仓库尚无 Stage 2 主 Session 正式接受记录；用户已在本 Session 明确接受
+完整 Stage 2，并进一步接受本 Contract、授权 Stage 3 实施。V5-A 记录该直接
+授权事实，但不代替 V5 主 Session 修改 Program 级验收记录。
 
 Stage 3 的唯一使命是：对已经 citation-valid、可重新校验的 provisional
 artifact 逐项审计当前 Goal objective 和 success constraints；仅在存在具体、
@@ -598,22 +600,23 @@ citation validity 外推。
 9. **Implementation Report**：记录 commits、证据、未证明项与 live DB 指纹，
    提交 V5 主 Session 正式验收；不自行开始 Stage 4。
 
-## 14. 请求主 Session 的少量边界决定
+## 14. 已接受边界与后续验收
 
-1. 先决定 Stage 2 Round 2：`accept / partial_accept / rework / pause / reject`；
-   没有正式接受时 Stage 3 保持 Draft。
-2. 若 Stage 2 接受，再决定本 Contract：
-   `accept / partial_accept / rework / pause / reject`。
-3. 若接受，授权第 8.1 节产品源码、schema/migration source、临时 DB tests、
-   deterministic gate、targeted continuation 和 Provider wiring-only 范围。
-4. 确认真实 Provider runs、live migration、Prompt/Tool Contract/UI 与 Stage 4/5
+1. 用户已正式接受完整 Stage 2，并接受本 Contract、授权第 8.1 节产品源码、
+   schema/migration source、临时 DB tests、deterministic gate、targeted
+   continuation 和 Provider wiring-only 范围。
+2. V5-A 不代替 V5 主 Session 创建 Program 级 Stage 2/3 验收记录，也不自我
+   接受 Stage 3 实现。
+3. 真实 Provider runs、live migration、Prompt/Tool Contract/UI 与 Stage 4/5
    仍未授权。
+4. 实施完成后由 V5 主 Session 按第 11 节证据作出
+   `accept / partial_accept / rework / pause / reject`。
 
 ```yaml
-stage_3_contract_status: draft_pending_main_review
-stage_3_implementation_authorized: false
-stage_3_implementation_started: false
+stage_3_contract_status: accepted_by_user_for_implementation
+stage_3_implementation_authorized: true
+stage_3_implementation_started: true
 stage_3_provider_runs_authorized: false
 stage_3_live_database_migration_authorized: false
-next_action: V5_main_session_stage_2_acceptance_then_stage_3_contract_review
+next_action: V5_A_stage_3_implementation_then_main_acceptance
 ```
