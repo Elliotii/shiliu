@@ -13,6 +13,8 @@ artifact_commit: 0fd038effc321a0b2ec964c9628ba379924c4643
 main_acceptance_record: V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md
 accepted_implementation_base: a8dae62a9796d8d9d70afb883ab5f2c1a707403f
 stage_1_implementation_commit: c8a3f9f054b6793dade3e353fbf61fd8a583ec06
+stage_1_main_acceptance_round_1: rework
+stage_1_rework_round_1_commit: ecbea72b483487a4a64d46d286719e89d024e22f
 charter_status: accepted
 stage_1_contract_status: authorized
 stage_1_implementation_authorized: true
@@ -62,7 +64,7 @@ V5 主 Session 于 2026-07-31 确认：
 - AREX 接受为 `training_independent_patterns_only` 设计参考；Stage 1 不实现其模式。
 - 上述决定均不授予产品实现、Provider 运行或 live migration 权限。
 
-主 Session 最终复核已接受修订后的 Charter、研究边界和 Stage 1 Contract，并授权按 Contract 开始 Stage 1 实施。V5-A 已基于 `a8dae62` 完成 Stage 1 实施与自测，提交 `c8a3f9f`，当前等待主 Session 独立验收。
+主 Session 最终复核已接受修订后的 Charter、研究边界和 Stage 1 Contract，并授权按 Contract 开始 Stage 1 实施。V5-A 已基于 `a8dae62` 完成 Stage 1 实施与自测，提交 `c8a3f9f`。主验收 Round 1 决定为 `rework`；两项 bounded 修复已提交为 `ecbea72`，当前等待主 Session 复审。
 
 ## 3. Live DB / Index / Corpus
 
@@ -191,12 +193,30 @@ V5 主 Session 于 2026-07-31 独立重跑同一 122 项测试并确认全部通
 
 ## 8.1 Stage 1 实施验证
 
-- Stage 1 kernel/API 定向 suite：37 passed。
-- 默认无 Provider 全回归：1535 passed，4 deselected，7 warnings。
+- Stage 1 kernel/API 定向 suite：41 passed。
+- 默认无 Provider 全回归：1539 passed，4 deselected，7 warnings。
 - 新增 schema 7 只在临时 SQLite migration tests 中执行；live DB 实施前后
   SHA-256、大小与 mtime 完全一致。
 - Provider、付费服务、credential 和 Keychain 均未运行或访问。
 - 详细矩阵与证据见 `V5_A_STAGE_1_IMPLEMENTATION_REPORT.md`。
+
+## 8.2 Main Acceptance Rework Round 1
+
+主 Session 在临时 SQLite 独立复现并要求修正：
+
+1. 公共 `start_attempt` 的 cause/lineage 可绕过专用 resume/retry/revise/branch
+   语义。
+2. takeover 后旧 epoch `reserved` SideEffect 没有安全续作路径。
+
+`ecbea72` 已完成：
+
+- public command 与 service 双层 cause-specific guard；非法组合无
+  Attempt/Trace/Receipt/Task state 漂移。
+- takeover CAS 事务内只重绑定 `reserved` record，追加 rebound Event 并保留
+  Task-scoped 唯一身份；旧 owner 仍被 fence。
+- 旧 `in_flight` 不重绑定，仍按 unknown/blocked fail-closed 流程恢复。
+- 增加 service/API 对抗、fault rollback、stale owner、hash mismatch、并发与
+  replay 测试。
 
 ## 9. 当前未证明项
 

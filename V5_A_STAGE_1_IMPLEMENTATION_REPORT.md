@@ -6,6 +6,8 @@ version_session: Shiliu V5-A Version Session
 branch: codex/v5-a
 accepted_base_commit: a8dae62a9796d8d9d70afb883ab5f2c1a707403f
 implementation_commit: c8a3f9f054b6793dade3e353fbf61fd8a583ec06
+main_acceptance_round_1_decision: rework
+rework_round_1_commit: ecbea72b483487a4a64d46d286719e89d024e22f
 stage: 1
 stage_name: Durable Task Kernel and Safety Envelope
 stage_1_status: submitted_for_main_acceptance
@@ -21,7 +23,8 @@ next_action: V5_main_session_stage_1_acceptance
 V5-A 已在 `codex/v5-a` 实施 `V5_A_STAGE_1_CONTRACT.md` 的产品
 Research Task kernel、安全围栏、SQLite schema 7、无 Provider deterministic
 adapter、最小 JSON API 与机械测试。实现提交基于 V5 主 Session 的正式接受/授权
-提交 `a8dae62`，没有 merge commit。
+提交 `a8dae62`；主验收 Round 1 的两项 bounded rework 已在 `ecbea72` 修复。
+提交历史中没有 merge commit。
 
 本报告只提交事实与 V5-A 自测结论，不构成 Stage 1 正式接受。请求 V5 主
 Session 在独立复核后选择：
@@ -34,6 +37,26 @@ requested_main_decision:
   - pause
   - reject
 ```
+
+### Main Acceptance Rework Round 1
+
+主 Session 的 Round 1 决定为 `rework`，确认整体方向与既有测试，但发现：
+
+1. 公共 `start_attempt` 可用不合法 cause/field 组合伪造
+   resume/retry/goal-revision/initial/branch/replay identity。
+2. takeover 后旧 epoch 的 `reserved` SideEffect 没有安全续作路径。
+
+修复结果：
+
+- `execute_command(kind=start_attempt)` 只接受 initial/branch/replay；其余必须走
+  resume/retry/revise-goal 专用 command。
+- service 层仍执行 cause-specific validation，不能绕开公共命令层直接伪造：
+  initial 只允许首个 Attempt；retry 要求同 Task terminal parent；resume 和
+  goal_revision 不创建通用 Attempt；branch/replay 要求 source checkpoint 与
+  terminal source Attempt 完全一致。
+- takeover CAS 事务只把旧 epoch 的 `reserved` SideEffect 重绑定到新 epoch，
+  同时提交 rebound Event、Task version/owner epoch 与 claim receipt。
+- 旧 `in_flight` 不重绑定，仍只能在 takeover 后转 `unknown + blocked`。
 
 ## 2. Implementation Scope
 
@@ -52,11 +75,14 @@ requested_main_decision:
   - `BEGIN IMMEDIATE` 事务边界、expected-version/checkpoint mutation guard。
   - terminal Task 不可复活；终态后 retry/revision 生成 child Task。
   - clean resume、同 Task retry、Goal revision、cancel、最小 branch/replay lineage。
+  - public command 与 service 双层 cause-specific Attempt lineage guard。
   - single-active-owner lease/epoch、takeover CAS、stale owner 写拒绝。
   - CommandReceipt payload hash、响应重放、payload mismatch fail-closed 与
     append-only rejection Event。
   - SideEffect reserve → in-flight → succeeded/failed，以及 takeover 后
     unknown/blocked 恢复和显式 deterministic resolution。
+  - takeover 内对旧 epoch `reserved` record 做 CAS 重绑定并追加 Event；
+    `in_flight` 明确排除。
 - `src/shiliu/research/adapter.py`
   - 纯本地、无网络、无 Provider 的 deterministic effect adapter。
 - `src/shiliu/app.py`、`src/shiliu/web.py`
@@ -69,9 +95,10 @@ requested_main_decision:
 ### 测试代码
 
 - `tests/test_v5_a_stage1_research_kernel.py`
-  - 34 项 kernel/schema/migration/crash/race/lineage/idempotency 定向测试。
+  - 37 项 kernel/schema/migration/crash/race/lineage/idempotency 定向测试。
 - `tests/test_v5_a_stage1_research_api.py`
-  - 3 项 create/get/command/status/trace API 与 conflict/child Task 测试。
+  - 4 项 create/get/command/status/trace API、conflict、child Task 与 cause
+    对抗测试。
 - 既有 schema version assertions 同步到 7；未修改 golden 或放宽既有断言。
 
 ## 3. Contract Satisfaction Matrix
@@ -90,7 +117,9 @@ requested_main_decision:
 | ambiguous in-flight | takeover 前保持；旧 owner 被 fence 后转 unknown + Task blocked；不自动重放 | implemented_mechanically_verified |
 | checkpoint/restart | 完整 payload/hash/schema/parent/owner epoch；新 service 实例恢复 | implemented_mechanically_verified |
 | retry/resume/revision/cancel | distinct semantics、幂等重放、race winner、历史不可变 | implemented_mechanically_verified |
+| public Attempt cause guard | command/service 双层校验；非法组合不产生 Attempt/Trace/Receipt/状态漂移 | rework_round_1_verified |
 | branch/replay Stage 1 边界 | 只实现 identity/source lineage；source 仅当前 Task/祖先且已终态 | implemented_mechanically_verified |
+| reserved takeover | 仅合法 takeover 原子重绑定 reserved；旧 owner 拒写；同 record 单次执行 | rework_round_1_verified |
 | 最小 API | create/get/command/status/trace JSON endpoints | implemented_mechanically_verified |
 | 既有产品回归 | 默认无 Provider suite 全过 | mechanically_verified |
 | 正式 Stage 接受 | 只由 V5 主 Session 决定 | pending_main_acceptance |
@@ -104,7 +133,7 @@ PYTHONPATH=src <shared-python> -m pytest -q \
   tests/test_v5_a_stage1_research_kernel.py \
   tests/test_v5_a_stage1_research_api.py
 
-37 passed
+41 passed
 ```
 
 定向证据包括：
@@ -119,6 +148,11 @@ PYTHONPATH=src <shared-python> -m pytest -q \
 - same command replay、payload mismatch、stale version/checkpoint/owner；
 - terminal Task 不可复活、child Task lineage、Goal revision、retry/resume；
 - branch/replay 当前或祖先 source checkpoint，以及 unrelated source fail-closed；
+- public service/API 对 initial/resume/retry/goal_revision/branch/replay 非法组合
+  fail-closed，且 Attempt/Trace/Receipt/Task state 无漂移；
+- reserved → lease expiry → takeover/rebind → 单次 execution/receipt；
+  覆盖 rollback、stale owner、hash mismatch、claim replay 与并发竞争；
+- 旧 epoch `in_flight` 在 takeover 后保持旧 epoch，继续只走 unknown/blocked；
 - 三维 Result 的 `valid_success`、`valid_insufficient`、
   `valid_partial + provider_error + provider_failure` 和
   `not_produced + implementation_error + implementation_failure` 表达。
@@ -128,7 +162,7 @@ PYTHONPATH=src <shared-python> -m pytest -q \
 ```text
 PYTHONPATH=src <shared-python> -m pytest
 
-1535 passed, 4 deselected, 7 warnings in 31.17s
+1539 passed, 4 deselected, 7 warnings in 29.87s
 ```
 
 默认 pytest 配置排除 `external_artifact` 和 `live_provider`。该执行覆盖既有
@@ -178,6 +212,12 @@ implementation:
   subject: feat(v5-a): implement durable research task kernel
   files_changed: 13
   insertions: 4256
+  deletions: 3
+rework_round_1:
+  sha: ecbea72b483487a4a64d46d286719e89d024e22f
+  subject: "fix(v5-a): close stage 1 lineage and takeover gaps"
+  files_changed: 3
+  insertions: 421
   deletions: 3
 ```
 
