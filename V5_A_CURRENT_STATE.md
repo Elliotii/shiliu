@@ -31,6 +31,11 @@ stage_2_rework_round_1_commit: 0ad5823724913874fd72afdbf2808d9f274f1c8e
 stage_2_main_acceptance_round_2: rework_budget_accounting_and_evidence_cap
 stage_2_status: resubmitted_for_main_acceptance
 stage_2_self_accepted: false
+stage_3_contract: V5_A_STAGE_3_CONTRACT.md
+stage_3_contract_status: draft_pending_main_review
+stage_3_planning_baseline: fafcf48cf3c8703e9d665992da96c8b74de20fff
+stage_3_implementation_authorized: false
+stage_3_implementation_started: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -56,6 +61,7 @@ external_live_database_change_observed: true
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | resubmitted_for_main_acceptance | 主验收 Round 1 原始两项已复审通过；Round 2 的 synthesis context 记账与 evidence cap hard-stop 两项 bounded rework 已提交；Stage 2 定向测试现为 33 项；未自我验收 |
+| Stage 3 Contract/JIT 计划 | draft_pending_main_review | 已完成 Outer Goal Audit、deterministic gate、targeted child Attempt、outer aggregate budget 与 no-progress 的精简 Contract；Stage 2 正式接受与本 Contract 接受均为实施入口门槛 |
 
 ## 2. Git 与基线
 
@@ -328,6 +334,40 @@ Provider 全回归为 1572 passed、4 deselected、7 warnings；`compileall` 与
 `248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
 94,588,928 bytes / `2026-07-31T03:25:48+0800`。
 
+## 8.7 Stage 3 Contract 与 JIT 实施准备
+
+当前分支 HEAD 为 Stage 2 Round 2 提交 `fafcf48`，工作树在规划开始时干净；
+本地仓库尚无 V5 主 Session 的 Stage 2 正式接受记录。因此
+`V5_A_STAGE_3_CONTRACT.md` 保持 `draft_pending_main_review`，
+`implementation_authorized=false`。
+
+JIT 源码审计确认：
+
+- Stage 2 artifact、Attempt-scoped evidence/currentness 和 Stage 1 owner/receipt
+  可直接作为 outer audit 输入与安全边界。
+- 当前 Goal constraints 是 opaque strings；没有 constraint identity、逐项
+  observation、OuterAudit、CompactImprovementState、ContinuationDecision 或
+  outer aggregate budget。
+- Stage 2 complete/stopped state 不得复活；targeted continuation 应由专用 audit
+  transaction 原子终结父 Attempt，并创建 `cause=retry` 的 child Attempt。
+  独立 ContinuationDecision/Seed 表达 `outer_targeted_followup`，避免扩张或滥用
+  AttemptCause。
+- child Attempt 保持原 Goal，但使用 bounded targeted execution objective；
+  carried evidence identity 必须重新建立 child-scoped EvidenceUse/currentness。
+- Candidate/model/confidence 没有 gate 权威。只有 registered deterministic
+  evaluator（以及未来 Stage 4 明确 human decision）可以写 `satisfied`；无法判断
+  的 natural-language constraint 保持 unknown。
+- outer progress 按 constraint status、current evidence、conflict 与 audited
+  answer status 计算；答案文字、query、segment ID 或新 Attempt 不单独算进展。
+
+Contract 提议 schema/migration source、deterministic gate、atomic continuation、
+minimal API 和 Provider wiring-only；真实 Provider、live migration、Prompt/
+Tool Contract/UI、Stage 4/5 均继续未授权。当前无 Provider机械核验重跑 Stage 2
+suite：33 passed，仅既有 Starlette/httpx warning；live DB 仍为 schema 7，
+SHA-256/size/mtime 为
+`248deb86dd9b32b8ff4bac52ebb3b7e00fdde0c311f421c073310418376d9f24` /
+94,588,928 bytes / `2026-07-31T03:25:48+0800`。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -351,9 +391,10 @@ Provider 全回归为 1572 passed、4 deselected、7 warnings；`compileall` 与
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已完成 Stage 2 产品实现、自测与实施报告，并提交
-V5 主 Session 进行 bounded rework 后复审。Stage 2 不自我接受，也不自行开始 Stage 3。
-真实 Provider 运行与 live DB schema 8 migration 仍未授权。
+同一个 V5-A Version Session 已完成 Stage 2 Round 2 返工并提交主 Session 复审，
+同时完成 Stage 3 Contract/JIT 计划 Draft。Stage 2 不自我接受；在 Stage 2 正式
+接受和 Stage 3 Contract 获授权前不开始 Stage 3 产品实现。真实 Provider 运行与
+live DB schema 8/未来 schema 9 migration 仍未授权。
 
 ```yaml
 charter_status: accepted
@@ -365,9 +406,12 @@ stage_2_contract_status: accepted_by_v5_main
 stage_2_implementation_authorized: true
 stage_2_status: resubmitted_for_main_acceptance
 stage_2_self_accepted: false
+stage_3_contract_status: draft_pending_main_review
+stage_3_implementation_authorized: false
+stage_3_implementation_started: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_2_acceptance
+next_action: V5_main_session_stage_2_acceptance_then_stage_3_contract_review
 ```
