@@ -39,6 +39,11 @@ from shiliu.retrieval import (
     SearchExecutionError,
     SearchRequest,
 )
+from shiliu.research.contracts import (
+    CreateResearchTaskRequest,
+    ResearchCommandRequest,
+)
+from shiliu.research.errors import ResearchError
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 from shiliu.stage5 import Stage5PipelineRequest
 
@@ -355,6 +360,104 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         if trace is None:
             raise HTTPException(404, "Ask Trace 不存在")
         return JSONResponse({"ok": True, "trace": trace})
+
+    @web.post("/api/research/tasks")
+    async def create_research_task(
+        payload: CreateResearchTaskRequest, request: Request
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research.create_task,
+                command_id=payload.command_id,
+                task_id=payload.task_id,
+                objective=payload.objective,
+                success_constraints=payload.success_constraints,
+                evidence_policy=payload.evidence_policy,
+                parent_task_id=payload.parent_task_id,
+            )
+            research = await asyncio.to_thread(
+                core.research.get_task, str(outcome["task_id"])
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "research": research})
+
+    @web.get("/api/research/tasks/{task_id}")
+    async def get_research_task(task_id: str, request: Request) -> JSONResponse:
+        try:
+            research = await asyncio.to_thread(
+                _core(request).research.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "research": research})
+
+    @web.get("/api/research/tasks/{task_id}/status")
+    async def get_research_task_status(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            research = await asyncio.to_thread(
+                _core(request).research.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "task": research["task"],
+                "active_goal_id": research["task"]["active_goal_id"],
+                "attempts": research["attempts"],
+                "side_effects": research["side_effects"],
+            }
+        )
+
+    @web.get("/api/research/tasks/{task_id}/traces")
+    async def get_research_task_traces(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            research = await asyncio.to_thread(
+                _core(request).research.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "traces": research["traces"],
+                "events": research["events"],
+            }
+        )
+
+    @web.post("/api/research/tasks/{task_id}/commands")
+    async def execute_research_command(
+        task_id: str, payload: ResearchCommandRequest, request: Request
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research.execute_command, task_id, payload
+            )
+            research = await asyncio.to_thread(core.research.get_task, task_id)
+            if outcome.get("task_id") != task_id:
+                research = await asyncio.to_thread(
+                    core.research.get_task, str(outcome["task_id"])
+                )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "research": research})
 
     @web.post("/api/evidence-sufficiency")
     async def evidence_sufficiency(

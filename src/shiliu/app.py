@@ -28,6 +28,7 @@ from shiliu.retrieval import (
 from shiliu.sync import SyncService
 from shiliu.evidence import EvidenceSearchService
 from shiliu.runtime_modes import PRODUCT_RUNTIME_CONFIG
+from shiliu.research.service import ResearchTaskService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
@@ -55,6 +56,7 @@ class Application:
         configure_logging(self.paths.logs_dir)
         self.db = Database(self.paths.database)
         self.db.initialize()
+        self.research = ResearchTaskService(self.db)
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,

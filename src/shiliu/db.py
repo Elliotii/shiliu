@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
+from shiliu.research.schema import initialize_research_schema
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 
 def utc_now() -> str:
@@ -285,6 +286,7 @@ class Database:
             )
             self._ensure_columns(connection)
             self._ensure_source_order(connection)
+            initialize_research_schema(connection)
             connection.execute(
                 "INSERT INTO schema_meta(key, value) VALUES('schema_version', ?) "
                 "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
