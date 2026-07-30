@@ -15,8 +15,11 @@ source_reviewed: true
 tests_reviewed: true
 tests_executed: false
 provider_runs_performed: false
-adoption_status: pattern_only_reimplementation_reference_confirmed
-adoption_type_proposed: pattern_only_reimplementation
+adoption_status: adopted
+adoption_type: pattern_only_reimplementation
+usage_level: design_and_test_reference_only
+role: upstream_design_and_failure_test_reference
+qualifier: no_dependency_no_source_copy_no_prompt_copy_stage_contract_authority_required
 implementation_authorized: false
 ```
 
@@ -323,7 +326,11 @@ research_scope:
   - user_input_interrupt
   - branch_replay
   - run_ownership_recovery
-adoption_status: pattern_only_reimplementation_reference_confirmed_by_main_review
+adoption_status: adopted
+adoption_type: pattern_only_reimplementation
+usage_level: design_and_test_reference_only
+role: upstream_design_and_failure_test_reference
+qualifier: no_dependency_no_source_copy_no_prompt_copy_stage_contract_authority_required
 adoption_boundary:
   dependency: rejected
   source_copy: rejected
@@ -331,7 +338,7 @@ adoption_boundary:
 implementation_authorized: false
 ```
 
-字段枚举应由主 Session 按 Program Registry schema 归一化。
+`adoption_status` 已使用 Program Registry 允许枚举；其受限含义由 `adoption_type`、`usage_level`、`role`、`qualifier` 与 `implementation_authorized` 共同表达。
 
 ## 8. Research Log Update Proposal（未直接修改）
 

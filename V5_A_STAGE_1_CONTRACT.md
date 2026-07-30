@@ -53,7 +53,7 @@ Stage 1 的产品可见性可以首先是受控 API 和持久 trace 查询；不
 
 ### 缺失
 
-- 产品 ResearchTask/Goal/Attempt/Checkpoint/Event/Trace/Result/SideEffectRecord schema。
+- 产品 ResearchTask/Goal/Attempt/Checkpoint/Event/Trace/Result/CommandReceipt/SideEffectRecord schema。
 - 产品 durable command、resume、retry、cancel、goal revision、branch/replay 语义。
 - 产品 checkpointer 和持久 trace。
 - general external side-effect reservation/receipt。
@@ -243,7 +243,7 @@ Stage 1 可只记录 deterministic kernel trace；不得把 V4 进程内 trace �
 
 1. `answer_status`：`valid_success`、`valid_partial`、`valid_insufficient`、`not_produced`。
 2. `termination_reason`：至少包括 `answer_ready`、`budget_exhausted`、`no_new_evidence`、`repeated_action`、`evidence_unavailable`、`needs_user_input`、`cancelled`、`goal_revised`、`external_side_effect_unknown`、`provider_error`、`implementation_error`。
-3. `failure_class`：`none`、`implementation_failure`、`provider_failure`、`product_quality_failure`、`infrastructure_failure`、`evaluation_invalid`。
+3. `failure_class`：`none`、`implementation_failure`、`provider_failure`、`product_quality_failure`、`infrastructure_invalid_run`、`evaluation_invalid_run`。
 
 Program taxonomy 必须可无损派生。例如：
 

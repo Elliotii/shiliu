@@ -20,7 +20,11 @@ tests_reviewed: false
 tests_executed: false
 weights_downloaded: false
 provider_runs_performed: false
-adoption_status: training_independent_patterns_only_reference_confirmed
+adoption_status: adopted
+adoption_type: training_independent_patterns_only
+usage_level: design_reference_only
+role: recursive_research_design_reference
+qualifier: no_model_no_weights_no_prompt_no_code_no_confidence_gate_stage_1_excluded
 implementation_authorized: false
 ```
 
@@ -270,7 +274,11 @@ review_evidence:
   tests_executed: false
   weights_downloaded: false
   provider_run: false
-adoption_status: training_independent_patterns_only_reference_confirmed_by_main_review
+adoption_status: adopted
+adoption_type: training_independent_patterns_only
+usage_level: design_reference_only
+role: recursive_research_design_reference
+qualifier: no_model_no_weights_no_prompt_no_code_no_confidence_gate_stage_1_excluded
 adoption_boundary:
   model: rejected
   weights: rejected
@@ -281,7 +289,7 @@ stage_1_implementation: prohibited
 implementation_authorized: false
 ```
 
-字段枚举由主 Session 依 Program Registry schema 归一化。
+`adoption_status` 已使用 Program Registry 允许枚举；其受限含义由 `adoption_type`、`usage_level`、`role`、`qualifier`、`stage_1_implementation` 与 `implementation_authorized` 共同表达。
 
 ## 10. Research Log Update Proposal（未直接修改）
 
