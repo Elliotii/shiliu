@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-07-30T20:52:50+08:00
+> Updated at: 2026-07-30T22:05:37+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,12 +8,12 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: none
-  current_stage: none
+  current_subversion: V5_A
+  current_stage: startup_and_reconnaissance
   accepted_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  active_execution_session: none
-  pending_decision: user_authorization_to_create_V5_A_subversion_session
-  next_action: present_V5_A_startup_recommendation_and_request_authorization
+  active_execution_session: pending_creation
+  pending_decision: none
+  next_action: create_V5_A_execution_branch_and_subversion_session
   roadmap_reconsideration_open: false
 ```
 
@@ -50,7 +50,7 @@ repository:
 
 ```yaml
 program:
-  V5_A: not_started
+  V5_A: preparing
   V5_B: not_started
   V5_C: not_started
   V5_D: not_started
@@ -63,14 +63,14 @@ program:
 
 ```yaml
 current:
-  charter: none
+  charter: draft_not_created
   stage_contract: none
-  execution_session: none
+  execution_session: pending_creation
   baseline: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  report_pending: false
+  report_pending: true
 ```
 
-V5-A 尚未启动，也未创建 Version Charter、Stage Contract 或执行 Session。
+用户已批准 V5-A 规划和首批启动与侦察包。V5-A 处于 `preparing`；Version Charter、Stage Contract 和执行 Session 尚未创建。
 
 ---
 
@@ -98,7 +98,7 @@ accepted_results:
 # 5. Current Blockers
 
 - 技术阻塞：无。
-- 权限门：创建 V5-A 子版本 Session 前仍需用户明确授权。
+- 用户已授权创建 V5-A 子版本 Session与执行首批研究/规划任务。
 
 ---
 
@@ -211,4 +211,4 @@ v4_v4_1_live_audit:
 
 # 9. Next Authorized Action
 
-向用户提交精简的 V5-A 启动建议，并请求授权创建唯一活跃的 V5-A 子版本 Session。授权前不得创建该 Session、定稿 Charter、下载上游或开始产品实施。
+提交 `V5_A_SUBVERSION_STARTUP_PACKAGE.md`，建立 `codex/v5-a` 独立执行边界，创建唯一活跃的 V5-A 子版本 Session，并执行首批源码侦察、DeerFlow/AREX 研究、Version Charter Draft 和 Stage 1 Contract Draft。首批不得开始产品实施、运行 Provider、执行 Migration 或正式采用上游。
