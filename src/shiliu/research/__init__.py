@@ -14,10 +14,18 @@ from shiliu.research.contracts import (
 from shiliu.research.errors import (
     ResearchConflict,
     ResearchError,
+    ResearchForbidden,
     ResearchNotFound,
     ResearchUnsafeState,
     ResearchValidationError,
     SimulatedCrash,
+)
+from shiliu.research.control_contracts import (
+    ControlCommandRequest,
+    CreateInputRequest,
+    DeriveTaskRequest,
+    HumanDecisionRequest,
+    ResolveSideEffectRequest,
 )
 from shiliu.research.outer_contracts import (
     AdvanceOuterResearchRequest,
@@ -31,6 +39,9 @@ __all__ = [
     "AttemptCause",
     "AttemptStatus",
     "CreateResearchTaskRequest",
+    "ControlCommandRequest",
+    "CreateInputRequest",
+    "DeriveTaskRequest",
     "DeterministicEffectAdapter",
     "FailureClass",
     "OuterAdvanceResponse",
@@ -38,10 +49,13 @@ __all__ = [
     "ResearchCommandRequest",
     "ResearchConflict",
     "ResearchError",
+    "ResearchForbidden",
     "ResearchNotFound",
     "ResearchTaskResponse",
     "ResearchUnsafeState",
     "ResearchValidationError",
+    "HumanDecisionRequest",
+    "ResolveSideEffectRequest",
     "SimulatedCrash",
     "SideEffectStatus",
     "TaskStatus",

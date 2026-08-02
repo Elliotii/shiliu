@@ -14,6 +14,26 @@ OUTER_AUDIT_SCHEMA_VERSION = "v5-a-stage3-outer-audit-v1"
 OUTER_STATE_SCHEMA_VERSION = "v5-a-stage3-outer-state-v1"
 COMPACT_IMPROVEMENT_SCHEMA_VERSION = "v5-a-stage3-improvement-v1"
 CONTINUATION_SEED_SCHEMA_VERSION = "v5-a-stage3-continuation-seed-v1"
+CONTROL_SCHEMA_VERSION = "v5-a-stage4-control-v1"
+INPUT_SCHEMA_VERSION = "v5-a-stage4-input-v1"
+DERIVATION_SCHEMA_VERSION = "v5-a-stage4-derivation-v1"
+
+
+def prepare_research_schema_v10(connection: sqlite3.Connection) -> None:
+    """Add the Stage 4 control fence without rewriting existing aggregates."""
+    task = connection.execute(
+        "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='research_tasks'"
+    ).fetchone()
+    if task is None:
+        return
+    columns = {
+        str(row[1]) for row in connection.execute("PRAGMA table_info(research_tasks)")
+    }
+    if "control_generation" not in columns:
+        connection.execute(
+            "ALTER TABLE research_tasks ADD COLUMN control_generation "
+            "INTEGER NOT NULL DEFAULT 0 CHECK(control_generation >= 0)"
+        )
 
 
 def prepare_research_schema_v9(connection: sqlite3.Connection) -> None:
@@ -86,6 +106,7 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             state_version INTEGER NOT NULL DEFAULT 0 CHECK (state_version >= 0),
             owner_id TEXT,
             owner_epoch INTEGER NOT NULL DEFAULT 0 CHECK (owner_epoch >= 0),
+            control_generation INTEGER NOT NULL DEFAULT 0 CHECK (control_generation >= 0),
             lease_until TEXT,
             terminal_result_id TEXT REFERENCES research_results(result_id) ON DELETE RESTRICT,
             created_at TEXT NOT NULL,
@@ -543,6 +564,151 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             created_at TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS research_control_requests (
+            control_request_id TEXT PRIMARY KEY,
+            control_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            attempt_id TEXT REFERENCES research_attempts(attempt_id) ON DELETE RESTRICT,
+            command_id TEXT NOT NULL,
+            request_kind TEXT NOT NULL CHECK (
+                request_kind IN ('interrupt', 'resume', 'cancel')
+            ),
+            payload_hash TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            audit_actor_metadata_json TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            expected_state_version INTEGER NOT NULL CHECK(expected_state_version >= 0),
+            expected_checkpoint_id TEXT REFERENCES research_checkpoints(checkpoint_id) ON DELETE RESTRICT,
+            expected_control_generation INTEGER NOT NULL CHECK(expected_control_generation >= 0),
+            admitted_control_generation INTEGER NOT NULL CHECK(admitted_control_generation >= 1),
+            admitted_owner_epoch INTEGER NOT NULL CHECK(admitted_owner_epoch >= 1),
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_control_dispositions (
+            disposition_id TEXT PRIMARY KEY,
+            control_request_id TEXT NOT NULL REFERENCES research_control_requests(control_request_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            status TEXT NOT NULL CHECK (
+                status IN ('accepted', 'applied', 'rejected', 'superseded')
+            ),
+            observed_control_generation INTEGER NOT NULL CHECK(observed_control_generation >= 1),
+            owner_epoch INTEGER NOT NULL CHECK(owner_epoch >= 1),
+            reason TEXT NOT NULL,
+            resulting_references_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_input_requests (
+            input_request_id TEXT PRIMARY KEY,
+            input_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            goal_id TEXT NOT NULL REFERENCES research_goals(goal_id) ON DELETE RESTRICT,
+            attempt_id TEXT NOT NULL REFERENCES research_attempts(attempt_id) ON DELETE RESTRICT,
+            source_checkpoint_id TEXT NOT NULL REFERENCES research_checkpoints(checkpoint_id) ON DELETE RESTRICT,
+            command_id TEXT NOT NULL,
+            request_kind TEXT NOT NULL CHECK (
+                request_kind IN ('clarification', 'constraint_choice')
+            ),
+            prompt TEXT NOT NULL CHECK(length(prompt) BETWEEN 1 AND 2000),
+            choices_json TEXT NOT NULL,
+            response_schema_json TEXT NOT NULL,
+            constraint_id TEXT REFERENCES research_constraint_specs(constraint_id) ON DELETE RESTRICT,
+            payload_hash TEXT NOT NULL,
+            owner_epoch INTEGER NOT NULL CHECK(owner_epoch >= 1),
+            expires_at TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_input_dispositions (
+            disposition_id TEXT PRIMARY KEY,
+            input_request_id TEXT NOT NULL REFERENCES research_input_requests(input_request_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            status TEXT NOT NULL CHECK (
+                status IN ('open', 'resolved', 'cancelled', 'superseded')
+            ),
+            control_generation INTEGER NOT NULL CHECK(control_generation >= 0),
+            reason TEXT NOT NULL,
+            resulting_reference TEXT,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_human_decisions (
+            decision_id TEXT PRIMARY KEY,
+            input_request_id TEXT NOT NULL UNIQUE REFERENCES research_input_requests(input_request_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            command_id TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            decision_kind TEXT NOT NULL CHECK (
+                decision_kind IN ('clarify_goal', 'select_constraint_option')
+            ),
+            response_hash TEXT NOT NULL,
+            response_json TEXT NOT NULL,
+            applied_action TEXT NOT NULL,
+            result_references_json TEXT NOT NULL,
+            control_generation INTEGER NOT NULL CHECK(control_generation >= 1),
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_human_constraint_observations (
+            observation_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            goal_id TEXT NOT NULL REFERENCES research_goals(goal_id) ON DELETE RESTRICT,
+            attempt_id TEXT NOT NULL REFERENCES research_attempts(attempt_id) ON DELETE RESTRICT,
+            constraint_id TEXT NOT NULL REFERENCES research_constraint_specs(constraint_id) ON DELETE RESTRICT,
+            decision_id TEXT NOT NULL UNIQUE REFERENCES research_human_decisions(decision_id) ON DELETE RESTRICT,
+            selected_option TEXT NOT NULL,
+            evaluator_policy_version TEXT NOT NULL,
+            control_generation INTEGER NOT NULL CHECK(control_generation >= 1),
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_side_effect_resolutions (
+            resolution_id TEXT PRIMARY KEY,
+            side_effect_id TEXT NOT NULL UNIQUE REFERENCES research_side_effects(side_effect_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            command_id TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            resolution TEXT NOT NULL CHECK (
+                resolution IN ('confirmed_succeeded', 'confirmed_failed')
+            ),
+            reason TEXT NOT NULL,
+            receipt_hash TEXT,
+            result_reference TEXT,
+            control_generation INTEGER NOT NULL CHECK(control_generation >= 1),
+            owner_epoch INTEGER NOT NULL CHECK(owner_epoch >= 1),
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id),
+            CHECK (
+                resolution != 'confirmed_succeeded'
+                OR (receipt_hash IS NOT NULL AND result_reference IS NOT NULL)
+            )
+        );
+
+        CREATE TABLE IF NOT EXISTS research_task_derivations (
+            derivation_id TEXT PRIMARY KEY,
+            derivation_schema_version TEXT NOT NULL,
+            source_task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            source_goal_id TEXT NOT NULL REFERENCES research_goals(goal_id) ON DELETE RESTRICT,
+            source_attempt_id TEXT NOT NULL REFERENCES research_attempts(attempt_id) ON DELETE RESTRICT,
+            source_checkpoint_id TEXT NOT NULL REFERENCES research_checkpoints(checkpoint_id) ON DELETE RESTRICT,
+            child_task_id TEXT NOT NULL UNIQUE REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            child_goal_id TEXT NOT NULL REFERENCES research_goals(goal_id) ON DELETE RESTRICT,
+            child_attempt_id TEXT NOT NULL UNIQUE REFERENCES research_attempts(attempt_id) ON DELETE RESTRICT,
+            command_id TEXT NOT NULL,
+            derivation_kind TEXT NOT NULL CHECK(derivation_kind IN ('branch', 'replay')),
+            source_state_hash TEXT NOT NULL,
+            source_manifest_json TEXT NOT NULL,
+            goal_delta_json TEXT NOT NULL,
+            payload_hash TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(source_task_id, command_id)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_research_tasks_parent
         ON research_tasks(parent_task_id);
         CREATE INDEX IF NOT EXISTS idx_research_tasks_status
@@ -579,6 +745,16 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
         ON research_constraint_audit_observations(audit_id, constraint_id);
         CREATE INDEX IF NOT EXISTS idx_research_continuation_decisions_task
         ON research_continuation_decisions(task_id, goal_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_control_requests_task
+        ON research_control_requests(task_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_control_dispositions_request
+        ON research_control_dispositions(control_request_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_input_requests_task
+        ON research_input_requests(task_id, attempt_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_input_dispositions_request
+        ON research_input_dispositions(input_request_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_derivations_source
+        ON research_task_derivations(source_task_id, created_at);
 
         CREATE TRIGGER IF NOT EXISTS trg_research_evidence_identity_no_update
         BEFORE UPDATE ON research_evidence_identities
@@ -669,6 +845,70 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
         CREATE TRIGGER IF NOT EXISTS trg_research_continuation_seed_no_delete
         BEFORE DELETE ON research_continuation_seeds BEGIN
             SELECT RAISE(ABORT, 'research continuation seed is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_control_request_no_update
+        BEFORE UPDATE ON research_control_requests BEGIN
+            SELECT RAISE(ABORT, 'research control request is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_control_request_no_delete
+        BEFORE DELETE ON research_control_requests BEGIN
+            SELECT RAISE(ABORT, 'research control request is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_control_disposition_no_update
+        BEFORE UPDATE ON research_control_dispositions BEGIN
+            SELECT RAISE(ABORT, 'research control disposition is append-only');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_control_disposition_no_delete
+        BEFORE DELETE ON research_control_dispositions BEGIN
+            SELECT RAISE(ABORT, 'research control disposition is append-only');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_input_request_no_update
+        BEFORE UPDATE ON research_input_requests BEGIN
+            SELECT RAISE(ABORT, 'research input request is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_input_request_no_delete
+        BEFORE DELETE ON research_input_requests BEGIN
+            SELECT RAISE(ABORT, 'research input request is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_input_disposition_no_update
+        BEFORE UPDATE ON research_input_dispositions BEGIN
+            SELECT RAISE(ABORT, 'research input disposition is append-only');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_input_disposition_no_delete
+        BEFORE DELETE ON research_input_dispositions BEGIN
+            SELECT RAISE(ABORT, 'research input disposition is append-only');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_human_decision_no_update
+        BEFORE UPDATE ON research_human_decisions BEGIN
+            SELECT RAISE(ABORT, 'research human decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_human_decision_no_delete
+        BEFORE DELETE ON research_human_decisions BEGIN
+            SELECT RAISE(ABORT, 'research human decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_human_constraint_observation_no_update
+        BEFORE UPDATE ON research_human_constraint_observations BEGIN
+            SELECT RAISE(ABORT, 'research human constraint observation is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_human_constraint_observation_no_delete
+        BEFORE DELETE ON research_human_constraint_observations BEGIN
+            SELECT RAISE(ABORT, 'research human constraint observation is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_side_effect_resolution_no_update
+        BEFORE UPDATE ON research_side_effect_resolutions BEGIN
+            SELECT RAISE(ABORT, 'research side effect resolution is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_side_effect_resolution_no_delete
+        BEFORE DELETE ON research_side_effect_resolutions BEGIN
+            SELECT RAISE(ABORT, 'research side effect resolution is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_task_derivation_no_update
+        BEFORE UPDATE ON research_task_derivations BEGIN
+            SELECT RAISE(ABORT, 'research task derivation is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_task_derivation_no_delete
+        BEFORE DELETE ON research_task_derivations BEGIN
+            SELECT RAISE(ABORT, 'research task derivation is immutable');
         END;
         """
     )

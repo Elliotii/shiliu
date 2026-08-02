@@ -35,6 +35,7 @@ from shiliu.research.inner_service import InnerResearchService
 from shiliu.research.outer_service import OuterResearchService
 from shiliu.research.inner_tools import LocalInnerToolAdapter
 from shiliu.research.service import ResearchTaskService
+from shiliu.research.control_service import ResearchControlService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
@@ -63,6 +64,7 @@ class Application:
         self.db = Database(self.paths.database)
         self.db.initialize()
         self.research = ResearchTaskService(self.db)
+        self._research_control: ResearchControlService | None = None
         self._research_inner: InnerResearchService | None = None
         self._research_outer: OuterResearchService | None = None
         if self.config.favorite_id is not None:
@@ -275,6 +277,15 @@ class Application:
                 trace_dir=self.paths.logs_dir / "stage5_traces",
             )
         return self._stage5_pipeline
+
+    @property
+    def research_control(self) -> ResearchControlService:
+        if self._research_control is None:
+            self._research_control = ResearchControlService(
+                db=self.db,
+                kernel=self.research,
+            )
+        return self._research_control
 
     @property
     def research_inner(self) -> InnerResearchService:

@@ -43,6 +43,13 @@ from shiliu.research.contracts import (
     CreateResearchTaskRequest,
     ResearchCommandRequest,
 )
+from shiliu.research.control_contracts import (
+    ControlCommandRequest,
+    CreateInputRequest,
+    DeriveTaskRequest,
+    HumanDecisionRequest,
+    ResolveSideEffectRequest,
+)
 from shiliu.research.errors import ResearchError
 from shiliu.research.inner_contracts import (
     ContinueInnerResearchRequest,
@@ -123,6 +130,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
     web = FastAPI(title="拾流 Shiliu", docs_url=None, redoc_url=None)
     web.mount("/static", StaticFiles(directory=str(PACKAGE_DIR / "static")), name="static")
     web.state.core = application or Application()
+    # The local product boundary supplies this principal. Request payloads cannot
+    # choose actor identity, role, or capability.
+    web.state.research_control_principal = "local_operator"
     web.state.login_process = None
     web.state.background_lock = threading.Lock()
     web.state.background_thread = None
@@ -463,6 +473,111 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "outcome": outcome, "research": research})
+
+    @web.get("/api/research/tasks/{task_id}/control")
+    async def get_research_control_status(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            control = await asyncio.to_thread(
+                _core(request).research_control.get_status, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "control": control})
+
+    @web.post("/api/research/tasks/{task_id}/control")
+    async def apply_research_control(
+        task_id: str, payload: ControlCommandRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.apply_control,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+            control = await asyncio.to_thread(
+                _core(request).research_control.get_status, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "control": control})
+
+    @web.post("/api/research/tasks/{task_id}/inputs")
+    async def create_research_input(
+        task_id: str, payload: CreateInputRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.create_input,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/tasks/{task_id}/inputs/decisions")
+    async def decide_research_input(
+        task_id: str, payload: HumanDecisionRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.decide_input,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/tasks/{task_id}/side-effects/resolve")
+    async def resolve_research_side_effect(
+        task_id: str, payload: ResolveSideEffectRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.resolve_side_effect,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/tasks/{task_id}/derivations")
+    async def derive_research_task(
+        task_id: str, payload: DeriveTaskRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.derive_task,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+            child = await asyncio.to_thread(
+                _core(request).research.get_task, str(outcome["task_id"])
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "research": child})
 
     @web.post("/api/research/tasks/{task_id}/inner/continue")
     async def continue_inner_research(

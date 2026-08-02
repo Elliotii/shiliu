@@ -11,10 +11,11 @@ from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
 from shiliu.research.schema import (
     initialize_research_schema,
     prepare_research_schema_v9,
+    prepare_research_schema_v10,
 )
 
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 
 
 def utc_now() -> str:
@@ -30,6 +31,7 @@ class Database:
         self._backup_before_migration()
         with self.connect() as connection:
             prepare_research_schema_v9(connection)
+            prepare_research_schema_v10(connection)
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS schema_meta (

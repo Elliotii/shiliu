@@ -24,6 +24,11 @@ class ResearchValidationError(ResearchError):
     http_status = 400
 
 
+class ResearchForbidden(ResearchError):
+    code = "research_forbidden"
+    http_status = 403
+
+
 class ResearchUnsafeState(ResearchConflict):
     code = "research_unsafe_state"
 

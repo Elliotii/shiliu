@@ -221,8 +221,8 @@ def test_schema_8_adds_stage2_tables_only_in_temporary_database(app_paths) -> No
     db.initialize()
     db.initialize()
 
-    assert SCHEMA_VERSION == 9
-    assert app_paths.database.with_name("shiliu.pre-v9.backup.db").is_file()
+    assert SCHEMA_VERSION == 10
+    assert app_paths.database.with_name("shiliu.pre-v10.backup.db").is_file()
     with db.connect() as migrated:
         version = migrated.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
@@ -235,7 +235,7 @@ def test_schema_8_adds_stage2_tables_only_in_temporary_database(app_paths) -> No
         }
         integrity = migrated.execute("PRAGMA integrity_check").fetchone()[0]
         violations = migrated.execute("PRAGMA foreign_key_check").fetchall()
-    assert version == "9"
+    assert version == "10"
     assert STAGE2_TABLES.issubset(tables)
     assert integrity == "ok"
     assert violations == []
