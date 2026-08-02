@@ -3,7 +3,8 @@
 ```yaml
 stage: V5-A Stage 5
 title: Product Completion, Trace, and Reliability Evaluation
-contract_status: draft_pending_main_review
+contract_status: accepted_with_bounded_preimplementation_sync
+contract_review_decision: accept_with_bounded_preimplementation_sync
 proposal_authority: Shiliu V5-A Version Session
 acceptance_authority: V5 main session
 as_of: 2026-08-03
@@ -21,9 +22,10 @@ live_database_migration_performed: false
 stage_5_self_accepted: false
 ```
 
-本文件是 Stage 5 的目标与验收合同草案，不是实施提交、Provider 运行授权、live
-migration 授权或 V5-A 最终验收。内部模块、文件布局、普通技术选择和实现顺序由
-V5-A Session 在合同获准后自主决定。
+V5 主 Session 已按目标/边界接受本 Contract，并要求本次 bounded
+preimplementation sync；该接受不是实施提交、Gate A 自动授权、Provider 运行授权、
+live migration 授权或 V5-A 最终验收。内部模块、文件布局、普通技术选择和实现顺序
+由 V5-A Session 在用户另行授权 Gate A 后自主决定。
 
 ## 1. 唯一使命
 
@@ -140,6 +142,27 @@ Attempt/checkpoint/control generation 校验。浏览器中的 actor/role/capabi
 closed、提示刷新且不漂移。双击、刷新和网络重试使用同一 command identity 时 exact
 once，不得重复创建 input、effect、child Task 或 Result。
 
+### 3.5 四类 Task-scoped Candidate Delta
+
+每个完成、部分完成、证据不足或受控停止的 Task 都必须形成以下四类候选 Delta 的
+有界输出；每一类可以为空，但空值必须记录明确原因：
+
+- **KnowledgeDelta**：本 Task 建议新增、修正或撤销的知识命题/关系候选；
+- **CorpusDelta**：本 Task 观察到的语料缺口、来源补充、修正或重建索引候选；
+- **UserModelDelta**：仅从本 Task 的显式目标/HITL 输入产生的用户需要或偏好候选；
+- **SystemExperienceDelta**：从本 Task durable trace 得出的策略、工具、恢复或评估
+  改进候选。
+
+四类 Delta 均须 Task-scoped、有服务端数量/字符边界，并绑定产生它们的 Task、Goal、
+Attempt/Result（适用时）与 Trace/Event/Checkpoint；非空事实性候选还须绑定其
+EvidenceUse/Citation（适用时）。它们是可审计 Candidate 输出，不是新的 Evidence
+或 Result authority。
+
+Stage 5 不得把 Candidate Delta 直接晋升为长期知识事实、Research Artifact authority、
+用户 Profile/Memory、System Experience authority 或 Active Skill；也不得据此修改
+corpus、用户模型、运行策略或技能。任何跨 Task 汇总、审查、接受、激活或长期保留
+属于后续版本的独立 authority/gate，本阶段不得提前实现 V5-B/C/D。
+
 ## 4. Product completion 不变量
 
 1. **Durability before presentation**：UI 只投影已提交持久状态；先显示后落库、仅存在
@@ -233,6 +256,8 @@ Gate A 只有同时满足以下条件才可提交验收：
    loading/error/empty/terminal 状态明确、破坏性控制要求确认。
 8. Implementation Report 给出 Contract 矩阵、commits/diff、测试与故障证据、live DB
    稳定指纹、warnings、`not_exercised`、`unproven`；不自我接受 Stage 5/V5-A。
+9. 四类 Candidate Delta 均可由用户查看或经 completion evidence 审计；非空项可追溯
+   Evidence/Trace，空项有原因，且不存在任何长期 authority/profile/memory/skill 晋升。
 
 ## 7. Gate A 定向验收矩阵
 
@@ -244,6 +269,7 @@ Gate A 只有同时满足以下条件才可提交验收：
 | Evidence/Citation | current/stale/insufficient、cross-Task isolation、shared renderer consistency |
 | Control | current input、interrupt/resume、cancel、unknown resolution、allowed operations |
 | Derivation | retry/branch/replay child lineage、source/sibling immutable、source checkpoint visible |
+| Candidate Delta | 四类齐备或有空原因、Task scope/bounds、Evidence/Trace lineage、无 authority promotion |
 | Idempotency | double click、network replay、payload mismatch、stale state/generation fail closed |
 | Recovery | process restart、expired lease/takeover、mid-transaction crash、runner/poll reconnect |
 | Concurrency | two workers/clients single winner、terminal race、input/control/resolution race |
@@ -261,14 +287,28 @@ Stage 5 最终报告应提供一个精简、可机器核对的 completion manife
 - Charter 五个 Stage 的 Contract/acceptance/implementation commits；
 - source/live schema、migration actor、migration 是否执行；
 - 用户旅程与 Contract 矩阵映射到测试/证据；
+- KnowledgeDelta、CorpusDelta、UserModelDelta、SystemExperienceDelta 的每 Task 数量、
+  empty reason、Evidence/Trace lineage 与 `candidate_only_not_promoted` 状态；
 - mechanical、Provider quality、integration/live migration 三 gate 的独立状态；
 - Provider case/model/call/cost（仅在获批运行时）或明确 `not_exercised`；
 - live baseline 与稳定窗口指纹、完整性/FK、corpus counts；
 - 已知 warnings、失败、deferred、unproven 与版本遗留风险；
-- V5-A 请求主 Session 的 `accept / partial_accept / rework / pause / reject`。
+- 按下述完整验收规则请求主 Session 的
+  `accept / partial_accept / rework / pause / reject`。
 
 文档或 UI 演示不能替代源码/测试执行，单次 happy path 不能替代 restart/race/fault，
 测试存在不能写成测试已运行。
+
+### 8.1 完整验收规则
+
+- Gate A 的机械接线验收只证明 Gate A，不等于 Stage 5 或 V5-A 完整交付。
+- V5-A 原则上只有在获批范围内至少完成一条有代表性的 Gate B 真实 Provider 产品
+  质量评价，并完成 Gate C 主线集成、必要 live migration 与集成 smoke 后，才可请求
+  正式完整 `accept`。
+- Gate B 中具体 Provider/model/role 组合可以由主 Session 明确保持
+  `not_exercised`；这不允许用机械结果冒充其质量证据。
+- 若 Gate B 或 Gate C 整体尚未获授权或尚未执行，V5-A 最多只能请求
+  `partial_accept`，不得请求完整 `accept`，也不得把 Gate A acceptance 写成版本完成。
 
 ## 9. 非目标与禁止范围
 
@@ -279,6 +319,8 @@ Stage 5 最终报告应提供一个精简、可机器核对的 completion manife
 - 复制 DeerFlow/AREX 代码、Prompt、模型、权重或添加其依赖；
 - 未单独授权的 Provider、费用、凭据/Keychain、Prompt/model/Tool Contract；
 - 未单独授权的 live migration、Merge、Push、Tag 或 Program 权威文件修改。
+- Candidate Delta 的跨 Task promotion、长期知识/用户记忆/系统经验 authority、
+  Active Skill 或任何 V5-B/C/D 实现。
 
 ## 10. 风险、未证明项与暂停条件
 
@@ -299,16 +341,18 @@ schema 10 migration/rollback、主线集成和跨版本长期 replay。
 
 ## 11. JIT 实施计划
 
-Contract 获接受并明确 Gate A 授权后，V5-A 自主按依赖推进：
+本 Contract 已获有界接受；只有用户明确发送“自主实施 Gate A”后，V5-A 才自主按
+依赖推进：
 
 1. 冻结用户状态/trace/evidence projection 与有界 product command DTO；
 2. 接入稳定 Research 入口、列表/详情和无 Provider durable execution trigger；
 3. 复用 Evidence/Citation renderer，完成 user-readable state/result/trace；
 4. 接入 current Stage 4 HITL/control/derivation interactions；
-5. 关闭 stale/replay/restart/race/fault 与 accessibility/error-state 测试；
-6. 运行 Stage 1–5 联合、`/search`、Fast/Deep `/ask` 与默认无 Provider 回归；
-7. 提交 Implementation Report 与 version completion evidence，停止等待 Gate A 验收；
-8. 只有收到单独授权后才执行 Gate B；Gate C 始终由主 Session 另行决定。
+5. 形成四类有界、Task-scoped、candidate-only Delta 及 lineage/empty reason；
+6. 关闭 stale/replay/restart/race/fault 与 accessibility/error-state 测试；
+7. 运行 Stage 1–5 联合、`/search`、Fast/Deep `/ask` 与默认无 Provider 回归；
+8. 提交 Implementation Report 与 Gate A evidence，停止等待 Gate A 验收；
+9. 只有收到单独授权后才执行 Gate B；Gate C 始终由主 Session 另行决定。
 
 该顺序不是对内部 commits、模块或普通实现选择的逐项审批。
 
@@ -316,7 +360,7 @@ Contract 获接受并明确 Gate A 授权后，V5-A 自主按依赖推进：
 
 ```yaml
 stage_4_status: accepted_by_v5_main
-stage_5_contract_status: draft_pending_main_review
+stage_5_contract_status: accepted_with_bounded_preimplementation_sync
 stage_5_implementation_authorized: false
 stage_5_implementation_started: false
 mechanical_product_gate_authorized: false
@@ -325,5 +369,5 @@ mainline_integration_authorized: false
 live_schema_10_migration_authorized: false
 provider_runs_performed: false
 live_database_migration_performed: false
-next_action: V5_main_session_stage_5_contract_goal_boundary_review
+next_action: wait_for_user_manual_gate_A_implementation_instruction
 ```

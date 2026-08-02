@@ -63,7 +63,8 @@ stage_4_accepted_head: 26d22cda779086681da69747fce4b97260988646
 stage_4_status: accepted_by_v5_main
 stage_4_self_accepted: false
 stage_5_contract: V5_A_STAGE_5_CONTRACT.md
-stage_5_contract_status: draft_pending_main_review
+stage_5_contract_review: accept_with_bounded_preimplementation_sync
+stage_5_contract_status: accepted_with_bounded_preimplementation_sync
 stage_5_implementation_authorized: false
 stage_5_implementation_started: false
 stage_5_mechanical_product_gate_authorized: false
@@ -102,7 +103,7 @@ external_live_database_change_observed: true
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
-| Stage 5 Contract | draft_pending_main_review | 只读 JIT 审计后已起草 Product Completion、Trace、Reliability 合同；未开始产品实施，Provider quality 与 mainline/live migration 为独立 gate |
+| Stage 5 Contract | accepted_with_bounded_preimplementation_sync | 主 Session 已接受目标/边界；本次仅补齐四类 Candidate Delta 与完整验收语义。Gate A 尚未授权，等待用户手动发送“自主实施 Gate A” |
 
 ## 2. Git 与基线
 
@@ -604,6 +605,25 @@ schema 9、SHA-256
 94,588,928 bytes、mtime `2026-08-03T02:05:13+0800`、integrity ok、FK 0、
 157/140；本次未执行 live migration、Provider 或凭据访问。
 
+## 8.14 Stage 5 Contract bounded preimplementation sync
+
+V5 主 Session 已完成 Stage 5 Contract 目标/边界审阅，决定
+`accept_with_bounded_preimplementation_sync`，同时明确
+`gate_A_implementation_authorized_now: false`。本次只做 docs-only 限定同步，未开始
+Gate A 产品实现。
+
+Contract 现冻结四类有界、Task-scoped Candidate 输出：KnowledgeDelta、CorpusDelta、
+UserModelDelta、SystemExperienceDelta。每类可以为空但必须记录原因，非空项须追溯
+到 Evidence/Trace；它们不得直接晋升为长期知识、Research Artifact authority、用户
+Profile/Memory、System Experience authority 或 Active Skill，也不得提前实现
+V5-B/C/D。具体数据结构和实现方式仍由 V5-A 在 Gate A 获权后自主决定。
+
+完整验收语义同步明确：Gate A mechanical acceptance 不等于 Stage 5/V5-A 完整交付；
+完整 `accept` 原则上还需至少一条获批、具代表性的 Gate B 真实 Provider 产品质量
+评价，以及 Gate C 主线集成、必要 live migration 与 integration smoke。具体
+Provider/model 组合可保持 `not_exercised`，但 Gate B 或 Gate C 整体未获授权/未执行
+时，V5-A 最多只能请求 `partial_accept`。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -633,10 +653,10 @@ schema 9、SHA-256
 
 ## 10. 下一动作
 
-Stage 4 已由 V5 主 Session 正式接受且不再返工。同一个 V5-A Version Session 已完成
-Stage 5 JIT 只读审计并起草精简 Contract，当前只请求主 Session 做目标/边界级审阅；
-Stage 5 产品实施、真实 Provider、mainline integration 与 live schema 10 migration
-均未获授权、未执行。
+Stage 4 已由 V5 主 Session 正式接受且不再返工。Stage 5 Contract 已获主 Session
+目标/边界级有界接受并完成 docs-only sync；Gate A 仍未授权。本 Session 停止并等待
+用户手动发送“自主实施 Gate A”。真实 Provider、mainline integration 与 live
+schema 10 migration 均未获授权、未执行。
 
 ```yaml
 charter_status: accepted
@@ -674,7 +694,8 @@ stage_4_accepted_head: 26d22cda779086681da69747fce4b97260988646
 stage_4_status: accepted_by_v5_main
 stage_4_self_accepted: false
 stage_5_contract: V5_A_STAGE_5_CONTRACT.md
-stage_5_contract_status: draft_pending_main_review
+stage_5_contract_review: accept_with_bounded_preimplementation_sync
+stage_5_contract_status: accepted_with_bounded_preimplementation_sync
 stage_5_implementation_authorized: false
 stage_5_implementation_started: false
 stage_5_mechanical_product_gate_authorized: false
@@ -689,5 +710,5 @@ stage_4_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_5_contract_goal_boundary_review
+next_action: wait_for_user_manual_gate_A_implementation_instruction
 ```
