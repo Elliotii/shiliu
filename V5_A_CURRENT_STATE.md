@@ -78,7 +78,8 @@ stage_5_gate_A_status: accepted_by_v5_main
 stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
 stage_5_gate_B_plan: V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md
-stage_5_gate_B_plan_status: draft_pending_main_review
+stage_5_gate_B_plan_review: accepted_with_bounded_docs_rework
+stage_5_gate_B_plan_status: bounded_docs_rework_completed_pending_main_review
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -116,7 +117,7 @@ external_live_database_change_observed: true
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
 | Stage 5 Gate A | accepted_by_v5_main | 主 Session 已接受 HEAD `a09d7c2`，bounded rework Round 1 closed；Stage 5/V5-A 尚未完整完成 |
-| Stage 5 Gate B 计划 | draft_pending_main_review | 已冻结 exact cases、snapshot 隔离、单一 Provider/model/role、预算/费用、credential 拟议方式、rubric、manifest 和授权模板；Provider 调用仍为 0 |
+| Stage 5 Gate B 计划 | bounded_docs_rework_completed_pending_main_review | 主审方向通过；已校正 `agent_action=1,200`、精确 token/cost caps，加入首次付费调用前机械 Entry Gate，并把 snapshot 授权限定为形成流程与材料性 baseline；Provider 调用仍为 0 |
 
 ## 2. Git 与基线
 
@@ -710,13 +711,35 @@ artifact 只作为固定 copy source。
 
 规划开始时的只读 fingerprint 为 `8413958… / 03:06:53`；docs 编写期间外部 scheduled
 sync run 353 完成，将 live fingerprint 更新为 `8e98b39… / 04:09:35`，schema/count 与
-目标 artifact hash 保持不变。V5-A 未触发或干预该 sync；授权包使用后者作为最新候选，
-并要求运行前再次精确核验，发生变化即停止而非静默换 snapshot。
+目标 artifact hash 保持不变。V5-A 未触发或干预该 sync；该观察值不是永久授权身份，
+运行时按受控 snapshot 形成流程冻结 eval copy 精确 SHA。
 
 本轮只读取 Provider 非秘密配置字段，提出 DeepSeek OpenAI-compatible /
 `deepseek-v4-pro` 的 `query_analysis / agent_action / grounded_answer` 单一组合；未读取
 `api_key_ref` 值、未访问 Keychain、未发网络请求。计划接受仍不等于接线、credential
 access 或 Provider run 授权。
+
+## 8.18 Gate B bounded docs-only rework
+
+V5 主 Session 对 Gate B 计划的方向审阅为 `accepted_with_bounded_docs_rework`，但 Provider
+wiring、credential access 和 Provider run 均未授权。本轮只修订计划与本状态文件。
+
+- 按产品源码把 `agent_action` 单调用 output 上限从错误的 4,096 校正为 1,200；必跑两
+  case 总 output cap 为 23,088，含条件 HITL 为 31,984；
+- manifest 冻结 `deepseek-v4-pro` 官方每百万 token 价目：cache-hit input
+  US$0.003625、cache-miss input US$0.435、output US$0.87。全部 case、全 cache miss、
+  无 retry 约 US$0.0887；按 2×峰时因子和每 logical call 一次 transport retry 预留约
+  US$0.3549，因此 nominal/reserve stop/absolute max 分别为 US$0.10/0.40/0.50；
+- 首次付费调用前必须通过机械 Entry Gate：独立 wiring commit 与 clean tree、无网络
+  receipt/fence/cost/restart/unknown/replay 测试、Gate A blob freeze、隔离 eval copy 与
+  schema 10 preflight、manifest/price freeze；任一失败时不访问凭据且调用数保持 0；
+- snapshot 授权改为形成流程与材料性 baseline：stable window 用 SQLite-safe copy，冻结
+  eval copy 精确 SHA。只有 schema、corpus/retrieval counts、index identity 或目标
+  source/artifact identity 变化才停止；仅 live SHA/mtime 或非材料 scheduled-sync 变化只
+  更新 manifest observation 后继续。
+
+本轮没有修改产品源码/测试，没有 Provider wiring、凭据/Keychain 访问、Provider 调用、
+live migration 或 Gate C 工作。
 
 ## 9. 当前未证明项
 
@@ -748,9 +771,9 @@ access 或 Provider run 授权。
 ## 10. 下一动作
 
 Stage 4 与 Stage 5 Gate A 已由 V5 主 Session 正式接受。Gate B 精简评估授权包已提交
-目标/预算/credential/运行范围级审阅；Provider、最小 Provider wiring、Keychain access、
+完成主审要求的 bounded docs-only 修订；Provider、最小 Provider wiring、Keychain access、
 Gate C、mainline integration 与 live schema 10 migration 均未获授权、未执行。下一动作
-是 V5 主 Session 审阅 Gate B plan，而不是开始 Provider 运行。
+是 V5 主 Session 轻量复核 Gate B plan 修订，而不是开始 Provider 运行。
 
 ```yaml
 charter_status: accepted
@@ -803,7 +826,8 @@ stage_5_gate_A_status: accepted_by_v5_main
 stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
 stage_5_gate_B_plan: V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md
-stage_5_gate_B_plan_status: draft_pending_main_review
+stage_5_gate_B_plan_review: accepted_with_bounded_docs_rework
+stage_5_gate_B_plan_status: bounded_docs_rework_completed_pending_main_review
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -816,5 +840,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_B_plan_review
+next_action: V5_main_session_gate_B_bounded_docs_rework_review
 ```
