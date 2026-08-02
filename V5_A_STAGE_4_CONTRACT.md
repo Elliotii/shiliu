@@ -3,16 +3,17 @@
 ```yaml
 stage: V5-A Stage 4
 title: HITL and Operational Control
-contract_status: draft_pending_main_review
+contract_status: accepted_with_bounded_preimplementation_sync
 proposal_authority: V5-A execution session
 acceptance_authority: V5 main session
 created_at: 2026-07-31
 version_charter: V5_A_VERSION_CHARTER.md
 execution_branch: codex/v5-a
 planning_head: 9b2725f6ebe3db25828c72174f34bd1b91388368
-stage_3_acceptance_basis: user_confirmed_complete_pass
-stage_3_formal_acceptance_record_present: false
-implementation_authorized: false
+stage_3_acceptance_basis: accepted_and_integrated_by_v5_main
+stage_3_formal_acceptance_record_present: true
+implementation_authorized_after_sync_commit: true
+implementation_authorized: true
 implementation_started: false
 provider_runs_authorized: false
 provider_runs_performed: false
@@ -22,9 +23,9 @@ formal_ui_authorized: false
 stage_4_self_accepted: false
 ```
 
-> 本文件只请求 Contract 审阅。实施、Provider、live migration、Prompt、
-> Tool Contract 和正式 UI 均未授权。实施前必须补齐 Stage 3 主 Session 接受记录
-> 与同步 baseline。
+> V5 主 Session 已有限接受本 Contract；本次只追加实施起点与 authority 限定，
+> 不重写原 planning snapshot。完成独立 docs-only 同步提交后即可实施。Provider、
+> live schema 10 migration、Prompt、Tool Contract 和正式 UI 仍未授权。
 
 ## 1. 使命与最小产品切片
 
@@ -72,6 +73,20 @@ baseline:
   evidence_authority_mode: live_current_exact_replay
   provider_status: not_exercised
   planning_mechanical_tests: 77_passed
+implementation_start_baseline:
+  accepted_main_branch: codex/v5-main
+  accepted_main_commit: 9b2725f6ebe3db25828c72174f34bd1b91388368
+  stage_3_status: accepted_and_integrated_by_v5_main
+  source_schema_version: 9
+  live_db_schema_observed: 9
+  live_db_migrated_by_v5_a: false
+  live_db_migration_authority: V5_main_session
+  live_db_sha256: 2ff0eb91569a81b8a0e244db1238faffd6311236339707b2a9c7273cd317068f
+  live_db_size: 94588928
+  live_db_mtime: 2026-08-03T00:58:14+0800
+  live_db_foreign_key_violations: 0
+  live_db_integrity: ok
+  videos_completed: 157/140
 ```
 
 可继承：
@@ -136,6 +151,9 @@ baseline:
 ### 4.1 Control fence
 
 - `control_generation`（或等价 CAS token）与 worker `owner_epoch` 分离。
+- actor identity、role 与 control capability 只能由服务端认证上下文和注册策略
+  派生；请求 payload 自报的 actor metadata 只可作为不可信审计输入，不能授予
+  controller、human-decider、SideEffect resolver 或 derivation 权限。
 - control admission 检查 expected task/checkpoint/generation，并原子 fence 当前
   worker；旧 epoch 后续 checkpoint/result/receipt 拒绝。
 - 同时最多一个 pending control request。cancel 可 supersede 尚未 applied 的
@@ -263,7 +281,8 @@ allowed_after_contract_authorization:
 - Input：waiting-user request、restart/takeover、exact replay、payload/schema/
   task/attempt mismatch、expired/superseded、Goal clarification rollback。
 - Human authority：任意 approve/free text 不能满足 factual constraint；合法
-  human-decidable choice 可追加明确 human observation。
+  human-decidable choice 可追加明确 human observation；payload 伪造 actor、role、
+  capability 或 resolver 身份必须被服务端拒绝且不产生状态漂移。
 - Interrupt：before-action、action-commit race、late worker、restart、
   same-Attempt resume、stale owner writes rejected。
 - Cancel：无/有 checkpoint、partial artifact、duplicate/mismatch、terminal race、
@@ -324,11 +343,11 @@ allowed_after_contract_authorization:
 ## 10. 当前停止点
 
 ```yaml
-stage_3_status: accepted_by_user_pending_main_record
-stage_4_contract_status: draft_pending_main_review
-stage_4_implementation_authorized: false
+stage_3_status: accepted_and_integrated_by_v5_main
+stage_4_contract_status: accepted_with_bounded_preimplementation_sync
+stage_4_implementation_authorized: true
 stage_4_implementation_started: false
 provider_runs_performed: false
 live_database_migration_performed: false
-next_action: V5_main_session_stage_4_contract_review
+next_action: V5_A_stage_4_implementation_after_docs_sync_commit
 ```

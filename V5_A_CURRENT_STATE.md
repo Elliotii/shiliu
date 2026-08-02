@@ -1,7 +1,7 @@
 # 拾流 V5-A Current State
 
 ```yaml
-as_of: 2026-07-31
+as_of: 2026-08-03
 version_session: Shiliu V5-A Version Session
 state_authority: V5-A execution-session observation
 formal_acceptance_authority: V5 main session
@@ -42,11 +42,15 @@ stage_3_implementation_commit: 788d01c
 stage_3_main_acceptance_round_1: rework_evaluator_authority_and_context_budget
 stage_3_rework_round_1_commit: 9b2725f6ebe3db25828c72174f34bd1b91388368
 stage_3_user_acceptance: complete_pass
-stage_3_status: accepted_by_user_pending_main_record
+stage_3_main_acceptance: accept
+stage_3_main_integration_commit: 9b2725f6ebe3db25828c72174f34bd1b91388368
+stage_3_status: accepted_and_integrated_by_v5_main
 stage_3_self_accepted: false
 stage_4_contract: V5_A_STAGE_4_CONTRACT.md
-stage_4_contract_status: draft_pending_main_review
-stage_4_implementation_authorized: false
+stage_4_contract_status: accepted_with_bounded_preimplementation_sync
+stage_4_implementation_start_baseline: 9b2725f6ebe3db25828c72174f34bd1b91388368
+stage_4_implementation_authorized_after_sync_commit: true
+stage_4_implementation_authorized: true
 stage_4_implementation_started: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
@@ -57,6 +61,9 @@ product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
+stage_4_live_database_migration_performed: false
+live_database_schema_observed: 9
+live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
 ```
 
@@ -74,8 +81,8 @@ external_live_database_change_observed: true
 | youtu_agent | deferred | 未 Clone、未深研 |
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
-| Stage 3 产品实现 | accepted_by_user_pending_main_record | 用户已确认 Stage 3 完整通过；返工提交 `9b2725f`，36 项定向与 1608 项默认无 Provider 回归通过；V5-A 不代替主 Session 创建正式接受记录 |
-| Stage 4 Contract | draft_pending_main_review | 已完成 HITL/operational-control JIT 审计并起草精简 Contract；未开始实现 |
+| Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
+| Stage 4 Contract | accepted_with_bounded_preimplementation_sync | 主 Session 已有限接受；完成本次 docs-only baseline/authority 同步提交后可直接实施 |
 
 ## 2. Git 与基线
 
@@ -450,9 +457,9 @@ migration 与 Stage 4 均未运行。
 
 ## 8.10 Stage 3 接受输入与 Stage 4 Contract 准备
 
-用户已确认 Stage 3 完整通过。当前本地 `codex/v5-main` 仍停在 Stage 1 接受
-提交 `fc4708e`，尚无 Stage 3 正式接受文件或可同步 baseline；V5-A 因此记录为
-`accepted_by_user_pending_main_record`，不自行创建 Program 级接受事实。
+用户确认 Stage 3 完整通过后，V5 主 Session 已正式接受并把 `codex/v5-main`
+集成到 `9b2725f6ebe3db25828c72174f34bd1b91388368`。本文件只同步这一既有接受事实，
+不另建重量级 Stage 3 接受报告，也不修改 Program 权威文件。
 
 Stage 4 规划以干净分支 `codex/v5-a` / `9b2725f` 为代码基线。JIT 审计确认：
 
@@ -481,6 +488,20 @@ integrity ok。Stage 1 控制原语与 Stage 3 gate 的 77 项无 Provider 定�
 仅既有 Starlette/httpx TestClient warning。没有执行 Provider、live migration
 或产品 Runtime 改动。
 
+V5 主 Session 随后有限接受 Stage 4 Contract，状态为
+`accepted_with_bounded_preimplementation_sync`，并授权本次 docs-only 同步提交后
+直接实施。implementation-start baseline 为 `codex/v5-main` / `9b2725f`。
+主 Session 已把 live DB 从 schema 7 迁移到 schema 9；V5-A 没有执行该迁移。
+2026-08-03 只读核验为 SHA-256
+`2ff0eb91569a81b8a0e244db1238faffd6311236339707b2a9c7273cd317068f`、
+94,588,928 bytes、mtime `2026-08-03T00:58:14+0800`、FK violations 0、
+integrity ok、157/140 videos/completed。
+
+Contract authority 边界同步明确：actor identity、role 与 control capability 只能由
+服务端认证上下文/注册策略派生；payload 中自报 actor metadata 只用于不可信审计，
+不得授予权限。Stage 4 验收矩阵相应加入伪造 actor/role/capability 的无状态漂移
+对抗测试。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -499,7 +520,7 @@ integrity ok。Stage 1 控制原语与 Stage 3 gate 的 77 项无 Provider 定�
 - Stage 2 schema 8 的 live migration、真实断电/SIGKILL、多主机长期 soak、
   production-scale retention/performance 仍未执行或证明。
 - Stage 3 已证明 deterministic outer gate、targeted continuation 与安全分类；
-  任意自然语言语义满足、真实 Provider audit/target generation、live schema 9、
+  任意自然语言语义满足、真实 Provider audit/target generation、
   完整 HITL/interrupt/branch/replay 控制面和 held-out product quality 仍为
   `not_exercised` 或 `unproven`。
 - 首次回归期间的外部 scheduled sync/live schema 7 migration 使“整个会话期间
@@ -508,10 +529,10 @@ integrity ok。Stage 1 控制原语与 Stage 3 gate 的 77 项无 Provider 定�
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已根据用户对 Stage 3 完整通过的确认，完成 Stage 4
-JIT 审计与 Contract Draft。当前只请求主 Session 记录 Stage 3 接受 baseline 并
-审阅 Stage 4 Contract；Stage 4 尚未获实施授权。真实 Provider 与 live schema
-10 migration 仍未授权。
+同一个 V5-A Version Session 已同步 Stage 3 主接受基线、live schema 9 只读事实
+与 Stage 4 server-derived authority 限定。完成本次独立 docs-only 提交后，按已接受
+Contract 直接开始 Stage 4 实施。真实 Provider 与 live schema 10 migration 仍未
+授权。
 
 ```yaml
 charter_status: accepted
@@ -530,15 +551,21 @@ stage_3_implementation_completed: true
 stage_3_main_acceptance_round_1: rework_evaluator_authority_and_context_budget
 stage_3_rework_round_1_commit: 9b2725f6ebe3db25828c72174f34bd1b91388368
 stage_3_user_acceptance: complete_pass
-stage_3_status: accepted_by_user_pending_main_record
+stage_3_main_acceptance: accept
+stage_3_status: accepted_and_integrated_by_v5_main
 stage_3_self_accepted: false
-stage_4_contract_status: draft_pending_main_review
-stage_4_implementation_authorized: false
+stage_4_contract_status: accepted_with_bounded_preimplementation_sync
+stage_4_implementation_start_baseline: 9b2725f6ebe3db25828c72174f34bd1b91388368
+stage_4_implementation_authorized_after_sync_commit: true
+stage_4_implementation_authorized: true
 stage_4_implementation_started: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
+stage_4_live_database_migration_performed: false
+live_database_schema_observed: 9
+live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_3_record_and_stage_4_contract_review
+next_action: V5_A_stage_4_implementation_after_docs_sync_commit
 ```
