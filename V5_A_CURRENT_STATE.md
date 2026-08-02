@@ -71,10 +71,14 @@ stage_5_gate_A_implementation_completed: true
 stage_5_gate_A_implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
 stage_5_gate_A_implementation_report: V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md
 stage_5_gate_A_main_acceptance_round_1: rework_bounded_round_1
-stage_5_gate_A_rework_round_1_status: completed_pending_main_review
-stage_5_gate_A_status: resubmitted_for_main_acceptance
+stage_5_gate_A_rework_round_1_status: closed
+stage_5_gate_A_main_acceptance_decision: accept
+stage_5_gate_A_accepted_head: a09d7c2958a90cffebd43e5c27e6e4d68f13100a
+stage_5_gate_A_status: accepted_by_v5_main
 stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
+stage_5_gate_B_plan: V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md
+stage_5_gate_B_plan_status: draft_pending_main_review
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -111,7 +115,8 @@ external_live_database_change_observed: true
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
-| Stage 5 Gate A | resubmitted_for_main_acceptance | 主 Session 首轮决定为 bounded rework；unknown SideEffect 产品 resolution 与 public run `max_steps` 两个接线缺口已限定关闭，架构未重开，Gate B/C 未授权、未执行 |
+| Stage 5 Gate A | accepted_by_v5_main | 主 Session 已接受 HEAD `a09d7c2`，bounded rework Round 1 closed；Stage 5/V5-A 尚未完整完成 |
+| Stage 5 Gate B 计划 | draft_pending_main_review | 已冻结 exact cases、snapshot 隔离、单一 Provider/model/role、预算/费用、credential 拟议方式、rubric、manifest 和授权模板；Provider 调用仍为 0 |
 
 ## 2. Git 与基线
 
@@ -685,6 +690,34 @@ action 并形成 `bounded_yield`。Gate A 定向 `9 passed`，Stage 4+5 联合
 当前状态为 bounded rework 已完成并重新提交轻量复审；本 Session 不自我接受 Gate A，
 不开始 Gate B/C。
 
+## 8.17 Gate A 正式接受与 Gate B 评估授权包
+
+V5 主 Session 已正式接受 Gate A，accepted HEAD 为
+`a09d7c2958a90cffebd43e5c27e6e4d68f13100a`，bounded rework Round 1 closed。该接受只
+覆盖 mechanical product wiring/UI/trace/reliability；Stage 5/V5-A 仍未完整完成，Gate B
+Provider run 与 Gate C 均未授权。
+
+本轮以 docs-only 方式创建 `V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md`。只读核验确认当前
+research inner/outer Provider mode 仍故意 fail closed，且即使未来打开 authorization flag
+也要求先完成 receipt-bound Provider wiring；计划把这项最小 wiring 单列为运行前书面
+决定，不允许绕开 SideEffect/owner/budget protocol。
+
+计划冻结两个必跑用例（grounded answer、诚实 insufficient/waiting_user）和一个条件
+HITL case；候选 snapshot 为 schema 9、DB SHA
+`8e98b39b4c34ef034b170374616a14796bb74425a5c88a59dbc4c28efb4a37e7`、157/140、
+1,633 retrieval units / 154 indexed videos。运行状态必须落在隔离 eval DB，live DB 与
+artifact 只作为固定 copy source。
+
+规划开始时的只读 fingerprint 为 `8413958… / 03:06:53`；docs 编写期间外部 scheduled
+sync run 353 完成，将 live fingerprint 更新为 `8e98b39… / 04:09:35`，schema/count 与
+目标 artifact hash 保持不变。V5-A 未触发或干预该 sync；授权包使用后者作为最新候选，
+并要求运行前再次精确核验，发生变化即停止而非静默换 snapshot。
+
+本轮只读取 Provider 非秘密配置字段，提出 DeepSeek OpenAI-compatible /
+`deepseek-v4-pro` 的 `query_analysis / agent_action / grounded_answer` 单一组合；未读取
+`api_key_ref` 值、未访问 Keychain、未发网络请求。计划接受仍不等于接线、credential
+access 或 Provider run 授权。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -714,10 +747,10 @@ action 并形成 `bounded_yield`。Gate A 定向 `9 passed`，Stage 4+5 联合
 
 ## 10. 下一动作
 
-Stage 4 已由 V5 主 Session 正式接受且不再返工。Stage 5 Gate A 首轮有限验收的两项
-bounded 接线缺口已关闭并重新提交；本 Session 不自我接受。真实 Provider、mainline
-integration 与 live schema 10 migration 均未获授权、未执行。下一动作是 V5 主
-Session 对 Gate A bounded rework Round 1 作轻量复审。
+Stage 4 与 Stage 5 Gate A 已由 V5 主 Session 正式接受。Gate B 精简评估授权包已提交
+目标/预算/credential/运行范围级审阅；Provider、最小 Provider wiring、Keychain access、
+Gate C、mainline integration 与 live schema 10 migration 均未获授权、未执行。下一动作
+是 V5 主 Session 审阅 Gate B plan，而不是开始 Provider 运行。
 
 ```yaml
 charter_status: accepted
@@ -763,10 +796,14 @@ stage_5_gate_A_implementation_completed: true
 stage_5_gate_A_implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
 stage_5_gate_A_implementation_report: V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md
 stage_5_gate_A_main_acceptance_round_1: rework_bounded_round_1
-stage_5_gate_A_rework_round_1_status: completed_pending_main_review
-stage_5_gate_A_status: resubmitted_for_main_acceptance
+stage_5_gate_A_rework_round_1_status: closed
+stage_5_gate_A_main_acceptance_decision: accept
+stage_5_gate_A_accepted_head: a09d7c2958a90cffebd43e5c27e6e4d68f13100a
+stage_5_gate_A_status: accepted_by_v5_main
 stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
+stage_5_gate_B_plan: V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md
+stage_5_gate_B_plan_status: draft_pending_main_review
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -779,5 +816,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_A_rework_round_1_review
+next_action: V5_main_session_gate_B_plan_review
 ```
