@@ -58,8 +58,18 @@ stage_4_implementation_commit: 8021c15
 stage_4_main_acceptance_round_1: rework_bounded_control_lineage_and_input_lifecycle
 stage_4_rework_round_1_commit: 1259993
 stage_4_implementation_report: V5_A_STAGE_4_IMPLEMENTATION_REPORT.md
-stage_4_status: resubmitted_for_main_acceptance
+stage_4_main_acceptance_decision: accept
+stage_4_accepted_head: 26d22cda779086681da69747fce4b97260988646
+stage_4_status: accepted_by_v5_main
 stage_4_self_accepted: false
+stage_5_contract: V5_A_STAGE_5_CONTRACT.md
+stage_5_contract_status: draft_pending_main_review
+stage_5_implementation_authorized: false
+stage_5_implementation_started: false
+stage_5_mechanical_product_gate_authorized: false
+stage_5_provider_quality_gate_authorized: false
+stage_5_mainline_integration_authorized: false
+stage_5_live_schema_10_migration_authorized: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -91,7 +101,8 @@ external_live_database_change_observed: true
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
-| Stage 4 产品实现 | resubmitted_for_main_acceptance | Round 1 bounded rework 已关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle；27 项定向、137 项联合及 1635 项默认无 Provider 回归通过；未自我验收 |
+| Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
+| Stage 5 Contract | draft_pending_main_review | 只读 JIT 审计后已起草 Product Completion、Trace、Reliability 合同；未开始产品实施，Provider quality 与 mainline/live migration 为独立 gate |
 
 ## 2. Git 与基线
 
@@ -565,6 +576,34 @@ schema 9、SHA-256
 94,588,928 bytes、mtime `2026-08-03T02:05:13+0800`、FK 0、integrity ok、
 157/140；V5-A 未执行 live migration 或 Provider。
 
+## 8.13 Stage 4 正式接受与 Stage 5 Contract 准备
+
+V5 主 Session 已对 bounded rework Round 1 作正式 `accept` 决定，接受 HEAD 为
+`26d22cda779086681da69747fce4b97260988646`；implementation commit `8021c15`、
+bounded rework commit `1259993`，独立重跑 Stage 4 定向测试 27 passed，不再要求
+Stage 4 返工。本文件只轻量同步该接受事实，不另建重量级 Stage 4 acceptance 文件，
+也不重新打开 Stage 4 范围。
+
+Stage 5 JIT 只读审计确认：research create/get/status/trace、inner/outer 和 control
+JSON API 已存在，但产品没有 Research 页面/导航入口；现有 status/trace 是持久原始
+记录集合，尚未形成用户可理解的继续/停止原因、Evidence/Citation、Result 和 current
+control 投影。`/search` 与 Fast/Deep `/ask` 已有可继承的 shared Evidence/Citation
+展示资产；research authority 必须继续来自 durable checkpoint/event/evidence/control
+lineage，不能继承进程内 ask trace 或一次性 graph 假设。inner/outer Provider path
+仍默认 fail closed。
+
+据此创建 `V5_A_STAGE_5_CONTRACT.md`，将 Stage 5 拆成三道互不自动授权的 gate：
+mechanical product wiring/UI/trace/reliability、真实 Provider 与产品质量评价、最终
+mainline integration/live schema migration。Contract 只冻结用户价值、权威边界、
+可见完成条件和验收证据；内部实现由 V5-A 在获准后自主决定。
+
+规划期无 Provider 探索性核验覆盖 Stage 4 control、`/ask` 页面和产品搜索 API，
+`55 passed`，只有既有 Starlette/httpx TestClient warning。只读 live baseline 仍为
+schema 9、SHA-256
+`4f1a27ce8d4a0a62884ac197d0ef035b89fdf723ba51483dd13ba6dd49c4f735`、
+94,588,928 bytes、mtime `2026-08-03T02:05:13+0800`、integrity ok、FK 0、
+157/140；本次未执行 live migration、Provider 或凭据访问。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -576,8 +615,10 @@ schema 9、SHA-256
   仍为 `unproven`。
 - 没有执行 DeerFlow 上游测试或完整依赖集成。
 - AREX 公开仓库不能复现论文的完整递归系统或训练结论。
-- 没有运行 Provider，因此没有 V5-A 产品质量结论；Stage 2/3 的接线与运行范围须由各自 Contract 决定并另行授权。
-- 仅证明 Stage 1 branch/replay identity/source lineage；完整控制面和 live corpus 集成仍未实施。
+- 没有运行 Provider，因此没有 V5-A 产品质量结论；Stage 5 Provider/product-quality
+  gate 的用例、预算、模型与运行范围仍须单独授权。
+- Stage 4 已证明最小完整控制面与 branch/replay isolation；正式 Research 产品入口、
+  用户 trace/status projection 和真实 Provider/live corpus 产品质量仍未实施。
 - Stage 2 未证明真实 Provider 的质量、成本、延迟或恢复语义；provider execution
   mode 明确 fail closed。
 - Stage 2 schema 8 的 live migration、真实断电/SIGKILL、多主机长期 soak、
@@ -592,10 +633,10 @@ schema 9、SHA-256
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已完成 Stage 4 Main Acceptance Round 1 bounded
-rework 并更新 Implementation Report，当前请求 V5 主 Session 轻量复审。Stage 4
-不自我接受、不开始 Stage 5；真实 Provider 与 live schema 10 migration 仍未
-授权、未执行。
+Stage 4 已由 V5 主 Session 正式接受且不再返工。同一个 V5-A Version Session 已完成
+Stage 5 JIT 只读审计并起草精简 Contract，当前只请求主 Session 做目标/边界级审阅；
+Stage 5 产品实施、真实 Provider、mainline integration 与 live schema 10 migration
+均未获授权、未执行。
 
 ```yaml
 charter_status: accepted
@@ -628,9 +669,18 @@ stage_4_implementation_commit: 8021c15
 stage_4_main_acceptance_round_1: rework_bounded_control_lineage_and_input_lifecycle
 stage_4_rework_round_1_commit: 1259993
 stage_4_implementation_report: V5_A_STAGE_4_IMPLEMENTATION_REPORT.md
-stage_4_status: resubmitted_for_main_acceptance
+stage_4_main_acceptance_decision: accept
+stage_4_accepted_head: 26d22cda779086681da69747fce4b97260988646
+stage_4_status: accepted_by_v5_main
 stage_4_self_accepted: false
-stage_5_started: false
+stage_5_contract: V5_A_STAGE_5_CONTRACT.md
+stage_5_contract_status: draft_pending_main_review
+stage_5_implementation_authorized: false
+stage_5_implementation_started: false
+stage_5_mechanical_product_gate_authorized: false
+stage_5_provider_quality_gate_authorized: false
+stage_5_mainline_integration_authorized: false
+stage_5_live_schema_10_migration_authorized: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
@@ -639,5 +689,5 @@ stage_4_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_4_rework_round_1_review
+next_action: V5_main_session_stage_5_contract_goal_boundary_review
 ```
