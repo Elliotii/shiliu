@@ -65,9 +65,14 @@ stage_4_self_accepted: false
 stage_5_contract: V5_A_STAGE_5_CONTRACT.md
 stage_5_contract_review: accept_with_bounded_preimplementation_sync
 stage_5_contract_status: accepted_with_bounded_preimplementation_sync
-stage_5_implementation_authorized: false
-stage_5_implementation_started: false
-stage_5_mechanical_product_gate_authorized: false
+stage_5_implementation_authorized: true
+stage_5_implementation_started: true
+stage_5_gate_A_implementation_completed: true
+stage_5_gate_A_implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
+stage_5_gate_A_implementation_report: V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md
+stage_5_gate_A_status: submitted_for_main_acceptance
+stage_5_gate_A_self_accepted: false
+stage_5_mechanical_product_gate_authorized: true
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -81,6 +86,7 @@ provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 stage_4_live_database_migration_performed: false
+stage_5_live_database_migration_performed: false
 source_schema_version: 10
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
@@ -103,7 +109,7 @@ external_live_database_change_observed: true
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
-| Stage 5 Contract | accepted_with_bounded_preimplementation_sync | 主 Session 已接受目标/边界；本次仅补齐四类 Candidate Delta 与完整验收语义。Gate A 尚未授权，等待用户手动发送“自主实施 Gate A” |
+| Stage 5 Gate A | submitted_for_main_acceptance | 用户已明确授权并由 V5-A 自主完成 mechanical product wiring/UI/trace/reliability；实现提交 `230af22`，Gate B/C 未授权、未执行，本 Session 不自我接受 |
 
 ## 2. Git 与基线
 
@@ -624,6 +630,38 @@ V5-B/C/D。具体数据结构和实现方式仍由 V5-A 在 Gate A 获权后自�
 Provider/model 组合可保持 `not_exercised`，但 Gate B 或 Gate C 整体未获授权/未执行
 时，V5-A 最多只能请求 `partial_accept`。
 
+## 8.15 Stage 5 Gate A 自主实施与提交
+
+用户明确发送“自主实施 Gate A”后，本 Session 在 `codex/v5-a` 自主完成 mechanical
+product wiring/UI/trace/reliability，实现提交为
+`230af22a91f67e12239515bd6938607c45857b61`。新增长期 Research 导航与页面、严格 product
+DTO、有界 durable projection、无 Provider 本地 cooperative runner、active-Attempt
+Evidence/Citation、四类 Task-scoped Candidate Delta、持久 trace 和 Stage 4 current
+control/derivation 交互。没有新增 schema/migration；Candidate Delta 以 append-only
+Event + CommandReceipt 持久化并保持 `candidate_only_not_promoted`。
+
+JIT 浏览器验收使用隔离 `/tmp` AppPaths，实际完成 create → inner/outer →
+`valid_insufficient / needs_user_input / none` → open Input → 提交用户决定 → Goal revision
+→ 新 current Input lineage。浏览器验收同时发现 freshly-created `ready` Task 首个
+projection 可能早于 background claim，已将 UI 观察条件修正为 `ready/running` 均轮询
+到下一 durable boundary。页面不暴露 owner fence token。
+
+Gate A 定向 `7 passed`；Stage 1–5、Evidence/Citation、`/search`、`/ask` 联合
+`199 passed`；默认无 Provider 全回归
+`1642 passed, 4 deselected, 7 warnings in 46.25s`。Node JS check、compileall 与
+diff-check 通过。警告只有既有 Starlette/httpx 和 multiprocessing/fork deprecation；
+当前 venv 未安装 `ruff`，该工具标为 `not_available` 而不是通过证据。
+
+最终稳定窗口 live DB 前后均为 schema 9、SHA-256
+`8413958d911b2c6391b3d22bc718bc5c0b582657e353b155cb6c20dc19426f76`、
+94,588,928 bytes、mtime `2026-08-03T03:06:53+0800`、integrity ok、FK 0、
+157/140。V5-A 未初始化 live Application、未执行 live migration、未运行 Provider、
+未访问 credentials/Keychain。
+
+精简证据与 Contract 矩阵见 `V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md`。当前只提交
+Gate A 等待 V5 主 Session 有限验收；Gate B/C 尚未获授权，Stage 5/V5-A 不得请求完整
+`accept`。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -637,8 +675,8 @@ Provider/model 组合可保持 `not_exercised`，但 Gate B 或 Gate C 整体未
 - AREX 公开仓库不能复现论文的完整递归系统或训练结论。
 - 没有运行 Provider，因此没有 V5-A 产品质量结论；Stage 5 Provider/product-quality
   gate 的用例、预算、模型与运行范围仍须单独授权。
-- Stage 4 已证明最小完整控制面与 branch/replay isolation；正式 Research 产品入口、
-  用户 trace/status projection 和真实 Provider/live corpus 产品质量仍未实施。
+- Stage 4 已证明最小完整控制面与 branch/replay isolation；Gate A 已实现正式 Research
+  产品入口和 user trace/status projection，真实 Provider/live corpus 产品质量仍未执行。
 - Stage 2 未证明真实 Provider 的质量、成本、延迟或恢复语义；provider execution
   mode 明确 fail closed。
 - Stage 2 schema 8 的 live migration、真实断电/SIGKILL、多主机长期 soak、
@@ -653,10 +691,11 @@ Provider/model 组合可保持 `not_exercised`，但 Gate B 或 Gate C 整体未
 
 ## 10. 下一动作
 
-Stage 4 已由 V5 主 Session 正式接受且不再返工。Stage 5 Contract 已获主 Session
-目标/边界级有界接受并完成 docs-only sync；Gate A 仍未授权。本 Session 停止并等待
-用户手动发送“自主实施 Gate A”。真实 Provider、mainline integration 与 live
-schema 10 migration 均未获授权、未执行。
+Stage 4 已由 V5 主 Session 正式接受且不再返工。Stage 5 Gate A 已按用户授权完成并以
+实现提交 `230af22` 和精简 Implementation Report 提交有限验收；本 Session 不自我接受。
+真实 Provider、mainline integration 与 live schema 10 migration 均未获授权、未执行。
+下一动作是 V5 主 Session 对 Gate A 作 `accept / partial_accept / rework / pause /
+reject` 决定。
 
 ```yaml
 charter_status: accepted
@@ -696,9 +735,14 @@ stage_4_self_accepted: false
 stage_5_contract: V5_A_STAGE_5_CONTRACT.md
 stage_5_contract_review: accept_with_bounded_preimplementation_sync
 stage_5_contract_status: accepted_with_bounded_preimplementation_sync
-stage_5_implementation_authorized: false
-stage_5_implementation_started: false
-stage_5_mechanical_product_gate_authorized: false
+stage_5_implementation_authorized: true
+stage_5_implementation_started: true
+stage_5_gate_A_implementation_completed: true
+stage_5_gate_A_implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
+stage_5_gate_A_implementation_report: V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md
+stage_5_gate_A_status: submitted_for_main_acceptance
+stage_5_gate_A_self_accepted: false
+stage_5_mechanical_product_gate_authorized: true
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -707,8 +751,9 @@ provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 stage_4_live_database_migration_performed: false
+stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: wait_for_user_manual_gate_A_implementation_instruction
+next_action: V5_main_session_gate_A_acceptance
 ```
