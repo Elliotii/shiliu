@@ -81,6 +81,20 @@ class ResearchControlService:
     MAX_DERIVATION_MANIFEST_CHARACTERS = 8000
     MAX_LINEAGE_DEPTH = 256
     TRACE_SCHEMA_VERSION = "v5-a-stage4-trace-v1"
+    CANONICAL_RESPONSE_SCHEMAS: dict[str, dict[str, Any]] = {
+        "clarification": {
+            "schema": "v5-a-stage4-clarification-response-v1",
+            "required": ["objective"],
+            "optional": ["success_constraints", "evidence_policy"],
+            "additional_properties": False,
+        },
+        "constraint_choice": {
+            "schema": "v5-a-stage4-constraint-choice-response-v1",
+            "required": ["selected_option"],
+            "optional": [],
+            "additional_properties": False,
+        },
+    }
 
     def __init__(
         self,
@@ -146,6 +160,312 @@ class ResearchControlService:
         current = str(latest["checkpoint_id"]) if latest is not None else None
         if current != expected_checkpoint_id:
             raise ResearchConflict("stale expected checkpoint for control mutation")
+
+    @staticmethod
+    def _insert_input_disposition(
+        connection: sqlite3.Connection,
+        *,
+        input_request_id: str,
+        task_id: str,
+        status: str,
+        control_generation: int,
+        reason: str,
+        resulting_reference: str | None,
+        now: str,
+    ) -> str:
+        disposition_id = _new_id("input_disposition")
+        connection.execute(
+            "INSERT INTO research_input_dispositions("
+            "disposition_id, input_request_id, task_id, status, control_generation, "
+            "reason, resulting_reference, created_at) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                disposition_id,
+                input_request_id,
+                task_id,
+                status,
+                control_generation,
+                reason,
+                resulting_reference,
+                now,
+            ),
+        )
+        return disposition_id
+
+    @staticmethod
+    def _latest_input_disposition(
+        connection: sqlite3.Connection, input_request_id: str
+    ) -> sqlite3.Row | None:
+        return connection.execute(
+            "SELECT * FROM research_input_dispositions WHERE input_request_id=? "
+            "ORDER BY rowid DESC LIMIT 1",
+            (input_request_id,),
+        ).fetchone()
+
+    def _expire_open_inputs(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        task: sqlite3.Row,
+        now_value: datetime,
+        now: str,
+        command_id: str,
+    ) -> list[str]:
+        expired: list[str] = []
+        rows = connection.execute(
+            """
+            SELECT ir.* FROM research_input_requests ir
+            JOIN research_input_dispositions idp
+              ON idp.rowid=(
+                SELECT MAX(last.rowid) FROM research_input_dispositions last
+                WHERE last.input_request_id=ir.input_request_id
+              )
+            WHERE ir.task_id=? AND idp.status='open' AND ir.expires_at IS NOT NULL
+            """,
+            (str(task["task_id"]),),
+        ).fetchall()
+        for row in rows:
+            if _parse_iso(str(row["expires_at"])) > now_value:
+                continue
+            request_id = str(row["input_request_id"])
+            disposition_id = self._insert_input_disposition(
+                connection,
+                input_request_id=request_id,
+                task_id=str(task["task_id"]),
+                status="superseded",
+                control_generation=int(task["control_generation"]),
+                reason="expired",
+                resulting_reference=None,
+                now=now,
+            )
+            self.kernel._event(
+                connection,
+                task_id=str(task["task_id"]),
+                goal_id=str(row["goal_id"]),
+                attempt_id=str(row["attempt_id"]),
+                checkpoint_id=str(row["source_checkpoint_id"]),
+                event_type="input_request_expired",
+                payload={
+                    "input_request_id": request_id,
+                    "input_disposition_id": disposition_id,
+                },
+                command_id=command_id,
+                owner_epoch=int(task["owner_epoch"]),
+                now=now,
+            )
+            expired.append(request_id)
+        return expired
+
+    def _cancel_open_inputs(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        task: sqlite3.Row,
+        control_request_id: str,
+        command_id: str,
+        generation: int,
+        now: str,
+    ) -> list[str]:
+        rows = connection.execute(
+            """
+            SELECT ir.* FROM research_input_requests ir
+            JOIN research_input_dispositions idp
+              ON idp.rowid=(
+                SELECT MAX(last.rowid) FROM research_input_dispositions last
+                WHERE last.input_request_id=ir.input_request_id
+              )
+            WHERE ir.task_id=? AND idp.status='open'
+            """,
+            (str(task["task_id"]),),
+        ).fetchall()
+        cancelled: list[str] = []
+        for row in rows:
+            request_id = str(row["input_request_id"])
+            disposition_id = self._insert_input_disposition(
+                connection,
+                input_request_id=request_id,
+                task_id=str(task["task_id"]),
+                status="cancelled",
+                control_generation=generation,
+                reason="task_cancelled",
+                resulting_reference=control_request_id,
+                now=now,
+            )
+            self.kernel._event(
+                connection,
+                task_id=str(task["task_id"]),
+                goal_id=str(row["goal_id"]),
+                attempt_id=str(row["attempt_id"]),
+                checkpoint_id=str(row["source_checkpoint_id"]),
+                event_type="input_request_cancelled",
+                payload={
+                    "input_request_id": request_id,
+                    "input_disposition_id": disposition_id,
+                    "control_request_id": control_request_id,
+                },
+                command_id=command_id,
+                owner_epoch=int(task["owner_epoch"]) + 1,
+                now=now,
+            )
+            cancelled.append(request_id)
+        return cancelled
+
+    def _resume_authority(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        task: sqlite3.Row,
+        attempt: sqlite3.Row,
+        checkpoint: sqlite3.Row,
+    ) -> dict[str, Any] | None:
+        task_id = str(task["task_id"])
+        attempt_id = str(attempt["attempt_id"])
+        checkpoint_id = str(checkpoint["checkpoint_id"])
+        generation = int(task["control_generation"])
+        if str(task["status"]) not in {"blocked", "waiting_user"}:
+            return None
+        unresolved = int(
+            connection.execute(
+                "SELECT COUNT(*) FROM research_side_effects WHERE task_id=? "
+                "AND status IN ('in_flight','unknown')",
+                (task_id,),
+            ).fetchone()[0]
+        )
+        if unresolved:
+            return None
+
+        inputs = connection.execute(
+            """
+            SELECT ir.*, idp.control_generation AS disposition_generation,
+                   idp.resulting_reference
+            FROM research_input_requests ir
+            JOIN research_input_dispositions idp
+              ON idp.rowid=(
+                SELECT MAX(last.rowid) FROM research_input_dispositions last
+                WHERE last.input_request_id=ir.input_request_id
+              )
+            WHERE ir.task_id=? AND ir.attempt_id=?
+              AND ir.source_checkpoint_id=? AND idp.status='resolved'
+              AND idp.control_generation=?
+            ORDER BY idp.rowid DESC
+            """,
+            (task_id, attempt_id, checkpoint_id, generation),
+        ).fetchall()
+        for row in inputs:
+            decision = connection.execute(
+                "SELECT * FROM research_human_decisions WHERE decision_id=? "
+                "AND input_request_id=? AND control_generation=?",
+                (
+                    str(row["resulting_reference"]),
+                    str(row["input_request_id"]),
+                    generation,
+                ),
+            ).fetchone()
+            if decision is not None:
+                return {
+                    "kind": "input",
+                    "input_request_id": str(row["input_request_id"]),
+                    "decision_id": str(decision["decision_id"]),
+                }
+
+        interrupts = connection.execute(
+            """
+            SELECT cr.*, cd.resulting_references_json
+            FROM research_control_requests cr
+            JOIN research_control_dispositions cd
+              ON cd.rowid=(
+                SELECT MAX(last.rowid) FROM research_control_dispositions last
+                WHERE last.control_request_id=cr.control_request_id
+              )
+            WHERE cr.task_id=? AND cr.attempt_id=?
+              AND cr.request_kind='interrupt' AND cd.status='applied'
+            ORDER BY cr.admitted_control_generation DESC
+            """,
+            (task_id, attempt_id),
+        ).fetchall()
+        for row in interrupts:
+            references = json.loads(str(row["resulting_references_json"]))
+            if references.get("checkpoint_id") != checkpoint_id:
+                continue
+            admitted_generation = int(row["admitted_control_generation"])
+            unknown_ids = list(references.get("unknown_side_effect_ids") or [])
+            if not unknown_ids and admitted_generation == generation:
+                return {
+                    "kind": "interrupt",
+                    "control_request_id": str(row["control_request_id"]),
+                }
+            if not unknown_ids or admitted_generation >= generation:
+                continue
+            newer_control = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM research_control_requests WHERE task_id=? "
+                    "AND admitted_control_generation>?",
+                    (task_id, admitted_generation),
+                ).fetchone()[0]
+            )
+            newer_decision = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM research_human_decisions WHERE task_id=? "
+                    "AND control_generation>?",
+                    (task_id, admitted_generation),
+                ).fetchone()[0]
+            )
+            if newer_control or newer_decision:
+                continue
+            placeholders = ",".join("?" for _ in unknown_ids)
+            resolutions = connection.execute(
+                f"SELECT side_effect_id, control_generation "
+                f"FROM research_side_effect_resolutions "
+                f"WHERE task_id=? AND side_effect_id IN ({placeholders})",
+                (task_id, *unknown_ids),
+            ).fetchall()
+            if (
+                {str(value["side_effect_id"]) for value in resolutions}
+                == set(unknown_ids)
+                and max(int(value["control_generation"]) for value in resolutions)
+                == generation
+            ):
+                return {
+                    "kind": "interrupt",
+                    "control_request_id": str(row["control_request_id"]),
+                    "resolution_ids": unknown_ids,
+                }
+        return None
+
+    def _consume_resume_authority(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        authority: dict[str, Any],
+        task_id: str,
+        resume_request_id: str,
+        generation: int,
+        owner_epoch: int,
+        now: str,
+    ) -> None:
+        if authority["kind"] == "interrupt":
+            self._insert_disposition(
+                connection,
+                request_id=str(authority["control_request_id"]),
+                task_id=task_id,
+                status="superseded",
+                generation=generation,
+                owner_epoch=owner_epoch,
+                reason="consumed_by_resume",
+                references={"resume_control_request_id": resume_request_id},
+                now=now,
+            )
+            return
+        self._insert_input_disposition(
+            connection,
+            input_request_id=str(authority["input_request_id"]),
+            task_id=task_id,
+            status="superseded",
+            control_generation=generation,
+            reason="consumed_by_resume",
+            resulting_reference=resume_request_id,
+            now=now,
+        )
 
     @staticmethod
     def _bounded_json(value: Any, limit: int, label: str) -> str:
@@ -430,38 +750,20 @@ class ResearchControlService:
             self._assert_checkpoint(latest, request.expected_checkpoint_id)
             if request.kind in {"interrupt", "resume"} and attempt is None:
                 raise ResearchUnsafeState(f"{request.kind} requires an active Attempt")
+            resume_authority: dict[str, Any] | None = None
             if request.kind == "resume":
-                unresolved = connection.execute(
-                    "SELECT COUNT(*) FROM research_side_effects WHERE task_id=? "
-                    "AND status IN ('in_flight', 'unknown')",
-                    (task_id,),
-                ).fetchone()[0]
-                if int(unresolved):
-                    raise ResearchUnsafeState("unresolved SideEffect blocks resume")
-                if str(task["status"]) not in {"blocked", "waiting_user"}:
-                    raise ResearchUnsafeState("Task is not durably paused")
-                prior = connection.execute(
-                    """
-                    SELECT 1 FROM research_control_requests cr
-                    JOIN research_control_dispositions cd
-                      ON cd.control_request_id=cr.control_request_id
-                    WHERE cr.task_id=? AND cr.request_kind='interrupt'
-                      AND cd.status='applied'
-                    LIMIT 1
-                    """,
-                    (task_id,),
-                ).fetchone()
-                resolved_input = connection.execute(
-                    """
-                    SELECT 1 FROM research_input_requests ir
-                    JOIN research_input_dispositions idp
-                      ON idp.input_request_id=ir.input_request_id
-                    WHERE ir.task_id=? AND idp.status='resolved' LIMIT 1
-                    """,
-                    (task_id,),
-                ).fetchone()
-                if prior is None and resolved_input is None:
-                    raise ResearchUnsafeState("resume lacks interrupt/input lineage")
+                if latest is None or attempt is None:
+                    raise ResearchUnsafeState("resume requires a complete current checkpoint")
+                resume_authority = self._resume_authority(
+                    connection,
+                    task=task,
+                    attempt=attempt,
+                    checkpoint=latest,
+                )
+                if resume_authority is None:
+                    raise ResearchUnsafeState(
+                        "resume lacks unconsumed current pause lineage"
+                    )
 
             generation, owner_epoch = self._fence(
                 connection, task=task, now=now
@@ -480,9 +782,21 @@ class ResearchControlService:
                 owner_epoch=owner_epoch,
                 now=now,
             )
+            if request.kind == "resume":
+                assert resume_authority is not None
+                self._consume_resume_authority(
+                    connection,
+                    authority=resume_authority,
+                    task_id=task_id,
+                    resume_request_id=request_id,
+                    generation=generation,
+                    owner_epoch=owner_epoch,
+                    now=now,
+                )
             checkpoint_id = request.expected_checkpoint_id
             result_id: str | None = None
             unknown_ids: list[str] = []
+            cancelled_input_ids: list[str] = []
             if request.kind in {"interrupt", "cancel"}:
                 rows = connection.execute(
                     "SELECT side_effect_id, attempt_id FROM research_side_effects "
@@ -506,6 +820,14 @@ class ResearchControlService:
                     if str(row[0]) not in unknown_ids
                 )
             if request.kind == "cancel":
+                cancelled_input_ids = self._cancel_open_inputs(
+                    connection,
+                    task=task,
+                    control_request_id=request_id,
+                    command_id=request.command_id,
+                    generation=generation,
+                    now=now,
+                )
                 connection.execute(
                     "UPDATE research_side_effects SET status='failed', owner_epoch=?, "
                     "updated_at=? WHERE task_id=? AND status='reserved'",
@@ -575,6 +897,7 @@ class ResearchControlService:
                 "checkpoint_id": checkpoint_id,
                 "result_id": result_id,
                 "unknown_side_effect_ids": sorted(set(unknown_ids)),
+                "cancelled_input_request_ids": cancelled_input_ids,
             }
             disposition_id = self._insert_disposition(
                 connection,
@@ -637,8 +960,13 @@ class ResearchControlService:
         principal_id: str,
     ) -> dict[str, Any]:
         self.authorization.require(principal_id, "input:create")
+        canonical_schema = self.CANONICAL_RESPONSE_SCHEMAS[request.kind]
+        if request.response_schema and request.response_schema != canonical_schema:
+            raise ResearchValidationError(
+                "response_schema must match the server canonical schema for input kind"
+            )
         response_schema_json = self._bounded_json(
-            request.response_schema, self.MAX_RESPONSE_CHARACTERS, "response_schema"
+            canonical_schema, self.MAX_RESPONSE_CHARACTERS, "response_schema"
         )
         payload = {**request.model_dump(mode="json"), "principal_id": principal_id}
         payload_hash = _hash(payload)
@@ -672,6 +1000,13 @@ class ResearchControlService:
                 raise ResearchValidationError("InputRequest Attempt belongs to another Task")
             latest = self._latest_checkpoint(connection, request.attempt_id)
             self._assert_checkpoint(latest, request.expected_checkpoint_id)
+            self._expire_open_inputs(
+                connection,
+                task=task,
+                now_value=now_value,
+                now=now,
+                command_id=request.command_id,
+            )
             open_request = connection.execute(
                 """
                 SELECT 1 FROM research_input_requests ir
@@ -834,12 +1169,41 @@ class ResearchControlService:
             if input_row["expires_at"] is not None and _parse_iso(
                 str(input_row["expires_at"])
             ) <= self._now():
+                expired_ids = self._expire_open_inputs(
+                    connection,
+                    task=task,
+                    now_value=self._now(),
+                    now=now,
+                    command_id=request.command_id,
+                )
+                if request.input_request_id in expired_ids:
+                    connection.execute(
+                        "UPDATE research_tasks SET state_version=state_version+1, "
+                        "updated_at=? WHERE task_id=?",
+                        (now, task_id),
+                    )
+                    # Expiry is a durable lifecycle transition. Preserve it even
+                    # though the attempted response is rejected.
+                    connection.commit()
                 raise ResearchConflict("InputRequest expired")
             kind = str(input_row["request_kind"])
+            canonical_schema = self.CANONICAL_RESPONSE_SCHEMAS[kind]
+            if json.loads(str(input_row["response_schema_json"])) != canonical_schema:
+                raise ResearchUnsafeState("stored InputRequest response schema mismatch")
             if kind == "clarification" and request.decision_kind != "clarify_goal":
                 raise ResearchValidationError("decision kind does not match clarification")
             if kind == "constraint_choice" and request.decision_kind != "select_constraint_option":
                 raise ResearchValidationError("decision kind does not match constraint choice")
+            allowed_response_keys = set(canonical_schema["required"]) | set(
+                canonical_schema["optional"]
+            )
+            if set(request.response) - allowed_response_keys:
+                raise ResearchValidationError("input response contains unsupported fields")
+            if any(
+                required not in request.response
+                for required in canonical_schema["required"]
+            ):
+                raise ResearchValidationError("input response is missing required fields")
             attempt = self.kernel._attempt(connection, str(input_row["attempt_id"]))
             if str(attempt["status"]) != "waiting_user":
                 raise ResearchConflict("InputRequest Attempt is no longer waiting")
@@ -1043,20 +1407,15 @@ class ResearchControlService:
                         now,
                     ),
                 )
-            disposition_id = _new_id("input_disposition")
-            connection.execute(
-                "INSERT INTO research_input_dispositions("
-                "disposition_id, input_request_id, task_id, status, control_generation, "
-                "reason, resulting_reference, created_at) "
-                "VALUES(?, ?, ?, 'resolved', ?, '', ?, ?)",
-                (
-                    disposition_id,
-                    request.input_request_id,
-                    task_id,
-                    generation,
-                    decision_id,
-                    now,
-                ),
+            disposition_id = self._insert_input_disposition(
+                connection,
+                input_request_id=request.input_request_id,
+                task_id=task_id,
+                status="resolved",
+                control_generation=generation,
+                reason="decision_applied",
+                resulting_reference=decision_id,
+                now=now,
             )
             self.kernel._event(
                 connection,
@@ -1589,8 +1948,24 @@ class ResearchControlService:
         return value
 
     def get_status(self, task_id: str) -> dict[str, Any]:
-        with self.db.connect() as connection:
+        now_value = self._now()
+        now = _iso(now_value)
+        with self.kernel._transaction() as connection:
             task = self.kernel._task(connection, task_id)
+            expired = self._expire_open_inputs(
+                connection,
+                task=task,
+                now_value=now_value,
+                now=now,
+                command_id="system:reconcile_input_expiry",
+            )
+            if expired:
+                connection.execute(
+                    "UPDATE research_tasks SET state_version=state_version+1, "
+                    "updated_at=? WHERE task_id=?",
+                    (now, task_id),
+                )
+                task = self.kernel._task(connection, task_id)
             tables = {
                 "control_requests": (
                     "SELECT * FROM research_control_requests WHERE task_id=? "
@@ -1598,7 +1973,7 @@ class ResearchControlService:
                 ),
                 "control_dispositions": (
                     "SELECT * FROM research_control_dispositions WHERE task_id=? "
-                    "ORDER BY created_at, disposition_id"
+                    "ORDER BY rowid"
                 ),
                 "input_requests": (
                     "SELECT * FROM research_input_requests WHERE task_id=? "
@@ -1606,7 +1981,7 @@ class ResearchControlService:
                 ),
                 "input_dispositions": (
                     "SELECT * FROM research_input_dispositions WHERE task_id=? "
-                    "ORDER BY created_at, disposition_id"
+                    "ORDER BY rowid"
                 ),
                 "human_decisions": (
                     "SELECT * FROM research_human_decisions WHERE task_id=? "
@@ -1631,7 +2006,23 @@ class ResearchControlService:
                 allowed.extend(["cancel", "derive"])
                 if status == "running":
                     allowed.append("interrupt")
-                if status in {"blocked", "waiting_user"}:
+                attempt = self._active_attempt(connection, task_id)
+                latest = (
+                    self._latest_checkpoint(connection, str(attempt["attempt_id"]))
+                    if attempt is not None
+                    else None
+                )
+                if (
+                    attempt is not None
+                    and latest is not None
+                    and self._resume_authority(
+                        connection,
+                        task=task,
+                        attempt=attempt,
+                        checkpoint=latest,
+                    )
+                    is not None
+                ):
                     allowed.append("resume")
             value: dict[str, Any] = {
                 "task": self.kernel._decode_row(task),
@@ -1643,4 +2034,18 @@ class ResearchControlService:
                     self._decode(row)
                     for row in connection.execute(query, params).fetchall()
                 ]
+            current_input_status: dict[str, str] = {}
+            for disposition in value["input_dispositions"]:
+                current_input_status[str(disposition["input_request_id"])] = str(
+                    disposition["status"]
+                )
+            for input_request in value["input_requests"]:
+                input_request["current_status"] = current_input_status.get(
+                    str(input_request["input_request_id"]), "unknown"
+                )
+            value["open_input_requests"] = [
+                input_request
+                for input_request in value["input_requests"]
+                if input_request["current_status"] == "open"
+            ]
         return value

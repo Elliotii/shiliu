@@ -97,6 +97,7 @@ class ControlStatusResponse(_StrictModel):
     control_requests: list[dict[str, Any]]
     control_dispositions: list[dict[str, Any]]
     input_requests: list[dict[str, Any]]
+    open_input_requests: list[dict[str, Any]]
     input_dispositions: list[dict[str, Any]]
     human_decisions: list[dict[str, Any]]
     human_constraint_observations: list[dict[str, Any]]

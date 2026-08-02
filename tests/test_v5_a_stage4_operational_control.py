@@ -18,6 +18,8 @@ from shiliu.research import (
     ResearchConflict,
     ResearchForbidden,
     ResearchNotFound,
+    ResearchUnsafeState,
+    ResearchValidationError,
     SimulatedCrash,
     TerminationReason,
 )
@@ -344,7 +346,6 @@ def test_waiting_input_clarification_is_exact_once_and_revises_goal(app_paths) -
             expected_checkpoint_id=run["checkpoint_id"],
             kind="clarification",
             prompt="请澄清目标",
-            response_schema={"required": ["objective"]},
         ),
         principal_id="local_operator",
     )
@@ -859,3 +860,399 @@ def test_stage4_rows_are_immutable_or_append_only_at_database_boundary(app_paths
                 "DELETE FROM research_control_dispositions WHERE control_request_id=?",
                 (outcome["control_request_id"],),
             )
+
+
+def test_old_interrupt_cannot_authorize_later_waiting_user_pause(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "resume-current-lineage")
+    interrupted = core.research_control.apply_control(
+        run["task_id"], _control(run, "lineage-interrupt", "interrupt"),
+        principal_id="local_operator",
+    )
+    resumed = core.research_control.apply_control(
+        run["task_id"],
+        _control(
+            run, "lineage-resume", "resume",
+            state_version=interrupted["state_version"],
+            checkpoint_id=interrupted["checkpoint_id"],
+            generation=interrupted["control_generation"],
+        ),
+        principal_id="local_operator",
+    )
+    with core.db.connect() as connection:
+        connection.execute(
+            "UPDATE research_tasks SET status='waiting_user' WHERE task_id=?",
+            (run["task_id"],),
+        )
+        connection.execute(
+            "UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?",
+            (run["attempt_id"],),
+        )
+    before = core.research.get_task(run["task_id"])
+    status = core.research_control.get_status(run["task_id"])
+    assert "resume" not in status["allowed_operations"]
+    with pytest.raises(ResearchUnsafeState, match="unconsumed current pause"):
+        core.research_control.apply_control(
+            run["task_id"],
+            _control(
+                run, "stale-history-resume", "resume",
+                state_version=resumed["state_version"],
+                checkpoint_id=resumed["checkpoint_id"],
+                generation=resumed["control_generation"],
+            ),
+            principal_id="local_operator",
+        )
+    assert core.research.get_task(run["task_id"]) == before
+
+
+def test_current_interrupt_resume_is_exact_once_and_consumed(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "resume-exact-once")
+    interrupted = core.research_control.apply_control(
+        run["task_id"], _control(run, "exact-interrupt", "interrupt"),
+        principal_id="local_operator",
+    )
+    status = core.research_control.get_status(run["task_id"])
+    assert "resume" in status["allowed_operations"]
+    request = _control(
+        run, "exact-resume", "resume",
+        state_version=interrupted["state_version"],
+        checkpoint_id=interrupted["checkpoint_id"],
+        generation=interrupted["control_generation"],
+    )
+    first = core.research_control.apply_control(
+        run["task_id"], request, principal_id="local_operator"
+    )
+    replay = core.research_control.apply_control(
+        run["task_id"], request, principal_id="local_operator"
+    )
+    assert replay["control_request_id"] == first["control_request_id"]
+    assert replay["deduplicated"] is True
+    source = [
+        value
+        for value in core.research_control.get_status(run["task_id"])[
+            "control_dispositions"
+        ]
+        if value["control_request_id"] == interrupted["control_request_id"]
+    ]
+    assert [value["status"] for value in source] == ["applied", "superseded"]
+
+
+def _insert_human_decidable_constraint(core: Application, run: dict) -> None:
+    with core.db.connect() as connection:
+        goal_id = core.research.get_task(run["task_id"])["task"]["active_goal_id"]
+        policy = {
+            "authority": "server_registry",
+            "human_decidable": True,
+            "allowed_human_options": ["keep", "revise"],
+        }
+        connection.execute(
+            """
+            INSERT INTO research_constraint_specs(
+                constraint_id, constraint_schema_version, task_id, goal_id,
+                goal_revision, ordinal, constraint_scope, original_text,
+                normalized_text, constraint_kind, is_required,
+                evaluator_policy_json, evaluator_policy_version,
+                canonical_payload_hash, created_at
+            ) VALUES(?, ?, ?, ?, 1, 9, 'success_constraint',
+                     '选择控制路径', '选择控制路径', 'natural_language', 1,
+                     ?, 'human-choice-v1', ?, '2026-08-03T00:00:00+00:00')
+            """,
+            (
+                f"constraint-{run['task_id']}",
+                CONSTRAINT_SPEC_SCHEMA_VERSION,
+                run["task_id"],
+                goal_id,
+                json.dumps(policy, ensure_ascii=False),
+                f"hash-{run['task_id']}",
+            ),
+        )
+
+
+def test_resolved_input_authorizes_only_current_attempt_checkpoint_generation(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "resume-input-lineage")
+    with core.db.connect() as connection:
+        connection.execute("UPDATE research_tasks SET status='waiting_user' WHERE task_id=?", (run["task_id"],))
+        connection.execute("UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?", (run["attempt_id"],))
+    _insert_human_decidable_constraint(core, run)
+    constraint_id = f"constraint-{run['task_id']}"
+    opened = core.research_control.create_input(
+        run["task_id"],
+        CreateInputRequest(
+            command_id="current-input", attempt_id=run["attempt_id"],
+            owner_id="worker-a", owner_epoch=1,
+            expected_state_version=run["state_version"],
+            expected_checkpoint_id=run["checkpoint_id"],
+            kind="constraint_choice", prompt="选择控制路径",
+            choices=["keep", "revise"], constraint_id=constraint_id,
+        ),
+        principal_id="local_operator",
+    )
+    decided = core.research_control.decide_input(
+        run["task_id"],
+        HumanDecisionRequest(
+            command_id="current-decision",
+            input_request_id=opened["input_request_id"],
+            expected_state_version=opened["state_version"],
+            expected_control_generation=0,
+            decision_kind="select_constraint_option",
+            response={"selected_option": "keep"},
+        ),
+        principal_id="local_operator",
+    )
+    assert "resume" in core.research_control.get_status(run["task_id"])["allowed_operations"]
+    before = core.research.get_task(run["task_id"])
+    with pytest.raises(ResearchConflict, match="generation"):
+        core.research_control.apply_control(
+            run["task_id"],
+            _control(
+                run, "wrong-input-generation", "resume",
+                state_version=decided["state_version"],
+                checkpoint_id=run["checkpoint_id"],
+                generation=0,
+            ),
+            principal_id="local_operator",
+        )
+    assert core.research.get_task(run["task_id"]) == before
+    with pytest.raises(ResearchConflict, match="checkpoint"):
+        core.research_control.apply_control(
+            run["task_id"],
+            _control(
+                run, "wrong-input-checkpoint", "resume",
+                state_version=decided["state_version"],
+                checkpoint_id="not-current",
+                generation=decided["control_generation"],
+            ),
+            principal_id="local_operator",
+        )
+    assert core.research.get_task(run["task_id"]) == before
+    resumed = core.research_control.apply_control(
+        run["task_id"],
+        _control(
+            run, "current-input-resume", "resume",
+            state_version=decided["state_version"],
+            checkpoint_id=run["checkpoint_id"],
+            generation=decided["control_generation"],
+        ),
+        principal_id="local_operator",
+    )
+    assert resumed["outcome"] == "resumed"
+    current_input = core.research_control.get_status(run["task_id"])["input_requests"][0]
+    assert current_input["current_status"] == "superseded"
+
+
+def test_interrupt_unknown_resolution_preserves_current_resume_lineage(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "resume-unknown-lineage")
+    reserved = core.research.reserve_side_effect(
+        task_id=run["task_id"], attempt_id=run["attempt_id"], command_id="reserve-interrupt",
+        owner_id="worker-a", owner_epoch=1, expected_state_version=run["state_version"],
+        effect_kind="test", idempotency_key="interrupt", request_payload={},
+    )
+    started = core.research.transition_side_effect(
+        task_id=run["task_id"], side_effect_id=reserved["side_effect_id"],
+        command_id="start-interrupt", owner_id="worker-a", owner_epoch=1,
+        expected_state_version=reserved["state_version"], target_status="in_flight",
+    )
+    interrupted = core.research_control.apply_control(
+        run["task_id"],
+        _control(
+            run, "unknown-interrupt", "interrupt",
+            state_version=started["state_version"], generation=0,
+        ),
+        principal_id="local_operator",
+    )
+    assert "resume" not in core.research_control.get_status(run["task_id"])["allowed_operations"]
+    resolved = core.research_control.resolve_side_effect(
+        run["task_id"],
+        ResolveSideEffectRequest(
+            command_id="unknown-resolution", side_effect_id=reserved["side_effect_id"],
+            expected_state_version=interrupted["state_version"],
+            expected_control_generation=interrupted["control_generation"],
+            resolution="confirmed_failed", reason="verified",
+        ),
+        principal_id="local_operator",
+    )
+    assert "resume" in core.research_control.get_status(run["task_id"])["allowed_operations"]
+    resumed = core.research_control.apply_control(
+        run["task_id"],
+        _control(
+            run, "unknown-resume", "resume",
+            state_version=resolved["state_version"],
+            checkpoint_id=run["checkpoint_id"],
+            generation=resolved["control_generation"],
+        ),
+        principal_id="local_operator",
+    )
+    assert resumed["outcome"] == "resumed"
+
+
+def test_expired_input_is_superseded_and_replacement_can_open(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "input-expiry")
+    with core.db.connect() as connection:
+        connection.execute("UPDATE research_tasks SET status='waiting_user' WHERE task_id=?", (run["task_id"],))
+        connection.execute("UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?", (run["attempt_id"],))
+    opened = core.research_control.create_input(
+        run["task_id"],
+        CreateInputRequest(
+            command_id="expired-open", attempt_id=run["attempt_id"],
+            owner_id="worker-a", owner_epoch=1,
+            expected_state_version=run["state_version"],
+            expected_checkpoint_id=run["checkpoint_id"],
+            kind="clarification", prompt="过期问题",
+            expires_at="2000-01-01T00:00:00+00:00",
+        ),
+        principal_id="local_operator",
+    )
+    with pytest.raises(ResearchConflict, match="expired"):
+        core.research_control.decide_input(
+            run["task_id"],
+            HumanDecisionRequest(
+                command_id="expired-answer",
+                input_request_id=opened["input_request_id"],
+                expected_state_version=opened["state_version"],
+                expected_control_generation=0,
+                decision_kind="clarify_goal",
+                response={"objective": "too late"},
+            ),
+            principal_id="local_operator",
+        )
+    status = core.research_control.get_status(run["task_id"])
+    assert status["input_requests"][0]["current_status"] == "superseded"
+    assert status["input_dispositions"][-1]["reason"] == "expired"
+    assert status["open_input_requests"] == []
+    replacement = core.research_control.create_input(
+        run["task_id"],
+        CreateInputRequest(
+            command_id="replacement-open", attempt_id=run["attempt_id"],
+            owner_id="worker-a", owner_epoch=1,
+            expected_state_version=status["task"]["state_version"],
+            expected_checkpoint_id=run["checkpoint_id"],
+            kind="clarification", prompt="替代问题",
+        ),
+        principal_id="local_operator",
+    )
+    assert replacement["input_request_id"] != opened["input_request_id"]
+
+
+def test_cancel_closes_open_input_and_terminal_status_has_no_open_request(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "cancel-open-input")
+    with core.db.connect() as connection:
+        connection.execute("UPDATE research_tasks SET status='waiting_user' WHERE task_id=?", (run["task_id"],))
+        connection.execute("UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?", (run["attempt_id"],))
+    opened = core.research_control.create_input(
+        run["task_id"],
+        CreateInputRequest(
+            command_id="cancelled-input", attempt_id=run["attempt_id"],
+            owner_id="worker-a", owner_epoch=1,
+            expected_state_version=run["state_version"],
+            expected_checkpoint_id=run["checkpoint_id"],
+            kind="clarification", prompt="等待取消",
+        ),
+        principal_id="local_operator",
+    )
+    cancelled = core.research_control.apply_control(
+        run["task_id"],
+        _control(
+            run, "cancel-with-input", "cancel",
+            state_version=opened["state_version"], generation=0,
+        ),
+        principal_id="local_operator",
+    )
+    assert cancelled["cancelled_input_request_ids"] == [opened["input_request_id"]]
+    status = core.research_control.get_status(run["task_id"])
+    assert status["task"]["status"] == "terminal"
+    assert status["input_requests"][0]["current_status"] == "cancelled"
+    assert status["open_input_requests"] == []
+    assert "resume" not in status["allowed_operations"]
+
+
+def test_canonical_input_schema_and_typed_decision_mismatch_fail_closed(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "input-schema")
+    with core.db.connect() as connection:
+        connection.execute("UPDATE research_tasks SET status='waiting_user' WHERE task_id=?", (run["task_id"],))
+        connection.execute("UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?", (run["attempt_id"],))
+    with pytest.raises(ResearchValidationError, match="canonical"):
+        core.research_control.create_input(
+            run["task_id"],
+            CreateInputRequest(
+                command_id="fake-schema", attempt_id=run["attempt_id"],
+                owner_id="worker-a", owner_epoch=1,
+                expected_state_version=run["state_version"],
+                expected_checkpoint_id=run["checkpoint_id"],
+                kind="clarification", prompt="问题",
+                response_schema={"required": ["approve_anything"]},
+            ),
+            principal_id="local_operator",
+        )
+    opened = core.research_control.create_input(
+        run["task_id"],
+        CreateInputRequest(
+            command_id="canonical-schema", attempt_id=run["attempt_id"],
+            owner_id="worker-a", owner_epoch=1,
+            expected_state_version=run["state_version"],
+            expected_checkpoint_id=run["checkpoint_id"],
+            kind="clarification", prompt="问题",
+        ),
+        principal_id="local_operator",
+    )
+    before = core.research.get_task(run["task_id"])
+    with pytest.raises(ResearchValidationError, match="does not match"):
+        core.research_control.decide_input(
+            run["task_id"],
+            HumanDecisionRequest(
+                command_id="wrong-decision-kind",
+                input_request_id=opened["input_request_id"],
+                expected_state_version=opened["state_version"],
+                expected_control_generation=0,
+                decision_kind="select_constraint_option",
+                response={"selected_option": "yes"},
+            ),
+            principal_id="local_operator",
+        )
+    assert core.research.get_task(run["task_id"]) == before
+    with pytest.raises(ResearchValidationError, match="unsupported"):
+        core.research_control.decide_input(
+            run["task_id"],
+            HumanDecisionRequest(
+                command_id="extra-response-field",
+                input_request_id=opened["input_request_id"],
+                expected_state_version=opened["state_version"],
+                expected_control_generation=0,
+                decision_kind="clarify_goal",
+                response={"objective": "valid", "approve_anything": True},
+            ),
+            principal_id="local_operator",
+        )
+    assert core.research.get_task(run["task_id"]) == before
+    stored = core.research_control.get_status(run["task_id"])["input_requests"][0]
+    assert stored["response_schema"] == ResearchControlService.CANONICAL_RESPONSE_SCHEMAS["clarification"]
+
+
+def test_status_reconciliation_durably_expires_open_input(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "status-expiry")
+    with core.db.connect() as connection:
+        connection.execute("UPDATE research_tasks SET status='waiting_user' WHERE task_id=?", (run["task_id"],))
+        connection.execute("UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?", (run["attempt_id"],))
+    opened = core.research_control.create_input(
+        run["task_id"],
+        CreateInputRequest(
+            command_id="status-expired-open", attempt_id=run["attempt_id"],
+            owner_id="worker-a", owner_epoch=1,
+            expected_state_version=run["state_version"],
+            expected_checkpoint_id=run["checkpoint_id"],
+            kind="clarification", prompt="已到期",
+            expires_at="2000-01-01T00:00:00+00:00",
+        ),
+        principal_id="local_operator",
+    )
+    status = core.research_control.get_status(run["task_id"])
+    assert status["task"]["state_version"] == opened["state_version"] + 1
+    assert status["input_requests"][0]["current_status"] == "superseded"
+    assert status["input_dispositions"][-1]["reason"] == "expired"
+    assert status["open_input_requests"] == []
