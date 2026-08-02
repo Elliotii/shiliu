@@ -36,6 +36,7 @@ from shiliu.research.outer_service import OuterResearchService
 from shiliu.research.inner_tools import LocalInnerToolAdapter
 from shiliu.research.service import ResearchTaskService
 from shiliu.research.control_service import ResearchControlService
+from shiliu.research.product_service import ResearchProductService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
@@ -67,6 +68,7 @@ class Application:
         self._research_control: ResearchControlService | None = None
         self._research_inner: InnerResearchService | None = None
         self._research_outer: OuterResearchService | None = None
+        self._research_product: ResearchProductService | None = None
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,
@@ -329,6 +331,18 @@ class Application:
                 provider_runs_authorized=False,
             )
         return self._research_outer
+
+    @property
+    def research_product(self) -> ResearchProductService:
+        if self._research_product is None:
+            self._research_product = ResearchProductService(
+                db=self.db,
+                kernel=self.research,
+                inner=self.research_inner,
+                outer=self.research_outer,
+                control=self.research_control,
+            )
+        return self._research_product
 
     def provider(self, role: str = "formal_summary") -> OpenAICompatibleProvider:
         try:

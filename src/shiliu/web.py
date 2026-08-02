@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import markdown
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -56,6 +56,10 @@ from shiliu.research.inner_contracts import (
     RevalidateInnerEvidenceRequest,
 )
 from shiliu.research.outer_contracts import AdvanceOuterResearchRequest
+from shiliu.research.product_contracts import (
+    CreateProductResearchRequest,
+    RunProductResearchRequest,
+)
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 from shiliu.stage5 import Stage5PipelineRequest
 
@@ -195,6 +199,22 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             request,
             "ask.html",
             {"sources": _core(request).db.list_sources(active_only=True)},
+        )
+
+    @web.get("/research", response_class=HTMLResponse)
+    async def research_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "research.html",
+            {"initial_task_id": ""},
+        )
+
+    @web.get("/research/{task_id}", response_class=HTMLResponse)
+    async def research_task_page(task_id: str, request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "research.html",
+            {"initial_task_id": task_id},
         )
 
     @web.get("/taxonomy", response_class=HTMLResponse)
@@ -375,6 +395,98 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         if trace is None:
             raise HTTPException(404, "Ask Trace 不存在")
         return JSONResponse({"ok": True, "trace": trace})
+
+    def run_product_background(
+        core: Application, task_id: str, command_id: str
+    ) -> None:
+        try:
+            core.research_product.run_to_boundary(
+                task_id,
+                RunProductResearchRequest(command_id=command_id),
+            )
+        except ResearchError:
+            # Durable services have already committed any controlled stop/failure.
+            # A concurrent/stale trigger is fail-closed and the product projection
+            # remains the source of truth.
+            return
+
+    @web.get("/api/research/product/tasks")
+    async def list_product_research_tasks(
+        request: Request, limit: int = 20
+    ) -> JSONResponse:
+        bounded = max(1, min(limit, 50))
+        tasks = await asyncio.to_thread(
+            _core(request).research_product.list_tasks, limit=bounded
+        )
+        return JSONResponse({"ok": True, "tasks": tasks})
+
+    @web.post("/api/research/product/tasks")
+    async def create_product_research_task(
+        payload: CreateProductResearchRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_product.create_task, payload
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        run_command_id = f"stage5:run:{outcome['task_id']}"
+        if payload.run_immediately:
+            background_tasks.add_task(
+                run_product_background,
+                core,
+                str(outcome["task_id"]),
+                run_command_id,
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "outcome": outcome,
+                "href": f"/research/{outcome['task_id']}",
+                "run_command_id": run_command_id if payload.run_immediately else None,
+            },
+            status_code=202 if payload.run_immediately else 201,
+        )
+
+    @web.get("/api/research/product/tasks/{task_id}")
+    async def get_product_research_task(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            product = await asyncio.to_thread(
+                _core(request).research_product.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "product": product})
+
+    @web.post("/api/research/product/tasks/{task_id}/run")
+    async def run_product_research_task(
+        task_id: str,
+        payload: RunProductResearchRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        try:
+            await asyncio.to_thread(_core(request).research.get_task, task_id)
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        background_tasks.add_task(
+            run_product_background, _core(request), task_id, payload.command_id
+        )
+        return JSONResponse(
+            {"ok": True, "accepted": True, "task_id": task_id},
+            status_code=202,
+        )
 
     @web.post("/api/research/tasks")
     async def create_research_task(

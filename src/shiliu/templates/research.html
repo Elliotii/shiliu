@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}拾流 · 长期研究{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/research.css?v=1">{% endblock %}
+{% block content %}
+<main class="research-shell" data-research-page data-initial-task-id="{{ initial_task_id }}">
+  <header class="research-hero">
+    <div>
+      <p class="eyebrow">DURABLE RESEARCH</p>
+      <h1>长期研究，离开页面也留下可靠进度。</h1>
+      <p class="muted">每次继续、停止、证据使用和人工决定都回到持久 checkpoint；当前只启用无 Provider 机械路径。</p>
+    </div>
+    <span class="research-provider-boundary">Provider · NOT EXERCISED</span>
+  </header>
+
+  <section class="research-create" aria-labelledby="research-create-title">
+    <div>
+      <p class="result-kicker">NEW TASK</p>
+      <h2 id="research-create-title">开始一个有界研究任务</h2>
+      <p>自然语言约束若没有服务器注册 evaluator，会安全停下并请求你澄清，而不会伪造成功。</p>
+    </div>
+    <form data-research-create novalidate>
+      <label for="research-objective">研究目标</label>
+      <textarea id="research-objective" name="objective" rows="3" maxlength="2000" required placeholder="例如：梳理收藏中关于 MCP 工具调用安全边界的证据"></textarea>
+      <label for="research-constraints">成功约束 <small>每行一项，可为空</small></label>
+      <textarea id="research-constraints" name="constraints" rows="2" maxlength="4000" placeholder="至少引用一段当前字幕"></textarea>
+      <div class="research-form-actions">
+        <button class="primary" type="submit" data-create-submit>创建并安全运行</button>
+        <span class="muted" data-create-status aria-live="polite"></span>
+      </div>
+    </form>
+  </section>
+
+  <div class="research-layout">
+    <aside class="research-list-panel" aria-labelledby="research-list-title">
+      <div class="research-section-heading">
+        <div><p class="result-kicker">TASKS</p><h2 id="research-list-title">最近任务</h2></div>
+        <button class="ghost compact-button" type="button" data-refresh-list>刷新</button>
+      </div>
+      <div class="research-task-list" data-task-list aria-live="polite"></div>
+    </aside>
+
+    <section class="research-workspace" data-task-workspace hidden>
+      <div class="research-loading" data-task-loading hidden aria-live="polite">正在读取持久状态…</div>
+      <div class="research-error" data-task-error hidden role="alert"></div>
+
+      <article data-task-content hidden>
+        <header class="research-task-header">
+          <div>
+            <p class="result-kicker">RESEARCH TASK</p>
+            <h2 data-task-objective></h2>
+            <p class="research-task-id" data-task-id></p>
+          </div>
+          <span class="research-status-badge" data-task-status></span>
+        </header>
+
+        <section class="research-status-grid" aria-label="任务状态">
+          <div><span>阶段</span><strong data-task-phase>—</strong></div>
+          <div><span>回答</span><strong data-answer-status>—</strong></div>
+          <div><span>停止原因</span><strong data-termination-reason>尚未停止</strong></div>
+          <div><span>失败分类</span><strong data-failure-class>none</strong></div>
+        </section>
+        <p class="research-reason" data-task-reason></p>
+
+        <section class="research-controls" aria-labelledby="research-controls-title">
+          <div class="research-section-heading">
+            <div><p class="result-kicker">CURRENT OPERATIONS</p><h3 id="research-controls-title">当前可执行操作</h3></div>
+          </div>
+          <div class="research-control-buttons" data-control-buttons></div>
+          <p class="muted" data-control-status aria-live="polite"></p>
+        </section>
+
+        <section class="research-input-panel" data-input-panel hidden aria-labelledby="research-input-title">
+          <p class="result-kicker">INPUT REQUIRED</p>
+          <h3 id="research-input-title" data-input-prompt></h3>
+          <form data-input-form>
+            <label for="research-input-objective">修订后的目标</label>
+            <textarea id="research-input-objective" name="objective" rows="3" maxlength="2000" required></textarea>
+            <label for="research-input-constraints">成功约束 <small>每行一项</small></label>
+            <textarea id="research-input-constraints" name="constraints" rows="2" maxlength="4000"></textarea>
+            <button class="primary" type="submit">提交当前决定</button>
+          </form>
+        </section>
+
+        <section class="research-answer" data-answer-section hidden>
+          <div class="research-section-heading">
+            <div><p class="result-kicker">GROUNDED OUTPUT</p><h3>当前回答</h3></div>
+          </div>
+          <div class="research-answer-blocks" data-answer-blocks></div>
+          <div class="research-limitations" data-limitations hidden><strong>限制</strong><ul></ul></div>
+        </section>
+
+        <section class="research-evidence" data-evidence-section hidden>
+          <div class="research-section-heading">
+            <div><p class="result-kicker">AUTHORITATIVE EVIDENCE</p><h3>当前字幕证据</h3></div>
+            <span data-evidence-count></span>
+          </div>
+          <div class="research-evidence-list" data-evidence-list></div>
+        </section>
+
+        <section class="research-deltas" aria-labelledby="research-deltas-title">
+          <div class="research-section-heading">
+            <div><p class="result-kicker">CANDIDATE ONLY</p><h3 id="research-deltas-title">候选 Delta</h3></div>
+            <span>不会自动写入长期知识、记忆或技能</span>
+          </div>
+          <div class="research-delta-grid" data-delta-grid></div>
+        </section>
+
+        <section class="research-trace" aria-labelledby="research-trace-title">
+          <div class="research-section-heading">
+            <div><p class="result-kicker">DURABLE TRACE</p><h3 id="research-trace-title">为什么继续或停止</h3></div>
+            <span data-trace-counts></span>
+          </div>
+          <ol class="research-timeline" data-trace-timeline></ol>
+          <details class="research-advanced-trace">
+            <summary>高级持久记录</summary>
+            <pre data-advanced-trace></pre>
+          </details>
+        </section>
+      </article>
+    </section>
+
+    <section class="research-empty-workspace" data-empty-workspace>
+      <p>选择一个任务查看持久状态</p>
+      <span>或在上方创建新的无 Provider Research Task。</span>
+    </section>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research.js?v=1"></script>{% endblock %}
