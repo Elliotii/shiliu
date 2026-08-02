@@ -239,9 +239,12 @@
     } catch (error) { root.querySelector('[data-control-status]').textContent = error.message; }
   };
 
-  const resolveEffect = async resolution => {
-    const effect = current.control.unresolved_side_effects[0];
-    if (!effect) return;
+  const resolveEffect = async effect => {
+    if (!effect || effect.status !== 'unknown') return;
+    const confirmed = window.confirm(
+      `确认将 SideEffect ${effect.side_effect_id}（${effect.effect_kind}）记录为失败吗？此决定不可撤销。`,
+    );
+    if (!confirmed) return;
     const context = current.control.action_context;
     try {
       await requestJson(`/api/research/tasks/${encodeURIComponent(activeTaskId)}/side-effects/resolve`, {
@@ -250,7 +253,8 @@
           command_id: commandId('resolve'), side_effect_id: effect.side_effect_id,
           expected_state_version: context.expected_state_version,
           expected_control_generation: context.expected_control_generation,
-          resolution, reason: 'product operator resolution',
+          resolution: 'confirmed_failed',
+          reason: 'product operator confirmed external action failed',
         }),
       });
       await loadTask();
@@ -276,15 +280,33 @@
       button.addEventListener('click', () => operation === 'run' ? runTask() : operation === 'retry' ? retryTask() : executeControl(operation));
       container.append(button);
     });
-    if (product.control.unresolved_side_effects.length) {
-      [['confirmed_succeeded', '确认外部动作成功'], ['confirmed_failed', '确认外部动作失败']].forEach(([value, label]) => {
-        const button = element('button', 'ghost', label);
-        button.type = 'button';
-        button.addEventListener('click', () => resolveEffect(value));
-        container.append(button);
-      });
-    }
     if (!container.children.length) container.append(element('p', 'muted', '当前没有可安全执行的操作。'));
+  };
+
+  const renderEffects = product => {
+    const panel = root.querySelector('[data-effect-panel]');
+    const list = root.querySelector('[data-effect-list]');
+    const effects = product.control.unresolved_side_effects;
+    panel.hidden = !effects.length;
+    list.replaceChildren();
+    effects.forEach(effect => {
+      const card = element('article', 'research-effect-card');
+      card.dataset.sideEffectId = effect.side_effect_id;
+      card.append(
+        element('strong', '', effect.effect_kind),
+        element('code', '', effect.side_effect_id),
+        element('span', 'research-currentness is-stale', `状态 · ${effect.status}`),
+      );
+      if (effect.status === 'unknown') {
+        const button = element('button', 'ghost is-destructive', '确认该外部动作失败');
+        button.type = 'button';
+        button.addEventListener('click', () => resolveEffect(effect));
+        card.append(button);
+      } else {
+        card.append(element('p', 'muted', '该状态尚不能人工解析，请等待受 fence 保护的恢复流程。'));
+      }
+      list.append(card);
+    });
   };
 
   const renderInput = product => {
@@ -308,6 +330,7 @@
     root.querySelector('[data-failure-class]').textContent = product.state.failure_class;
     root.querySelector('[data-task-reason]').textContent = product.state.reason_detail || product.state.stop_reason || product.state.blocker || product.state.termination_label;
     renderControls(product);
+    renderEffects(product);
     renderInput(product);
     renderAnswer(product);
     renderEvidence(product);

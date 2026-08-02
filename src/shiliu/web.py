@@ -397,12 +397,15 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         return JSONResponse({"ok": True, "trace": trace})
 
     def run_product_background(
-        core: Application, task_id: str, command_id: str
+        core: Application, task_id: str, command_id: str, max_steps: int = 24
     ) -> None:
         try:
             core.research_product.run_to_boundary(
                 task_id,
-                RunProductResearchRequest(command_id=command_id),
+                RunProductResearchRequest(
+                    command_id=command_id,
+                    max_steps=max_steps,
+                ),
             )
         except ResearchError:
             # Durable services have already committed any controlled stop/failure.
@@ -442,6 +445,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 core,
                 str(outcome["task_id"]),
                 run_command_id,
+                24,
             )
         return JSONResponse(
             {
@@ -481,10 +485,19 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         background_tasks.add_task(
-            run_product_background, _core(request), task_id, payload.command_id
+            run_product_background,
+            _core(request),
+            task_id,
+            payload.command_id,
+            payload.max_steps,
         )
         return JSONResponse(
-            {"ok": True, "accepted": True, "task_id": task_id},
+            {
+                "ok": True,
+                "accepted": True,
+                "task_id": task_id,
+                "max_steps": payload.max_steps,
+            },
             status_code=202,
         )
 

@@ -9,7 +9,9 @@ as_of: 2026-08-03
 branch: codex/v5-a
 implementation_baseline: 4366f6309caa624c6219573d8ffec7cab4dfc1eb
 implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
-gate_A_status: submitted_for_main_acceptance
+gate_A_main_acceptance_round_1: rework_bounded_round_1
+gate_A_bounded_rework_round_1: completed_pending_main_review
+gate_A_status: resubmitted_for_main_acceptance
 gate_A_self_accepted: false
 stage_5_complete: false
 v5_a_complete: false
@@ -79,7 +81,8 @@ Active Skill authority。
 
 ### 4.1 Gate A 定向测试
 
-`tests/test_v5_a_stage5_product_completion.py`：`7 passed`。
+`tests/test_v5_a_stage5_product_completion.py`：原提交 `7 passed`；bounded rework 后
+`9 passed`。
 
 覆盖：
 
@@ -90,7 +93,12 @@ Active Skill authority。
 5. lease 未过期 takeover fail closed，过期后 epoch 递增且延续同 Attempt；
 6. 两个并发同 command 只有一个 runner boundary receipt；
 7. 公共 Input/control interrupt/resume 与 projection secret redaction；Goal revision 后旧
-   Attempt citation 不进入新 Attempt projection。
+   Attempt citation 不进入新 Attempt projection；
+8. public run endpoint 将 `max_steps=1` 传入后台 runner，只提交一个 inner action 并形成
+   `bounded_yield`；
+9. unknown SideEffect projection 明确给出 identity/kind/status；缺少正式 receipt 的
+   `confirmed_succeeded` fail closed 且无状态漂移，UI 只提供经确认的
+   `confirmed_failed`，公共 API 成功形成 fenced resolution。
 
 Stage 4 的 27 项 suite 继续提供 current pause lineage、expiry/cancel、unknown effect、
 derivation race 与 multiprocess CAS 证据；Stage 1–3 suites 继续提供 transaction、owner、
@@ -121,6 +129,21 @@ deprecation 6 项。`ruff` 在当前 venv 未安装，标记为 tooling `not_ava
 - 页面未暴露 owner epoch/fence token，控制操作来自 server projection。
 
 该浏览器验收使用 `/tmp` 临时库；未启动 live `Application`。
+
+### 4.4 Gate A bounded rework Round 1
+
+V5 主 Session 的有限验收没有要求架构返工，只指出两个产品接线缺口。本轮已限定关闭：
+
+- **unknown SideEffect**：产品不再对隐藏数组首项直接决策；逐项展示 SideEffect ID、
+  effect kind 和 status。只有 `unknown` 项显示 resolution，Gate A 暂不提供
+  `confirmed_succeeded`；`confirmed_failed` 提交前明确显示 identity/kind 并要求用户
+  确认，之后仍经 server principal、expected state version 和 control generation fence。
+- **run budget**：公开 `RunProductResearchRequest.max_steps` 不再被 endpoint 静默丢弃，
+  validated value 原样传给 background runner，并在 202 accepted response 中回显。
+
+返工验证：Gate A `9 passed`；Stage 4+5 联合 `36 passed`；JS syntax、compileall 和
+diff-check 通过。依主 Session 指示未重复默认 1,642 项全回归；其原 Gate A 提交证据
+保留且本轮未触及更广范围。
 
 ## 5. Live DB 稳定性
 
@@ -155,11 +178,11 @@ performance、正式 RBAC/多设备协作，以及 Gate B 的代表性真实产�
 仍未完整交付；下一动作只能由 Gate B 或 Gate C 的单独授权产生。
 
 ```yaml
-gate_A_status: submitted_for_main_acceptance
+gate_A_status: resubmitted_for_main_acceptance
 gate_A_self_accepted: false
 stage_5_status: mechanical_gate_submitted_only
 stage_5_self_accepted: false
 provider_runs_performed: false
 live_database_migration_performed: false
-next_action: V5_main_session_gate_A_acceptance
+next_action: V5_main_session_gate_A_rework_round_1_review
 ```

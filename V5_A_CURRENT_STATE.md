@@ -70,7 +70,9 @@ stage_5_implementation_started: true
 stage_5_gate_A_implementation_completed: true
 stage_5_gate_A_implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
 stage_5_gate_A_implementation_report: V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md
-stage_5_gate_A_status: submitted_for_main_acceptance
+stage_5_gate_A_main_acceptance_round_1: rework_bounded_round_1
+stage_5_gate_A_rework_round_1_status: completed_pending_main_review
+stage_5_gate_A_status: resubmitted_for_main_acceptance
 stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
 stage_5_provider_quality_gate_authorized: false
@@ -109,7 +111,7 @@ external_live_database_change_observed: true
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
-| Stage 5 Gate A | submitted_for_main_acceptance | 用户已明确授权并由 V5-A 自主完成 mechanical product wiring/UI/trace/reliability；实现提交 `230af22`，Gate B/C 未授权、未执行，本 Session 不自我接受 |
+| Stage 5 Gate A | resubmitted_for_main_acceptance | 主 Session 首轮决定为 bounded rework；unknown SideEffect 产品 resolution 与 public run `max_steps` 两个接线缺口已限定关闭，架构未重开，Gate B/C 未授权、未执行 |
 
 ## 2. Git 与基线
 
@@ -662,6 +664,27 @@ diff-check 通过。警告只有既有 Starlette/httpx 和 multiprocessing/fork 
 Gate A 等待 V5 主 Session 有限验收；Gate B/C 尚未获授权，Stage 5/V5-A 不得请求完整
 `accept`。
 
+## 8.16 Stage 5 Gate A bounded rework Round 1
+
+V5 主 Session 的 Gate A 有限验收决定为 `rework_bounded_round_1`，同时明确不要求架构
+返工，Gate B/C、Provider 与 live migration 均未授权。本轮只关闭两项产品接线缺口：
+
+1. unknown SideEffect 页面现在逐项显示 SideEffect identity、effect kind 和 current
+   status，不再对隐藏的数组首项直接决定。Gate A 移除缺少 receipt/result 输入的
+   `confirmed_succeeded` 按钮；只有 `unknown` 项可显示 `confirmed_failed`，提交前明确
+   用户确认并继续经过 server principal、state version/control generation fence。
+2. `/api/research/product/tasks/{task_id}/run` 现在把已验证的 `max_steps` 原样传入后台
+   `RunProductResearchRequest` 并在 accepted response 回显，不再静默忽略公开字段。
+
+新增 public API/DOM 对抗测试证明 SideEffect identity/kind/status 可见、伪成功请求
+fail closed 且无漂移、受支持失败 resolution 成功，以及 `max_steps=1` 只提交一个 inner
+action 并形成 `bounded_yield`。Gate A 定向 `9 passed`，Stage 4+5 联合
+`36 passed`，JS syntax、compileall、diff-check 通过；按主 Session 指示没有重复默认
+1,642 项全回归。
+
+当前状态为 bounded rework 已完成并重新提交轻量复审；本 Session 不自我接受 Gate A，
+不开始 Gate B/C。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -691,11 +714,10 @@ Gate A 等待 V5 主 Session 有限验收；Gate B/C 尚未获授权，Stage 5/V
 
 ## 10. 下一动作
 
-Stage 4 已由 V5 主 Session 正式接受且不再返工。Stage 5 Gate A 已按用户授权完成并以
-实现提交 `230af22` 和精简 Implementation Report 提交有限验收；本 Session 不自我接受。
-真实 Provider、mainline integration 与 live schema 10 migration 均未获授权、未执行。
-下一动作是 V5 主 Session 对 Gate A 作 `accept / partial_accept / rework / pause /
-reject` 决定。
+Stage 4 已由 V5 主 Session 正式接受且不再返工。Stage 5 Gate A 首轮有限验收的两项
+bounded 接线缺口已关闭并重新提交；本 Session 不自我接受。真实 Provider、mainline
+integration 与 live schema 10 migration 均未获授权、未执行。下一动作是 V5 主
+Session 对 Gate A bounded rework Round 1 作轻量复审。
 
 ```yaml
 charter_status: accepted
@@ -740,7 +762,9 @@ stage_5_implementation_started: true
 stage_5_gate_A_implementation_completed: true
 stage_5_gate_A_implementation_commit: 230af22a91f67e12239515bd6938607c45857b61
 stage_5_gate_A_implementation_report: V5_A_STAGE_5_GATE_A_IMPLEMENTATION_REPORT.md
-stage_5_gate_A_status: submitted_for_main_acceptance
+stage_5_gate_A_main_acceptance_round_1: rework_bounded_round_1
+stage_5_gate_A_rework_round_1_status: completed_pending_main_review
+stage_5_gate_A_status: resubmitted_for_main_acceptance
 stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
 stage_5_provider_quality_gate_authorized: false
@@ -755,5 +779,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_A_acceptance
+next_action: V5_main_session_gate_A_rework_round_1_review
 ```

@@ -162,10 +162,17 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert 'href="/research"' in page.text
     assert "候选 Delta" in page.text
     assert "Provider · NOT EXERCISED" in page.text
+    assert "data-effect-panel" in page.text
     assert script.status_code == 200
     assert "/api/research/product/tasks" in script.text
     assert "['ready', 'running'].includes(product.task.status)" in script.text
     assert "owner_epoch" not in script.text
+    assert "effect.side_effect_id" in script.text
+    assert "effect.effect_kind" in script.text
+    assert "确认将 SideEffect" in script.text
+    assert "confirmed_failed" in script.text
+    assert "confirmed_succeeded" not in script.text
+    assert "确认外部动作成功" not in script.text
 
     created = client.post(
         "/api/research/product/tasks",
@@ -196,6 +203,145 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert client.get(f"/research/{task_id}").status_code == 200
     listed = client.get("/api/research/product/tasks").json()["tasks"]
     assert listed[0]["task_id"] == task_id
+
+
+def test_public_run_endpoint_honors_one_step_bound(app_paths) -> None:
+    core = _fixture_core(app_paths, registered=True)
+    client = TestClient(create_web_app(core))
+    task_id = _create(core.research_product, "public-one-step")
+
+    response = client.post(
+        f"/api/research/product/tasks/{task_id}/run",
+        json={"command_id": "stage5:public:one-step", "max_steps": 1},
+    )
+    assert response.status_code == 202
+    assert response.json()["max_steps"] == 1
+    product = client.get(
+        f"/api/research/product/tasks/{task_id}"
+    ).json()["product"]
+    assert product["task"]["status"] == "running"
+    assert product["state"]["phase"] == "navigation"
+    assert product["trace"]["counts"]["actions"] == 1
+    boundaries = [
+        value
+        for value in product["trace"]["timeline"]
+        if value["event_type"] == "product_runner_boundary"
+    ]
+    assert len(boundaries) == 1
+    assert boundaries[0]["details"]["boundary"] == "bounded_yield"
+
+
+def test_unknown_effect_projection_and_supported_public_resolution(app_paths) -> None:
+    core = _fixture_core(app_paths)
+    task_id = _create(core.research_product, "unknown-effect")
+    claim = core.research.claim_owner(
+        task_id=task_id,
+        command_id="stage5:effect:claim",
+        owner_id="worker-a",
+        expected_state_version=0,
+        lease_seconds=300,
+    )
+    attempt = core.research.start_attempt(
+        task_id=task_id,
+        command_id="stage5:effect:start",
+        owner_id="worker-a",
+        owner_epoch=claim["owner_epoch"],
+        expected_state_version=claim["state_version"],
+    )
+    checkpoint = core.research.commit_checkpoint(
+        task_id=task_id,
+        attempt_id=attempt["attempt_id"],
+        command_id="stage5:effect:checkpoint",
+        owner_id="worker-a",
+        owner_epoch=claim["owner_epoch"],
+        expected_state_version=attempt["state_version"],
+        expected_checkpoint_id=None,
+        state_payload={"phase": "durable", "budget": {"actions": 1}},
+    )
+    reserved = core.research.reserve_side_effect(
+        task_id=task_id,
+        attempt_id=attempt["attempt_id"],
+        command_id="stage5:effect:reserve",
+        owner_id="worker-a",
+        owner_epoch=claim["owner_epoch"],
+        expected_state_version=checkpoint["state_version"],
+        effect_kind="product_test_write",
+        idempotency_key="unknown-product-effect",
+        request_payload={"bounded": True},
+    )
+    started = core.research.transition_side_effect(
+        task_id=task_id,
+        side_effect_id=reserved["side_effect_id"],
+        command_id="stage5:effect:start-call",
+        owner_id="worker-a",
+        owner_epoch=claim["owner_epoch"],
+        expected_state_version=reserved["state_version"],
+        target_status="in_flight",
+    )
+    client = TestClient(create_web_app(core))
+    interrupted = client.post(
+        f"/api/research/tasks/{task_id}/control",
+        json=ControlCommandRequest(
+            command_id="stage5:effect:interrupt",
+            kind="interrupt",
+            expected_state_version=started["state_version"],
+            expected_checkpoint_id=checkpoint["checkpoint_id"],
+            expected_control_generation=0,
+            reason="product unknown effect test",
+        ).model_dump(mode="json"),
+    )
+    assert interrupted.status_code == 200
+
+    product = client.get(
+        f"/api/research/product/tasks/{task_id}"
+    ).json()["product"]
+    effects = product["control"]["unresolved_side_effects"]
+    assert effects == [
+        {
+            "side_effect_id": reserved["side_effect_id"],
+            "attempt_id": attempt["attempt_id"],
+            "effect_kind": "product_test_write",
+            "status": "unknown",
+            "created_at": effects[0]["created_at"],
+            "updated_at": effects[0]["updated_at"],
+        }
+    ]
+    context = product["control"]["action_context"]
+    unsupported = client.post(
+        f"/api/research/tasks/{task_id}/side-effects/resolve",
+        json={
+            "command_id": "stage5:effect:false-success",
+            "side_effect_id": reserved["side_effect_id"],
+            "expected_state_version": context["expected_state_version"],
+            "expected_control_generation": context["expected_control_generation"],
+            "resolution": "confirmed_succeeded",
+            "reason": "missing authoritative receipt",
+        },
+    )
+    assert unsupported.status_code == 400
+    unchanged = client.get(
+        f"/api/research/product/tasks/{task_id}"
+    ).json()["product"]
+    assert unchanged["task"]["state_version"] == context["expected_state_version"]
+    assert unchanged["control"]["unresolved_side_effects"][0]["status"] == "unknown"
+
+    resolved = client.post(
+        f"/api/research/tasks/{task_id}/side-effects/resolve",
+        json={
+            "command_id": "stage5:effect:confirmed-failed",
+            "side_effect_id": reserved["side_effect_id"],
+            "expected_state_version": context["expected_state_version"],
+            "expected_control_generation": context["expected_control_generation"],
+            "resolution": "confirmed_failed",
+            "reason": "operator explicitly confirmed external action failed",
+        },
+    )
+    assert resolved.status_code == 200
+    final_product = client.get(
+        f"/api/research/product/tasks/{task_id}"
+    ).json()["product"]
+    assert final_product["control"]["unresolved_side_effects"] == []
+    assert core.research.get_task(task_id)["side_effects"][0]["status"] == "failed"
 
 
 def test_registered_deterministic_journey_is_terminal_grounded_and_exact_once(
