@@ -79,7 +79,13 @@ stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
 stage_5_gate_B_plan: V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md
 stage_5_gate_B_plan_review: accepted_with_bounded_docs_rework
-stage_5_gate_B_plan_status: bounded_docs_rework_completed_pending_main_review
+stage_5_gate_B_plan_status: accepted
+stage_5_gate_B_plan_accepted_head: 3ebec9aa3d9cc10697bd3766841a9a1b94ad8cff
+stage_5_gate_B_minimal_provider_wiring_authorized: true
+stage_5_gate_B_mechanical_wiring_status: submitted_for_main_review
+stage_5_gate_B_provider_wiring_commit: a25d007
+stage_5_gate_B_cost_cap_test_commit: 7241c3b
+stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -117,7 +123,8 @@ external_live_database_change_observed: true
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
 | Stage 5 Gate A | accepted_by_v5_main | 主 Session 已接受 HEAD `a09d7c2`，bounded rework Round 1 closed；Stage 5/V5-A 尚未完整完成 |
-| Stage 5 Gate B 计划 | bounded_docs_rework_completed_pending_main_review | 主审方向通过；已校正 `agent_action=1,200`、精确 token/cost caps，加入首次付费调用前机械 Entry Gate，并把 snapshot 授权限定为形成流程与材料性 baseline；Provider 调用仍为 0 |
+| Stage 5 Gate B 计划 | accepted | 主 Session 已接受 HEAD `3ebec9a`；exact cases、price/caps、snapshot 形成规则保持冻结 |
+| Stage 5 Gate B 机械接线 | submitted_for_main_review | receipt-bound wrapper 与 10 项 no-network 测试完成；默认 dispatch disabled，Provider/凭据/formal eval root 仍未授权、未执行 |
 
 ## 2. Git 与基线
 
@@ -741,6 +748,26 @@ wiring、credential access 和 Provider run 均未授权。本轮只修订计划
 本轮没有修改产品源码/测试，没有 Provider wiring、凭据/Keychain 访问、Provider 调用、
 live migration 或 Gate C 工作。
 
+## 8.19 Gate B minimal provider wiring 与机械 Entry work
+
+V5 主 Session 已接受 Gate B plan HEAD `3ebec9a`，并只授权最小 receipt-bound wiring 与
+no-network mechanical tests。实现 commit `a25d007` 新增兼容既有三角色
+`provider_factory` 的 durable wrapper；`7241c3b` 补齐默认 US$0.50 hard cap 的直接测试。
+
+Wrapper 在 Task/Attempt owner lease/epoch、state、checkpoint、control generation fence
+下执行 SideEffect `reserved → in_flight → receipt`，并在同一完成事务写 append-only
+InnerAction usage/cost ledger、Event/Trace projection 和 CommandReceipt。Exact replay 从
+receipt 恢复 typed output，不产生第二次 logical/transport call；dispatch unknown、fault
+rollback、payload mismatch 与 public interrupt race 均 fail closed。
+
+默认 `provider_dispatch_authorized=False`；10 项新增测试只以临时 SQLite 和内存 mock
+显式开启 test dispatch。Stage 1–5 联合定向 156 项通过，只有既有 Starlette/httpx
+warning。五个 Gate A frozen blob hash 全部不变。
+
+机械报告为 `V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md`。Formal eval root/snapshot、
+runtime manifest、credentials 与真实 Provider run 仍未授权、未执行，因此完整付费 Entry
+Gate 仍关闭，本 Session 不自我接受 Gate B。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -770,10 +797,10 @@ live migration 或 Gate C 工作。
 
 ## 10. 下一动作
 
-Stage 4 与 Stage 5 Gate A 已由 V5 主 Session 正式接受。Gate B 精简评估授权包已提交
-完成主审要求的 bounded docs-only 修订；Provider、最小 Provider wiring、Keychain access、
-Gate C、mainline integration 与 live schema 10 migration 均未获授权、未执行。下一动作
-是 V5 主 Session 轻量复核 Gate B plan 修订，而不是开始 Provider 运行。
+Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。Gate B 最小 receipt-bound
+wiring 与 no-network mechanical tests 已完成并提交有限复核；真实 Provider、Keychain、
+formal eval root、Gate C、mainline integration 与 live schema 10 migration 均未获授权、
+未执行。下一动作是 V5 主 Session 轻量复核机械 Entry evidence，而不是开始 Provider 运行。
 
 ```yaml
 charter_status: accepted
@@ -827,7 +854,13 @@ stage_5_gate_A_self_accepted: false
 stage_5_mechanical_product_gate_authorized: true
 stage_5_gate_B_plan: V5_A_STAGE_5_GATE_B_EVALUATION_PLAN.md
 stage_5_gate_B_plan_review: accepted_with_bounded_docs_rework
-stage_5_gate_B_plan_status: bounded_docs_rework_completed_pending_main_review
+stage_5_gate_B_plan_status: accepted
+stage_5_gate_B_plan_accepted_head: 3ebec9aa3d9cc10697bd3766841a9a1b94ad8cff
+stage_5_gate_B_minimal_provider_wiring_authorized: true
+stage_5_gate_B_mechanical_wiring_status: submitted_for_main_review
+stage_5_gate_B_provider_wiring_commit: a25d007
+stage_5_gate_B_cost_cap_test_commit: 7241c3b
+stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
 stage_5_provider_quality_gate_authorized: false
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -840,5 +873,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_B_bounded_docs_rework_review
+next_action: V5_main_session_gate_B_mechanical_entry_review
 ```
