@@ -367,6 +367,28 @@ def test_restart_preserves_budget_and_reservation_rejects_before_factory(
         ).fetchone()[0] == 1
 
 
+def test_default_absolute_fifty_cent_cap_blocks_before_factory(app_paths) -> None:
+    db, kernel, _clock, context = _started(
+        app_paths, task_id="rtask_absolute_cap"
+    )
+    provider = _NoNetworkProvider()
+    wiring = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    assert wiring.price_policy.absolute_max_cost_usd == Decimal("0.50")
+    with pytest.raises(ProviderBudgetExceeded, match="0.50"):
+        _direct_query(
+            wiring.factory(
+                context=context, provider_factory=lambda _role: provider
+            ),
+            "x" * 300_000,
+        )
+    assert provider.calls == []
+    task = kernel.get_task(context.task_id)
+    assert task["side_effects"] == []
+    assert task["inner_actions"] == []
+
+
 def test_known_invalid_output_is_receipted_once_then_uses_bounded_repair(
     app_paths,
 ) -> None:
