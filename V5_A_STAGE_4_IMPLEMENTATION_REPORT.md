@@ -3,13 +3,15 @@
 ```yaml
 stage: V5-A Stage 4
 title: HITL and Operational Control
-report_status: submitted_for_main_acceptance
+report_status: resubmitted_for_main_acceptance
 contract: V5_A_STAGE_4_CONTRACT.md
 contract_status: accepted_with_bounded_preimplementation_sync
 execution_branch: codex/v5-a
 implementation_start_baseline: 9b2725f6ebe3db25828c72174f34bd1b91388368
 docs_sync_commit: f0c8775
 implementation_commit: 8021c15
+main_acceptance_round_1: rework_bounded_control_lineage_and_input_lifecycle
+rework_round_1_commit: 1259993
 source_schema_version: 10
 live_schema_observed: 9
 live_schema_10_migration_performed: false
@@ -29,6 +31,10 @@ append-only SideEffect resolution，以及 source/sibling-isolated branch/replay
 不能授予权限。
 
 本报告只提交 V5 主 Session 验收，不自我接受 Stage 4，也不开始 Stage 5。
+
+主 Session Round 1 已确认整体模型、schema 10、authority、cancel-pending、
+resolution、derivation 与 API，不重开这些范围。提交 `1259993` 仅关闭当前 pause
+lineage 与 InputRequest lifecycle 两项 bounded 缺口。
 
 ## 2. 实现范围
 
@@ -58,16 +64,16 @@ append-only SideEffect resolution，以及 source/sibling-isolated branch/replay
 | Server-derived authority | pass | `ControlAuthorizationPolicy` 注册 principal/capability；API principal 来自 server app state；extra actor/role 422，restricted principal 即使伪造审计 metadata 仍 403、无状态漂移 |
 | Independent control fence | pass | `control_generation` 与 `owner_epoch` 分离；BEGIN IMMEDIATE + state/generation CAS；旧 owner checkpoint/receipt 被拒绝 |
 | Immutable request / append-only disposition | pass | schema trigger 禁止 update/delete；所有 applied control/input 具 Event + CommandReceipt |
-| Safe interrupt/resume | pass | safe point 复制原 checkpoint payload/schema；Attempt identity 与预算 payload 保持；restart 后可 resume；in-flight 先 unknown/blocked |
+| Safe interrupt/resume | pass_after_rework | resume 只消费绑定当前 active Attempt/latest checkpoint/current generation 的未消费 interrupt、resolved input 或 interrupt→unknown→resolution lineage；消费后追加 superseded disposition；历史 pause 不可复用 |
 | Durable cancel | pass | no-effect/partial/reserved/unknown 路径；partial answer 保留；cancel/result race 仅一个 terminal winner |
 | Unknown SideEffect resolution | pass | immutable human resolution、owner/control fence、success receipt guard；resolution/cancel terminal 衔接；无 external replay |
-| Typed HITL | pass | waiting-user open request exact-once；bounded prompt/choices/response；clarification 建新 Goal/Attempt，不改写旧 Goal |
+| Typed HITL | pass_after_rework | waiting-user open request exact-once；expired 经 response/status/replacement 入口持久 superseded，cancel 原子关闭 open request；两个 Input kind 使用 server canonical typed schema，schema/decision mismatch fail closed |
 | Human Evidence Authority | pass | 任意 factual constraint 不能创建 authorized choice；只有 server-registry exact `human_decidable` options 可写 human observation；不写 transcript EvidenceIdentity |
 | Retry | pass | 继承并回归 Stage 1 same-Task terminal Attempt retry 与 terminal Task child lineage；公共 command/API 不变 |
 | Branch/replay isolation | pass | immutable source manifest/hash；deterministic child identity/receipt；source/sibling 不变；child EvidenceUse/SideEffect 为空；无 tool/Provider replay |
 | Bounds/fail closed | pass | reason 1000、prompt 2000、response 4000、choices 32、manifest 8000、lineage 256；oversize/stale checkpoint 在持久 mutation 前拒绝 |
 | Atomicity/fault safety | pass | control fence、HumanDecision、resolution、derivation fault points 均由 guarded transaction 全量回滚 |
-| Minimal API/status | pass | strict Pydantic `extra=forbid`；稳定 status 投影包含 request/disposition/decision/resolution/derivation |
+| Minimal API/status | pass_after_rework | strict Pydantic `extra=forbid`；status 投影给出 current/open input，并仅在真实 current pause lineage 可执行且无 unresolved effect 时声明 resume |
 | Temporary migration only | pass | schema 9→10 backup/idempotence/integrity/FK 测试只用 pytest temp DB；live 保持 schema 9 |
 | No Provider/UI/Prompt | pass | Provider logical/transport calls 0；未访问凭据/Keychain；未改正式 UI、Prompt 或 Tool Contract |
 
@@ -89,12 +95,12 @@ append-only SideEffect resolution，以及 source/sibling-isolated branch/replay
 
 ```yaml
 stage_4_targeted:
-  result: 19_passed
+  result: 27_passed
   file: tests/test_v5_a_stage4_operational_control.py
 stage_1_to_4_joint:
-  result: 129_passed
+  result: 137_passed
 default_no_provider_regression:
-  result: 1627_passed_4_deselected
+  result: 1635_passed_4_deselected
   deselected: external_artifact_or_live_provider
 warnings:
   count: 7
@@ -134,6 +140,26 @@ stable_regression_window:
 V5-A 未启动、终止或干预该 scheduled sync。测试和 compile 均未实例化 live
 schema 10；live migration 明确为 `not_performed`。
 
+## 6.1 Main Acceptance Round 1 bounded rework
+
+修复后实际证明：
+
+- old interrupt → resume → later unrelated waiting_user 时，新 resume 无 current
+  authority，fail closed 且 state/checkpoint/receipt 不漂移；
+- current interrupt resume exact-once，source disposition 从 applied 追加
+  superseded；current resolved input 严格绑定 Attempt/checkpoint/generation；
+- interrupt 导致 unknown 后，在全部绑定 SideEffectResolution 持久完成且无更新的
+  control/human decision 时，仍可沿同一当前 lineage resume；
+- `allowed_operations` 与同一 admission helper 共用判定，不再由 blocked/
+  waiting_user 状态猜测；
+- expired InputRequest 形成 `superseded(reason=expired)`，随后可创建 replacement；
+  durable cancel 形成 `cancelled`，terminal status 的 open projection 为空；
+- caller schema 只可为空或精确匹配 server canonical schema；decision kind、required
+  field、extra field 均在 fence/mutation 前验证。
+
+本轮未修改 schema、长期路线、Provider、UI、Prompt 或 Tool Contract。完整回归
+稳定窗口前后 live 指纹继续为 `4f1a27c...`，schema 9 未迁移。
+
 ## 7. 未证明与限制
 
 - live schema 10 migration、rollback 与生产 backup 恢复未执行。
@@ -151,10 +177,10 @@ schema 10；live migration 明确为 `not_performed`。
 `accept / partial_accept / rework / pause / reject`。
 
 ```yaml
-stage_4_status: submitted_for_main_acceptance
+stage_4_status: resubmitted_for_main_acceptance
 stage_4_self_accepted: false
 stage_5_started: false
 provider_runs_performed: false
 live_database_migration_performed: false
-next_action: V5_main_session_stage_4_acceptance
+next_action: V5_main_session_stage_4_rework_round_1_review
 ```

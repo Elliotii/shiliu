@@ -55,8 +55,10 @@ stage_4_implementation_started: true
 stage_4_implementation_completed: true
 stage_4_docs_sync_commit: f0c8775
 stage_4_implementation_commit: 8021c15
+stage_4_main_acceptance_round_1: rework_bounded_control_lineage_and_input_lifecycle
+stage_4_rework_round_1_commit: 1259993
 stage_4_implementation_report: V5_A_STAGE_4_IMPLEMENTATION_REPORT.md
-stage_4_status: submitted_for_main_acceptance
+stage_4_status: resubmitted_for_main_acceptance
 stage_4_self_accepted: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
@@ -89,7 +91,7 @@ external_live_database_change_observed: true
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
-| Stage 4 产品实现 | submitted_for_main_acceptance | durable control/HITL/cancel-pending/resolution/derivation 与 schema 10 临时 migration 已实现；19 项定向及 1627 项默认无 Provider 回归通过；未自我验收 |
+| Stage 4 产品实现 | resubmitted_for_main_acceptance | Round 1 bounded rework 已关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle；27 项定向、137 项联合及 1635 项默认无 Provider 回归通过；未自我验收 |
 
 ## 2. Git 与基线
 
@@ -537,6 +539,32 @@ cancel/result 与 resolution race，以及 control/resolution/derivation fault r
 94,588,928 bytes、mtime `2026-08-03T02:05:13+0800`、FK 0、integrity ok、
 157/140 videos/completed。V5-A 未执行 live schema 10 migration。
 
+## 8.12 Stage 4 Main Acceptance Round 1 bounded rework
+
+主 Session 决定 `rework_bounded_control_lineage_and_input_lifecycle`，同时明确不重开
+Stage 4 整体模型、schema 10、authority、cancel-pending、resolution、derivation、
+API 与原 19 项测试。限定修复提交为 `1259993`，只改 control contracts/service
+和 Stage 4 定向测试，没有 schema 变更。
+
+resume admission 现在由一个 current-lineage helper 判定：必须绑定 active Attempt、
+latest checkpoint、current control generation，以及仍未消费的 interrupt、resolved
+input 或 interrupt→unknown→resolution。resume 原子追加 `superseded` disposition
+消费该 authority；历史 interrupt/input 不再能授权后续 unrelated pause。status 的
+`allowed_operations` 使用同一 helper，并在 unresolved effect 存在时隐藏 resume。
+
+InputRequest 过期会经 response、status reconciliation 或 replacement admission
+持久追加 `superseded(reason=expired)`；durable cancel 原子追加 `cancelled`，current
+projection 不再显示 open。clarification/constraint-choice 只存 server canonical
+typed schema；caller schema、decision kind、required/extra field mismatch 均在 fence
+前 fail closed。
+
+修复后 Stage 4 定向 `27 passed`，Stage 1–4 联合 `137 passed`，默认无 Provider
+回归 `1635 passed, 4 deselected, 7 warnings`。live DB 在完整稳定窗口前后保持
+schema 9、SHA-256
+`4f1a27ce8d4a0a62884ac197d0ef035b89fdf723ba51483dd13ba6dd49c4f735`、
+94,588,928 bytes、mtime `2026-08-03T02:05:13+0800`、FK 0、integrity ok、
+157/140；V5-A 未执行 live migration 或 Provider。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -564,9 +592,10 @@ cancel/result 与 resolution race，以及 control/resolution/derivation fault r
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已完成并提交 Stage 4 实施与精简 Implementation
-Report，当前请求 V5 主 Session 作有限阶段验收。Stage 4 不自我接受、不开始
-Stage 5；真实 Provider 与 live schema 10 migration 仍未授权、未执行。
+同一个 V5-A Version Session 已完成 Stage 4 Main Acceptance Round 1 bounded
+rework 并更新 Implementation Report，当前请求 V5 主 Session 轻量复审。Stage 4
+不自我接受、不开始 Stage 5；真实 Provider 与 live schema 10 migration 仍未
+授权、未执行。
 
 ```yaml
 charter_status: accepted
@@ -596,8 +625,10 @@ stage_4_implementation_started: true
 stage_4_implementation_completed: true
 stage_4_docs_sync_commit: f0c8775
 stage_4_implementation_commit: 8021c15
+stage_4_main_acceptance_round_1: rework_bounded_control_lineage_and_input_lifecycle
+stage_4_rework_round_1_commit: 1259993
 stage_4_implementation_report: V5_A_STAGE_4_IMPLEMENTATION_REPORT.md
-stage_4_status: submitted_for_main_acceptance
+stage_4_status: resubmitted_for_main_acceptance
 stage_4_self_accepted: false
 stage_5_started: false
 product_implementation_started: true
@@ -608,5 +639,5 @@ stage_4_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_stage_4_acceptance
+next_action: V5_main_session_stage_4_rework_round_1_review
 ```
