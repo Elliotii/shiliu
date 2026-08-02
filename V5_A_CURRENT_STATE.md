@@ -51,7 +51,13 @@ stage_4_contract_status: accepted_with_bounded_preimplementation_sync
 stage_4_implementation_start_baseline: 9b2725f6ebe3db25828c72174f34bd1b91388368
 stage_4_implementation_authorized_after_sync_commit: true
 stage_4_implementation_authorized: true
-stage_4_implementation_started: false
+stage_4_implementation_started: true
+stage_4_implementation_completed: true
+stage_4_docs_sync_commit: f0c8775
+stage_4_implementation_commit: 8021c15
+stage_4_implementation_report: V5_A_STAGE_4_IMPLEMENTATION_REPORT.md
+stage_4_status: submitted_for_main_acceptance
+stage_4_self_accepted: false
 charter_status: accepted
 stage_1_contract_status: fulfilled_and_accepted
 stage_1_implementation_authorized: true
@@ -62,6 +68,7 @@ provider_runs_performed: false
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 stage_4_live_database_migration_performed: false
+source_schema_version: 10
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
@@ -82,7 +89,7 @@ external_live_database_change_observed: true
 | Stage 1 产品实现 | accepted | Durable Task kernel、schema 7 源码、deterministic adapter、最小 JSON API 与机械测试经一轮有界返工后已由主 Session 正式接受；未改 Prompt、Tool Contract 或 UI |
 | Stage 2 产品实现 | accepted_by_user_pending_main_record | 用户已明确“正式接受完整 Stage 2”；本 Session 不代替 V5 主 Session 创建 Program 级验收记录 |
 | Stage 3 产品实现 | accepted_and_integrated_by_v5_main | 主 Session 已正式接受并集成到 `codex/v5-main` / `9b2725f` |
-| Stage 4 Contract | accepted_with_bounded_preimplementation_sync | 主 Session 已有限接受；完成本次 docs-only baseline/authority 同步提交后可直接实施 |
+| Stage 4 产品实现 | submitted_for_main_acceptance | durable control/HITL/cancel-pending/resolution/derivation 与 schema 10 临时 migration 已实现；19 项定向及 1627 项默认无 Provider 回归通过；未自我验收 |
 
 ## 2. Git 与基线
 
@@ -502,13 +509,41 @@ Contract authority 边界同步明确：actor identity、role 与 control capabi
 不得授予权限。Stage 4 验收矩阵相应加入伪造 actor/role/capability 的无状态漂移
 对抗测试。
 
+## 8.11 Stage 4 实施与提交
+
+docs-only baseline 同步提交 `f0c8775` 后，按已接受 Contract 完成实施提交
+`8021c15`。source schema 为 10，新增独立 `control_generation`、immutable
+ControlRequest/InputRequest/HumanDecision/SideEffectResolution/TaskDerivation 与
+append-only dispositions；控制操作原子 fence 旧 worker，interrupt/resume 保持
+Attempt/checkpoint schema/预算，cancel 对 unknown external effect 进入
+cancel-pending，branch/replay 创建 source/sibling-isolated child Task。
+
+服务端 `ControlAuthorizationPolicy` 是唯一 capability authority；API payload 的
+actor/role/capability extra field 被拒绝，audit metadata 不能升级 restricted
+principal。最小 JSON API 已接入 control status/command、input/decision、unknown
+resolution 与 derivation；正式 UI、Prompt、Tool Contract 未改。
+
+Stage 4 定向测试 `19 passed`，Stage 1–4 联合定向 `129 passed`，默认无 Provider
+回归
+`1627 passed, 4 deselected, 7 warnings`；warnings 仅既有 Starlette/httpx
+与 multiprocessing fork deprecation。真实 spawn 双进程 control CAS、线程
+cancel/result 与 resolution race，以及 control/resolution/derivation fault rollback
+均实际触发。
+
+主 Session 给出的 live schema 9 baseline 之后，外部 scheduled sync run 351 于
+`02:04:10–02:05:13+0800` 更新了 DB 指纹。V5-A 未启动或干预该进程。完整回归
+稳定窗口前后均为 schema 9、SHA-256
+`4f1a27ce8d4a0a62884ac197d0ef035b89fdf723ba51483dd13ba6dd49c4f735`、
+94,588,928 bytes、mtime `2026-08-03T02:05:13+0800`、FK 0、integrity ok、
+157/140 videos/completed。V5-A 未执行 live schema 10 migration。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
   `V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md`。
-- V5-A 未执行任何 live migration；但既有外部 scheduled sync 已在本轮测试期间
-  将 live DB 从 schema 6 升至已接受的 Stage 1 schema 7。Stage 2 schema 8 的
-  live upgrade 仍为 `not_exercised`。
+- V5-A 未执行任何 live migration。历史上外部 scheduled sync 升至 schema 7；
+  本轮实施前 V5 主 Session 已正式迁移至 schema 9。source schema 10 的 live
+  upgrade 仍为 `not_exercised`。
 - 真实断电/SIGKILL、多主机长期 lease soak、真实 external side-effect reconciliation
   仍为 `unproven`。
 - 没有执行 DeerFlow 上游测试或完整依赖集成。
@@ -519,20 +554,19 @@ Contract authority 边界同步明确：actor identity、role 与 control capabi
   mode 明确 fail closed。
 - Stage 2 schema 8 的 live migration、真实断电/SIGKILL、多主机长期 soak、
   production-scale retention/performance 仍未执行或证明。
-- Stage 3 已证明 deterministic outer gate、targeted continuation 与安全分类；
-  任意自然语言语义满足、真实 Provider audit/target generation、
-  完整 HITL/interrupt/branch/replay 控制面和 held-out product quality 仍为
-  `not_exercised` 或 `unproven`。
+- Stage 4 已机械证明 durable HITL/control fence、cancel-pending、unknown
+  resolution 与隔离 derivation；正式认证/RBAC、多主机长期 soak、真实 Provider
+  interrupt/reconciliation、live schema 10、正式 UI 与 held-out product quality
+  仍为 `not_exercised` 或 `unproven`。
 - 首次回归期间的外部 scheduled sync/live schema 7 migration 使“整个会话期间
   live DB 完全不变”不可成立；只有外部进程结束后的最终稳定测试窗口满足
   hash/size/mtime 不变。
 
 ## 10. 下一动作
 
-同一个 V5-A Version Session 已同步 Stage 3 主接受基线、live schema 9 只读事实
-与 Stage 4 server-derived authority 限定。完成本次独立 docs-only 提交后，按已接受
-Contract 直接开始 Stage 4 实施。真实 Provider 与 live schema 10 migration 仍未
-授权。
+同一个 V5-A Version Session 已完成并提交 Stage 4 实施与精简 Implementation
+Report，当前请求 V5 主 Session 作有限阶段验收。Stage 4 不自我接受、不开始
+Stage 5；真实 Provider 与 live schema 10 migration 仍未授权、未执行。
 
 ```yaml
 charter_status: accepted
@@ -558,7 +592,14 @@ stage_4_contract_status: accepted_with_bounded_preimplementation_sync
 stage_4_implementation_start_baseline: 9b2725f6ebe3db25828c72174f34bd1b91388368
 stage_4_implementation_authorized_after_sync_commit: true
 stage_4_implementation_authorized: true
-stage_4_implementation_started: false
+stage_4_implementation_started: true
+stage_4_implementation_completed: true
+stage_4_docs_sync_commit: f0c8775
+stage_4_implementation_commit: 8021c15
+stage_4_implementation_report: V5_A_STAGE_4_IMPLEMENTATION_REPORT.md
+stage_4_status: submitted_for_main_acceptance
+stage_4_self_accepted: false
+stage_5_started: false
 product_implementation_started: true
 provider_runs_performed: false
 stage_2_live_database_migration_performed: false
@@ -567,5 +608,5 @@ stage_4_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_A_stage_4_implementation_after_docs_sync_commit
+next_action: V5_main_session_stage_4_acceptance
 ```
