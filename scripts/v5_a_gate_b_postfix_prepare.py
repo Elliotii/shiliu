@@ -36,7 +36,13 @@ CASE_TOKEN_CAPS = {
     "GB-G-01": (60_000, 14_192),
     "GB-I-01": (40_000, 8_896),
     "GB-H-01": (40_000, 8_896),
+    "GB-PC-G-01": (40_000, 8_896),
+    "GB-PC-H-01": (40_000, 8_896),
 }
+COMPLETION_CASES = ["GB-PC-G-01", "GB-PC-H-01"]
+ACCEPTED_PRODUCT_COMPLETION_HEAD = (
+    "8d600b64338ca994a7ffc1f912365436969737df"
+)
 WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
 
 
@@ -163,6 +169,46 @@ def _copy_schema_snapshot_for_migration(
     return snapshot_copy, working_copy
 
 
+def _rebind_eval_artifact_paths(database_path: Path, artifact_root: Path) -> int:
+    """Point the isolated work DB only at its immutable artifact copy."""
+
+    connection = sqlite3.connect(database_path)
+    rebound = 0
+    try:
+        rows = connection.execute(
+            "SELECT id, source_id, artifact_dir, cover_path, raw_subtitle_path, "
+            "transcript_path, summary_path FROM videos"
+        ).fetchall()
+        with connection:
+            for row in rows:
+                video_id, source_id, *stored_paths = row
+                destination_dir = artifact_root / "videos" / str(source_id)
+                replacements: list[str | None] = []
+                for index, stored in enumerate(stored_paths):
+                    if not stored:
+                        replacements.append(None)
+                        continue
+                    if index == 0:
+                        replacement = destination_dir
+                    else:
+                        replacement = destination_dir / Path(str(stored)).name
+                    if not replacement.exists():
+                        raise RuntimeError(
+                            f"isolated artifact copy missing for video {video_id}: "
+                            f"{replacement}"
+                        )
+                    replacements.append(str(replacement))
+                connection.execute(
+                    "UPDATE videos SET artifact_dir=?, cover_path=?, "
+                    "raw_subtitle_path=?, transcript_path=?, summary_path=? WHERE id=?",
+                    (*replacements, video_id),
+                )
+                rebound += 1
+    finally:
+        connection.close()
+    return rebound
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--original-root", type=Path, required=True)
@@ -172,12 +218,32 @@ def main() -> int:
     parser.add_argument("--implementation-head", required=True)
     parser.add_argument("--remaining-ih", action="store_true")
     parser.add_argument("--h-only", action="store_true")
+    parser.add_argument("--completion", action="store_true")
     parser.add_argument("--parent-g-root", type=Path)
     parser.add_argument("--parent-ih-root", type=Path)
     parser.add_argument("--joint-test-evidence", default="174 passed")
+    parser.add_argument("--default-regression-evidence", default="not_recorded")
     args = parser.parse_args()
-    if args.remaining_ih and args.h_only:
+    if sum((args.remaining_ih, args.h_only, args.completion)) > 1:
         raise RuntimeError("remaining-I/H and H-only modes are mutually exclusive")
+    if args.completion:
+        if args.implementation_head != subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip():
+            raise RuntimeError("completion builder HEAD argument mismatch")
+        if subprocess.check_output(
+            ["git", "status", "--porcelain"], text=True
+        ).strip():
+            raise RuntimeError("completion Entry Gate requires a clean worktree")
+        subprocess.check_call(
+            [
+                "git",
+                "merge-base",
+                "--is-ancestor",
+                ACCEPTED_PRODUCT_COMPLETION_HEAD,
+                args.implementation_head,
+            ]
+        )
     original = args.original_root.expanduser().resolve()
     root = args.new_root.expanduser().resolve()
     if root.exists():
@@ -224,6 +290,10 @@ def main() -> int:
         raise RuntimeError("frozen Prompt/Tool/Schema blob mismatch")
 
     source_tree_digest = _tree_digest(original / "artifacts")
+    historical_manifest_hashes = {
+        str(path.parent): _sha256(path)
+        for path in sorted(root.parent.glob("*/manifest.json"))
+    }
     root.mkdir(parents=False)
     (root / "logs").mkdir()
     snapshot_copy, working_copy = _copy_schema_snapshot_for_migration(
@@ -254,6 +324,11 @@ def main() -> int:
     }:
         raise RuntimeError(f"material schema-9 baseline changed: {before}")
     Database(working_copy).initialize()
+    rebound_artifact_rows = 0
+    if args.completion:
+        rebound_artifact_rows = _rebind_eval_artifact_paths(
+            working_copy, root / "artifacts"
+        )
     after = _read_facts(working_copy)
     if after != {**before, "schema_version": 10}:
         raise RuntimeError(f"schema-10 eval migration changed material facts: {after}")
@@ -261,6 +336,31 @@ def main() -> int:
         raise RuntimeError("schema-9 snapshot copy became writable during migration")
     if not working_copy.stat().st_mode & stat.S_IWUSR:
         raise RuntimeError("schema-10 eval.db lost owner write permission")
+    if args.completion:
+        connection = sqlite3.connect(snapshot_copy)
+        try:
+            checkpoint_videos, checkpoint_chunks = connection.execute(
+                "SELECT COUNT(DISTINCT video_id), COUNT(*) FROM retrieval_units "
+                "WHERE unit_type='transcript_chunk' "
+                "AND lower(search_text) LIKE '%checkpoint%'"
+            ).fetchone()
+            source_113 = connection.execute(
+                "SELECT source_id, title FROM videos WHERE id=113"
+            ).fetchone()
+            unknown_effects = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM research_side_effects "
+                    "WHERE status IN ('unknown','in_flight')"
+                ).fetchone()[0]
+            )
+        finally:
+            connection.close()
+        if (int(checkpoint_videos), int(checkpoint_chunks)) != (3, 3):
+            raise RuntimeError("completion checkpoint corpus reachability changed")
+        if source_113 != ("BV1ixAVz9EaQ", "使用AI+SPEC+SKILL，2天写完一个Agent项目"):
+            raise RuntimeError("completion grounded source identity changed")
+        if unknown_effects != 0:
+            raise RuntimeError("completion snapshot contains unresolved SideEffect")
 
     source_manifest = json.loads(args.cases_manifest.read_text(encoding="utf-8"))
     cases = []
@@ -287,28 +387,47 @@ def main() -> int:
             }
             | {
                 "fixed_user_answer": source.get("fixed_user_answer"),
+                "fixed_human_response": source.get("fixed_human_response"),
+                "constraint_profile": source.get("constraint_profile"),
                 "input_token_cap": input_cap,
                 "output_token_cap": output_cap,
             }
         )
     expected_cases = (
+        COMPLETION_CASES
+        if args.completion
+        else
         ["GB-H-01"]
         if args.h_only
         else ["GB-I-01", "GB-H-01"]
         if args.remaining_ih
         else ["GB-G-01", "GB-I-01", "GB-H-01"]
     )
-    if args.remaining_ih or args.h_only:
+    if args.remaining_ih or args.h_only or args.completion:
         cases = [case for case in cases if case["case_id"] in expected_cases]
     if [case["case_id"] for case in cases] != expected_cases:
         raise RuntimeError("exact authorized case set/order mismatch")
 
     checked_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    total_input_tokens = 40_000 if args.h_only else 80_000 if args.remaining_ih else 140_000
-    total_output_tokens = 8_896 if args.h_only else 17_792 if args.remaining_ih else 31_984
+    total_input_tokens = (
+        40_000
+        if args.h_only
+        else 80_000
+        if args.remaining_ih or args.completion
+        else 140_000
+    )
+    total_output_tokens = (
+        8_896
+        if args.h_only
+        else 17_792
+        if args.remaining_ih or args.completion
+        else 31_984
+    )
     absolute_max_cost = (
         Decimal("0.498358803")
         if args.h_only
+        else Decimal("0.25")
+        if args.completion
         else Decimal("0.499023773")
         if args.remaining_ih
         else Decimal("0.50")
@@ -322,6 +441,9 @@ def main() -> int:
     manifest = {
         "run_id": args.run_id,
         "run_type": (
+            "gate_b_product_completion_validation"
+            if args.completion
+            else
             "post_fix_h_only_recovery_validation"
             if args.h_only
             else "post_fix_remaining_ih_integration_validation"
@@ -331,6 +453,9 @@ def main() -> int:
         "run_status": "entry_gate_pass_provider_not_started",
         "branch": "codex/v5-a",
         "implementation_head": args.implementation_head,
+        "accepted_product_completion_head": (
+            ACCEPTED_PRODUCT_COMPLETION_HEAD if args.completion else None
+        ),
         "formal_evaluation_root": str(root),
         "original_formal_root": str(original),
         "original_root_mutation": "forbidden",
@@ -347,16 +472,16 @@ def main() -> int:
             },
         },
         "hard_limits": {
-            "max_logical_calls_total": 5 if args.h_only else 10 if args.remaining_ih else 17,
-            "max_http_attempts_total": 10 if args.h_only else 20 if args.remaining_ih else 34,
+            "max_logical_calls_total": 5 if args.h_only else 10 if args.remaining_ih or args.completion else 17,
+            "max_http_attempts_total": 10 if args.h_only else 20 if args.remaining_ih or args.completion else 34,
             "max_input_tokens_total": total_input_tokens,
             "max_output_tokens_total": total_output_tokens,
-            "max_wall_time_seconds_total": 12 * 60 if args.h_only else 22 * 60 if args.remaining_ih else 34 * 60,
-            "nominal_cost_usd": "0.10",
-            "reserve_stop_usd": "0.398358803" if args.h_only else "0.399023773" if args.remaining_ih else "0.40",
+            "max_wall_time_seconds_total": 12 * 60 if args.h_only else 22 * 60 if args.remaining_ih or args.completion else 34 * 60,
+            "nominal_cost_usd": "0.05" if args.completion else "0.10",
+            "reserve_stop_usd": "0.20" if args.completion else "0.398358803" if args.h_only else "0.399023773" if args.remaining_ih else "0.40",
             "absolute_max_cost_usd_total": str(absolute_max_cost),
             "parent_consumed_cost_usd": "0.001641197" if args.h_only else "0.000976227" if args.remaining_ih else "0",
-            "combined_absolute_max_cost_usd": "0.50",
+            "combined_absolute_max_cost_usd": "0.25" if args.completion else "0.50",
         },
         "price_table": {
             "source": "https://api-docs.deepseek.com/quick_start/pricing/",
@@ -369,6 +494,21 @@ def main() -> int:
             "reservation_peak_multiplier": "2",
             "reservation_transport_attempts": 2,
             "worst_case_authorized_cases_usd": str(worst),
+        },
+        "case_manifest": {
+            "path": str(args.cases_manifest.resolve()),
+            "sha256": _sha256(args.cases_manifest),
+            "canonical_case_hashes": {
+                case["case_id"]: hashlib.sha256(
+                    json.dumps(
+                        case,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode("utf-8")
+                ).hexdigest()
+                for case in cases
+            },
         },
         "frozen_blobs": observed_blobs,
         "eval_snapshot": {
@@ -388,6 +528,7 @@ def main() -> int:
             "report_sha256": EXPECTED_ORIGINAL_REPORT_SHA,
             "schema9_snapshot_sha256": EXPECTED_SCHEMA9_SHA,
         },
+        "historical_root_manifest_hashes_before_run": historical_manifest_hashes,
         "parent_g_evidence": (
             {
                 "root": str(parent_g),
@@ -431,6 +572,7 @@ def main() -> int:
             "postfix_runner_commit": "d9a4313",
             "entry_builder_commit": args.implementation_head,
             "stage_1_to_5_joint_targeted_tests": args.joint_test_evidence,
+            "default_no_provider_regression": args.default_regression_evidence,
             "provider_wiring_and_product_tests": "included_in_joint_targeted_tests",
             "compileall": "pass",
             "diff_check": "pass",
@@ -440,6 +582,17 @@ def main() -> int:
             "material_baseline": "pass",
             "run_wide_restart_replay_caps": "pass",
             "provider_call_meter_start": 0,
+            "checkpoint_reachability": (
+                {
+                    "transcript_chunks": 3,
+                    "distinct_videos": 3,
+                    "video_113_source_id": "BV1ixAVz9EaQ",
+                    "video_113_title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
+                    "eval_artifact_paths_rebound": rebound_artifact_rows,
+                }
+                if args.completion
+                else None
+            ),
         },
         "gate_C_authorized": False,
         "live_database_migration_performed": False,

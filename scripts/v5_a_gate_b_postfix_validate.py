@@ -21,7 +21,10 @@ from shiliu.llm import OpenAICompatibleProvider
 from shiliu.research.control_contracts import HumanDecisionRequest
 from shiliu.research.errors import ResearchUnsafeState
 from shiliu.research.inner_service import InnerResearchService
-from shiliu.research.product_contracts import RunProductResearchRequest
+from shiliu.research.product_contracts import (
+    CreateProductResearchRequest,
+    RunProductResearchRequest,
+)
 from shiliu.research.product_service import ResearchProductService
 from shiliu.research.provider_product import (
     ReceiptBoundDeepResearchExecutor,
@@ -38,6 +41,10 @@ AUTHORIZED_MODEL = "deepseek-v4-pro"
 FULL_AUTHORIZED_CASES = ("GB-G-01", "GB-I-01", "GB-H-01")
 REMAINING_AUTHORIZED_CASES = ("GB-I-01", "GB-H-01")
 H_ONLY_AUTHORIZED_CASES = ("GB-H-01",)
+COMPLETION_AUTHORIZED_CASES = ("GB-PC-G-01", "GB-PC-H-01")
+ACCEPTED_PRODUCT_COMPLETION_HEAD = (
+    "8d600b64338ca994a7ffc1f912365436969737df"
+)
 PARENT_G_MANIFEST_SHA256 = "24fa028dfa2af38d94f264ce4f97845063fe99c48233ffdd084520e7ce438075"
 PARENT_G_EVAL_DB_SHA256 = "bb1965af04fac1e19d58aed088e4cfd15e5b2a5a34df30353e7cd63ee4745fdd"
 PARENT_IH_MANIFEST_SHA256 = "12ec0b704f5f935a2048f5cfd64c7391c52345611a428683725eb93dcd8dae87"
@@ -45,10 +52,24 @@ PARENT_IH_EVAL_DB_SHA256 = "8271a5fdb074d02f45febf17cd409e019a598389463b6e3f1742
 
 
 def _run_envelope(
-    *, remaining_ih: bool = False, h_only: bool = False
+    *,
+    remaining_ih: bool = False,
+    h_only: bool = False,
+    completion: bool = False,
 ) -> dict[str, Any]:
-    if remaining_ih and h_only:
+    if sum((remaining_ih, h_only, completion)) > 1:
         raise ResearchUnsafeState("remaining-I/H and H-only modes are mutually exclusive")
+    if completion:
+        return {
+            "authorized_cases": COMPLETION_AUTHORIZED_CASES,
+            "max_logical_calls": 10,
+            "max_http_attempts": 20,
+            "max_input_tokens": 80_000,
+            "max_output_tokens": 17_792,
+            "max_wall_seconds": 22 * 60,
+            "reserve_stop_usd": Decimal("0.20"),
+            "absolute_max_cost_usd": Decimal("0.25"),
+        }
     if h_only:
         return {
             "authorized_cases": H_ONLY_AUTHORIZED_CASES,
@@ -147,6 +168,15 @@ def _task_id(run_id: str, case_id: str) -> str:
     return f"rtask_gate_b_postfix_{identity}"
 
 
+def _completion_create_command(run_id: str, case_id: str) -> str:
+    return f"completion:{run_id}:{case_id}:create"
+
+
+def _completion_task_id(run_id: str, case_id: str) -> str:
+    command_id = _completion_create_command(run_id, case_id)
+    return f"rtask_{hashlib.sha256(command_id.encode()).hexdigest()[:32]}"
+
+
 def _usage_rows(raw: dict[str, Any]) -> list[dict[str, Any]]:
     rows = []
     for action in raw["inner_actions"]:
@@ -199,6 +229,12 @@ def _case_projection(
         "outer_audit": latest_audit,
         "terminal_result": terminal_result,
         "open_input_requests": open_inputs,
+        "input_request_count": len(control["input_requests"]),
+        "human_decision_count": len(control["human_decisions"]),
+        "evidence_use_count": len(raw["evidence_uses"]),
+        "current_evidence_use_ids": [
+            value["evidence_use_id"] for value in raw["evidence_uses"]
+        ],
         "trace_count": len(raw["traces"]),
         "provider_receipts": _usage_rows(raw),
         "hitl": hitl,
@@ -232,6 +268,8 @@ def _write_case_evidence(
             "objective": case["objective"],
             "success_constraints": case["success_constraints"],
             "fixed_user_answer": case.get("fixed_user_answer"),
+            "fixed_human_response": case.get("fixed_human_response"),
+            "constraint_profile": case.get("constraint_profile"),
         },
     )
     _write_json(case_dir / "durable_product_projection.json", projection)
@@ -261,7 +299,16 @@ def _prepare_hitl(
         )
     current = open_inputs[0]
     task = status["task"]
-    fixed_answer = str(case["fixed_user_answer"])
+    fixed_response = case.get("fixed_human_response")
+    fixed_answer = str(case.get("fixed_user_answer") or "")
+    if fixed_response is not None:
+        if not isinstance(fixed_response, dict):
+            raise ResearchUnsafeState("fixed HumanDecision response is invalid")
+        clarified_objective = str(fixed_response["objective"])
+        clarified_constraints = list(fixed_response["success_constraints"])
+    else:
+        clarified_objective = f"{case['objective']}\n用户澄清：{fixed_answer}"
+        clarified_constraints = list(case["success_constraints"])
     decision_request = HumanDecisionRequest(
         command_id=f"postfix:{case['case_id']}:fixed-answer",
         input_request_id=str(current["input_request_id"]),
@@ -269,8 +316,8 @@ def _prepare_hitl(
         expected_control_generation=int(task["control_generation"]),
         decision_kind="clarify_goal",
         response={
-            "objective": f"{case['objective']}\n用户澄清：{fixed_answer}",
-            "success_constraints": list(case["success_constraints"]),
+            "objective": clarified_objective,
+            "success_constraints": clarified_constraints,
             "evidence_policy": {
                 "authority": "server_registry_only",
                 "user_clarification": fixed_answer,
@@ -318,6 +365,7 @@ def _validate_entry(
     *,
     remaining_ih: bool,
     h_only: bool,
+    completion: bool,
     envelope: dict[str, Any],
 ) -> None:
     entry = manifest.get("entry_gate", {})
@@ -342,6 +390,13 @@ def _validate_entry(
     }
     if any(limits.get(key) != value for key, value in expected.items()):
         raise ResearchUnsafeState("post-fix run-wide manifest limits mismatch")
+    if completion:
+        if manifest.get("accepted_product_completion_head") != (
+            ACCEPTED_PRODUCT_COMPLETION_HEAD
+        ):
+            raise ResearchUnsafeState("accepted product-completion HEAD mismatch")
+        if manifest.get("case_manifest", {}).get("canonical_case_hashes") is None:
+            raise ResearchUnsafeState("completion exact case hashes are not frozen")
     if remaining_ih or h_only:
         parent = manifest.get("parent_g_evidence", {})
         if (
@@ -368,17 +423,23 @@ def main() -> int:
     parser.add_argument("--eval-root", type=Path, required=True)
     parser.add_argument("--remaining-ih", action="store_true")
     parser.add_argument("--h-only", action="store_true")
+    parser.add_argument("--completion", action="store_true")
     args = parser.parse_args()
     root = args.eval_root.expanduser().resolve()
     manifest_path = root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    envelope = _run_envelope(remaining_ih=args.remaining_ih, h_only=args.h_only)
+    envelope = _run_envelope(
+        remaining_ih=args.remaining_ih,
+        h_only=args.h_only,
+        completion=args.completion,
+    )
     authorized_cases = envelope["authorized_cases"]
     _validate_entry(
         manifest,
         root,
         remaining_ih=args.remaining_ih,
         h_only=args.h_only,
+        completion=args.completion,
         envelope=envelope,
     )
 
@@ -406,7 +467,12 @@ def main() -> int:
     run_started_at = _utc_now()
     manifest["run_started_at"] = run_started_at
     task_ids = tuple(
-        _task_id(str(manifest["run_id"]), case_id) for case_id in authorized_cases
+        (
+            _completion_task_id(str(manifest["run_id"]), case_id)
+            if args.completion
+            else _task_id(str(manifest["run_id"]), case_id)
+        )
+        for case_id in authorized_cases
     )
     run_policy = ProviderRunBudgetPolicy(
         run_id=str(manifest["run_id"]),
@@ -450,19 +516,34 @@ def main() -> int:
     cases = {str(case["case_id"]): case for case in manifest["cases"]}
     for case_id, task_id in zip(authorized_cases, task_ids, strict=True):
         case = cases[case_id]
-        app.research.create_task(
-            command_id=f"postfix:{case_id}:create",
-            task_id=task_id,
-            objective=str(case["objective"]),
-            success_constraints=list(case["success_constraints"]),
-            evidence_policy={
-                "authority": "eval_snapshot_exact_replay",
-                "gate_b_case": case_id,
-                "provider_run_budget": run_policy.evidence_policy_binding(
-                    case_id=case_id
-                ),
-            },
-        )
+        if args.completion:
+            created = product.create_task(
+                CreateProductResearchRequest(
+                    command_id=_completion_create_command(
+                        str(manifest["run_id"]), case_id
+                    ),
+                    objective=str(case["objective"]),
+                    success_constraints=list(case["success_constraints"]),
+                    constraint_profile="grounded_current_evidence",
+                    run_immediately=False,
+                )
+            )
+            if created["task_id"] != task_id:
+                raise ResearchUnsafeState("completion product Task identity mismatch")
+        else:
+            app.research.create_task(
+                command_id=f"postfix:{case_id}:create",
+                task_id=task_id,
+                objective=str(case["objective"]),
+                success_constraints=list(case["success_constraints"]),
+                evidence_policy={
+                    "authority": "eval_snapshot_exact_replay",
+                    "gate_b_case": case_id,
+                    "provider_run_budget": run_policy.evidence_policy_binding(
+                        case_id=case_id
+                    ),
+                },
+            )
 
     run_started_monotonic = time.monotonic()
     results: dict[str, Any] = {}
@@ -483,7 +564,8 @@ def main() -> int:
             _write_json(manifest_path, manifest)
             hitl = (
                 _prepare_hitl(app=app, product=product, task_id=task_id, case=case)
-                if case_id == "GB-H-01"
+                if case.get("fixed_human_response") is not None
+                or case_id == "GB-H-01"
                 else None
             )
             budget = DeepSearchBudget(
@@ -532,6 +614,28 @@ def main() -> int:
                 root=root, case=case, projection=projection, raw=raw
             )
             results[case_id] = projection
+            if args.completion:
+                if projection["task_status"] == "running":
+                    raise ResearchUnsafeState("completion Task remained running")
+                if not projection["provider_receipts"]:
+                    raise ResearchUnsafeState("completion case has no Provider receipt")
+                if not projection["outer_audit"]:
+                    raise ResearchUnsafeState("completion case has no Outer audit")
+                if case_id == "GB-PC-G-01" and (
+                    projection["evidence_use_count"] < 1
+                    or projection["task_status"] != "terminal"
+                ):
+                    raise ResearchUnsafeState(
+                        "grounded completion case did not reach cited terminal boundary"
+                    )
+                if case_id == "GB-PC-H-01" and (
+                    projection["input_request_count"] != 1
+                    or projection["human_decision_count"] != 1
+                    or projection["open_input_requests"]
+                ):
+                    raise ResearchUnsafeState(
+                        "completion HITL case violated exact-one input lifecycle"
+                    )
             manifest["case_runs"][case_id].update(
                 {
                     "status": "completed_once",

@@ -1,0 +1,35 @@
+{
+  "case_manifest_version": "v5-a-gate-b-completion-v1",
+  "cases": [
+    {
+      "case_id": "GB-PC-G-01",
+      "objective": "基于当前收藏中的字幕证据，说明 Agent 开发流程中的 checkpoint 为什么需要在 test 完成后停下来接受人工验收；请引用来源，并区分视频作者的陈述与基于证据的系统推论。",
+      "constraint_profile": "grounded_current_evidence",
+      "success_constraints": [],
+      "expected_outcomes": ["valid_success", "valid_partial"],
+      "logical_call_cap": 5,
+      "http_attempt_cap": 10,
+      "agent_action_cap": 3,
+      "research_action_cap": 6,
+      "wall_time_seconds": 660,
+      "search_time_seconds": 300
+    },
+    {
+      "case_id": "GB-PC-H-01",
+      "objective": "基于当前收藏说明 Agent 开发流程应该优先追求快速迭代还是可靠验收；如果无法确定“优先”的含义，请先询问用户。",
+      "constraint_profile": "grounded_current_evidence",
+      "success_constraints": ["继续前需要用户明确选择优先级"],
+      "fixed_human_response": {
+        "objective": "可靠性优先。请基于当前收藏中的字幕证据，说明 Agent 开发流程中的 checkpoint 与人工验收如何帮助发现 test 后仍不满足条件的问题；请引用来源并说明局限。",
+        "success_constraints": []
+      },
+      "expected_outcomes": ["valid_success", "valid_partial", "honest_non_running_bounded_failure"],
+      "logical_call_cap": 5,
+      "http_attempt_cap": 10,
+      "agent_action_cap": 3,
+      "research_action_cap": 6,
+      "wall_time_seconds": 660,
+      "search_time_seconds": 300
+    }
+  ]
+}

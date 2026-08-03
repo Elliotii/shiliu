@@ -247,6 +247,7 @@ def _fixture(app_paths, *, inner_fault_injector=None):
                     "长期研究需要持久 checkpoint 才能在重启后继续。",
                     "SideEffect receipt 防止外部调用被自动重复。",
                     "Outer audit 判断证据是否真正满足目标。",
+                    "Agent 开发流程在 test 完成后进入 checkpoint，主动停下来接受人工验收，以发现仍不满足条件的问题。",
                 )
             )
         ],
@@ -699,3 +700,73 @@ def test_provider_product_logical_cap_blocks_before_next_transport(app_paths) ->
             max_logical_calls=2,
         )
     assert provider.calls == ["query_analysis", "agent_action"]
+
+
+def test_completion_cases_use_product_profile_and_exact_one_hitl_no_network(
+    app_paths,
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+    orchestrator, _receipt = _orchestrator(
+        core, inner, product, materializer, provider
+    )
+    cases = json.loads(
+        (ROOT / "V5_A_STAGE_5_GATE_B_COMPLETION_CASES.json").read_text(
+            encoding="utf-8"
+        )
+    )["cases"]
+    by_id = {case["case_id"]: case for case in cases}
+
+    grounded = by_id["GB-PC-G-01"]
+    grounded_fixture = {**grounded, "objective": GROUNDED_OBJECTIVE}
+    grounded_task = product.create_task(
+        CreateProductResearchRequest(
+            command_id="completion-test:g:create",
+            objective=grounded_fixture["objective"],
+            success_constraints=grounded_fixture["success_constraints"],
+            constraint_profile=grounded_fixture["constraint_profile"],
+            run_immediately=False,
+        )
+    )["task_id"]
+    grounded_result = orchestrator.run_to_boundary(
+        grounded_task, command_id="completion-test:g:provider-once"
+    )
+    grounded_raw = core.research.get_task(grounded_task)
+    assert grounded_result["task_status"] == "terminal"
+    assert grounded_raw["evidence_uses"]
+    assert grounded_raw["outer_audits"][-1]["outcome"] == "accept"
+
+    hitl_case = by_id["GB-PC-H-01"]
+    hitl_fixture = {
+        **hitl_case,
+        "objective": AMBIGUOUS_OBJECTIVE,
+        "success_constraints": ["继续前需要用户明确选择优先级（mock）"],
+        "fixed_human_response": {
+            "objective": GROUNDED_OBJECTIVE,
+            "success_constraints": [],
+        },
+    }
+    hitl_task = product.create_task(
+        CreateProductResearchRequest(
+            command_id="completion-test:h:create",
+            objective=hitl_fixture["objective"],
+            success_constraints=hitl_fixture["success_constraints"],
+            constraint_profile=hitl_fixture["constraint_profile"],
+            run_immediately=False,
+        )
+    )["task_id"]
+    hitl = RUNNER._prepare_hitl(
+        app=core, product=product, task_id=hitl_task, case=hitl_fixture
+    )
+    hitl_result = orchestrator.run_to_boundary(
+        hitl_task, command_id="completion-test:h:provider-once"
+    )
+    projection, _raw = RUNNER._load_case_projection(
+        app=core, task_id=hitl_task, result=hitl_result, hitl=hitl
+    )
+    control = core.research_control.get_status(hitl_task)
+    assert projection["task_status"] != "running"
+    assert projection["evidence_use_count"] >= 1
+    assert projection["input_request_count"] == 1
+    assert projection["human_decision_count"] == 1
+    assert control["open_input_requests"] == []
