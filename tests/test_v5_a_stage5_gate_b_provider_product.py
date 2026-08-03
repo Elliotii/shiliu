@@ -538,7 +538,7 @@ def test_postfix_prepare_hitl_continues_to_durable_projection_and_report_no_netw
         app=core, task_id=task_id, result=result, hitl=hitl
     )
     assert provider.calls
-    assert projection["task_status"] in {"terminal", "waiting_user"}
+    assert projection["task_status"] in {"terminal", "blocked"}
     assert projection["provisional_artifact"] is not None
     assert projection["outer_audit"] is not None
     assert projection["checkpoint_count"] >= 2
@@ -546,6 +546,13 @@ def test_postfix_prepare_hitl_continues_to_durable_projection_and_report_no_netw
     assert projection["provider_receipts"]
     assert all(
         row["status"] == "succeeded" for row in projection["provider_receipts"]
+    )
+    final_control = core.research_control.get_status(task_id)
+    assert len(final_control["input_requests"]) == 1
+    assert final_control["open_input_requests"] == []
+    assert any(
+        event["event_type"] == "duplicate_input_request_suppressed"
+        for event in raw["events"]
     )
 
     report_root = tmp_path / "runner-hitl-report"

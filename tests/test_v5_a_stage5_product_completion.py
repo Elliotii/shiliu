@@ -60,6 +60,7 @@ def _fixture_core(app_paths: object, *, registered: bool = False) -> Application
                     "失去 lease 的旧 worker 不得提交结果。",
                     "checkpoint 让长期任务可以安全恢复。",
                     "答案必须引用当前版本的权威字幕。",
+                    "请解释 MCP 工具执行为何需要幂等回执",
                 )
             )
         ],
@@ -163,6 +164,8 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert "候选 Delta" in page.text
     assert "Provider · NOT EXERCISED" in page.text
     assert "data-effect-panel" in page.text
+    assert "grounded_current_evidence" in page.text
+    assert "data-constraint-profile" in page.text
     assert script.status_code == 200
     assert "/api/research/product/tasks" in script.text
     assert "['ready', 'running'].includes(product.task.status)" in script.text
@@ -173,6 +176,7 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert "confirmed_failed" in script.text
     assert "confirmed_succeeded" not in script.text
     assert "确认外部动作成功" not in script.text
+    assert "constraint_profile: createForm.elements.constraint_profile.value" in script.text
 
     created = client.post(
         "/api/research/product/tasks",
@@ -193,6 +197,14 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert product["task"]["status"] == "waiting_user"
     assert product["provider_status"] == "not_exercised"
     assert product["control"]["open_input_requests"]
+    assert product["constraint_policy"]["objective_machine_verifiable"] is False
+    assert product["constraint_policy"]["semantic_constraints"] == [
+        {
+            "text": CONSTRAINT,
+            "verification": "requires_supported_rewrite_or_registered_evaluator",
+            "machine_verifiable": False,
+        }
+    ]
     assert "owner_epoch" not in json.dumps(product, ensure_ascii=False)
     assert product["candidate_deltas"]["authority"] == "candidate_only_not_promoted"
     assert {value["delta_kind"] for value in product["candidate_deltas"]["deltas"]} == set(
@@ -203,6 +215,205 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert client.get(f"/research/{task_id}").status_code == 200
     listed = client.get("/api/research/product/tasks").json()["tasks"]
     assert listed[0]["task_id"] == task_id
+
+
+def test_default_application_server_profile_completes_arbitrary_grounded_task(
+    app_paths,
+) -> None:
+    core = _fixture_core(app_paths)
+    service = core.research_product
+    created = service.create_task(
+        CreateProductResearchRequest(
+            command_id="stage5:profile:arbitrary",
+            objective="请解释 MCP 工具执行为何需要幂等回执",
+            success_constraints=[],
+            run_immediately=False,
+        )
+    )
+    task_id = str(created["task_id"])
+
+    outcome = service.run_to_boundary(
+        task_id,
+        RunProductResearchRequest(command_id="stage5:profile:run"),
+    )
+    product = service.get_task(task_id)
+
+    assert outcome["task_status"] == "terminal"
+    assert product["task"]["status"] == "terminal"
+    assert product["state"]["answer_status"] in {"valid_success", "valid_partial"}
+    assert product["state"]["termination_reason"] == "answer_ready"
+    assert product["citations"]
+    assert product["constraint_policy"] == {
+        "profile_id": "grounded_current_evidence",
+        "profile_version": "v5-a-product-profile-v1",
+        "authority": "server_product_composition",
+        "objective_verification": "grounded_answer_with_current_evidence",
+        "objective_machine_verifiable": True,
+        "semantic_constraints": [],
+        "unsupported_constraints_are_required": True,
+    }
+    objective_spec = product["trace"]["audits"][-1]
+    assert objective_spec["outcome"] == "accept"
+    with core.db.connect() as connection:
+        spec = connection.execute(
+            "SELECT constraint_kind, evaluator_policy_json "
+            "FROM research_constraint_specs WHERE task_id=? AND constraint_scope='objective'",
+            (task_id,),
+        ).fetchone()
+    assert spec is not None
+    assert str(spec["constraint_kind"]) == "grounded_answer"
+    assert json.loads(str(spec["evaluator_policy_json"]))["authority"] == (
+        "server_product_profile"
+    )
+
+
+def test_forged_client_policy_cannot_grant_objective_evaluator(app_paths) -> None:
+    core = _fixture_core(app_paths)
+    client = TestClient(create_web_app(core))
+    created = client.post(
+        "/api/research/tasks",
+        json={
+            "command_id": "stage5:profile:forged-create",
+            "objective": "任意措辞也不能从请求自授 evaluator",
+            "success_constraints": [],
+            "evidence_policy": {
+                "constraint_profile": "grounded_current_evidence",
+                "authority": "server_product_composition",
+            },
+        },
+    )
+    assert created.status_code == 200
+    task_id = str(created.json()["outcome"]["task_id"])
+    core.research_product.run_to_boundary(
+        task_id,
+        RunProductResearchRequest(command_id="stage5:profile:forged-run"),
+    )
+    product = core.research_product.get_task(task_id)
+
+    assert product["task"]["status"] == "waiting_user"
+    assert product["constraint_policy"]["objective_machine_verifiable"] is False
+    assert product["control"]["open_input_requests"]
+    with core.db.connect() as connection:
+        observation = connection.execute(
+            "SELECT status, reason_codes_json FROM research_constraint_audit_observations "
+            "WHERE task_id=? ORDER BY rowid DESC LIMIT 1",
+            (task_id,),
+        ).fetchone()
+    assert observation is not None
+    assert str(observation["status"]) == "unknown"
+    assert "no_authorized_semantic_evaluator" in json.loads(
+        str(observation["reason_codes_json"])
+    )
+
+
+def test_resolved_evaluator_gap_is_not_asked_again_after_restart_or_replay(
+    app_paths,
+) -> None:
+    core = _fixture_core(app_paths)
+    service = core.research_product
+    task_id = _create(service, "no-repeat-input")
+    service.run_to_boundary(
+        task_id,
+        RunProductResearchRequest(command_id="stage5:no-repeat:first"),
+    )
+    first = service.get_task(task_id)
+    current_input = first["control"]["open_input_requests"][0]
+    context = first["control"]["action_context"]
+    request = HumanDecisionRequest(
+        command_id="stage5:no-repeat:decision",
+        input_request_id=current_input["input_request_id"],
+        expected_state_version=context["expected_state_version"],
+        expected_control_generation=context["expected_control_generation"],
+        decision_kind="clarify_goal",
+        response={
+            "objective": OBJECTIVE,
+            "success_constraints": [CONSTRAINT],
+            "evidence_policy": {"authority": "live_current_exact_replay"},
+        },
+    )
+    decided = core.research_control.decide_input(
+        task_id, request, principal_id="local_operator"
+    )
+    replayed_decision = core.research_control.decide_input(
+        task_id, request, principal_id="local_operator"
+    )
+    assert replayed_decision["decision_id"] == decided["decision_id"]
+    assert replayed_decision["deduplicated"] is True
+
+    run_request = RunProductResearchRequest(command_id="stage5:no-repeat:second")
+    service.run_to_boundary(task_id, run_request)
+    replayed_run = service.run_to_boundary(task_id, run_request)
+    assert replayed_run["deduplicated"] is True
+    blocked = service.get_task(task_id)
+    assert blocked["task"]["status"] == "blocked"
+    assert blocked["control"]["open_input_requests"] == []
+    assert len(core.research_control.get_status(task_id)["input_requests"]) == 1
+    assert len(core.research_control.get_status(task_id)["human_decisions"]) == 1
+    assert any(
+        value["event_type"] == "duplicate_input_request_suppressed"
+        for value in core.research.get_task(task_id)["events"]
+    )
+
+    restarted = Application(app_paths)
+    recovered = restarted.research_product.get_task(task_id)
+    assert recovered["task"]["status"] == "blocked"
+    assert recovered["control"]["open_input_requests"] == []
+    assert len(restarted.research_control.get_status(task_id)["input_requests"]) == 1
+
+
+def test_current_human_decision_selects_supported_policy_and_continues_once(
+    app_paths,
+) -> None:
+    core = _fixture_core(app_paths)
+    service = core.research_product
+    created = service.create_task(
+        CreateProductResearchRequest(
+            command_id="stage5:profile:hitl-create",
+            objective="请解释 MCP 工具执行为何需要幂等回执",
+            success_constraints=["继续前先由用户确认只要求当前证据支撑的回答"],
+            run_immediately=False,
+        )
+    )
+    task_id = str(created["task_id"])
+    service.run_to_boundary(
+        task_id, RunProductResearchRequest(command_id="stage5:profile:hitl-before")
+    )
+    waiting = service.get_task(task_id)
+    current_input = waiting["control"]["open_input_requests"][0]
+    context = waiting["control"]["action_context"]
+    decision = HumanDecisionRequest(
+        command_id="stage5:profile:hitl-decision",
+        input_request_id=current_input["input_request_id"],
+        expected_state_version=context["expected_state_version"],
+        expected_control_generation=context["expected_control_generation"],
+        decision_kind="clarify_goal",
+        response={
+            "objective": "请解释 MCP 工具执行为何需要幂等回执",
+            "success_constraints": [],
+            "evidence_policy": {"authority": "live_current_exact_replay"},
+        },
+    )
+    first = core.research_control.decide_input(
+        task_id, decision, principal_id="local_operator"
+    )
+    replay = core.research_control.decide_input(
+        task_id, decision, principal_id="local_operator"
+    )
+    assert replay["decision_id"] == first["decision_id"]
+    assert replay["deduplicated"] is True
+
+    service.run_to_boundary(
+        task_id, RunProductResearchRequest(command_id="stage5:profile:hitl-after")
+    )
+    terminal = service.get_task(task_id)
+    control = core.research_control.get_status(task_id)
+    assert terminal["task"]["status"] == "terminal"
+    assert terminal["state"]["answer_status"] in {"valid_success", "valid_partial"}
+    assert terminal["citations"]
+    assert terminal["constraint_policy"]["objective_machine_verifiable"] is True
+    assert len(control["input_requests"]) == 1
+    assert len(control["human_decisions"]) == 1
+    assert control["open_input_requests"] == []
 
 
 def test_public_run_endpoint_honors_one_step_bound(app_paths) -> None:

@@ -319,6 +319,27 @@
     panel.querySelector('[name=constraints]').value = product.goal.success_constraints.join('\n');
   };
 
+  const renderConstraintPolicy = product => {
+    const policy = product.constraint_policy;
+    root.querySelector('[data-constraint-profile]').textContent = policy.objective_machine_verifiable
+      ? '目标使用服务器拥有的“当前证据支撑回答”策略：要求 current EvidenceUse、citation 与有效 provisional artifact。'
+      : policy.profile_id
+        ? '任务含额外自由文本成功约束，已进入严格语义模式；未注册约束不能由调用方或 Provider 自授 satisfied。'
+        : '目标没有匹配的服务器确定性 evaluator，不能由调用方或 Provider 自授 satisfied。';
+    const list = root.querySelector('[data-constraint-support]');
+    list.replaceChildren();
+    if (!policy.semantic_constraints.length) {
+      list.append(element('li', '', '没有额外自由文本成功约束。'));
+      return;
+    }
+    policy.semantic_constraints.forEach(constraint => {
+      list.append(element(
+        'li', '',
+        `${constraint.machine_verifiable ? '可机械验证' : '需要改写或服务器注册'} · ${constraint.text}`,
+      ));
+    });
+  };
+
   const renderTask = product => {
     current = product;
     root.querySelector('[data-task-objective]').textContent = product.goal.objective;
@@ -329,6 +350,7 @@
     root.querySelector('[data-termination-reason]').textContent = product.state.termination_reason || '尚未停止';
     root.querySelector('[data-failure-class]').textContent = product.state.failure_class;
     root.querySelector('[data-task-reason]').textContent = product.state.reason_detail || product.state.stop_reason || product.state.blocker || product.state.termination_label;
+    renderConstraintPolicy(product);
     renderControls(product);
     renderEffects(product);
     renderInput(product);
@@ -374,6 +396,7 @@
         body: JSON.stringify({
           command_id: commandId('create'), objective,
           success_constraints: lines(createForm.elements.constraints.value),
+          constraint_profile: createForm.elements.constraint_profile.value,
           run_immediately: true,
         }),
       });

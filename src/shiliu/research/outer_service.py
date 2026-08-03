@@ -31,6 +31,10 @@ from shiliu.research.outer_contracts import (
     OuterBudgetLedger,
     RegisteredConstraintEvaluator,
 )
+from shiliu.research.product_policy import (
+    GROUNDED_CURRENT_EVIDENCE_PROFILE_VERSION,
+    is_grounded_current_evidence_profile,
+)
 from shiliu.research.schema import (
     COMPACT_IMPROVEMENT_SCHEMA_VERSION,
     CONSTRAINT_SPEC_SCHEMA_VERSION,
@@ -1089,6 +1093,21 @@ class OuterResearchService:
         goal: sqlite3.Row,
         now: str,
     ) -> tuple[list[dict[str, Any]], str]:
+        created = connection.execute(
+            "SELECT payload_json FROM research_events "
+            "WHERE task_id=? AND event_type='task_created' "
+            "ORDER BY sequence LIMIT 1",
+            (str(task["task_id"]),),
+        ).fetchone()
+        created_payload = (
+            json.loads(str(created["payload_json"])) if created is not None else {}
+        )
+        server_profile = created_payload.get("server_constraint_profile")
+        success_constraints = json.loads(str(goal["success_constraints_json"]))
+        trusted_product_profile = (
+            is_grounded_current_evidence_profile(server_profile)
+            and not success_constraints
+        )
         source = [
             ("objective", str(goal["objective"])),
             *[
@@ -1096,9 +1115,7 @@ class OuterResearchService:
                     "success_constraint",
                     str(text),
                 )
-                for text in (
-                    json.loads(str(goal["success_constraints_json"]))
-                )
+                for text in success_constraints
             ],
         ]
         specs: list[dict[str, Any]] = []
@@ -1106,28 +1123,29 @@ class OuterResearchService:
             registration = self.registered_evaluators.get(
                 (scope, _normalized(text))
             )
-            kind = (
-                registration.evaluator_kind
-                if registration is not None
-                else "natural_language"
-            )
-            evaluator_version = (
-                registration.evaluator_policy_version
-                if registration is not None
-                else self.EVALUATOR_REGISTRY_VERSION
-            )
-            policy = (
-                {
+            if scope == "objective" and trusted_product_profile:
+                kind = "grounded_answer"
+                evaluator_version = GROUNDED_CURRENT_EVIDENCE_PROFILE_VERSION
+                policy = {
+                    **dict(server_profile),
+                    "authority": "server_product_profile",
+                    "registration_id": None,
+                }
+            elif registration is not None:
+                kind = registration.evaluator_kind
+                evaluator_version = registration.evaluator_policy_version
+                policy = {
                     "authority": "server_registry",
                     "registration_id": registration.registration_id,
                     **registration.parameters,
                 }
-                if registration is not None
-                else {
+            else:
+                kind = "natural_language"
+                evaluator_version = self.EVALUATOR_REGISTRY_VERSION
+                policy = {
                     "authority": "unregistered_natural_language",
                     "registration_id": None,
                 }
-            )
             canonical = {
                 "constraint_schema_version": CONSTRAINT_SPEC_SCHEMA_VERSION,
                 "goal_id": str(goal["goal_id"]),

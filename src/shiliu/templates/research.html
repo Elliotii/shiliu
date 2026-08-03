@@ -21,8 +21,13 @@
     <form data-research-create novalidate>
       <label for="research-objective">研究目标</label>
       <textarea id="research-objective" name="objective" rows="3" maxlength="2000" required placeholder="例如：梳理收藏中关于 MCP 工具调用安全边界的证据"></textarea>
+      <label for="research-constraint-profile">服务器验证策略</label>
+      <select id="research-constraint-profile" name="constraint_profile">
+        <option value="grounded_current_evidence">当前证据支撑回答（受支持）</option>
+      </select>
+      <small class="muted">该策略只在没有额外自由文本成功约束时启用；它验证回答是否由当前 EvidenceUse / citation 支撑，不证明任意命题为真。</small>
       <label for="research-constraints">成功约束 <small>每行一项，可为空</small></label>
-      <textarea id="research-constraints" name="constraints" rows="2" maxlength="4000" placeholder="至少引用一段当前字幕"></textarea>
+      <textarea id="research-constraints" name="constraints" rows="2" maxlength="4000" placeholder="自由文本约束需要服务器已注册 evaluator；否则会安全停下"></textarea>
       <div class="research-form-actions">
         <button class="primary" type="submit" data-create-submit>创建并安全运行</button>
         <span class="muted" data-create-status aria-live="polite"></span>
@@ -60,6 +65,14 @@
           <div><span>失败分类</span><strong data-failure-class>none</strong></div>
         </section>
         <p class="research-reason" data-task-reason></p>
+
+        <section class="research-policy" aria-labelledby="research-policy-title">
+          <div class="research-section-heading">
+            <div><p class="result-kicker">SERVER POLICY</p><h3 id="research-policy-title">约束如何被验证</h3></div>
+          </div>
+          <p data-constraint-profile></p>
+          <ul data-constraint-support></ul>
+        </section>
 
         <section class="research-controls" aria-labelledby="research-controls-title">
           <div class="research-section-heading">

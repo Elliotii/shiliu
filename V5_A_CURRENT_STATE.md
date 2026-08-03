@@ -1004,3 +1004,43 @@ live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
 next_action: V5_main_session_final_gate_B_acceptance
 ```
+
+## 11. Gate B bounded product-completion rework（2026-08-04）
+
+V5 主 Session 对 Gate B 最终有限验收接受 receipt/budget/provider identity、诚实
+insufficient、HITL exact-once/provider continuation、append-only recovery 与 harness
+证据，但未接受代表性 grounded product completion 和 H-only 单 InputRequest 约束。根因是
+默认 `Application.research_outer` 没有可供普通产品路径使用的服务器 evaluator binding。
+
+本轮以最小、server-owned `grounded_current_evidence` profile 修复：只有
+`ResearchProductService` 创建 Task 时，kernel 才会在 `task_created` Event 写入内部权威
+binding；公共 `evidence_policy` 即使复制 profile 名也不能获得 satisfied 权限。active Goal
+没有额外自由文本成功约束时，profile 可机械验证 current EvidenceUse/citation 与有效
+provisional artifact；存在自由文本约束时继续进入严格语义模式，所有未注册 required
+constraint 保持 unknown/needs_user，不会静默 optional。
+
+同一 `authorized_evaluator_required` 能力缺口已经由一次 HumanDecision 消费后，后续相同
+缺口不再创建第二个 InputRequest；runner 以 owner/checkpoint lineage fence、Event 与
+CommandReceipt 持久提交 blocked 边界。清空额外语义约束则在 child Goal 上启用既有
+server profile，并可由默认 composition 到达 grounded terminal boundary。
+
+验证为 Stage 5 product completion 13 项、Stage 1–5 联合 180 项、默认无 Provider 全回归
+1678 passed / 4 deselected；仅既有 Starlette/httpx warning。live DB 在稳定窗口前后均为
+schema 9、157/140、94,588,928 bytes、SHA-256
+`f0f23d87395b652b5486f32f5dd108d2b32b4991fd2faf954c5db67c91402a32`、mtime
+`2026-08-04T02:55:56+0800`，未迁移、未写入。本轮未访问 Keychain/凭据，未调用
+Provider，未进入 Gate C。
+
+```yaml
+stage_5_gate_B_main_final_review: partial_accept_bounded_product_completion_rework
+stage_5_gate_B_product_completion_rework_status: submitted_for_main_review
+stage_5_gate_B_product_completion_report: V5_A_STAGE_5_GATE_B_PRODUCT_COMPLETION_BOUNDED_REWORK_REPORT.md
+stage_5_gate_B_completion_validation_amendment: V5_A_STAGE_5_GATE_B_COMPLETION_VALIDATION_AMENDMENT.md
+stage_5_gate_B_completion_provider_run_authorized: false
+stage_5_gate_B_self_accepted: false
+stage_5_gate_C_authorized: false
+provider_runs_in_this_rework: false
+credential_access_in_this_rework: false
+live_database_migration_in_this_rework: false
+next_action: V5_main_session_bounded_product_completion_review
+```

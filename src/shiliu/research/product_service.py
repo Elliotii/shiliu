@@ -26,6 +26,12 @@ from shiliu.research.product_contracts import (
     CreateProductResearchRequest,
     RunProductResearchRequest,
 )
+from shiliu.research.product_policy import (
+    GROUNDED_CURRENT_EVIDENCE_PROFILE_ID,
+    GROUNDED_CURRENT_EVIDENCE_PROFILE_VERSION,
+    grounded_current_evidence_profile,
+    is_grounded_current_evidence_profile,
+)
 from shiliu.research.schema import (
     INNER_RESEARCH_STATE_SCHEMA_VERSION,
     OUTER_STATE_SCHEMA_VERSION,
@@ -43,6 +49,11 @@ DELTA_KINDS = (
     "CorpusDelta",
     "UserModelDelta",
     "SystemExperienceDelta",
+)
+UNSUPPORTED_EVALUATOR_PROMPT = (
+    "当前自然语言目标或成功约束没有匹配的服务器确定性 evaluator。"
+    "请改写目标，或选择产品支持的‘当前证据支撑回答’策略；"
+    "未注册的自由文本成功约束不会被静默降级。"
 )
 
 
@@ -132,6 +143,7 @@ class ResearchProductService:
         "provider_call_in_flight": "Provider 调用已进入不可自动重放区间",
         "provider_call_receipted": "Provider 调用已绑定真实回执与费用",
         "provider_product_boundary": "真实 Provider 产品编排到达持久边界",
+        "duplicate_input_request_suppressed": "同一 evaluator 能力缺口不再重复提问",
     }
     SAFE_EVENT_KEYS = {
         "action_id",
@@ -197,7 +209,9 @@ class ResearchProductService:
             evidence_policy={
                 "authority": "live_current_exact_replay",
                 "product_execution": "deterministic_no_provider",
+                "constraint_profile": request.constraint_profile,
             },
+            _server_constraint_profile=grounded_current_evidence_profile(),
         )
 
     def list_tasks(self, *, limit: int = 20) -> list[dict[str, Any]]:
@@ -373,6 +387,9 @@ class ResearchProductService:
                 "objective": str(active_goal["objective"]),
                 "success_constraints": list(active_goal["success_constraints"]),
             },
+            "constraint_policy": self._constraint_policy_projection(
+                raw=raw, outer=outer, active_goal=active_goal
+            ),
             "attempt": self._attempt_summary(active_attempt),
             "checkpoint": self._checkpoint_summary(latest_checkpoint),
             "state": {
@@ -442,6 +459,77 @@ class ResearchProductService:
             "candidate_deltas": deltas,
             "trace": self._trace_projection(raw, control),
             "provider_status": "not_exercised",
+        }
+
+    @staticmethod
+    def _constraint_policy_projection(
+        *,
+        raw: dict[str, Any],
+        outer: dict[str, Any],
+        active_goal: dict[str, Any],
+    ) -> dict[str, Any]:
+        created = next(
+            (
+                event
+                for event in raw["events"]
+                if event["event_type"] == "task_created"
+            ),
+            None,
+        )
+        profile = (
+            dict(created.get("payload", {}).get("server_constraint_profile") or {})
+            if created is not None
+            else {}
+        )
+        profile_selected = is_grounded_current_evidence_profile(profile)
+        trusted = profile_selected and not active_goal["success_constraints"]
+        current_specs = {
+            (str(value["constraint_scope"]), str(value["normalized_text"])): value
+            for value in outer["constraint_specs"]
+            if value["goal_id"] == active_goal["goal_id"]
+        }
+        semantic_constraints = []
+        for text in active_goal["success_constraints"]:
+            normalized = " ".join(str(text).casefold().split())
+            spec = current_specs.get(("success_constraint", normalized))
+            authority = (
+                (spec or {}).get("evaluator_policy", {}).get("authority")
+                if spec is not None
+                else "unregistered_natural_language"
+            )
+            semantic_constraints.append(
+                {
+                    "text": str(text),
+                    "verification": (
+                        "server_registered_deterministic"
+                        if authority == "server_registry"
+                        else "requires_supported_rewrite_or_registered_evaluator"
+                    ),
+                    "machine_verifiable": authority == "server_registry",
+                }
+            )
+        return {
+            "profile_id": (
+                GROUNDED_CURRENT_EVIDENCE_PROFILE_ID if profile_selected else None
+            ),
+            "profile_version": (
+                GROUNDED_CURRENT_EVIDENCE_PROFILE_VERSION
+                if profile_selected
+                else None
+            ),
+            "authority": (
+                "server_product_composition" if profile_selected else "none"
+            ),
+            "objective_verification": (
+                "grounded_answer_with_current_evidence"
+                if trusted
+                else "strict_semantic_constraints_require_registered_evaluator"
+                if profile_selected
+                else "requires_registered_evaluator"
+            ),
+            "objective_machine_verifiable": trusted,
+            "semantic_constraints": semantic_constraints,
+            "unsupported_constraints_are_required": True,
         }
 
     @staticmethod
@@ -1154,6 +1242,13 @@ class ResearchProductService:
         control = self.control.get_status(task_id)
         if control["open_input_requests"]:
             return
+        if self._resolved_evaluator_capability_input_exists(task_id):
+            self._suppress_repeated_evaluator_input(
+                task_id=task_id,
+                outcome=outcome,
+                run_command_id=run_command_id,
+            )
+            return
         task = control["task"]
         raw = self.kernel.get_task(task_id)
         attempt = next(
@@ -1173,13 +1268,148 @@ class ResearchProductService:
                 expected_state_version=int(task["state_version"]),
                 expected_checkpoint_id=str(outcome["checkpoint_id"]),
                 kind="clarification",
-                prompt=(
-                    "当前自然语言目标或成功约束没有匹配的服务器确定性 evaluator。"
-                    "请补充或修订目标与成功约束。"
-                ),
+                prompt=UNSUPPORTED_EVALUATOR_PROMPT,
             ),
             principal_id=self.principal_id,
         )
+
+    def _resolved_evaluator_capability_input_exists(self, task_id: str) -> bool:
+        with self.db.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT 1
+                FROM research_input_requests ir
+                JOIN research_human_decisions hd
+                  ON hd.input_request_id=ir.input_request_id
+                WHERE ir.task_id=? AND ir.request_kind='clarification'
+                  AND ir.prompt=? AND hd.decision_kind='clarify_goal'
+                  AND hd.applied_action='goal_revision'
+                LIMIT 1
+                """,
+                (task_id, UNSUPPORTED_EVALUATOR_PROMPT),
+            ).fetchone()
+        return row is not None
+
+    def _suppress_repeated_evaluator_input(
+        self,
+        *,
+        task_id: str,
+        outcome: dict[str, Any],
+        run_command_id: str,
+    ) -> None:
+        command_id = _derived_command(
+            run_command_id, "suppress-repeat-input", outcome["audit_id"]
+        )
+        payload = {
+            "operation": "suppress_repeated_evaluator_input",
+            "task_id": task_id,
+            "audit_id": outcome["audit_id"],
+            "attempt_id": outcome["parent_attempt_id"],
+            "checkpoint_id": outcome["checkpoint_id"],
+            "reason": "authorized_evaluator_required_already_answered",
+        }
+        payload_hash = _hash(payload)
+        now_value = datetime.now(timezone.utc)
+        now = now_value.isoformat(timespec="microseconds")
+        with self.kernel._transaction() as connection:
+            task = self.kernel._task(connection, task_id)
+            existing = self.kernel._existing_receipt(
+                connection,
+                task_id=task_id,
+                command_id=command_id,
+                payload_hash=payload_hash,
+                owner_id=self.runner_id,
+                owner_epoch=int(task["owner_epoch"]),
+                now=now_value,
+            )
+            if existing is not None:
+                return
+            self.kernel._assert_nonterminal(task)
+            self.kernel._assert_owner(
+                task,
+                owner_id=self.runner_id,
+                owner_epoch=int(task["owner_epoch"]),
+                now=now_value,
+            )
+            attempt = self.kernel._attempt(
+                connection, str(outcome["parent_attempt_id"])
+            )
+            if (
+                str(task["status"]) != "waiting_user"
+                or str(attempt["task_id"]) != task_id
+                or str(attempt["status"]) != "waiting_user"
+                or str(attempt["goal_id"]) != str(task["active_goal_id"])
+            ):
+                raise ResearchConflict(
+                    "repeated InputRequest suppression lost current pause lineage"
+                )
+            latest = connection.execute(
+                "SELECT checkpoint_id FROM research_checkpoints "
+                "WHERE attempt_id=? ORDER BY sequence DESC LIMIT 1",
+                (str(attempt["attempt_id"]),),
+            ).fetchone()
+            if latest is None or str(latest["checkpoint_id"]) != str(
+                outcome["checkpoint_id"]
+            ):
+                raise ResearchConflict(
+                    "repeated InputRequest suppression checkpoint mismatch"
+                )
+            open_input = connection.execute(
+                """
+                SELECT 1 FROM research_input_requests ir
+                WHERE ir.task_id=? AND NOT EXISTS (
+                    SELECT 1 FROM research_input_dispositions idp
+                    WHERE idp.input_request_id=ir.input_request_id
+                      AND idp.status IN ('resolved','cancelled','superseded')
+                ) LIMIT 1
+                """,
+                (task_id,),
+            ).fetchone()
+            if open_input is not None:
+                raise ResearchConflict("current InputRequest already exists")
+            connection.execute(
+                "UPDATE research_attempts SET status='blocked' WHERE attempt_id=?",
+                (str(attempt["attempt_id"]),),
+            )
+            connection.execute(
+                "UPDATE research_tasks SET status='blocked', "
+                "state_version=state_version+1, updated_at=? WHERE task_id=?",
+                (now, task_id),
+            )
+            event_id = self.kernel._event(
+                connection,
+                task_id=task_id,
+                goal_id=str(attempt["goal_id"]),
+                attempt_id=str(attempt["attempt_id"]),
+                checkpoint_id=str(outcome["checkpoint_id"]),
+                event_type="duplicate_input_request_suppressed",
+                payload={
+                    "audit_id": outcome["audit_id"],
+                    "blocker": "authorized_evaluator_required",
+                    "reason": "same_capability_gap_already_answered",
+                },
+                command_id=command_id,
+                owner_epoch=int(task["owner_epoch"]),
+                now=now,
+            )
+            response = {
+                "task_id": task_id,
+                "event_id": event_id,
+                "task_status": "blocked",
+                "state_version": int(task["state_version"]) + 1,
+                "owner_epoch": int(task["owner_epoch"]),
+            }
+            self.kernel._insert_receipt(
+                connection,
+                task_id=task_id,
+                command_id=command_id,
+                command_type="suppress_repeated_evaluator_input",
+                payload_hash=payload_hash,
+                outcome_reference=event_id,
+                response=response,
+                owner_epoch=int(task["owner_epoch"]),
+                now=now,
+            )
 
     def _runner_response(
         self, task_id: str, boundary: str, steps: int

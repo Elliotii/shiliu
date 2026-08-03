@@ -341,6 +341,7 @@ class ResearchTaskService:
         evidence_policy: dict[str, Any] | None = None,
         task_id: str | None = None,
         parent_task_id: str | None = None,
+        _server_constraint_profile: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         objective = objective.strip()
         if not objective:
@@ -352,6 +353,7 @@ class ResearchTaskService:
             "evidence_policy": evidence_policy or {},
             "parent_task_id": parent_task_id,
             "task_id": task_id,
+            "server_constraint_profile": _server_constraint_profile,
         }
         payload_hash = _hash(payload)
         now = _iso(self._now())
@@ -411,7 +413,11 @@ class ResearchTaskService:
                 task_id=task_id,
                 goal_id=goal_id,
                 event_type="task_created",
-                payload={"parent_task_id": parent_task_id, "goal_revision": 1},
+                payload={
+                    "parent_task_id": parent_task_id,
+                    "goal_revision": 1,
+                    "server_constraint_profile": _server_constraint_profile,
+                },
                 command_id=command_id,
                 owner_epoch=0,
                 now=now,

@@ -25,3 +25,9 @@ stage_1_status: accepted
 stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
 next_action: V5_A_stage_2_contract_preparation
 ```
+
+## Pending V5 Main decision
+
+```jsonl
+{"decision_id":"V5A-D010","date":"2026-08-04","status":"proposed_pending_main_acceptance","proposal_authority":"V5-A execution session","acceptance_authority":"V5 main session","scope":"stage_5_product_constraint_profile_and_repeat_input_lifecycle","decision":"Offer one server-owned grounded_current_evidence product profile. Its authority is bound internally at Task creation and cannot be granted by client evidence_policy, Provider output, candidate or confidence. It applies only when the active Goal has no additional free-text success constraints; otherwise all unregistered required semantics remain fail-closed. A resolved authorized_evaluator_required clarification may authorize at most one such question lifecycle; the same capability blocker is durably suppressed rather than asked again.","rationale":"This gives ordinary product composition a real grounded completion path without weakening Stage 3 evaluator authority or rewriting unsupported semantic constraints, and closes Gate B H-only duplicate InputRequest behavior.","evidence":["V5_A_STAGE_5_GATE_B_PRODUCT_COMPLETION_BOUNDED_REWORK_REPORT.md","V5_A_STAGE_5_GATE_B_COMPLETION_VALIDATION_AMENDMENT.md"],"implementation_authorized":true,"provider_validation_authorized":false,"gate_C_authorized":false,"next_action":"V5_main_session_bounded_product_completion_review"}
+```
