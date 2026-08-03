@@ -104,6 +104,21 @@ def _run_envelope(
     }
 
 
+def _policy_from_manifest(value: dict[str, Any]) -> ProviderRunBudgetPolicy:
+    return ProviderRunBudgetPolicy(
+        run_id=str(value["run_id"]),
+        task_ids=tuple(str(item) for item in value["task_ids"]),
+        started_at=str(value["started_at"]),
+        max_logical_calls=int(value["max_logical_calls"]),
+        max_http_attempts=int(value["max_http_attempts"]),
+        max_input_tokens=int(value["max_input_tokens"]),
+        max_output_tokens=int(value["max_output_tokens"]),
+        max_wall_seconds=int(value["max_wall_seconds"]),
+        reserve_stop_usd=Decimal(str(value["reserve_stop_usd"])),
+        absolute_max_cost_usd=Decimal(str(value["absolute_max_cost_usd"])),
+    )
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
@@ -385,6 +400,33 @@ def _prepare_hitl(
     }
 
 
+def _settle_running_product_boundary(
+    *,
+    product: ResearchProductService,
+    task_id: str,
+    command_id: str,
+    current_result: dict[str, Any],
+) -> dict[str, Any]:
+    """Use the accepted no-provider runner to close a durable continuation."""
+
+    result = current_result
+    for ordinal in range(2):
+        if result.get("task_status") != "running":
+            return result
+        result = product.run_to_boundary(
+            task_id,
+            RunProductResearchRequest(
+                command_id=f"{command_id}:deterministic-close:{ordinal + 1}",
+                max_steps=24,
+            ),
+        )
+    if result.get("task_status") == "running":
+        raise ResearchUnsafeState(
+            "durable continuation remained running after bounded deterministic close"
+        )
+    return result
+
+
 def _validate_entry(
     manifest: dict[str, Any],
     root: Path,
@@ -392,12 +434,14 @@ def _validate_entry(
     remaining_ih: bool,
     h_only: bool,
     completion: bool,
+    completion_recovery: bool,
     envelope: dict[str, Any],
 ) -> None:
     entry = manifest.get("entry_gate", {})
     if entry.get("status") != "pass":
         raise ResearchUnsafeState("post-fix Entry Gate is not pass")
-    if manifest.get("provider_calls_performed") != 0:
+    expected_prior_calls = 4 if completion_recovery else 0
+    if manifest.get("provider_calls_performed") != expected_prior_calls:
         raise ResearchUnsafeState("post-fix manifest is not at call count zero")
     if manifest.get("formal_evaluation_root") != str(root):
         raise ResearchUnsafeState("post-fix manifest root identity mismatch")
@@ -423,6 +467,15 @@ def _validate_entry(
             raise ResearchUnsafeState("accepted product-completion HEAD mismatch")
         if manifest.get("case_manifest", {}).get("canonical_case_hashes") is None:
             raise ResearchUnsafeState("completion exact case hashes are not frozen")
+        if completion_recovery:
+            parent = manifest.get("recovery_parent", {})
+            if (
+                parent.get("committed_logical_calls") != 4
+                or parent.get("committed_http_attempts") != 4
+                or parent.get("unknown_or_in_flight") != 0
+                or parent.get("G_rerun_forbidden") is not True
+            ):
+                raise ResearchUnsafeState("completion recovery parent boundary mismatch")
     if remaining_ih or h_only:
         parent = manifest.get("parent_g_evidence", {})
         if (
@@ -450,6 +503,7 @@ def main() -> int:
     parser.add_argument("--remaining-ih", action="store_true")
     parser.add_argument("--h-only", action="store_true")
     parser.add_argument("--completion", action="store_true")
+    parser.add_argument("--completion-recovery", action="store_true")
     args = parser.parse_args()
     root = args.eval_root.expanduser().resolve()
     manifest_path = root / "manifest.json"
@@ -466,8 +520,11 @@ def main() -> int:
         remaining_ih=args.remaining_ih,
         h_only=args.h_only,
         completion=args.completion,
+        completion_recovery=args.completion_recovery,
         envelope=envelope,
     )
+    if args.completion_recovery and not args.completion:
+        raise ResearchUnsafeState("completion recovery requires completion mode")
 
     config = load_config(AppPaths.defaults())
     if config.llm_base_url.rstrip("/") != AUTHORIZED_ENDPOINT:
@@ -490,28 +547,34 @@ def main() -> int:
     actual_factory = _actual_provider_factory(api_key=api_key, config=config)
     del api_key
 
-    run_started_at = _utc_now()
-    manifest["run_started_at"] = run_started_at
-    task_ids = tuple(
-        (
-            _completion_task_id(str(manifest["run_id"]), case_id)
-            if args.completion
-            else _task_id(str(manifest["run_id"]), case_id)
+    recovery_started_at = _utc_now()
+    manifest["recovery_started_at" if args.completion_recovery else "run_started_at"] = (
+        recovery_started_at
+    )
+    if args.completion_recovery:
+        run_policy = _policy_from_manifest(manifest["run_budget_policy"])
+        task_ids = run_policy.task_ids
+    else:
+        task_ids = tuple(
+            (
+                _completion_task_id(str(manifest["run_id"]), case_id)
+                if args.completion
+                else _task_id(str(manifest["run_id"]), case_id)
+            )
+            for case_id in authorized_cases
         )
-        for case_id in authorized_cases
-    )
-    run_policy = ProviderRunBudgetPolicy(
-        run_id=str(manifest["run_id"]),
-        task_ids=task_ids,
-        started_at=run_started_at,
-        max_logical_calls=envelope["max_logical_calls"],
-        max_http_attempts=envelope["max_http_attempts"],
-        max_input_tokens=envelope["max_input_tokens"],
-        max_output_tokens=envelope["max_output_tokens"],
-        max_wall_seconds=envelope["max_wall_seconds"],
-        reserve_stop_usd=envelope["reserve_stop_usd"],
-        absolute_max_cost_usd=envelope["absolute_max_cost_usd"],
-    )
+        run_policy = ProviderRunBudgetPolicy(
+            run_id=str(manifest["run_id"]),
+            task_ids=task_ids,
+            started_at=recovery_started_at,
+            max_logical_calls=envelope["max_logical_calls"],
+            max_http_attempts=envelope["max_http_attempts"],
+            max_input_tokens=envelope["max_input_tokens"],
+            max_output_tokens=envelope["max_output_tokens"],
+            max_wall_seconds=envelope["max_wall_seconds"],
+            reserve_stop_usd=envelope["reserve_stop_usd"],
+            absolute_max_cost_usd=envelope["absolute_max_cost_usd"],
+        )
     manifest["run_budget_policy"] = run_policy.manifest()
     manifest["run_budget_policy_hash"] = run_policy.policy_hash
     _write_json(manifest_path, manifest)
@@ -542,6 +605,8 @@ def main() -> int:
     cases = {str(case["case_id"]): case for case in manifest["cases"]}
     for case_id, task_id in zip(authorized_cases, task_ids, strict=True):
         case = cases[case_id]
+        if args.completion_recovery:
+            continue
         if args.completion:
             created = _create_completion_provider_task(
                 kernel=app.research,
@@ -568,10 +633,52 @@ def main() -> int:
 
     run_started_monotonic = time.monotonic()
     results: dict[str, Any] = {}
+    rubric_violations: dict[str, list[str]] = {}
     try:
-        for case_id in authorized_cases:
+        if args.completion_recovery:
+            g_case = cases["GB-PC-G-01"]
+            g_task_id = str(manifest["case_runs"]["GB-PC-G-01"]["task_id"])
+            g_result = _settle_running_product_boundary(
+                product=product,
+                task_id=g_task_id,
+                command_id="completion-recovery:GB-PC-G-01",
+                current_result={"task_status": "running"},
+            )
+            g_projection, g_raw = _load_case_projection(
+                app=app, task_id=g_task_id, result=g_result, hitl=None
+            )
+            _write_case_evidence(
+                root=root, case=g_case, projection=g_projection, raw=g_raw
+            )
+            results["GB-PC-G-01"] = g_projection
+            manifest["case_runs"]["GB-PC-G-01"].update(
+                {
+                    "status": "recovered_without_provider_replay",
+                    "completed_at": _utc_now(),
+                    "task_status": g_projection["task_status"],
+                    "provider_receipts": len(g_projection["provider_receipts"]),
+                }
+            )
+            if g_projection["evidence_use_count"] < 1:
+                rubric_violations.setdefault("GB-PC-G-01", []).append(
+                    "no current EvidenceUse/citation"
+                )
+            if g_projection["task_status"] != "terminal":
+                rubric_violations.setdefault("GB-PC-G-01", []).append(
+                    "did not reach terminal success/partial"
+                )
+            _write_json(manifest_path, manifest)
+
+        cases_to_execute = (
+            ("GB-PC-H-01",) if args.completion_recovery else authorized_cases
+        )
+        for case_id in cases_to_execute:
             case = cases[case_id]
-            task_id = task_ids[authorized_cases.index(case_id)]
+            task_id = (
+                str(manifest["case_runs"][case_id]["task_id"])
+                if args.completion_recovery
+                else task_ids[authorized_cases.index(case_id)]
+            )
             case_started = datetime.now(timezone.utc)
             case_deadline = case_started + timedelta(
                 seconds=int(case["wall_time_seconds"])
@@ -628,6 +735,12 @@ def main() -> int:
                 case_deadline_at=case_deadline.isoformat(timespec="microseconds"),
                 run_budget=run_policy,
             )
+            result = _settle_running_product_boundary(
+                product=product,
+                task_id=task_id,
+                command_id=f"completion:{case_id}",
+                current_result=result,
+            )
             projection, raw = _load_case_projection(
                 app=app, task_id=task_id, result=result, hitl=hitl
             )
@@ -636,8 +749,6 @@ def main() -> int:
             )
             results[case_id] = projection
             if args.completion:
-                if projection["task_status"] == "running":
-                    raise ResearchUnsafeState("completion Task remained running")
                 if not projection["provider_receipts"]:
                     raise ResearchUnsafeState("completion case has no Provider receipt")
                 if not projection["outer_audit"]:
@@ -646,16 +757,16 @@ def main() -> int:
                     projection["evidence_use_count"] < 1
                     or projection["task_status"] != "terminal"
                 ):
-                    raise ResearchUnsafeState(
-                        "grounded completion case did not reach cited terminal boundary"
+                    rubric_violations.setdefault(case_id, []).append(
+                        "grounded case did not reach cited terminal boundary"
                     )
                 if case_id == "GB-PC-H-01" and (
                     projection["input_request_count"] != 1
                     or projection["human_decision_count"] != 1
                     or projection["open_input_requests"]
                 ):
-                    raise ResearchUnsafeState(
-                        "completion HITL case violated exact-one input lifecycle"
+                    rubric_violations.setdefault(case_id, []).append(
+                        "HITL case violated exact-one input lifecycle"
                     )
             manifest["case_runs"][case_id].update(
                 {
@@ -720,6 +831,7 @@ def main() -> int:
                 }
                 for case_id, projection in results.items()
             },
+            "rubric_violations": rubric_violations,
         }
     )
     _write_json(manifest_path, manifest)
