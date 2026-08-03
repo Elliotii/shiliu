@@ -33,6 +33,7 @@ CASE_TOKEN_CAPS = {
     "GB-I-01": (40_000, 8_896),
     "GB-H-01": (40_000, 8_896),
 }
+WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
 
 
 def _sha256(path: Path) -> str:
@@ -139,6 +140,25 @@ def _make_read_only(root: Path) -> None:
     root.chmod(mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
 
 
+def _copy_schema_snapshot_for_migration(
+    source_snapshot: Path, root: Path
+) -> tuple[Path, Path]:
+    """Keep the evidence snapshot immutable; make only its work copy writable."""
+
+    snapshot_copy = root / "eval.schema9.snapshot.db"
+    working_copy = root / "eval.db"
+    shutil.copy2(source_snapshot, snapshot_copy)
+    shutil.copy2(source_snapshot, working_copy)
+    working_copy.chmod(working_copy.stat().st_mode | stat.S_IWUSR)
+    if source_snapshot.stat().st_mode & WRITE_BITS:
+        raise RuntimeError("source schema-9 snapshot unexpectedly has write permission")
+    if snapshot_copy.stat().st_mode & WRITE_BITS:
+        raise RuntimeError("copied schema-9 snapshot unexpectedly has write permission")
+    if not working_copy.stat().st_mode & stat.S_IWUSR:
+        raise RuntimeError("eval.db working copy has no owner write permission")
+    return snapshot_copy, working_copy
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--original-root", type=Path, required=True)
@@ -167,8 +187,9 @@ def main() -> int:
     source_tree_digest = _tree_digest(original / "artifacts")
     root.mkdir(parents=False)
     (root / "logs").mkdir()
-    shutil.copy2(source_snapshot, root / "eval.schema9.snapshot.db")
-    shutil.copy2(source_snapshot, root / "eval.db")
+    snapshot_copy, working_copy = _copy_schema_snapshot_for_migration(
+        source_snapshot, root
+    )
     shutil.copytree(original / "artifacts", root / "artifacts", copy_function=shutil.copy2)
     copied_tree_digest = _tree_digest(root / "artifacts")
     if copied_tree_digest != source_tree_digest:
@@ -178,7 +199,7 @@ def main() -> int:
         raise RuntimeError("grounded source subtitle hash mismatch")
     _make_read_only(root / "artifacts")
 
-    before = _read_facts(root / "eval.schema9.snapshot.db")
+    before = _read_facts(snapshot_copy)
     if before != {
         "schema_version": 9,
         "integrity_check": "ok",
@@ -193,10 +214,14 @@ def main() -> int:
         "completed_artifact_dirs": 140,
     }:
         raise RuntimeError(f"material schema-9 baseline changed: {before}")
-    Database(root / "eval.db").initialize()
-    after = _read_facts(root / "eval.db")
+    Database(working_copy).initialize()
+    after = _read_facts(working_copy)
     if after != {**before, "schema_version": 10}:
         raise RuntimeError(f"schema-10 eval migration changed material facts: {after}")
+    if snapshot_copy.stat().st_mode & WRITE_BITS:
+        raise RuntimeError("schema-9 snapshot copy became writable during migration")
+    if not working_copy.stat().st_mode & stat.S_IWUSR:
+        raise RuntimeError("schema-10 eval.db lost owner write permission")
 
     source_manifest = json.loads(args.cases_manifest.read_text(encoding="utf-8"))
     cases = []
@@ -284,6 +309,8 @@ def main() -> int:
         "eval_snapshot": {
             "source_schema9_sha256": EXPECTED_SCHEMA9_SHA,
             "schema10_pre_run_sha256": _sha256(root / "eval.db"),
+            "schema9_snapshot_mode": oct(stat.S_IMODE(snapshot_copy.stat().st_mode)),
+            "schema10_working_copy_mode": oct(stat.S_IMODE(working_copy.stat().st_mode)),
             "facts": after,
             "accepted_artifact_identity": EXPECTED_ARTIFACT_IDENTITY,
             "artifact_source_and_copy_canonical_sha256": source_tree_digest,
@@ -304,7 +331,7 @@ def main() -> int:
             "run_wide_meter_commit": "85a31b2",
             "postfix_runner_commit": "d9a4313",
             "entry_builder_commit": args.implementation_head,
-            "stage_1_to_5_joint_targeted_tests": "173 passed",
+            "stage_1_to_5_joint_targeted_tests": "174 passed",
             "provider_wiring_and_product_tests": "27 passed",
             "compileall": "pass",
             "diff_check": "pass",
