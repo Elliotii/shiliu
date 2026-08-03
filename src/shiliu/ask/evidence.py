@@ -7,6 +7,7 @@ from typing import Iterable
 from shiliu.ask.citations import stable_citation_id
 from shiliu.ask.contracts import (
     CITATION_IDENTITY_VERSION,
+    Citation,
     EvidenceSegment,
     TranscriptEvidenceSpan,
 )
@@ -130,6 +131,89 @@ class TranscriptEvidenceMaterializer:
                 "citation cannot be reconstructed from current segments",
                 code="citation_reconstruction_failed",
             )
+
+    def reconstruct_citation(
+        self,
+        citation: Citation,
+        *,
+        execution_id: str,
+        search_trace_id: str,
+        query: str,
+    ) -> TranscriptEvidenceSpan:
+        """Rehydrate a typed V4 citation into current durable evidence.
+
+        Citation display fields are never trusted as authority. The source artifact
+        and exact segments are replayed, then ``validate_current`` applies the same
+        currentness and identity checks used by normal materialization.
+        """
+
+        row = self._video_row(citation.video_id)
+        if row is None:
+            raise EvidenceContractError(
+                "citation video no longer exists", code="citation_source_unavailable"
+            )
+        reference = _reference(row)
+        artifact = load_source_artifact(
+            reference, expected_source_version=citation.source_version
+        )
+        if artifact.source_artifact_id != citation.source_artifact_id:
+            raise EvidenceContractError(
+                "citation artifact identity changed", code="source_version_mismatch"
+            )
+        by_id = {value.segment_id: value for value in artifact.segments}
+        try:
+            segments = tuple(by_id[value] for value in citation.segment_ids)
+        except KeyError as exc:
+            raise EvidenceContractError(
+                "citation segment no longer exists", code="citation_segment_missing"
+            ) from exc
+        ordinals = tuple(value.original_ordinal for value in segments)
+        _validate_candidate_segments(
+            segments,
+            expected_ordinals=ordinals,
+            timeline_run_id=citation.timeline_run_id,
+        )
+        span = TranscriptEvidenceSpan(
+            citation_id=citation.citation_id,
+            citation_identity_version=citation.citation_identity_version,
+            video_id=citation.video_id,
+            bvid=citation.bvid,
+            title=citation.title,
+            source_type=citation.source_type,
+            source_language=citation.source_language,
+            source_artifact_id=citation.source_artifact_id,
+            source_version=citation.source_version,
+            source_version_authority="live_current_exact_replay",
+            timeline_run_id=citation.timeline_run_id,
+            segment_ids=tuple(citation.segment_ids),
+            segment_ordinals=ordinals,
+            start_time=citation.start_time,
+            end_time=citation.end_time,
+            quote_text=citation.quote_text,
+            jump_url=citation.jump_url,
+            parent_chunk_ids=(),
+            retrieval_provenance=(
+                {
+                    "execution_id": execution_id,
+                    "search_trace_id": search_trace_id,
+                    "query": query,
+                    "retrieval_method": "receipt_bound_deep_ask_replay",
+                },
+            ),
+            segments=tuple(
+                EvidenceSegment(
+                    segment_id=value.segment_id,
+                    original_ordinal=value.original_ordinal,
+                    run_local_ordinal=value.run_local_ordinal,
+                    start_time=value.start_time,
+                    end_time=value.end_time,
+                    source_text=value.source_text,
+                )
+                for value in segments
+            ),
+        )
+        self.validate_current(span)
+        return span
 
     def _materialize_candidate(
         self,

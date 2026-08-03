@@ -9,7 +9,12 @@ from typing import Any, Callable
 from uuid import uuid4
 
 from shiliu.ask.context import TranscriptContextBuilder
-from shiliu.ask.contracts import AnswerBlock, GroundedAnswerDraft, TranscriptEvidenceSpan
+from shiliu.ask.contracts import (
+    AnswerBlock,
+    AskResponse,
+    GroundedAnswerDraft,
+    TranscriptEvidenceSpan,
+)
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.validation import validate_grounded_answer
 from shiliu.db import Database
@@ -93,6 +98,10 @@ class _PreparedAction:
     focused_video_ids: tuple[int, ...] = ()
     error_code: str | None = None
     error_detail: str | None = None
+    provider_response: AskResponse | None = None
+    provider_receipt_bindings: tuple[dict[str, Any], ...] = ()
+    provider_trace_hash: str | None = None
+    provider_operation_prefix: str | None = None
 
 
 class _PreActionBudgetExhausted(RuntimeError):
@@ -176,6 +185,119 @@ class InnerResearchService:
                 "Provider wiring 只可经 SideEffect protocol 调用；当前入口未启用"
             )
         prepared = self._prepare_action(state, objective)
+        try:
+            return self._commit(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                prepared=prepared,
+            )
+        except _PreActionBudgetExhausted as exc:
+            return self._commit_durable_stop(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                budget_dimension=exc.dimension,
+            )
+        except _SynthesisImplementationError as exc:
+            self.fault_injector("before_inner_failure_commit")
+            return self._commit_implementation_failure(
+                task_id=task_id,
+                request=request,
+                payload_hash=payload_hash,
+                prepared=prepared,
+                cause=exc.cause,
+            )
+
+    def commit_provider_synthesis(
+        self,
+        task_id: str,
+        request: ContinueInnerResearchRequest,
+        *,
+        response: AskResponse,
+        spans: tuple[TranscriptEvidenceSpan, ...],
+        receipt_bindings: tuple[dict[str, Any], ...],
+        trace: dict[str, Any],
+        provider_operation_prefix: str,
+    ) -> dict[str, Any]:
+        """Commit a receipt-bound Deep answer into the durable Stage 2 lineage.
+
+        This is deliberately separate from ``continue_run``: callers cannot turn
+        the public deterministic endpoint into a Provider endpoint by changing an
+        enum. The explicit Gate B service must hold both Provider dispatch and
+        inner-ingest authority.
+        """
+
+        if not self.provider_runs_authorized or request.execution_mode != "provider":
+            raise ResearchUnsafeState(
+                "receipt-bound Provider synthesis is not authorized"
+            )
+        response = AskResponse.model_validate(response.model_dump(mode="json"))
+        response_payload = response.model_dump(mode="json")
+        if (
+            len(response.citations) > 24
+            or len(response.answer_blocks) > 24
+            or len(_json(response_payload)) > 250_000
+            or len(_json(trace)) > 500_000
+        ):
+            raise ResearchValidationError(
+                "Provider synthesis response/trace exceeds the bounded ingest contract"
+            )
+        if not receipt_bindings or len(receipt_bindings) > 17:
+            raise ResearchValidationError(
+                "Provider synthesis requires 1..17 durable receipt bindings"
+            )
+        citation_ids = [value.citation_id for value in response.citations]
+        span_ids = [value.citation_id for value in spans]
+        if len(span_ids) != len(set(span_ids)) or set(span_ids) != set(citation_ids):
+            raise ResearchValidationError(
+                "Provider citation/span identity set is incomplete or ambiguous"
+            )
+        payload = {
+            "operation": "commit_provider_inner_synthesis",
+            **request.model_dump(mode="json"),
+            "response": response_payload,
+            "evidence_identities": [evidence_identity_payload(value) for value in spans],
+            "receipt_hashes": [
+                str(value.get("receipt_hash") or "") for value in receipt_bindings
+            ],
+            "trace_hash": canonical_hash(trace),
+            "provider_operation_prefix": provider_operation_prefix,
+        }
+        payload_hash = canonical_hash(payload)
+        preflight = self._preflight(task_id, request, payload_hash)
+        if preflight is not None:
+            return {**preflight, "deduplicated": True}
+        state, objective = self._load_state(task_id, request)
+        if state.phase != "provisional_synthesis":
+            raise ResearchConflict(
+                "Provider synthesis requires the current durable provisional_synthesis phase"
+            )
+        prepared = _PreparedAction(
+            kind="provisional_synthesis",
+            action_key=self._action_key(state.phase, state, objective),
+            request_payload={
+                "objective": objective,
+                "execution_mode": "provider",
+                "provider_run_id": response.run_id,
+                "receipt_hashes": payload["receipt_hashes"],
+                "trace_hash": payload["trace_hash"],
+            },
+            observation={
+                "generation": "receipt_bound_provider",
+                "provider_run_id": response.run_id,
+                "provider_answer_status": response.status,
+                "provider_termination_reason": response.termination_reason,
+                "trace_hash": payload["trace_hash"],
+                "trace_summary": response.trace_summary.model_dump(mode="json"),
+                "trace_event_count": len(trace.get("events") or []),
+            },
+            spans=spans,
+            provider_response=response,
+            provider_receipt_bindings=tuple(dict(value) for value in receipt_bindings),
+            provider_trace_hash=str(payload["trace_hash"]),
+            provider_operation_prefix=provider_operation_prefix,
+        )
         try:
             return self._commit(
                 task_id=task_id,
@@ -1101,6 +1223,31 @@ class InnerResearchService:
                 raise ResearchUnsafeState(
                     "存在 unresolved SideEffect，不能提交 inner checkpoint"
                 )
+            provider_receipt_result = (
+                self._assert_provider_receipts(
+                    connection,
+                    task_id=task_id,
+                    attempt_id=request.attempt_id,
+                    owner_epoch=request.owner_epoch,
+                    bindings=prepared.provider_receipt_bindings,
+                    require_grounded=(
+                        prepared.provider_response.status != "insufficient"
+                    ),
+                    operation_prefix=prepared.provider_operation_prefix or "",
+                )
+                if prepared.provider_response is not None
+                else None
+            )
+            provider_side_effect_id = (
+                provider_receipt_result[0]
+                if provider_receipt_result is not None
+                else None
+            )
+            provider_logical_calls = (
+                provider_receipt_result[1]
+                if provider_receipt_result is not None
+                else 0
+            )
             action_id = _id("inner_action")
             checkpoint_id = _id("checkpoint")
             action_status = "failed" if prepared.error_code else "succeeded"
@@ -1114,7 +1261,7 @@ class InnerResearchService:
                     retrieval_execution_id, retrieval_trace_id, side_effect_id,
                     observation_json, error_code, error_detail,
                     created_at, started_at, completed_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL,
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                          ?, ?, ?, ?, ?, ?)
                 """,
                 (
@@ -1132,6 +1279,7 @@ class InnerResearchService:
                     request.owner_epoch,
                     self._first_provenance(prepared.spans, "execution_id"),
                     self._first_provenance(prepared.spans, "search_trace_id"),
+                    provider_side_effect_id,
                     _json(prepared.observation),
                     prepared.error_code,
                     prepared.error_detail,
@@ -1227,18 +1375,35 @@ class InnerResearchService:
             if prepared.kind == "provisional_synthesis":
                 artifact_id = _id("provisional")
                 try:
-                    (
-                        artifact_data,
-                        synthesis_observations,
-                        synthesis_context_characters,
-                    ) = self._synthesize(
-                        connection,
-                        state=state,
-                        objective=execution_objective,
-                        checkpoint_id=checkpoint_id,
-                        owner_epoch=request.owner_epoch,
-                        now=now,
-                    )
+                    if prepared.provider_response is None:
+                        (
+                            artifact_data,
+                            synthesis_observations,
+                            synthesis_context_characters,
+                        ) = self._synthesize(
+                            connection,
+                            state=state,
+                            objective=execution_objective,
+                            checkpoint_id=checkpoint_id,
+                            owner_epoch=request.owner_epoch,
+                            now=now,
+                        )
+                    else:
+                        (
+                            artifact_data,
+                            synthesis_observations,
+                            synthesis_context_characters,
+                        ) = self._synthesize_provider(
+                            connection,
+                            state=state,
+                            objective=execution_objective,
+                            checkpoint_id=checkpoint_id,
+                            owner_epoch=request.owner_epoch,
+                            now=now,
+                            response=prepared.provider_response,
+                            receipt_bindings=prepared.provider_receipt_bindings,
+                            provider_trace_hash=prepared.provider_trace_hash,
+                        )
                 except (SimulatedCrash, ResearchError):
                     raise
                 except Exception as exc:
@@ -1247,6 +1412,8 @@ class InnerResearchService:
                 state.budget.synthesis_context_characters += (
                     synthesis_context_characters
                 )
+                if prepared.provider_response is not None:
+                    state.budget.provider_logical_calls += provider_logical_calls
                 state.provisional_artifact_ids.append(artifact_id)
                 state.phase = "complete"
                 state.answer_status = artifact_data["answer_status"]
@@ -1323,7 +1490,7 @@ class InnerResearchService:
                         generation_policy_version, validator_policy_version,
                         provider_side_effect_id, artifact_hash, created_at
                     ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                             NULL, ?, ?)
+                             ?, ?, ?)
                     """,
                     (
                         artifact_id,
@@ -1340,8 +1507,9 @@ class InnerResearchService:
                         _json(artifact_data["evidence_use_ids"]),
                         _json(artifact_data["evidence_ids"]),
                         _json(validation_ids),
-                        self.GENERATION_POLICY_VERSION,
+                        artifact_data["generation_policy_version"],
                         self.VALIDATOR_POLICY_VERSION,
+                        provider_side_effect_id,
                         artifact_hash,
                         now,
                     ),
@@ -1654,6 +1822,310 @@ class InnerResearchService:
             "created_at": now,
         }
         return data, observations, context_characters
+
+    def _synthesize_provider(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        state: InnerResearchState,
+        objective: str,
+        checkpoint_id: str,
+        owner_epoch: int,
+        now: str,
+        response: AskResponse,
+        receipt_bindings: tuple[dict[str, Any], ...],
+        provider_trace_hash: str | None,
+    ) -> tuple[
+        dict[str, Any],
+        list[tuple[str, str, CurrentnessResult]],
+        int,
+    ]:
+        by_evidence: dict[str, tuple[str, TranscriptEvidenceSpan, CurrentnessResult]] = {}
+        observations: list[tuple[str, str, CurrentnessResult]] = []
+        for use_id in state.evidence_use_ids:
+            row = connection.execute(
+                """
+                SELECT eu.*, ei.* FROM research_evidence_uses eu
+                JOIN research_evidence_identities ei
+                  ON ei.evidence_id=eu.evidence_id
+                WHERE eu.evidence_use_id=? AND eu.task_id=? AND eu.attempt_id=?
+                """,
+                (use_id, state.task_id, state.attempt_id),
+            ).fetchone()
+            if row is None:
+                raise ResearchUnsafeState(
+                    "Provider synthesis evidence use 不可寻址或跨 Attempt"
+                )
+            observed = self.authority.observe(row)
+            observations.append((use_id, str(row["evidence_id"]), observed))
+            if observed.outcome == "current" and observed.span is not None:
+                by_evidence[str(row["evidence_id"])] = (
+                    use_id,
+                    observed.span,
+                    observed,
+                )
+        cited = [value.citation_id for value in response.citations]
+        if any(value not in by_evidence for value in cited):
+            raise ResearchUnsafeState(
+                "Provider answer references evidence that is not current in this Attempt"
+            )
+        current_spans = tuple(by_evidence[value][1] for value in cited)
+        context = self.context_builder.build(
+            query=objective,
+            normalized_intent=objective,
+            spans=current_spans,
+        )
+        context_characters = len(context.model_context)
+        remaining = (
+            self.MAX_CONTEXT_CHARACTERS
+            - state.budget.synthesis_context_characters
+        )
+        if context_characters > remaining:
+            raise ValueError(
+                "Provider synthesis context exceeded the server-side character budget"
+            )
+        draft = GroundedAnswerDraft(
+            status=response.status,
+            answer_blocks=response.answer_blocks,
+            limitations=response.limitations,
+        )
+        if response.status != "insufficient":
+            issues = self.grounded_validator(
+                draft,
+                context=context,
+                materializer=self.materializer,
+            )
+            if issues:
+                raise ResearchUnsafeState(
+                    "receipt-bound Provider synthesis failed grounded validation"
+                )
+        elif response.answer_blocks or response.citations:
+            raise ResearchUnsafeState(
+                "insufficient Provider synthesis cannot carry answer evidence"
+            )
+        current_use_ids = [by_evidence[value][0] for value in cited]
+        answer_status = (
+            "valid_insufficient"
+            if response.status == "insufficient"
+            else "valid_partial"
+        )
+        grounded_receipts = [
+            value
+            for value in receipt_bindings
+            if value.get("role") == "grounded_answer"
+        ]
+        if response.status != "insufficient" and len(grounded_receipts) != 1:
+            raise ResearchUnsafeState(
+                "Provider artifact requires exactly one successful grounded_answer receipt"
+            )
+        if len(grounded_receipts) > 1:
+            raise ResearchUnsafeState(
+                "Provider artifact has ambiguous grounded_answer receipts"
+            )
+        if grounded_receipts:
+            self._assert_grounded_derivation(
+                connection,
+                task_id=state.task_id,
+                binding=grounded_receipts[0],
+                response=response,
+            )
+        data = {
+            "objective": objective,
+            "answer_status": answer_status,
+            "answer_blocks": [
+                value.model_dump(mode="json") for value in response.answer_blocks
+            ],
+            "limitations": list(response.limitations),
+            "evidence_set_fingerprint": canonical_hash(
+                {
+                    "evidence_use_ids": current_use_ids,
+                    "evidence_ids": cited,
+                }
+            ),
+            "evidence_use_ids": current_use_ids,
+            "evidence_ids": cited,
+            "validation_observation_ids": [],
+            "generation_policy_version": "v5-a-gate-b-receipt-bound-deep-v1",
+            "validator_policy_version": self.VALIDATOR_POLICY_VERSION,
+            "provider_run_id": response.run_id,
+            "provider_trace_hash": provider_trace_hash,
+            "grounded_receipt_hash": (
+                grounded_receipts[0]["receipt_hash"] if grounded_receipts else None
+            ),
+            "checkpoint_id": checkpoint_id,
+            "owner_epoch": owner_epoch,
+            "created_at": now,
+        }
+        return data, observations, context_characters
+
+    @staticmethod
+    def _assert_grounded_derivation(
+        connection: sqlite3.Connection,
+        *,
+        task_id: str,
+        binding: dict[str, Any],
+        response: AskResponse,
+    ) -> None:
+        receipt = connection.execute(
+            """
+            SELECT response_json FROM research_command_receipts
+            WHERE task_id=? AND command_type='provider_call_receipted'
+              AND outcome_reference=?
+            """,
+            (task_id, str(binding["result_reference"])),
+        ).fetchone()
+        if receipt is None:
+            raise ResearchUnsafeState("grounded_answer durable receipt is missing")
+        payload = json.loads(str(receipt["response_json"]))
+        raw_output = payload.get("output")
+        if canonical_hash(raw_output) != binding.get("output_hash"):
+            raise ResearchUnsafeState(
+                "grounded_answer output hash differs from its durable receipt"
+            )
+        raw = GroundedAnswerDraft.model_validate(raw_output)
+        if response.status == "insufficient":
+            if raw.status != "insufficient" or response.answer_blocks:
+                raise ResearchUnsafeState(
+                    "insufficient product artifact is not a valid grounded receipt derivation"
+                )
+            return
+        if raw.status == "insufficient":
+            raise ResearchUnsafeState(
+                "answering product artifact cannot derive from insufficient grounded output"
+            )
+        if response.answer_blocks != raw.answer_blocks:
+            raise ResearchUnsafeState(
+                "product answer blocks differ from grounded_answer receipt output"
+            )
+        if raw.status == "partial" and response.status != "partial":
+            raise ResearchUnsafeState(
+                "finalizer cannot upgrade a partial grounded receipt"
+            )
+        if raw.status == "complete" and response.status not in {"complete", "partial"}:
+            raise ResearchUnsafeState(
+                "invalid final status derived from complete grounded receipt"
+            )
+        if not set(raw.limitations).issubset(set(response.limitations)):
+            raise ResearchUnsafeState(
+                "finalizer removed grounded_answer receipt limitations"
+            )
+
+    @staticmethod
+    def _assert_provider_receipts(
+        connection: sqlite3.Connection,
+        *,
+        task_id: str,
+        attempt_id: str,
+        owner_epoch: int,
+        bindings: tuple[dict[str, Any], ...],
+        require_grounded: bool,
+        operation_prefix: str,
+    ) -> tuple[str, int]:
+        if not bindings:
+            raise ResearchUnsafeState("Provider synthesis has no durable receipts")
+        if not operation_prefix:
+            raise ResearchUnsafeState("Provider synthesis operation prefix is missing")
+        action_prefix = f"provider:{operation_prefix}:"
+        action_rows = connection.execute(
+            """
+            SELECT observation_json, status FROM research_inner_actions
+            WHERE task_id=? AND attempt_id=?
+              AND action_schema_version='v5-a-gate-b-provider-call-v1'
+              AND substr(action_key, 1, length(?))=?
+            """,
+            (task_id, attempt_id, action_prefix, action_prefix),
+        ).fetchall()
+        if not action_rows or len(action_rows) > 17:
+            raise ResearchUnsafeState(
+                "Provider logical-call lineage is absent or exceeds the Gate B cap"
+            )
+        durable_success_hashes = {
+            str(
+                json.loads(str(row["observation_json"]))
+                .get("provider_call", {})
+                .get("receipt_hash", "")
+            )
+            for row in action_rows
+            if str(row["status"]) == "succeeded"
+        }
+        durable_success_hashes.discard("")
+        supplied_hashes = {
+            str(value.get("receipt_hash") or "") for value in bindings
+        }
+        if durable_success_hashes != supplied_hashes:
+            raise ResearchUnsafeState(
+                "Provider successful-call receipt set is incomplete or cross-run"
+            )
+        grounded_side_effect_id: str | None = None
+        last_side_effect_id: str | None = None
+        seen: set[str] = set()
+        for binding in bindings:
+            receipt_hash = str(binding.get("receipt_hash") or "")
+            result_reference = str(binding.get("result_reference") or "")
+            if not receipt_hash or not result_reference or receipt_hash in seen:
+                raise ResearchUnsafeState("Provider receipt binding is incomplete")
+            seen.add(receipt_hash)
+            effect = connection.execute(
+                """
+                SELECT * FROM research_side_effects
+                WHERE task_id=? AND attempt_id=? AND receipt_hash=?
+                  AND result_reference=?
+                """,
+                (task_id, attempt_id, receipt_hash, result_reference),
+            ).fetchone()
+            if (
+                effect is None
+                or str(effect["status"]) != "succeeded"
+                or int(effect["owner_epoch"]) != owner_epoch
+            ):
+                raise ResearchUnsafeState(
+                    "Provider receipt is absent, stale, or not successful"
+                )
+            descriptor = json.loads(str(effect["request_json"]))
+            if (
+                descriptor.get("role") != binding.get("role")
+                or descriptor.get("provider") != binding.get("provider")
+                or descriptor.get("model") != binding.get("model")
+                or descriptor.get("provider_identity")
+                != binding.get("provider_identity")
+                or descriptor.get("structured_request_hash")
+                != binding.get("structured_request_hash")
+                or str(effect["provider_operation_id"] or "")
+                != str(binding.get("provider_operation_id") or "")
+            ):
+                raise ResearchUnsafeState(
+                    "Provider receipt does not match its persisted request identity"
+                )
+            receipt = connection.execute(
+                """
+                SELECT response_json FROM research_command_receipts
+                WHERE task_id=? AND command_type='provider_call_receipted'
+                  AND outcome_reference=?
+                """,
+                (task_id, result_reference),
+            ).fetchone()
+            if receipt is None:
+                raise ResearchUnsafeState("Provider command receipt is missing")
+            persisted = json.loads(str(receipt["response_json"])).get(
+                "receipt_binding"
+            )
+            if persisted != binding:
+                raise ResearchUnsafeState(
+                    "Provider receipt payload differs from durable receipt"
+                )
+            if binding.get("role") == "grounded_answer":
+                if grounded_side_effect_id is not None:
+                    raise ResearchUnsafeState(
+                        "multiple successful grounded_answer receipts are ambiguous"
+                    )
+                grounded_side_effect_id = str(effect["side_effect_id"])
+            last_side_effect_id = str(effect["side_effect_id"])
+        if require_grounded and grounded_side_effect_id is None:
+            raise ResearchUnsafeState(
+                "Provider synthesis lacks a grounded_answer SideEffect receipt"
+            )
+        assert last_side_effect_id is not None
+        return grounded_side_effect_id or last_side_effect_id, len(action_rows)
 
     def _insert_observations(
         self,

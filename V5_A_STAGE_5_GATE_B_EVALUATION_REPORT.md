@@ -3,9 +3,10 @@
 ```yaml
 stage: V5-A Stage 5
 gate: B_real_provider_product_quality_evaluation
-report_status: submitted_for_main_acceptance
+report_status: partial_accept_evidence_only_rework_required
 gate_B_self_accepted: false
-acceptance_request: partial_accept
+main_session_decision: partial_accept_evidence_only
+bounded_rework_required: true
 formal_run_id: GB-20260803T081500Z-be96740
 branch: codex/v5-a
 bounded_rework_commit: be96740
@@ -21,6 +22,12 @@ gate_C_started: false
 ```
 
 ## 1. 结论
+
+> 2026-08-03 主 Session 有限验收补记：本报告所述原 run 及其 formal root 被接受为
+> 有效、不可覆盖的真实 Provider 诊断证据；GB-G-01 / GB-I-01 的 answer-quality 与 15 次
+> identity/receipt/usage/cost/snapshot/hard-cap 证据均保留。完整 Gate B 未接受，因为 runner
+> 未进入 Stage 2/3/4 长期 Research 产品编排。该缺口由独立 bounded rework 处理，原 run
+> 不修改、不重写，也不因后续验证而失效。
 
 正式 Gate B 按冻结用例、模型、角色和预算一次执行，没有调 Prompt/Tool/model/case，也没有
 opportunistic rerun。两个必跑用例形成有效评价：
@@ -159,7 +166,8 @@ infrastructure_invalid_run: false
 unknown_side_effects: 0
 outer_audit: not_exercised
 real_provider_restart_recovery: not_exercised
-gate_B_acceptance_request: partial_accept
+gate_B_main_session_decision: partial_accept_evidence_only
+bounded_rework_required: true
 gate_B_self_accepted: false
 stage_5_complete: false
 v5_A_complete: false

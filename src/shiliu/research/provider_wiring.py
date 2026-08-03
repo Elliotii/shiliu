@@ -152,6 +152,8 @@ class ProviderCallContext:
     expected_checkpoint_id: str | None
     expected_control_generation: int
     operation_key: str
+    max_logical_calls: int | None = None
+    max_http_attempts: int | None = None
 
 
 @dataclass(frozen=True)
@@ -234,6 +236,7 @@ class ReceiptBoundProviderFactory:
         self.context = context
         self.provider_factory = provider_factory
         self._ordinals: dict[str, int] = {}
+        self._receipt_bindings: list[dict[str, Any]] = []
 
     def __call__(self, role: str) -> ReceiptBoundStructuredProvider:
         if role not in SUPPORTED_ROLES:
@@ -244,6 +247,20 @@ class ReceiptBoundProviderFactory:
         ordinal = self._ordinals.get(role, 0) + 1
         self._ordinals[role] = ordinal
         return f"{self.context.operation_key}:{role}:{ordinal}"
+
+    @property
+    def receipt_bindings(self) -> tuple[dict[str, Any], ...]:
+        """Successful durable receipts emitted through this exact factory."""
+
+        return tuple(dict(value) for value in self._receipt_bindings)
+
+    def _record_receipt(self, binding: dict[str, Any]) -> None:
+        receipt_hash = str(binding.get("receipt_hash") or "")
+        if receipt_hash and not any(
+            value.get("receipt_hash") == receipt_hash
+            for value in self._receipt_bindings
+        ):
+            self._receipt_bindings.append(dict(binding))
 
 
 class ReceiptBoundStructuredProvider:
@@ -273,6 +290,7 @@ class ReceiptBoundStructuredProvider:
             timeout_seconds=timeout_seconds,
         )
         self.factory.context.expected_state_version = response.state_version
+        self.factory._record_receipt(response.receipt_binding)
         return response
 
 
@@ -375,6 +393,7 @@ class ReceiptBoundProviderService:
         )
         if replay is not None:
             return replay
+        self._assert_call_caps(context)
         side_effect_id, state_version = self._reserve(
             context=context,
             operation_key=operation_key,
@@ -981,6 +1000,27 @@ class ReceiptBoundProviderService:
             response_schema=response_schema,
             deduplicated=False,
         )
+
+    def _assert_call_caps(self, context: ProviderCallContext) -> None:
+        if context.max_logical_calls is None and context.max_http_attempts is None:
+            return
+        snapshot = self.budget_snapshot(context.task_id)
+        if (
+            context.max_logical_calls is not None
+            and snapshot.logical_calls >= context.max_logical_calls
+        ):
+            raise ProviderBudgetExceeded(
+                "Provider product logical-call cap is exhausted"
+            )
+        if context.max_http_attempts is not None:
+            worst_transport = (
+                snapshot.transport_calls
+                + self.price_policy.reservation_transport_attempts
+            )
+            if worst_transport > context.max_http_attempts:
+                raise ProviderBudgetExceeded(
+                    "Provider product HTTP-attempt reservation exceeds its cap"
+                )
 
     def _finish_failed(
         self,

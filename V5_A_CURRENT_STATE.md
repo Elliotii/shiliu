@@ -82,13 +82,15 @@ stage_5_gate_B_plan_review: accepted_with_bounded_docs_rework
 stage_5_gate_B_plan_status: accepted
 stage_5_gate_B_plan_accepted_head: 3ebec9aa3d9cc10697bd3766841a9a1b94ad8cff
 stage_5_gate_B_minimal_provider_wiring_authorized: true
-stage_5_gate_B_mechanical_wiring_status: submitted_for_main_review
+stage_5_gate_B_mechanical_wiring_status: accepted_after_bounded_rework
 stage_5_gate_B_provider_wiring_commit: a25d007
 stage_5_gate_B_cost_cap_test_commit: 7241c3b
 stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
-stage_5_gate_B_formal_run_status: completed_pending_main_acceptance
+stage_5_gate_B_formal_run_status: partial_accept_evidence_only
 stage_5_gate_B_formal_run_id: GB-20260803T081500Z-be96740
-stage_5_gate_B_acceptance_request: partial_accept
+stage_5_gate_B_main_acceptance_round_1: rework_required_product_orchestration
+stage_5_gate_B_bounded_rework_round_1_status: submitted_for_main_review
+stage_5_gate_B_postfix_provider_run_authorized: false
 stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
@@ -127,7 +129,8 @@ external_live_database_change_observed: true
 | Stage 4 产品实现 | accepted_by_v5_main | 主 Session 已正式接受 `26d22cd`；Round 1 bounded rework 关闭 current resume lineage 与 Input expiry/cancel/schema lifecycle，主 Session 独立重跑 27 项通过；无需进一步返工 |
 | Stage 5 Gate A | accepted_by_v5_main | 主 Session 已接受 HEAD `a09d7c2`，bounded rework Round 1 closed；Stage 5/V5-A 尚未完整完成 |
 | Stage 5 Gate B 计划 | accepted | 主 Session 已接受 HEAD `3ebec9a`；exact cases、price/caps、snapshot 形成规则保持冻结 |
-| Stage 5 Gate B 机械接线 | submitted_for_main_review | receipt-bound wrapper 与 10 项 no-network 测试完成；默认 dispatch disabled，Provider/凭据/formal eval root 仍未授权、未执行 |
+| Stage 5 Gate B 正式证据 | partial_accept_evidence_only | 主 Session 接受原 run `GB-20260803T081500Z-be96740` 的 mandatory answer-quality、15 次 actual identity/receipt/usage/cost 与 snapshot/hard-cap 证据；该 root 与输出保持不可覆盖 |
+| Stage 5 Gate B bounded rework | submitted_for_main_review | receipt-bound Deep 输出现可进入 Stage 2 artifact/checkpoint、Stage 3 audit/Result 或 waiting_user，并复用 Stage 4 current InputRequest/HumanDecision lineage；只执行 mock/no-network 临时 DB 测试，未再次调用 Provider |
 
 ## 2. Git 与基线
 
@@ -820,8 +823,9 @@ V5-A。正式报告为 `V5_A_STAGE_5_GATE_B_EVALUATION_REPORT.md`，sanitized ma
   仍为 `unproven`。
 - 没有执行 DeerFlow 上游测试或完整依赖集成。
 - AREX 公开仓库不能复现论文的完整递归系统或训练结论。
-- 没有运行 Provider，因此没有 V5-A 产品质量结论；Stage 5 Provider/product-quality
-  gate 的用例、预算、模型与运行范围仍须单独授权。
+- 原正式 Gate B 已运行 15 次真实 Provider 调用；主 Session 只接受其 mandatory
+  answer-quality 与 receipt/cost/snapshot 诊断证据。该次运行没有证明“真实 Provider +
+  长期 Research 产品编排”的组合，因此完整 Gate B 仍未接受。
 - Stage 4 已证明最小完整控制面与 branch/replay isolation；Gate A 已实现正式 Research
   产品入口和 user trace/status projection，真实 Provider/live corpus 产品质量仍未执行。
 - Stage 2 未证明真实 Provider 的质量、成本、延迟或恢复语义；provider execution
@@ -838,11 +842,12 @@ V5-A。正式报告为 `V5_A_STAGE_5_GATE_B_EVALUATION_REPORT.md`，sanitized ma
 
 ## 10. 下一动作
 
-Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。Gate B receipt binding
-返工、Entry Gate 与 formal run 已完成；两个 mandatory case 有效，conditional HITL case
-暴露产品接线失败。下一动作是 V5 主 Session 对 Gate B 作有限验收并决定
-`partial_accept / rework / pause / reject`。V5-A 不开始 Gate C、主线 integration 或 live
-schema 10 migration。
+Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。原 Gate B formal run 已获
+`partial_accept_evidence_only`，且作为不可覆盖诊断证据保留。本轮 bounded rework 已在
+无网络临时数据库完成 Provider product orchestration、Stage 2 artifact、Stage 3 audit 与
+Stage 4 current-lineage HITL 接线，并提交 post-fix integration validation amendment proposal。
+下一动作是 V5 主 Session 轻量复审；在其书面授权 amendment 前不访问凭据、不再次运行
+Provider。V5-A 不开始 Gate C、主线 integration 或 live schema 10 migration。
 
 ```yaml
 charter_status: accepted
@@ -899,21 +904,24 @@ stage_5_gate_B_plan_review: accepted_with_bounded_docs_rework
 stage_5_gate_B_plan_status: accepted
 stage_5_gate_B_plan_accepted_head: 3ebec9aa3d9cc10697bd3766841a9a1b94ad8cff
 stage_5_gate_B_minimal_provider_wiring_authorized: true
-stage_5_gate_B_mechanical_wiring_status: submitted_for_main_review
+stage_5_gate_B_mechanical_wiring_status: accepted_after_bounded_rework
 stage_5_gate_B_provider_wiring_commit: a25d007
 stage_5_gate_B_cost_cap_test_commit: 7241c3b
 stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
-stage_5_gate_B_mechanical_review: rework_bounded_round_1
-stage_5_gate_B_bounded_rework_round_1_local_status: pass
+stage_5_gate_B_mechanical_review: bounded_rework_round_1_closed
+stage_5_gate_B_mechanical_bounded_rework_round_1_status: accepted
 stage_5_gate_B_formal_run_authorized_after_entry_gate: true
 stage_5_gate_B_bounded_rework_commit: be96740
 stage_5_gate_B_entry_manifest_commit: 1a1b52f
-stage_5_gate_B_formal_run_status: completed_pending_main_acceptance
+stage_5_gate_B_formal_run_status: partial_accept_evidence_only
 stage_5_gate_B_formal_run_id: GB-20260803T081500Z-be96740
 stage_5_gate_B_provider_calls: 15
 stage_5_gate_B_http_attempts: 15
 stage_5_gate_B_cost_usd: 0.019203539
-stage_5_gate_B_acceptance_request: partial_accept
+stage_5_gate_B_main_acceptance_round_1: rework_required_product_orchestration
+stage_5_gate_B_bounded_rework_round_1_status: submitted_for_main_review
+stage_5_gate_B_postfix_amendment: V5_A_STAGE_5_GATE_B_POST_FIX_INTEGRATION_AMENDMENT_PROPOSAL.md
+stage_5_gate_B_postfix_provider_run_authorized: false
 stage_5_gate_B_self_accepted: false
 stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
@@ -927,5 +935,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_B_limited_acceptance_review
+next_action: V5_main_session_gate_B_bounded_rework_review
 ```

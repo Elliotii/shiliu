@@ -128,6 +128,10 @@ class ResearchProductService:
         "control_cancel_applied": "处理取消请求",
         "candidate_deltas_materialized": "记录四类 Candidate Delta",
         "product_runner_boundary": "本地 runner 到达持久边界",
+        "provider_call_reserved": "为一次 Provider 调用预留预算与幂等身份",
+        "provider_call_in_flight": "Provider 调用已进入不可自动重放区间",
+        "provider_call_receipted": "Provider 调用已绑定真实回执与费用",
+        "provider_product_boundary": "真实 Provider 产品编排到达持久边界",
     }
     SAFE_EVENT_KEYS = {
         "action_id",
@@ -151,6 +155,8 @@ class ResearchProductService:
         "outcome",
         "delta_snapshot_id",
         "boundary",
+        "provider_cycles",
+        "provider_artifact_id",
     }
 
     def __init__(
