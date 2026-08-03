@@ -852,8 +852,13 @@ Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。原 Gate B
 `partial_accept_evidence_only`，且作为不可覆盖诊断证据保留。本轮 bounded rework 已在
 无网络临时数据库完成 Provider product orchestration、Stage 2 artifact、Stage 3 audit 与
 Stage 4 current-lineage HITL 接线，并提交 post-fix integration validation amendment proposal。
-下一动作是 V5 主 Session 轻量复审；在其书面授权 amendment 前不访问凭据、不再次运行
-Provider。V5-A 不开始 Gate C、主线 integration 或 live schema 10 migration。
+后续 run-wide correction、隔离副本权限修复与两次 pre-Provider Keychain `-128` 停止均已
+留存。用户随后明确授权一次新的凭据尝试；本次 Keychain 成功，`GB-G-01` 经真实 Provider
+完成 durable orchestration，但 runner 在读取错误层级的 projection 时因缺少
+`input_requests` 抛出 `KeyError`。本次只消费 5 次 logical/HTTP call、US$0.000976227，
+`GB-I-01` 与 `GB-H-01` 未执行且没有自动重试。下一动作是 V5 主 Session 审阅这一
+post-Provider evaluation-infrastructure failure，并决定是否授权修复及新的验证范围。
+V5-A 不开始 Gate C、主线 integration 或 live schema 10 migration。
 
 ```yaml
 charter_status: accepted
@@ -937,6 +942,16 @@ stage_5_gate_B_postfix_provider_run_status: stopped_preprovider_keychain_access_
 stage_5_gate_B_postfix_provider_calls: 0
 stage_5_gate_B_postfix_http_attempts: 0
 stage_5_gate_B_postfix_cost_usd: 0.000000000
+stage_5_gate_B_user_credential_retry_run_id: GB-20260803T180111Z-b5592eb-postfix-credential-user-retry
+stage_5_gate_B_user_credential_retry_entry_gate: pass
+stage_5_gate_B_user_credential_retry_credential_access: success
+stage_5_gate_B_user_credential_retry_status: evaluation_infrastructure_failure_postprovider_no_rerun
+stage_5_gate_B_user_credential_retry_executed_cases: [GB-G-01]
+stage_5_gate_B_user_credential_retry_not_exercised_cases: [GB-I-01, GB-H-01]
+stage_5_gate_B_user_credential_retry_provider_calls: 5
+stage_5_gate_B_user_credential_retry_http_attempts: 5
+stage_5_gate_B_user_credential_retry_cost_usd: 0.000976227
+stage_5_gate_B_user_credential_retry_report: V5_A_STAGE_5_GATE_B_USER_CREDENTIAL_RETRY_EVALUATION_REPORT.md
 stage_5_gate_B_self_accepted: false
 stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
@@ -950,5 +965,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_B_postfix_infrastructure_failure_review
+next_action: V5_main_session_gate_B_postprovider_projection_failure_review
 ```
