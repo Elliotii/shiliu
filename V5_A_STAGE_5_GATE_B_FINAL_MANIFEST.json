@@ -1,0 +1,73 @@
+{
+  "branch": "codex/v5-a",
+  "case_summary": {
+    "GB-G-01": {
+      "durable_outcome": "valid_insufficient_blocked_waiting_user",
+      "product_provider_run_count": 1,
+      "product_quality": "grounded_answer_path_not_satisfied",
+      "provider_receipts": 5,
+      "root": "GB-20260803T180111Z-b5592eb-postfix-credential-user-retry"
+    },
+    "GB-H-01": {
+      "durable_outcome": "valid_insufficient_blocked_waiting_user",
+      "fixed_answer_exact_once": true,
+      "product_provider_run_count": 1,
+      "product_quality": "expected_waiting_boundary_but_two_InputRequests_violate_case_constraint",
+      "provider_receipts": 4,
+      "root": "GB-20260803T183818Z-4ffc99d-h-only-recovery"
+    },
+    "GB-I-01": {
+      "durable_outcome": "valid_insufficient_blocked_waiting_user",
+      "product_provider_run_count": 1,
+      "product_quality": "honest_insufficient_no_unsupported_claims",
+      "provider_receipts": 4,
+      "root": "GB-20260803T181908Z-633b926-ih-recovery"
+    }
+  },
+  "external_roots": {
+    "G_product_parent": {
+      "eval_db_sha256": "bb1965af04fac1e19d58aed088e4cfd15e5b2a5a34df30353e7cd63ee4745fdd",
+      "manifest_sha256": "24fa028dfa2af38d94f264ce4f97845063fe99c48233ffdd084520e7ce438075",
+      "root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T180111Z-b5592eb-postfix-credential-user-retry"
+    },
+    "G_projection_recovery": {
+      "manifest_sha256": "429d11d331957528588551ad763e247044ef36874f2d2722a3181e2b75384b38",
+      "root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T181806Z-633b926-g-projection-recovery"
+    },
+    "H_only_recovery": {
+      "eval_db_sha256": "1d4ff08ad91d9ec2d63b3c7e471fa1471a04d735f59fc5b3669dfdf823defadf",
+      "human_review_sha256": "2d990c5854e5c1e847014f8f402d9944c5c22ad8d9d8bef74fc143cffb6228af",
+      "manifest_sha256": "b310ba8df09a7c3f3686fc7526865d20f3e38ab972f3e05e911f5fd128865cfe",
+      "projection_sha256": "29c774851c807033bf8e75e4b5a45b2ff390f28fe609726337493132ca2a1d92",
+      "report_sha256": "bae4ff3c527b4765305fe203aa633fdc0c06ddf15773e288b0cb4b38920d13c1",
+      "root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T183818Z-4ffc99d-h-only-recovery"
+    },
+    "IH_recovery_parent": {
+      "eval_db_sha256": "8271a5fdb074d02f45febf17cd409e019a598389463b6e3f174200caf0efbb7b",
+      "manifest_sha256": "12ec0b704f5f935a2048f5cfd64c7391c52345611a428683725eb93dcd8dae87",
+      "root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T181908Z-633b926-ih-recovery"
+    },
+    "original_diagnostic": {
+      "manifest_sha256": "705484087b1ee0cf577dbd7ee060a5ba923a489088b0c5f9fece00e701ee27eb",
+      "root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T081500Z-be96740"
+    }
+  },
+  "gate_B_self_accepted": false,
+  "gate_C_started": false,
+  "harness_fix_commits": [
+    "633b926a8080ce72ae3877d48f0edaddfe55ce44",
+    "4ffc99d"
+  ],
+  "live_database_migration_performed": false,
+  "postfix_product_accounting": {
+    "cost_usd": "0.002545707",
+    "http_attempts": 13,
+    "input_tokens": 12519,
+    "logical_calls": 13,
+    "output_tokens": 1617,
+    "unknown_or_in_flight_side_effects": 0
+  },
+  "stage_1_to_5_joint_targeted_tests": "176 passed",
+  "status": "submitted_for_v5_main_final_gate_B_acceptance",
+  "submission_recommendation": "partial_accept_or_rework_due_G_and_H_product_quality_gaps"
+}

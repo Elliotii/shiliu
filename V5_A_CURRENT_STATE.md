@@ -861,8 +861,14 @@ Stage 4 current-lineage HITL 接线，并提交 post-fix integration validation 
 调用后诚实停在 `valid_insufficient` / `waiting_user`；H 已 exact-once 消费固定回答并创建
 正确 goal-revision child lineage，但 runner 在 pre-Provider evidence serialization 使用错误
 字段 `checkpoint_id`（canonical 为 `source_checkpoint_id`）而停止。H 的 Provider/SideEffect
-均为 0，没有自动修复或续跑。下一动作是 V5 主 Session 对三个明确分离的 evidence root
-做 Gate B 最终审阅。V5-A 不开始 Gate C、主线 integration 或 live schema 10 migration。
+均为 0。用户随后授权非材料性 harness 自恢复；commit `4ffc99d` 修复 canonical lineage
+字段并增加 `_prepare_hitl` 至最终 report 的真实无网络测试，联合定向增至 176 passed。全新
+H-only root 成功 exact-once 消费固定回答并完成 4 次真实 Provider continuation，最终诚实
+停在 `valid_insufficient / blocked / waiting_user`。人工 rubric 同时确认完整 H 旅程产生两个
+InputRequest，违反冻结的“只允许一个 InputRequest”约束；G 的代表性 grounded product path
+也仍未证明。下一动作是 V5 主 Session 对完整、分 root 的 Gate B 证据选择
+`partial_accept / rework / accept`。V5-A 不开始 Gate C、主线 integration 或 live schema 10
+migration。
 
 ```yaml
 charter_status: accepted
@@ -970,6 +976,19 @@ stage_5_gate_B_combined_provider_calls: 9
 stage_5_gate_B_combined_http_attempts: 9
 stage_5_gate_B_combined_cost_usd: 0.001641197
 stage_5_gate_B_combined_recovery_report: V5_A_STAGE_5_GATE_B_COMBINED_RECOVERY_REPORT.md
+stage_5_gate_B_H_lineage_projection_fix_commit: 4ffc99d
+stage_5_gate_B_H_lineage_projection_tests: 176_passed
+stage_5_gate_B_H_only_run_id: GB-20260803T183818Z-4ffc99d-h-only-recovery
+stage_5_gate_B_H_only_run_status: completed_once_human_reviewed_product_constraint_gap
+stage_5_gate_B_H_only_provider_calls: 4
+stage_5_gate_B_H_only_http_attempts: 4
+stage_5_gate_B_H_only_cost_usd: 0.000904510
+stage_5_gate_B_H_only_fixed_answer_exact_once: true
+stage_5_gate_B_H_only_input_requests_total: 2
+stage_5_gate_B_postfix_product_calls_total: 13
+stage_5_gate_B_postfix_product_cost_usd_total: 0.002545707
+stage_5_gate_B_final_report: V5_A_STAGE_5_GATE_B_FINAL_EVALUATION_REPORT.md
+stage_5_gate_B_submission_recommendation: partial_accept_or_rework
 stage_5_gate_B_self_accepted: false
 stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
@@ -983,5 +1002,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_final_gate_B_review
+next_action: V5_main_session_final_gate_B_acceptance
 ```
