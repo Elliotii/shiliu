@@ -35,14 +35,34 @@ from shiliu.research.provider_wiring import (
 
 AUTHORIZED_ENDPOINT = "https://api.deepseek.com/v1"
 AUTHORIZED_MODEL = "deepseek-v4-pro"
-AUTHORIZED_CASES = ("GB-G-01", "GB-I-01", "GB-H-01")
-MAX_TOTAL_LOGICAL_CALLS = 17
-MAX_TOTAL_HTTP_ATTEMPTS = 34
-MAX_TOTAL_INPUT_TOKENS = 140_000
-MAX_TOTAL_OUTPUT_TOKENS = 31_984
-MAX_WALL_SECONDS = 34 * 60
-RESERVE_STOP_USD = Decimal("0.40")
-ABSOLUTE_MAX_COST_USD = Decimal("0.50")
+FULL_AUTHORIZED_CASES = ("GB-G-01", "GB-I-01", "GB-H-01")
+REMAINING_AUTHORIZED_CASES = ("GB-I-01", "GB-H-01")
+PARENT_G_MANIFEST_SHA256 = "24fa028dfa2af38d94f264ce4f97845063fe99c48233ffdd084520e7ce438075"
+PARENT_G_EVAL_DB_SHA256 = "bb1965af04fac1e19d58aed088e4cfd15e5b2a5a34df30353e7cd63ee4745fdd"
+
+
+def _run_envelope(*, remaining_ih: bool) -> dict[str, Any]:
+    if remaining_ih:
+        return {
+            "authorized_cases": REMAINING_AUTHORIZED_CASES,
+            "max_logical_calls": 10,
+            "max_http_attempts": 20,
+            "max_input_tokens": 80_000,
+            "max_output_tokens": 17_792,
+            "max_wall_seconds": 22 * 60,
+            "reserve_stop_usd": Decimal("0.399023773"),
+            "absolute_max_cost_usd": Decimal("0.499023773"),
+        }
+    return {
+        "authorized_cases": FULL_AUTHORIZED_CASES,
+        "max_logical_calls": 17,
+        "max_http_attempts": 34,
+        "max_input_tokens": 140_000,
+        "max_output_tokens": 31_984,
+        "max_wall_seconds": 34 * 60,
+        "reserve_stop_usd": Decimal("0.40"),
+        "absolute_max_cost_usd": Decimal("0.50"),
+    }
 
 
 def _utc_now() -> str:
@@ -136,7 +156,11 @@ def _usage_rows(raw: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _case_projection(
-    *, raw: dict[str, Any], result: dict[str, Any], hitl: dict[str, Any] | None
+    *,
+    raw: dict[str, Any],
+    control: dict[str, Any],
+    result: dict[str, Any],
+    hitl: dict[str, Any] | None,
 ) -> dict[str, Any]:
     task = raw["task"]
     if task["status"] == "running":
@@ -144,11 +168,7 @@ def _case_projection(
     latest_artifact = raw["provisional_artifacts"][-1] if raw["provisional_artifacts"] else None
     latest_audit = raw["outer_audits"][-1] if raw["outer_audits"] else None
     terminal_result = raw["results"][-1] if raw["results"] else None
-    open_inputs = [
-        value
-        for value in raw["input_requests"]
-        if value.get("current_disposition") == "open"
-    ]
+    open_inputs = list(control["open_input_requests"])
     return {
         "orchestration_result": result,
         "task_status": task["status"],
@@ -165,6 +185,21 @@ def _case_projection(
         "provider_receipts": _usage_rows(raw),
         "hitl": hitl,
     }
+
+
+def _load_case_projection(
+    *,
+    app: Application,
+    task_id: str,
+    result: dict[str, Any],
+    hitl: dict[str, Any] | None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    raw = app.research.get_task(task_id)
+    control = app.research_control.get_status(task_id)
+    return (
+        _case_projection(raw=raw, control=control, result=result, hitl=hitl),
+        raw,
+    )
 
 
 def _write_case_evidence(
@@ -246,7 +281,13 @@ def _prepare_hitl(
     }
 
 
-def _validate_entry(manifest: dict[str, Any], root: Path) -> None:
+def _validate_entry(
+    manifest: dict[str, Any],
+    root: Path,
+    *,
+    remaining_ih: bool,
+    envelope: dict[str, Any],
+) -> None:
     entry = manifest.get("entry_gate", {})
     if entry.get("status") != "pass":
         raise ResearchUnsafeState("post-fix Entry Gate is not pass")
@@ -255,30 +296,47 @@ def _validate_entry(manifest: dict[str, Any], root: Path) -> None:
     if manifest.get("formal_evaluation_root") != str(root):
         raise ResearchUnsafeState("post-fix manifest root identity mismatch")
     observed = tuple(str(case["case_id"]) for case in manifest.get("cases", []))
-    if observed != AUTHORIZED_CASES:
+    if observed != envelope["authorized_cases"]:
         raise ResearchUnsafeState("post-fix exact case set/order is not authorized")
     limits = manifest.get("hard_limits", {})
     expected = {
-        "max_logical_calls_total": MAX_TOTAL_LOGICAL_CALLS,
-        "max_http_attempts_total": MAX_TOTAL_HTTP_ATTEMPTS,
-        "max_input_tokens_total": MAX_TOTAL_INPUT_TOKENS,
-        "max_output_tokens_total": MAX_TOTAL_OUTPUT_TOKENS,
-        "max_wall_time_seconds_total": MAX_WALL_SECONDS,
-        "reserve_stop_usd": str(RESERVE_STOP_USD),
-        "absolute_max_cost_usd_total": str(ABSOLUTE_MAX_COST_USD),
+        "max_logical_calls_total": envelope["max_logical_calls"],
+        "max_http_attempts_total": envelope["max_http_attempts"],
+        "max_input_tokens_total": envelope["max_input_tokens"],
+        "max_output_tokens_total": envelope["max_output_tokens"],
+        "max_wall_time_seconds_total": envelope["max_wall_seconds"],
+        "reserve_stop_usd": str(envelope["reserve_stop_usd"]),
+        "absolute_max_cost_usd_total": str(envelope["absolute_max_cost_usd"]),
     }
     if any(limits.get(key) != value for key, value in expected.items()):
         raise ResearchUnsafeState("post-fix run-wide manifest limits mismatch")
+    if remaining_ih:
+        parent = manifest.get("parent_g_evidence", {})
+        if (
+            parent.get("manifest_sha256") != PARENT_G_MANIFEST_SHA256
+            or parent.get("eval_db_sha256") != PARENT_G_EVAL_DB_SHA256
+            or parent.get("provider_calls") != 5
+            or parent.get("cost_usd") != "0.000976227"
+        ):
+            raise ResearchUnsafeState("frozen GB-G-01 parent evidence mismatch")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--eval-root", type=Path, required=True)
+    parser.add_argument("--remaining-ih", action="store_true")
     args = parser.parse_args()
     root = args.eval_root.expanduser().resolve()
     manifest_path = root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    _validate_entry(manifest, root)
+    envelope = _run_envelope(remaining_ih=args.remaining_ih)
+    authorized_cases = envelope["authorized_cases"]
+    _validate_entry(
+        manifest,
+        root,
+        remaining_ih=args.remaining_ih,
+        envelope=envelope,
+    )
 
     config = load_config(AppPaths.defaults())
     if config.llm_base_url.rstrip("/") != AUTHORIZED_ENDPOINT:
@@ -304,19 +362,19 @@ def main() -> int:
     run_started_at = _utc_now()
     manifest["run_started_at"] = run_started_at
     task_ids = tuple(
-        _task_id(str(manifest["run_id"]), case_id) for case_id in AUTHORIZED_CASES
+        _task_id(str(manifest["run_id"]), case_id) for case_id in authorized_cases
     )
     run_policy = ProviderRunBudgetPolicy(
         run_id=str(manifest["run_id"]),
         task_ids=task_ids,
         started_at=run_started_at,
-        max_logical_calls=MAX_TOTAL_LOGICAL_CALLS,
-        max_http_attempts=MAX_TOTAL_HTTP_ATTEMPTS,
-        max_input_tokens=MAX_TOTAL_INPUT_TOKENS,
-        max_output_tokens=MAX_TOTAL_OUTPUT_TOKENS,
-        max_wall_seconds=MAX_WALL_SECONDS,
-        reserve_stop_usd=RESERVE_STOP_USD,
-        absolute_max_cost_usd=ABSOLUTE_MAX_COST_USD,
+        max_logical_calls=envelope["max_logical_calls"],
+        max_http_attempts=envelope["max_http_attempts"],
+        max_input_tokens=envelope["max_input_tokens"],
+        max_output_tokens=envelope["max_output_tokens"],
+        max_wall_seconds=envelope["max_wall_seconds"],
+        reserve_stop_usd=envelope["reserve_stop_usd"],
+        absolute_max_cost_usd=envelope["absolute_max_cost_usd"],
     )
     manifest["run_budget_policy"] = run_policy.manifest()
     manifest["run_budget_policy_hash"] = run_policy.policy_hash
@@ -346,7 +404,7 @@ def main() -> int:
     )
 
     cases = {str(case["case_id"]): case for case in manifest["cases"]}
-    for case_id, task_id in zip(AUTHORIZED_CASES, task_ids, strict=True):
+    for case_id, task_id in zip(authorized_cases, task_ids, strict=True):
         case = cases[case_id]
         app.research.create_task(
             command_id=f"postfix:{case_id}:create",
@@ -365,9 +423,9 @@ def main() -> int:
     run_started_monotonic = time.monotonic()
     results: dict[str, Any] = {}
     try:
-        for case_id in AUTHORIZED_CASES:
+        for case_id in authorized_cases:
             case = cases[case_id]
-            task_id = task_ids[AUTHORIZED_CASES.index(case_id)]
+            task_id = task_ids[authorized_cases.index(case_id)]
             case_started = datetime.now(timezone.utc)
             case_deadline = case_started + timedelta(
                 seconds=int(case["wall_time_seconds"])
@@ -423,8 +481,9 @@ def main() -> int:
                 case_deadline_at=case_deadline.isoformat(timespec="microseconds"),
                 run_budget=run_policy,
             )
-            raw = app.research.get_task(task_id)
-            projection = _case_projection(raw=raw, result=result, hitl=hitl)
+            projection, raw = _load_case_projection(
+                app=app, task_id=task_id, result=result, hitl=hitl
+            )
             _write_case_evidence(
                 root=root, case=case, projection=projection, raw=raw
             )
@@ -458,12 +517,12 @@ def main() -> int:
     aggregate = wiring.run_budget_snapshot(run_policy)
     elapsed = time.monotonic() - run_started_monotonic
     if (
-        aggregate.committed_logical_calls > MAX_TOTAL_LOGICAL_CALLS
-        or aggregate.committed_http_attempts > MAX_TOTAL_HTTP_ATTEMPTS
-        or aggregate.committed_input_tokens > MAX_TOTAL_INPUT_TOKENS
-        or aggregate.committed_output_tokens > MAX_TOTAL_OUTPUT_TOKENS
-        or Decimal(aggregate.committed_cost_usd) > ABSOLUTE_MAX_COST_USD
-        or elapsed > MAX_WALL_SECONDS
+        aggregate.committed_logical_calls > envelope["max_logical_calls"]
+        or aggregate.committed_http_attempts > envelope["max_http_attempts"]
+        or aggregate.committed_input_tokens > envelope["max_input_tokens"]
+        or aggregate.committed_output_tokens > envelope["max_output_tokens"]
+        or Decimal(aggregate.committed_cost_usd) > envelope["absolute_max_cost_usd"]
+        or elapsed > envelope["max_wall_seconds"]
     ):
         raise ResearchUnsafeState("post-fix aggregate hard cap exceeded")
     manifest.update(
@@ -476,7 +535,7 @@ def main() -> int:
             "output_tokens": aggregate.committed_output_tokens,
             "total_cost_usd": aggregate.committed_cost_usd,
             "wall_time_seconds": round(elapsed, 3),
-            "executed_cases": list(AUTHORIZED_CASES),
+            "executed_cases": list(authorized_cases),
             "run_budget_snapshot": aggregate,
             "results": {
                 case_id: {

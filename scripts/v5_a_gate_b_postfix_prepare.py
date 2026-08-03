@@ -21,6 +21,8 @@ EXPECTED_ARTIFACT_IDENTITY = "f315fc20b45251334ef89d89b75a8d0129722d8febd2c02439
 EXPECTED_SUBTITLE_SHA = "8e4f3f97af264a9eb1faef65b2cb797bb4616f7fe9e2dc477807244194f19016"
 EXPECTED_ORIGINAL_MANIFEST_SHA = "705484087b1ee0cf577dbd7ee060a5ba923a489088b0c5f9fece00e701ee27eb"
 EXPECTED_ORIGINAL_REPORT_SHA = "18105cd549b2f2428091d2726ccb72caf2d5b8e1cf611c91214a38a53d31e645"
+EXPECTED_PARENT_G_MANIFEST_SHA = "24fa028dfa2af38d94f264ce4f97845063fe99c48233ffdd084520e7ce438075"
+EXPECTED_PARENT_G_EVAL_DB_SHA = "bb1965af04fac1e19d58aed088e4cfd15e5b2a5a34df30353e7cd63ee4745fdd"
 FROZEN_BLOBS = {
     "src/shiliu/ask/query_analysis.py": "2eb00bf0553bf4f173b22101351788c96665b7f5",
     "src/shiliu/ask/deep/decision.py": "b93777b6dde1bf834604fe01a6fa0c2f08c5a240",
@@ -166,6 +168,9 @@ def main() -> int:
     parser.add_argument("--cases-manifest", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--implementation-head", required=True)
+    parser.add_argument("--remaining-ih", action="store_true")
+    parser.add_argument("--parent-g-root", type=Path)
+    parser.add_argument("--joint-test-evidence", default="174 passed")
     args = parser.parse_args()
     original = args.original_root.expanduser().resolve()
     root = args.new_root.expanduser().resolve()
@@ -180,6 +185,20 @@ def main() -> int:
     source_snapshot = original / "eval.schema9.snapshot.db"
     if _sha256(source_snapshot) != EXPECTED_SCHEMA9_SHA:
         raise RuntimeError("immutable schema-9 snapshot hash mismatch")
+    parent_g = (
+        args.parent_g_root.expanduser().resolve() if args.parent_g_root else None
+    )
+    if args.remaining_ih:
+        if parent_g is None:
+            raise RuntimeError("remaining I/H recovery requires frozen GB-G-01 parent root")
+        if _sha256(parent_g / "manifest.json") != EXPECTED_PARENT_G_MANIFEST_SHA:
+            raise RuntimeError("frozen GB-G-01 parent manifest hash mismatch")
+        if _sha256(parent_g / "eval.db") != EXPECTED_PARENT_G_EVAL_DB_SHA:
+            raise RuntimeError("frozen GB-G-01 parent eval DB hash mismatch")
+        if (parent_g / "manifest.json").stat().st_mode & WRITE_BITS:
+            raise RuntimeError("frozen GB-G-01 parent manifest is writable")
+        if (parent_g / "eval.db").stat().st_mode & WRITE_BITS:
+            raise RuntimeError("frozen GB-G-01 parent eval DB is writable")
     observed_blobs = {path: _git_blob(path) for path in FROZEN_BLOBS}
     if observed_blobs != FROZEN_BLOBS:
         raise RuntimeError("frozen Prompt/Tool/Schema blob mismatch")
@@ -252,19 +271,33 @@ def main() -> int:
                 "output_token_cap": output_cap,
             }
         )
-    if [case["case_id"] for case in cases] != ["GB-G-01", "GB-I-01", "GB-H-01"]:
+    expected_cases = (
+        ["GB-I-01", "GB-H-01"]
+        if args.remaining_ih
+        else ["GB-G-01", "GB-I-01", "GB-H-01"]
+    )
+    if args.remaining_ih:
+        cases = [case for case in cases if case["case_id"] in expected_cases]
+    if [case["case_id"] for case in cases] != expected_cases:
         raise RuntimeError("exact authorized case set/order mismatch")
 
     checked_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    total_input_tokens = 80_000 if args.remaining_ih else 140_000
+    total_output_tokens = 17_792 if args.remaining_ih else 31_984
+    absolute_max_cost = Decimal("0.499023773") if args.remaining_ih else Decimal("0.50")
     worst = (
-        Decimal(140_000) * Decimal("0.435")
-        + Decimal(31_984) * Decimal("0.87")
+        Decimal(total_input_tokens) * Decimal("0.435")
+        + Decimal(total_output_tokens) * Decimal("0.87")
     ) / Decimal(1_000_000) * Decimal(4)
-    if worst > Decimal("0.50"):
-        raise RuntimeError("latest official price worst-case exceeds US$0.50")
+    if worst > absolute_max_cost:
+        raise RuntimeError("latest official price worst-case exceeds authorized subset cap")
     manifest = {
         "run_id": args.run_id,
-        "run_type": "post_fix_integration_validation",
+        "run_type": (
+            "post_fix_remaining_ih_integration_validation"
+            if args.remaining_ih
+            else "post_fix_integration_validation"
+        ),
         "run_status": "entry_gate_pass_provider_not_started",
         "branch": "codex/v5-a",
         "implementation_head": args.implementation_head,
@@ -284,14 +317,16 @@ def main() -> int:
             },
         },
         "hard_limits": {
-            "max_logical_calls_total": 17,
-            "max_http_attempts_total": 34,
-            "max_input_tokens_total": 140_000,
-            "max_output_tokens_total": 31_984,
-            "max_wall_time_seconds_total": 34 * 60,
+            "max_logical_calls_total": 10 if args.remaining_ih else 17,
+            "max_http_attempts_total": 20 if args.remaining_ih else 34,
+            "max_input_tokens_total": total_input_tokens,
+            "max_output_tokens_total": total_output_tokens,
+            "max_wall_time_seconds_total": 22 * 60 if args.remaining_ih else 34 * 60,
             "nominal_cost_usd": "0.10",
-            "reserve_stop_usd": "0.40",
-            "absolute_max_cost_usd_total": "0.50",
+            "reserve_stop_usd": "0.399023773" if args.remaining_ih else "0.40",
+            "absolute_max_cost_usd_total": str(absolute_max_cost),
+            "parent_consumed_cost_usd": "0.000976227" if args.remaining_ih else "0",
+            "combined_absolute_max_cost_usd": "0.50",
         },
         "price_table": {
             "source": "https://api-docs.deepseek.com/quick_start/pricing/",
@@ -303,7 +338,7 @@ def main() -> int:
             "output": "0.87",
             "reservation_peak_multiplier": "2",
             "reservation_transport_attempts": 2,
-            "worst_case_all_cases_usd": str(worst),
+            "worst_case_authorized_cases_usd": str(worst),
         },
         "frozen_blobs": observed_blobs,
         "eval_snapshot": {
@@ -323,6 +358,22 @@ def main() -> int:
             "report_sha256": EXPECTED_ORIGINAL_REPORT_SHA,
             "schema9_snapshot_sha256": EXPECTED_SCHEMA9_SHA,
         },
+        "parent_g_evidence": (
+            {
+                "root": str(parent_g),
+                "manifest_sha256": EXPECTED_PARENT_G_MANIFEST_SHA,
+                "eval_db_sha256": EXPECTED_PARENT_G_EVAL_DB_SHA,
+                "provider_calls": 5,
+                "http_attempts": 5,
+                "input_tokens": 5063,
+                "output_tokens": 685,
+                "cost_usd": "0.000976227",
+                "task_status": "waiting_user",
+                "rerun_forbidden": True,
+            }
+            if args.remaining_ih
+            else None
+        ),
         "cases": cases,
         "entry_gate": {
             "status": "pass",
@@ -331,8 +382,8 @@ def main() -> int:
             "run_wide_meter_commit": "85a31b2",
             "postfix_runner_commit": "d9a4313",
             "entry_builder_commit": args.implementation_head,
-            "stage_1_to_5_joint_targeted_tests": "174 passed",
-            "provider_wiring_and_product_tests": "27 passed",
+            "stage_1_to_5_joint_targeted_tests": args.joint_test_evidence,
+            "provider_wiring_and_product_tests": "included_in_joint_targeted_tests",
             "compileall": "pass",
             "diff_check": "pass",
             "frozen_blob_check": "pass",

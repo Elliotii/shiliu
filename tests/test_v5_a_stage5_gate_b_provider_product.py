@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import importlib.util
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -34,6 +36,17 @@ from shiliu.research.provider_product import (
 )
 from shiliu.research.provider_wiring import ReceiptBoundProviderService
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
+
+
+ROOT = Path(__file__).resolve().parents[1]
+RUNNER_SPEC = importlib.util.spec_from_file_location(
+    "v5_a_gate_b_postfix_validate",
+    ROOT / "scripts/v5_a_gate_b_postfix_validate.py",
+)
+assert RUNNER_SPEC and RUNNER_SPEC.loader
+RUNNER = importlib.util.module_from_spec(RUNNER_SPEC)
+RUNNER_SPEC.loader.exec_module(RUNNER)
+_load_case_projection = RUNNER._load_case_projection
 
 
 GROUNDED_OBJECTIVE = "MCP"
@@ -391,6 +404,38 @@ def test_provider_product_grounded_and_insufficient_close_durable_lineage(
     assert replay["deduplicated"] is True
     assert provider.calls == before_calls
     assert receipt.budget_snapshot(task_id) == before_budget
+
+
+def test_postfix_projection_reads_current_input_from_control_status_no_network(
+    app_paths,
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+    objective = "当前固定语料无法证明的投影恢复目标"
+    orchestrator, _receipt = _orchestrator(
+        core,
+        inner,
+        product,
+        materializer,
+        provider,
+        insufficient_objectives={objective},
+    )
+    task_id = _create(product, "projection-control-input", objective)
+
+    result = orchestrator.run_to_boundary(
+        task_id, command_id="gate-b-product:projection-control-input"
+    )
+    projection, raw = _load_case_projection(
+        app=core, task_id=task_id, result=result, hitl=None
+    )
+
+    assert raw["task"]["status"] == "waiting_user"
+    assert "input_requests" not in raw
+    control = core.research_control.get_status(task_id)
+    assert len(control["open_input_requests"]) == 1
+    assert projection["open_input_requests"] == control["open_input_requests"]
+    assert projection["open_input_requests"][0]["current_status"] == "open"
+    assert projection["outer_audit"]["outcome"] == "blocked"
 
 
 def test_provider_product_waiting_user_fixed_answer_continues_exact_once(
