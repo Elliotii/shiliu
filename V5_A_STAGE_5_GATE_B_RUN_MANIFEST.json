@@ -2,17 +2,24 @@
   "run_id": "GB-20260803T081500Z-be96740",
   "stage": "V5-A Stage 5",
   "gate": "B_real_provider_product_quality_evaluation",
-  "run_status": "entry_ready_provider_not_started",
+  "run_status": "completed_human_reviewed_pending_main_acceptance",
+  "run_completed_at": "2026-08-03T08:25:31.775966+00:00",
   "branch": "codex/v5-a",
   "gate_a_accepted_head": "a09d7c2958a90cffebd43e5c27e6e4d68f13100a",
   "mechanical_reviewed_head": "fbfda06476cf28363a079e69b4b7a48389e0d6e1",
   "bounded_rework_commit": "be96740",
   "evaluation_runner_commit": "8958997",
   "formal_evaluation_root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T081500Z-be96740",
-  "provider_calls_performed": 0,
+  "provider_calls_performed": 15,
+  "http_attempts": 15,
+  "total_cost_usd": "0.019203539",
+  "wall_time_seconds": 169.882,
+  "executed_cases": ["GB-G-01", "GB-I-01", "GB-H-01"],
   "credential_access": {
-    "status": "not_accessed",
-    "authorized_source": "existing_keychain_reference",
+    "status": "success",
+    "source": "existing_keychain_reference",
+    "reference_sha256": "baae48e38b77fd2d5758c37d9eaf59ee9a4513bc37699989e22c6c30c3332ff1",
+    "accessed_at": "2026-08-03T08:22:41.931769+00:00",
     "secret_persistence": "forbidden"
   },
   "provider_authorization": {
@@ -82,6 +89,7 @@
     "formation": "SQLite online backup from immutable read-only stable source",
     "schema9_snapshot_sha256": "e1e276dfde8194bf3c3282d2014bcbc272b5eea330633049342aeb24329922c3",
     "schema10_pre_run_sha256": "bc2ae5410b1bd3d75c415eec0ade6a8d659a8a4da408941c28c198ed64a2a7e0",
+    "schema10_post_run_sha256": "eb9b7169ef137abb261de472ed7d0fa2e1b28dd2dcb5632f75ac9e9c1d0a71d8",
     "schema_version": 10,
     "integrity_check": "ok",
     "foreign_key_violations": 0,
@@ -176,6 +184,47 @@
     "price_table": "pass_absolute_worst_case_below_0.50",
     "provider_call_meter_start": 0
   },
+  "results": {
+    "GB-G-01": {
+      "answer_status": "valid_partial",
+      "termination_reason": "answer_ready",
+      "eval_disposition": "valid_evaluation",
+      "product_quality": "pass_with_limitations",
+      "logical_calls": 5,
+      "http_attempts": 5,
+      "cost_usd": "0.008393122"
+    },
+    "GB-I-01": {
+      "answer_status": "valid_insufficient",
+      "termination_reason": "no_new_evidence",
+      "eval_disposition": "valid_evaluation",
+      "product_quality": "pass",
+      "logical_calls": 5,
+      "http_attempts": 5,
+      "cost_usd": "0.005343076"
+    },
+    "GB-H-01": {
+      "answer_status": "valid_insufficient",
+      "termination_reason": "provider_error",
+      "eval_disposition": "product_quality_failure",
+      "product_quality": "fail",
+      "logical_calls": 5,
+      "http_attempts": 5,
+      "cost_usd": "0.005467341",
+      "finding": "clarification need was recognized but no durable InputRequest/HumanDecision/continuation path was exercised"
+    }
+  },
+  "reliability_evidence": {
+    "provider_side_effects": 15,
+    "succeeded_receipts": 15,
+    "real_provider_operation_ids": 15,
+    "unknown_or_unreconciled": 0,
+    "transport_retries": 0,
+    "aggregate_caps_respected": true,
+    "live_database_unchanged": true
+  },
+  "main_acceptance_request": "partial_accept",
+  "partial_accept_reason": "mandatory grounded and honest-insufficient cases are valid, but the conditional HITL case and Stage 2/3 terminal product integration are not complete",
   "not_exercised": [
     "deepseek-v4-flash",
     "non-DeepSeek providers",

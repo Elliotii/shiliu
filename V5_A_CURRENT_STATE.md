@@ -86,7 +86,10 @@ stage_5_gate_B_mechanical_wiring_status: submitted_for_main_review
 stage_5_gate_B_provider_wiring_commit: a25d007
 stage_5_gate_B_cost_cap_test_commit: 7241c3b
 stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
-stage_5_provider_quality_gate_authorized: false
+stage_5_gate_B_formal_run_status: completed_pending_main_acceptance
+stage_5_gate_B_formal_run_id: GB-20260803T081500Z-be96740
+stage_5_gate_B_acceptance_request: partial_accept
+stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
 charter_status: accepted
@@ -95,7 +98,7 @@ stage_1_implementation_authorized: true
 stage_1_status: accepted
 stage_1_self_accepted: false
 product_implementation_started: true
-provider_runs_performed: false
+provider_runs_performed: true
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 stage_4_live_database_migration_performed: false
@@ -782,6 +785,30 @@ Identity mismatch 在 transport=0 时持久拒绝；缺少真实 response/operat
 或迁移 live DB。用户已书面授权在独立返工 commit 和完整 Entry Gate 均通过后连续执行
 formal Gate B；Gate C 仍不属于 V5-A Session。
 
+## 8.21 Gate B formal evaluation
+
+在 bounded rework commit `be96740` 与完整 Entry Gate 通过后，V5-A 按授权只运行一次
+formal Gate B。隔离 root 为
+`/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T081500Z-be96740/`；
+live schema 9 只作为 SQLite-safe snapshot source，全量 artifact copy 只读，只有 eval copy
+迁移到 schema 10。
+
+三个 exact case 共 15 logical / 15 HTTP attempts、35,937 input、7,024 output，费用
+US$0.019203539、wall 169.882 秒，无 retry、unknown 或 active reservation。`GB-G-01`
+形成 citation-backed `valid_partial`，`GB-I-01` 诚实停在 `valid_insufficient`。条件
+`GB-H-01` 识别到需要澄清，但 Provider Deep Ask 路径没有接入 Stage 4 durable HITL，固定
+用户回答未消费，最终在 exact call cap 下 `provider_error`；这是 product-quality failure，
+没有 rerun。
+
+15 条 SideEffect 全部具有真实 operation ID、receipt hash 与 result reference。但三个
+Research Task 都未形成 Stage 2 checkpoint/artifact、Stage 3 outer audit 或 terminal Result，
+仍保持 running；因此 Gate B 报告请求 `partial_accept`，不自我接受 Gate B、Stage 5 或
+V5-A。正式报告为 `V5_A_STAGE_5_GATE_B_EVALUATION_REPORT.md`，sanitized manifest 为
+`V5_A_STAGE_5_GATE_B_RUN_MANIFEST.json`。
+
+正式运行后 live DB 仍为 SHA `eb84e971…`、94,588,928 bytes、mtime
+`2026-08-03T15:49:52+0800`；V5-A 未写 live DB、未执行 live migration。Gate C 未开始。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -811,11 +838,11 @@ formal Gate B；Gate C 仍不属于 V5-A Session。
 
 ## 10. 下一动作
 
-Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。Gate B receipt binding 的
-bounded rework 已在无网络定向与 Stage 1–5 联合测试中通过。下一动作是在稳定窗口形成
-formal eval snapshot、冻结 manifest/price table 并执行完整 Entry Gate；只有全部通过后才可
-按 exact cases 读取既有 LLM Keychain reference 并运行一次 formal Gate B。Gate C、主线
-integration 与 live schema 10 migration 仍禁止 V5-A 执行。
+Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。Gate B receipt binding
+返工、Entry Gate 与 formal run 已完成；两个 mandatory case 有效，conditional HITL case
+暴露产品接线失败。下一动作是 V5 主 Session 对 Gate B 作有限验收并决定
+`partial_accept / rework / pause / reject`。V5-A 不开始 Gate C、主线 integration 或 live
+schema 10 migration。
 
 ```yaml
 charter_status: accepted
@@ -879,11 +906,20 @@ stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
 stage_5_gate_B_mechanical_review: rework_bounded_round_1
 stage_5_gate_B_bounded_rework_round_1_local_status: pass
 stage_5_gate_B_formal_run_authorized_after_entry_gate: true
-stage_5_provider_quality_gate_authorized: conditional_after_entry_gate
+stage_5_gate_B_bounded_rework_commit: be96740
+stage_5_gate_B_entry_manifest_commit: 1a1b52f
+stage_5_gate_B_formal_run_status: completed_pending_main_acceptance
+stage_5_gate_B_formal_run_id: GB-20260803T081500Z-be96740
+stage_5_gate_B_provider_calls: 15
+stage_5_gate_B_http_attempts: 15
+stage_5_gate_B_cost_usd: 0.019203539
+stage_5_gate_B_acceptance_request: partial_accept
+stage_5_gate_B_self_accepted: false
+stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
 product_implementation_started: true
-provider_runs_performed: false
+provider_runs_performed: true
 stage_2_live_database_migration_performed: false
 stage_3_live_database_migration_performed: false
 stage_4_live_database_migration_performed: false
@@ -891,5 +927,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: create_formal_eval_snapshot_and_run_full_entry_gate
+next_action: V5_main_session_gate_B_limited_acceptance_review
 ```
