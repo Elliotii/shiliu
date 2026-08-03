@@ -1,0 +1,85 @@
+{
+  "manifest_version": "v5-a-gate-b-completion-final-v1",
+  "accepted_product_completion_head": "8d600b64338ca994a7ffc1f912365436969737df",
+  "amendment_commit": "7d830c2",
+  "entry_harness_commit": "d01add8",
+  "run_budget_binding_fix_commit": "e2ac1f2",
+  "durable_recovery_commit": "fe6cfe8",
+  "recovery_fence_commit": "40fa073",
+  "stopped_lineage_recovery_commit": "ff7c207",
+  "exact_case_hashes": {
+    "GB-PC-G-01": "fc493889bae303c4761a663cf22853b0a24a087f5238667fc7e98cdb98d8175d",
+    "GB-PC-H-01": "36fa44adc7db63abc951baeeb4ad2f0f6de23b27e80d1025d3ed9a3b29d8b760"
+  },
+  "provider": {
+    "provider": "deepseek_openai_compatible",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-v4-pro",
+    "price_usd_per_1m_tokens": {
+      "input_cache_hit": "0.003625",
+      "input_cache_miss": "0.435",
+      "output": "0.87"
+    },
+    "worst_case_reservation_usd": "0.20111616",
+    "absolute_max_cost_usd": "0.25"
+  },
+  "source_snapshot": {
+    "schema9_sha256": "e1e276dfde8194bf3c3282d2014bcbc272b5eea330633049342aeb24329922c3",
+    "artifact_identity": "f315fc20b45251334ef89d89b75a8d0129722d8febd2c02439a15cb1443c34dc",
+    "facts": {
+      "videos": 157,
+      "completed_videos": 140,
+      "retrieval_units": 1633,
+      "indexed_videos": 154
+    }
+  },
+  "entry_evidence": {
+    "stage_1_to_5_joint_targeted": "185 passed, 1 warning",
+    "default_no_provider": "1683 passed, 4 deselected, 1 warning",
+    "frozen_prompt_tool_schema_blobs": "unchanged",
+    "live_database_used_as_runtime": false,
+    "live_database_migration_performed": false
+  },
+  "durable_provider_evidence_root": {
+    "path": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-PC-20260803T195429Z-e2ac1f2-completion-recovery1",
+    "manifest_sha256": "63ca56125c7318a13c141e2b320ed54d494269efebcec057d11b7bdde9463a95",
+    "eval_db_sha256": "865c77edf04b173b0f67583242a4765cf4698b02667ffa0d94af6ee4074b6068"
+  },
+  "final_recovery_root": {
+    "path": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-PC-20260803T201500Z-ff7c207-durable-recovery4",
+    "manifest_sha256": "96740d0f1883dc50186d954ca064bf739aa5ad2654ee7bb3108402e61e1e4035",
+    "eval_db_sha256": "1fba58003271fc11f6e452b8916fa84996693fcadfbe56279aa4016820a5ff29"
+  },
+  "aggregate_usage": {
+    "logical_calls": 4,
+    "http_attempts": 4,
+    "input_tokens": 3499,
+    "output_tokens": 391,
+    "cost_usd": "0.000813131",
+    "unknown_side_effects": 0,
+    "in_flight_side_effects": 0
+  },
+  "cases": {
+    "GB-PC-G-01": {
+      "provider_operations": 4,
+      "answer_status": "valid_insufficient",
+      "outer_outcome": "targeted_continue",
+      "final_task_status": "blocked",
+      "evidence_uses": 0,
+      "citations": 0,
+      "disposition": "product_quality_failure_no_grounded_representative_path"
+    },
+    "GB-PC-H-01": {
+      "provider_operations": 0,
+      "answer_status": "valid_insufficient",
+      "termination_reason": "budget_exhausted",
+      "failure_class": "none",
+      "final_task_status": "terminal",
+      "input_requests": 0,
+      "human_decisions": 0,
+      "disposition": "run_wide_runtime_exhausted_before_hitl_or_provider"
+    }
+  },
+  "evaluation_disposition": "submitted_for_main_review_not_self_accepted",
+  "gate_C_authorized": false
+}

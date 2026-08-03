@@ -1044,3 +1044,41 @@ credential_access_in_this_rework: false
 live_database_migration_in_this_rework: false
 next_action: V5_main_session_bounded_product_completion_review
 ```
+
+## 12. Gate B product-completion validation（2026-08-04）
+
+V5 主 Session 接受 bounded product-completion rework 后，V5-A 按修正后的
+`GB-PC-G-01 / GB-PC-H-01` 和 US$0.25 硬上限执行 completion validation。
+Entry Gate 冻结 accepted code `8d600b6`、五个 Prompt/Tool/Schema blobs、只读
+schema-9 snapshot/corpus/artifact/index identity、官方价格和 exact case hashes；验证为
+Stage 1–5 联合 `185 passed`、默认无 Provider `1683 passed / 4 deselected`。
+
+G 实际执行 4 次 receipt-bound DeepSeek V4 Pro operation，全部 succeeded，合计
+3499 input / 391 output tokens、US$0.000813131，unknown/in-flight 为 0；但检索未形成
+EvidenceUse/citation，结果为 `valid_insufficient` 和 `targeted_continue`，最终沿 append-only
+recovery 通过 takeover/control fence 收束为 blocked，未重放 Provider operation。
+
+H 未调用 Provider。多次 pre-provider 机械恢复均使用新 sibling root、保留旧 root；当恢复
+到 H pre-HITL 时，原 run-wide 1320 秒硬预算已耗尽，服务端持久提交 terminal
+`valid_insufficient / budget_exhausted / none`，InputRequest/HumanDecision 均为 0。V5-A
+没有重置时钟、扩大预算或 opportunistic rerun，因此本轮仍未证明 representative grounded
+product path 和 exact-one HITL journey。
+
+```yaml
+stage_5_gate_B_completion_amendment_commit: 7d830c2
+stage_5_gate_B_completion_entry_commit: d01add8
+stage_5_gate_B_completion_budget_binding_fix: e2ac1f2
+stage_5_gate_B_completion_recovery_commits: [fe6cfe8, 40fa073, ff7c207]
+stage_5_gate_B_completion_provider_calls: 4
+stage_5_gate_B_completion_http_attempts: 4
+stage_5_gate_B_completion_cost_usd: 0.000813131
+stage_5_gate_B_completion_unknown_or_in_flight: 0
+stage_5_gate_B_completion_G_status: blocked_valid_insufficient_no_evidence_use
+stage_5_gate_B_completion_H_status: terminal_budget_exhausted_preprovider
+stage_5_gate_B_completion_report: V5_A_STAGE_5_GATE_B_COMPLETION_VALIDATION_REPORT.md
+stage_5_gate_B_completion_manifest: V5_A_STAGE_5_GATE_B_COMPLETION_VALIDATION_MANIFEST.json
+stage_5_gate_B_completion_status: submitted_for_main_review_not_self_accepted
+stage_5_gate_C_authorized: false
+live_database_migration_in_completion_validation: false
+next_action: V5_main_session_final_gate_B_completion_review
+```
