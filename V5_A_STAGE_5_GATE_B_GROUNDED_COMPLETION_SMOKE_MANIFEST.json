@@ -1,0 +1,78 @@
+{
+  "manifest_version": "v5-a-gate-b-grounded-completion-smoke-v1",
+  "status": "completed_once_failed_product_acceptance_criteria",
+  "run_id": "GB-PC-G-20260803T205358Z-ad20feb-empty-nav-smoke",
+  "case_id": "GB-PC-G-01",
+  "case_hash": "fc493889bae303c4761a663cf22853b0a24a087f5238667fc7e98cdb98d8175d",
+  "branch": "codex/v5-a",
+  "product_fix_commit": "ca0e6f537275465c92b9359603233770cdbdf6da",
+  "entry_harness_commit": "ad20febcd7fc692971062a787004ce5a31b4b202",
+  "formal_evaluation_root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-PC-G-20260803T205358Z-ad20feb-empty-nav-smoke",
+  "formal_manifest_sha256": "0de158ea4e2ed46ba6ef19a005249cdb40d8ae295a4295a27c390320124994ee",
+  "eval_db_sha256": "2461927a4e8a1019ce4beec362581b0661d7fd49a192d9d4388d69cf88729424",
+  "schema9_snapshot_sha256": "e1e276dfde8194bf3c3282d2014bcbc272b5eea330633049342aeb24329922c3",
+  "entry_gate": {
+    "status": "pass",
+    "joint_targeted_tests": "205 passed",
+    "warning": "existing Starlette/httpx deprecation warning only",
+    "default_no_provider_regression": "not_required_by_bounded_G_only_authorization",
+    "frozen_blob_count": 5,
+    "unknown_or_in_flight_before_run": 0,
+    "worst_case_next_call_reservation_usd": "0.08385408",
+    "absolute_max_cost_usd": "0.10"
+  },
+  "provider_execution": {
+    "provider": "deepseek_openai_compatible",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-v4-pro",
+    "logical_calls": 3,
+    "http_attempts": 3,
+    "input_tokens": 2395,
+    "output_tokens": 314,
+    "cost_usd": "0.000486765",
+    "wall_time_seconds": 10.25,
+    "succeeded_receipts": 3,
+    "unknown_or_in_flight_after_run": 0
+  },
+  "retrieval_execution": {
+    "first_agent_action": "search_navigation",
+    "first_agent_query": "Agent 开发流程 checkpoint test 完成后 停下来 人工验收",
+    "empty_navigation_corrected_to_global_transcript_search": true,
+    "navigation_raw_hits": 0,
+    "fallback_transcript_raw_hits": 0,
+    "second_identical_navigation_rejected": true,
+    "termination_reason": "repeated_search"
+  },
+  "durable_product_outcome": {
+    "task_id": "rtask_cfbe8635611c86e015f759098c8d92be",
+    "task_status": "terminal",
+    "attempts": 2,
+    "checkpoints": 11,
+    "outer_audits": 2,
+    "results": 2,
+    "current_evidence_uses": 0,
+    "citations": 0,
+    "answer_status": "valid_insufficient",
+    "termination_reason": "no_new_evidence",
+    "failure_class": "none",
+    "outer_outcome": "stop_insufficient",
+    "acceptance_criteria_met": false
+  },
+  "immutable_history_verification": {
+    "original_manifest_sha256": "705484087b1ee0cf577dbd7ee060a5ba923a489088b0c5f9fece00e701ee27eb",
+    "original_report_sha256": "18105cd549b2f2428091d2726ccb72caf2d5b8e1cf611c91214a38a53d31e645",
+    "original_schema9_snapshot_sha256": "e1e276dfde8194bf3c3282d2014bcbc272b5eea330633049342aeb24329922c3"
+  },
+  "output_root_freeze": {
+    "content_hashes_recorded": true,
+    "read_only_permission_applied": true,
+    "reason": null
+  },
+  "live_database_used_as_runtime_state": false,
+  "live_database_migration_performed": false,
+  "H_case_executed": false,
+  "automatic_rerun_performed": false,
+  "gate_B_self_accepted": false,
+  "gate_C_authorized": false,
+  "next_action": "V5_main_session_final_gate_B_decision"
+}

@@ -1082,3 +1082,40 @@ stage_5_gate_C_authorized: false
 live_database_migration_in_completion_validation: false
 next_action: V5_main_session_final_gate_B_completion_review
 ```
+
+## 13. Gate B bounded empty-navigation correction and G-only smoke（2026-08-04）
+
+V5 主 Session 将上一轮 grounded completion 失败定位为连续空 navigation 未进入字幕检索。
+V5-A 在既有 Deep graph 中加入一次性确定性纠正：首次空 navigation 立即使用同一 action
+检索意图执行全局 transcript search；之后的 navigation 会 fail closed，不再耗尽 action
+budget。修复未修改冻结 Prompt/Tool/Schema/model/evaluator authority，也没有 case/query/video
+特判。冻结后的 Deep + Stage 1–5 联合定向为 205 passed，仅既有 Starlette/httpx warning。
+
+唯一获准的 `GB-PC-G-01` smoke 使用新 root 和隔离 schema-10 DB 执行。三个 DeepSeek
+V4-Pro operation 全部 receipt succeeded，2395 input / 314 output tokens，费用
+US$0.000486765，unknown/in-flight 为 0。空 navigation 后确实执行了全局 transcript
+search，但 Provider 生成的长复合查询在 video 与 transcript scope 均为 0 raw hits；第二次
+相同 navigation 被 `repeated_search` 拒绝。最终 Task terminal，结果为
+`valid_insufficient / no_new_evidence / none`、Outer `stop_insufficient`，EvidenceUse/citation
+均为 0。因此本次是有效的失败产品质量证据，仍未证明 representative grounded completion；
+按授权未再次修改或重跑 G，H 未执行。
+本次 root 的 manifest/DB/case evidence 已记录精确 SHA，并在运行后移除所有 filesystem
+write bit；旧 roots 未变化。
+
+```yaml
+stage_5_gate_B_empty_navigation_fix_commit: ca0e6f537275465c92b9359603233770cdbdf6da
+stage_5_gate_B_G_only_entry_commit: ad20febcd7fc692971062a787004ce5a31b4b202
+stage_5_gate_B_G_only_run_id: GB-PC-G-20260803T205358Z-ad20feb-empty-nav-smoke
+stage_5_gate_B_G_only_provider_calls: 3
+stage_5_gate_B_G_only_http_attempts: 3
+stage_5_gate_B_G_only_cost_usd: 0.000486765
+stage_5_gate_B_G_only_unknown_or_in_flight: 0
+stage_5_gate_B_G_only_status: terminal_valid_insufficient_no_new_evidence
+stage_5_gate_B_grounded_completion: unproven
+stage_5_gate_B_G_only_report: V5_A_STAGE_5_GATE_B_GROUNDED_COMPLETION_SMOKE_REPORT.md
+stage_5_gate_B_G_only_manifest: V5_A_STAGE_5_GATE_B_GROUNDED_COMPLETION_SMOKE_MANIFEST.json
+stage_5_gate_B_self_accepted: false
+stage_5_gate_C_authorized: false
+live_database_migration_in_G_only_smoke: false
+next_action: V5_main_session_final_gate_B_decision
+```
