@@ -40,6 +40,14 @@ CASE_TOKEN_CAPS = {
     "GB-PC-H-01": (40_000, 8_896),
 }
 COMPLETION_CASES = ["GB-PC-G-01", "GB-PC-H-01"]
+COMPLETION_G_ONLY_CASES = ["GB-PC-G-01"]
+COMPLETION_G_ONLY_CASE_HASH = (
+    "fc493889bae303c4761a663cf22853b0a24a087f5238667fc7e98cdb98d8175d"
+)
+COMPLETION_G_ONLY_OBJECTIVE = (
+    "基于当前收藏中的字幕证据，说明 Agent 开发流程中的 checkpoint 为什么需要在 test "
+    "完成后停下来接受人工验收；请引用来源，并区分视频作者的陈述与基于证据的系统推论。"
+)
 ACCEPTED_PRODUCT_COMPLETION_HEAD = (
     "8d600b64338ca994a7ffc1f912365436969737df"
 )
@@ -219,14 +227,23 @@ def main() -> int:
     parser.add_argument("--remaining-ih", action="store_true")
     parser.add_argument("--h-only", action="store_true")
     parser.add_argument("--completion", action="store_true")
+    parser.add_argument("--completion-g-only", action="store_true")
     parser.add_argument("--parent-g-root", type=Path)
     parser.add_argument("--parent-ih-root", type=Path)
     parser.add_argument("--joint-test-evidence", default="174 passed")
     parser.add_argument("--default-regression-evidence", default="not_recorded")
     args = parser.parse_args()
-    if sum((args.remaining_ih, args.h_only, args.completion)) > 1:
+    if sum(
+        (
+            args.remaining_ih,
+            args.h_only,
+            args.completion,
+            args.completion_g_only,
+        )
+    ) > 1:
         raise RuntimeError("remaining-I/H and H-only modes are mutually exclusive")
-    if args.completion:
+    completion_mode = args.completion or args.completion_g_only
+    if completion_mode:
         if args.implementation_head != subprocess.check_output(
             ["git", "rev-parse", "HEAD"], text=True
         ).strip():
@@ -325,7 +342,7 @@ def main() -> int:
         raise RuntimeError(f"material schema-9 baseline changed: {before}")
     Database(working_copy).initialize()
     rebound_artifact_rows = 0
-    if args.completion:
+    if completion_mode:
         rebound_artifact_rows = _rebind_eval_artifact_paths(
             working_copy, root / "artifacts"
         )
@@ -336,7 +353,7 @@ def main() -> int:
         raise RuntimeError("schema-9 snapshot copy became writable during migration")
     if not working_copy.stat().st_mode & stat.S_IWUSR:
         raise RuntimeError("schema-10 eval.db lost owner write permission")
-    if args.completion:
+    if completion_mode:
         connection = sqlite3.connect(snapshot_copy)
         try:
             checkpoint_videos, checkpoint_chunks = connection.execute(
@@ -394,7 +411,9 @@ def main() -> int:
             }
         )
     expected_cases = (
-        COMPLETION_CASES
+        COMPLETION_G_ONLY_CASES
+        if args.completion_g_only
+        else COMPLETION_CASES
         if args.completion
         else
         ["GB-H-01"]
@@ -403,22 +422,28 @@ def main() -> int:
         if args.remaining_ih
         else ["GB-G-01", "GB-I-01", "GB-H-01"]
     )
-    if args.remaining_ih or args.h_only or args.completion:
+    if args.remaining_ih or args.h_only or completion_mode:
         cases = [case for case in cases if case["case_id"] in expected_cases]
     if [case["case_id"] for case in cases] != expected_cases:
         raise RuntimeError("exact authorized case set/order mismatch")
+    if args.completion_g_only and (
+        cases[0]["objective"] != COMPLETION_G_ONLY_OBJECTIVE
+        or cases[0]["constraint_profile"] != "grounded_current_evidence"
+        or cases[0]["success_constraints"] != []
+    ):
+        raise RuntimeError("G-only exact authorized case content mismatch")
 
     checked_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     total_input_tokens = (
         40_000
-        if args.h_only
+        if args.h_only or args.completion_g_only
         else 80_000
         if args.remaining_ih or args.completion
         else 140_000
     )
     total_output_tokens = (
         8_896
-        if args.h_only
+        if args.h_only or args.completion_g_only
         else 17_792
         if args.remaining_ih or args.completion
         else 31_984
@@ -426,22 +451,29 @@ def main() -> int:
     absolute_max_cost = (
         Decimal("0.498358803")
         if args.h_only
+        else Decimal("0.10")
+        if args.completion_g_only
         else Decimal("0.25")
         if args.completion
         else Decimal("0.499023773")
         if args.remaining_ih
         else Decimal("0.50")
     )
+    worst_output_tokens = (
+        4_096 if args.completion_g_only else total_output_tokens
+    )
     worst = (
         Decimal(total_input_tokens) * Decimal("0.435")
-        + Decimal(total_output_tokens) * Decimal("0.87")
+        + Decimal(worst_output_tokens) * Decimal("0.87")
     ) / Decimal(1_000_000) * Decimal(4)
     if worst > absolute_max_cost:
         raise RuntimeError("latest official price worst-case exceeds authorized subset cap")
     manifest = {
         "run_id": args.run_id,
         "run_type": (
-            "gate_b_product_completion_validation"
+            "gate_b_grounded_completion_postfix_smoke"
+            if args.completion_g_only
+            else "gate_b_product_completion_validation"
             if args.completion
             else
             "post_fix_h_only_recovery_validation"
@@ -454,7 +486,7 @@ def main() -> int:
         "branch": "codex/v5-a",
         "implementation_head": args.implementation_head,
         "accepted_product_completion_head": (
-            ACCEPTED_PRODUCT_COMPLETION_HEAD if args.completion else None
+            ACCEPTED_PRODUCT_COMPLETION_HEAD if completion_mode else None
         ),
         "formal_evaluation_root": str(root),
         "original_formal_root": str(original),
@@ -472,16 +504,16 @@ def main() -> int:
             },
         },
         "hard_limits": {
-            "max_logical_calls_total": 5 if args.h_only else 10 if args.remaining_ih or args.completion else 17,
-            "max_http_attempts_total": 10 if args.h_only else 20 if args.remaining_ih or args.completion else 34,
+            "max_logical_calls_total": 5 if args.h_only or args.completion_g_only else 10 if args.remaining_ih or args.completion else 17,
+            "max_http_attempts_total": 10 if args.h_only or args.completion_g_only else 20 if args.remaining_ih or args.completion else 34,
             "max_input_tokens_total": total_input_tokens,
             "max_output_tokens_total": total_output_tokens,
-            "max_wall_time_seconds_total": 12 * 60 if args.h_only else 22 * 60 if args.remaining_ih or args.completion else 34 * 60,
-            "nominal_cost_usd": "0.05" if args.completion else "0.10",
-            "reserve_stop_usd": "0.20" if args.completion else "0.398358803" if args.h_only else "0.399023773" if args.remaining_ih else "0.40",
+            "max_wall_time_seconds_total": 12 * 60 if args.h_only or args.completion_g_only else 22 * 60 if args.remaining_ih or args.completion else 34 * 60,
+            "nominal_cost_usd": "0.05" if completion_mode else "0.10",
+            "reserve_stop_usd": "0.08" if args.completion_g_only else "0.20" if args.completion else "0.398358803" if args.h_only else "0.399023773" if args.remaining_ih else "0.40",
             "absolute_max_cost_usd_total": str(absolute_max_cost),
             "parent_consumed_cost_usd": "0.001641197" if args.h_only else "0.000976227" if args.remaining_ih else "0",
-            "combined_absolute_max_cost_usd": "0.25" if args.completion else "0.50",
+            "combined_absolute_max_cost_usd": "0.10" if args.completion_g_only else "0.25" if args.completion else "0.50",
         },
         "price_table": {
             "source": "https://api-docs.deepseek.com/quick_start/pricing/",
@@ -493,20 +525,29 @@ def main() -> int:
             "output": "0.87",
             "reservation_peak_multiplier": "2",
             "reservation_transport_attempts": 2,
+            "worst_case_reservation_scope": (
+                "next_call_full_remaining_input_plus_grounded_answer_output"
+                if args.completion_g_only
+                else "authorized_case_aggregate"
+            ),
             "worst_case_authorized_cases_usd": str(worst),
         },
         "case_manifest": {
             "path": str(args.cases_manifest.resolve()),
             "sha256": _sha256(args.cases_manifest),
             "canonical_case_hashes": {
-                case["case_id"]: hashlib.sha256(
-                    json.dumps(
-                        case,
-                        ensure_ascii=False,
-                        sort_keys=True,
-                        separators=(",", ":"),
-                    ).encode("utf-8")
-                ).hexdigest()
+                case["case_id"]: (
+                    COMPLETION_G_ONLY_CASE_HASH
+                    if args.completion_g_only
+                    else hashlib.sha256(
+                        json.dumps(
+                            case,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest()
+                )
                 for case in cases
             },
         },
@@ -590,7 +631,7 @@ def main() -> int:
                     "video_113_title": "使用AI+SPEC+SKILL，2天写完一个Agent项目",
                     "eval_artifact_paths_rebound": rebound_artifact_rows,
                 }
-                if args.completion
+                if completion_mode
                 else None
             ),
         },

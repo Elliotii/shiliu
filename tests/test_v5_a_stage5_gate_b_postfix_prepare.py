@@ -57,6 +57,19 @@ def test_completion_run_envelope_and_task_identity_are_run_wide() -> None:
     )
 
 
+def test_grounded_completion_smoke_envelope_is_exactly_one_bounded_case() -> None:
+    envelope = _run_envelope(completion_g_only=True)
+
+    assert envelope["authorized_cases"] == ("GB-PC-G-01",)
+    assert envelope["max_logical_calls"] == 5
+    assert envelope["max_http_attempts"] == 10
+    assert envelope["max_input_tokens"] == 40_000
+    assert envelope["max_output_tokens"] == 8_896
+    assert envelope["max_wall_seconds"] == 12 * 60
+    assert str(envelope["reserve_stop_usd"]) == "0.08"
+    assert str(envelope["absolute_max_cost_usd"]) == "0.10"
+
+
 def test_completion_eval_database_rebinds_only_to_isolated_artifact_copy(
     tmp_path: Path,
 ) -> None:

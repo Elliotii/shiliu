@@ -45,6 +45,10 @@ FULL_AUTHORIZED_CASES = ("GB-G-01", "GB-I-01", "GB-H-01")
 REMAINING_AUTHORIZED_CASES = ("GB-I-01", "GB-H-01")
 H_ONLY_AUTHORIZED_CASES = ("GB-H-01",)
 COMPLETION_AUTHORIZED_CASES = ("GB-PC-G-01", "GB-PC-H-01")
+COMPLETION_G_ONLY_AUTHORIZED_CASES = ("GB-PC-G-01",)
+COMPLETION_G_ONLY_CASE_HASH = (
+    "fc493889bae303c4761a663cf22853b0a24a087f5238667fc7e98cdb98d8175d"
+)
 ACCEPTED_PRODUCT_COMPLETION_HEAD = (
     "8d600b64338ca994a7ffc1f912365436969737df"
 )
@@ -59,9 +63,21 @@ def _run_envelope(
     remaining_ih: bool = False,
     h_only: bool = False,
     completion: bool = False,
+    completion_g_only: bool = False,
 ) -> dict[str, Any]:
-    if sum((remaining_ih, h_only, completion)) > 1:
+    if sum((remaining_ih, h_only, completion, completion_g_only)) > 1:
         raise ResearchUnsafeState("remaining-I/H and H-only modes are mutually exclusive")
+    if completion_g_only:
+        return {
+            "authorized_cases": COMPLETION_G_ONLY_AUTHORIZED_CASES,
+            "max_logical_calls": 5,
+            "max_http_attempts": 10,
+            "max_input_tokens": 40_000,
+            "max_output_tokens": 8_896,
+            "max_wall_seconds": 12 * 60,
+            "reserve_stop_usd": Decimal("0.08"),
+            "absolute_max_cost_usd": Decimal("0.10"),
+        }
     if completion:
         return {
             "authorized_cases": COMPLETION_AUTHORIZED_CASES,
@@ -508,6 +524,11 @@ def _validate_entry(
             raise ResearchUnsafeState("accepted product-completion HEAD mismatch")
         if manifest.get("case_manifest", {}).get("canonical_case_hashes") is None:
             raise ResearchUnsafeState("completion exact case hashes are not frozen")
+        if envelope["authorized_cases"] == COMPLETION_G_ONLY_AUTHORIZED_CASES and (
+            manifest["case_manifest"]["canonical_case_hashes"]
+            != {"GB-PC-G-01": COMPLETION_G_ONLY_CASE_HASH}
+        ):
+            raise ResearchUnsafeState("G-only exact case hash mismatch")
         if completion_recovery:
             parent = manifest.get("recovery_parent", {})
             if (
@@ -544,6 +565,7 @@ def main() -> int:
     parser.add_argument("--remaining-ih", action="store_true")
     parser.add_argument("--h-only", action="store_true")
     parser.add_argument("--completion", action="store_true")
+    parser.add_argument("--completion-g-only", action="store_true")
     parser.add_argument("--completion-recovery", action="store_true")
     args = parser.parse_args()
     root = args.eval_root.expanduser().resolve()
@@ -553,14 +575,16 @@ def main() -> int:
         remaining_ih=args.remaining_ih,
         h_only=args.h_only,
         completion=args.completion,
+        completion_g_only=args.completion_g_only,
     )
+    completion_mode = args.completion or args.completion_g_only
     authorized_cases = envelope["authorized_cases"]
     _validate_entry(
         manifest,
         root,
         remaining_ih=args.remaining_ih,
         h_only=args.h_only,
-        completion=args.completion,
+        completion=completion_mode,
         completion_recovery=args.completion_recovery,
         envelope=envelope,
     )
@@ -599,7 +623,7 @@ def main() -> int:
         task_ids = tuple(
             (
                 _completion_task_id(str(manifest["run_id"]), case_id)
-                if args.completion
+                if completion_mode
                 else _task_id(str(manifest["run_id"]), case_id)
             )
             for case_id in authorized_cases
@@ -652,7 +676,7 @@ def main() -> int:
         case = cases[case_id]
         if args.completion_recovery:
             continue
-        if args.completion:
+        if completion_mode:
             created = _create_completion_provider_task(
                 kernel=app.research,
                 run_id=str(manifest["run_id"]),
@@ -793,7 +817,7 @@ def main() -> int:
                 root=root, case=case, projection=projection, raw=raw
             )
             results[case_id] = projection
-            if args.completion:
+            if completion_mode:
                 if not projection["provider_receipts"]:
                     raise ResearchUnsafeState("completion case has no Provider receipt")
                 if not projection["outer_audit"]:
