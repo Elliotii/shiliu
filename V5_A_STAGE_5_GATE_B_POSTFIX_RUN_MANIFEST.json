@@ -1,0 +1,49 @@
+{
+  "run_id": "GB-20260803T130621Z-da72aa1-postfix",
+  "run_type": "post_fix_integration_validation",
+  "run_status": "stopped_preprovider_keychain_access_denied_no_rerun",
+  "formal_evaluation_root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T130621Z-da72aa1-postfix",
+  "implementation_head": "da72aa1bcd7138d9fd48552692d1e16fcebd9041",
+  "entry_gate": {
+    "status": "pass",
+    "joint_targeted_tests": "174 passed",
+    "schema_version": 10,
+    "integrity_check": "ok",
+    "foreign_key_violations": 0,
+    "videos": 157,
+    "completed_videos": 140,
+    "retrieval_units": 1633,
+    "indexed_videos": 154,
+    "schema10_pre_run_sha256": "6c52e4ceb38129728d973f650e1787c54ce31ee1dad53bdbfda4f49de523d5a9",
+    "schema9_snapshot_mode": "0444",
+    "schema10_working_copy_mode": "0644",
+    "artifacts_read_only": true,
+    "worst_case_all_cases_usd": "0.35490432"
+  },
+  "credential_access": {
+    "status": "denied_preprovider",
+    "error_class": "keychain_access_denied",
+    "error_code": -128,
+    "secret_exposed_or_persisted": false,
+    "retry_performed": false
+  },
+  "provider_calls_performed": 0,
+  "http_attempts": 0,
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "total_cost_usd": "0.000000000",
+  "executed_cases": [],
+  "case_dispositions": {
+    "GB-G-01": "not_exercised_preprovider_credential_failure",
+    "GB-I-01": "not_exercised_preprovider_credential_failure",
+    "GB-H-01": "not_exercised_preprovider_credential_failure"
+  },
+  "original_root_verification": {
+    "manifest_sha256": "705484087b1ee0cf577dbd7ee060a5ba923a489088b0c5f9fece00e701ee27eb",
+    "report_sha256": "18105cd549b2f2428091d2726ccb72caf2d5b8e1cf611c91214a38a53d31e645",
+    "schema9_snapshot_sha256": "e1e276dfde8194bf3c3282d2014bcbc272b5eea330633049342aeb24329922c3"
+  },
+  "live_database_migration_performed": false,
+  "gate_B_self_accepted": false,
+  "gate_C_started": false
+}
