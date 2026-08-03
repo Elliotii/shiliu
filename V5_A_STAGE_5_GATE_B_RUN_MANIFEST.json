@@ -1,0 +1,186 @@
+{
+  "run_id": "GB-20260803T081500Z-be96740",
+  "stage": "V5-A Stage 5",
+  "gate": "B_real_provider_product_quality_evaluation",
+  "run_status": "entry_ready_provider_not_started",
+  "branch": "codex/v5-a",
+  "gate_a_accepted_head": "a09d7c2958a90cffebd43e5c27e6e4d68f13100a",
+  "mechanical_reviewed_head": "fbfda06476cf28363a079e69b4b7a48389e0d6e1",
+  "bounded_rework_commit": "be96740",
+  "evaluation_runner_commit": "8958997",
+  "formal_evaluation_root": "/Users/elliot/Documents/Shiliu-Evaluations/V5-A/Gate-B/GB-20260803T081500Z-be96740",
+  "provider_calls_performed": 0,
+  "credential_access": {
+    "status": "not_accessed",
+    "authorized_source": "existing_keychain_reference",
+    "secret_persistence": "forbidden"
+  },
+  "provider_authorization": {
+    "provider": "deepseek_openai_compatible",
+    "provider_protocol": "openai-compatible",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-v4-pro",
+    "roles": {
+      "query_analysis": {
+        "thinking_enabled": false,
+        "reasoning_effort": null,
+        "max_output_tokens": 1200
+      },
+      "agent_action": {
+        "thinking_enabled": false,
+        "reasoning_effort": null,
+        "max_output_tokens": 1200
+      },
+      "grounded_answer": {
+        "thinking_enabled": true,
+        "reasoning_effort": "high",
+        "max_output_tokens": 4096
+      }
+    }
+  },
+  "hard_limits": {
+    "max_logical_calls": 17,
+    "max_http_attempts": 34,
+    "max_wall_time_minutes": 34,
+    "nominal_cost_usd": "0.10",
+    "reserve_stop_usd": "0.40",
+    "absolute_max_cost_usd": "0.50"
+  },
+  "price_table": {
+    "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "checked_at": "2026-08-03T08:16:00Z",
+    "currency": "USD",
+    "unit": "per_1m_tokens",
+    "model": "deepseek-v4-pro",
+    "input_cache_hit": "0.003625",
+    "input_cache_miss": "0.435",
+    "output": "0.87",
+    "announced_peak_multiplier_safety_factor": "2.0",
+    "worst_case_all_cases_with_one_retry_usd": "0.3549"
+  },
+  "source_snapshot_observation": {
+    "database": "/Users/elliot/Library/Application Support/Shiliu/shiliu.db",
+    "access_mode": "read_only_snapshot_source_only",
+    "schema_version": 9,
+    "sha256": "eb84e971fad9442866f274c95f424dd3f05b397266ccbe69c1576c28ba66165a",
+    "size_bytes": 94588928,
+    "mtime": "2026-08-03T15:49:52+0800",
+    "last_sync_run": 364,
+    "last_sync_status": "completed_with_errors",
+    "integrity_check": "ok",
+    "foreign_key_violations": 0,
+    "videos": 157,
+    "completed_videos": 140,
+    "distinct_artifact_dirs": 155,
+    "retrieval_units": 1633,
+    "indexed_videos": 154,
+    "retrieval_index_version": "v3-stage1-lexical-v1",
+    "lexical_video_units": 154,
+    "lexical_chunk_units": 1479
+  },
+  "eval_snapshot": {
+    "formation": "SQLite online backup from immutable read-only stable source",
+    "schema9_snapshot_sha256": "e1e276dfde8194bf3c3282d2014bcbc272b5eea330633049342aeb24329922c3",
+    "schema10_pre_run_sha256": "bc2ae5410b1bd3d75c415eec0ade6a8d659a8a4da408941c28c198ed64a2a7e0",
+    "schema_version": 10,
+    "integrity_check": "ok",
+    "foreign_key_violations": 0,
+    "videos": 157,
+    "completed_videos": 140,
+    "retrieval_units": 1633,
+    "indexed_videos": 154,
+    "artifact_copy_tree_sha256": "f315fc20b45251334ef89d89b75a8d0129722d8febd2c02439a15cb1443c34dc",
+    "artifact_copy_mode": "read_only",
+    "isolated_completed_artifact_dirs": 140,
+    "grounded_source_id": "BV1o87764Ebs",
+    "grounded_source_subtitle_sha256": "8e4f3f97af264a9eb1faef65b2cb797bb4616f7fe9e2dc477807244194f19016"
+  },
+  "frozen_blobs": {
+    "src/shiliu/ask/query_analysis.py": "2eb00bf0553bf4f173b22101351788c96665b7f5",
+    "src/shiliu/ask/deep/decision.py": "b93777b6dde1bf834604fe01a6fa0c2f08c5a240",
+    "src/shiliu/ask/answer.py": "ee23019f255b8772bff5beaf142ed5c0bad37bd0",
+    "src/shiliu/research/inner_tools.py": "396e3433254d08117b763e4b91e8daa56dad5172",
+    "src/shiliu/ask/contracts.py": "4ed333410287d25094f327f1c13bec098b367b02"
+  },
+  "cases": [
+    {
+      "case_id": "GB-G-01",
+      "mandatory": true,
+      "objective": "基于当前固定收藏中的字幕证据，解释为什么把 AI Agent 后端改造成可独立调用的接口，并建立“确定性断言 + LLM 裁判”的分层回归体系，能够减少手工验证；请引用来源，区分视频作者的主张与基于证据的推论，并说明局限。",
+      "success_constraints": [
+        "至少绑定 2 个 current、可跳转的字幕 EvidenceUse",
+        "每个核心事实性结论都有 citation，且 citation quote 语义支持该结论",
+        "明确区分来源主张、系统推论和未证明项"
+      ],
+      "expected_outcomes": ["valid_success", "valid_partial"],
+      "logical_call_cap": 7,
+      "http_attempt_cap": 14,
+      "agent_action_cap": 4,
+      "research_action_cap": 8,
+      "wall_time_seconds": 720,
+      "search_time_seconds": 300
+    },
+    {
+      "case_id": "GB-I-01",
+      "mandatory": true,
+      "objective": "基于当前固定收藏语料，比较 2027 年 MCP 生产事故在 OpenAI、Anthropic、Google 三家平台的公开量化失败率，并给出每个平台的当前字幕证据；如果当前 corpus 无法支持，请准确说明缺口并停止，不要用常识或推测补齐。",
+      "success_constraints": [
+        "每个平台的量化失败率都必须绑定 current EvidenceUse",
+        "缺任一平台或缺可验证数值时，不得产出 valid_success",
+        "不能把未来推测、模型常识或 citation presence 当成来源事实"
+      ],
+      "expected_outcomes": ["valid_insufficient", "valid_partial", "waiting_user"],
+      "logical_call_cap": 5,
+      "http_attempt_cap": 10,
+      "agent_action_cap": 3,
+      "research_action_cap": 6,
+      "wall_time_seconds": 600,
+      "search_time_seconds": 250
+    },
+    {
+      "case_id": "GB-H-01",
+      "mandatory": false,
+      "condition": "run only if GB-G-01 and GB-I-01 do not exercise waiting_user or HITL",
+      "objective": "基于当前固定收藏，为拾流长期 Research 的回归测试安排前三项优先级；如果“优先”无法从目标判断是更重视可靠性还是迭代速度，请先询问用户，再继续一次。",
+      "fixed_user_answer": "可靠性优先；未知外部副作用不得自动重放。",
+      "success_constraints": [
+        "只允许一个 InputRequest",
+        "当前 HumanDecision 必须绑定当前 Attempt/checkpoint/control generation",
+        "最多一次 targeted continuation"
+      ],
+      "expected_outcomes": ["waiting_user", "valid_partial"],
+      "logical_call_cap": 5,
+      "http_attempt_cap": 10,
+      "agent_action_cap": 3,
+      "research_action_cap": 6,
+      "wall_time_seconds": 720,
+      "search_time_seconds": 300
+    }
+  ],
+  "entry_gate": {
+    "status": "pass",
+    "checked_at": "2026-08-03T08:18:00Z",
+    "working_tree_clean_before_credential": true,
+    "receipt_bound_wiring_commit": "be96740",
+    "no_network_targeted_tests": "14 passed",
+    "stage_1_to_5_joint_tests": "160 passed",
+    "compileall": "pass",
+    "diff_check": "pass",
+    "runtime_identity_adversarial_tests": "pass_transport_zero",
+    "missing_operation_id_test": "pass_unknown_no_replay",
+    "restart_budget_and_cost_reservation": "pass",
+    "unknown_fail_closed": "pass",
+    "prompt_tool_schema_blob_freeze": "pass",
+    "eval_copy_schema10_migration_preflight": "pass",
+    "material_baseline": "pass_no_material_change",
+    "price_table": "pass_absolute_worst_case_below_0.50",
+    "provider_call_meter_start": 0
+  },
+  "not_exercised": [
+    "deepseek-v4-flash",
+    "non-DeepSeek providers",
+    "provider-owned outer evaluator",
+    "live database migration",
+    "Gate C"
+  ]
+}
