@@ -37,11 +37,29 @@ AUTHORIZED_ENDPOINT = "https://api.deepseek.com/v1"
 AUTHORIZED_MODEL = "deepseek-v4-pro"
 FULL_AUTHORIZED_CASES = ("GB-G-01", "GB-I-01", "GB-H-01")
 REMAINING_AUTHORIZED_CASES = ("GB-I-01", "GB-H-01")
+H_ONLY_AUTHORIZED_CASES = ("GB-H-01",)
 PARENT_G_MANIFEST_SHA256 = "24fa028dfa2af38d94f264ce4f97845063fe99c48233ffdd084520e7ce438075"
 PARENT_G_EVAL_DB_SHA256 = "bb1965af04fac1e19d58aed088e4cfd15e5b2a5a34df30353e7cd63ee4745fdd"
+PARENT_IH_MANIFEST_SHA256 = "12ec0b704f5f935a2048f5cfd64c7391c52345611a428683725eb93dcd8dae87"
+PARENT_IH_EVAL_DB_SHA256 = "8271a5fdb074d02f45febf17cd409e019a598389463b6e3f174200caf0efbb7b"
 
 
-def _run_envelope(*, remaining_ih: bool) -> dict[str, Any]:
+def _run_envelope(
+    *, remaining_ih: bool = False, h_only: bool = False
+) -> dict[str, Any]:
+    if remaining_ih and h_only:
+        raise ResearchUnsafeState("remaining-I/H and H-only modes are mutually exclusive")
+    if h_only:
+        return {
+            "authorized_cases": H_ONLY_AUTHORIZED_CASES,
+            "max_logical_calls": 5,
+            "max_http_attempts": 10,
+            "max_input_tokens": 40_000,
+            "max_output_tokens": 8_896,
+            "max_wall_seconds": 12 * 60,
+            "reserve_stop_usd": Decimal("0.398358803"),
+            "absolute_max_cost_usd": Decimal("0.498358803"),
+        }
     if remaining_ih:
         return {
             "authorized_cases": REMAINING_AUTHORIZED_CASES,
@@ -269,14 +287,27 @@ def _prepare_hitl(
         "decision_id"
     ):
         raise ResearchUnsafeState("GB-H-01 HumanDecision was not exact-once")
+    raw_after = app.research.get_task(task_id)
+    child = raw_after["attempts"][-1]
+    if (
+        child["cause"] != "goal_revision"
+        or child["parent_attempt_id"] != current["attempt_id"]
+        or child["source_checkpoint_id"] != current["source_checkpoint_id"]
+        or child["status"] != "running"
+    ):
+        raise ResearchUnsafeState("GB-H-01 HumanDecision lineage mismatch")
     return {
         "pre_provider_boundary": pre,
         "input_request_id": current["input_request_id"],
         "input_attempt_id": current["attempt_id"],
-        "input_checkpoint_id": current["checkpoint_id"],
-        "input_control_generation": current["control_generation"],
+        "input_source_checkpoint_id": current["source_checkpoint_id"],
+        "input_control_generation": int(task["control_generation"]),
         "fixed_user_answer": fixed_answer,
         "decision": decision,
+        "decision_control_generation": int(decision["control_generation"]),
+        "child_attempt_id": child["attempt_id"],
+        "child_parent_attempt_id": child["parent_attempt_id"],
+        "child_source_checkpoint_id": child["source_checkpoint_id"],
         "decision_replay_deduplicated": True,
     }
 
@@ -286,6 +317,7 @@ def _validate_entry(
     root: Path,
     *,
     remaining_ih: bool,
+    h_only: bool,
     envelope: dict[str, Any],
 ) -> None:
     entry = manifest.get("entry_gate", {})
@@ -310,7 +342,7 @@ def _validate_entry(
     }
     if any(limits.get(key) != value for key, value in expected.items()):
         raise ResearchUnsafeState("post-fix run-wide manifest limits mismatch")
-    if remaining_ih:
+    if remaining_ih or h_only:
         parent = manifest.get("parent_g_evidence", {})
         if (
             parent.get("manifest_sha256") != PARENT_G_MANIFEST_SHA256
@@ -319,22 +351,34 @@ def _validate_entry(
             or parent.get("cost_usd") != "0.000976227"
         ):
             raise ResearchUnsafeState("frozen GB-G-01 parent evidence mismatch")
+    if h_only:
+        parent_ih = manifest.get("parent_ih_evidence", {})
+        if (
+            parent_ih.get("manifest_sha256") != PARENT_IH_MANIFEST_SHA256
+            or parent_ih.get("eval_db_sha256") != PARENT_IH_EVAL_DB_SHA256
+            or parent_ih.get("provider_calls") != 4
+            or parent_ih.get("cost_usd") != "0.000664970"
+            or parent_ih.get("H_provider_calls") != 0
+        ):
+            raise ResearchUnsafeState("frozen I/H recovery parent evidence mismatch")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--eval-root", type=Path, required=True)
     parser.add_argument("--remaining-ih", action="store_true")
+    parser.add_argument("--h-only", action="store_true")
     args = parser.parse_args()
     root = args.eval_root.expanduser().resolve()
     manifest_path = root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    envelope = _run_envelope(remaining_ih=args.remaining_ih)
+    envelope = _run_envelope(remaining_ih=args.remaining_ih, h_only=args.h_only)
     authorized_cases = envelope["authorized_cases"]
     _validate_entry(
         manifest,
         root,
         remaining_ih=args.remaining_ih,
+        h_only=args.h_only,
         envelope=envelope,
     )
 

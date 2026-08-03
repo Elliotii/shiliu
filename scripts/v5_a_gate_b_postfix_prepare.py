@@ -23,6 +23,8 @@ EXPECTED_ORIGINAL_MANIFEST_SHA = "705484087b1ee0cf577dbd7ee060a5ba923a489088b0c5
 EXPECTED_ORIGINAL_REPORT_SHA = "18105cd549b2f2428091d2726ccb72caf2d5b8e1cf611c91214a38a53d31e645"
 EXPECTED_PARENT_G_MANIFEST_SHA = "24fa028dfa2af38d94f264ce4f97845063fe99c48233ffdd084520e7ce438075"
 EXPECTED_PARENT_G_EVAL_DB_SHA = "bb1965af04fac1e19d58aed088e4cfd15e5b2a5a34df30353e7cd63ee4745fdd"
+EXPECTED_PARENT_IH_MANIFEST_SHA = "12ec0b704f5f935a2048f5cfd64c7391c52345611a428683725eb93dcd8dae87"
+EXPECTED_PARENT_IH_EVAL_DB_SHA = "8271a5fdb074d02f45febf17cd409e019a598389463b6e3f174200caf0efbb7b"
 FROZEN_BLOBS = {
     "src/shiliu/ask/query_analysis.py": "2eb00bf0553bf4f173b22101351788c96665b7f5",
     "src/shiliu/ask/deep/decision.py": "b93777b6dde1bf834604fe01a6fa0c2f08c5a240",
@@ -169,9 +171,13 @@ def main() -> int:
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--implementation-head", required=True)
     parser.add_argument("--remaining-ih", action="store_true")
+    parser.add_argument("--h-only", action="store_true")
     parser.add_argument("--parent-g-root", type=Path)
+    parser.add_argument("--parent-ih-root", type=Path)
     parser.add_argument("--joint-test-evidence", default="174 passed")
     args = parser.parse_args()
+    if args.remaining_ih and args.h_only:
+        raise RuntimeError("remaining-I/H and H-only modes are mutually exclusive")
     original = args.original_root.expanduser().resolve()
     root = args.new_root.expanduser().resolve()
     if root.exists():
@@ -188,7 +194,7 @@ def main() -> int:
     parent_g = (
         args.parent_g_root.expanduser().resolve() if args.parent_g_root else None
     )
-    if args.remaining_ih:
+    if args.remaining_ih or args.h_only:
         if parent_g is None:
             raise RuntimeError("remaining I/H recovery requires frozen GB-G-01 parent root")
         if _sha256(parent_g / "manifest.json") != EXPECTED_PARENT_G_MANIFEST_SHA:
@@ -199,6 +205,20 @@ def main() -> int:
             raise RuntimeError("frozen GB-G-01 parent manifest is writable")
         if (parent_g / "eval.db").stat().st_mode & WRITE_BITS:
             raise RuntimeError("frozen GB-G-01 parent eval DB is writable")
+    parent_ih = (
+        args.parent_ih_root.expanduser().resolve() if args.parent_ih_root else None
+    )
+    if args.h_only:
+        if parent_ih is None:
+            raise RuntimeError("H-only recovery requires frozen I/H parent root")
+        if _sha256(parent_ih / "manifest.json") != EXPECTED_PARENT_IH_MANIFEST_SHA:
+            raise RuntimeError("frozen I/H parent manifest hash mismatch")
+        if _sha256(parent_ih / "eval.db") != EXPECTED_PARENT_IH_EVAL_DB_SHA:
+            raise RuntimeError("frozen I/H parent eval DB hash mismatch")
+        if (parent_ih / "manifest.json").stat().st_mode & WRITE_BITS:
+            raise RuntimeError("frozen I/H parent manifest is writable")
+        if (parent_ih / "eval.db").stat().st_mode & WRITE_BITS:
+            raise RuntimeError("frozen I/H parent eval DB is writable")
     observed_blobs = {path: _git_blob(path) for path in FROZEN_BLOBS}
     if observed_blobs != FROZEN_BLOBS:
         raise RuntimeError("frozen Prompt/Tool/Schema blob mismatch")
@@ -272,19 +292,27 @@ def main() -> int:
             }
         )
     expected_cases = (
-        ["GB-I-01", "GB-H-01"]
+        ["GB-H-01"]
+        if args.h_only
+        else ["GB-I-01", "GB-H-01"]
         if args.remaining_ih
         else ["GB-G-01", "GB-I-01", "GB-H-01"]
     )
-    if args.remaining_ih:
+    if args.remaining_ih or args.h_only:
         cases = [case for case in cases if case["case_id"] in expected_cases]
     if [case["case_id"] for case in cases] != expected_cases:
         raise RuntimeError("exact authorized case set/order mismatch")
 
     checked_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    total_input_tokens = 80_000 if args.remaining_ih else 140_000
-    total_output_tokens = 17_792 if args.remaining_ih else 31_984
-    absolute_max_cost = Decimal("0.499023773") if args.remaining_ih else Decimal("0.50")
+    total_input_tokens = 40_000 if args.h_only else 80_000 if args.remaining_ih else 140_000
+    total_output_tokens = 8_896 if args.h_only else 17_792 if args.remaining_ih else 31_984
+    absolute_max_cost = (
+        Decimal("0.498358803")
+        if args.h_only
+        else Decimal("0.499023773")
+        if args.remaining_ih
+        else Decimal("0.50")
+    )
     worst = (
         Decimal(total_input_tokens) * Decimal("0.435")
         + Decimal(total_output_tokens) * Decimal("0.87")
@@ -294,7 +322,9 @@ def main() -> int:
     manifest = {
         "run_id": args.run_id,
         "run_type": (
-            "post_fix_remaining_ih_integration_validation"
+            "post_fix_h_only_recovery_validation"
+            if args.h_only
+            else "post_fix_remaining_ih_integration_validation"
             if args.remaining_ih
             else "post_fix_integration_validation"
         ),
@@ -317,15 +347,15 @@ def main() -> int:
             },
         },
         "hard_limits": {
-            "max_logical_calls_total": 10 if args.remaining_ih else 17,
-            "max_http_attempts_total": 20 if args.remaining_ih else 34,
+            "max_logical_calls_total": 5 if args.h_only else 10 if args.remaining_ih else 17,
+            "max_http_attempts_total": 10 if args.h_only else 20 if args.remaining_ih else 34,
             "max_input_tokens_total": total_input_tokens,
             "max_output_tokens_total": total_output_tokens,
-            "max_wall_time_seconds_total": 22 * 60 if args.remaining_ih else 34 * 60,
+            "max_wall_time_seconds_total": 12 * 60 if args.h_only else 22 * 60 if args.remaining_ih else 34 * 60,
             "nominal_cost_usd": "0.10",
-            "reserve_stop_usd": "0.399023773" if args.remaining_ih else "0.40",
+            "reserve_stop_usd": "0.398358803" if args.h_only else "0.399023773" if args.remaining_ih else "0.40",
             "absolute_max_cost_usd_total": str(absolute_max_cost),
-            "parent_consumed_cost_usd": "0.000976227" if args.remaining_ih else "0",
+            "parent_consumed_cost_usd": "0.001641197" if args.h_only else "0.000976227" if args.remaining_ih else "0",
             "combined_absolute_max_cost_usd": "0.50",
         },
         "price_table": {
@@ -371,7 +401,25 @@ def main() -> int:
                 "task_status": "waiting_user",
                 "rerun_forbidden": True,
             }
-            if args.remaining_ih
+            if args.remaining_ih or args.h_only
+            else None
+        ),
+        "parent_ih_evidence": (
+            {
+                "root": str(parent_ih),
+                "manifest_sha256": EXPECTED_PARENT_IH_MANIFEST_SHA,
+                "eval_db_sha256": EXPECTED_PARENT_IH_EVAL_DB_SHA,
+                "provider_calls": 4,
+                "http_attempts": 4,
+                "input_tokens": 3746,
+                "output_tokens": 478,
+                "cost_usd": "0.000664970",
+                "I_task_status": "waiting_user",
+                "H_provider_calls": 0,
+                "H_fixed_answer_exact_once": True,
+                "rerun_forbidden": True,
+            }
+            if args.h_only
             else None
         ),
         "cases": cases,

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import importlib.util
+import json
 from pathlib import Path
 from typing import Any
 
@@ -498,6 +499,66 @@ def test_provider_product_waiting_user_fixed_answer_continues_exact_once(
     assert len(control["human_decisions"]) == 1
     assert control["open_input_requests"] == []
     assert raw["task"]["status"] == "terminal"
+
+
+def test_postfix_prepare_hitl_continues_to_durable_projection_and_report_no_network(
+    app_paths, tmp_path: Path
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+    orchestrator, _receipt = _orchestrator(
+        core, inner, product, materializer, provider
+    )
+    task_id = _create(product, "runner-hitl-recovery", AMBIGUOUS_OBJECTIVE)
+    case = {
+        "case_id": "GB-H-01",
+        "objective": AMBIGUOUS_OBJECTIVE,
+        "success_constraints": [GROUNDED_CONSTRAINT],
+        "fixed_user_answer": "可靠性优先；未知副作用不得自动重放。",
+    }
+
+    hitl = RUNNER._prepare_hitl(
+        app=core, product=product, task_id=task_id, case=case
+    )
+    assert hitl["decision_replay_deduplicated"] is True
+    assert hitl["input_source_checkpoint_id"]
+    assert hitl["child_parent_attempt_id"] == hitl["input_attempt_id"]
+    assert (
+        hitl["child_source_checkpoint_id"]
+        == hitl["input_source_checkpoint_id"]
+    )
+    control_after_decision = core.research_control.get_status(task_id)
+    assert len(control_after_decision["human_decisions"]) == 1
+    assert control_after_decision["open_input_requests"] == []
+
+    result = orchestrator.run_to_boundary(
+        task_id, command_id="gate-b-product:runner-hitl-recovery:provider-once"
+    )
+    projection, raw = RUNNER._load_case_projection(
+        app=core, task_id=task_id, result=result, hitl=hitl
+    )
+    assert provider.calls
+    assert projection["task_status"] in {"terminal", "waiting_user"}
+    assert projection["provisional_artifact"] is not None
+    assert projection["outer_audit"] is not None
+    assert projection["checkpoint_count"] >= 2
+    assert projection["trace_count"] >= 2
+    assert projection["provider_receipts"]
+    assert all(
+        row["status"] == "succeeded" for row in projection["provider_receipts"]
+    )
+
+    report_root = tmp_path / "runner-hitl-report"
+    RUNNER._write_case_evidence(
+        root=report_root, case=case, projection=projection, raw=raw
+    )
+    stored = json.loads(
+        (report_root / "cases/GB-H-01/durable_product_projection.json").read_text()
+    )
+    assert stored["hitl"]["child_attempt_id"] == hitl["child_attempt_id"]
+    assert stored["open_input_requests"] == projection["open_input_requests"]
+    assert (report_root / "cases/GB-H-01/research_task_trace.json").is_file()
+    assert (report_root / "cases/GB-H-01/usage_cost.jsonl").read_text().strip()
 
 
 def test_provider_product_unknown_dispatch_blocks_and_never_replays_transport(
