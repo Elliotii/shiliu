@@ -18,7 +18,10 @@ from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.config import AppPaths, load_api_key, load_config
 from shiliu.llm import OpenAICompatibleProvider
-from shiliu.research.control_contracts import HumanDecisionRequest
+from shiliu.research.control_contracts import (
+    ControlCommandRequest,
+    HumanDecisionRequest,
+)
 from shiliu.research.errors import ResearchUnsafeState
 from shiliu.research.inner_service import InnerResearchService
 from shiliu.research.product_contracts import RunProductResearchRequest
@@ -413,13 +416,51 @@ def _settle_running_product_boundary(
     for ordinal in range(2):
         if result.get("task_status") != "running":
             return result
-        result = product.run_to_boundary(
-            task_id,
-            RunProductResearchRequest(
-                command_id=f"{command_id}:deterministic-close:{ordinal + 1}",
-                max_steps=24,
-            ),
-        )
+        try:
+            result = product.run_to_boundary(
+                task_id,
+                RunProductResearchRequest(
+                    command_id=f"{command_id}:deterministic-close:{ordinal + 1}",
+                    max_steps=24,
+                ),
+            )
+        except ResearchUnsafeState as exc:
+            if "inner run 已停止" not in str(exc):
+                raise
+            raw = product.kernel.get_task(task_id)
+            task = raw["task"]
+            active_attempt = next(
+                value
+                for value in reversed(raw["attempts"])
+                if value["status"] != "terminal"
+            )
+            checkpoint = next(
+                value
+                for value in reversed(raw["checkpoints"])
+                if value["attempt_id"] == active_attempt["attempt_id"]
+            )
+            interrupted = product.control.apply_control(
+                task_id,
+                ControlCommandRequest(
+                    command_id=f"{command_id}:stopped-lineage-interrupt",
+                    kind="interrupt",
+                    expected_state_version=int(task["state_version"]),
+                    expected_checkpoint_id=str(checkpoint["checkpoint_id"]),
+                    expected_control_generation=int(task["control_generation"]),
+                    reason=(
+                        "evaluation recovery preserved a stopped inner lineage; "
+                        "no Provider replay"
+                    ),
+                    audit_actor_metadata={"source": "gate_b_completion_recovery"},
+                ),
+                principal_id=product.principal_id,
+            )
+            return {
+                "task_id": task_id,
+                "boundary": "interrupted_stopped_lineage",
+                "task_status": "blocked",
+                "control": interrupted,
+            }
     if result.get("task_status") == "running":
         raise ResearchUnsafeState(
             "durable continuation remained running after bounded deterministic close"

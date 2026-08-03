@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -899,12 +900,32 @@ def test_completion_recovery_closes_durable_running_boundary_without_replay(
     assert first["task_status"] == "running"
     calls = list(provider.calls)
     budget = receipt.run_budget_snapshot(policy)
-    before_epoch = int(core.research.get_task(task_ids[0])["task"]["owner_epoch"])
+    before_raw = core.research.get_task(task_ids[0])
+    before_epoch = int(before_raw["task"]["owner_epoch"])
+    active_attempt_id = before_raw["attempts"][-1]["attempt_id"]
+    active_checkpoint = next(
+        value
+        for value in reversed(before_raw["checkpoints"])
+        if value["attempt_id"] == active_attempt_id
+    )
+    stopped_state = {**active_checkpoint["state_payload"], "phase": "stopped"}
+    stopped_json = json.dumps(
+        stopped_state, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
     with core.research._transaction() as connection:
         connection.execute(
             "UPDATE research_tasks SET owner_id='expired-parent-worker', "
             "lease_until='2000-01-01T00:00:00+00:00' WHERE task_id=?",
             (task_ids[0],),
+        )
+        connection.execute(
+            "UPDATE research_checkpoints SET state_payload_json=?, state_hash=? "
+            "WHERE checkpoint_id=?",
+            (
+                stopped_json,
+                hashlib.sha256(stopped_json.encode("utf-8")).hexdigest(),
+                active_checkpoint["checkpoint_id"],
+            ),
         )
     recovery_product = ResearchProductService(
         db=core.db,
@@ -922,10 +943,11 @@ def test_completion_recovery_closes_durable_running_boundary_without_replay(
         current_result=first,
     )
 
-    assert settled["task_status"] != "running"
+    assert settled["task_status"] == "blocked"
+    assert settled["boundary"] == "interrupted_stopped_lineage"
     assert provider.calls == calls
     assert receipt.run_budget_snapshot(policy) == budget
     raw = core.research.get_task(task_ids[0])
-    assert int(raw["task"]["owner_epoch"]) == before_epoch + 1
-    assert raw["task"]["status"] in {"waiting_user", "blocked", "terminal"}
+    assert int(raw["task"]["owner_epoch"]) == before_epoch + 2
+    assert raw["task"]["status"] == "blocked"
     assert all(value["status"] == "succeeded" for value in raw["side_effects"])
