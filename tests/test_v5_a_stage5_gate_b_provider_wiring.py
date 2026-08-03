@@ -22,6 +22,7 @@ from shiliu.research.errors import ResearchConflict, SimulatedCrash
 from shiliu.research.provider_wiring import (
     PROVIDER_ACTION_SCHEMA_VERSION,
     ProviderBudgetExceeded,
+    ProviderCallFailed,
     ProviderCallContext,
     ProviderDispatchUnknown,
     ProviderPricePolicy,
@@ -42,9 +43,31 @@ class _Reply:
 
 
 class _NoNetworkProvider:
-    def __init__(self, *, fail: Exception | None = None) -> None:
+    name = "openai-compatible"
+
+    def __init__(
+        self,
+        *,
+        fail: Exception | None = None,
+        base_url: str = "https://api.deepseek.com/v1",
+        model: str = "deepseek-v4-pro",
+        thinking_enabled: bool = False,
+        reasoning_effort: str | None = None,
+        lock_role_identity: bool = False,
+    ) -> None:
         self.fail = fail
+        self.base_url = base_url
+        self.model = model
+        self.thinking_enabled = thinking_enabled
+        self.reasoning_effort = reasoning_effort
+        self.lock_role_identity = lock_role_identity
         self.calls: list[dict[str, object]] = []
+
+    def for_role(self, role: str):
+        if not self.lock_role_identity:
+            self.thinking_enabled = role == "grounded_answer"
+            self.reasoning_effort = "high" if self.thinking_enabled else None
+        return self
 
     def generate_structured(self, **kwargs):
         self.calls.append(dict(kwargs))
@@ -101,6 +124,13 @@ class _KnownInvalidThenValidProvider(_NoNetworkProvider):
             }
             raise error
         return super().generate_structured(**kwargs)
+
+
+class _MissingResponseIdProvider(_NoNetworkProvider):
+    def generate_structured(self, **kwargs):
+        reply = super().generate_structured(**kwargs)
+        reply.response_id = ""
+        return reply
 
 
 class _MutableClock:
@@ -204,7 +234,7 @@ def test_default_wiring_authority_is_disabled_without_any_factory_access(
     with pytest.raises(ResearchConflict, match="explicit run authorization"):
         _direct_query(
             disabled.factory(
-                context=context, provider_factory=lambda _role: provider
+                context=context, provider_factory=lambda role: provider.for_role(role)
             )
         )
     assert provider.calls == []
@@ -222,7 +252,7 @@ def test_frozen_structured_roles_are_receipted_and_exact_replay_is_free(
         db=db, kernel=kernel, provider_dispatch_authorized=True
     )
     bound_factory = wiring.factory(
-        context=context, provider_factory=lambda _role: provider
+        context=context, provider_factory=lambda role: provider.for_role(role)
     )
 
     plan = QueryAnalyzer(bound_factory).analyze("MCP durable research")
@@ -278,6 +308,12 @@ def test_frozen_structured_roles_are_receipted_and_exact_replay_is_free(
     assert len(effects) == len(actions) == 3
     assert all(str(effect["status"]) == "succeeded" for effect in effects)
     assert all(effect["receipt_hash"] and effect["result_reference"] for effect in effects)
+    for effect in effects:
+        descriptor = json.loads(str(effect["request_json"]))
+        assert descriptor["provider_identity"]["base_url"] == (
+            "https://api.deepseek.com/v1"
+        )
+        assert descriptor["provider_identity"]["model"] == "deepseek-v4-pro"
     assert sum(row["event_type"] == "provider_call_receipted" for row in events) == 3
     for row in events:
         if row["event_type"] != "provider_call_receipted":
@@ -285,6 +321,16 @@ def test_frozen_structured_roles_are_receipted_and_exact_replay_is_free(
         binding = json.loads(str(row["payload_json"]))
         assert binding["provider"] == "deepseek_openai_compatible"
         assert binding["model"] == "deepseek-v4-pro"
+        assert binding["provider_identity"] == {
+            "provider_protocol": "openai-compatible",
+            "base_url": "https://api.deepseek.com/v1",
+            "model": "deepseek-v4-pro",
+            "role": binding["role"],
+            "thinking_enabled": binding["role"] == "grounded_answer",
+            "reasoning_effort": (
+                "high" if binding["role"] == "grounded_answer" else None
+            ),
+        }
         assert binding["structured_request_hash"]
         assert binding["usage"]
         assert binding["cost_usd"]
@@ -302,7 +348,7 @@ def test_frozen_structured_roles_are_receipted_and_exact_replay_is_free(
         db=db, kernel=kernel, provider_dispatch_authorized=True
     ).factory(
         context=restarted_context,
-        provider_factory=lambda _role: replay_provider,
+        provider_factory=lambda role: replay_provider.for_role(role),
     )
     replay = QueryAnalyzer(replay_factory).analyze("MCP durable research")
     assert replay.analysis.entities == ["MCP"]
@@ -321,7 +367,9 @@ def test_restart_preserves_budget_and_reservation_rejects_before_factory(
         db=db, kernel=kernel, provider_dispatch_authorized=True
     )
     response = _direct_query(
-        wiring.factory(context=context, provider_factory=lambda _role: provider)
+        wiring.factory(
+            context=context, provider_factory=lambda role: provider.for_role(role)
+        )
     )
     assert response.receipt_binding["cost_usd"]
     before = wiring.budget_snapshot(context.task_id)
@@ -347,7 +395,7 @@ def test_restart_preserves_budget_and_reservation_rejects_before_factory(
     )
     blocked_factory = restarted.factory(
         context=blocked_context,
-        provider_factory=lambda _role: blocked_provider,
+        provider_factory=lambda role: blocked_provider.for_role(role),
     )
     with pytest.raises(ProviderBudgetExceeded):
         _direct_query(blocked_factory)
@@ -355,7 +403,7 @@ def test_restart_preserves_budget_and_reservation_rejects_before_factory(
         _direct_query(
             restarted.factory(
                 context=blocked_context,
-                provider_factory=lambda _role: blocked_provider,
+                provider_factory=lambda role: blocked_provider.for_role(role),
             )
         )
     assert blocked_provider.calls == []
@@ -379,7 +427,7 @@ def test_default_absolute_fifty_cent_cap_blocks_before_factory(app_paths) -> Non
     with pytest.raises(ProviderBudgetExceeded, match="0.50"):
         _direct_query(
             wiring.factory(
-                context=context, provider_factory=lambda _role: provider
+                context=context, provider_factory=lambda role: provider.for_role(role)
             ),
             "x" * 300_000,
         )
@@ -401,7 +449,7 @@ def test_known_invalid_output_is_receipted_once_then_uses_bounded_repair(
     )
     answer = GroundedAnswerService(
         wiring.factory(
-            context=context, provider_factory=lambda _role: provider
+            context=context, provider_factory=lambda role: provider.for_role(role)
         ),
         TranscriptEvidenceMaterializer(db),
     ).answer(
@@ -432,7 +480,7 @@ def test_unknown_dispatch_is_durable_and_never_auto_replays(app_paths) -> None:
         db=db, kernel=kernel, provider_dispatch_authorized=True
     )
     factory = wiring.factory(
-        context=context, provider_factory=lambda _role: failing
+        context=context, provider_factory=lambda role: failing.for_role(role)
     )
     with pytest.raises(ProviderDispatchUnknown):
         _direct_query(factory)
@@ -451,7 +499,7 @@ def test_unknown_dispatch_is_durable_and_never_auto_replays(app_paths) -> None:
         _direct_query(
             wiring.factory(
                 context=replay_context,
-                provider_factory=lambda _role: replay_provider,
+                provider_factory=lambda role: replay_provider.for_role(role),
             )
         )
     with pytest.raises(ProviderDispatchUnknown):
@@ -460,7 +508,7 @@ def test_unknown_dispatch_is_durable_and_never_auto_replays(app_paths) -> None:
                 context=replace(
                     replay_context, operation_key="different-provider-operation"
                 ),
-                provider_factory=lambda _role: replay_provider,
+                provider_factory=lambda role: replay_provider.for_role(role),
             )
         )
     assert replay_provider.calls == []
@@ -487,7 +535,10 @@ def test_crash_rolls_back_receipt_and_blocks_replay(
     )
     with pytest.raises(SimulatedCrash):
         _direct_query(
-            wiring.factory(context=context, provider_factory=lambda _role: provider)
+            wiring.factory(
+                context=context,
+                provider_factory=lambda role: provider.for_role(role),
+            )
         )
     assert len(provider.calls) == 1
     task = kernel.get_task(context.task_id)
@@ -507,7 +558,7 @@ def test_crash_rolls_back_receipt_and_blocks_replay(
                     context,
                     expected_state_version=int(task["task"]["state_version"]),
                 ),
-                provider_factory=lambda _role: replay_provider,
+                provider_factory=lambda role: replay_provider.for_role(role),
             )
         )
     assert replay_provider.calls == []
@@ -543,7 +594,10 @@ def test_public_interrupt_fences_post_dispatch_commit(app_paths) -> None:
     )
     with pytest.raises(ResearchConflict):
         _direct_query(
-            wiring.factory(context=context, provider_factory=lambda _role: provider)
+            wiring.factory(
+                context=context,
+                provider_factory=lambda role: provider.for_role(role),
+            )
         )
     task = kernel.get_task(context.task_id)
     assert len(provider.calls) == 1
@@ -563,7 +617,7 @@ def test_same_operation_payload_mismatch_fails_before_second_call(app_paths) -> 
         db=db, kernel=kernel, provider_dispatch_authorized=True
     )
     first_factory = wiring.factory(
-        context=context, provider_factory=lambda _role: provider
+        context=context, provider_factory=lambda role: provider.for_role(role)
     )
     _direct_query(first_factory, "MCP")
     assert len(provider.calls) == 1
@@ -578,8 +632,113 @@ def test_same_operation_payload_mismatch_fails_before_second_call(app_paths) -> 
         _direct_query(
             wiring.factory(
                 context=mismatch_context,
-                provider_factory=lambda _role: provider,
+                provider_factory=lambda role: provider.for_role(role),
             ),
             "different payload",
         )
     assert len(provider.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "overrides, mismatch_field",
+    [
+        ({"model": "deepseek-unapproved"}, "model"),
+        ({"base_url": "https://unapproved.example/v1"}, "base_url"),
+        (
+            {
+                "thinking_enabled": True,
+                "reasoning_effort": "high",
+            },
+            "thinking_enabled",
+        ),
+    ],
+)
+def test_actual_provider_identity_mismatch_is_rejected_before_transport(
+    app_paths, overrides: dict[str, object], mismatch_field: str
+) -> None:
+    db, kernel, _clock, context = _started(
+        app_paths, task_id=f"rtask_identity_{mismatch_field}"
+    )
+    provider = _NoNetworkProvider(lock_role_identity=True, **overrides)
+    wiring = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    with pytest.raises(ProviderCallFailed, match="runtime identity"):
+        _direct_query(
+            wiring.factory(
+                context=context,
+                provider_factory=lambda _role: provider,
+            )
+        )
+    assert provider.calls == []
+    task = kernel.get_task(context.task_id)
+    assert task["side_effects"][0]["status"] == "failed"
+    assert task["side_effects"][0]["receipt_hash"] is None
+    assert task["inner_actions"][0]["status"] == "rejected"
+    assert task["inner_actions"][0]["error_code"] == "provider_identity_mismatch"
+    rejected = [
+        event for event in task["events"]
+        if event["event_type"] == "provider_identity_rejected"
+    ]
+    assert len(rejected) == 1
+    payload = rejected[0]["payload"]
+    assert mismatch_field in payload["identity_mismatches"]
+    assert payload["transport_calls"] == 0
+
+    replay_provider = _NoNetworkProvider()
+    replay_context = replace(
+        context,
+        expected_state_version=int(task["task"]["state_version"]),
+    )
+    with pytest.raises(ProviderCallFailed, match="identity mismatch"):
+        _direct_query(
+            wiring.factory(
+                context=replay_context,
+                provider_factory=lambda role: replay_provider.for_role(role),
+            )
+        )
+    assert replay_provider.calls == []
+
+
+def test_missing_provider_operation_id_is_unknown_and_never_replayed(
+    app_paths,
+) -> None:
+    db, kernel, _clock, context = _started(
+        app_paths, task_id="rtask_missing_operation_id"
+    )
+    provider = _MissingResponseIdProvider()
+    wiring = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    with pytest.raises(ProviderDispatchUnknown, match="identity is missing"):
+        _direct_query(
+            wiring.factory(
+                context=context,
+                provider_factory=lambda role: provider.for_role(role),
+            )
+        )
+    assert len(provider.calls) == 1
+    task = kernel.get_task(context.task_id)
+    assert task["task"]["status"] == "blocked"
+    assert task["side_effects"][0]["status"] == "unknown"
+    assert task["side_effects"][0]["provider_operation_id"] is None
+    assert task["side_effects"][0]["receipt_hash"] is None
+    assert task["inner_actions"][0]["status"] == "unknown"
+    assert not any(
+        receipt["command_type"] == "provider_call_receipted"
+        for receipt in task["command_receipts"]
+    )
+
+    replay_provider = _NoNetworkProvider()
+    replay_context = replace(
+        context,
+        expected_state_version=int(task["task"]["state_version"]),
+    )
+    with pytest.raises(ProviderDispatchUnknown):
+        _direct_query(
+            wiring.factory(
+                context=replay_context,
+                provider_factory=lambda role: replay_provider.for_role(role),
+            )
+        )
+    assert replay_provider.calls == []

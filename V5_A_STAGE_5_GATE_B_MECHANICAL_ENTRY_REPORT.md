@@ -164,3 +164,35 @@ live_database_migration_performed: false
 gate_C_authorized: false
 next_action: V5_main_session_gate_B_mechanical_entry_review
 ```
+
+## 8. Main review bounded rework Round 1
+
+V5 主 Session 对 HEAD `fbfda06` 的有限复核要求补齐 actual Provider identity 与
+operation ID binding。本轮只修改 wiring、no-network tests 与这份精简证据：
+
+- descriptor、canonical request hash 与成功/失败 receipt 现在绑定授权 endpoint、实际
+  model、role、thinking mode 和 reasoning effort；只有 factory 返回对象的 runtime identity
+  与固定策略逐字段、逐类型一致时，才允许调用 `generate_structured()`；
+- 错误 model、endpoint 或 role thinking 配置会在 transport call=0 时提交 fenced
+  `provider_identity_rejected` Event、rejected Action、failed SideEffect 和 terminal
+  CommandReceipt。Exact replay 复用该失败 receipt，不重新访问 transport；
+- Provider 返回有效 output/usage 但缺少真实 response/operation ID 时，不再以本地 hash
+  伪造 ID，而是提交 `unknown + blocked` 与 terminal unknown receipt；replay 禁止第二次
+  transport；
+- Gate A 五个冻结 blob 未修改。
+
+```yaml
+bounded_rework_round_1_local_status: pass
+gate_B_provider_wiring_targeted: 14_passed
+stage_1_to_5_joint_targeted: 160_passed
+warnings:
+  - existing Starlette/httpx deprecation warning only
+provider_calls_performed: 0
+credentials_accessed: false
+live_database_accessed: false
+next_action: create_formal_eval_snapshot_and_run_full_entry_gate
+```
+
+用户已书面允许在这次返工全部通过后，继续 accepted plan 内的 formal Gate B；该连续授权
+不构成 Gate B 结果接受。任何 Entry Gate、snapshot、价格、credential、endpoint/model、
+unknown dispatch 或基础设施异常仍要求立即停止。

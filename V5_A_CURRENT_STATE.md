@@ -768,6 +768,20 @@ warning。五个 Gate A frozen blob hash 全部不变。
 runtime manifest、credentials 与真实 Provider run 仍未授权、未执行，因此完整付费 Entry
 Gate 仍关闭，本 Session 不自我接受 Gate B。
 
+## 8.20 Gate B mechanical bounded rework Round 1
+
+V5 主 Session 对 HEAD `fbfda06` 的机械复核发现两项 receipt binding 缺口。本轮已使
+runtime Provider endpoint/model/role thinking identity 在任何 transport 前与授权策略严格
+比对，并把验证后的 identity 纳入 canonical request descriptor/hash 和 receipt binding。
+Identity mismatch 在 transport=0 时持久拒绝；缺少真实 response/operation ID 的响应形成
+`unknown + blocked`，不再派生本地伪 ID，exact replay 不重复 transport。
+
+新增 model、endpoint、thinking 配置与 missing operation ID 对抗测试。Gate B wiring
+定向 14 项、Stage 1–5 联合定向 160 项通过，仅有既有 Starlette/httpx warning；五个 Gate A
+冻结 blob hash 不变。本轮仍未读取 credentials、未访问 Keychain、未调用 Provider、未读取
+或迁移 live DB。用户已书面授权在独立返工 commit 和完整 Entry Gate 均通过后连续执行
+formal Gate B；Gate C 仍不属于 V5-A Session。
+
 ## 9. 当前未证明项
 
 - Stage 1 机械安全内核已由 V5 主 Session 正式接受；接受记录见
@@ -797,10 +811,11 @@ Gate 仍关闭，本 Session 不自我接受 Gate B。
 
 ## 10. 下一动作
 
-Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。Gate B 最小 receipt-bound
-wiring 与 no-network mechanical tests 已完成并提交有限复核；真实 Provider、Keychain、
-formal eval root、Gate C、mainline integration 与 live schema 10 migration 均未获授权、
-未执行。下一动作是 V5 主 Session 轻量复核机械 Entry evidence，而不是开始 Provider 运行。
+Stage 4、Gate A 与 Gate B plan 已由 V5 主 Session 正式接受。Gate B receipt binding 的
+bounded rework 已在无网络定向与 Stage 1–5 联合测试中通过。下一动作是在稳定窗口形成
+formal eval snapshot、冻结 manifest/price table 并执行完整 Entry Gate；只有全部通过后才可
+按 exact cases 读取既有 LLM Keychain reference 并运行一次 formal Gate B。Gate C、主线
+integration 与 live schema 10 migration 仍禁止 V5-A 执行。
 
 ```yaml
 charter_status: accepted
@@ -861,7 +876,10 @@ stage_5_gate_B_mechanical_wiring_status: submitted_for_main_review
 stage_5_gate_B_provider_wiring_commit: a25d007
 stage_5_gate_B_cost_cap_test_commit: 7241c3b
 stage_5_gate_B_mechanical_report: V5_A_STAGE_5_GATE_B_MECHANICAL_ENTRY_REPORT.md
-stage_5_provider_quality_gate_authorized: false
+stage_5_gate_B_mechanical_review: rework_bounded_round_1
+stage_5_gate_B_bounded_rework_round_1_local_status: pass
+stage_5_gate_B_formal_run_authorized_after_entry_gate: true
+stage_5_provider_quality_gate_authorized: conditional_after_entry_gate
 stage_5_mainline_integration_authorized: false
 stage_5_live_schema_10_migration_authorized: false
 product_implementation_started: true
@@ -873,5 +891,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_B_mechanical_entry_review
+next_action: create_formal_eval_snapshot_and_run_full_entry_gate
 ```

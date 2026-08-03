@@ -65,6 +65,8 @@ def _decimal_text(value: Decimal) -> str:
 @dataclass(frozen=True)
 class ProviderPricePolicy:
     provider: str = "deepseek_openai_compatible"
+    provider_protocol: str = "openai-compatible"
+    base_url: str = "https://api.deepseek.com/v1"
     model: str = "deepseek-v4-pro"
     input_cache_hit_per_million: Decimal = Decimal("0.003625")
     input_cache_miss_per_million: Decimal = Decimal("0.435")
@@ -73,6 +75,19 @@ class ProviderPricePolicy:
     reservation_transport_attempts: int = 2
     absolute_max_cost_usd: Decimal = Decimal("0.50")
     input_overhead_token_upper_bound: int = 256
+
+    def expected_identity(self, role: str) -> dict[str, object]:
+        if role not in SUPPORTED_ROLES:
+            raise ResearchValidationError(f"unsupported provider role: {role}")
+        grounded = role == "grounded_answer"
+        return {
+            "provider_protocol": self.provider_protocol,
+            "base_url": self.base_url.rstrip("/"),
+            "model": self.model,
+            "role": role,
+            "thinking_enabled": grounded,
+            "reasoning_effort": "high" if grounded else None,
+        }
 
     def reservation(
         self,
@@ -112,6 +127,8 @@ class ProviderPricePolicy:
     def manifest(self) -> dict[str, object]:
         return {
             "provider": self.provider,
+            "provider_protocol": self.provider_protocol,
+            "base_url": self.base_url,
             "model": self.model,
             "unit": "usd_per_1m_tokens",
             "input_cache_hit": str(self.input_cache_hit_per_million),
@@ -320,8 +337,7 @@ class ReceiptBoundProviderService:
         schema_json = response_schema.model_json_schema()
         structured_request = {
             "provider": self.price_policy.provider,
-            "model": self.price_policy.model,
-            "role": role,
+            "provider_identity": self.price_policy.expected_identity(role),
             "messages": messages,
             "response_schema": schema_json,
             "max_tokens": requested_max,
@@ -340,6 +356,7 @@ class ReceiptBoundProviderService:
             "provider": self.price_policy.provider,
             "model": self.price_policy.model,
             "role": role,
+            "provider_identity": self.price_policy.expected_identity(role),
             "operation_key": operation_key,
             "structured_request_hash": structured_request_hash,
             "response_schema_hash": _hash(schema_json),
@@ -377,6 +394,43 @@ class ReceiptBoundProviderService:
         self.fault_injector("before_provider_factory")
         try:
             provider = provider_factory(role)
+        except SimulatedCrash:
+            raise
+        except Exception as exc:
+            state_version = self._mark_unknown(
+                context=context,
+                operation_key=operation_key,
+                side_effect_id=side_effect_id,
+                descriptor=descriptor,
+                descriptor_hash=descriptor_hash,
+                terminal_command_id=terminal_command_id,
+                reason=f"{type(exc).__name__}: {exc}"[:500],
+            )
+            context.expected_state_version = state_version
+            raise ProviderDispatchUnknown(
+                "Provider factory outcome is unknown; automatic replay is forbidden"
+            ) from exc
+        actual_identity = self._actual_provider_identity(provider, role)
+        identity_mismatches = self._identity_mismatches(
+            expected=descriptor["provider_identity"],
+            actual=actual_identity,
+        )
+        if identity_mismatches:
+            state_version = self._reject_identity(
+                context=context,
+                operation_key=operation_key,
+                side_effect_id=side_effect_id,
+                descriptor=descriptor,
+                descriptor_hash=descriptor_hash,
+                terminal_command_id=terminal_command_id,
+                actual_identity=actual_identity,
+                mismatches=identity_mismatches,
+            )
+            context.expected_state_version = state_version
+            raise ProviderCallFailed(
+                "Provider runtime identity does not match the authorized identity"
+            )
+        try:
             raw = provider.generate_structured(  # type: ignore[attr-defined]
                 role=role,
                 messages=messages,
@@ -390,6 +444,20 @@ class ReceiptBoundProviderService:
         except Exception as exc:
             known_failure = self._known_failure_response(exc)
             if known_failure is not None:
+                if not self._has_operation_id(known_failure.response_id):
+                    state_version = self._mark_unknown(
+                        context=context,
+                        operation_key=operation_key,
+                        side_effect_id=side_effect_id,
+                        descriptor=descriptor,
+                        descriptor_hash=descriptor_hash,
+                        terminal_command_id=terminal_command_id,
+                        reason="Provider result has no response/operation ID",
+                    )
+                    context.expected_state_version = state_version
+                    raise ProviderDispatchUnknown(
+                        "Provider operation identity is missing; replay is forbidden"
+                    ) from exc
                 state_version = self._finish_failed(
                     context=context,
                     operation_key=operation_key,
@@ -444,6 +512,20 @@ class ReceiptBoundProviderService:
                 raise ProviderDispatchUnknown(
                     "Provider usage cannot be receipted; replay is forbidden"
                 ) from exc
+            if not self._has_operation_id(getattr(raw, "response_id", None)):
+                state_version = self._mark_unknown(
+                    context=context,
+                    operation_key=operation_key,
+                    side_effect_id=side_effect_id,
+                    descriptor=descriptor,
+                    descriptor_hash=descriptor_hash,
+                    terminal_command_id=terminal_command_id,
+                    reason="Provider result has no response/operation ID",
+                )
+                context.expected_state_version = state_version
+                raise ProviderDispatchUnknown(
+                    "Provider operation identity is missing; replay is forbidden"
+                ) from exc
             state_version = self._finish_failed(
                 context=context,
                 operation_key=operation_key,
@@ -476,6 +558,20 @@ class ReceiptBoundProviderService:
             raise ProviderDispatchUnknown(
                 "Provider usage cannot be receipted; replay is forbidden"
             ) from exc
+        if not self._has_operation_id(getattr(raw, "response_id", None)):
+            state_version = self._mark_unknown(
+                context=context,
+                operation_key=operation_key,
+                side_effect_id=side_effect_id,
+                descriptor=descriptor,
+                descriptor_hash=descriptor_hash,
+                terminal_command_id=terminal_command_id,
+                reason="Provider result has no response/operation ID",
+            )
+            context.expected_state_version = state_version
+            raise ProviderDispatchUnknown(
+                "Provider operation identity is missing; replay is forbidden"
+            )
         response = self._finish_succeeded(
             context=context,
             operation_key=operation_key,
@@ -785,6 +881,7 @@ class ReceiptBoundProviderService:
             "provider": descriptor["provider"],
             "model": descriptor["model"],
             "role": descriptor["role"],
+            "provider_identity": descriptor["provider_identity"],
             "structured_request_hash": descriptor["structured_request_hash"],
             "response_schema_hash": descriptor["response_schema_hash"],
             "usage": usage,
@@ -914,6 +1011,7 @@ class ReceiptBoundProviderService:
             "provider": descriptor["provider"],
             "model": descriptor["model"],
             "role": descriptor["role"],
+            "provider_identity": descriptor["provider_identity"],
             "structured_request_hash": descriptor["structured_request_hash"],
             "response_schema_hash": descriptor["response_schema_hash"],
             "usage": usage,
@@ -1000,6 +1098,101 @@ class ReceiptBoundProviderService:
             )
         return next_version
 
+    def _reject_identity(
+        self,
+        *,
+        context: ProviderCallContext,
+        operation_key: str,
+        side_effect_id: str,
+        descriptor: dict[str, Any],
+        descriptor_hash: str,
+        terminal_command_id: str,
+        actual_identity: dict[str, object],
+        mismatches: list[str],
+    ) -> int:
+        """Durably reject a known pre-dispatch identity mismatch.
+
+        The SideEffect is already in_flight so that every authorized dispatch has
+        an exact durable operation identity. No transport has started at this
+        point, therefore a known failed disposition is safer than `unknown`.
+        """
+
+        now_value = self.kernel._now()
+        now = _iso(now_value)
+        reason = "Provider runtime identity mismatch: " + ", ".join(mismatches)
+        with self.kernel._transaction() as connection:
+            task, attempt = self._guard(
+                connection, context=context, expected_state=True, now=now_value
+            )
+            effect = self.kernel._side_effect(connection, side_effect_id)
+            self._assert_in_flight(effect, context, descriptor_hash)
+            self._insert_action(
+                connection,
+                action_id=_id("inner_action", f"{context.task_id}:{operation_key}"),
+                action_kind=SUPPORTED_ROLES[str(descriptor["role"])][0],
+                operation_key=operation_key,
+                context=context,
+                attempt=attempt,
+                side_effect_id=side_effect_id,
+                descriptor=descriptor,
+                status="rejected",
+                observation={
+                    "expected_provider_identity": descriptor["provider_identity"],
+                    "actual_provider_identity": actual_identity,
+                    "identity_mismatches": mismatches,
+                    "transport_calls": 0,
+                },
+                now=now,
+                error_code="provider_identity_mismatch",
+                error_detail=reason,
+            )
+            connection.execute(
+                "UPDATE research_side_effects SET status='failed', updated_at=? "
+                "WHERE side_effect_id=?",
+                (now, side_effect_id),
+            )
+            connection.execute(
+                "UPDATE research_tasks SET state_version=state_version+1, "
+                "updated_at=? WHERE task_id=?",
+                (now, context.task_id),
+            )
+            next_version = int(task["state_version"]) + 1
+            response = {
+                "status": "failed",
+                "error": reason,
+                "actual_provider_identity": actual_identity,
+                "state_version": next_version,
+            }
+            self.kernel._event(
+                connection,
+                task_id=context.task_id,
+                goal_id=str(attempt["goal_id"]),
+                attempt_id=context.attempt_id,
+                event_type="provider_identity_rejected",
+                payload={
+                    "side_effect_id": side_effect_id,
+                    "expected_provider_identity": descriptor["provider_identity"],
+                    "actual_provider_identity": actual_identity,
+                    "identity_mismatches": mismatches,
+                    "transport_calls": 0,
+                },
+                command_id=terminal_command_id,
+                owner_epoch=context.owner_epoch,
+                now=now,
+            )
+            self.kernel._insert_receipt(
+                connection,
+                task_id=context.task_id,
+                command_id=terminal_command_id,
+                command_type="provider_identity_rejected",
+                payload_hash=descriptor_hash,
+                outcome_reference=side_effect_id,
+                response=response,
+                owner_epoch=context.owner_epoch,
+                now=now,
+            )
+        return next_version
+
     def _mark_unknown(
         self,
         *,
@@ -1034,6 +1227,7 @@ class ReceiptBoundProviderService:
                         "provider": descriptor["provider"],
                         "model": descriptor["model"],
                         "role": descriptor["role"],
+                        "provider_identity": descriptor["provider_identity"],
                         "structured_request_hash": descriptor[
                             "structured_request_hash"
                         ],
@@ -1279,14 +1473,58 @@ class ReceiptBoundProviderService:
         }
 
     @staticmethod
+    def _actual_provider_identity(provider: object, role: str) -> dict[str, object]:
+        base_url = getattr(provider, "base_url", None)
+        effort = getattr(provider, "reasoning_effort", None)
+        return {
+            "provider_protocol": getattr(provider, "name", None),
+            "base_url": (
+                str(base_url).rstrip("/") if isinstance(base_url, str) else None
+            ),
+            "model": getattr(provider, "model", None),
+            "role": role,
+            "thinking_enabled": getattr(provider, "thinking_enabled", None),
+            "reasoning_effort": None if effort in (None, "") else str(effort),
+        }
+
+    @staticmethod
+    def _has_operation_id(value: object) -> bool:
+        return isinstance(value, str) and bool(value.strip())
+
+    @staticmethod
+    def _identity_mismatches(
+        *, expected: object, actual: dict[str, object]
+    ) -> list[str]:
+        if not isinstance(expected, dict):
+            raise ResearchValidationError("authorized Provider identity is invalid")
+        return [
+            key
+            for key in (
+                "provider_protocol",
+                "base_url",
+                "model",
+                "role",
+                "thinking_enabled",
+                "reasoning_effort",
+            )
+            if (
+                type(actual.get(key)) is not type(expected.get(key))
+                or actual.get(key) != expected.get(key)
+            )
+        ]
+
+    @staticmethod
     def _response_metadata(raw: object, usage: dict[str, int]) -> dict[str, Any]:
         del usage
         retry_count = int(getattr(raw, "retry_count", 0))
         if retry_count < 0 or retry_count > 1:
             raise ResearchValidationError("Provider retry_count exceeds Gate B cap")
         response_id = getattr(raw, "response_id", None)
-        if not response_id:
-            response_id = _id("provider_operation", repr(raw))
+        if not isinstance(response_id, str) or not response_id.strip():
+            raise ResearchValidationError(
+                "Provider response/operation ID is required for a complete receipt"
+            )
+        response_id = response_id.strip()
         latency = getattr(raw, "latency_ms", 0.0)
         return {
             "response_id": str(response_id),
