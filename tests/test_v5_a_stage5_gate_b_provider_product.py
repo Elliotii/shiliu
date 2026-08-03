@@ -899,9 +899,24 @@ def test_completion_recovery_closes_durable_running_boundary_without_replay(
     assert first["task_status"] == "running"
     calls = list(provider.calls)
     budget = receipt.run_budget_snapshot(policy)
+    before_epoch = int(core.research.get_task(task_ids[0])["task"]["owner_epoch"])
+    with core.research._transaction() as connection:
+        connection.execute(
+            "UPDATE research_tasks SET owner_id='expired-parent-worker', "
+            "lease_until='2000-01-01T00:00:00+00:00' WHERE task_id=?",
+            (task_ids[0],),
+        )
+    recovery_product = ResearchProductService(
+        db=core.db,
+        kernel=core.research,
+        inner=inner,
+        outer=product.outer,
+        control=product.control,
+        runner_id="completion-recovery-worker",
+    )
 
     settled = RUNNER._settle_running_product_boundary(
-        product=product,
+        product=recovery_product,
         task_id=task_ids[0],
         command_id="completion-test:recovery",
         current_result=first,
@@ -911,5 +926,6 @@ def test_completion_recovery_closes_durable_running_boundary_without_replay(
     assert provider.calls == calls
     assert receipt.run_budget_snapshot(policy) == budget
     raw = core.research.get_task(task_ids[0])
+    assert int(raw["task"]["owner_epoch"]) == before_epoch + 1
     assert raw["task"]["status"] in {"waiting_user", "blocked", "terminal"}
     assert all(value["status"] == "succeeded" for value in raw["side_effects"])

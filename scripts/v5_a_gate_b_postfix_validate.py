@@ -594,7 +594,11 @@ def main() -> int:
         inner=inner,
         outer=app.research_outer,
         control=app.research_control,
-        runner_id="gate-b-postfix-worker",
+        runner_id=(
+            "gate-b-completion-recovery-worker"
+            if args.completion_recovery
+            else "gate-b-postfix-worker"
+        ),
     )
     wiring = ReceiptBoundProviderService(
         db=app.db,
