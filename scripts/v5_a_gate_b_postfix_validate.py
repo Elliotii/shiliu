@@ -21,11 +21,11 @@ from shiliu.llm import OpenAICompatibleProvider
 from shiliu.research.control_contracts import HumanDecisionRequest
 from shiliu.research.errors import ResearchUnsafeState
 from shiliu.research.inner_service import InnerResearchService
-from shiliu.research.product_contracts import (
-    CreateProductResearchRequest,
-    RunProductResearchRequest,
+from shiliu.research.product_contracts import RunProductResearchRequest
+from shiliu.research.product_service import (
+    ResearchProductService,
+    grounded_current_evidence_profile,
 )
-from shiliu.research.product_service import ResearchProductService
 from shiliu.research.provider_product import (
     ReceiptBoundDeepResearchExecutor,
     ReceiptBoundResearchProductOrchestrator,
@@ -175,6 +175,32 @@ def _completion_create_command(run_id: str, case_id: str) -> str:
 def _completion_task_id(run_id: str, case_id: str) -> str:
     command_id = _completion_create_command(run_id, case_id)
     return f"rtask_{hashlib.sha256(command_id.encode()).hexdigest()[:32]}"
+
+
+def _create_completion_provider_task(
+    *,
+    kernel: Any,
+    run_id: str,
+    case: dict[str, Any],
+    run_policy: ProviderRunBudgetPolicy,
+) -> dict[str, Any]:
+    """Create the normal server profile with its non-client run-budget binding."""
+
+    case_id = str(case["case_id"])
+    return kernel.create_task(
+        command_id=_completion_create_command(run_id, case_id),
+        objective=str(case["objective"]),
+        success_constraints=list(case["success_constraints"]),
+        evidence_policy={
+            "authority": "live_current_exact_replay",
+            "product_execution": "receipt_bound_provider",
+            "constraint_profile": "grounded_current_evidence",
+            "provider_run_budget": run_policy.evidence_policy_binding(
+                case_id=case_id
+            ),
+        },
+        _server_constraint_profile=grounded_current_evidence_profile(),
+    )
 
 
 def _usage_rows(raw: dict[str, Any]) -> list[dict[str, Any]]:
@@ -517,16 +543,11 @@ def main() -> int:
     for case_id, task_id in zip(authorized_cases, task_ids, strict=True):
         case = cases[case_id]
         if args.completion:
-            created = product.create_task(
-                CreateProductResearchRequest(
-                    command_id=_completion_create_command(
-                        str(manifest["run_id"]), case_id
-                    ),
-                    objective=str(case["objective"]),
-                    success_constraints=list(case["success_constraints"]),
-                    constraint_profile="grounded_current_evidence",
-                    run_immediately=False,
-                )
+            created = _create_completion_provider_task(
+                kernel=app.research,
+                run_id=str(manifest["run_id"]),
+                case=case,
+                run_policy=run_policy,
             )
             if created["task_id"] != task_id:
                 raise ResearchUnsafeState("completion product Task identity mismatch")

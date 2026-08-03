@@ -35,7 +35,10 @@ from shiliu.research.provider_product import (
     ReceiptBoundDeepResearchExecutor,
     ReceiptBoundResearchProductOrchestrator,
 )
-from shiliu.research.provider_wiring import ReceiptBoundProviderService
+from shiliu.research.provider_wiring import (
+    ProviderRunBudgetPolicy,
+    ReceiptBoundProviderService,
+)
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
 
 
@@ -770,3 +773,66 @@ def test_completion_cases_use_product_profile_and_exact_one_hitl_no_network(
     assert projection["input_request_count"] == 1
     assert projection["human_decision_count"] == 1
     assert control["open_input_requests"] == []
+
+
+def test_completion_runner_persists_run_budget_before_mock_transport(
+    app_paths,
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+    orchestrator, receipt = _orchestrator(
+        core, inner, product, materializer, provider
+    )
+    run_id = "GB-PC-no-network-budget-binding"
+    case_ids = ("GB-PC-G-01", "GB-PC-H-01")
+    task_ids = tuple(RUNNER._completion_task_id(run_id, value) for value in case_ids)
+    envelope = RUNNER._run_envelope(completion=True)
+    policy = ProviderRunBudgetPolicy(
+        run_id=run_id,
+        task_ids=task_ids,
+        started_at=datetime.now(timezone.utc).isoformat(),
+        max_logical_calls=envelope["max_logical_calls"],
+        max_http_attempts=envelope["max_http_attempts"],
+        max_input_tokens=envelope["max_input_tokens"],
+        max_output_tokens=envelope["max_output_tokens"],
+        max_wall_seconds=envelope["max_wall_seconds"],
+        reserve_stop_usd=envelope["reserve_stop_usd"],
+        absolute_max_cost_usd=envelope["absolute_max_cost_usd"],
+    )
+    cases = (
+        {
+            "case_id": "GB-PC-G-01",
+            "objective": GROUNDED_OBJECTIVE,
+            "success_constraints": [],
+        },
+        {
+            "case_id": "GB-PC-H-01",
+            "objective": AMBIGUOUS_OBJECTIVE,
+            "success_constraints": ["继续前需要用户选择（mock）"],
+        },
+    )
+    for case, task_id in zip(cases, task_ids, strict=True):
+        created = RUNNER._create_completion_provider_task(
+            kernel=core.research,
+            run_id=run_id,
+            case=case,
+            run_policy=policy,
+        )
+        assert created["task_id"] == task_id
+
+    result = orchestrator.run_to_boundary(
+        task_ids[0],
+        command_id="completion-test:bound-provider-budget",
+        max_logical_calls=5,
+        max_http_attempts=10,
+        max_input_tokens=40_000,
+        max_output_tokens=8_896,
+        max_wall_time_seconds=660,
+        run_budget=policy,
+    )
+
+    assert result["task_status"] == "terminal"
+    assert provider.calls
+    aggregate = receipt.run_budget_snapshot(policy)
+    assert aggregate.committed_logical_calls == len(provider.calls)
+    assert aggregate.task_ids == tuple(sorted(task_ids))
