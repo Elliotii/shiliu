@@ -748,6 +748,69 @@ def test_deep_api_replans_navigation_search_window_and_shared_answer(
         assert "create_agent" not in source
 
 
+def test_empty_navigation_forces_one_global_transcript_search_for_arbitrary_wording(
+    app_paths,
+) -> None:
+    def policy(round_number: int, payload: dict[str, object]):
+        if round_number == 1:
+            return {
+                "action": {
+                    "kind": "search_navigation",
+                    "query": "外部能力",
+                }
+            }
+        evidence = payload["transcript_evidence"]
+        assert isinstance(evidence, list) and evidence
+        return {"action": {"kind": "finish", "summary": "已有字幕证据"}}
+
+    provider = _ScriptedProvider(policy)
+    core, _ = _make_core(app_paths, provider)
+    deep = core.ask_service.deep_service
+    deep.graph.navigation.search = lambda *_args, **_kwargs: []
+
+    response, trace = deep.ask(
+        AskRequest(query="请解释一种任意措辞的连接方式", mode="deep")
+    )
+
+    assert response.status == "complete"
+    assert response.answer_blocks and response.citations
+    assert response.trace_summary.decision_rounds == 2
+    assert response.trace_summary.tool_calls == 2
+    assert response.trace_summary.retrieval_count == 1
+    decisions = [
+        value["action"]["kind"]
+        for value in trace["events"]
+        if value["event_type"] == "decision"
+    ]
+    observations = [
+        value["observation_kind"]
+        for value in trace["events"]
+        if value["event_type"] == "observation"
+    ]
+    fallback = [
+        value
+        for value in trace["events"]
+        if value["event_type"] == "empty_navigation_transcript_fallback"
+    ]
+    assert decisions == ["search_navigation", "finish"]
+    assert observations == ["navigation", "transcript_search"]
+    assert fallback == [
+        {
+            "event_type": "empty_navigation_transcript_fallback",
+            "source_action_key": "navigation:外部能力",
+            "forced_action": {
+                "kind": "search_transcripts",
+                "query": "外部能力",
+                "video_ids": [],
+            },
+            "bounded_observation_summary": (
+                "empty navigation deterministically routed to one global "
+                "transcript search"
+            ),
+        }
+    ]
+
+
 def test_repeated_no_new_and_malformed_action_stop_are_typed(app_paths) -> None:
     repeated = _ScriptedProvider(
         lambda _round, _payload: {
@@ -1210,11 +1273,14 @@ def test_round_tool_no_new_and_context_budgets_are_code_enforced(
         }
     )
     core, _ = _make_core(app_paths, provider)
+    core.ask_service.deep_service.graph.navigation.search = (
+        lambda *_args, **_kwargs: []
+    )
     request = AskRequest(query="MCP", mode="deep")
     round_response, _ = core.ask_service.deep_service.ask(request)
-    assert round_response.termination_reason == "budget_exhausted"
-    assert round_response.trace_summary.decision_rounds == 6
-    assert round_response.trace_summary.tool_calls == 6
+    assert round_response.termination_reason == "repeated_search"
+    assert round_response.trace_summary.decision_rounds == 2
+    assert round_response.trace_summary.tool_calls == 2
 
     no_new_provider = _ScriptedProvider(
         lambda round_number, _payload: {

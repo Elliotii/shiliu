@@ -135,6 +135,34 @@ class DeepStateReducer:
         )
         return updated
 
+    def correct_empty_navigation(
+        self, state: DeepSearchState
+    ) -> DeepSearchState:
+        """Route one empty navigation into a global authoritative search."""
+
+        updated = _copy(state)
+        action = SearchNavigationAction.model_validate(updated["last_action"])
+        fallback = SearchTranscriptsAction(
+            kind="search_transcripts",
+            query=action.query,
+            video_ids=[],
+        )
+        updated["last_action"] = fallback.model_dump(mode="json")
+        updated["events"].append(
+            {
+                "event_type": "empty_navigation_transcript_fallback",
+                "source_action_key": action_key(
+                    AgentDecision(action=action)
+                ),
+                "forced_action": fallback.model_dump(mode="json"),
+                "bounded_observation_summary": (
+                    "empty navigation deterministically routed to one global "
+                    "transcript search"
+                ),
+            }
+        )
+        return updated
+
     def record_observation(
         self, state: DeepSearchState, observation: ToolObservation
     ) -> DeepSearchState:

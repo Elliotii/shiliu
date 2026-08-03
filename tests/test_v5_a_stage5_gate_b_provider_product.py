@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 import pytest
@@ -117,6 +118,55 @@ class _ProductMockProvider:
             output=output,
             usage={"prompt_tokens": 20, "completion_tokens": 5},
             response_id=f"mock-product-{role}-{len(self.calls)}",
+        )
+
+
+class _EmptyNavigationProductProvider(_ProductMockProvider):
+    """Exercise the real Deep graph without encoding fixture-specific routing."""
+
+    def generate_structured(self, **kwargs):
+        role = str(kwargs["role"])
+        self.calls.append(role)
+        if role == "query_analysis":
+            output: object = QueryAnalysis(
+                normalized_intent="任意措辞的长期研究目标",
+                search_queries=["人工验收"],
+                entities=[],
+                language="zh",
+            )
+        elif role == "agent_action":
+            action_number = self.calls.count("agent_action")
+            output = AgentDecision.model_validate(
+                {
+                    "action": (
+                        {"kind": "search_navigation", "query": "人工验收"}
+                        if action_number == 1
+                        else {"kind": "finish", "summary": "已有当前字幕证据"}
+                    )
+                }
+            )
+        elif role == "grounded_answer":
+            serialized = "\n".join(
+                str(value["content"]) for value in kwargs["messages"]
+            )
+            citation_ids = re.findall(r"citation_v1_[0-9a-f]{64}", serialized)
+            assert citation_ids
+            output = GroundedAnswerDraft(
+                status="complete",
+                answer_blocks=[
+                    AnswerBlock(
+                        text="字幕说明 test 后的 checkpoint 接受人工验收。",
+                        citation_ids=[citation_ids[0]],
+                    )
+                ],
+                limitations=[],
+            )
+        else:  # pragma: no cover
+            raise AssertionError(role)
+        return _Reply(
+            output=output,
+            usage={"prompt_tokens": 20, "completion_tokens": 5},
+            response_id=f"mock-empty-navigation-{role}-{len(self.calls)}",
         )
 
 
@@ -642,6 +692,104 @@ def test_unchanged_deep_executor_reaches_durable_waiting_boundary_no_network(
     raw = core.research.get_task(task_id)
     assert raw["provisional_artifacts"][-1]["answer_status"] == "valid_insufficient"
     assert raw["outer_audits"][-1]["outcome"] == "blocked"
+
+
+def test_empty_navigation_real_product_path_commits_current_evidence_no_network(
+    app_paths,
+) -> None:
+    core, _fixture_inner, _fixture_product, materializer = _fixture(app_paths)
+    provider = _EmptyNavigationProductProvider()
+    inner = InnerResearchService(
+        db=core.db,
+        kernel=core.research,
+        tools=core.research_inner.tools,
+        materializer=materializer,
+        provider_runs_authorized=True,
+    )
+    product = ResearchProductService(
+        db=core.db,
+        kernel=core.research,
+        inner=inner,
+        outer=core.research_outer,
+        control=core.research_control,
+        runner_id="empty-navigation-product-worker",
+    )
+    receipt = ReceiptBoundProviderService(
+        db=core.db,
+        kernel=core.research,
+        provider_dispatch_authorized=True,
+    )
+    product_search = core.product_search
+    original_search = product_search.search
+
+    def empty_navigation_only(request, *, video_ids=()):
+        response = original_search(request, video_ids=video_ids)
+        if request.scope != "video":
+            return response
+        return replace(
+            response,
+            returned_group_count=0,
+            results=(),
+        )
+
+    product_search.search = empty_navigation_only
+    deep = ReceiptBoundDeepResearchExecutor(
+        db=core.db,
+        artifacts=core.artifacts,
+        product_search=product_search,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+        budget=DeepSearchBudget(
+            max_decision_rounds=3,
+            max_tool_calls=3,
+            total_runtime_seconds=10,
+            search_phase_cutoff_seconds=5,
+            final_answer_reserve_seconds=5,
+        ),
+    )
+    orchestrator = ReceiptBoundResearchProductOrchestrator(
+        db=core.db,
+        kernel=core.research,
+        inner=inner,
+        product=product,
+        receipt_service=receipt,
+        provider_factory=lambda role: provider.for_role(role),
+        deep_executor=deep,
+        materializer=materializer,
+        provider_product_authorized=True,
+    )
+    task_id = product.create_task(
+        CreateProductResearchRequest(
+            command_id="empty-navigation-product:create",
+            objective="用任意措辞说明 checkpoint 的人工验收作用",
+            success_constraints=[],
+            constraint_profile="grounded_current_evidence",
+            run_immediately=False,
+        )
+    )["task_id"]
+
+    result = orchestrator.run_to_boundary(
+        task_id,
+        command_id="empty-navigation-product:run",
+        max_logical_calls=5,
+        max_http_attempts=10,
+    )
+
+    raw = core.research.get_task(task_id)
+    assert raw["outer_audits"][-1]["outcome"] == "accept"
+    assert result["task_status"] == "terminal"
+    assert raw["evidence_uses"]
+    assert raw["evidence_validations"]
+    assert {
+        value["outcome"] for value in raw["evidence_validations"]
+    } == {"current"}
+    assert raw["provisional_artifacts"][-1]["answer_blocks"][0]["citation_ids"]
+    assert raw["results"][-1]["answer_status"] == "valid_success"
+    assert provider.calls == [
+        "query_analysis",
+        "agent_action",
+        "agent_action",
+        "grounded_answer",
+    ]
 
 
 def test_provider_product_ingest_fault_rolls_back_then_replays_without_transport(

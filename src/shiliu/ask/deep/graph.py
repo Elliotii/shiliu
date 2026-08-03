@@ -78,7 +78,11 @@ class DeepSearchGraph:
         graph.add_conditional_edges(
             "reduce_observation",
             self._route_reducer,
-            {"continue": "decide_action", "finalize": "finalize"},
+            {
+                "continue": "decide_action",
+                "correct_empty_navigation": "guard_action",
+                "finalize": "finalize",
+            },
         )
         graph.add_edge("finalize", END)
         return graph
@@ -112,6 +116,15 @@ class DeepSearchGraph:
                 else "evidence_unavailable"
             )
             return self.reducer.reject(state, reason, f"agent suggested {action.kind}")
+        if isinstance(action, SearchNavigationAction) and any(
+            value.get("event_type") == "empty_navigation_transcript_fallback"
+            for value in state["events"]
+        ):
+            return self.reducer.reject(
+                state,
+                "repeated_search",
+                "navigation already returned empty and used its bounded transcript fallback",
+            )
         blocked = self.budget.before_tool(state, self.clock())
         if blocked:
             return self.reducer.reject(state, blocked, "tool budget or deadline reached")
@@ -247,6 +260,12 @@ class DeepSearchGraph:
                 state, "provider_error", "tool produced no observation"
             )
         updated = self.reducer.record_observation(state, observation)
+        if (
+            observation.kind == "navigation"
+            and not observation.navigation_documents
+            and observation.error is None
+        ):
+            return self.reducer.correct_empty_navigation(updated)
         if updated["termination_reason"] is None:
             blocked = self.budget.before_decision(updated, self.clock())
             if blocked is not None:
@@ -260,6 +279,12 @@ class DeepSearchGraph:
     def _route_reducer(self, state: DeepSearchState) -> str:
         if state["termination_reason"] is not None:
             return "finalize"
+        if (
+            state["events"]
+            and state["events"][-1].get("event_type")
+            == "empty_navigation_transcript_fallback"
+        ):
+            return "correct_empty_navigation"
         return "continue"
 
     def _finalize(self, state: DeepSearchState) -> DeepSearchState:
