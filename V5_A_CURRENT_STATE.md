@@ -856,9 +856,13 @@ Stage 4 current-lineage HITL 接线，并提交 post-fix integration validation 
 留存。用户随后明确授权一次新的凭据尝试；本次 Keychain 成功，`GB-G-01` 经真实 Provider
 完成 durable orchestration，但 runner 在读取错误层级的 projection 时因缺少
 `input_requests` 抛出 `KeyError`。本次只消费 5 次 logical/HTTP call、US$0.000976227，
-`GB-I-01` 与 `GB-H-01` 未执行且没有自动重试。下一动作是 V5 主 Session 审阅这一
-post-Provider evaluation-infrastructure failure，并决定是否授权修复及新的验证范围。
-V5-A 不开始 Gate C、主线 integration 或 live schema 10 migration。
+随后获准的 bounded recovery 在 commit `633b926` 修复 control projection，175 项联合定向
+通过，并从冻结 G DB 以零调用只读重建完整投影。新的 I/H 隔离 root 中，I 首次执行 4 次
+调用后诚实停在 `valid_insufficient` / `waiting_user`；H 已 exact-once 消费固定回答并创建
+正确 goal-revision child lineage，但 runner 在 pre-Provider evidence serialization 使用错误
+字段 `checkpoint_id`（canonical 为 `source_checkpoint_id`）而停止。H 的 Provider/SideEffect
+均为 0，没有自动修复或续跑。下一动作是 V5 主 Session 对三个明确分离的 evidence root
+做 Gate B 最终审阅。V5-A 不开始 Gate C、主线 integration 或 live schema 10 migration。
 
 ```yaml
 charter_status: accepted
@@ -952,6 +956,20 @@ stage_5_gate_B_user_credential_retry_provider_calls: 5
 stage_5_gate_B_user_credential_retry_http_attempts: 5
 stage_5_gate_B_user_credential_retry_cost_usd: 0.000976227
 stage_5_gate_B_user_credential_retry_report: V5_A_STAGE_5_GATE_B_USER_CREDENTIAL_RETRY_EVALUATION_REPORT.md
+stage_5_gate_B_projection_recovery_commit: 633b926a8080ce72ae3877d48f0edaddfe55ce44
+stage_5_gate_B_projection_recovery_tests: 175_passed
+stage_5_gate_B_G_projection_recovery_status: pass_zero_provider_zero_credential
+stage_5_gate_B_G_rerun_performed: false
+stage_5_gate_B_I_recovery_status: completed_once_valid_insufficient_waiting_user
+stage_5_gate_B_I_provider_calls: 4
+stage_5_gate_B_I_cost_usd: 0.000664970
+stage_5_gate_B_H_recovery_status: infrastructure_failure_post_decision_preprovider
+stage_5_gate_B_H_fixed_answer_exact_once: true
+stage_5_gate_B_H_provider_calls: 0
+stage_5_gate_B_combined_provider_calls: 9
+stage_5_gate_B_combined_http_attempts: 9
+stage_5_gate_B_combined_cost_usd: 0.001641197
+stage_5_gate_B_combined_recovery_report: V5_A_STAGE_5_GATE_B_COMBINED_RECOVERY_REPORT.md
 stage_5_gate_B_self_accepted: false
 stage_5_provider_quality_gate_authorized: exercised_within_authorized_envelope
 stage_5_mainline_integration_authorized: false
@@ -965,5 +983,5 @@ stage_5_live_database_migration_performed: false
 live_database_schema_observed: 9
 live_database_schema_9_migrated_by: V5_main_session
 external_live_database_change_observed: true
-next_action: V5_main_session_gate_B_postprovider_projection_failure_review
+next_action: V5_main_session_final_gate_B_review
 ```
