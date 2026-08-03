@@ -18,7 +18,11 @@ from shiliu.ask.query_analysis import QueryAnalyzer
 from shiliu.db import Database
 from shiliu.research.control_contracts import ControlCommandRequest
 from shiliu.research.control_service import ResearchControlService
-from shiliu.research.errors import ResearchConflict, SimulatedCrash
+from shiliu.research.errors import (
+    ResearchConflict,
+    ResearchValidationError,
+    SimulatedCrash,
+)
 from shiliu.research.provider_wiring import (
     PROVIDER_ACTION_SCHEMA_VERSION,
     ProviderBudgetExceeded,
@@ -26,6 +30,7 @@ from shiliu.research.provider_wiring import (
     ProviderCallContext,
     ProviderDispatchUnknown,
     ProviderPricePolicy,
+    ProviderRunBudgetPolicy,
     ReceiptBoundProviderService,
 )
 from shiliu.research.service import ResearchTaskService
@@ -221,6 +226,66 @@ def _direct_query(factory, content: str = "MCP"):
         response_schema=QueryAnalysis,
         max_tokens=1200,
     )
+
+
+def _started_provider_run(app_paths, *, policy_overrides=None):
+    db = Database(app_paths.database)
+    db.initialize()
+    clock = _MutableClock()
+    kernel = ResearchTaskService(db, clock=clock)
+    task_ids = tuple(f"rtask_gate_b_run_{index}" for index in range(3))
+    policy = ProviderRunBudgetPolicy(
+        run_id="GB-RUN-WIDE-NO-NETWORK",
+        task_ids=task_ids,
+        started_at=clock().isoformat(timespec="microseconds"),
+        **(policy_overrides or {}),
+    )
+    contexts = []
+    for index, task_id in enumerate(task_ids):
+        kernel.create_task(
+            command_id=f"run-create:{index}",
+            task_id=task_id,
+            objective=f"run-wide objective {index}",
+            success_constraints=["bounded"],
+            evidence_policy={
+                "authority": "eval_snapshot_exact_replay",
+                "provider_run_budget": policy.evidence_policy_binding(
+                    case_id=f"CASE-{index}"
+                ),
+            },
+        )
+        claim = kernel.claim_owner(
+            task_id=task_id,
+            command_id=f"run-claim:{index}",
+            owner_id="run-worker",
+            expected_state_version=0,
+            lease_seconds=3600,
+        )
+        attempt = kernel.start_attempt(
+            task_id=task_id,
+            command_id=f"run-start:{index}",
+            owner_id="run-worker",
+            owner_epoch=int(claim["owner_epoch"]),
+            expected_state_version=1,
+        )
+        contexts.append(
+            ProviderCallContext(
+                task_id=task_id,
+                attempt_id=str(attempt["attempt_id"]),
+                owner_id="run-worker",
+                owner_epoch=int(claim["owner_epoch"]),
+                expected_state_version=2,
+                expected_checkpoint_id=None,
+                expected_control_generation=0,
+                operation_key=f"run-wide:{index}",
+                max_logical_calls=7,
+                max_http_attempts=14,
+                max_input_tokens=60_000,
+                max_output_tokens=14_192,
+                run_budget=policy,
+            )
+        )
+    return db, kernel, clock, policy, contexts
 
 
 def test_default_wiring_authority_is_disabled_without_any_factory_access(
@@ -435,6 +500,166 @@ def test_default_absolute_fifty_cent_cap_blocks_before_factory(app_paths) -> Non
     task = kernel.get_task(context.task_id)
     assert task["side_effects"] == []
     assert task["inner_actions"] == []
+
+
+@pytest.mark.parametrize(
+    "policy_overrides,error",
+    [
+        ({"max_logical_calls": 2}, "run-wide logical-call"),
+        ({"max_http_attempts": 3}, "run-wide HTTP-attempt"),
+        ({"max_output_tokens": 1230}, "run-wide output-token"),
+    ],
+)
+def test_run_wide_meter_blocks_cross_task_reservation_and_survives_restart(
+    app_paths, policy_overrides, error: str
+) -> None:
+    db, kernel, _clock, policy, contexts = _started_provider_run(
+        app_paths, policy_overrides=policy_overrides
+    )
+    provider = _NoNetworkProvider()
+    wiring = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    for context in contexts[:2]:
+        _direct_query(
+            wiring.factory(
+                context=context,
+                provider_factory=lambda role: provider.for_role(role),
+            )
+        )
+    before = wiring.run_budget_snapshot(policy)
+    assert before.committed_logical_calls == 2
+    assert before.active_logical_reservations == 0
+
+    restarted = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    assert restarted.run_budget_snapshot(policy) == before
+    blocked = _NoNetworkProvider()
+    with pytest.raises(ProviderBudgetExceeded, match=error):
+        _direct_query(
+            restarted.factory(
+                context=contexts[2],
+                provider_factory=lambda role: blocked.for_role(role),
+            )
+        )
+    with pytest.raises(ProviderBudgetExceeded, match=error):
+        _direct_query(
+            restarted.factory(
+                context=contexts[2],
+                provider_factory=lambda role: blocked.for_role(role),
+            )
+        )
+    assert blocked.calls == []
+    assert restarted.run_budget_snapshot(policy) == before
+    task = kernel.get_task(contexts[2].task_id)
+    rejected = [
+        receipt
+        for receipt in task["command_receipts"]
+        if receipt["command_type"] == "provider_call_budget_rejected"
+    ]
+    assert len(rejected) == 1
+
+    replay_provider = _NoNetworkProvider()
+    replay_context = replace(
+        contexts[0],
+        expected_state_version=int(
+            kernel.get_task(contexts[0].task_id)["task"]["state_version"]
+        ),
+    )
+    replay = _direct_query(
+        restarted.factory(
+            context=replay_context,
+            provider_factory=lambda role: replay_provider.for_role(role),
+        )
+    )
+    assert replay.deduplicated is True
+    assert replay_provider.calls == []
+    assert restarted.run_budget_snapshot(policy) == before
+
+
+def test_run_wide_binding_mismatch_fails_before_transport(app_paths) -> None:
+    db, kernel, _clock, policy, contexts = _started_provider_run(app_paths)
+    tampered = replace(policy, max_logical_calls=16)
+    context = replace(contexts[0], run_budget=tampered)
+    provider = _NoNetworkProvider()
+    wiring = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    with pytest.raises(ResearchValidationError, match="does not match"):
+        _direct_query(
+            wiring.factory(
+                context=context,
+                provider_factory=lambda role: provider.for_role(role),
+            )
+        )
+    assert provider.calls == []
+    assert wiring.run_budget_snapshot(policy).accounted_logical_calls == 0
+
+
+def test_run_wide_cost_cap_is_rebuilt_across_three_tasks(
+    app_paths,
+) -> None:
+    db, kernel, clock, policy, contexts = _started_provider_run(
+        app_paths,
+        policy_overrides={
+            "reserve_stop_usd": Decimal("0.0060"),
+            "absolute_max_cost_usd": Decimal("0.00605"),
+            "max_wall_seconds": 10,
+        },
+    )
+    provider = _NoNetworkProvider()
+    wiring = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    for context in contexts:
+        _direct_query(
+            wiring.factory(
+                context=context,
+                provider_factory=lambda role: provider.for_role(role),
+            )
+        )
+    snapshot = wiring.run_budget_snapshot(policy)
+    assert snapshot.committed_logical_calls == 3
+    assert Decimal(snapshot.committed_cost_usd) > 0
+
+    next_context = replace(
+        contexts[0],
+        expected_state_version=int(
+            kernel.get_task(contexts[0].task_id)["task"]["state_version"]
+        ),
+        operation_key="run-wide:cost-block",
+    )
+    blocked = _NoNetworkProvider()
+    with pytest.raises(ProviderBudgetExceeded, match="run-wide worst-case cost"):
+        _direct_query(
+            wiring.factory(
+                context=next_context,
+                provider_factory=lambda role: blocked.for_role(role),
+            )
+        )
+    assert blocked.calls == []
+
+
+def test_run_wide_wall_cap_does_not_reset_on_restart(app_paths) -> None:
+    db, kernel, clock, policy, contexts = _started_provider_run(
+        app_paths,
+        policy_overrides={"max_wall_seconds": 10},
+    )
+    clock.advance(10)
+    restarted = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    blocked = _NoNetworkProvider()
+    with pytest.raises(ProviderBudgetExceeded, match="wall-time"):
+        _direct_query(
+            restarted.factory(
+                context=contexts[0],
+                provider_factory=lambda role: blocked.for_role(role),
+            )
+        )
+    assert blocked.calls == []
+    assert restarted.run_budget_snapshot(policy).accounted_logical_calls == 0
 
 
 def test_known_invalid_output_is_receipted_once_then_uses_bounded_repair(

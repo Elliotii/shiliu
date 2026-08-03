@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from typing import Any, Callable
@@ -24,6 +24,7 @@ from shiliu.research.product_contracts import RunProductResearchRequest
 from shiliu.research.product_service import ResearchProductService
 from shiliu.research.provider_wiring import (
     ProviderCallContext,
+    ProviderRunBudgetPolicy,
     ReceiptBoundProviderFactory,
     ReceiptBoundProviderService,
 )
@@ -147,6 +148,11 @@ class ReceiptBoundResearchProductOrchestrator:
         max_continuation_cycles: int = 1,
         max_logical_calls: int = 17,
         max_http_attempts: int = 34,
+        max_input_tokens: int | None = None,
+        max_output_tokens: int | None = None,
+        max_wall_time_seconds: int | None = None,
+        case_deadline_at: str | None = None,
+        run_budget: ProviderRunBudgetPolicy | None = None,
     ) -> dict[str, Any]:
         if not self.provider_product_authorized:
             raise ResearchConflict("Provider product orchestration is not authorized")
@@ -160,6 +166,28 @@ class ReceiptBoundResearchProductOrchestrator:
             raise ResearchValidationError(
                 "Provider product call caps exceed the accepted Gate B envelope"
             )
+        if max_input_tokens is not None and not 1 <= max_input_tokens <= 140_000:
+            raise ResearchValidationError(
+                "Provider product input-token cap exceeds the Gate B envelope"
+            )
+        if max_output_tokens is not None and not 1 <= max_output_tokens <= 31_984:
+            raise ResearchValidationError(
+                "Provider product output-token cap exceeds the Gate B envelope"
+            )
+        if max_wall_time_seconds is not None and not 1 <= max_wall_time_seconds <= 720:
+            raise ResearchValidationError(
+                "Provider product wall-time cap exceeds the Gate B per-case envelope"
+            )
+        if case_deadline_at is not None:
+            deadline = datetime.fromisoformat(case_deadline_at)
+            if deadline.tzinfo is None:
+                raise ResearchValidationError(
+                    "Provider product case deadline must be timezone-aware"
+                )
+        if run_budget is not None and task_id not in run_budget.task_ids:
+            raise ResearchValidationError(
+                "Provider product Task is outside the run-wide budget membership"
+            )
         payload_hash = _hash(
             {
                 "operation": "run_receipt_bound_research_product",
@@ -169,6 +197,13 @@ class ReceiptBoundResearchProductOrchestrator:
                 "max_continuation_cycles": max_continuation_cycles,
                 "max_logical_calls": max_logical_calls,
                 "max_http_attempts": max_http_attempts,
+                "max_input_tokens": max_input_tokens,
+                "max_output_tokens": max_output_tokens,
+                "max_wall_time_seconds": max_wall_time_seconds,
+                "case_deadline_at": case_deadline_at,
+                "run_budget_policy_hash": (
+                    run_budget.policy_hash if run_budget else None
+                ),
             }
         )
         with self.kernel._transaction() as connection:
@@ -215,6 +250,21 @@ class ReceiptBoundResearchProductOrchestrator:
                 ),
                 max_logical_calls=max_logical_calls,
                 max_http_attempts=max_http_attempts,
+                max_input_tokens=max_input_tokens,
+                max_output_tokens=max_output_tokens,
+                deadline_at=(
+                    case_deadline_at
+                    or (
+                        (
+                            datetime.fromisoformat(run_budget.started_at)
+                            + timedelta(seconds=max_wall_time_seconds)
+                        ).isoformat(timespec="microseconds")
+                        if run_budget is not None
+                        and max_wall_time_seconds is not None
+                        else None
+                    )
+                ),
+                run_budget=run_budget,
             )
             bound = self.receipt_service.factory(
                 context=context,

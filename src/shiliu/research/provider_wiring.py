@@ -154,6 +154,10 @@ class ProviderCallContext:
     operation_key: str
     max_logical_calls: int | None = None
     max_http_attempts: int | None = None
+    max_input_tokens: int | None = None
+    max_output_tokens: int | None = None
+    deadline_at: str | None = None
+    run_budget: ProviderRunBudgetPolicy | None = None
 
 
 @dataclass(frozen=True)
@@ -163,6 +167,98 @@ class ProviderBudgetSnapshot:
     input_tokens: int
     cached_input_tokens: int
     output_tokens: int
+    committed_cost_usd: str
+    active_reserved_cost_usd: str
+    accounted_cost_usd: str
+
+
+@dataclass(frozen=True)
+class ProviderRunBudgetPolicy:
+    """Frozen aggregate envelope shared by an exact set of evaluation Tasks."""
+
+    run_id: str
+    task_ids: tuple[str, ...]
+    started_at: str
+    max_logical_calls: int = 17
+    max_http_attempts: int = 34
+    max_input_tokens: int = 140_000
+    max_output_tokens: int = 31_984
+    max_wall_seconds: int = 34 * 60
+    reserve_stop_usd: Decimal = Decimal("0.40")
+    absolute_max_cost_usd: Decimal = Decimal("0.50")
+
+    def __post_init__(self) -> None:
+        if not self.run_id.strip() or not self.task_ids:
+            raise ResearchValidationError("Provider run budget identity is incomplete")
+        if len(set(self.task_ids)) != len(self.task_ids):
+            raise ResearchValidationError("Provider run budget task_ids are not unique")
+        try:
+            started = datetime.fromisoformat(self.started_at)
+        except ValueError as exc:
+            raise ResearchValidationError(
+                "Provider run budget started_at is invalid"
+            ) from exc
+        if started.tzinfo is None:
+            raise ResearchValidationError(
+                "Provider run budget started_at must be timezone-aware"
+            )
+        limits = (
+            self.max_logical_calls,
+            self.max_http_attempts,
+            self.max_input_tokens,
+            self.max_output_tokens,
+            self.max_wall_seconds,
+        )
+        if any(value <= 0 for value in limits):
+            raise ResearchValidationError("Provider run budget limits must be positive")
+        if not Decimal("0") < self.reserve_stop_usd <= self.absolute_max_cost_usd:
+            raise ResearchValidationError("Provider run cost limits are invalid")
+        if self.absolute_max_cost_usd > Decimal("0.50"):
+            raise ResearchValidationError(
+                "Provider run absolute cost cap exceeds Gate B authorization"
+            )
+
+    def manifest(self) -> dict[str, object]:
+        return {
+            "run_id": self.run_id,
+            "task_ids": sorted(self.task_ids),
+            "started_at": _iso(datetime.fromisoformat(self.started_at)),
+            "max_logical_calls": self.max_logical_calls,
+            "max_http_attempts": self.max_http_attempts,
+            "max_input_tokens": self.max_input_tokens,
+            "max_output_tokens": self.max_output_tokens,
+            "max_wall_seconds": self.max_wall_seconds,
+            "reserve_stop_usd": str(self.reserve_stop_usd),
+            "absolute_max_cost_usd": str(self.absolute_max_cost_usd),
+        }
+
+    @property
+    def policy_hash(self) -> str:
+        return _hash(self.manifest())
+
+    def evidence_policy_binding(self, *, case_id: str) -> dict[str, object]:
+        return {
+            "policy_hash": self.policy_hash,
+            "case_id": case_id,
+            **self.manifest(),
+        }
+
+
+@dataclass(frozen=True)
+class ProviderRunBudgetSnapshot:
+    task_ids: tuple[str, ...]
+    committed_logical_calls: int
+    active_logical_reservations: int
+    accounted_logical_calls: int
+    committed_http_attempts: int
+    active_http_attempt_reservations: int
+    accounted_http_attempts: int
+    committed_input_tokens: int
+    active_input_token_reservations: int
+    accounted_input_tokens: int
+    committed_output_tokens: int
+    active_output_token_reservations: int
+    accounted_output_tokens: int
     committed_cost_usd: str
     active_reserved_cost_usd: str
     accounted_cost_usd: str
@@ -382,6 +478,16 @@ class ReceiptBoundProviderService:
             "input_token_upper_bound": input_upper,
             "worst_case_cost_usd": _decimal_text(reservation),
             "price_table": self.price_policy.manifest(),
+            "run_budget_policy_hash": (
+                context.run_budget.policy_hash if context.run_budget else None
+            ),
+            "per_case_budget": {
+                "max_logical_calls": context.max_logical_calls,
+                "max_http_attempts": context.max_http_attempts,
+                "max_input_tokens": context.max_input_tokens,
+                "max_output_tokens": context.max_output_tokens,
+                "deadline_at": context.deadline_at,
+            },
         }
         descriptor_hash = _hash(descriptor)
         terminal_command_id = f"provider:{operation_key}:terminal"
@@ -393,7 +499,11 @@ class ReceiptBoundProviderService:
         )
         if replay is not None:
             return replay
-        self._assert_call_caps(context)
+        self._assert_call_caps(
+            context,
+            requested_input_tokens=input_upper,
+            requested_output_tokens=requested_max,
+        )
         side_effect_id, state_version = self._reserve(
             context=context,
             operation_key=operation_key,
@@ -577,6 +687,23 @@ class ReceiptBoundProviderService:
             raise ProviderDispatchUnknown(
                 "Provider usage cannot be receipted; replay is forbidden"
             ) from exc
+        if (
+            usage["input_tokens"] > int(descriptor["input_token_upper_bound"])
+            or usage["output_tokens"] > int(descriptor["max_output_tokens"])
+        ):
+            state_version = self._mark_unknown(
+                context=context,
+                operation_key=operation_key,
+                side_effect_id=side_effect_id,
+                descriptor=descriptor,
+                descriptor_hash=descriptor_hash,
+                terminal_command_id=terminal_command_id,
+                reason="Provider usage exceeded the pre-call token reservation",
+            )
+            context.expected_state_version = state_version
+            raise ProviderDispatchUnknown(
+                "Provider usage exceeded its durable reservation; replay is forbidden"
+            )
         if not self._has_operation_id(getattr(raw, "response_id", None)):
             state_version = self._mark_unknown(
                 context=context,
@@ -610,6 +737,13 @@ class ReceiptBoundProviderService:
     def budget_snapshot(self, task_id: str) -> ProviderBudgetSnapshot:
         with self.db.connect() as connection:
             return self._budget_snapshot(connection, task_id)
+
+    def run_budget_snapshot(
+        self, policy: ProviderRunBudgetPolicy
+    ) -> ProviderRunBudgetSnapshot:
+        with self.db.connect() as connection:
+            self._assert_run_budget_binding(connection, policy)
+            return self._run_budget_snapshot(connection, policy.task_ids)
 
     def _terminal_replay(
         self,
@@ -710,12 +844,24 @@ class ReceiptBoundProviderService:
                 )
             budget = self._budget_snapshot(connection, context.task_id)
             projected = Decimal(budget.accounted_cost_usd) + reservation
+            rejection_detail = self._budget_rejection(
+                connection,
+                context=context,
+                descriptor=descriptor,
+                reservation=reservation,
+                now=now_value,
+            )
             if projected > self.price_policy.absolute_max_cost_usd:
                 error = (
                     "pre-call worst-case reservation would exceed absolute cost cap: "
                     f"{_decimal_text(projected)} > "
                     f"{self.price_policy.absolute_max_cost_usd}"
                 )
+            elif rejection_detail is not None:
+                error = rejection_detail
+            else:
+                error = None
+            if error is not None:
                 self.kernel._event(
                     connection,
                     task_id=context.task_id,
@@ -729,6 +875,9 @@ class ReceiptBoundProviderService:
                         "requested_reservation_usd": _decimal_text(reservation),
                         "absolute_max_cost_usd": str(
                             self.price_policy.absolute_max_cost_usd
+                        ),
+                        "run_budget_policy_hash": descriptor.get(
+                            "run_budget_policy_hash"
                         ),
                     },
                     command_id=terminal_command_id,
@@ -1001,8 +1150,20 @@ class ReceiptBoundProviderService:
             deduplicated=False,
         )
 
-    def _assert_call_caps(self, context: ProviderCallContext) -> None:
-        if context.max_logical_calls is None and context.max_http_attempts is None:
+    def _assert_call_caps(
+        self,
+        context: ProviderCallContext,
+        *,
+        requested_input_tokens: int,
+        requested_output_tokens: int,
+    ) -> None:
+        if (
+            context.max_logical_calls is None
+            and context.max_http_attempts is None
+            and context.max_input_tokens is None
+            and context.max_output_tokens is None
+            and context.deadline_at is None
+        ):
             return
         snapshot = self.budget_snapshot(context.task_id)
         if (
@@ -1021,6 +1182,138 @@ class ReceiptBoundProviderService:
                 raise ProviderBudgetExceeded(
                     "Provider product HTTP-attempt reservation exceeds its cap"
                 )
+        if (
+            context.max_input_tokens is not None
+            and snapshot.input_tokens + requested_input_tokens
+            > context.max_input_tokens
+        ):
+            raise ProviderBudgetExceeded(
+                "Provider product input-token reservation exceeds its cap"
+            )
+        if (
+            context.max_output_tokens is not None
+            and snapshot.output_tokens + requested_output_tokens
+            > context.max_output_tokens
+        ):
+            raise ProviderBudgetExceeded(
+                "Provider product output-token reservation exceeds its cap"
+            )
+        if context.deadline_at is not None:
+            deadline = datetime.fromisoformat(context.deadline_at)
+            if deadline.tzinfo is None:
+                raise ResearchValidationError(
+                    "Provider product deadline must be timezone-aware"
+                )
+            if self.kernel._now() >= deadline:
+                raise ProviderBudgetExceeded(
+                    "Provider product wall-time cap is exhausted"
+                )
+
+    def _budget_rejection(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        context: ProviderCallContext,
+        descriptor: dict[str, Any],
+        reservation: Decimal,
+        now: datetime,
+    ) -> str | None:
+        """Repeat all per-case/run-wide gates under the reservation write lock."""
+
+        task_snapshot = self._run_budget_snapshot(connection, (context.task_id,))
+        requested_input = int(descriptor["input_token_upper_bound"])
+        requested_output = int(descriptor["max_output_tokens"])
+        requested_http = self.price_policy.reservation_transport_attempts
+        per_case_checks = (
+            (
+                context.max_logical_calls,
+                task_snapshot.accounted_logical_calls + 1,
+                "logical-call",
+            ),
+            (
+                context.max_http_attempts,
+                task_snapshot.accounted_http_attempts + requested_http,
+                "HTTP-attempt",
+            ),
+            (
+                context.max_input_tokens,
+                task_snapshot.accounted_input_tokens + requested_input,
+                "input-token",
+            ),
+            (
+                context.max_output_tokens,
+                task_snapshot.accounted_output_tokens + requested_output,
+                "output-token",
+            ),
+        )
+        for limit, projected, name in per_case_checks:
+            if limit is not None and projected > limit:
+                return (
+                    f"Provider product {name} reservation exceeds its cap: "
+                    f"{projected} > {limit}"
+                )
+        if context.deadline_at is not None:
+            deadline = datetime.fromisoformat(context.deadline_at)
+            if deadline.tzinfo is None:
+                return "Provider product deadline is not timezone-aware"
+            if now >= deadline:
+                return "Provider product wall-time cap is exhausted"
+
+        policy = context.run_budget
+        if policy is None:
+            return None
+        self._assert_run_budget_binding(connection, policy)
+        if context.task_id not in policy.task_ids:
+            return "Provider Task is outside the frozen run-wide budget membership"
+        run_snapshot = self._run_budget_snapshot(connection, policy.task_ids)
+        started = datetime.fromisoformat(policy.started_at).astimezone(timezone.utc)
+        elapsed = (now.astimezone(timezone.utc) - started).total_seconds()
+        if elapsed < 0:
+            return "Provider run budget started_at is in the future"
+        run_checks = (
+            (
+                policy.max_logical_calls,
+                run_snapshot.accounted_logical_calls + 1,
+                "logical-call",
+            ),
+            (
+                policy.max_http_attempts,
+                run_snapshot.accounted_http_attempts + requested_http,
+                "HTTP-attempt",
+            ),
+            (
+                policy.max_input_tokens,
+                run_snapshot.accounted_input_tokens + requested_input,
+                "input-token",
+            ),
+            (
+                policy.max_output_tokens,
+                run_snapshot.accounted_output_tokens + requested_output,
+                "output-token",
+            ),
+        )
+        for limit, projected, name in run_checks:
+            if projected > limit:
+                return (
+                    f"Provider run-wide {name} reservation exceeds its cap: "
+                    f"{projected} > {limit}"
+                )
+        if elapsed >= policy.max_wall_seconds:
+            return "Provider run-wide wall-time cap is exhausted"
+        accounted = Decimal(run_snapshot.accounted_cost_usd)
+        if accounted >= policy.reserve_stop_usd:
+            return (
+                "Provider run-wide reserve-stop threshold is exhausted: "
+                f"{_decimal_text(accounted)} >= {policy.reserve_stop_usd}"
+            )
+        projected_cost = accounted + reservation
+        if projected_cost > policy.absolute_max_cost_usd:
+            return (
+                "Provider run-wide worst-case cost reservation exceeds its cap: "
+                f"{_decimal_text(projected_cost)} > "
+                f"{policy.absolute_max_cost_usd}"
+            )
+        return None
 
     def _finish_failed(
         self,
@@ -1480,6 +1773,112 @@ class ReceiptBoundProviderService:
             committed_cost_usd=_decimal_text(committed),
             active_reserved_cost_usd=_decimal_text(active),
             accounted_cost_usd=_decimal_text(committed + active),
+        )
+
+    def _assert_run_budget_binding(
+        self,
+        connection: sqlite3.Connection,
+        policy: ProviderRunBudgetPolicy,
+    ) -> None:
+        placeholders = ",".join("?" for _ in policy.task_ids)
+        rows = connection.execute(
+            f"""
+            SELECT task_id, evidence_policy_json FROM research_goals
+            WHERE revision=1 AND task_id IN ({placeholders})
+            ORDER BY task_id
+            """,
+            tuple(policy.task_ids),
+        ).fetchall()
+        if len(rows) != len(policy.task_ids):
+            raise ResearchValidationError(
+                "Provider run budget membership is incomplete in the durable database"
+            )
+        expected = policy.manifest()
+        expected_hash = policy.policy_hash
+        for row in rows:
+            evidence_policy = json.loads(str(row["evidence_policy_json"]))
+            binding = evidence_policy.get("provider_run_budget")
+            if not isinstance(binding, dict):
+                raise ResearchValidationError(
+                    "Provider Task has no durable run budget binding"
+                )
+            observed = {
+                key: binding.get(key)
+                for key in expected
+            }
+            if observed != expected or binding.get("policy_hash") != expected_hash:
+                raise ResearchValidationError(
+                    "Provider Task run budget binding does not match the frozen policy"
+                )
+
+    def _run_budget_snapshot(
+        self,
+        connection: sqlite3.Connection,
+        task_ids: tuple[str, ...],
+    ) -> ProviderRunBudgetSnapshot:
+        placeholders = ",".join("?" for _ in task_ids)
+        committed_logical = committed_http = 0
+        committed_input = committed_output = 0
+        committed_cost = Decimal("0")
+        action_rows = connection.execute(
+            f"""
+            SELECT observation_json FROM research_inner_actions
+            WHERE task_id IN ({placeholders}) AND action_schema_version=?
+              AND status IN ('succeeded', 'failed')
+            """,
+            (*task_ids, PROVIDER_ACTION_SCHEMA_VERSION),
+        ).fetchall()
+        for row in action_rows:
+            observation = json.loads(str(row["observation_json"]))
+            call = observation.get("provider_call", {})
+            usage = call.get("usage", {})
+            committed_logical += 1
+            committed_http += int(call.get("transport_attempts", 0))
+            committed_input += int(usage.get("input_tokens", 0))
+            committed_output += int(usage.get("output_tokens", 0))
+            committed_cost += Decimal(str(call.get("cost_usd", "0")))
+
+        active_logical = active_http = 0
+        active_input = active_output = 0
+        active_cost = Decimal("0")
+        effect_rows = connection.execute(
+            f"""
+            SELECT request_json FROM research_side_effects
+            WHERE task_id IN ({placeholders}) AND effect_kind=?
+              AND status IN ('reserved', 'in_flight', 'unknown')
+            """,
+            (*task_ids, PROVIDER_EFFECT_KIND),
+        ).fetchall()
+        for row in effect_rows:
+            request = json.loads(str(row["request_json"]))
+            price = request.get("price_table", {})
+            active_logical += 1
+            active_http += int(
+                price.get(
+                    "reservation_transport_attempts",
+                    self.price_policy.reservation_transport_attempts,
+                )
+            )
+            active_input += int(request.get("input_token_upper_bound", 0))
+            active_output += int(request.get("max_output_tokens", 0))
+            active_cost += Decimal(str(request.get("worst_case_cost_usd", "0")))
+        return ProviderRunBudgetSnapshot(
+            task_ids=tuple(sorted(task_ids)),
+            committed_logical_calls=committed_logical,
+            active_logical_reservations=active_logical,
+            accounted_logical_calls=committed_logical + active_logical,
+            committed_http_attempts=committed_http,
+            active_http_attempt_reservations=active_http,
+            accounted_http_attempts=committed_http + active_http,
+            committed_input_tokens=committed_input,
+            active_input_token_reservations=active_input,
+            accounted_input_tokens=committed_input + active_input,
+            committed_output_tokens=committed_output,
+            active_output_token_reservations=active_output,
+            accounted_output_tokens=committed_output + active_output,
+            committed_cost_usd=_decimal_text(committed_cost),
+            active_reserved_cost_usd=_decimal_text(active_cost),
+            accounted_cost_usd=_decimal_text(committed_cost + active_cost),
         )
 
     @staticmethod
