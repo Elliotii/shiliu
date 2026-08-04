@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-04T17:18:11+08:00
+> Updated at: 2026-08-04T22:55:49+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STAGE_3_CONTRACT
+  current_formal_stage: V5_B_STAGE_3_IMPLEMENTATION
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -19,9 +19,10 @@ resume_anchor:
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
   V5_B_accepted_stage_2_contract_head: a931e2863f3ae245205c1f64bad7e45d25f03225
   V5_B_accepted_stage_2_head: f879c80c0f547195a40d6804b6057debd077d11a
+  V5_B_accepted_stage_3_contract_head: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
   branch: codex/v5-main
-  pending_decision: V5_B_stage_3_contract_submission
-  next_action: V5_B_session_prepares_compact_stage_3_contract
+  pending_decision: V5_B_stage_3_implementation_submission
+  next_action: V5_B_session_implements_stage_3_under_accepted_contract
   roadmap_reconsideration_open: false
 ```
 
@@ -34,7 +35,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_2_accepted_stage_3_contract_preparation
+    status: stage_2_accepted_stage_3_implementation_active
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -60,6 +61,7 @@ repository:
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
   V5_B_accepted_stage_2_contract_head: a931e2863f3ae245205c1f64bad7e45d25f03225
   V5_B_accepted_stage_2_head: f879c80c0f547195a40d6804b6057debd077d11a
+  V5_B_accepted_stage_3_contract_head: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
   V5_B_execution_schema_source: 12
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -170,16 +172,16 @@ research_equals_implementation_authorization: false
 
 # 6. Next action boundary
 
-V5-B Stage 2 提交 `f879c80` 已通过有限验收。主 Session 独立复跑 Stage 1+2 核心测试
-`17 passed`，并确认测试窗口前后 live DB SHA-256 均为 `b156448d...`；live DB 仍为 schema 10、
-Stage 2 表为 0、integrity `ok`。Session 报告的完整默认无 Provider 套件为 `1703 passed,
-4 deselected`。提交期间受定时 sync 干扰的早期 hash 窗口被正确分类为
-`infrastructure-invalid`，不影响主 Session 后续建立的有效非动作窗口。
+V5-B Stage 3 Contract `70ba2b2` 已通过主 Session 的目标、authority、依赖顺序与 Gates A-E
+有限审阅。现有 fixed-commit DeepTutor/WeKnora 报告和本地 Stage 2 实现足以支持本 Stage；没有
+为了装饰 Contract 而新增上游研究、依赖或 Provider 语义。
 
-同一 V5-B Session 现在只获准准备精简 Stage 3 Contract，目标聚焦 Artifact retrieval 与
-`direct reuse | incremental refresh | research seed` 三路安全判定。Contract 必须保持开放检索与
-反例发现，旧 Artifact 不能成为 verifier，Stage 4 personal/corpus workspace 与 Stage 5 relations/eval
-不得提前实现。Stage 3 产品实施需等待主 Session 接受 Contract。
+同一 V5-B Session 已获准自主实施独立 Artifact/open-corpus 双 lane 检索，以及
+`direct reuse | incremental refresh | research seed` 三路 durable、可解释、fail-closed 判定。
+direct reuse 必须 exact/complete/current；incremental 只覆盖可隔离的小缺口；否则走 seed。
+旧 Artifact 永远不是 verifier，用户只能选择更保守路线，不能强制绕过 Gate。普通 projection、
+fixture、harness 与低风险实现错误继续由 V5-B Session 自行修复和有界复跑。
 
-DeepSeek 等付费调用若后续确有必要，单个连续预算包累计预计不超过 2 美元时视为用户已默认授权；
-超过 2 美元前必须暂停请求用户确认。当前仍不授权 live migration、push/merge/tag 或自我验收。
+当前不授权 live DB migration、Stage 4/5、V5-C/D、通用 vector/graph/memory 平台、push/merge/tag
+或自我验收。Provider 不是 Stage 3 mechanical acceptance 前提；若确有必要，DeepSeek 等连续预算包
+预计不超过 2 美元时视为用户已默认授权，超过 2 美元前必须暂停请求确认。
