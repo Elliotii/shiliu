@@ -8,6 +8,7 @@ updated_at: 2026-08-04
 branch: codex/v5-b
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
+bounded_main_review_correction: applied_docs_only
 charter_status: draft_pending_v5_main_acceptance
 stage_1_contract_status: draft_pending_v5_main_acceptance
 stage_1_implementation_authorized: false
@@ -18,7 +19,7 @@ live_database_mutated: false
 
 ## 1. 当前一句话状态
 
-V5-B startup/JIT research/Charter 已由 Version Session 完成并提交有限 Main review；尚未接受 Charter、尚未授权 Stage 1、尚未实施任何 V5-B 产品 schema/runtime/API/UI/tests。
+V5-B startup/JIT research/Charter 已完成；V5 Main 对使命、五 Stage、权威/存储/跨版本边界和上游 reference-only 提案已原则接受，要求的 Stage 1 docs-only 收窄修订已应用。Charter/Stage 1 仍待最终接受与明确授权，尚未实施任何 V5-B 产品 schema/runtime/API/UI/tests。
 
 ## 2. Branch 与 Baseline
 
@@ -60,9 +61,9 @@ V5-B startup/JIT research/Charter 已由 Version Session 完成并提交有限 M
 - L2：stable GroundedFact family + immutable FactRevision + exact Evidence links。
 - L3：stable ResearchArtifact/TopicPage family + immutable revisions；逐 fact 回到 L1。
 - V5-A Candidate snapshot 保持不可变来源；V5-B 单独建立长期 Candidate review identity/lifecycle。
-- Accept/Reject/Edit/Correct/Retire/Supersede/Revert 全部 append-only Decision/Event；Edit 不自动 promotion。
+- V5-B 全局采用 append-only Decision/Event 与 immutable revisions；Stage 1 只实现 Candidate Accept/Reject/Edit-as-new-candidate 和初始 Fact/Artifact/Page revisions，Fact/Page 后续 correction/retire/supersede/edit/revert 产品命令进入 Stage 2。
 - SQLite 是 canonical authority；filesystem 是 revision/hash 定址、可重建的不可变 export/cache。
-- 持久 BuildRun 是 generation/update/rebuild 状态权威；process/SSE/Redis 只可投影/唤醒。
+- Stage 1 的持久 BuildRun 只覆盖同步 deterministic artifact/page build；Stage 2 才覆盖 update/rebuild、后台恢复和 async late-result fencing。process/SSE/Redis 只可投影/唤醒。
 - Stage 1 只允许 KnowledgeDelta → Fact；其他 delta kinds 保持 candidate-only 到后续 Stage。
 
 ## 5. 拟议 Stage
@@ -114,7 +115,8 @@ V5-B startup/JIT research/Charter 已由 Version Session 完成并提交有限 M
 
 - edited candidate 的 server-owned grounded validator 尚未实现；Stage 1 Contract 要求没有 validator 时保持 `needs_revalidation`。
 - 具体 schema names/limits/API routes/UI layout 尚未实现，允许在 Contract 不变量内调整。
-- Async worker/queue 不在 Stage 1；Stage 1 只有 durable BuildRun/synchronous deterministic path。
+- Stage 1 只有同步 deterministic BuildRun；async worker/queue、late-result fencing 和通用 update/rebuild 在 Stage 2。
+- Page edit/history/diff/revert、Fact correction/retire/supersede、filesystem export command/failure matrix 均不是 Stage 1 gate，进入 Stage 2。
 - conflict detection、stale propagation、reuse/refresh/seed、personal/corpus workspace 均未实现。
 - upstream runtime behavior 未通过完整 upstream test execution 证明。
 - Provider 产品质量与 live migration 全部未授权/未证明。

@@ -7,6 +7,7 @@ contract_status: draft_pending_v5_main_acceptance
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
+limited_main_review: bounded_scope_correction_applied_pending_final_acceptance_and_authorization
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
 implementation_authorized: false
@@ -34,7 +35,7 @@ V5-A Research Task
 → page user review + transcript citation drill-down
 ```
 
-Stage 1 不解决全部 lifecycle/reuse/workspace；它先证明 Candidate 不会自动晋升，Fact/Page 能回到 L1，用户 correction 不抹掉历史，重复/故障/重启不会产生双份资产。
+Stage 1 不解决完整 lifecycle/reuse/workspace；它先证明 Candidate 不会自动晋升，首个 Fact/Artifact/Page revision 能回到 L1，Candidate edit 不覆盖来源历史，重复/故障/重启不会产生双份资产。
 
 ## 2. 用户可见最小结果
 
@@ -46,8 +47,8 @@ Stage 1 不解决全部 lifecycle/reuse/workspace；它先证明 Candidate 不�
 4. Accept 前重新验证所有引用仍为 `current`，否则进入 `needs_revalidation`，不生成 Fact；
 5. 从已接受 Fact 生成一份 Artifact 和 Topic Page draft；
 6. 在 Page 上看到 fact blocks、limitations/unresolved、来源视频与时间戳并下钻字幕；
-7. review/publish 或退回 Page；edit/revert 形成新 revision；
-8. 重启后看到相同 review、build 和 lineage；重复命令不创建重复对象。
+7. 以 expected-version guard review Page，并 publish 或退回；
+8. 重启后看到相同 Candidate、Fact、Artifact、首个 Page revision、review 与 build 状态；重复命令不创建重复对象。
 
 ## 3. 起始资产与不可冒充项
 
@@ -107,8 +108,7 @@ Append-only，至少保存 decision ID、candidate/revision、kind（accept/reje
 | scope | temporal/viewpoint scope 可空但字段存在；不能把缺失推断为 universal |
 | origin | source candidate revision、Task、Decision |
 | evidence links | 每项绑定 EvidenceIdentity、source EvidenceUse、promotion-time Validation |
-| state | currentness/conflict/retire 由 observations/decisions 派生，不改旧 revision body |
-| supersede | parent/supersedes revision 明确；Stage 1 只铺设，不实现自动 conflict |
+| lifecycle hooks | 可空 parent/supersedes/currentness/conflict/retire lineage hook；Stage 1 不提供对应产品命令 |
 
 Stage 1 promotion eligibility：
 
@@ -127,24 +127,23 @@ Stage 1 promotion eligibility：
 - `artifact_id` 是 stable family；`artifact_revision_id` 不可变。
 - 保存 topic/scope、fact revision links、answer blocks、limitations、unresolved questions、source task/result/corpus snapshot、content hash。
 - 只允许引用已 accepted 且 promotion-time current 的 FactRevision。
-- canonical body 在 SQLite；filesystem Markdown/JSON 是按 revision/hash 寻址的派生导出。
-- 同一 build input boundary + policy version exact-once；Fact 集合或内容改变创建新 revision。
+- canonical body 在 SQLite；filesystem 未来可保存按 revision/hash 寻址的派生导出，但 Stage 1 不要求 export command 或 failure/retry matrix。
+- 同一 build input boundary + policy version exact-once；Stage 1 只创建首个 immutable ArtifactRevision。
 
 ### 4.5 TopicPage / PageRevision
 
 - `page_id` 稳定；`slug` 在个人 workspace 内唯一且 server-normalized。
-- `page_revision_id` 不可变；`version` 单调递增。
-- status：`draft / published / archived`；Stage 1 不 hard delete。
+- `page_revision_id` 不可变；首个 revision 的 `version=1`，并保留未来单调递增的 schema/lineage foundation。
+- immutable content revision 与 review status projection 分离；Stage 1 review 状态为 `draft / published / returned`，由 append-only PageReviewDecision 派生。
 - body blocks 引用 ArtifactRevision/FactRevision；保存 limitations/unresolved/currentness projection。
-- user-visible change 用 expected version；更新与 superseded revision snapshot 同事务。
-- metadata-only export/link/currentness refresh 不伪造内容 version，但必须有 observation/event。
-- revert 作为新 revision，`edit_source=revert`，旧历史不改。
+- publish/return 使用 expected page version/review state guard；失败不改变 immutable revision 或留下孤立 Decision。
+- Stage 1 不提供 Page content edit、history/diff/revert、archive 或后续 revision 创建命令；这些进入 Stage 2。
 
 ### 4.6 KnowledgeBuildRun
 
-最小字段：run ID、kind（artifact_build/page_build/export）、input boundary/hash、status（queued/running/waiting_user/succeeded/failed/cancelled）、attempt、error class/message、output revision、command receipt、created/started/finished time。
+最小字段：run ID、kind（artifact_build/page_build）、input boundary/hash、status（queued/running/succeeded/failed）、attempt、error class/message、output revision、command receipt、created/started/finished time。
 
-Stage 1 可同步执行 deterministic build，不引入通用 worker/Redis/asynq；但 run 状态必须先持久、terminal 结果可重放、crash gap 可由 receipt/transaction 恢复。SSE/polling 不是权威。
+Stage 1 同步执行 deterministic build，不引入通用 worker/Redis/asynq；但 run 状态必须先持久、terminal 结果可重放、crash gap 可由 receipt/transaction 恢复。SSE/polling 不是权威。异步 late-result fencing、通用 update/rebuild 和后台恢复属于 Stage 2。
 
 ## 5. 命令与原子边界
 
@@ -157,9 +156,6 @@ Stage 1 可同步执行 deterministic build，不引入通用 worker/Redis/asynq
 - `build_research_artifact`
 - `build_topic_page`
 - `review_topic_page`
-- `edit_topic_page`
-- `revert_topic_page`
-- `export_revision`
 
 ### 必须同事务提交
 
@@ -168,32 +164,31 @@ Stage 1 可同步执行 deterministic build，不引入通用 worker/Redis/asynq
 3. Reject Decision + Candidate transition + Event + Receipt；
 4. Edit Decision + child Candidate revision + parent supersede + Event + Receipt；
 5. ArtifactRevision + fact links + BuildRun terminal + Event + Receipt；
-6. PageRevision/current head + artifact/fact links + BuildRun/review Event + Receipt；
-7. Page user edit/revert + superseded snapshot + version guard + Event + Receipt。
+6. 首个 PageRevision/current head + artifact/fact links + BuildRun terminal + Event + Receipt；
+7. PageReviewDecision + review status projection + expected-version guard + Event + Receipt。
 
-filesystem export 不加入 SQLite 事务双主。SQLite 先成为权威；export 命令按 revision/hash 幂等，失败记录在 BuildRun/export observation，可安全重试。
+Stage 1 只建立 SQLite authority 与未来 filesystem 派生导出的 addressing hook；不实现或验收 export command、export failure/retry。该产品面进入 Stage 2。
 
 ## 6. Read / Update / Delete 语义
 
 ### Read
 
-- 默认返回 current head + currentness/conflict projection；
-- 可查询完整 candidate/fact/artifact/page revision lineage；
+- 默认返回本 Stage 创建的 current head 与 review/currentness projection；
+- 可查询本 Stage 创建的 Candidate parent、Fact/Artifact/Page origin lineage；
 - 每个事实性 block 可下钻 FactRevision → Evidence → transcript；
 - cross-task evidence use 不因共享 EvidenceIdentity 而失去来源隔离。
 
 ### Update
 
-- Candidate edit、Fact correction、Artifact/Page edit 均创建 revision/new candidate；
-- stale writer/version conflict 返回 typed conflict，不做 last-write-wins；
-- old async response/build result 在 input head 改变后不得提交 current head。
+- Candidate edit 创建 child candidate；Fact/Artifact/Page 在 Stage 1 没有 correction/edit 产品命令。
+- Page publish/return 的 stale expected version/review state 返回 typed conflict，不做 last-write-wins。
+- Fact correction/retire/supersede、Artifact/Page subsequent revision 与 async late-result fencing 进入 Stage 2。
 
 ### Delete
 
-- Candidate：reject/supersede；
-- Fact：retire/supersede/tombstone observation；
-- Artifact/Page：archive/new revision；
-- 本 Stage 没有 hard-delete authority API；测试临时数据库 teardown 不属于产品删除语义。
+- Candidate 只支持 reject 或因 Edit 被 child candidate supersede。
+- Fact/Artifact/Page 在 Stage 1 没有 delete、retire、supersede、archive 或 correction 产品命令；只保留未来 lineage hook。
+- 测试临时数据库 teardown 不属于产品删除语义。
 
 ## 7. API 与 UI 最小范围
 
@@ -204,7 +199,7 @@ filesystem export 不加入 SQLite 事务双主。SQLite 先成为权威；expor
 - review accept/reject/edit；
 - Fact/Artifact/Page detail 与 lineage/citation drill-down；
 - deterministic build/status；
-- Page review/edit/history/revert；
+- Page publish-or-return review；
 - 所有 mutation 复用 server-owned principal、authorization、receipt 和 typed conflict/error。
 
 ### UI
@@ -215,7 +210,6 @@ filesystem export 不加入 SQLite 事务双主。SQLite 先成为权威；expor
 - Accept/Reject/Edit；edited candidate 的 `needs revalidation` 明示；
 - Topic Page draft、fact/limitation/unresolved 分区；
 - Page review/publish/return；
-- revision history/diff/revert；
 - 原视频/时间戳 citation drill-down；
 - build failed/pending/succeeded 状态，不用无限 spinner 冒充状态。
 
@@ -248,22 +242,21 @@ filesystem export 不加入 SQLite 事务双主。SQLite 先成为权威；expor
 - current evidence accept success；stale/missing/invalid/error 不创建 Fact；
 - accept atomic fault rollback 后重启只创建一个 Fact；
 - reject 幂等且不删除来源；edit 产生 child candidate，不自动 Fact；
-- Fact/links/Decision/Event 不可变；correction/supersede lineage 不覆盖。
+- 初始 Fact/links/Decision/Event 不可变；可空 correction/supersede lineage hook 不授予产品命令。
 
 ### Artifact / Page / BuildRun
 
 - 同一 input boundary exact-once；fact set mismatch fails closed；
 - Artifact/Page 只引用 accepted Fact；forged fact/revision 拒绝；
-- Page expected-version conflict，失败不留下幽灵 snapshot；
-- metadata-only change 不 bump visible version；user edit/revert 创建新 revision；
-- build crash/fault rollback/restart/replay；late result 被新 head fence；
-- filesystem export temp/replace、hash verify、failure/retry 不改变 SQLite current head。
+- Page review expected-version conflict，失败不留下孤立 Decision 或错误 status；
+- Artifact/Page 首个 revision 与 BuildRun crash/fault rollback/restart/replay；
+- duplicate build/review command exact-once；payload mismatch fail closed。
 
 ### Product / compatibility
 
 - 一条完整 no-provider UI/API journey：Task → Candidate → Evidence → Fact → Artifact → Page → review；
 - transcript citation drill-down 与 source version currentness；
-- restart 后 Inbox/Page/history/status 稳定；
+- restart 后 Inbox、首个 Page revision、review 与 BuildRun status 稳定；
 - `/search`、`/ask` Fast/Deep、`/research` 和 default suite affected regression；
 - 无 Keychain、Provider、live DB、live content 访问。
 
@@ -275,13 +268,17 @@ Stage 1 只有在 V5 Main 看到以下证据后才可接受：
 2. no-provider vertical journey 真实可用；
 3. Candidate 不自动 promotion，edited claim 不越过 grounding；
 4. Fact/Page 可下钻 L1，currentness fail closed；
-5. duplicate/restart/race/fault/export/version conflict 有机械证据；
+5. duplicate/restart/fault rollback 与 Page review expected-version conflict 有机械证据；
 6. 现有产品回归通过，未修改 live DB；
 7. 实现报告列出未证明项和下一 Stage 触发器。
 
 ## 11. 明确非目标
 
 - 自动 conflict detection、source-version background revalidation、incremental refresh queue；
+- Fact correction/retire/supersede 产品命令（schema/lineage hook 除外）；
+- Page content edit、history/diff/revert、archive 与后续 revision 产品命令；
+- filesystem export command 及 export failure/retry 验收矩阵；
+- async late-result race/fencing、通用 update/rebuild 与后台恢复；
 - Artifact retrieval/direct reuse/research seed；
 - CorpusDelta/UserModelDelta/SystemExperienceDelta promotion；
 - Explicit User Memory、Current Focus、KnowledgeProgress、CorpusModel；

@@ -6,6 +6,7 @@ version_session: Shiliu V5-B Version Session
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
+limited_main_review: mission_boundaries_and_stage_sequence_accepted_in_principle_bounded_scope_correction_applied
 starting_branch: codex/v5-b
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
@@ -72,9 +73,9 @@ V5-B 不替换 V5-A Research Runtime，也不把普通聊天历史、模型摘�
 3. 每个 GroundedFact revision 必须能沿明确 link 回到 EvidenceIdentity、原始 EvidenceUse、SourceVersion 和用于 promotion 的 current validation。
 4. Artifact/Page 的每个事实性块必须回到允许的 FactRevision，再回到 L1；页面关系只是导航，不是 Citation。
 5. V5-A Candidate Delta 始终是 candidate-only；不得自动 promotion。
-6. accept/edit/reject/correct/retire/supersede/revert 都是显式命令与 append-only Decision/Event；不得静默覆盖历史。
+6. accept/edit/reject/correct/retire/supersede/revert 在其获授权 Stage 中都必须是显式命令与 append-only Decision/Event；不得静默覆盖历史。
 7. 用户确认只能授予“用户选择/偏好/审核决定”的权威，不能单独证明外部事实。
-8. physical delete、overwrite history 或 reset authority 不进入 Stage 1；删除以 reject/retire/tombstone/supersede 表达。
+8. V5-B 不以 physical delete、overwrite history 或 reset 表达权威变化；Stage 1 只实现 Candidate reject/edit lineage，Fact/Page correction/retire/supersede/revert 产品命令进入 Stage 2。
 9. 所有重复命令使用 CommandReceipt + payload hash；payload mismatch fail closed；跨 Task/Evidence/owner/version 引用 fail closed。
 10. SQLite 是身份、状态、lineage 和 canonical body 的唯一权威；filesystem 是按 revision/hash 寻址、可重建的不可变导出/缓存。
 11. 构建/刷新状态必须持久；process lock、Redis flag、SSE/polling 只可作为投影或唤醒机制。
@@ -101,7 +102,7 @@ V5-B 不替换 V5-A Research Runtime，也不把普通聊天历史、模型摘�
 
 - `ResearchArtifact` 是可检索的研究综合 family；不可变 ArtifactRevision 引用 FactRevision，并保存 scope、limitations、unresolved questions、corpus/source snapshot。
 - `TopicPage` 是稳定用户入口；不可变 PageRevision 引用 ArtifactRevision/FactRevision，展示不同观点、时间演化、冲突、局限、未解决问题和字幕下钻。
-- Artifact/Page 的 current head 是投影；revert 产生新 revision。
+- Artifact/Page 的 current head 是投影；Stage 2 的 edit/revert 必须产生新 revision。
 
 ## 5. 架构选择
 
@@ -113,17 +114,17 @@ Stage 1 只允许 `KnowledgeDelta` 进入 Fact promotion；CorpusDelta/UserModel
 
 ### 5.2 Revision-first，而非 in-place overwrite
 
-Fact、Artifact、Page 都使用 stable family ID + immutable revision ID + append-only decisions/observations。用户可见 change 使用 expected version/revision guard；修正/回退创建新 revision，旧历史保持可查询。
+Fact、Artifact、Page 都使用 stable family ID + immutable revision ID + append-only decisions/observations。Stage 1 只创建初始 immutable revisions，并为未来 lineage 保留 hook；Stage 2 才交付 Fact correction/retire/supersede、Page edit/history/diff/revert 与后续 revisions。用户可见 change 使用 expected version/revision guard，旧历史保持可查询。
 
 ### 5.3 Durable BuildRun
 
-页面/Artifact build、未来 refresh/rebuild 用持久 BuildRun 表达 `queued/running/waiting_user/succeeded/failed/cancelled`、attempt/error/receipt/input boundary/output revision。Stage 1 可以同步执行 deterministic no-provider build，但状态和结果必须重启稳定；后续 Stage 才引入持久 pending operation/后台唤醒。
+页面/Artifact build、未来 refresh/rebuild 使用持久 BuildRun。Stage 1 只同步执行 deterministic no-provider artifact/page build，并证明 receipt、terminal 结果和重启稳定；Stage 2 才引入 update/rebuild pending operation、后台唤醒、retry/dead-letter、needs-user 和 async late-result fencing。
 
 ### 5.4 Storage split
 
 - SQLite：Candidate、Decision、Fact/Revision、evidence links、Artifact/Page revision、BuildRun、current projection、CommandReceipt。
 - Filesystem：revision/hash 定址的 Markdown/JSON export 和 render cache。
-- 导出失败是可观察、可重试的派生失败，不破坏数据库权威；导出文件不参与 citation/current-head 判定。
+- 导出文件永不参与 citation/current-head 判定。Stage 1 只保留可选 addressing hook；export command 与 failure/retry 验收进入 Stage 2。
 
 ## 6. 上游采用边界
 
@@ -143,14 +144,15 @@ Fact、Artifact、Page 都使用 stable family ID + immutable revision ID + appe
 ```text
 Research Task → KnowledgeDelta Candidate intake → Evidence review
 → accept/reject（edit 形成新 candidate revision）
-→ Grounded Fact → Research Artifact → Topic Page → user review
+→ accepted Grounded Fact → deterministic Research Artifact
+→ first Topic Page revision → publish-or-return review → transcript drill-down
 ```
 
-建立最小 revision/BuildRun/receipt/API/UI/字幕下钻；无 Provider、临时 DB 验证，live migration 不授权。
+建立 stable family/revision identity、append-only foundation、同步 durable BuildRun、receipt、expected-version review guard、最小 API/UI 和字幕下钻；无 Provider、临时 DB 验证，live migration 不授权。Page edit/history/diff/revert、Fact correction/retire/supersede、filesystem export gate 和 async late-result fencing 不属于 Stage 1 验收。
 
 ### Stage 2 — Knowledge Lifecycle, Revalidation and Durable Refresh
 
-加入 source-version revalidation、stale/conflict/viewpoint/temporal scope、supersede/retire、Artifact/Page revision lineage，以及持久 update/rebuild pending operation、restart recovery、retry/dead-letter/needs-user。新 Evidence 只生成 update candidate，不自动改 current Page。
+加入 source-version revalidation、stale/conflict/viewpoint/temporal scope；交付 Fact correction/retire/supersede、Artifact/Page 后续 revision、Page edit/history/diff/revert；交付 filesystem export command/failure/retry，以及持久 update/rebuild pending operation、restart recovery、retry/dead-letter/needs-user 和 async late-result fencing。新 Evidence 只生成 update candidate，不自动改 current Page。
 
 ### Stage 3 — Artifact Retrieval, Reuse and Research Continuation
 

@@ -9,6 +9,7 @@ starting_head: b85340540cb92c2e46bfb8619598e7aa987171d4
 submission_commit: git_commit_containing_this_report_set
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
 startup_assignment_complete: true
+bounded_main_review_correction: applied_docs_only
 charter_accepted: false
 stage_1_contract_accepted: false
 stage_1_implementation_authorized: false
@@ -166,18 +167,18 @@ Candidate snapshot 是不可变来源；V5-B 新建独立 durable review identit
 
 ### 6.2 Storage
 
-SQLite 是 candidate/decision/fact/artifact/page/build/receipt/canonical body 的唯一权威。Filesystem 只保存 revision/hash-addressed immutable Markdown/JSON export/cache；export failure 可重试，不改变 SQLite current head。
+SQLite 是 candidate/decision/fact/artifact/page/build/receipt/canonical body 的唯一权威。Filesystem 只可保存 revision/hash-addressed immutable Markdown/JSON export/cache；Stage 1 不实现或验收 export command/failure/retry，相关产品面进入 Stage 2。
 
 ### 6.3 Durable build
 
-Stage 1 建立持久 BuildRun，但可用同步 deterministic no-provider command 执行。完整 durable pending operation、wakeup/recovery/retry/dead-letter 放 Stage 2，避免先造通用 queue platform。
+Stage 1 建立并同步执行 artifact/page deterministic no-provider BuildRun。完整 durable pending operation、wakeup/recovery/retry/dead-letter、general update/rebuild 和 async late-result fencing 放 Stage 2，避免先造通用 queue platform。
 
 ## 7. Stage breakdown
 
 | Stage | 目标 | 主要不进入项 |
 | --- | --- | --- |
-| 1 | Task → Candidate → Evidence review → Fact → Artifact → Page → user review | async refresh、reuse、user/corpus workspace |
-| 2 | revalidation/stale/conflict/supersede + durable update/rebuild | artifact reuse/personalization |
+| 1 | Research Task → KnowledgeDelta intake/review → current Evidence validation → accepted Fact → deterministic Artifact → first Page revision → publish-or-return → transcript drill-down | Page edit/history/revert、Fact lifecycle、export gate、async refresh、reuse、user/corpus workspace |
+| 2 | revalidation/stale/conflict + Fact correction/retire/supersede + Page edit/history/diff/revert + export + durable update/rebuild/late-result fencing | artifact reuse/personalization |
 | 3 | direct reuse/incremental refresh/research seed | user/corpus state |
 | 4 | Explicit Memory/inferred candidates/Focus/Progress/Corpus soft prior/Experience | V5-C behavior、V5-D Skill |
 | 5 | product closure/relations/observability/eval/regression | enterprise Wiki/GraphRAG default |
@@ -189,18 +190,20 @@ Stage 1 建立持久 BuildRun，但可用同步 deterministic no-provider comman
 若 Main 接受 Charter 与 Contract，请只授权：
 
 - Stage 1 schema 与临时 migration tests；
-- no-provider Candidate/Fact/Artifact/Page runtime/API；
-- 最小 Candidate/Page review UI 和 transcript citation drill-down；
-- duplicate/restart/race/fault/export/version conflict tests；
+- no-provider Candidate intake/review、current Evidence validation、初始 Fact/Artifact/Page runtime/API；
+- synchronous durable artifact/page BuildRun；
+- 最小 Candidate/Page publish-or-return review UI 和 transcript citation drill-down；
+- receipt、expected-version review guard、duplicate/restart/fault rollback tests；
 - Search/Ask/Research affected regression。
 
-继续不授权：live migration、Provider/paid service、credentials/Keychain、upstream copy/new dependency、Stage 2–5、V5-C/V5-D。
+继续不授权：Page edit/history/diff/revert、Fact correction/retire/supersede 产品命令、filesystem export command/failure matrix、async late-result/update/rebuild、live migration、Provider/paid service、credentials/Keychain、upstream copy/new dependency、Stage 2–5、V5-C/V5-D。
 
 ## 9. Unproven / deferred
 
 - Charter/Stage 1 尚未被 Main 接受；实现未开始。
 - edited claim 的 server-owned grounded validator 未实现；没有 validator 时必须 `needs_revalidation`。
 - exact schema/table/API/limits/UI layout 等待 Stage 1 implementation review，不能放宽 Contract identity/authority。
+- Stage 1 只创建初始 immutable Fact/Artifact/Page revisions；Page edit/history/diff/revert、Fact correction/retire/supersede 与 filesystem export gate 已明确移至 Stage 2。
 - DeepTutor tests 未执行；WeKnora Go tests 未执行；两者 Provider generation 未运行。
 - conflict/stale propagation、async refresh、reuse/seed、personal/corpus workspace 未实现。
 - default full Shiliu suite 本轮未运行；只运行足以验证 planning assumption 的 73 项 directed tests。
