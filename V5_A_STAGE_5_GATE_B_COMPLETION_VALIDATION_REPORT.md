@@ -1,6 +1,6 @@
 # V5-A Gate B Completion Validation Report
 
-Date: 2026-08-04  
+Date: 2026-08-04
 Status: submitted for V5 Main review; not self-accepted
 
 ## Outcome

@@ -1,6 +1,7 @@
-# 拾流 V5-A Decision Ledger（Accepted）
+# 拾流 V5-A Decision Ledger（Closed）
 
-> 本 Ledger 不是 Program Decision Ledger。以下提案已经 V5 主 Session 最终接受；正式权威记录仍以 `V5_A_STARTUP_MAIN_REVIEW_AND_STAGE_1_AUTHORIZATION.md` 与 Program Decision Ledger 为准。
+> 本 Ledger 不是 Program Decision Ledger。正式权威记录以主 Session acceptance
+> records、`V5_A_GATE_C_AND_CLOSEOUT_REPORT.md` 与 Program Decision Ledger 为准。
 
 ```jsonl
 {"decision_id":"V5A-D001","date":"2026-07-31","status":"accepted","main_review_round_1":"direction_confirmed","proposal_authority":"V5-A execution session","acceptance_authority":"V5 main session","scope":"version_stage_sequence","decision":"Use dependency-ordered stages: Durable Task Kernel and Safety Envelope; Evidence-backed Inner Research Loop; Outer Goal Audit and Recursive Continuation; HITL and Operational Control; Product Completion/Trace/Reliability Evaluation.","rationale":"Durable identity, ownership fences, mutation guards and external in-flight safety are prerequisites for recursive continuation, HITL, branch and replay correctness.","evidence":["V5_A_VERSION_CHARTER.md","V5_A_STAGE_1_CONTRACT.md"],"implementation_authorized":false,"next_action":"V5_A_stage_1_implementation"}
@@ -17,17 +18,21 @@
 ```yaml
 ledger_status: accepted
 main_review_round_1: completed
-final_main_review: accepted
-final_accepted_decisions: 9
+final_main_review: accept_with_known_retrieval_limitation
+final_accepted_decisions: 10
 stage_1_implementation_authorized: true
-implementation_authority_scope: V5_A_STAGE_1_CONTRACT_only
-stage_1_status: accepted
-stage_1_acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
-next_action: V5_A_stage_2_contract_preparation
+implementation_authority_scope: V5_A_closed
+stage_1_through_4_status: accepted
+stage_5_gate_A_status: accepted
+stage_5_gate_B_status: partial_accept_with_known_retrieval_limitation
+stage_5_gate_C_status: passed
+V5_A_status: accepted_with_known_retrieval_limitation
+next_action: prepare_V5_B_startup_plan_and_entry_audit
 ```
 
-## Pending V5 Main decision
+## Historical proposal and final resolution
 
 ```jsonl
 {"decision_id":"V5A-D010","date":"2026-08-04","status":"proposed_pending_main_acceptance","proposal_authority":"V5-A execution session","acceptance_authority":"V5 main session","scope":"stage_5_product_constraint_profile_and_repeat_input_lifecycle","decision":"Offer one server-owned grounded_current_evidence product profile. Its authority is bound internally at Task creation and cannot be granted by client evidence_policy, Provider output, candidate or confidence. It applies only when the active Goal has no additional free-text success constraints; otherwise all unregistered required semantics remain fail-closed. A resolved authorized_evaluator_required clarification may authorize at most one such question lifecycle; the same capability blocker is durably suppressed rather than asked again.","rationale":"This gives ordinary product composition a real grounded completion path without weakening Stage 3 evaluator authority or rewriting unsupported semantic constraints, and closes Gate B H-only duplicate InputRequest behavior.","evidence":["V5_A_STAGE_5_GATE_B_PRODUCT_COMPLETION_BOUNDED_REWORK_REPORT.md","V5_A_STAGE_5_GATE_B_COMPLETION_VALIDATION_AMENDMENT.md"],"implementation_authorized":true,"provider_validation_authorized":false,"gate_C_authorized":false,"next_action":"V5_main_session_bounded_product_completion_review"}
+{"decision_id":"V5A-D011","date":"2026-08-04","status":"accepted_with_known_retrieval_limitation","proposal_authority":"V5-A execution session","acceptance_authority":"V5 main session","scope":"V5_A_final_acceptance","decision":"Accept the server-owned grounded_current_evidence profile and repeat-input lifecycle as fail-closed product mechanics; accept V5-A Durable Recursive Research Runtime and Gate C, while leaving representative compound-query grounded completion unproven.","rationale":"The product profile cannot be client- or Provider-granted, repeated blockers remain suppressed, durable orchestration and honest stops are proven, and Gate C passed. The final 0-hit smoke was caused by a retrieval boundary after dense fallback, so it is recorded for later JIT search/agent work instead of being represented as success or driving an unbounded V5-A loop.","evidence":["V5_A_STAGE_5_GATE_B_COMPLETION_VALIDATION_REPORT.md","V5_A_STAGE_5_GATE_B_GROUNDED_COMPLETION_SMOKE_REPORT.md","V5_A_GATE_C_AND_CLOSEOUT_REPORT.md","04e5c5bbb94311a00f6efafa142908fd7b2b97de"],"gate_C_authorized":true,"gate_C_completed":true,"live_schema":10,"provider_validation_complete":false,"next_action":"prepare_V5_B_startup_plan_and_entry_audit","supersedes":"V5A-D010"}
 ```

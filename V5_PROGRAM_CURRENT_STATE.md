@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-07-31T02:21:31+08:00
+> Updated at: 2026-08-04T13:48:28+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,96 +8,73 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: V5_A
-  current_stage: V5_A_STAGE_2_CONTRACT_PREPARATION
-  accepted_commit: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
-  active_execution_session: 019fb35a-d022-7a32-b963-3327adda8135
+  current_subversion: none
+  last_completed_subversion: V5_A
+  last_completed_status: accepted_with_known_retrieval_limitation
+  current_formal_stage: none
+  active_execution_session: none
+  accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
+  branch: codex/v5-main
   pending_decision: none
-  next_action: V5_A_session_prepares_stage_2_contract
+  next_action: prepare_V5_B_startup_plan_and_entry_audit
   roadmap_reconsideration_open: false
 ```
 
----
+# 1. Program status
 
-# 1. Repository
+```yaml
+program:
+  V5_A:
+    goal: Durable Recursive Research Runtime
+    status: accepted_with_known_retrieval_limitation
+  V5_B:
+    goal: Evidence-backed Personal Knowledge and Corpus Workspace
+    status: not_started
+  V5_C:
+    goal: Personalized Research Agent
+    status: not_started
+  V5_D:
+    goal: Controlled Experience-driven Search Policy Improvement
+    status: not_started
+  Post_V5:
+    status: conditional_long_term_direction
+```
+
+长期路线与功能目标未改变。V5-B/C/D 的具体 Schema、框架、Commit、Goal 数量和版本内
+顺序仍未冻结，也没有提前实施。
+
+# 2. Repository and runtime
 
 ```yaml
 repository:
   root: /Users/elliot/new-systems/agent-job-prep/Shiliu
   branch: codex/v5-main
-  starting_product_baseline: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  head_before_governance_baseline: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  governance_baseline: commit_containing_this_record
-  working_tree_at_live_audit:
-    tracked: clean
-    untracked:
-      - 拾流_V5主Codex交接包_2026-07-30/
-  remote:
-    name: origin
-    url: https://github.com/Elliotii/shiliu.git
-    audited_starting_branch: origin/codex/v4.1-hardening
-    audited_ahead: 0
-    audited_behind: 0
-  tags:
-    v4: absent
-    v4_1: absent
-    historical_checkpoint_tags_present: 7
+  V5_A_fast_forward_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
+  merge_conflicts: 0
+  pushed: false
+  tagged: false
+live_runtime:
+  database: /Users/elliot/Library/Application Support/Shiliu/shiliu.db
+  schema: 10
+  integrity_check: ok
+  foreign_key_violations: 0
+  videos: 157
+  completed_videos: 140
+  sync_runs: 373
+  research_tasks: 0
+  web_launch_agent: running
+  scheduled_sync_launch_agent: loaded
 ```
 
----
+Gate C 的两份可恢复 schema 9 备份、迁移指纹、测试和 HTTP smoke 记录见
+`V5_A_GATE_C_AND_CLOSEOUT_REPORT.md`。
 
-# 2. Program Status
-
-```yaml
-program:
-  V5_A: active
-  V5_B: not_started
-  V5_C: not_started
-  V5_D: not_started
-  post_V5: conditional_long_term_direction
-```
-
----
-
-# 3. Current Subversion
-
-```yaml
-current:
-  charter:
-    path: V5_A_VERSION_CHARTER.md
-    status: accepted
-  stage_contract:
-    path: V5_A_STAGE_1_CONTRACT.md
-    status: fulfilled_and_accepted
-  main_review:
-    path: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
-    decision: accept
-  execution_session:
-    role: Shiliu V5-A Version Session
-    thread_id: 019fb35a-d022-7a32-b963-3327adda8135
-    execution_branch: codex/v5-a
-    worktree: /Users/elliot/.codex/worktrees/3324/Shiliu
-    assignment: V5_A_STAGE_2_contract_preparation_only
-  baseline: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
-  startup_report_accepted: true
-  stage_1_implementation_started: true
-  stage_1_status: accepted
-  stage_1_report_pending: false
-```
-
-V5-A Stage 1 已完成一轮有界返工并由主 Session 正式接受。唯一活跃的 V5-A
-子版本 Session 继续主导该子版本；当前只进入 Stage 2 Contract 与
-Just-in-time 实施计划准备，不开始 Stage 2 产品实施。
-
----
-
-# 4. Accepted Results
+# 3. Accepted technical baseline
 
 ```yaml
 accepted_results:
   V4:
     status: complete
-    commit: cbf264be2571c3d62775c064445de8a1ba17880a
     capabilities:
       - /search
       - fast_grounded_answer
@@ -105,159 +82,62 @@ accepted_results:
       - shared_grounding_and_stable_citation
   V4_1:
     status: partial_closed_and_archived
-    archive_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-    provider_configuration_changed: false
-    known_provider_failure_proves_algorithm_regression: false
-  V5_A_STAGE_1:
-    status: accepted
-    accepted_baseline: cbfc7d1c571a2e2935df33c07cec94dd5f87ac78
-    implementation_commit: c8a3f9f054b6793dade3e353fbf61fd8a583ec06
-    bounded_rework_commit: ecbea72b483487a4a64d46d286719e89d024e22f
-    acceptance_record: V5_A_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md
+    harness_is_product_runtime: false
+  V5_A:
+    status: accepted_with_known_retrieval_limitation
     capabilities:
-      - durable_research_task_kernel
-      - schema_7_source_and_temporary_database_migration_tests
-      - ownership_lease_and_epoch_fence
-      - command_receipt_and_payload_deduplication
-      - task_scoped_side_effect_protocol
-      - checkpoint_restart_and_lineage
-      - minimal_research_JSON_API
+      - durable_task_goal_attempt_checkpoint_result
+      - ownership_lease_epoch_and_idempotent_commands
+      - fail_closed_external_side_effects
+      - evidence_backed_inner_research
+      - outer_constraint_audit_and_targeted_continuation
+      - hitl_interrupt_resume_cancel_and_input_control
+      - durable_trace_product_page_and_api
+      - provider_receipt_usage_cost_and_honest_stop
 ```
 
----
+# 4. Known limitation carried forward
 
-# 5. Current Blockers
-
-- 技术阻塞：无。
-- Stage 2 Contract 尚未起草或接受；Stage 2 产品实施尚未授权。
-- Provider 与 live DB Migration 仍未授权。
-
----
-
-# 6. Upstream State Relevant Now
+V5-A 没有证明任意长复合查询都能完成 grounded answer。最终代表性 smoke 在 dense
+model not ready 时降级到 lexical 并得到 0 个命中，因此 EvidenceUse/citation 为 0。
+主 Session 将此接受为明确的检索边界，而不是继续扩大 V5-A 的 bounded rework。
 
 ```yaml
-V5_A_candidates:
+known_retrieval_limitation:
+  durable_runtime_regression: false
+  representative_grounded_completion_proven: false
+  candidate_future_owners:
+    - V5_C
+    - V5_D
+  must_not_be_reported_as_success: true
+```
+
+# 5. Governance and upstream boundary
+
+```yaml
+session_limits:
+  active_subversion_limit: 1
+  active_formal_stage_or_goal_limit: 1
+current_usage:
+  active_subversions: 0
+  active_formal_stages: 0
+upstream:
   deer_flow:
-    local_status: absent
-    adoption_status: adopted
-    adoption_type: pattern_only_reimplementation
-    usage_level: design_reference
-    stage_1_selected_patterns_implementation_authorized: true
-    dependency_or_source_copy_authorized: false
-  arex_paper:
-    local_status: absent
-    adoption_status: adopted
-    adoption_type: training_independent_patterns_only
-    usage_level: design_reference
-    stage_1_implementation_authorized: false
-    implementation_authorized: false
+    adoption: pattern_only_reimplementation
+    dependency_or_source_copy: false
+  arex:
+    adoption: training_independent_patterns_only
+    model_weight_prompt_or_code_adopted: false
   youtu_agent:
-    local_status: absent
-    adoption_status: deferred
-    implementation_authorized: false
-historical_non_registry_reference:
-  bilibili_cli:
-    local_status: full_clone
-    path: references/upstreams/bilibili-cli
-    commit: dbe28551930df43b633baa52e9639832aeada967
-    license: Apache-2.0
-    working_tree: clean
+    status: deferred
+download_equals_adoption: false
+research_equals_implementation_authorization: false
 ```
 
-Registry 的正式仓库存在性口径仍为 `absent`；V5-A 使用的临时有界研究 checkout 不进入产品树，也不构成依赖或源码采用。
+# 6. Next action boundary
 
----
+下一步是由 V5 主 Session 对 V5-B 做轻量启动前现场核验、目标/边界规划和必要的
+Just-in-time 研究建议；在形成并接受 V5-B Charter/首个 Stage Contract 前，不开始
+V5-B 产品实现，不创建第二条正式验收主线。
 
-# 7. Known Evidence Gaps
-
-- DeerFlow 已完成固定 Commit 的有界源码/相关失败测试审阅，但上游测试未执行。
-- AREX 已完成论文 v2 与官方最小推理仓库审阅；完整 outer loop、训练管线和测试不可由当前公开仓库复现。
-- V5-A Version Charter 已接受；Stage 1 Contract 已履行并验收。
-- Stage 1 已在临时 SQLite、进程重开、线程竞争和故障注入层面机械验证 ownership、
-  unknown in-flight 和 child Task lineage；真实断电、长时间多进程/多主机 lease
-  soak、真实 external SideEffect reconciliation 与 live schema 7 upgrade 仍为
-  `unproven` 或 `not_exercised`。
-- 本轮没有运行 Provider；V4.1 已归档的 Cross-video Provider Failure 不重跑、不改判。
-- V4/V4.1 Commit 尚未合入本地 `main`，也没有 V4/V4.1 Tag；这是现场 Git 事实，不是产品回归。
-
----
-
-# 8. V4/V4.1 Live Audit
-
-```yaml
-v4_v4_1_live_audit:
-  audited_at: 2026-07-30
-  repository_root: /Users/elliot/new-systems/agent-job-prep/Shiliu
-  branch_at_audit: codex/v4.1-hardening
-  governance_branch_created_after_audit: codex/v5-main
-  head: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  working_tree:
-    tracked: clean
-    untracked_handoff_package_only: true
-  v4_commit_present: true
-  v4_commit: cbf264be2571c3d62775c064445de8a1ba17880a
-  v4_1_archive_commit_present: true
-  v4_1_archive_commit: 483fd46bca1d7141a696fda4b2d1e093a55f209b
-  merge_status:
-    v4_merged_to_local_main: false
-    v4_1_merged_to_local_main: false
-    audited_branch_synced_with_remote: true
-  tags:
-    v4_or_v4_1_tag_present: false
-  core_paths_present:
-    result: true
-    checked: 41
-    missing: 0
-  authoritative_files_present: true
-  live_data:
-    database_path: /Users/elliot/Library/Application Support/Shiliu/shiliu.db
-    database_schema_version: 6
-    database_size: 96M
-    tables: 30
-    videos: 157
-    completed_videos: 140
-    retrieval_search_traces: 145
-    retrieval_search_presentations: 115
-    content_video_directories: 155
-    distinct_nonempty_artifact_directories_in_database: 155
-    ask_or_research_task_persistence_tables_present: false
-  runtime_boundary:
-    ask_trace_storage: in_process_memory
-    langgraph_product_checkpointer: none
-    durable_research_task: absent
-    product_HITL: absent
-    V5_memory: absent
-    cross_run_research_artifact_reuse: absent
-  test_environment:
-    python: 3.12.13
-    pytest: 8.4.2
-    langgraph: 1.2.10
-    node: 24.15.0
-    pip_check: passed
-    directed_v4_v4_1: 68_passed
-    default_non_provider_suite: 1498_passed_4_deselected
-    javascript_syntax_checks: passed
-    git_diff_check: passed
-    warnings:
-      - StarletteDeprecationWarning_from_test_dependency
-  local_references:
-    nested_git_repositories:
-      - references/upstreams/bilibili-cli
-    v5_registry_resources_present: 0
-    v5_registry_resources_absent: 27
-  provider_runs_authorized: false
-  provider_runs_performed: false
-  material_differences_from_handoff: []
-```
-
----
-
-# 9. Next Authorized Action
-
-由唯一活跃的 V5-A 子版本 Session 基于已接受的 Stage 1 baseline 准备 Stage 2
-Contract 和 Just-in-time 实施计划。V5-A 自主负责 Stage 2 的具体技术设计与拆分；
-主 Session 只在正式边界进行轻量目标、证据和授权审阅。
-
-当前允许只读源码核验、必要的有界研究和无 Provider 探索性机械测试；禁止 Stage 2
-产品实施、Provider、live DB Migration、凭据访问、Push/Merge/Tag 和自我验收。
+当前无技术阻塞，也无待用户决定的材料性路线问题。
