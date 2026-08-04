@@ -37,7 +37,7 @@ changed Evidence → append-only revalidation → visible stale projection
 → preserved Fact → current L1 Evidence → transcript timestamp drill-down
 ```
 
-新 Evidence、用户建议和 late worker result 都不能静默改写 Fact 或 published Page。Stage 1 authority 和兼容性保持。Stage 2 acceptance record为Program-only `codex/v5-main@2d89dfc`，未merge/cherry-pick；Stage 3仍未实施。
+新 Evidence、用户建议和 late worker result 都不能静默改写 Fact 或 published Page。Stage 1 authority 和兼容性保持。Stage 2 acceptance record为Program-only `codex/v5-main@2d89dfc`，未merge/cherry-pick。本段保留Stage 2验收结论；后续Stage 3状态见本报告末尾与`V5_B_STAGE_3_IMPLEMENTATION_REPORT.md`。
 
 ## 2. Authority 与边界遵循
 
@@ -213,7 +213,9 @@ V5 Main的独立验收结果：
 ```yaml
 stage_2_status: accepted_by_v5_main_at_2d89dfc
 stage_2_accepted_commit: f879c80c0f547195a40d6804b6057debd077d11a
-stage_3_contract_preparation_authorized: true
-stage_3_implementation_authorized: false
-next_action: limited_v5_main_stage_3_target_boundary_review
+stage_3_contract_status: accepted_at_70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
+stage_3_implementation_authorized: true_at_8c198db
+stage_3_implementation_status: implemented_pending_v5_main_acceptance
+stage_4_authorized: false
+next_action: limited_v5_main_stage_3_implementation_acceptance_review
 ```

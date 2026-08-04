@@ -75,6 +75,8 @@ from shiliu.research.knowledge_contracts import (
     ReviewFactUpdateRequest,
     RevertTopicPageRequest,
     RunKnowledgeOperationRequest,
+    AssessArtifactRouteRequest,
+    ProceedArtifactRouteRequest,
 )
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 from shiliu.stage5 import Stage5PipelineRequest
@@ -838,6 +840,65 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/routes/assess")
+    async def assess_research_artifact_route(
+        task_id: str,
+        payload: AssessArtifactRouteRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.assess_artifact_route,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/routes/{route_id}/proceed"
+    )
+    async def proceed_research_artifact_route(
+        task_id: str,
+        route_id: str,
+        payload: ProceedArtifactRouteRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.proceed_artifact_route,
+                task_id,
+                route_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.get(
+        "/api/research/product/tasks/{task_id}/knowledge/routes/{route_id}"
+    )
+    async def get_research_artifact_route(
+        task_id: str, route_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            route = await asyncio.to_thread(
+                _core(request).research_knowledge.get_artifact_route,
+                task_id,
+                route_id,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "route": route})
 
     @web.post("/api/research/product/tasks/{task_id}/run")
     async def run_product_research_task(

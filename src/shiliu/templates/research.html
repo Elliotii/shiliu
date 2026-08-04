@@ -142,6 +142,18 @@
           <div class="research-knowledge-column" data-knowledge-pages></div>
           <div class="research-knowledge-column" data-knowledge-updates></div>
           <div class="research-knowledge-column" data-knowledge-operations></div>
+          <div class="research-knowledge-column">
+            <div class="research-section-heading">
+              <div><p class="result-kicker">V5-B · STAGE 3</p><h4>Artifact reuse route</h4></div>
+            </div>
+            <form data-artifact-route-form>
+              <label>Query<input name="route_query" maxlength="2000" required placeholder="输入要复用或继续研究的问题"></label>
+              <label>Required aspects<textarea name="route_aspects" rows="3" placeholder="每行一个明确 aspect；缺失时会 fail closed 到 Research Seed"></textarea></label>
+              <button class="ghost compact-button" type="submit">评估 direct / incremental / seed</button>
+            </form>
+            <p class="muted">Artifact ranking 只排序检查；open corpus lane 始终独立保留。用户只能选择同等或更安全的 route。</p>
+            <div data-knowledge-routes></div>
+          </div>
         </section>
 
         <section class="research-trace" aria-labelledby="research-trace-title">

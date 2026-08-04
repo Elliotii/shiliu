@@ -460,6 +460,47 @@
       if (operation.error_detail) card.append(element('p', 'muted', `${operation.error_class} · ${operation.error_code} · ${operation.error_detail}`));
       operationList.append(card);
     });
+
+    const routeList = root.querySelector('[data-knowledge-routes]');
+    routeList.replaceChildren(element('h4', '', `ArtifactRoute · ${(knowledge.artifact_routes || []).length}`));
+    (knowledge.artifact_routes || []).forEach(route => {
+      const card = element('article', 'research-knowledge-card');
+      card.append(
+        element('span', `research-currentness${route.status === 'completed' ? '' : ' is-stale'}`, `${route.final_route || route.recommended_route} · ${route.status}`),
+        element('p', 'research-knowledge-claim', route.query.query),
+        element('small', '', `${route.route_id} · v${route.version} · authority ${route.expected_authority_hash.slice(0, 16)}…`),
+      );
+      const openCount = route.retrieval.open_corpus?.results?.length || 0;
+      card.append(element('small', '', `Artifact candidates ${(route.gates || []).length} · independent open corpus ${openCount}`));
+      (route.gates || []).slice(0, 3).forEach(gate => {
+        card.append(element('p', 'muted', `${gate.artifact_revision_id} · scope ${gate.scope_status} · current ${gate.currentness_status} · citations ${gate.citation_status} · coverage ${gate.completeness_status} → ${gate.candidate_route}`));
+        if ((gate.missing_aspects || []).length) card.append(element('small', 'research-currentness is-stale', `gaps · ${gate.missing_aspects.join(' / ')}`));
+        (gate.facts || []).flatMap(fact => fact.citations || []).slice(0, 3).forEach(citation => {
+          const drill = element('a', '', `L1 · ${citation.evidence_id} · ${citation.start_time}s`);
+          drill.href = citation.transcript_href; drill.target = '_blank'; card.append(drill);
+        });
+      });
+      if (route.record_kind === 'assessment') {
+        const actions = element('div', 'research-control-buttons');
+        const order = ['direct_reuse', 'incremental_refresh', 'research_seed'];
+        const minimum = order.indexOf(route.recommended_route);
+        order.slice(minimum).forEach(value => {
+          const button = element('button', 'ghost', value === route.recommended_route ? `Proceed · ${value}` : `Safer · ${value}`);
+          button.type = 'button'; button.addEventListener('click', () => knowledgeAction(`/routes/${encodeURIComponent(route.route_id)}/proceed`, {
+            command_id: commandId(`route-${value}`), action: 'confirm', expected_version: route.version,
+            route: value, reason: value === route.recommended_route ? 'accepted recommendation' : 'selected safer route',
+          }, '正在持久确认 ArtifactRoute 与 authority fence…')); actions.append(button);
+        });
+        card.append(actions);
+      }
+      if (route.continuation_task_id) {
+        const child = element('a', '', `Continuation Task · ${route.continuation_task_id}`);
+        child.href = `/research/${encodeURIComponent(route.continuation_task_id)}`; card.append(child);
+      }
+      if (route.outcome_artifact_revision_id) card.append(element('small', '', `Outcome Artifact · ${route.outcome_artifact_revision_id}`));
+      if (Object.keys(route.contribution || {}).length) card.append(element('pre', 'research-advanced-trace', JSON.stringify(route.contribution, null, 2)));
+      routeList.append(card);
+    });
   };
 
   async function loadKnowledge() {
@@ -737,6 +778,23 @@
   });
   root.querySelector('[data-knowledge-revalidate]').addEventListener('click', () => {
     knowledgeAction('/revalidate', {command_id: commandId('knowledge-revalidate'), fact_revision_ids: [], trigger: 'explicit'}, '正在追加 current Evidence observations…');
+  });
+  root.querySelector('[data-artifact-route-form]').addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = root.querySelector('[data-knowledge-status]');
+    status.textContent = '正在执行 bounded Artifact retrieval、独立 open corpus lane 与 authority gates…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/knowledge/routes/assess`, {
+        method: 'POST', body: JSON.stringify({
+          command_id: commandId('artifact-route-assess'), query: form.elements.route_query.value.trim(),
+          required_aspects: lines(form.elements.route_aspects.value), temporal_scope: {}, viewpoint_scope: {},
+          max_artifact_candidates: 5, max_open_results: 5,
+        }),
+      });
+      status.textContent = 'Route assessment已持久保存；ranking不授予reuse authority。';
+      await loadKnowledge();
+    } catch (error) { status.textContent = error.message; }
   });
   window.addEventListener('popstate', () => {
     const match = location.pathname.match(/^\/research\/([^/]+)$/);

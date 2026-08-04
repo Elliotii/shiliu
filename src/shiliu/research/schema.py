@@ -24,6 +24,51 @@ TOPIC_PAGE_POLICY_VERSION = "v5-b-stage1-topic-page-build-v1"
 KNOWLEDGE_REVALIDATION_POLICY_VERSION = "v5-b-stage2-revalidation-v1"
 KNOWLEDGE_UPDATE_POLICY_VERSION = "v5-b-stage2-update-v1"
 KNOWLEDGE_EXPORT_POLICY_VERSION = "v5-b-stage2-export-v1"
+ARTIFACT_ROUTE_POLICY_VERSION = "v5-b-stage3-artifact-route-v1"
+
+
+def prepare_research_schema_v13(connection: sqlite3.Connection) -> None:
+    """Add the lean append-only Stage 3 ArtifactRoute aggregate."""
+    connection.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS research_artifact_routes (
+            record_id TEXT PRIMARY KEY,
+            route_id TEXT NOT NULL,
+            version INTEGER NOT NULL CHECK(version >= 1),
+            parent_record_id TEXT REFERENCES research_artifact_routes(record_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            record_kind TEXT NOT NULL CHECK(record_kind IN ('assessment', 'proceed', 'outcome')),
+            command_id TEXT NOT NULL,
+            payload_hash TEXT NOT NULL,
+            query_json TEXT NOT NULL,
+            retrieval_json TEXT NOT NULL,
+            gates_json TEXT NOT NULL,
+            recommended_route TEXT NOT NULL CHECK(recommended_route IN ('direct_reuse', 'incremental_refresh', 'research_seed')),
+            final_route TEXT CHECK(final_route IS NULL OR final_route IN ('direct_reuse', 'incremental_refresh', 'research_seed')),
+            expected_authority_hash TEXT NOT NULL,
+            continuation_task_id TEXT REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            outcome_artifact_revision_id TEXT REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
+            contribution_json TEXT NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('assessed', 'running', 'completed', 'needs_user', 'superseded')),
+            created_at TEXT NOT NULL,
+            UNIQUE(route_id, version),
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_research_artifact_routes_task
+        ON research_artifact_routes(task_id, created_at, route_id, version);
+
+        CREATE TRIGGER IF NOT EXISTS trg_research_artifact_routes_immutable_update
+        BEFORE UPDATE ON research_artifact_routes BEGIN
+            SELECT RAISE(ABORT, 'ArtifactRoute records are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_research_artifact_routes_immutable_delete
+        BEFORE DELETE ON research_artifact_routes BEGIN
+            SELECT RAISE(ABORT, 'ArtifactRoute records are immutable');
+        END;
+        """
+    )
 
 
 def prepare_research_schema_v12(connection: sqlite3.Connection) -> None:

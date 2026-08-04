@@ -18,22 +18,25 @@ from shiliu.research.errors import (
 )
 from shiliu.research.inner_evidence import PersistentEvidenceAuthority
 from shiliu.research.knowledge_contracts import (
+    AssessArtifactRouteRequest,
     BuildKnowledgeArtifactRequest,
     BuildTopicPageRequest,
-    IntakeKnowledgeCandidatesRequest,
-    ReviewKnowledgeCandidateRequest,
-    ReviewTopicPageRequest,
     EditTopicPageRequest,
     ExportTopicPageRequest,
+    IntakeKnowledgeCandidatesRequest,
+    ProceedArtifactRouteRequest,
     ProposeFactUpdateRequest,
     RecoverKnowledgeOperationsRequest,
     ResolveKnowledgeOperationRequest,
     RevalidateKnowledgeRequest,
     ReviewFactUpdateRequest,
+    ReviewKnowledgeCandidateRequest,
+    ReviewTopicPageRequest,
     RevertTopicPageRequest,
     RunKnowledgeOperationRequest,
 )
 from shiliu.research.knowledge_lifecycle import ResearchKnowledgeLifecycleService
+from shiliu.research.knowledge_reuse import ResearchArtifactRouteService
 from shiliu.research.product_service import (
     CANDIDATE_DELTA_SCHEMA_VERSION,
     ResearchProductService,
@@ -45,6 +48,7 @@ from shiliu.research.schema import (
     TOPIC_PAGE_POLICY_VERSION,
 )
 from shiliu.research.service import ResearchTaskService
+from shiliu.retrieval.service import RetrievalService
 
 
 FaultInjector = Callable[[str], None]
@@ -74,7 +78,7 @@ def _json_list(value: object) -> list[Any]:
 
 
 class ResearchKnowledgeService:
-    """V5-B no-Provider knowledge path with immutable Stage 1 and Stage 2 lifecycle."""
+    """V5-B no-Provider knowledge path through the lean Stage 3 route."""
 
     def __init__(
         self,
@@ -82,6 +86,7 @@ class ResearchKnowledgeService:
         *,
         kernel: ResearchTaskService,
         product: ResearchProductService,
+        retrieval: RetrievalService,
         export_root: Path | None = None,
         fault_injector: FaultInjector | None = None,
     ) -> None:
@@ -97,9 +102,16 @@ class ResearchKnowledgeService:
             export_root=export_root or db.path.parent / "knowledge-exports",
             fault_injector=self.fault_injector,
         )
+        self.reuse = ResearchArtifactRouteService(
+            db,
+            kernel=kernel,
+            retrieval=retrieval,
+            fault_injector=self.fault_injector,
+        )
 
     def _sync_lifecycle_fault_injector(self) -> None:
         self.lifecycle.fault_injector = self.fault_injector
+        self.reuse.fault_injector = self.fault_injector
 
     def intake_candidates(
         self, task_id: str, request: IntakeKnowledgeCandidatesRequest
@@ -1625,6 +1637,7 @@ class ResearchKnowledgeService:
             "artifacts": artifacts,
             "pages": pages,
             "build_runs": builds,
+            "artifact_routes": self.reuse.list(task_id),
             **stage2,
             "counts": {
                 "candidates": len(candidates),
@@ -1633,6 +1646,31 @@ class ResearchKnowledgeService:
                 "pages": len(pages),
             },
         }
+
+    def assess_artifact_route(
+        self, task_id: str, request: AssessArtifactRouteRequest
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.reuse.assess(task_id, request)
+
+    def proceed_artifact_route(
+        self,
+        task_id: str,
+        route_id: str,
+        request: ProceedArtifactRouteRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.reuse.proceed(
+            task_id,
+            route_id,
+            request,
+            principal_id=principal_id,
+        )
+
+    def get_artifact_route(self, task_id: str, route_id: str) -> dict[str, Any]:
+        return self.reuse.get(task_id, route_id)
 
     def revalidate_knowledge(
         self, task_id: str, request: RevalidateKnowledgeRequest

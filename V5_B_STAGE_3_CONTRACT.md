@@ -3,23 +3,26 @@
 ```yaml
 stage: V5-B Stage 3
 title: Artifact Retrieval, Reuse and Research Continuation
-contract_status: draft_pending_v5_main_acceptance
+contract_status: accepted_by_v5_main
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
 branch: codex/v5-b
 accepted_stage_2_commit: f879c80c0f547195a40d6804b6057debd077d11a
 stage_2_main_acceptance_record: 2d89dfc_on_codex_v5_main_not_cherry_picked
-schema_baseline: 12
+contract_commit: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
+contract_acceptance_and_implementation_authorization_record: 8c198db_on_codex_v5_main_not_cherry_picked
+schema_baseline: 13
 contract_preparation_authorized: true
-implementation_authorized: false
-implementation_started: false
+implementation_authorized: true
+implementation_started: true
+implementation_status: implemented_pending_v5_main_acceptance
 provider_runs_performed: false
 provider_cost_usd: 0
 live_database_migration_authorized: false
 ```
 
-> V5 Main已接受Stage 2，并只授权本次Stage 3 Contract准备。本文不授权schema/runtime/API/UI/test实施，不构成V5-B自我验收。
+> V5 Main已接受本Contract commit `70ba2b2c22f642ac52ddce0d3d30184d3b3235d6`，并以Program-only `codex/v5-main@8c198db`授权Stage 3实施。该Main commit未merge/cherry-pick；V5-B实施不构成自我验收。
 
 ## 1. Stage使命与用户结果
 
@@ -302,15 +305,15 @@ V5-A compound-query limitation只有在上述受控Stage 3 case明确阻塞route
 
 optional项不得成为hard filter、citation authority或implementation前置平台。
 
-## 14. Honest unresolved implementation choices
+## 14. Accepted implementation choices
 
-Main接受Contract后，V5-B Session可在不改变gates的前提下自主确定：
+Main接受Contract后，实施按lean clarification在不改变gates的前提下选择：
 
-- route/candidate/coverage/contribution具体表名与schema source version；
-- bounded lexical/structured retrieval使用现有helper还是专用small SQLite projection；
-- deterministic aspect normalization与small gap bound的具体versioned constants；
-- V5-A continuation link放在existing Task lineage extension还是Stage 3专用link table；
-- explicit route confirm UI的最小布局和polling方式。
+- schema source 13只增加一张append-only `research_artifact_routes`表，canonical JSON/hash聚合query、candidate/open lane、gate、route、fence、continuation/outcome和contribution；
+- 使用最新canonical ArtifactRevision的bounded in-process SQLite lexical/structured selector，并始终独立运行现有open retrieval；
+- deterministic normalization与`MAX_INCREMENTAL_GAPS=2`受`v5-b-stage3-artifact-route-v1`策略约束；无explicit aspects或无法证明scope/coverage时fail closed到seed；
+- continuation直接复用V5-A `ResearchTask.parent_task_id`/Goal/Event/Receipt，不增加scheduler、queue、lease或recovery平台；
+- public surface只保留assess/proceed/read三条API和一张route card，不建立route-management console。
 
 若实现需要Provider作为mechanical gate、generic vector/graph platform、放宽current Evidence authority、自动Fact/Page mutation或修复非阻塞V5-A limitation，必须停止并升级Main。
 
@@ -330,8 +333,9 @@ Main接受Contract后，V5-B Session可在不改变gates的前提下自主确定
 
 ```yaml
 stage_2_status: accepted_by_v5_main_at_2d89dfc
-stage_3_contract_status: draft_pending_v5_main_acceptance
-stage_3_implementation_authorized: false
+stage_3_contract_status: accepted_at_70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
+stage_3_implementation_authorized: true_at_8c198db
+stage_3_implementation_status: implemented_pending_v5_main_acceptance
 jit_research: existing_fixed_commit_reports_and_local_stage_2_code_sufficient
 provider_runs_performed: false
 requested_review:
@@ -340,7 +344,7 @@ requested_review:
   - incremental_refresh_gap_and_contribution_lineage
   - research_seed_and_open_retrieval_boundary
   - stage_4_5_and_cross_version_exclusions
-decision_requested: accept_or_return_one_bounded_contract_correction
+decision_requested: accept_or_return_one_bounded_implementation_correction
 ```
 
-请求V5 Main只审查Stage 3 target、authority boundary、dependency order与Gates A–E；在Main明确接受并授权前，不实施Stage 3 schema/runtime/API/UI/tests。
+请求V5 Main只审查Stage 3实施是否满足已接受Contract与Gates A–E；V5-B Session不自我接受，不启动Stage 4。

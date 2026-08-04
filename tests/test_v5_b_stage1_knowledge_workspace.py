@@ -150,13 +150,13 @@ def test_stage1_schema_is_temp_db_only_reentrant_and_exposes_minimal_ui(
     app_paths,
 ) -> None:
     core = _fixture_core(app_paths)
-    assert SCHEMA_VERSION == 12
+    assert SCHEMA_VERSION == 13
     assert core.db.path == app_paths.database
     core.db.initialize()
     with core.db.connect() as connection:
         assert connection.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "12"
+        ).fetchone()[0] == "13"
         tables = {
             str(row[0])
             for row in connection.execute(
@@ -485,6 +485,7 @@ def test_build_reservation_survives_crash_output_rolls_back_and_api_completes(
         core.db,
         kernel=core.research,
         product=core.research_product,
+        retrieval=core.retrieval,
         fault_injector=crash_once,
     )
     accept_request = ReviewKnowledgeCandidateRequest(
