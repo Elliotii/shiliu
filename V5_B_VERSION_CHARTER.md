@@ -1,23 +1,25 @@
 # 拾流 V5-B Version Charter
 
 ```yaml
-document_status: draft_pending_v5_main_acceptance
+document_status: accepted_by_v5_main
 version_session: Shiliu V5-B Version Session
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
-limited_main_review: mission_boundaries_and_stage_sequence_accepted_in_principle_bounded_scope_correction_applied
+main_acceptance_record: e73ddd2_on_codex_v5_main_message_is_execution_authority
+accepted_contract_commit: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
 starting_branch: codex/v5-b
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
-implementation_authorized: false
-product_implementation_started: false
+implementation_authorized: stage_1_only
+product_implementation_started: true
+stage_1_implementation_status: implemented_pending_v5_main_acceptance
 provider_runs_authorized: false
 provider_runs_performed: false
 live_database_migration_authorized: false
 ```
 
-> 本文件是 V5-B Session 的技术提案，不是 Program 权威，也不构成自我验收。只有 V5 Main 接受本 Charter 和具体 Stage Contract 后，才可在相应范围内实施。
+> V5 Main 已通过执行授权消息接受本 Charter、五 Stage 顺序、上游 reference-only 边界及 commit `4efaed4` 的 Stage 1 Contract，并授权 Stage 1 实施；Program 接受记录位于 `codex/v5-main@e73ddd2`，未合并或 cherry-pick 到本分支。本文件不构成 V5-B 自我验收，Stage 1 实现仍须 Main 审查。
 
 ## 1. 版本使命
 
@@ -45,7 +47,7 @@ V5-B 不替换 V5-A Research Runtime，也不把普通聊天历史、模型摘�
 - 本轮起始 Commit：`b85340540cb92c2e46bfb8619598e7aa987171d4`。
 - 已接受 V5-A 产品代码 Commit：`04e5c5bbb94311a00f6efafa142908fd7b2b97de`。
 - `04e5c5b..b853405` 只包含 V5-A closeout、Program 状态和 V5-B 启动文档变化，没有产品源码变化。
-- 当前 schema version 10；V5-A Gate C 已通过，最终状态为 `accepted_with_known_retrieval_limitation`。
+- V5-B 启动时 schema version 10；Stage 1 临时迁移源现为 schema 11。V5-A Gate C 已通过，最终状态为 `accepted_with_known_retrieval_limitation`。
 - V5-A 代表性长 compound query 的 grounded completion 未证明；该 retrieval limitation 不是 V5-B 自动 backlog。
 
 ### 2.2 可直接复用的 V5-A 权威
@@ -133,9 +135,9 @@ Fact、Artifact、Page 都使用 stable family ID + immutable revision ID + appe
 | DeepTutor | `HKUDS/DeepTutor@44fa7a1552b88f9d8ce2c22259128a15ae2eb0c8`, Apache-2.0 | 分层、稳定 Entry ID、refs-required、batch preflight、ID-set incremental、preview/apply、可编辑产品行为的独立重实现/测试参考 | L1 JSONL authority、物理 delete/overwrite/reset、process-only run/undo、surface-level L3 refs、源码依赖/复制 |
 | WeKnora | `Tencent/WeKnora@fcc4cd6a9f29a94818e481b3a604f44ce51c55e2`, 主项目 MIT + listed third-party | Topic Page/browser/revision UI；optimistic version、atomic snapshot、revert-as-new；durable pending/recovery/dead-letter 的独立重实现/测试参考 | 企业平台、RBAC/Connector、RAG replacement、GraphRAG 默认、Redis active authority、rebuild failure log-and-drain、源码依赖/复制 |
 
-上游采用状态在 Main 接受前均为 proposal；本 Charter 不授予代码复制或依赖引入权限。
+以上 DeepTutor/WeKnora reference-only 边界已被 V5 Main 接受；不授予代码/测试/UI 复制、直接依赖或新依赖引入权限。
 
-## 7. 拟议 Stage 序列
+## 7. 已接受 Stage 序列
 
 ### Stage 1 — Evidence-backed Topic Page Vertical Slice
 
@@ -234,13 +236,14 @@ Research Task → KnowledgeDelta Candidate intake → Evidence review
 ## 12. 当前请求
 
 ```yaml
-charter_status: draft_pending_v5_main_acceptance
-stage_sequence_status: proposed
-upstream_adoption_status: proposed
-stage_1_contract_status: draft_pending_v5_main_acceptance
-stage_1_implementation_authorized: false
+charter_status: accepted_by_v5_main
+stage_sequence_status: accepted_by_v5_main
+upstream_adoption_status: accepted_reference_only
+stage_1_contract_status: accepted_at_4efaed413cb2fd9d2eeabe411da96f5132ce6276
+stage_1_implementation_authorized: true
+stage_1_implementation_status: implemented_pending_v5_main_acceptance
 provider_runs_authorized: false
-next_action: limited_v5_main_review_and_stage_1_authorization_decision
+next_action: limited_v5_main_stage_1_implementation_acceptance_review
 ```
 
-请求 V5 Main 仅审查版本目标/边界、五 Stage 依赖、上游采用方式、SQLite/filesystem authority 和 Stage 1 Contract；V5-B Session 不自我接受。
+请求 V5 Main 仅审查 Stage 1 实现是否满足已接受 Contract，并决定接受或要求有界修正；V5-B Session 不自我接受，也不请求 Stage 2 授权。

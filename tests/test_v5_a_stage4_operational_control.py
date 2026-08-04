@@ -159,12 +159,12 @@ def test_schema_10_adds_control_tables_to_temporary_schema9_database(app_paths) 
     db = Database(app_paths.database)
     db.initialize()
     db.initialize()
-    assert SCHEMA_VERSION == 10
-    assert app_paths.database.with_name("shiliu.pre-v10.backup.db").is_file()
+    assert SCHEMA_VERSION == 11
+    assert app_paths.database.with_name("shiliu.pre-v11.backup.db").is_file()
     with db.connect() as migrated:
         assert migrated.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "10"
+        ).fetchone()[0] == "11"
         columns = {
             str(row[1]) for row in migrated.execute("PRAGMA table_info(research_tasks)")
         }

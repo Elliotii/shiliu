@@ -3,21 +3,23 @@
 ```yaml
 stage: V5-B Stage 1
 title: Evidence-backed Topic Page Vertical Slice
-contract_status: draft_pending_v5_main_acceptance
+contract_status: accepted_by_v5_main
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
-limited_main_review: bounded_scope_correction_applied_pending_final_acceptance_and_authorization
+main_acceptance_record: e73ddd2_on_codex_v5_main_message_is_execution_authority
+accepted_contract_commit: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
-implementation_authorized: false
-implementation_started: false
+implementation_authorized: true
+implementation_started: true
+implementation_status: implemented_pending_v5_main_acceptance
 provider_runs_authorized: false
 provider_runs_performed: false
 live_database_migration_authorized: false
 ```
 
-> 本 Contract 是待 V5 Main 接受的实施提案。本次启动 assignment 没有实施本 Stage 的 schema/runtime/API/UI/tests。
+> V5 Main 已接受 commit `4efaed4` 的本 Contract 并授权实施；Program 接受记录位于 `codex/v5-main@e73ddd2`，未合并或 cherry-pick 到执行分支。当前实现证据集中在 `V5_B_STAGE_1_IMPLEMENTATION_REPORT.md`，本 Contract 仍不构成 Stage 自我验收。
 
 ## 1. Stage 使命
 
@@ -39,7 +41,7 @@ Stage 1 不解决完整 lifecycle/reuse/workspace；它先证明 Candidate 不�
 
 ## 2. 用户可见最小结果
 
-经授权实施后，用户应能：
+当前实现须使用户能够：
 
 1. 从完成/等待边界上的 V5-A Research Task 打开 Candidate Inbox；
 2. 看到 Candidate 来源 Task/Attempt/Artifact、claim、引用、currentness 与 candidate-only 标识；
@@ -289,19 +291,20 @@ Stage 1 只有在 V5 Main 看到以下证据后才可接受：
 
 Stage 1 可以铺设 lineage/status 字段，但不得声称完成以上能力。
 
-## 12. 实施授权请求
+## 12. 实现验收请求
 
 ```yaml
-contract_status: draft_pending_v5_main_acceptance
-implementation_authorized: false
+contract_status: accepted_by_v5_main
+implementation_authorized: true
+implementation_status: implemented_pending_v5_main_acceptance
 provider_runs_authorized: false
 live_database_migration_authorized: false
-requested_authority_if_accepted:
+implemented_authority:
   - stage_1_schema_and_temporary_migration_tests
   - stage_1_no_provider_runtime_and_api
   - stage_1_minimal_review_ui
-  - stage_1_directed_and_affected_regression_tests
-excluded_even_if_accepted:
+  - stage_1_directed_affected_and_default_regression_tests
+still_excluded:
   - live_database_migration
   - provider_or_paid_service
   - credentials_or_keychain
@@ -309,4 +312,4 @@ excluded_even_if_accepted:
   - stage_2_through_stage_5_capabilities
 ```
 
-请求 V5 Main 接受或修订本 Contract，并在接受后明确授予上述有限 Stage 1 实施权限；在该决定前 V5-B Session 不开始实现。
+请求 V5 Main 对照本已接受 Contract 审查 `V5_B_STAGE_1_IMPLEMENTATION_REPORT.md` 和提交内容，接受 Stage 1 或要求有界修正；不请求 Stage 2–5、Provider 或 live migration 授权。

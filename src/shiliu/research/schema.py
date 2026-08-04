@@ -17,6 +17,10 @@ CONTINUATION_SEED_SCHEMA_VERSION = "v5-a-stage3-continuation-seed-v1"
 CONTROL_SCHEMA_VERSION = "v5-a-stage4-control-v1"
 INPUT_SCHEMA_VERSION = "v5-a-stage4-input-v1"
 DERIVATION_SCHEMA_VERSION = "v5-a-stage4-derivation-v1"
+KNOWLEDGE_WORKSPACE_SCHEMA_VERSION = "v5-b-stage1-knowledge-workspace-v1"
+KNOWLEDGE_VALIDATION_POLICY_VERSION = "v5-b-stage1-current-evidence-v1"
+KNOWLEDGE_ARTIFACT_POLICY_VERSION = "v5-b-stage1-artifact-build-v1"
+TOPIC_PAGE_POLICY_VERSION = "v5-b-stage1-topic-page-build-v1"
 
 
 def prepare_research_schema_v10(connection: sqlite3.Connection) -> None:
@@ -709,6 +713,206 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             UNIQUE(source_task_id, command_id)
         );
 
+        CREATE TABLE IF NOT EXISTS research_knowledge_candidates (
+            candidate_id TEXT PRIMARY KEY,
+            workspace_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            goal_id TEXT NOT NULL REFERENCES research_goals(goal_id) ON DELETE RESTRICT,
+            attempt_id TEXT NOT NULL REFERENCES research_attempts(attempt_id) ON DELETE RESTRICT,
+            checkpoint_id TEXT REFERENCES research_checkpoints(checkpoint_id) ON DELETE RESTRICT,
+            result_id TEXT REFERENCES research_results(result_id) ON DELETE RESTRICT,
+            provisional_artifact_id TEXT NOT NULL REFERENCES research_provisional_artifacts(artifact_id) ON DELETE RESTRICT,
+            source_event_id TEXT NOT NULL REFERENCES research_events(event_id) ON DELETE RESTRICT,
+            source_delta_snapshot_id TEXT NOT NULL,
+            candidate_kind TEXT NOT NULL CHECK(candidate_kind='KnowledgeDelta'),
+            source_boundary_hash TEXT NOT NULL,
+            source_delta_hash TEXT NOT NULL,
+            source_item_hash TEXT NOT NULL,
+            source_item_index INTEGER NOT NULL CHECK(source_item_index >= 0),
+            parent_candidate_id TEXT REFERENCES research_knowledge_candidates(candidate_id) ON DELETE RESTRICT,
+            claim_text TEXT NOT NULL CHECK(length(trim(claim_text)) > 0),
+            citation_ids_json TEXT NOT NULL,
+            evidence_use_ids_json TEXT NOT NULL,
+            source_payload_json TEXT NOT NULL,
+            status TEXT NOT NULL CHECK(
+                status IN (
+                    'pending_review', 'needs_revalidation', 'accepted',
+                    'rejected', 'superseded'
+                )
+            ),
+            state_version INTEGER NOT NULL DEFAULT 0 CHECK(state_version >= 0),
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(source_event_id, source_item_hash)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_review_decisions (
+            decision_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            candidate_id TEXT NOT NULL REFERENCES research_knowledge_candidates(candidate_id) ON DELETE RESTRICT,
+            decision_kind TEXT NOT NULL CHECK(decision_kind IN ('accept', 'reject', 'edit')),
+            reason TEXT NOT NULL,
+            edited_candidate_id TEXT REFERENCES research_knowledge_candidates(candidate_id) ON DELETE RESTRICT,
+            fact_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            expected_candidate_version INTEGER NOT NULL CHECK(expected_candidate_version >= 0),
+            command_id TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_grounded_facts (
+            fact_id TEXT PRIMARY KEY,
+            workspace_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            origin_candidate_id TEXT NOT NULL UNIQUE REFERENCES research_knowledge_candidates(candidate_id) ON DELETE RESTRICT,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_fact_revisions (
+            fact_revision_id TEXT PRIMARY KEY,
+            fact_id TEXT NOT NULL REFERENCES research_grounded_facts(fact_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            revision INTEGER NOT NULL CHECK(revision >= 1),
+            parent_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            supersedes_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            origin_candidate_id TEXT NOT NULL REFERENCES research_knowledge_candidates(candidate_id) ON DELETE RESTRICT,
+            claim_text TEXT NOT NULL CHECK(length(trim(claim_text)) > 0),
+            temporal_scope_json TEXT NOT NULL,
+            viewpoint_scope_json TEXT NOT NULL,
+            verification_status TEXT NOT NULL CHECK(verification_status='accepted_current'),
+            content_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(fact_id, revision)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_fact_evidence_links (
+            link_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            evidence_id TEXT NOT NULL REFERENCES research_evidence_identities(evidence_id) ON DELETE RESTRICT,
+            evidence_use_id TEXT NOT NULL REFERENCES research_evidence_uses(evidence_use_id) ON DELETE RESTRICT,
+            validation_observation_id TEXT NOT NULL REFERENCES research_evidence_validations(observation_id) ON DELETE RESTRICT,
+            ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+            created_at TEXT NOT NULL,
+            UNIQUE(fact_revision_id, evidence_use_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_artifacts (
+            artifact_id TEXT PRIMARY KEY,
+            workspace_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_artifact_revisions (
+            artifact_revision_id TEXT PRIMARY KEY,
+            artifact_id TEXT NOT NULL REFERENCES research_knowledge_artifacts(artifact_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            revision INTEGER NOT NULL CHECK(revision >= 1),
+            parent_revision_id TEXT REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
+            supersedes_revision_id TEXT REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
+            topic TEXT NOT NULL CHECK(length(trim(topic)) > 0),
+            body_json TEXT NOT NULL,
+            limitations_json TEXT NOT NULL,
+            unresolved_json TEXT NOT NULL,
+            build_policy_version TEXT NOT NULL,
+            source_result_ids_json TEXT NOT NULL,
+            source_boundary_hashes_json TEXT NOT NULL,
+            corpus_snapshot_json TEXT NOT NULL,
+            input_hash TEXT NOT NULL,
+            content_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(artifact_id, revision),
+            UNIQUE(task_id, input_hash)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_artifact_fact_links (
+            link_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            artifact_revision_id TEXT NOT NULL REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
+            fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+            created_at TEXT NOT NULL,
+            UNIQUE(artifact_revision_id, fact_revision_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_topic_pages (
+            page_id TEXT PRIMARY KEY,
+            workspace_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            slug TEXT NOT NULL UNIQUE,
+            current_version INTEGER NOT NULL CHECK(current_version = 1),
+            review_status TEXT NOT NULL CHECK(review_status IN ('draft', 'published', 'returned')),
+            state_version INTEGER NOT NULL DEFAULT 0 CHECK(state_version >= 0),
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_topic_page_revisions (
+            page_revision_id TEXT PRIMARY KEY,
+            page_id TEXT NOT NULL REFERENCES research_topic_pages(page_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            version INTEGER NOT NULL CHECK(version = 1),
+            parent_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            supersedes_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            artifact_revision_id TEXT NOT NULL REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
+            title TEXT NOT NULL CHECK(length(trim(title)) > 0),
+            body_json TEXT NOT NULL,
+            build_policy_version TEXT NOT NULL,
+            input_hash TEXT NOT NULL,
+            content_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(page_id, version),
+            UNIQUE(task_id, input_hash)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_topic_page_fact_links (
+            link_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            page_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+            created_at TEXT NOT NULL,
+            UNIQUE(page_revision_id, fact_revision_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_topic_page_review_decisions (
+            decision_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            page_id TEXT NOT NULL REFERENCES research_topic_pages(page_id) ON DELETE RESTRICT,
+            page_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            decision_kind TEXT NOT NULL CHECK(decision_kind IN ('publish', 'return')),
+            reason TEXT NOT NULL,
+            expected_version INTEGER NOT NULL CHECK(expected_version = 1),
+            command_id TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id),
+            UNIQUE(page_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_build_runs (
+            build_run_id TEXT PRIMARY KEY,
+            workspace_schema_version TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            build_kind TEXT NOT NULL CHECK(build_kind IN ('artifact', 'topic_page')),
+            command_id TEXT NOT NULL,
+            input_hash TEXT NOT NULL,
+            input_json TEXT NOT NULL,
+            status TEXT NOT NULL CHECK(
+                status IN ('queued', 'running', 'succeeded', 'failed')
+            ),
+            attempt_count INTEGER NOT NULL CHECK(attempt_count >= 1),
+            output_reference TEXT,
+            error_code TEXT,
+            error_detail TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            completed_at TEXT,
+            UNIQUE(task_id, build_kind, input_hash)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_research_tasks_parent
         ON research_tasks(parent_task_id);
         CREATE INDEX IF NOT EXISTS idx_research_tasks_status
@@ -755,6 +959,16 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
         ON research_input_dispositions(input_request_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_research_derivations_source
         ON research_task_derivations(source_task_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_knowledge_candidates_task
+        ON research_knowledge_candidates(task_id, status, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_fact_revisions_task
+        ON research_fact_revisions(task_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_artifact_revisions_task
+        ON research_knowledge_artifact_revisions(task_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_topic_pages_task
+        ON research_topic_pages(task_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_knowledge_build_runs_task
+        ON research_knowledge_build_runs(task_id, build_kind, created_at);
 
         CREATE TRIGGER IF NOT EXISTS trg_research_evidence_identity_no_update
         BEFORE UPDATE ON research_evidence_identities
@@ -909,6 +1123,161 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
         CREATE TRIGGER IF NOT EXISTS trg_research_task_derivation_no_delete
         BEFORE DELETE ON research_task_derivations BEGIN
             SELECT RAISE(ABORT, 'research task derivation is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_decision_no_update
+        BEFORE UPDATE ON research_knowledge_review_decisions BEGIN
+            SELECT RAISE(ABORT, 'knowledge review decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_decision_no_delete
+        BEFORE DELETE ON research_knowledge_review_decisions BEGIN
+            SELECT RAISE(ABORT, 'knowledge review decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_candidate_lineage_no_update
+        BEFORE UPDATE ON research_knowledge_candidates
+        WHEN NEW.candidate_id IS NOT OLD.candidate_id
+          OR NEW.workspace_schema_version IS NOT OLD.workspace_schema_version
+          OR NEW.task_id IS NOT OLD.task_id
+          OR NEW.goal_id IS NOT OLD.goal_id
+          OR NEW.attempt_id IS NOT OLD.attempt_id
+          OR NEW.checkpoint_id IS NOT OLD.checkpoint_id
+          OR NEW.result_id IS NOT OLD.result_id
+          OR NEW.provisional_artifact_id IS NOT OLD.provisional_artifact_id
+          OR NEW.source_event_id IS NOT OLD.source_event_id
+          OR NEW.source_delta_snapshot_id IS NOT OLD.source_delta_snapshot_id
+          OR NEW.candidate_kind IS NOT OLD.candidate_kind
+          OR NEW.source_boundary_hash IS NOT OLD.source_boundary_hash
+          OR NEW.source_delta_hash IS NOT OLD.source_delta_hash
+          OR NEW.source_item_hash IS NOT OLD.source_item_hash
+          OR NEW.source_item_index IS NOT OLD.source_item_index
+          OR NEW.parent_candidate_id IS NOT OLD.parent_candidate_id
+          OR NEW.claim_text IS NOT OLD.claim_text
+          OR NEW.citation_ids_json IS NOT OLD.citation_ids_json
+          OR NEW.evidence_use_ids_json IS NOT OLD.evidence_use_ids_json
+          OR NEW.source_payload_json IS NOT OLD.source_payload_json
+          OR NEW.created_at IS NOT OLD.created_at
+        BEGIN
+            SELECT RAISE(ABORT, 'knowledge candidate lineage is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_candidate_no_delete
+        BEFORE DELETE ON research_knowledge_candidates BEGIN
+            SELECT RAISE(ABORT, 'knowledge candidate is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_grounded_fact_no_update
+        BEFORE UPDATE ON research_grounded_facts BEGIN
+            SELECT RAISE(ABORT, 'grounded fact family is immutable in Stage 1');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_grounded_fact_no_delete
+        BEFORE DELETE ON research_grounded_facts BEGIN
+            SELECT RAISE(ABORT, 'grounded fact family is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_fact_revision_no_update
+        BEFORE UPDATE ON research_fact_revisions BEGIN
+            SELECT RAISE(ABORT, 'fact revision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_fact_revision_no_delete
+        BEFORE DELETE ON research_fact_revisions BEGIN
+            SELECT RAISE(ABORT, 'fact revision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_fact_evidence_link_no_update
+        BEFORE UPDATE ON research_fact_evidence_links BEGIN
+            SELECT RAISE(ABORT, 'fact evidence link is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_fact_evidence_link_no_delete
+        BEFORE DELETE ON research_fact_evidence_links BEGIN
+            SELECT RAISE(ABORT, 'fact evidence link is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_artifact_no_update
+        BEFORE UPDATE ON research_knowledge_artifacts BEGIN
+            SELECT RAISE(ABORT, 'knowledge artifact family is immutable in Stage 1');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_artifact_no_delete
+        BEFORE DELETE ON research_knowledge_artifacts BEGIN
+            SELECT RAISE(ABORT, 'knowledge artifact family is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_artifact_revision_no_update
+        BEFORE UPDATE ON research_knowledge_artifact_revisions BEGIN
+            SELECT RAISE(ABORT, 'knowledge artifact revision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_artifact_revision_no_delete
+        BEFORE DELETE ON research_knowledge_artifact_revisions BEGIN
+            SELECT RAISE(ABORT, 'knowledge artifact revision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_artifact_fact_link_no_update
+        BEFORE UPDATE ON research_artifact_fact_links BEGIN
+            SELECT RAISE(ABORT, 'artifact fact link is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_artifact_fact_link_no_delete
+        BEFORE DELETE ON research_artifact_fact_links BEGIN
+            SELECT RAISE(ABORT, 'artifact fact link is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_revision_no_update
+        BEFORE UPDATE ON research_topic_page_revisions BEGIN
+            SELECT RAISE(ABORT, 'topic page revision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_revision_no_delete
+        BEFORE DELETE ON research_topic_page_revisions BEGIN
+            SELECT RAISE(ABORT, 'topic page revision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_fact_link_no_update
+        BEFORE UPDATE ON research_topic_page_fact_links BEGIN
+            SELECT RAISE(ABORT, 'topic page fact link is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_fact_link_no_delete
+        BEFORE DELETE ON research_topic_page_fact_links BEGIN
+            SELECT RAISE(ABORT, 'topic page fact link is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_review_no_update
+        BEFORE UPDATE ON research_topic_page_review_decisions BEGIN
+            SELECT RAISE(ABORT, 'topic page review decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_review_no_delete
+        BEFORE DELETE ON research_topic_page_review_decisions BEGIN
+            SELECT RAISE(ABORT, 'topic page review decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_identity_no_update
+        BEFORE UPDATE ON research_topic_pages
+        WHEN NEW.page_id IS NOT OLD.page_id
+          OR NEW.workspace_schema_version IS NOT OLD.workspace_schema_version
+          OR NEW.task_id IS NOT OLD.task_id
+          OR NEW.slug IS NOT OLD.slug
+          OR NEW.current_version IS NOT OLD.current_version
+          OR NEW.created_at IS NOT OLD.created_at
+        BEGIN
+            SELECT RAISE(ABORT, 'topic page identity is immutable in Stage 1');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_topic_page_no_delete
+        BEFORE DELETE ON research_topic_pages BEGIN
+            SELECT RAISE(ABORT, 'topic page is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_build_identity_no_update
+        BEFORE UPDATE ON research_knowledge_build_runs
+        WHEN NEW.build_run_id IS NOT OLD.build_run_id
+          OR NEW.workspace_schema_version IS NOT OLD.workspace_schema_version
+          OR NEW.task_id IS NOT OLD.task_id
+          OR NEW.build_kind IS NOT OLD.build_kind
+          OR NEW.command_id IS NOT OLD.command_id
+          OR NEW.input_hash IS NOT OLD.input_hash
+          OR NEW.input_json IS NOT OLD.input_json
+          OR NEW.created_at IS NOT OLD.created_at
+        BEGIN
+            SELECT RAISE(ABORT, 'knowledge BuildRun identity is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_build_no_delete
+        BEFORE DELETE ON research_knowledge_build_runs BEGIN
+            SELECT RAISE(ABORT, 'knowledge BuildRun is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_candidate_delta_event_no_update
+        BEFORE UPDATE ON research_events
+        WHEN OLD.event_type='candidate_deltas_materialized'
+          OR NEW.event_type='candidate_deltas_materialized'
+        BEGIN
+            SELECT RAISE(ABORT, 'candidate delta event is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_candidate_delta_event_no_delete
+        BEFORE DELETE ON research_events
+        WHEN OLD.event_type='candidate_deltas_materialized'
+        BEGIN
+            SELECT RAISE(ABORT, 'candidate delta event is immutable');
         END;
         """
     )

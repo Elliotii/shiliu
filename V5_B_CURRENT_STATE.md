@@ -1,135 +1,124 @@
 # 拾流 V5-B Current State
 
 ```yaml
-document_status: startup_submission_pending_v5_main_review
+document_status: stage_1_implementation_submission_pending_v5_main_acceptance
 version: V5-B
 version_session: Shiliu V5-B Version Session
 updated_at: 2026-08-04
 branch: codex/v5-b
-starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
+version_starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
+stage_1_starting_commit: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
-bounded_main_review_correction: applied_docs_only
-charter_status: draft_pending_v5_main_acceptance
-stage_1_contract_status: draft_pending_v5_main_acceptance
-stage_1_implementation_authorized: false
-product_implementation_started: false
+main_acceptance_record: e73ddd2_on_codex_v5_main_not_cherry_picked
+charter_status: accepted_by_v5_main
+stage_1_contract_status: accepted_by_v5_main
+stage_1_implementation_authorized: true
+stage_1_implementation_status: implemented_pending_v5_main_acceptance
+schema_source_version: 11
 provider_runs_performed: false
+credentials_or_keychain_accessed: false
 live_database_mutated: false
 ```
 
 ## 1. 当前一句话状态
 
-V5-B startup/JIT research/Charter 已完成；V5 Main 对使命、五 Stage、权威/存储/跨版本边界和上游 reference-only 提案已原则接受，要求的 Stage 1 docs-only 收窄修订已应用。Charter/Stage 1 仍待最终接受与明确授权，尚未实施任何 V5-B 产品 schema/runtime/API/UI/tests。
+V5-B Charter、五 Stage 顺序、DeepTutor/WeKnora reference-only 边界和 corrected Stage 1 Contract 已被 V5 Main 接受；Stage 1 已在 `codex/v5-b` 实现并通过 directed、affected 与 default no-provider/temp-DB 回归，现请求有限实现验收，不自我接受且不请求 Stage 2。
 
-## 2. Branch 与 Baseline
+## 2. 已完成 Stage 1 产品路径
 
-- Worktree 最初为 detached HEAD，但 HEAD 正确位于 `b85340540cb92c2e46bfb8619598e7aa987171d4`，working tree clean。
-- `codex/v5-b` 当时未被其他 worktree 占用，已安全切换；切换后 branch/HEAD/clean status 重新核验通过。
-- 已接受 V5-A 产品代码基线是 `04e5c5bbb94311a00f6efafa142908fd7b2b97de`。
-- 从该代码基线到 V5-B 起点只有 closeout/Program/startup 文档变化，没有产品代码变化。
-- schema 10、V5-A Gate C passed、V5-A 状态 `accepted_with_known_retrieval_limitation`。
-- V5-A compound-query retrieval limitation 保持已知未证明边界，不自动进入 V5-B。
-
-## 3. 已完成的 Startup 工作
-
-### Authority intake
-
-已阅读 V5-B Startup Package/Execution Plan、V5 Program Current State/Decision Ledger、V5-A Current State/Gate C Closeout、V5-B 与跨版本规划、Session 治理、研究与证据规范、DeepTutor/WeKnora Registry/Research Log，以及相关 V5-A implementation reports/source/tests。
-
-### V5-A baseline audit
-
-已独立确认：
-
-- EvidenceIdentity global immutable；EvidenceUse task/attempt scoped；Provenance/Validation append-only；
-- provisional artifact immutable；source drift 追加 observation 而不改 identity/artifact；
-- Candidate Delta 是 bounded Event snapshot + CommandReceipt，不是 long-term store；
-- four delta kinds 全部 candidate-only；Knowledge item 回到 artifact answer blocks/citations；
-- Candidate snapshot fault rollback、restart exact-once、cross-task isolation 有测试；
-- HumanDecision 仅在显式决策范围有权威；
-- SQLite + filesystem ArtifactStore pattern 已存在，但 V5-B 必须避免双主。
-
-### Upstream research
-
-| 上游 | 固定身份 | License | 深度 | 提议 |
-| --- | --- | --- | --- | --- |
-| DeepTutor | `HKUDS/DeepTutor@44fa7a1552b88f9d8ce2c22259128a15ae2eb0c8`, tag `v1.5.8` | Apache-2.0；Memory scope 未触及 CSSwitch OAuth notice | P0 source + tests source review；test execution not proven | reimplement/test/product reference；no copy/dependency |
-| WeKnora | `Tencent/WeKnora@fcc4cd6a9f29a94818e481b3a604f44ce51c55e2`; release `v0.7.1@c64a486...` 另行核验 | 主项目 MIT + listed third-party | bounded P1 page/queue/UI/source/tests；2 pure tests passed | product/reimplement/test reference；no copy/dependency |
-
-## 4. 已提出的架构
-
-- L1：复用 V5-A Evidence/Event authority；不采用 JSONL trace authority。
-- L2：stable GroundedFact family + immutable FactRevision + exact Evidence links。
-- L3：stable ResearchArtifact/TopicPage family + immutable revisions；逐 fact 回到 L1。
-- V5-A Candidate snapshot 保持不可变来源；V5-B 单独建立长期 Candidate review identity/lifecycle。
-- V5-B 全局采用 append-only Decision/Event 与 immutable revisions；Stage 1 只实现 Candidate Accept/Reject/Edit-as-new-candidate 和初始 Fact/Artifact/Page revisions，Fact/Page 后续 correction/retire/supersede/edit/revert 产品命令进入 Stage 2。
-- SQLite 是 canonical authority；filesystem 是 revision/hash 定址、可重建的不可变 export/cache。
-- Stage 1 的持久 BuildRun 只覆盖同步 deterministic artifact/page build；Stage 2 才覆盖 update/rebuild、后台恢复和 async late-result fencing。process/SSE/Redis 只可投影/唤醒。
-- Stage 1 只允许 KnowledgeDelta → Fact；其他 delta kinds 保持 candidate-only 到后续 Stage。
-
-## 5. 拟议 Stage
-
-1. Evidence-backed Topic Page Vertical Slice。
-2. Knowledge Lifecycle, Revalidation and Durable Refresh。
-3. Artifact Retrieval, Reuse and Research Continuation。
-4. Personal and Corpus Workspace。
-5. Product Completion, Relations and Evaluation。
-
-全部 V5-B 能力目标均保留；Stage 数/顺序来自当前 baseline 与固定 Commit 上游证据。Stage 1 以早期 vertical path 为首，不先建设抽象 MemoryOS/Graph/queue platform。
-
-## 6. 验证状态
-
-### 已执行
-
-- 拾流定向 no-provider / temp-DB：
-  - `tests/test_v5_a_stage2_inner_loop.py`
-  - `tests/test_v5_a_stage4_operational_control.py`
-  - `tests/test_v5_a_stage5_product_completion.py`
-  - 结果：`73 passed`；唯一 warning 是既有 FastAPI TestClient/httpx deprecation。
-- WeKnora fixed-commit pure Node：
-  - `frontend/src/views/knowledge/wikiStatusRefresh.test.ts`
-  - 结果：`2 passed`。
-
-### 尝试但未执行
-
-- DeepTutor 六个 Memory test files：临时 sparse checkout 的 package import chain 缺少非 Memory 模块，在 collection 阶段停止；没有测试体或 Provider 运行。
-
-### 未执行
-
-- default full Shiliu suite；当前 assignment 只需 planning assumption 的定向验证。
-- DeepTutor/WeKnora 完整测试、Go build、LLM generation、Provider evaluation。
-- live DB migration/read-write、live content mutation。
-
-## 7. 产出文件
-
-- `V5_B_UPSTREAM_DEEPTUTOR_RESEARCH_REPORT.md`
-- `V5_B_UPSTREAM_WEKNORA_RESEARCH_REPORT.md`
-- `V5_B_VERSION_CHARTER.md`
-- `V5_B_STAGE_1_CONTRACT.md`
-- `V5_B_CURRENT_STATE.md`
-- `V5_B_DECISION_LEDGER.md`
-- `V5_B_STARTUP_REPORT.md`
-
-只有上述 startup/research/planning artifacts 属于本轮提交范围。
-
-## 8. 未证明与开放项
-
-- edited candidate 的 server-owned grounded validator 尚未实现；Stage 1 Contract 要求没有 validator 时保持 `needs_revalidation`。
-- 具体 schema names/limits/API routes/UI layout 尚未实现，允许在 Contract 不变量内调整。
-- Stage 1 只有同步 deterministic BuildRun；async worker/queue、late-result fencing 和通用 update/rebuild 在 Stage 2。
-- Page edit/history/diff/revert、Fact correction/retire/supersede、filesystem export command/failure matrix 均不是 Stage 1 gate，进入 Stage 2。
-- conflict detection、stale propagation、reuse/refresh/seed、personal/corpus workspace 均未实现。
-- upstream runtime behavior 未通过完整 upstream test execution 证明。
-- Provider 产品质量与 live migration 全部未授权/未证明。
-
-## 9. 当前 Gate 与下一动作
-
-```yaml
-startup_artifacts: prepared
-limited_main_review_requested: true
-charter_accepted: false
-stage_1_contract_accepted: false
-stage_1_implementation_authorized: false
-next_action: V5_main_limited_review_of_targets_boundaries_adoption_and_stage_1_authority
+```text
+V5-A Research Task
+→ immutable KnowledgeDelta Event snapshot
+→ durable Candidate intake
+→ Accept / Reject / Edit-as-new-candidate
+→ server-owned current Evidence validation
+→ initial immutable Fact revision
+→ synchronous deterministic Artifact BuildRun/revision
+→ synchronous deterministic first Topic Page BuildRun/revision
+→ expected-version publish-or-return review
+→ Fact → EvidenceIdentity/EvidenceUse/Validation → video/timestamp/transcript drill-down
 ```
 
-在 V5 Main 明确接受/修订 Charter 与 Stage 1 Contract 并授权前，V5-B Session 不实施产品代码。
+实现要点：
+
+- schema 11 增加 Candidate/Decision、Fact family/revision/evidence link、Artifact family/revision/fact link、Topic Page family/revision/fact link/PageReviewDecision 与 KnowledgeBuildRun；
+- V5-A Candidate Delta Event 继续是 candidate-only immutable source，V5-B intake 持久保存 kind、snapshot、boundary、item/hash 和完整 Task/Goal/Attempt/Checkpoint/Result/Artifact lineage；
+- Accept 在同一事务中重新 materialize 当前 source artifact、追加 `research_evidence_validations`、创建首个 Fact revision/evidence links、转换 Candidate、追加 Decision/Event/Receipt；任一结果不是 `current` 都只进入 `needs_revalidation`；
+- Edit 创建 child Candidate，保留 parent，edited claim 固定为 `needs_revalidation`；Stage 1 没有 edited-claim grounded validator；
+- Artifact/Page 只接受本 Task 已 accepted 且 promotion validation 为 current 的 FactRevision；canonical body、source result/boundary/corpus snapshot、content hash 均在 SQLite；
+- BuildRun 先以 deterministic identity 持久为 `running`，再在独立原子事务写 output revision、terminal state、Event 与 Receipt；reservation 后 crash 可由同一命令重启，output/receipt fault 整体 rollback；
+- minimal API/UI 提供 intake、Candidate review、Artifact/Page build、Page publish-or-return、build status 和 transcript citation drill-down。
+
+## 3. 明确仍未实现
+
+- Page content edit/history/diff/revert/archive 和后续 revision 命令；
+- Fact correction/retire/supersede 产品命令；
+- filesystem export command/failure/retry gate；
+- async late-result fencing、通用 update/rebuild、后台 recovery/dead-letter；
+- Stage 2–5 的 revalidation propagation、conflict、reuse/refresh/seed、personal/corpus workspace；
+- V5-C/V5-D 能力；
+- Provider、paid service、credential/Keychain、live DB migration/content mutation；
+- upstream source/test/UI copy、直接依赖或新依赖。
+
+## 4. 验证状态
+
+### Stage 1 directed
+
+```text
+PYTHONPATH=src <existing-project-venv>/python -m pytest -q \
+  tests/test_v5_b_stage1_knowledge_workspace.py
+```
+
+结果：`8 passed`。覆盖 schema 11/reentrant temp DB、minimal UI、direct service 与完整 public API vertical paths、duplicate/payload mismatch、cross-task/forged Fact、source Event/revision immutability、Edit/Reject、stale/missing/invalid/error fail closed、accept rollback、BuildRun reservation/restart/output rollback、Page review rollback/expected-version guard、citation drill-down 与 FK check。
+
+### Accepted V5-A affected set
+
+```text
+PYTHONPATH=src <existing-project-venv>/python -m pytest -q \
+  tests/test_v5_a_stage2_inner_loop.py \
+  tests/test_v5_a_stage4_operational_control.py \
+  tests/test_v5_a_stage5_product_completion.py
+```
+
+结果：`73 passed`。
+
+### Default no-provider suite
+
+```text
+PYTHONPATH=src <existing-project-venv>/python -m pytest
+```
+
+最终结果：`1694 passed, 4 deselected, 7 warnings in 111.24s`；filter 为 repository `not external_artifact and not live_provider`。
+
+静态检查：`node --check src/shiliu/static/research.js`、相关 Python `py_compile`、`git diff --check` 通过。既有 warning 为 FastAPI TestClient/httpx deprecation 与 multiprocessing fork deprecation。
+
+## 5. Live DB / Provider 非动作证据
+
+- 所有 `Application` 实例均由 pytest `app_paths` 指向 pytest 临时 state/content/database；探索 journey 使用 `TemporaryDirectory`；没有调用 `AppPaths.defaults()` 初始化产品数据库。
+- 未运行 CLI/server against default paths，未读取或写入 live database/live content。
+- 未调用 `provider()`、未访问 Keychain/credential、未发起付费或网络模型请求。
+- schema 11 仅作为 migration source 与 temp-DB tests 执行；live schema 10 未迁移。
+- Program-only `codex/v5-main@e73ddd2` 未 merge/cherry-pick；未 push/merge/tag。
+
+## 6. 当前未证明项
+
+- actual live schema-10 database migration、backup size/time 与真实内容兼容性未授权、未执行；
+- multi-process并发 review/build race 未单独压测；当前机械证据覆盖 command receipt、expected-version、single-process lock、transaction/unique constraint、fault/restart；
+- Stage 1 没有 edited-claim server validator，因此 edited Candidate 不能 Accept；
+- UI 通过 HTTP/static contract tests 与 JavaScript syntax check，未做浏览器视觉/可访问性专项验收；
+- Provider 生成质量、真实长时间运行与 upstream full suites 未执行；
+- V5-A accepted compound-query retrieval limitation 仍未解决且不自动属于 V5-B。
+
+## 7. 当前 Gate
+
+```yaml
+charter_accepted: true
+stage_1_contract_accepted: true
+stage_1_implementation_authorized: true
+stage_1_self_accepted: false
+stage_1_main_acceptance: pending
+stage_2_authorized: false
+next_action: limited_v5_main_stage_1_implementation_acceptance_review
+```
+
+详细实现、文件和最终验证以 `V5_B_STAGE_1_IMPLEMENTATION_REPORT.md` 为准。

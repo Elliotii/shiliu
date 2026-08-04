@@ -60,6 +60,13 @@ from shiliu.research.product_contracts import (
     CreateProductResearchRequest,
     RunProductResearchRequest,
 )
+from shiliu.research.knowledge_contracts import (
+    BuildKnowledgeArtifactRequest,
+    BuildTopicPageRequest,
+    IntakeKnowledgeCandidatesRequest,
+    ReviewKnowledgeCandidateRequest,
+    ReviewTopicPageRequest,
+)
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
 from shiliu.stage5 import Stage5PipelineRequest
 
@@ -470,6 +477,120 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "product": product})
+
+    @web.get("/api/research/product/tasks/{task_id}/knowledge")
+    async def get_research_knowledge_workspace(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            workspace = await asyncio.to_thread(
+                _core(request).research_knowledge.get_workspace, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "workspace": workspace})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/intake")
+    async def intake_research_knowledge_candidates(
+        task_id: str,
+        payload: IntakeKnowledgeCandidatesRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.intake_candidates,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/candidates/{candidate_id}/review"
+    )
+    async def review_research_knowledge_candidate(
+        task_id: str,
+        candidate_id: str,
+        payload: ReviewKnowledgeCandidateRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.review_candidate,
+                task_id,
+                candidate_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/artifacts")
+    async def build_research_knowledge_artifact(
+        task_id: str,
+        payload: BuildKnowledgeArtifactRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.build_artifact,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/pages")
+    async def build_research_topic_page(
+        task_id: str,
+        payload: BuildTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.build_topic_page,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/pages/{page_id}/review"
+    )
+    async def review_research_topic_page(
+        task_id: str,
+        page_id: str,
+        payload: ReviewTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.review_page,
+                task_id,
+                page_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
 
     @web.post("/api/research/product/tasks/{task_id}/run")
     async def run_product_research_task(

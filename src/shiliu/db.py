@@ -15,7 +15,7 @@ from shiliu.research.schema import (
 )
 
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 
 
 def utc_now() -> str:
