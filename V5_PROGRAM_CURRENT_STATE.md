@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-04T15:58:11+08:00
+> Updated at: 2026-08-04T16:19:47+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,15 +11,16 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STAGE_2_CONTRACT
+  current_formal_stage: V5_B_STAGE_2_IMPLEMENTATION
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
+  V5_B_accepted_stage_2_contract_head: a931e2863f3ae245205c1f64bad7e45d25f03225
   branch: codex/v5-main
-  pending_decision: V5_B_stage_2_contract_review
-  next_action: V5_B_session_prepares_compact_stage_2_contract
+  pending_decision: V5_B_stage_2_implementation_submission
+  next_action: V5_B_session_implements_stage_2_under_accepted_contract
   roadmap_reconsideration_open: false
 ```
 
@@ -32,7 +33,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_1_accepted_stage_2_contract_preparation
+    status: stage_1_accepted_stage_2_implementation_active
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -56,6 +57,7 @@ repository:
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
+  V5_B_accepted_stage_2_contract_head: a931e2863f3ae245205c1f64bad7e45d25f03225
   V5_B_execution_schema_source: 11
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -157,9 +159,15 @@ research_equals_implementation_authorization: false
 
 # 6. Next action boundary
 
-V5-B Stage 1 已在 `abe002a` 通过有限验收：Candidate → current Evidence → Fact →
-deterministic Artifact → first Topic Page → publish-or-return 的无 Provider 纵切成立，live DB
-仍为 schema 10。下一步由同一 V5-B Session 起草精简 Stage 2 Contract，范围聚焦知识生命周期、
-revalidation 和 durable refresh；在主 Session 接受前不开始 Stage 2 产品实施。
+V5-B Stage 2 Contract `a931e28` 已通过主 Session 的目标、边界和 acceptance-gate 有限审阅，
+同一 V5-B Session 已获准自主实现 knowledge lifecycle、revalidation、Fact/Page revision 与
+专用 durable refresh operation。普通 projection、fixture、test harness 和低风险实现错误由
+V5-B Session 在 Contract 内自行修复、复跑和整合，不逐项回报主 Session。
 
-当前无技术阻塞，也无待用户决定的材料性路线问题。
+有界约束：已接受 Charter 中按 revision/hash 的最小 filesystem export、失败可观察与安全重试
+不能从 V5-B 能力目标中静默消失。Stage 2 应交付最小实现；若实际产品证据证明不应在本 Stage
+实现，必须在提交报告中明确移交 Stage 5，而不是将其永久降为无 owner 的 optional 项。
+
+当前不授权 live DB migration、Provider、凭据/Keychain、上游源码复制、新依赖、push/merge/tag
+或自我验收。DeepSeek 等付费调用若后续确有必要，单个连续预算包累计预计不超过 2 美元时视为
+用户已默认授权；超过 2 美元前必须暂停请求用户确认。
