@@ -203,6 +203,59 @@
     }, '正在提交 Candidate 审查…');
   };
 
+  const proposeFactUpdate = (fact, kind) => {
+    let proposedClaim = null;
+    if (['user_correction', 'supersede'].includes(kind)) {
+      proposedClaim = window.prompt('修正必须仍可由当前 Evidence 机械支撑；否则会保持 needs_revalidation。', fact.claim);
+      if (proposedClaim === null || !proposedClaim.trim()) return;
+      proposedClaim = proposedClaim.trim();
+    }
+    knowledgeAction(`/facts/${encodeURIComponent(fact.fact_id)}/updates`, {
+      command_id: commandId(`fact-${kind}`), kind,
+      expected_fact_state_version: fact.fact_state_version,
+      evidence_use_ids: fact.citations.map(value => value.evidence_use_id),
+      reason: `local operator ${kind}`,
+      ...(proposedClaim ? {proposed_claim: proposedClaim} : {}),
+    }, '正在创建 durable update Candidate…');
+  };
+
+  const reviewUpdate = (candidate, decision) => {
+    const state = (knowledge.fact_states || []).find(value => value.fact_id === candidate.fact_id);
+    if (!state) return;
+    let editedClaim = null;
+    if (decision === 'edit') {
+      editedClaim = window.prompt('编辑会创建 needs_revalidation 子 Candidate。', candidate.proposed_claim || '');
+      if (editedClaim === null || !editedClaim.trim()) return;
+    }
+    knowledgeAction(`/updates/${encodeURIComponent(candidate.update_candidate_id)}/review`, {
+      command_id: commandId(`update-${decision}`), decision,
+      expected_candidate_version: candidate.state_version,
+      expected_fact_state_version: state.state_version,
+      reason: `local operator ${decision}`,
+      ...(editedClaim ? {edited_claim: editedClaim.trim()} : {}),
+    }, '正在审查知识更新…');
+  };
+
+  const inspectPageHistory = async (page, target) => {
+    const status = root.querySelector('[data-knowledge-status]');
+    status.textContent = '正在读取 immutable Page history/diff…';
+    try {
+      const historyData = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/knowledge/pages/${encodeURIComponent(page.page_id)}/history`);
+      let diffLines = [];
+      if (page.version > 1) {
+        const diffData = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/knowledge/pages/${encodeURIComponent(page.page_id)}/diff?from_version=1&to_version=${encodeURIComponent(page.version)}`);
+        diffLines = diffData.diff.lines;
+      }
+      target.textContent = JSON.stringify({
+        current_version: historyData.history.current_version,
+        published_version: historyData.history.published_version,
+        revisions: historyData.history.revisions.map(value => ({version: value.version, kind: value.revision_kind, id: value.page_revision_id})),
+        diff_from_v1: diffLines,
+      }, null, 2);
+      target.hidden = false; status.textContent = '已读取 history/diff；它们是 SQLite revision 的派生视图。';
+    } catch (error) { status.textContent = error.message; }
+  };
+
   const renderKnowledge = workspaceData => {
     knowledge = workspaceData;
     const candidateList = root.querySelector('[data-knowledge-candidates]');
@@ -242,19 +295,24 @@
     const factList = root.querySelector('[data-knowledge-facts]');
     const factHeading = element('div', 'research-section-heading');
     factHeading.append(element('h4', '', `Accepted Fact · ${knowledge.facts.length}`));
-    if (knowledge.facts.length) {
+    const currentFacts = knowledge.facts.filter(fact => fact.is_current_revision && fact.lifecycle_status === 'current');
+    if (currentFacts.length) {
       const build = element('button', 'ghost compact-button', '构建确定性 Artifact');
       build.type = 'button';
       build.addEventListener('click', () => knowledgeAction('/artifacts', {
         command_id: commandId('artifact-build'),
-        fact_revision_ids: knowledge.facts.map(fact => fact.fact_revision_id),
+        fact_revision_ids: currentFacts.map(fact => fact.fact_revision_id),
       }, '正在同步构建 Artifact…'));
       factHeading.append(build);
     }
     factList.replaceChildren(factHeading);
     knowledge.facts.forEach(fact => {
       const card = element('article', 'research-knowledge-card');
-      card.append(element('p', 'research-knowledge-claim', fact.claim));
+      card.append(
+        element('span', `research-currentness${fact.currentness_status === 'current' && fact.lifecycle_status === 'current' ? '' : ' is-stale'}`, `${fact.lifecycle_status} · ${fact.currentness_status}`),
+        element('p', 'research-knowledge-claim', fact.claim),
+        element('small', '', `revision ${fact.revision}${fact.is_current_revision ? ' · current head' : ' · history'}`),
+      );
       fact.citations.forEach(citation => {
         const citationRow = element('div', 'research-citation-drilldown');
         citationRow.append(element('span', '', `${citation.current_outcome} · ${citation.title} · ${citation.quote}`));
@@ -267,6 +325,14 @@
         transcript.href = citation.transcript_href; transcript.target = '_blank';
         citationRow.append(transcript); card.append(citationRow);
       });
+      if (fact.is_current_revision && fact.lifecycle_status === 'current') {
+        const actions = element('div', 'research-control-buttons');
+        [['user_correction', '修正'], ['retire', 'Retire'], ['supersede', 'Supersede']].forEach(([kind, label]) => {
+          const button = element('button', kind === 'retire' ? 'ghost is-destructive' : 'ghost', label);
+          button.type = 'button'; button.addEventListener('click', () => proposeFactUpdate(fact, kind)); actions.append(button);
+        });
+        card.append(actions);
+      }
       factList.append(card);
     });
 
@@ -274,13 +340,19 @@
     artifactList.replaceChildren(element('h4', '', `Artifact revision · ${knowledge.artifacts.length}`));
     knowledge.artifacts.forEach(artifact => {
       const card = element('article', 'research-knowledge-card');
-      card.append(element('strong', '', artifact.topic), element('small', '', artifact.artifact_revision_id));
-      const build = element('button', 'ghost compact-button', '构建首版 Topic Page');
-      build.type = 'button';
-      build.addEventListener('click', () => knowledgeAction('/pages', {
-        command_id: commandId('page-build'), artifact_revision_id: artifact.artifact_revision_id,
-      }, '正在同步构建首版 Topic Page…'));
-      card.append(build); artifactList.append(card);
+      card.append(
+        element('span', `research-currentness${artifact.currentness_status === 'current' ? '' : ' is-stale'}`, artifact.currentness_status),
+        element('strong', '', artifact.topic), element('small', '', artifact.artifact_revision_id),
+      );
+      if (artifact.currentness_status === 'current') {
+        const build = element('button', 'ghost compact-button', '构建首版 Topic Page');
+        build.type = 'button';
+        build.addEventListener('click', () => knowledgeAction('/pages', {
+          command_id: commandId('page-build'), artifact_revision_id: artifact.artifact_revision_id,
+        }, '正在同步构建首版 Topic Page…'));
+        card.append(build);
+      }
+      artifactList.append(card);
     });
 
     const pageList = root.querySelector('[data-knowledge-pages]');
@@ -288,9 +360,9 @@
     knowledge.pages.forEach(page => {
       const card = element('article', 'research-knowledge-card');
       card.append(
-        element('span', `research-currentness${page.review_status === 'draft' ? '' : ' is-stale'}`, page.review_status),
+        element('span', `research-currentness${page.currentness_status === 'current' ? '' : ' is-stale'}`, `${page.review_status} · ${page.currentness_status}`),
         element('strong', '', page.title),
-        element('small', '', `${page.page_revision_id} · version ${page.version}`),
+        element('small', '', `${page.page_revision_id} · version ${page.version} · published ${page.published_version || 'none'}`),
       );
       (page.body.facts || []).forEach(fact => card.append(element('p', 'research-knowledge-claim', fact.claim)));
       if (page.review_status === 'draft') {
@@ -306,7 +378,87 @@
         });
         card.append(actions);
       }
+      const lifecycle = element('div', 'research-control-buttons');
+      const edit = element('button', 'ghost', 'Edit draft');
+      edit.type = 'button'; edit.addEventListener('click', () => {
+        const annotation = window.prompt('添加或更新用户注释；Fact blocks 保持引用既有 grounded revision。', page.body.user_annotation || '');
+        if (annotation === null) return;
+        knowledgeAction(`/pages/${encodeURIComponent(page.page_id)}/edit`, {
+          command_id: commandId('page-edit'), expected_version: page.version,
+          annotation, reason: 'local operator edit',
+        }, '正在创建新的 Page draft revision…');
+      });
+      const revert = element('button', 'ghost', 'Revert to v1');
+      revert.type = 'button'; revert.disabled = page.version === 1;
+      revert.addEventListener('click', () => knowledgeAction(`/pages/${encodeURIComponent(page.page_id)}/revert`, {
+        command_id: commandId('page-revert'), expected_version: page.version,
+        target_version: 1, reason: 'local operator revert',
+      }, '正在以新 revision 执行 revert…'));
+      const exportButton = element('button', 'ghost', 'Export Markdown');
+      exportButton.type = 'button'; exportButton.addEventListener('click', () => knowledgeAction('/exports', {
+        command_id: commandId('page-export'), page_revision_id: page.page_revision_id,
+        export_format: 'markdown',
+      }, '正在导出 revision-ID/content-hash addressed Markdown…'));
+      const historyOutput = element('pre', 'research-advanced-trace'); historyOutput.hidden = true;
+      const historyButton = element('button', 'ghost', 'History / diff'); historyButton.type = 'button';
+      historyButton.addEventListener('click', () => inspectPageHistory(page, historyOutput));
+      lifecycle.append(edit, revert, historyButton, exportButton); card.append(lifecycle, historyOutput);
       pageList.append(card);
+    });
+
+    const updateList = root.querySelector('[data-knowledge-updates]');
+    updateList.replaceChildren(element('h4', '', `Update Candidate · ${(knowledge.update_candidates || []).length}`));
+    (knowledge.update_candidates || []).forEach(candidate => {
+      const card = element('article', 'research-knowledge-card');
+      card.append(
+        element('span', `research-currentness${candidate.status === 'pending_review' ? '' : ' is-stale'}`, `${candidate.kind} · ${candidate.status}`),
+        element('p', 'research-knowledge-claim', candidate.proposed_claim || candidate.source_fact_revision_id),
+        element('small', '', `${candidate.update_candidate_id} · validator ${candidate.validator_status}`),
+      );
+      if (['pending_review', 'needs_revalidation'].includes(candidate.status)) {
+        const actions = element('div', 'research-control-buttons');
+        if (candidate.status === 'pending_review') {
+          const accept = element('button', 'ghost', 'Accept update'); accept.type = 'button';
+          accept.addEventListener('click', () => reviewUpdate(candidate, 'accept')); actions.append(accept);
+        }
+        const reject = element('button', 'ghost is-destructive', 'Reject'); reject.type = 'button';
+        reject.addEventListener('click', () => reviewUpdate(candidate, 'reject'));
+        const edit = element('button', 'ghost', 'Edit as new'); edit.type = 'button';
+        edit.addEventListener('click', () => reviewUpdate(candidate, 'edit')); actions.append(reject, edit); card.append(actions);
+      }
+      updateList.append(card);
+    });
+
+    const operationList = root.querySelector('[data-knowledge-operations]');
+    operationList.replaceChildren(element('h4', '', `Durable operation · ${(knowledge.operations || []).length}`));
+    (knowledge.operations || []).forEach(operation => {
+      const card = element('article', 'research-knowledge-card');
+      card.append(
+        element('span', `research-currentness${operation.status === 'succeeded' ? '' : ' is-stale'}`, `${operation.kind} · ${operation.status}`),
+        element('small', '', `${operation.operation_id} · attempt ${operation.attempt_count}/${operation.max_attempts}`),
+      );
+      if (['pending', 'retry_wait'].includes(operation.status) && operation.kind === 'refresh_knowledge') {
+        const run = element('button', 'ghost', operation.status === 'pending' ? 'Run refresh' : 'Safe retry'); run.type = 'button';
+        run.addEventListener('click', () => knowledgeAction(`/operations/${encodeURIComponent(operation.operation_id)}/run`, {
+          command_id: commandId('operation-run'), claimant_id: 'local_ui',
+        }, '正在运行受 fence 保护的 durable refresh…')); card.append(run);
+      }
+      if (operation.status === 'needs_user') {
+        const retry = element('button', 'ghost', 'Resolve → retry'); retry.type = 'button';
+        retry.addEventListener('click', () => knowledgeAction(`/operations/${encodeURIComponent(operation.operation_id)}/resolve`, {
+          command_id: commandId('operation-resolve-retry'), action: 'retry',
+          expected_claim_generation: operation.claim_generation, reason: 'local operator resolved blocker',
+        }, '正在持久记录 needs-user resolution…')); card.append(retry);
+      }
+      if (['pending', 'retry_wait', 'needs_user', 'dead_letter'].includes(operation.status)) {
+        const cancel = element('button', 'ghost is-destructive', 'Cancel operation'); cancel.type = 'button';
+        cancel.addEventListener('click', () => knowledgeAction(`/operations/${encodeURIComponent(operation.operation_id)}/resolve`, {
+          command_id: commandId('operation-cancel'), action: 'cancel',
+          expected_claim_generation: operation.claim_generation, reason: 'local operator cancelled bounded operation',
+        }, '正在持久取消 operation…')); card.append(cancel);
+      }
+      if (operation.error_detail) card.append(element('p', 'muted', `${operation.error_class} · ${operation.error_code} · ${operation.error_detail}`));
+      operationList.append(card);
     });
   };
 
@@ -582,6 +734,9 @@
   root.querySelector('[data-refresh-list]').addEventListener('click', loadList);
   root.querySelector('[data-knowledge-intake]').addEventListener('click', () => {
     knowledgeAction('/intake', {command_id: commandId('knowledge-intake')}, '正在接收 immutable KnowledgeDelta snapshot…');
+  });
+  root.querySelector('[data-knowledge-revalidate]').addEventListener('click', () => {
+    knowledgeAction('/revalidate', {command_id: commandId('knowledge-revalidate'), fact_revision_ids: [], trigger: 'explicit'}, '正在追加 current Evidence observations…');
   });
   window.addEventListener('popstate', () => {
     const match = location.pathname.match(/^\/research\/([^/]+)$/);

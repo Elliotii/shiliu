@@ -150,13 +150,13 @@ def test_stage1_schema_is_temp_db_only_reentrant_and_exposes_minimal_ui(
     app_paths,
 ) -> None:
     core = _fixture_core(app_paths)
-    assert SCHEMA_VERSION == 11
+    assert SCHEMA_VERSION == 12
     assert core.db.path == app_paths.database
     core.db.initialize()
     with core.db.connect() as connection:
         assert connection.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "11"
+        ).fetchone()[0] == "12"
         tables = {
             str(row[0])
             for row in connection.execute(
@@ -177,7 +177,7 @@ def test_stage1_schema_is_temp_db_only_reentrant_and_exposes_minimal_ui(
     page = client.get("/research")
     script = client.get("/static/research.js?v=1")
     assert page.status_code == 200
-    assert "知识与 Topic Page 审查" in page.text
+    assert "知识生命周期与 Topic Page 刷新" in page.text
     assert "data-knowledge-intake" in page.text
     assert "publish-or-return" in page.text
     assert script.status_code == 200

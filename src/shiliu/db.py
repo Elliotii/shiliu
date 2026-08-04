@@ -12,10 +12,11 @@ from shiliu.research.schema import (
     initialize_research_schema,
     prepare_research_schema_v9,
     prepare_research_schema_v10,
+    prepare_research_schema_v12,
 )
 
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 
 
 def utc_now() -> str:
@@ -32,6 +33,7 @@ class Database:
         with self.connect() as connection:
             prepare_research_schema_v9(connection)
             prepare_research_schema_v10(connection)
+            prepare_research_schema_v12(connection)
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS schema_meta (

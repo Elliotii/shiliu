@@ -353,6 +353,7 @@ class Application:
                 db=self.db,
                 kernel=self.research,
                 product=self.research_product,
+                export_root=self.paths.content_dir / "knowledge-exports",
             )
         return self._research_knowledge
 

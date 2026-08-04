@@ -6,20 +6,24 @@ version_session: Shiliu V5-B Version Session
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
-main_acceptance_record: e73ddd2_on_codex_v5_main_message_is_execution_authority
+main_acceptance_record: e73ddd2_on_codex_v5_main_message_is_stage_1_execution_authority
+stage_1_acceptance_record: 2f4dabf_on_codex_v5_main_not_cherry_picked
+stage_2_contract_commit: a931e2863f3ae245205c1f64bad7e45d25f03225
+stage_2_acceptance_and_authorization_record: c6317a5_on_codex_v5_main_not_cherry_picked
 accepted_contract_commit: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
 starting_branch: codex/v5-b
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
-implementation_authorized: stage_1_only
+implementation_authorized: stages_1_and_2
 product_implementation_started: true
-stage_1_implementation_status: implemented_pending_v5_main_acceptance
-provider_runs_authorized: false
+stage_1_implementation_status: accepted_by_v5_main
+stage_2_implementation_status: implemented_pending_v5_main_acceptance
+provider_runs_authorized: stage_2_bounded_optional_up_to_usd_2
 provider_runs_performed: false
 live_database_migration_authorized: false
 ```
 
-> V5 Main 已通过执行授权消息接受本 Charter、五 Stage 顺序、上游 reference-only 边界及 commit `4efaed4` 的 Stage 1 Contract，并授权 Stage 1 实施；Program 接受记录位于 `codex/v5-main@e73ddd2`，未合并或 cherry-pick 到本分支。本文件不构成 V5-B 自我验收，Stage 1 实现仍须 Main 审查。
+> V5 Main 已接受本 Charter、五 Stage 顺序、上游 reference-only 边界、Stage 1 实现，以及 commit `a931e286` 的 Stage 2 Contract，并在 `codex/v5-main@c6317a5` 授权 Stage 2 实施；所有 Program-only records 均未合并或 cherry-pick。本文件不构成 V5-B 自我验收，Stage 2 实现仍须 Main 审查。
 
 ## 1. 版本使命
 
@@ -47,7 +51,7 @@ V5-B 不替换 V5-A Research Runtime，也不把普通聊天历史、模型摘�
 - 本轮起始 Commit：`b85340540cb92c2e46bfb8619598e7aa987171d4`。
 - 已接受 V5-A 产品代码 Commit：`04e5c5bbb94311a00f6efafa142908fd7b2b97de`。
 - `04e5c5b..b853405` 只包含 V5-A closeout、Program 状态和 V5-B 启动文档变化，没有产品源码变化。
-- V5-B 启动时 schema version 10；Stage 1 临时迁移源现为 schema 11。V5-A Gate C 已通过，最终状态为 `accepted_with_known_retrieval_limitation`。
+- V5-B 启动时 schema version 10；Stage 1 临时迁移源为 schema 11，Stage 2 临时迁移源现为 schema 12。V5-A Gate C 已通过，最终状态为 `accepted_with_known_retrieval_limitation`。
 - V5-A 代表性长 compound query 的 grounded completion 未证明；该 retrieval limitation 不是 V5-B 自动 backlog。
 
 ### 2.2 可直接复用的 V5-A 权威
@@ -152,7 +156,7 @@ Research Task → KnowledgeDelta Candidate intake → Evidence review
 
 建立 stable family/revision identity、append-only foundation、同步 durable BuildRun、receipt、expected-version review guard、最小 API/UI 和字幕下钻；无 Provider、临时 DB 验证，live migration 不授权。Page edit/history/diff/revert、Fact correction/retire/supersede、filesystem export gate 和 async late-result fencing 不属于 Stage 1 验收。
 
-### Stage 2 — Knowledge Lifecycle, Revalidation and Durable Refresh
+### Stage 2 — Knowledge Lifecycle, Revalidation and Durable Refresh（已实施，待 Main 验收）
 
 加入 source-version revalidation、stale/conflict/viewpoint/temporal scope；交付 Fact correction/retire/supersede、Artifact/Page 后续 revision、Page edit/history/diff/revert；交付 filesystem export command/failure/retry，以及持久 update/rebuild pending operation、restart recovery、retry/dead-letter/needs-user 和 async late-result fencing。新 Evidence 只生成 update candidate，不自动改 current Page。
 
@@ -241,9 +245,12 @@ stage_sequence_status: accepted_by_v5_main
 upstream_adoption_status: accepted_reference_only
 stage_1_contract_status: accepted_at_4efaed413cb2fd9d2eeabe411da96f5132ce6276
 stage_1_implementation_authorized: true
-stage_1_implementation_status: implemented_pending_v5_main_acceptance
-provider_runs_authorized: false
-next_action: limited_v5_main_stage_1_implementation_acceptance_review
+stage_1_implementation_status: accepted_at_abe002ab95025b38565464e69ca8b3abe651f1ae
+stage_2_contract_status: accepted_at_a931e2863f3ae245205c1f64bad7e45d25f03225
+stage_2_implementation_authorized: true
+stage_2_implementation_status: implemented_pending_v5_main_acceptance
+provider_runs_performed: false
+next_action: limited_v5_main_stage_2_implementation_acceptance_review
 ```
 
-请求 V5 Main 仅审查 Stage 1 实现是否满足已接受 Contract，并决定接受或要求有界修正；V5-B Session 不自我接受，也不请求 Stage 2 授权。
+请求 V5 Main 仅审查 Stage 2 实现是否满足已接受 Contract，并决定接受或要求有界修正；V5-B Session 不自我接受，也不启动 Stage 3。

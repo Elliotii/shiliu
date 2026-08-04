@@ -3,7 +3,7 @@
 ```yaml
 stage: V5-B Stage 2
 title: Knowledge Lifecycle, Revalidation and Durable Refresh
-contract_status: draft_pending_v5_main_acceptance
+contract_status: accepted_by_v5_main
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
@@ -12,13 +12,17 @@ accepted_stage_1_commit: abe002ab95025b38565464e69ca8b3abe651f1ae
 stage_1_main_acceptance_record: 2f4dabf_on_codex_v5_main_not_cherry_picked
 schema_baseline: 11
 contract_preparation_authorized: true
-implementation_authorized: false
-implementation_started: false
-provider_runs_authorized: false
+contract_commit: a931e2863f3ae245205c1f64bad7e45d25f03225
+main_acceptance_and_authorization_record: c6317a5_on_codex_v5_main_not_cherry_picked
+implementation_authorized: true
+implementation_started: true
+implementation_status: implemented_pending_v5_main_acceptance
+schema_target: 12
+provider_runs_authorized: bounded_optional_up_to_usd_2_not_used
 live_database_migration_authorized: false
 ```
 
-> V5 Main 已接受 Stage 1，并只授权本次 Stage 2 Contract 准备。本文件不授予 Stage 2 schema/runtime/API/UI/test 实施权限，不构成 V5-B 自我验收。
+> V5 Main 已在 `codex/v5-main@c6317a5` 接受本 Contract 的 target、authority boundary、dependency order 与 Gates A–E，并授权在 `codex/v5-b` 实施；该 Program-only commit 未合并或 cherry-pick。本文件不构成 V5-B 自我验收，实施仍须 Main 审查。
 
 ## 1. Stage 使命与用户结果
 
@@ -256,7 +260,7 @@ Core reliability：
 
 以下可在 core 完成后实现，但不阻塞 Stage 2 acceptance：
 
-- filesystem export command、download UI和export-specific retry；
+- richer filesystem download UI和batch export；Stage 2 已交付 revision-ID/content-hash addressed Markdown/JSON export、可观察失败与同 revision 安全重试；
 - 常驻 background wakeup/SSE；startup/explicit bounded recovery已足够；
 - rich semantic/word diff；deterministic line/block diff已足够；
 - automatic semantic conflict suggestion或 Provider validator；没有时保持 potential/needs_revalidation；
@@ -277,34 +281,33 @@ Core reliability：
 - upstream source/test/UI copy、direct/new dependency；
 - push/merge/tag或self-acceptance。
 
-## 11. Honest unresolved implementation choices
+## 11. 已采用的实施选择
 
-Main 接受 Contract 后，V5-B Session可在不改变以上 gates 的前提下自主选择：
+实施在不改变 Gates A–E 的前提下采用：
 
-- 扩展 Stage 1 BuildRun还是建立单一专用 DurableUpdateOperation table；
-- request-driven/startup recovery的具体 hook与小 retry constant；
-- line/block diff representation；
-- exact source-rebind policy和server-owned registered validator set；
-- projection按查询派生或受事务保护materialize。
+- 建立 Stage 2 专用 SQLite `research_knowledge_update_operations`，不扩张为通用队列；
+- explicit bounded recovery + expired-claim recovery，small bounded retry，常驻 worker 非 core；
+- deterministic unified line diff；
+- exact source-rebind/current Evidence validator；claim 改写若不能被当前 Evidence quote deterministic 支持则保持 `needs_revalidation`；
+- immutable observations/decisions/revisions 加受事务保护的 Fact/Page head projection；
+- revision-ID/content-hash addressed Markdown/JSON derived export，SQLite commit 与 publish 不依赖 export 成功。
 
 若需要 Provider validator、live migration、general worker平台、放宽 Evidence authority或改变跨版本边界，必须停止并升级 Main。
 
-## 12. Limited review request
+## 12. 实施提交状态
 
 ```yaml
 stage_1_status: accepted_by_v5_main
-stage_2_contract_status: draft_pending_v5_main_acceptance
-stage_2_implementation_authorized: false
-provider_runs_authorized: false
+stage_2_contract_status: accepted_by_v5_main_at_c6317a5
+stage_2_implementation_authorized: true
+stage_2_implementation_status: implemented_pending_v5_main_acceptance
+provider_runs_performed: false
 live_database_migration_authorized: false
 requested_review:
-  - primary_user_outcome_and_dependency_order
-  - stale_conflict_scope_and_update_candidate_semantics
-  - correction_retire_supersede_and_page_revision_boundaries
-  - durable_operation_retry_recovery_and_late_fence
-  - sqlite_authority_and_non_gating_filesystem_export
-  - stage_3_to_5_and_cross_version_exclusions
-decision_requested: accept_or_return_one_bounded_contract_correction
+  - gates_a_through_e_implementation
+  - sqlite_authority_and_derived_export
+  - compatibility_and_honest_limits
+decision_requested: limited_v5_main_stage_2_acceptance_or_bounded_return
 ```
 
-请求 V5 Main 只审查 Stage 2 target/boundary/acceptance gates；在 Main 明确接受并授权前，不实施 Stage 2 产品代码、schema、migration、API、UI或tests。
+实施证据集中在 `V5_B_STAGE_2_IMPLEMENTATION_REPORT.md`。请求 V5 Main 对已接受 Contract 做一次 limited Stage 2 acceptance review；V5-B Session 不自我接受，也不启动 Stage 3。

@@ -17,10 +17,115 @@ CONTINUATION_SEED_SCHEMA_VERSION = "v5-a-stage3-continuation-seed-v1"
 CONTROL_SCHEMA_VERSION = "v5-a-stage4-control-v1"
 INPUT_SCHEMA_VERSION = "v5-a-stage4-input-v1"
 DERIVATION_SCHEMA_VERSION = "v5-a-stage4-derivation-v1"
-KNOWLEDGE_WORKSPACE_SCHEMA_VERSION = "v5-b-stage1-knowledge-workspace-v1"
+KNOWLEDGE_WORKSPACE_SCHEMA_VERSION = "v5-b-stage2-knowledge-workspace-v1"
 KNOWLEDGE_VALIDATION_POLICY_VERSION = "v5-b-stage1-current-evidence-v1"
 KNOWLEDGE_ARTIFACT_POLICY_VERSION = "v5-b-stage1-artifact-build-v1"
 TOPIC_PAGE_POLICY_VERSION = "v5-b-stage1-topic-page-build-v1"
+KNOWLEDGE_REVALIDATION_POLICY_VERSION = "v5-b-stage2-revalidation-v1"
+KNOWLEDGE_UPDATE_POLICY_VERSION = "v5-b-stage2-update-v1"
+KNOWLEDGE_EXPORT_POLICY_VERSION = "v5-b-stage2-export-v1"
+
+
+def prepare_research_schema_v12(connection: sqlite3.Connection) -> None:
+    """Expand the Stage 1 Topic Page tables without rewriting revision bodies."""
+    row = connection.execute(
+        "SELECT sql FROM sqlite_schema "
+        "WHERE type='table' AND name='research_topic_page_revisions'"
+    ).fetchone()
+    if row is None or "CHECK(version = 1)" not in str(row[0]):
+        return
+    connection.commit()
+    connection.execute("PRAGMA foreign_keys = OFF")
+    connection.execute("PRAGMA legacy_alter_table = ON")
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE research_topic_pages_v12 (
+                page_id TEXT PRIMARY KEY,
+                workspace_schema_version TEXT NOT NULL,
+                task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+                slug TEXT NOT NULL UNIQUE,
+                current_version INTEGER NOT NULL CHECK(current_version >= 1),
+                published_version INTEGER CHECK(
+                    published_version IS NULL OR
+                    (published_version >= 1 AND published_version <= current_version)
+                ),
+                review_status TEXT NOT NULL CHECK(review_status IN ('draft', 'published', 'returned')),
+                state_version INTEGER NOT NULL DEFAULT 0 CHECK(state_version >= 0),
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            INSERT INTO research_topic_pages_v12(
+                page_id, workspace_schema_version, task_id, slug,
+                current_version, published_version, review_status,
+                state_version, created_at, updated_at
+            )
+            SELECT page_id, workspace_schema_version, task_id, slug,
+                   current_version,
+                   CASE WHEN review_status='published' THEN current_version ELSE NULL END,
+                   review_status, state_version, created_at, updated_at
+            FROM research_topic_pages;
+
+            CREATE TABLE research_topic_page_revisions_v12 (
+                page_revision_id TEXT PRIMARY KEY,
+                page_id TEXT NOT NULL REFERENCES research_topic_pages(page_id) ON DELETE RESTRICT,
+                task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+                version INTEGER NOT NULL CHECK(version >= 1),
+                parent_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+                supersedes_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+                revert_of_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+                revision_kind TEXT NOT NULL CHECK(revision_kind IN ('initial', 'refresh', 'edit', 'revert')),
+                artifact_revision_id TEXT NOT NULL REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
+                title TEXT NOT NULL CHECK(length(trim(title)) > 0),
+                body_json TEXT NOT NULL,
+                build_policy_version TEXT NOT NULL,
+                input_hash TEXT NOT NULL,
+                content_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(page_id, version),
+                UNIQUE(task_id, input_hash)
+            );
+            INSERT INTO research_topic_page_revisions_v12(
+                page_revision_id, page_id, task_id, version,
+                parent_revision_id, supersedes_revision_id,
+                revert_of_revision_id, revision_kind,
+                artifact_revision_id, title, body_json, build_policy_version,
+                input_hash, content_hash, created_at
+            )
+            SELECT page_revision_id, page_id, task_id, version,
+                   parent_revision_id, supersedes_revision_id,
+                   NULL, 'initial', artifact_revision_id, title, body_json,
+                   build_policy_version, input_hash, content_hash, created_at
+            FROM research_topic_page_revisions;
+
+            CREATE TABLE research_topic_page_review_decisions_v12 (
+                decision_id TEXT PRIMARY KEY,
+                task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+                page_id TEXT NOT NULL REFERENCES research_topic_pages(page_id) ON DELETE RESTRICT,
+                page_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+                decision_kind TEXT NOT NULL CHECK(decision_kind IN ('publish', 'return')),
+                reason TEXT NOT NULL,
+                expected_version INTEGER NOT NULL CHECK(expected_version >= 1),
+                command_id TEXT NOT NULL,
+                principal_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(task_id, command_id)
+            );
+            INSERT INTO research_topic_page_review_decisions_v12
+            SELECT * FROM research_topic_page_review_decisions;
+
+            DROP TABLE research_topic_page_review_decisions;
+            DROP TABLE research_topic_page_revisions;
+            DROP TABLE research_topic_pages;
+            ALTER TABLE research_topic_pages_v12 RENAME TO research_topic_pages;
+            ALTER TABLE research_topic_page_revisions_v12 RENAME TO research_topic_page_revisions;
+            ALTER TABLE research_topic_page_review_decisions_v12 RENAME TO research_topic_page_review_decisions;
+            """
+        )
+        connection.commit()
+    finally:
+        connection.execute("PRAGMA legacy_alter_table = OFF")
+        connection.execute("PRAGMA foreign_keys = ON")
 
 
 def prepare_research_schema_v10(connection: sqlite3.Connection) -> None:
@@ -842,7 +947,11 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             workspace_schema_version TEXT NOT NULL,
             task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
             slug TEXT NOT NULL UNIQUE,
-            current_version INTEGER NOT NULL CHECK(current_version = 1),
+            current_version INTEGER NOT NULL CHECK(current_version >= 1),
+            published_version INTEGER CHECK(
+                published_version IS NULL OR
+                (published_version >= 1 AND published_version <= current_version)
+            ),
             review_status TEXT NOT NULL CHECK(review_status IN ('draft', 'published', 'returned')),
             state_version INTEGER NOT NULL DEFAULT 0 CHECK(state_version >= 0),
             created_at TEXT NOT NULL,
@@ -853,9 +962,11 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             page_revision_id TEXT PRIMARY KEY,
             page_id TEXT NOT NULL REFERENCES research_topic_pages(page_id) ON DELETE RESTRICT,
             task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
-            version INTEGER NOT NULL CHECK(version = 1),
+            version INTEGER NOT NULL CHECK(version >= 1),
             parent_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
             supersedes_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            revert_of_revision_id TEXT REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            revision_kind TEXT NOT NULL CHECK(revision_kind IN ('initial', 'refresh', 'edit', 'revert')),
             artifact_revision_id TEXT NOT NULL REFERENCES research_knowledge_artifact_revisions(artifact_revision_id) ON DELETE RESTRICT,
             title TEXT NOT NULL CHECK(length(trim(title)) > 0),
             body_json TEXT NOT NULL,
@@ -884,12 +995,11 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             page_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
             decision_kind TEXT NOT NULL CHECK(decision_kind IN ('publish', 'return')),
             reason TEXT NOT NULL,
-            expected_version INTEGER NOT NULL CHECK(expected_version = 1),
+            expected_version INTEGER NOT NULL CHECK(expected_version >= 1),
             command_id TEXT NOT NULL,
             principal_id TEXT NOT NULL,
             created_at TEXT NOT NULL,
-            UNIQUE(task_id, command_id),
-            UNIQUE(page_id)
+            UNIQUE(task_id, command_id)
         );
 
         CREATE TABLE IF NOT EXISTS research_knowledge_build_runs (
@@ -911,6 +1021,143 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
             updated_at TEXT NOT NULL,
             completed_at TEXT,
             UNIQUE(task_id, build_kind, input_hash)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_fact_states (
+            fact_id TEXT PRIMARY KEY REFERENCES research_grounded_facts(fact_id) ON DELETE RESTRICT,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            current_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('current', 'retired', 'superseded')),
+            currentness_status TEXT NOT NULL CHECK(currentness_status IN ('current', 'stale', 'potential_conflict', 'conflicted')),
+            superseded_by_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            latest_observation_set_id TEXT,
+            state_version INTEGER NOT NULL DEFAULT 0 CHECK(state_version >= 0),
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_revalidation_observations (
+            observation_id TEXT PRIMARY KEY,
+            observation_set_id TEXT NOT NULL,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            evidence_id TEXT NOT NULL REFERENCES research_evidence_identities(evidence_id) ON DELETE RESTRICT,
+            evidence_use_id TEXT NOT NULL REFERENCES research_evidence_uses(evidence_use_id) ON DELETE RESTRICT,
+            validation_observation_id TEXT NOT NULL REFERENCES research_evidence_validations(observation_id) ON DELETE RESTRICT,
+            trigger_kind TEXT NOT NULL CHECK(trigger_kind IN ('explicit', 'source_change', 'update_operation', 'recovery')),
+            expected_source_version TEXT NOT NULL,
+            observed_source_version TEXT,
+            outcome TEXT NOT NULL CHECK(outcome IN ('current', 'stale', 'missing', 'invalid', 'error')),
+            reason_code TEXT NOT NULL,
+            policy_version TEXT NOT NULL,
+            input_hash TEXT NOT NULL,
+            observed_at TEXT NOT NULL,
+            UNIQUE(observation_set_id, evidence_use_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_update_candidates (
+            update_candidate_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            fact_id TEXT NOT NULL REFERENCES research_grounded_facts(fact_id) ON DELETE RESTRICT,
+            source_fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            related_fact_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            source_observation_set_id TEXT,
+            candidate_kind TEXT NOT NULL CHECK(candidate_kind IN ('source_rebind', 'new_evidence', 'user_correction', 'potential_conflict', 'retire', 'supersede')),
+            proposed_claim TEXT,
+            temporal_scope_json TEXT NOT NULL,
+            viewpoint_scope_json TEXT NOT NULL,
+            evidence_use_ids_json TEXT NOT NULL,
+            affected_artifact_ids_json TEXT NOT NULL,
+            affected_page_ids_json TEXT NOT NULL,
+            validator_status TEXT NOT NULL CHECK(validator_status IN ('eligible', 'needs_revalidation')),
+            status TEXT NOT NULL CHECK(status IN ('pending_review', 'needs_revalidation', 'accepted', 'rejected', 'superseded')),
+            parent_candidate_id TEXT REFERENCES research_knowledge_update_candidates(update_candidate_id) ON DELETE RESTRICT,
+            state_version INTEGER NOT NULL DEFAULT 0 CHECK(state_version >= 0),
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_lifecycle_decisions (
+            decision_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            fact_id TEXT NOT NULL REFERENCES research_grounded_facts(fact_id) ON DELETE RESTRICT,
+            update_candidate_id TEXT NOT NULL REFERENCES research_knowledge_update_candidates(update_candidate_id) ON DELETE RESTRICT,
+            decision_kind TEXT NOT NULL CHECK(decision_kind IN ('accept', 'reject', 'edit')),
+            result_kind TEXT NOT NULL CHECK(result_kind IN ('correct', 'retire', 'supersede', 'confirm_conflict', 'reject', 'edit')),
+            source_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            result_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            related_fact_revision_id TEXT REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            reason TEXT NOT NULL,
+            expected_candidate_version INTEGER NOT NULL CHECK(expected_candidate_version >= 0),
+            expected_fact_state_version INTEGER NOT NULL CHECK(expected_fact_state_version >= 0),
+            command_id TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_conflict_observations (
+            conflict_observation_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            left_fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            right_fact_revision_id TEXT NOT NULL REFERENCES research_fact_revisions(fact_revision_id) ON DELETE RESTRICT,
+            scope_overlap INTEGER NOT NULL CHECK(scope_overlap IN (0, 1)),
+            resolution TEXT NOT NULL CHECK(resolution IN ('confirmed_conflict', 'different_scope', 'coexists')),
+            update_candidate_id TEXT NOT NULL REFERENCES research_knowledge_update_candidates(update_candidate_id) ON DELETE RESTRICT,
+            reason TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_update_operations (
+            operation_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            operation_kind TEXT NOT NULL CHECK(operation_kind IN ('refresh_knowledge', 'export_page')),
+            target_reference TEXT NOT NULL,
+            dedup_key TEXT NOT NULL,
+            command_id TEXT NOT NULL,
+            input_hash TEXT NOT NULL,
+            input_json TEXT NOT NULL,
+            expected_heads_json TEXT NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('pending', 'running', 'retry_wait', 'succeeded', 'needs_user', 'dead_letter', 'superseded', 'cancelled')),
+            attempt_count INTEGER NOT NULL DEFAULT 0 CHECK(attempt_count >= 0),
+            max_attempts INTEGER NOT NULL CHECK(max_attempts BETWEEN 1 AND 10),
+            error_class TEXT,
+            error_code TEXT,
+            error_detail TEXT,
+            next_attempt_at TEXT,
+            claimant_id TEXT,
+            lease_until TEXT,
+            claim_generation INTEGER NOT NULL DEFAULT 0 CHECK(claim_generation >= 0),
+            output_reference TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            finished_at TEXT,
+            UNIQUE(task_id, operation_kind, dedup_key)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_topic_page_revision_decisions (
+            decision_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            page_id TEXT NOT NULL REFERENCES research_topic_pages(page_id) ON DELETE RESTRICT,
+            source_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            result_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            decision_kind TEXT NOT NULL CHECK(decision_kind IN ('edit', 'revert', 'refresh')),
+            reason TEXT NOT NULL,
+            command_id TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(task_id, command_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS research_knowledge_exports (
+            export_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            page_revision_id TEXT NOT NULL REFERENCES research_topic_page_revisions(page_revision_id) ON DELETE RESTRICT,
+            export_format TEXT NOT NULL CHECK(export_format IN ('markdown', 'json')),
+            content_hash TEXT NOT NULL,
+            relative_path TEXT NOT NULL,
+            operation_id TEXT NOT NULL REFERENCES research_knowledge_update_operations(operation_id) ON DELETE RESTRICT,
+            created_at TEXT NOT NULL,
+            UNIQUE(page_revision_id, export_format, content_hash)
         );
 
         CREATE INDEX IF NOT EXISTS idx_research_tasks_parent
@@ -969,6 +1216,12 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
         ON research_topic_pages(task_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_research_knowledge_build_runs_task
         ON research_knowledge_build_runs(task_id, build_kind, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_knowledge_observations_fact
+        ON research_knowledge_revalidation_observations(fact_revision_id, observed_at);
+        CREATE INDEX IF NOT EXISTS idx_research_knowledge_update_candidates_task
+        ON research_knowledge_update_candidates(task_id, status, created_at);
+        CREATE INDEX IF NOT EXISTS idx_research_knowledge_update_operations_recovery
+        ON research_knowledge_update_operations(task_id, status, next_attempt_at, lease_until);
 
         CREATE TRIGGER IF NOT EXISTS trg_research_evidence_identity_no_update
         BEFORE UPDATE ON research_evidence_identities
@@ -1240,7 +1493,6 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
           OR NEW.workspace_schema_version IS NOT OLD.workspace_schema_version
           OR NEW.task_id IS NOT OLD.task_id
           OR NEW.slug IS NOT OLD.slug
-          OR NEW.current_version IS NOT OLD.current_version
           OR NEW.created_at IS NOT OLD.created_at
         BEGIN
             SELECT RAISE(ABORT, 'topic page identity is immutable in Stage 1');
@@ -1265,6 +1517,101 @@ def initialize_research_schema(connection: sqlite3.Connection) -> None:
         CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_build_no_delete
         BEFORE DELETE ON research_knowledge_build_runs BEGIN
             SELECT RAISE(ABORT, 'knowledge BuildRun is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_revalidation_no_update
+        BEFORE UPDATE ON research_knowledge_revalidation_observations BEGIN
+            SELECT RAISE(ABORT, 'knowledge revalidation observation is append-only');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_revalidation_no_delete
+        BEFORE DELETE ON research_knowledge_revalidation_observations BEGIN
+            SELECT RAISE(ABORT, 'knowledge revalidation observation is append-only');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_fact_state_identity_no_update
+        BEFORE UPDATE ON research_knowledge_fact_states
+        WHEN NEW.fact_id IS NOT OLD.fact_id OR NEW.task_id IS NOT OLD.task_id
+        BEGIN
+            SELECT RAISE(ABORT, 'knowledge Fact state identity is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_fact_state_no_delete
+        BEFORE DELETE ON research_knowledge_fact_states BEGIN
+            SELECT RAISE(ABORT, 'knowledge Fact state is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_update_candidate_lineage_no_update
+        BEFORE UPDATE ON research_knowledge_update_candidates
+        WHEN NEW.update_candidate_id IS NOT OLD.update_candidate_id
+          OR NEW.task_id IS NOT OLD.task_id
+          OR NEW.fact_id IS NOT OLD.fact_id
+          OR NEW.source_fact_revision_id IS NOT OLD.source_fact_revision_id
+          OR NEW.related_fact_revision_id IS NOT OLD.related_fact_revision_id
+          OR NEW.source_observation_set_id IS NOT OLD.source_observation_set_id
+          OR NEW.candidate_kind IS NOT OLD.candidate_kind
+          OR NEW.proposed_claim IS NOT OLD.proposed_claim
+          OR NEW.temporal_scope_json IS NOT OLD.temporal_scope_json
+          OR NEW.viewpoint_scope_json IS NOT OLD.viewpoint_scope_json
+          OR NEW.evidence_use_ids_json IS NOT OLD.evidence_use_ids_json
+          OR NEW.affected_artifact_ids_json IS NOT OLD.affected_artifact_ids_json
+          OR NEW.affected_page_ids_json IS NOT OLD.affected_page_ids_json
+          OR NEW.validator_status IS NOT OLD.validator_status
+          OR NEW.parent_candidate_id IS NOT OLD.parent_candidate_id
+          OR NEW.created_at IS NOT OLD.created_at
+        BEGIN
+            SELECT RAISE(ABORT, 'knowledge update Candidate lineage is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_update_candidate_no_delete
+        BEFORE DELETE ON research_knowledge_update_candidates BEGIN
+            SELECT RAISE(ABORT, 'knowledge update Candidate is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_operation_identity_no_update
+        BEFORE UPDATE ON research_knowledge_update_operations
+        WHEN NEW.operation_id IS NOT OLD.operation_id
+          OR NEW.task_id IS NOT OLD.task_id
+          OR NEW.operation_kind IS NOT OLD.operation_kind
+          OR NEW.target_reference IS NOT OLD.target_reference
+          OR NEW.dedup_key IS NOT OLD.dedup_key
+          OR NEW.command_id IS NOT OLD.command_id
+          OR NEW.input_hash IS NOT OLD.input_hash
+          OR NEW.input_json IS NOT OLD.input_json
+          OR NEW.expected_heads_json IS NOT OLD.expected_heads_json
+          OR NEW.max_attempts IS NOT OLD.max_attempts
+          OR NEW.created_at IS NOT OLD.created_at
+        BEGIN
+            SELECT RAISE(ABORT, 'knowledge operation identity is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_operation_no_delete
+        BEFORE DELETE ON research_knowledge_update_operations BEGIN
+            SELECT RAISE(ABORT, 'knowledge operation is not deletable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_lifecycle_decision_no_update
+        BEFORE UPDATE ON research_knowledge_lifecycle_decisions BEGIN
+            SELECT RAISE(ABORT, 'knowledge lifecycle decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_lifecycle_decision_no_delete
+        BEFORE DELETE ON research_knowledge_lifecycle_decisions BEGIN
+            SELECT RAISE(ABORT, 'knowledge lifecycle decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_conflict_no_update
+        BEFORE UPDATE ON research_knowledge_conflict_observations BEGIN
+            SELECT RAISE(ABORT, 'knowledge conflict observation is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_conflict_no_delete
+        BEFORE DELETE ON research_knowledge_conflict_observations BEGIN
+            SELECT RAISE(ABORT, 'knowledge conflict observation is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_page_revision_decision_no_update
+        BEFORE UPDATE ON research_topic_page_revision_decisions BEGIN
+            SELECT RAISE(ABORT, 'topic page revision decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_page_revision_decision_no_delete
+        BEFORE DELETE ON research_topic_page_revision_decisions BEGIN
+            SELECT RAISE(ABORT, 'topic page revision decision is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_export_no_update
+        BEFORE UPDATE ON research_knowledge_exports BEGIN
+            SELECT RAISE(ABORT, 'knowledge export record is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS trg_research_knowledge_export_no_delete
+        BEFORE DELETE ON research_knowledge_exports BEGIN
+            SELECT RAISE(ABORT, 'knowledge export record is immutable');
         END;
         CREATE TRIGGER IF NOT EXISTS trg_research_candidate_delta_event_no_update
         BEFORE UPDATE ON research_events

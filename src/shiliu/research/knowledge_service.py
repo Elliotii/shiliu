@@ -6,6 +6,7 @@ import sqlite3
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from shiliu.db import Database
@@ -22,7 +23,17 @@ from shiliu.research.knowledge_contracts import (
     IntakeKnowledgeCandidatesRequest,
     ReviewKnowledgeCandidateRequest,
     ReviewTopicPageRequest,
+    EditTopicPageRequest,
+    ExportTopicPageRequest,
+    ProposeFactUpdateRequest,
+    RecoverKnowledgeOperationsRequest,
+    ResolveKnowledgeOperationRequest,
+    RevalidateKnowledgeRequest,
+    ReviewFactUpdateRequest,
+    RevertTopicPageRequest,
+    RunKnowledgeOperationRequest,
 )
+from shiliu.research.knowledge_lifecycle import ResearchKnowledgeLifecycleService
 from shiliu.research.product_service import (
     CANDIDATE_DELTA_SCHEMA_VERSION,
     ResearchProductService,
@@ -63,7 +74,7 @@ def _json_list(value: object) -> list[Any]:
 
 
 class ResearchKnowledgeService:
-    """V5-B Stage 1 knowledge path; no Provider and no Stage 2 lifecycle commands."""
+    """V5-B no-Provider knowledge path with immutable Stage 1 and Stage 2 lifecycle."""
 
     def __init__(
         self,
@@ -71,6 +82,7 @@ class ResearchKnowledgeService:
         *,
         kernel: ResearchTaskService,
         product: ResearchProductService,
+        export_root: Path | None = None,
         fault_injector: FaultInjector | None = None,
     ) -> None:
         self.db = db
@@ -79,6 +91,15 @@ class ResearchKnowledgeService:
         self.authority = PersistentEvidenceAuthority(db)
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
+        self.lifecycle = ResearchKnowledgeLifecycleService(
+            db,
+            kernel=kernel,
+            export_root=export_root or db.path.parent / "knowledge-exports",
+            fault_injector=self.fault_injector,
+        )
+
+    def _sync_lifecycle_fault_injector(self) -> None:
+        self.lifecycle.fault_injector = self.fault_injector
 
     def intake_candidates(
         self, task_id: str, request: IntakeKnowledgeCandidatesRequest
@@ -692,6 +713,16 @@ class ResearchKnowledgeService:
                     now,
                 ),
             )
+        connection.execute(
+            """
+            INSERT INTO research_knowledge_fact_states(
+                fact_id, task_id, current_revision_id, lifecycle_status,
+                currentness_status, superseded_by_revision_id,
+                latest_observation_set_id, state_version, updated_at
+            ) VALUES(?, ?, ?, 'current', 'current', NULL, NULL, 0, ?)
+            """,
+            (fact_id, str(candidate["task_id"]), fact_revision_id, now),
+        )
         return fact_revision_id
 
     @staticmethod
@@ -847,6 +878,7 @@ class ResearchKnowledgeService:
                 )
                 if existing is not None:
                     return {**existing, "deduplicated": True}
+                self.lifecycle.ensure_stage1_heads(connection, task_id)
                 self._validate_build_input(connection, task_id, kind, build_input)
                 run = connection.execute(
                     "SELECT * FROM research_knowledge_build_runs "
@@ -971,6 +1003,8 @@ class ResearchKnowledgeService:
                     """
                     SELECT fr.fact_revision_id, fr.verification_status,
                            kc.status AS candidate_status,
+                           fs.current_revision_id, fs.lifecycle_status,
+                           fs.currentness_status,
                            COUNT(fel.link_id) AS evidence_count,
                            SUM(CASE WHEN ev.outcome='current' THEN 0 ELSE 1 END)
                              AS noncurrent_count
@@ -978,12 +1012,15 @@ class ResearchKnowledgeService:
                     JOIN research_grounded_facts gf ON gf.fact_id=fr.fact_id
                     JOIN research_knowledge_candidates kc
                       ON kc.candidate_id=gf.origin_candidate_id
+                    JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
                     LEFT JOIN research_fact_evidence_links fel
                       ON fel.fact_revision_id=fr.fact_revision_id
                     LEFT JOIN research_evidence_validations ev
                       ON ev.observation_id=fel.validation_observation_id
                     WHERE fr.task_id=? AND fr.fact_revision_id=?
-                    GROUP BY fr.fact_revision_id, fr.verification_status, kc.status
+                    GROUP BY fr.fact_revision_id, fr.verification_status, kc.status,
+                             fs.current_revision_id, fs.lifecycle_status,
+                             fs.currentness_status
                     """,
                     (task_id, fact_revision_id),
                 ).fetchone()
@@ -993,6 +1030,9 @@ class ResearchKnowledgeService:
                     or str(row["candidate_status"]) != "accepted"
                     or int(row["evidence_count"]) < 1
                     or int(row["noncurrent_count"] or 0) != 0
+                    or str(row["current_revision_id"]) != fact_revision_id
+                    or str(row["lifecycle_status"]) != "current"
+                    or str(row["currentness_status"]) != "current"
                 ):
                     raise ResearchValidationError(
                         "artifact inputs must be accepted, current-grounded Fact "
@@ -1001,13 +1041,35 @@ class ResearchKnowledgeService:
             return
         artifact_id = str(build_input["artifact_revision_id"])
         row = connection.execute(
-            "SELECT 1 FROM research_knowledge_artifact_revisions "
-            "WHERE task_id=? AND artifact_revision_id=?",
+            """
+            SELECT ar.artifact_id, ar.revision,
+                   (SELECT MAX(ar2.revision)
+                    FROM research_knowledge_artifact_revisions ar2
+                    WHERE ar2.artifact_id=ar.artifact_id) AS max_revision,
+                   SUM(CASE
+                     WHEN fs.current_revision_id!=afl.fact_revision_id
+                       OR fs.lifecycle_status!='current'
+                       OR fs.currentness_status!='current'
+                     THEN 1 ELSE 0 END) AS stale_fact_count
+            FROM research_knowledge_artifact_revisions ar
+            LEFT JOIN research_artifact_fact_links afl
+              ON afl.artifact_revision_id=ar.artifact_revision_id
+            LEFT JOIN research_fact_revisions fr
+              ON fr.fact_revision_id=afl.fact_revision_id
+            LEFT JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
+            WHERE ar.task_id=? AND ar.artifact_revision_id=?
+            GROUP BY ar.artifact_id, ar.revision
+            """,
             (task_id, artifact_id),
         ).fetchone()
-        if row is None:
+        if (
+            row is None
+            or int(row["revision"]) != int(row["max_revision"])
+            or int(row["stale_fact_count"] or 0) != 0
+        ):
             raise ResearchValidationError(
-                "page input must be an Artifact revision from this Task"
+                "page input must be the latest current-grounded Artifact revision "
+                "from this Task"
             )
 
     @staticmethod
@@ -1263,8 +1325,9 @@ class ResearchKnowledgeService:
             """
             INSERT INTO research_topic_pages(
                 page_id, workspace_schema_version, task_id, slug,
-                current_version, review_status, state_version, created_at, updated_at
-            ) VALUES(?, ?, ?, ?, 1, 'draft', 0, ?, ?)
+                current_version, published_version, review_status,
+                state_version, created_at, updated_at
+            ) VALUES(?, ?, ?, ?, 1, NULL, 'draft', 0, ?, ?)
             """,
             (
                 page_id,
@@ -1280,9 +1343,10 @@ class ResearchKnowledgeService:
             INSERT INTO research_topic_page_revisions(
                 page_revision_id, page_id, task_id, version,
                 parent_revision_id, supersedes_revision_id,
+                revert_of_revision_id, revision_kind,
                 artifact_revision_id, title, body_json, build_policy_version,
                 input_hash, content_hash, created_at
-            ) VALUES(?, ?, ?, 1, NULL, NULL, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES(?, ?, ?, 1, NULL, NULL, NULL, 'initial', ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 revision_id,
@@ -1411,8 +1475,9 @@ class ResearchKnowledgeService:
             self.fault_injector("after_topic_page_review_decision")
             connection.execute(
                 "UPDATE research_topic_pages SET review_status=?, "
+                "published_version=CASE WHEN ?='published' THEN ? ELSE published_version END, "
                 "state_version=state_version+1, updated_at=? WHERE page_id=?",
-                (status, now, page_id),
+                (status, status, request.expected_version, now, page_id),
             )
             self.fault_injector("after_topic_page_review_state")
             event_id = self.kernel._event(
@@ -1474,7 +1539,7 @@ class ResearchKnowledgeService:
             page_rows = connection.execute(
                 """
                 SELECT p.*, pr.page_revision_id, pr.artifact_revision_id,
-                       pr.title, pr.body_json, pr.content_hash
+                       pr.title, pr.body_json, pr.content_hash, pr.revision_kind
                 FROM research_topic_pages p
                 JOIN research_topic_page_revisions pr
                   ON pr.page_id=p.page_id AND pr.version=p.current_version
@@ -1494,6 +1559,57 @@ class ResearchKnowledgeService:
             artifacts = [self._artifact_projection(row) for row in artifact_rows]
             pages = [self._page_projection(row) for row in page_rows]
             builds = [self._build_projection(row) for row in build_rows]
+        stage2 = self.lifecycle.projection(task_id)
+        fact_state_by_id = {
+            value["fact_id"]: value for value in stage2["fact_states"]
+        }
+        fact_state_by_revision = {
+            fact["fact_revision_id"]: fact_state_by_id[fact["fact_id"]]
+            for fact in facts
+            if fact["fact_id"] in fact_state_by_id
+        }
+        for fact in facts:
+            state = fact_state_by_id.get(fact["fact_id"])
+            fact["is_current_revision"] = bool(
+                state and state["current_revision_id"] == fact["fact_revision_id"]
+            )
+            fact["lifecycle_status"] = (
+                state["lifecycle_status"] if state else "current"
+            )
+            fact["currentness_status"] = (
+                state["currentness_status"] if state else "current"
+            )
+            fact["fact_state_version"] = state["state_version"] if state else 0
+        for value in [*artifacts, *pages]:
+            fact_ids = [
+                str(fact.get("fact_revision_id") or "")
+                for fact in value.get("body", {}).get("facts", [])
+            ]
+            affected = [
+                fact_state_by_revision[fact_id]
+                for fact_id in fact_ids
+                if fact_id in fact_state_by_revision
+                and (
+                    fact_state_by_revision[fact_id]["current_revision_id"] != fact_id
+                    or
+                    fact_state_by_revision[fact_id]["currentness_status"] != "current"
+                    or fact_state_by_revision[fact_id]["lifecycle_status"] != "current"
+                )
+            ]
+            value["currentness_status"] = (
+                "conflicted"
+                if any(item["currentness_status"] == "conflicted" for item in affected)
+                else "potential_conflict"
+                if any(
+                    item["currentness_status"] == "potential_conflict"
+                    for item in affected
+                )
+                else "stale"
+                if affected
+                else "current"
+            )
+            value["update_available"] = bool(affected)
+            value["affected_fact_ids"] = [item["fact_id"] for item in affected]
         return {
             "workspace_schema_version": KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
             "task_id": task_id,
@@ -1501,7 +1617,7 @@ class ResearchKnowledgeService:
                 "candidate_source": "v5-a-candidate-event_immutable",
                 "fact_acceptance": "server_current_evidence_required",
                 "sqlite": "metadata_lineage_review_authority",
-                "filesystem": "source_artifact_authority_read_only",
+                "filesystem": "derived_revision_hash_export_only",
                 "provider": "not_exercised",
             },
             "candidates": candidates,
@@ -1509,6 +1625,7 @@ class ResearchKnowledgeService:
             "artifacts": artifacts,
             "pages": pages,
             "build_runs": builds,
+            **stage2,
             "counts": {
                 "candidates": len(candidates),
                 "facts": len(facts),
@@ -1516,6 +1633,120 @@ class ResearchKnowledgeService:
                 "pages": len(pages),
             },
         }
+
+    def revalidate_knowledge(
+        self, task_id: str, request: RevalidateKnowledgeRequest
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.revalidate(task_id, request)
+
+    def propose_fact_update(
+        self,
+        task_id: str,
+        fact_id: str,
+        request: ProposeFactUpdateRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.propose_update(
+            task_id, fact_id, request, principal_id=principal_id
+        )
+
+    def review_fact_update(
+        self,
+        task_id: str,
+        update_candidate_id: str,
+        request: ReviewFactUpdateRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.review_update(
+            task_id, update_candidate_id, request, principal_id=principal_id
+        )
+
+    def run_update_operation(
+        self,
+        task_id: str,
+        operation_id: str,
+        request: RunKnowledgeOperationRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.run_operation(
+            task_id, operation_id, request, principal_id=principal_id
+        )
+
+    def recover_update_operations(
+        self,
+        task_id: str,
+        request: RecoverKnowledgeOperationsRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.recover_operations(
+            task_id, request, principal_id=principal_id
+        )
+
+    def resolve_update_operation(
+        self,
+        task_id: str,
+        operation_id: str,
+        request: ResolveKnowledgeOperationRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.resolve_operation(
+            task_id, operation_id, request, principal_id=principal_id
+        )
+
+    def edit_topic_page(
+        self,
+        task_id: str,
+        page_id: str,
+        request: EditTopicPageRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.edit_page(
+            task_id, page_id, request, principal_id=principal_id
+        )
+
+    def revert_topic_page(
+        self,
+        task_id: str,
+        page_id: str,
+        request: RevertTopicPageRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.revert_page(
+            task_id, page_id, request, principal_id=principal_id
+        )
+
+    def get_topic_page_history(self, task_id: str, page_id: str) -> dict[str, Any]:
+        return self.lifecycle.page_history(task_id, page_id)
+
+    def get_topic_page_diff(
+        self, task_id: str, page_id: str, from_version: int, to_version: int
+    ) -> dict[str, Any]:
+        return self.lifecycle.page_diff(task_id, page_id, from_version, to_version)
+
+    def export_topic_page(
+        self,
+        task_id: str,
+        request: ExportTopicPageRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.lifecycle.export_page(task_id, request, principal_id=principal_id)
 
     def _candidate_projection(
         self, connection: sqlite3.Connection, row: sqlite3.Row
@@ -1674,6 +1905,10 @@ class ResearchKnowledgeService:
             "body": json.loads(str(row["body_json"])),
             "artifact_revision_id": str(row["artifact_revision_id"]),
             "review_status": str(row["review_status"]),
+            "published_version": (
+                int(row["published_version"]) if row["published_version"] else None
+            ),
+            "revision_kind": str(row["revision_kind"]),
             "state_version": int(row["state_version"]),
             "content_hash": str(row["content_hash"]),
             "created_at": str(row["created_at"]),
