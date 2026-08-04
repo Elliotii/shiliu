@@ -1,7 +1,7 @@
 # 拾流 V5-B Stage 3 Implementation Report
 
 ```yaml
-report_status: submitted_pending_v5_main_acceptance
+report_status: accepted_by_v5_main
 version: V5-B
 stage: 3
 title: Artifact Retrieval, Reuse and Research Continuation
@@ -10,16 +10,21 @@ branch: codex/v5-b
 accepted_stage_2_commit: f879c80c0f547195a40d6804b6057debd077d11a
 stage_3_contract_commit: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
 stage_3_acceptance_and_authorization_record: 8c198db_on_codex_v5_main_not_cherry_picked
+stage_3_implementation_acceptance_record: 65706f4_on_codex_v5_main_not_cherry_picked
 contract_status: accepted_by_v5_main
 implementation_authorized: true
-implementation_status: implemented_pending_v5_main_acceptance
+implementation_status: accepted_by_v5_main
+accepted_implementation_commit: 2d4d3397085dd9fe1b6d01533ce5743536b23740
+main_independent_verification: 23_stage_1_to_3_directed_tests_passed
+main_verified_live_db_sha256: 1411d83ea22ebcd0d24dfca3ff1d52300de485772c62c773327ec2ec2210b1c6_unchanged
 schema_source_version: 13
 provider_runs_performed: false
 provider_cost_usd: 0
 new_dependencies: false
 live_database_migrated_or_mutated_by_this_session: false
 self_accepted: false
-stage_4_started: false
+stage_4_contract_preparation_authorized: true
+stage_4_implementation_authorized: false
 ```
 
 ## 1. 提交结论
@@ -172,26 +177,29 @@ live DB：`/Users/elliot/Library/Application Support/Shiliu/shiliu.db`。本Sess
 - 未更新Program authority/Registry/Research Log，未push/merge/tag/self-accept。
 - 未启动Stage 4/5或V5-C/V5-D。
 
-## 8. Limited Main acceptance request
+## 8. Main acceptance closure
 
 ```yaml
 stage_3_contract_status: accepted_by_v5_main_at_8c198db
-stage_3_implementation_status: implemented_pending_v5_main_acceptance
+stage_3_implementation_status: accepted_by_v5_main_at_65706f4
+accepted_implementation_commit: 2d4d3397085dd9fe1b6d01533ce5743536b23740
 schema_source_version: 13
 new_tables: 1
 public_endpoints: 3
 provider_runs_performed: false
-live_db_clean_window_sha256: 1411d83ea22ebcd0d24dfca3ff1d52300de485772c62c773327ec2ec2210b1c6_unchanged
+main_independent_verification:
+  directed: 23_passed
+  live_db_sha256: 1411d83ea22ebcd0d24dfca3ff1d52300de485772c62c773327ec2ec2210b1c6_unchanged
+  live_schema: 10
+  stage_3_table_count: 0
+  integrity: ok
+supporting_evidence_accepted:
+  affected: 160_passed
+  default_filtered: 1709_passed_4_deselected
 self_accepted: false
-stage_4_started: false
-requested_review:
-  - one_aggregate_lean_shape_and_sqlite_authority
-  - independent_open_retrieval_and_fail_closed_gates
-  - direct_exact_revision_and_l1_drill_down
-  - incremental_candidate_review_and_contribution_lineage
-  - seed_candidate_only_and_no_automatic_mutation
-  - duplicate_restart_fault_late_fence_and_regression_evidence
-decision_requested: accept_or_return_one_bounded_stage_3_correction
+stage_4_contract_preparation_authorized: true
+stage_4_implementation_authorized: false
+next_action: prepare_compact_stage_4_contract
 ```
 
-请V5 Main进行一次limited Stage 3 implementation acceptance review。V5-B Session不自我接受；在Main明确决策前不启动Stage 4。
+V5 Main已以Program-only `codex/v5-main@65706f4`接受Stage 3 commit `2d4d3397085dd9fe1b6d01533ce5743536b23740`；该Program commit未merge/cherry-pick。known limits被接受为honest limits，不触发rework。后续只授权Stage 4 Contract准备，未授权Stage 4实施。
