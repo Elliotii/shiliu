@@ -14,6 +14,8 @@ stage_3_contract_commit: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
 stage_3_acceptance_record: 65706f4_on_codex_v5_main_not_cherry_picked
 stage_4_contract_commit: 560293da5987478eea822197582beb3829dfa9ae
 stage_4_acceptance_and_authorization_record: 9ff82483bf957f14315386621f9255b8c69ccedf_on_codex_v5_main_not_cherry_picked
+stage_4_accepted_implementation_commit: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+stage_4_implementation_acceptance_record: a483f2db81ee8b9434eadbf0fac09c4b07e1e15e_on_codex_v5_main_not_cherry_picked
 accepted_contract_commit: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
 starting_branch: codex/v5-b
 starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -23,13 +25,15 @@ product_implementation_started: true
 stage_1_implementation_status: accepted_by_v5_main
 stage_2_implementation_status: accepted_by_v5_main
 stage_3_implementation_status: accepted_by_v5_main
-stage_4_implementation_status: implemented_pending_v5_main_acceptance
+stage_4_implementation_status: accepted_by_v5_main
+stage_5_contract_preparation_authorized: true
+stage_5_implementation_authorized: false
 provider_runs_authorized: bounded_optional_up_to_usd_2
 provider_runs_performed: false
 live_database_migration_authorized: false
 ```
 
-> V5 Main 已接受本 Charter、五 Stage 顺序、上游 reference-only 边界、Stage 1–3 实现，以及 commit `560293da` 的 Stage 4 Contract，并在 `codex/v5-main@9ff82483bf957f14315386621f9255b8c69ccedf` 授权 Stage 4 实施；所有 Program-only records 均未合并或 cherry-pick。本文件不构成 V5-B 自我验收，Stage 4 实现仍须 Main 审查。
+> V5 Main 已接受本 Charter、五 Stage 顺序、上游 reference-only 边界及Stage 1–4实现；Stage 4 accepted commit为`ccfd8d9729eb5093ded5d397e5d5fd942fdab755`，Program-only acceptance record为`codex/v5-main@a483f2db81ee8b9434eadbf0fac09c4b07e1e15e`，未merge/cherry-pick。当前只授权Stage 5 Contract准备。
 
 ## 1. 版本使命
 
@@ -170,7 +174,7 @@ Research Task → KnowledgeDelta Candidate intake → Evidence review
 
 实现 Artifact retrieval、scope/source-version/currentness/completeness gate：`direct reuse | incremental refresh | research seed`；保留开放检索与反例发现。旧 Artifact 不是 verifier，stale/partial/ambiguous 不伪装为直接复用。具体采用一张append-only ArtifactRoute聚合表、三条public API和一张route card，复用V5-A Task/Event/Receipt与Stage 1/2 lifecycle，不建通用retrieval/workflow平台。
 
-### Stage 4 — Personal and Corpus Workspace（已实施，待 Main 验收）
+### Stage 4 — Personal and Corpus Workspace（已被 Main 接受）
 
 实现 Explicit User Memory、Behavioral/Inferred candidate、TopicState/Current Focus、KnowledgeProgress、CorpusModel soft prior、SystemExperienceRecord 与 correction UI。它们不改变 V5-C 产品行为，也不晋升 V5-D Skill。
 
@@ -260,10 +264,11 @@ stage_3_implementation_authorized: true_at_8c198db
 stage_3_implementation_status: accepted_at_2d4d3397085dd9fe1b6d01533ce5743536b23740
 stage_4_contract_status: accepted_at_560293da5987478eea822197582beb3829dfa9ae
 stage_4_implementation_authorized: true_at_9ff82483bf957f14315386621f9255b8c69ccedf
-stage_4_implementation_status: implemented_pending_v5_main_acceptance
-stage_5_authorized: false
+stage_4_implementation_status: accepted_at_ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+stage_5_contract_status: draft_pending_v5_main_acceptance
+stage_5_implementation_authorized: false
 provider_runs_performed: false
-next_action: limited_v5_main_stage_4_implementation_acceptance_review
+next_action: limited_v5_main_stage_5_contract_review
 ```
 
-请求 V5 Main 仅审查 Stage 4 实现是否满足已接受 Contract，并决定接受或要求一次有界修正；V5-B Session 不自我接受，也不启动 Stage 5。
+请求V5 Main只审查Stage 5 Contract的target、relations/feedback authority、complexity budget、evaluation boundary与closeout ownership；V5-B Session不自我接受，也不开始Stage 5实施。

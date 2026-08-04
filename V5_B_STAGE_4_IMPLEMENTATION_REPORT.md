@@ -1,7 +1,7 @@
 # 拾流 V5-B Stage 4 Implementation Report
 
 ```yaml
-report_status: submitted_pending_v5_main_acceptance
+report_status: accepted_by_v5_main
 version: V5-B
 stage: 4
 title: Personal and Corpus Workspace
@@ -12,7 +12,9 @@ stage_4_contract_commit: 560293da5987478eea822197582beb3829dfa9ae
 stage_4_acceptance_and_authorization_record: 9ff82483bf957f14315386621f9255b8c69ccedf_on_codex_v5_main_not_cherry_picked
 contract_status: accepted_by_v5_main
 implementation_authorized: true
-implementation_status: implemented_pending_v5_main_acceptance
+implementation_status: accepted_by_v5_main
+accepted_implementation_commit: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+stage_4_implementation_acceptance_record: a483f2db81ee8b9434eadbf0fac09c4b07e1e15e_on_codex_v5_main_not_cherry_picked
 schema_source_version: 14
 new_tables: 1
 supporting_tables: 0
@@ -22,7 +24,8 @@ provider_cost_usd: 0
 credentials_or_keychain_accessed: false
 live_database_sqlite_accessed_or_mutated: false
 self_accepted: false
-stage_5_started: false
+stage_5_contract_preparation_authorized: true
+stage_5_implementation_authorized: false
 ```
 
 ## 1. Submission outcome
@@ -219,20 +222,16 @@ live DB路径：`/Users/elliot/Library/Application Support/Shiliu/shiliu.db`。
 
 未访问credential/Keychain，未调用Provider/paid service，未引入dependency/upstream copy，未live DB migration/content mutation，未更新Program authority/Registry/Research Log，未push/merge/tag/self-accept，未启动Stage 5/V5-C/V5-D。
 
-## 8. Limited Main acceptance request
+## 8. Main acceptance and next gate
 
 ```yaml
-requested_review: limited_v5_main_stage_4_implementation_acceptance
-review_targets:
-  - one_aggregate_typed_authority_and_immutable_decisions
-  - candidate_review_expiry_and_old_boundary_no_resurrection
-  - frozen_corpus_soft_prior_and_product_non_interference
-  - experience_lineage_and_no_skill_policy_runtime_mutation
-  - three_api_one_ui_lean_shape
-  - temp_db_fault_restart_and_regression_evidence
+stage_4_implementation_status: accepted_by_v5_main
+accepted_commit: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+acceptance_record: a483f2db81ee8b9434eadbf0fac09c4b07e1e15e_on_codex_v5_main_not_cherry_picked
 stage_4_self_accepted: false
-stage_5_authorized_or_started: false
-decision_requested: accept_or_return_one_bounded_implementation_correction
+stage_5_contract_preparation_authorized: true
+stage_5_implementation_authorized: false
+next_action: limited_v5_main_stage_5_contract_review
 ```
 
-请求V5 Main有限审查并决定是否接受Stage 4实现。V5-B Version Session不自我验收，也不启动Stage 5。
+V5 Main已正式接受Stage 4；known limits保持honest limits而非rework。当前只准备Stage 5 Contract，不开始产品实施。

@@ -15,7 +15,9 @@ stage_3_main_acceptance_record: 65706f4_on_codex_v5_main_not_cherry_picked
 schema_baseline: 13
 contract_preparation_authorized: true
 implementation_authorized: true
-implementation_status: implemented_pending_v5_main_acceptance
+implementation_status: accepted_by_v5_main
+accepted_implementation_commit: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+implementation_acceptance_record: a483f2db81ee8b9434eadbf0fac09c4b07e1e15e_on_codex_v5_main_not_cherry_picked
 provider_runs_performed: false
 provider_cost_usd: 0
 live_database_migration_authorized: false
@@ -172,7 +174,7 @@ Main接受Contract后，V5-B Session可在不改变边界的前提下确定：
 stage_3_status: accepted_by_v5_main_at_65706f4
 stage_4_contract_status: accepted_at_560293da5987478eea822197582beb3829dfa9ae
 stage_4_implementation_authorized: true_at_9ff82483bf957f14315386621f9255b8c69ccedf
-stage_4_implementation_status: implemented_pending_v5_main_acceptance
+stage_4_implementation_status: accepted_at_ccfd8d9729eb5093ded5d397e5d5fd942fdab755
 jit_research: existing_fixed_commit_reports_and_local_models_sufficient
 provider_runs_performed: false
 requested_review:
@@ -181,7 +183,7 @@ requested_review:
   - corpus_soft_prior_and_behavior_non_interference
   - experience_candidate_and_no_skill_mutation
   - lean_api_ui_and_cross_version_boundary
-decision_requested: accept_or_return_one_bounded_implementation_correction
+next_action: prepare_compact_stage_5_contract
 ```
 
-请求V5 Main有限审查Stage 4实现是否满足已接受target、authority boundary、lean aggregate与compact acceptance matrix。V5-B Session不自我接受，也不启动Stage 5。
+V5 Main已接受Stage 4实现。当前只准备compact Stage 5 Contract；V5-B Session不自我接受，也不开始Stage 5产品实施。
