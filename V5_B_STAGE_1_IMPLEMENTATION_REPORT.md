@@ -1,7 +1,7 @@
 # 拾流 V5-B Stage 1 Implementation Report
 
 ```yaml
-report_status: submitted_for_limited_v5_main_acceptance
+report_status: accepted_by_v5_main
 version: V5-B
 stage: 1
 title: Evidence-backed Topic Page Vertical Slice
@@ -10,12 +10,15 @@ branch: codex/v5-b
 version_starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 stage_1_starting_commit: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
-main_program_record: e73ddd2_on_codex_v5_main_not_cherry_picked
+stage_1_authorization_record: e73ddd2_on_codex_v5_main_not_cherry_picked
+stage_1_acceptance_record: 2f4dabf_on_codex_v5_main_not_cherry_picked
 charter_status: accepted_by_v5_main
 contract_status: accepted_by_v5_main
 implementation_authorized: true
-implementation_status: complete_pending_v5_main_acceptance
-implementation_commit: this_submission_commit_reported_in_session_final
+implementation_status: accepted_by_v5_main
+implementation_commit: abe002ab95025b38565464e69ca8b3abe651f1ae
+main_independent_verification: 81_stage_1_plus_affected_tests_passed
+main_verified_live_db_sha256: fc828d4cba9c9320c6dbeb1a345b1c8a604a9018b8f062f5ca4f43f8754191cd
 provider_runs_performed: false
 live_database_migrated_or_mutated: false
 self_accepted: false
@@ -238,24 +241,25 @@ No Program authority, Registry/Research Log, upstream checkout/dependency or ext
 6. Stage 2 lifecycle/revalidation propagation/export/async update mechanics and all later Stage capabilities remain unimplemented and unauthorized.
 7. The accepted V5-A compound-query retrieval limitation remains unchanged.
 
-## 9. Acceptance request
+## 9. Main acceptance record
 
 ```yaml
-request: limited_v5_main_stage_1_implementation_acceptance_review
+decision: stage_1_implementation_accepted
+acceptance_authority: V5_main
+acceptance_record: 2f4dabf_on_codex_v5_main_not_cherry_picked
 charter_accepted: true
 contract_accepted: true
 implementation_authorized: true
 implementation_complete: true
 self_accepted: false
-stage_2_authorization_requested: false
-requested_review:
-  - contract_scope_and_non_actions
-  - schema_11_and_temp_migration_evidence
-  - candidate_current_evidence_fact_authority
-  - deterministic_buildrun_fault_restart_semantics
-  - minimal_api_ui_and_citation_drilldown
-  - directed_affected_default_regression
-decision_requested: accept_stage_1_or_return_one_bounded_correction
+main_accepted: true
+main_independent_verification:
+  stage_1_plus_affected_tests: 81_passed
+  live_db_sha256_before_and_after: fc828d4cba9c9320c6dbeb1a345b1c8a604a9018b8f062f5ca4f43f8754191cd
+supporting_default_suite: 1694_passed_4_deselected
+known_unproven_items: accepted_as_honest_limits_not_stage_1_rework
+next_authorized_action: stage_2_contract_preparation_only
+stage_2_implementation_authorized: false
 ```
 
-V5-B Session 明确请求 V5 Main 进行有限 Stage 1 实现审查与接受决定；不请求 live migration、Provider、Stage 2–5 或任何跨版本能力授权。
+V5 Main 已正式接受 commit `abe002ab95025b38565464e69ca8b3abe651f1ae`。已知未证明项继续作为诚实边界，不触发 Stage 1 rework。当前只准备 Stage 2 Contract；不实施 Stage 2，也不请求 live migration、Provider 或跨版本能力。
