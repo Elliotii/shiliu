@@ -1,7 +1,7 @@
 # 拾流 V5-B Current State
 
 ```yaml
-document_status: stage_2_implementation_submission_pending_v5_main_review
+document_status: stage_3_contract_submission_pending_v5_main_review
 version: V5-B
 version_session: Shiliu V5-B Version Session
 updated_at: 2026-08-04
@@ -10,102 +10,96 @@ version_starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
 accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
 stage_1_accepted_commit: abe002ab95025b38565464e69ca8b3abe651f1ae
 stage_1_acceptance_record: 2f4dabf_on_codex_v5_main_not_cherry_picked
-stage_2_contract_commit: a931e2863f3ae245205c1f64bad7e45d25f03225
-stage_2_acceptance_and_authorization_record: c6317a5_on_codex_v5_main_not_cherry_picked
+stage_2_accepted_commit: f879c80c0f547195a40d6804b6057debd077d11a
+stage_2_acceptance_record: 2d89dfc_on_codex_v5_main_not_cherry_picked
 charter_status: accepted_by_v5_main
 stage_1_implementation_status: accepted_by_v5_main
-stage_2_contract_status: accepted_by_v5_main
-stage_2_implementation_authorized: true
-stage_2_implementation_status: implemented_pending_v5_main_acceptance
+stage_2_implementation_status: accepted_by_v5_main
+stage_3_contract_preparation_authorized: true
+stage_3_contract_status: draft_pending_v5_main_acceptance
+stage_3_implementation_authorized: false
 schema_source_version: 12
-provider_runs_performed: false
+provider_runs_performed_this_action: false
 credentials_or_keychain_accessed: false
-live_database_migrated_by_this_session: false
+live_database_accessed_or_mutated_this_action: false
 ```
 
 ## 1. 当前一句话状态
 
-V5-B Stage 2 已依 `codex/v5-main@c6317a5` 的授权完成 no-provider/temp-DB 实施并通过提交边界验证，现请求一次 limited V5 Main acceptance review；没有自我验收、没有启动 Stage 3。
+V5 Main已在Program-only `codex/v5-main@2d89dfc`正式接受V5-B Stage 2 commit `f879c80c0f547195a40d6804b6057debd077d11a`；当前唯一授权动作是准备compact Stage 3 Contract。Contract已完成，Stage 3产品/schema/API/UI/tests尚未实施，也未获授权。
 
-## 2. 已完成用户路径
+## 2. Stage 2 acceptance closure
 
-```text
-changed SourceVersion / explicit revalidation
-→ append-only current-Evidence observation
-→ visible Fact/Artifact/Page stale projection
-→ durable update Candidate（never auto-applied）
-→ user correction / retire / supersede review
-→ new immutable FactRevision
-→ synchronous claimed durable refresh operation
-→ new immutable ArtifactRevision + PageRevision draft
-→ Page edit/history/diff/revert-as-new
-→ explicit publish-or-return
-→ preserved transcript citation drill-down
-```
+- Main独立重跑Stage 1 + Stage 2 core：`17 passed`。
+- Main独立窗口live DB SHA-256前后均为`b156448d688c37efbf496948d6ebfc43a685858cac54398fe1e05a9787ffe55d`。
+- live DB仍为schema 10、Stage 2 table count 0、integrity ok。
+- reported `154 passed` affected与`1703 passed, 4 deselected` default no-provider被接受为supporting evidence。
+- 先前external sync污染的hash窗口已被接受为honest `infrastructure-invalid`，后续独立non-action window关闭该证据缺口。
+- revision/hash export clarification已在Stage 2交付；known unproven/not-exercised items不触发Stage 2 rework。
 
-Stage 1 的 Candidate-only、L1 authority、initial immutable revisions、receipt 和 explicit publish 均保持。新 Evidence 与 late result 不会自动改 Fact 或 published Page。
+Stage 2完整状态以`V5_B_STAGE_2_IMPLEMENTATION_REPORT.md`更新后的acceptance record为准。
 
-## 3. Concrete Stage 2 state
-
-- schema source 12：追加 Fact state/revalidation/update candidate/lifecycle decision/conflict observation/update operation/Page revision decision/export records；immutable records 受 update/delete trigger 保护。
-- source-version revalidation 保存 append-only observation，并以 current/stale projection显示 affected Fact/Artifact/Page；stale 只表示当前 grounding 失效，不宣称 claim 为 false。
-- correction/supersede 仅在 server-owned current Evidence eligibility 通过后创建新 FactRevision；不受支持的 edited claim 保持 `needs_revalidation`；retire 不删除 history。
-- temporal/viewpoint `unknown` 保守 overlap；scope 明确不重叠不进入 conflict eligibility；confirmed conflict 需要两个可追踪 current-grounded Fact 与显式用户决定。
-- Page family 分离 latest working revision 与 published revision；edit 和 revert 均创建新 draft revision，diff 为 derived projection，只有 explicit publish 移动 published pointer。
-- 专用 SQLite durable operation 保存 intent、dedup、claim generation/lease、bounded retry、dead-letter、needs-user、cancel/superseded 与 output；recovery 只扫描本产品表，不建设 general queue。
-- finalize 同事务写 Artifact/Page outputs、links、working head、terminal operation、Event、Receipt；head/source/claim fence 拒绝 late result。
-- revision-ID/content-hash addressed Markdown/JSON export 已交付；temp + fsync + replace，失败独立可观察且不污染/回滚 canonical SQLite，同 revision/command 可安全重试。
-- minimal API/UI 已覆盖 revalidate、update review、operation recovery/resolve、Page edit/history/diff/revert、export 与 lifecycle 状态。
-
-## 4. 验证状态
-
-开发定向验证：
+## 3. Stage 3 Contract target
 
 ```text
-PYTHONPATH=src <project-venv>/python -m pytest -q \
-  tests/test_v5_b_stage1_knowledge_workspace.py \
-  tests/test_v5_b_stage2_knowledge_lifecycle.py
-→ 17 passed
+Query
+→ Artifact retrieval + independent open corpus retrieval
+→ scope / source-version / currentness / completeness gate
+→ durable explainable route proposal
+→ explicit proceed
+   ├─ direct reuse
+   ├─ incremental refresh
+   └─ research seed
 ```
 
-Stage 2 + affected Search/Ask/Research regression：`154 passed`。提交边界只运行一次 default filtered no-provider suite：
+Contract的最小core：
 
-```text
-PYTHONPATH=src <project-venv>/python -m pytest -q
-→ 1703 passed, 4 deselected, 7 warnings in 144.74s
-```
+1. immutable QueryIntent、Artifact candidate snapshot、append-only gate observations与RouteDecision；
+2. bounded SQLite/structured Artifact retrieval与独立open corpus lane；
+3. route-time Stage 2 revalidation、current Fact head、citation/source-version、scope与aspect completeness gate；
+4. exact+complete+current才direct reuse，并返回原ArtifactRevision及L1 drill-down；
+5. materially usable core + isolatable bounded gaps才incremental refresh，持久记录parent、reused/new/dropped contribution lineage；
+6. mismatch/substantial gap/stale/conflict/ambiguity/no hit走research seed，旧Artifact只作candidate source而非verifier；
+7. explicit confirm允许选择safer route，但不能override成unsafe direct；duplicate/restart/fault/source-head drift fail closed。
 
-repository filter 为 `not external_artifact and not live_provider`。最后补强 restart 实例化后的 operation recovery 单例再次通过。`node --check`、相关 Python `py_compile` 和 `git diff --check` 通过；warnings 均为既有 TestClient/httpx 与 multiprocessing fork deprecation。
+Stage 3不自动改Fact/Artifact/Page head或published Page；incremental/seed结果仍经过V5-A Candidate Delta与Stage 1/2 review。
 
-## 5. Live DB / Provider 非动作与 sentinel 分类
+## 4. JIT evidence decision
 
-- 所有实施测试通过显式 pytest `app_paths` / temporary database；代码搜索未发现测试以默认 `Application()` 或默认 `create_web_app()` 打开 live paths。
-- 本 Session 未运行 live schema migration、未修改 live content、未读取 credential/Keychain、未调用 Provider/paid service、未增加依赖。
-- 初始只读 live SHA-256 为 `fc828d4cba9c9320c6dbeb1a345b1c8a604a9018b8f062f5ca4f43f8754191cd`；完整套件后为 `b156448d688c37efbf496948d6ebfc43a685858cac54398fe1e05a9787ffe55d`，因此“同一观察窗口 hash 相等”证据分类为 `infrastructure-invalid`，不伪报通过。
-- 只读诊断证明变化来自测试外并发的已运行 `app.shiliu.sync`：live `sync_runs` id 376 在本地 16:57:18–16:58:37 完成并更新 retrieval/video state；live DB 仍为 schema 10、无 Stage 2 tables、无 `pre-v12` backup。未停止、恢复或改动该外部服务/数据库。
+已检查Program Registry/Research Log、accepted DeepTutor/WeKnora fixed-commit reports与Stage 2实际schema/service。
 
-## 6. Honest limits
+- DeepTutor stable ID/refs-required/ID-set incremental只作为lineage与candidate pattern；其Memory不是route verifier。
+- WeKnora revision/durable patterns已由Stage 2吸收；其Wiki/RAG retrieval不满足拾流claim-level authority或open retrieval边界。
+- 本地Artifact已有topic/body、limitations/unresolved、Fact links、source boundary/corpus snapshot/content hash；Stage 2已有Fact currentness、L1 source-version revalidation、receipt和late fence。
+- 因此这些证据足以定义Stage 3 Contract；没有材料性未决语义要求新增upstream research、checkout、报告、dependency或Provider。
 
-- `not exercised`：actual live schema-10→12 migration 未授权、未执行。
-- `unproven`：multi-process Stage 2 claim/head race stress；当前证据为 SQLite transaction/unique/CAS/claim-generation 与 restart/fault mechanics。
-- `not exercised`：真实浏览器视觉/可访问性专项；已有 HTTP/static contract 与 JavaScript syntax evidence。
-- `not exercised`：Provider validator/生成质量；Stage 2 mechanical acceptance 不依赖 Provider。
-- `bounded limitation`：自动语义 conflict suggestion 未实现；只有 deterministic scope gate + explicit user-confirmed candidate。
-- `bounded limitation`：无常驻 background worker；durable intent + explicit/startup-compatible bounded recovery 是 Contract core。
-- `excluded`：Artifact retrieval/reuse/research seed、personal/corpus workspace、relations/product evaluation、V5-C/V5-D 仍属 Stage 3–5/后续版本。
-- `infrastructure-invalid`：live DB before/after hash equality window被外部定时 sync 干扰；已有正向 no-migration证据，但不能声称 hash unchanged。
+## 5. Explicit boundaries
 
-## 7. 当前 Gate
+- Artifact similarity只排序candidate，不授权reuse、不硬过滤alternative/counter-evidence。
+- direct reuse必须scope exact、complete、current且citation/source-version全通过。
+- incremental只处理可枚举的小gap；运行中authority drift要求reroute，不自动扩大scope。
+- seed可携带candidate Facts/sources/unresolved/search terms，但不能预先满足Research Goal。
+- Stage 4 personal/corpus workspace与Stage 5 relations/product evaluation不进入Stage 3。
+- V5-A compound-query limitation只有在controlled Stage 3 acceptance case明确阻塞route时才可提出有界修复。
+- 不预建generic vector/graph/memory/queue平台，不实现V5-C/V5-D。
+
+## 6. 本次docs-only non-actions与验证
+
+- 只新增`V5_B_STAGE_3_CONTRACT.md`，更新Current State、Decision Ledger与Stage 2 report acceptance status。
+- 未改产品/schema/API/UI/tests，未运行Provider，cost USD 0。
+- 未访问credential/Keychain、live DB/live content，未引入dependency或upstream copy。
+- 未更新Program authority文件或handoff Registry/Research Log，未push/merge/tag。
+- JSONL/YAML-fence/docs whitespace与Git范围将在提交前验证。
+
+## 7. 当前Gate
 
 ```yaml
 charter_accepted: true
 stage_1_main_acceptance: accepted_at_2f4dabf
-stage_2_contract_accepted: accepted_at_c6317a5
-stage_2_implementation_authorized: true
-stage_2_self_accepted: false
-stage_2_implementation_status: implemented_pending_v5_main_acceptance
+stage_2_main_acceptance: accepted_at_2d89dfc
+stage_3_contract_preparation_authorized: true
+stage_3_contract_status: draft_pending_v5_main_acceptance
 stage_3_implementation_authorized: false
-next_action: limited_v5_main_stage_2_acceptance_review
+stage_3_self_accepted: false
+next_action: limited_v5_main_stage_3_target_boundary_review
 ```
-
-实施和验证的完整证据以 `V5_B_STAGE_2_IMPLEMENTATION_REPORT.md` 为准。

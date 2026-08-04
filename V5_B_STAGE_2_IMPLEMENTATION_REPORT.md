@@ -1,7 +1,7 @@
 # 拾流 V5-B Stage 2 Implementation Report
 
 ```yaml
-report_status: submitted_pending_limited_v5_main_acceptance
+report_status: accepted_by_v5_main
 version: V5-B
 stage: 2
 title: Knowledge Lifecycle, Revalidation and Durable Refresh
@@ -10,9 +10,13 @@ branch: codex/v5-b
 accepted_stage_1_commit: abe002ab95025b38565464e69ca8b3abe651f1ae
 stage_2_contract_commit: a931e2863f3ae245205c1f64bad7e45d25f03225
 stage_2_acceptance_and_authorization_record: c6317a5_on_codex_v5_main_not_cherry_picked
+stage_2_implementation_acceptance_record: 2d89dfc_on_codex_v5_main_not_cherry_picked
 contract_status: accepted_by_v5_main
 implementation_authorized: true
-implementation_status: implemented_pending_v5_main_acceptance
+implementation_status: accepted_by_v5_main
+accepted_implementation_commit: f879c80c0f547195a40d6804b6057debd077d11a
+main_independent_verification: 17_stage_1_plus_stage_2_core_tests_passed
+main_verified_live_db_sha256: b156448d688c37efbf496948d6ebfc43a685858cac54398fe1e05a9787ffe55d
 schema_source_version: 12
 provider_runs_performed: false
 provider_cost_usd: 0
@@ -23,7 +27,7 @@ self_accepted: false
 
 ## 1. 结论
 
-已完成 accepted Stage 2 Contract 的 no-provider/temp-DB 产品闭环：
+V5 Main 已正式接受 commit `f879c80c0f547195a40d6804b6057debd077d11a`。已完成的 accepted Stage 2 Contract no-provider/temp-DB 产品闭环为：
 
 ```text
 changed Evidence → append-only revalidation → visible stale projection
@@ -33,7 +37,7 @@ changed Evidence → append-only revalidation → visible stale projection
 → preserved Fact → current L1 Evidence → transcript timestamp drill-down
 ```
 
-新 Evidence、用户建议和 late worker result 都不能静默改写 Fact 或 published Page。Stage 1 authority 和兼容性保持；Stage 3 未启动。
+新 Evidence、用户建议和 late worker result 都不能静默改写 Fact 或 published Page。Stage 1 authority 和兼容性保持。Stage 2 acceptance record为Program-only `codex/v5-main@2d89dfc`，未merge/cherry-pick；Stage 3仍未实施。
 
 ## 2. Authority 与边界遵循
 
@@ -195,14 +199,21 @@ PYTHONPATH=src <project-venv>/python -m pytest -q
 
 没有已知 `core failure`、`implementation failure` 或 `provider failure`。
 
-## 9. Limited Main acceptance request
+## 9. Main acceptance 与下一 Gate
 
-请求 V5 Main 依据 accepted Contract 对 Stage 2 Gates A–E 做一次 limited acceptance review，并重点确认：
+V5 Main的独立验收结果：
 
-1. append-only revalidation、explicit lifecycle和immutable revisions是否保持L1/L2/L3 authority；
-2. durable operation/restart/retry/late fence是否满足Stage 2而未形成general queue；
-3. SQLite sole authority + independent addressed export是否解决Main clarification；
-4. external sync造成的live sentinel `infrastructure-invalid`分类与正向no-migration证据是否可接受；
-5. honest limits是否可留待后续对应Stage。
+1. Stage 1 + Stage 2 core：`17 passed`；
+2. Main独立测试窗口live DB SHA-256前后均为`b156448d688c37efbf496948d6ebfc43a685858cac54398fe1e05a9787ffe55d`；
+3. live schema仍为10、Stage 2 table count为0、integrity ok；
+4. reported `154 passed` affected与`1703 passed, 4 deselected` default no-provider结果被接受为supporting evidence；
+5. 先前sync污染窗口的`infrastructure-invalid`分类被接受，后续独立window已补齐non-action evidence；
+6. revision/hash export clarification已交付，known honest limits不触发Stage 2 rework。
 
-V5-B Session不自我接受，不请求或启动Stage 3；若Main返回有界缺陷，将在同一Stage 2 integration line修正。
+```yaml
+stage_2_status: accepted_by_v5_main_at_2d89dfc
+stage_2_accepted_commit: f879c80c0f547195a40d6804b6057debd077d11a
+stage_3_contract_preparation_authorized: true
+stage_3_implementation_authorized: false
+next_action: limited_v5_main_stage_3_target_boundary_review
+```
