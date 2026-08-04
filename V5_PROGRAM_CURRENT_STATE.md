@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-04T22:55:49+08:00
+> Updated at: 2026-08-04T23:48:49+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STAGE_3_IMPLEMENTATION
+  current_formal_stage: V5_B_STAGE_4_CONTRACT
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -20,9 +20,10 @@ resume_anchor:
   V5_B_accepted_stage_2_contract_head: a931e2863f3ae245205c1f64bad7e45d25f03225
   V5_B_accepted_stage_2_head: f879c80c0f547195a40d6804b6057debd077d11a
   V5_B_accepted_stage_3_contract_head: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
+  V5_B_accepted_stage_3_head: 2d4d3397085dd9fe1b6d01533ce5743536b23740
   branch: codex/v5-main
-  pending_decision: V5_B_stage_3_implementation_submission
-  next_action: V5_B_session_implements_stage_3_under_accepted_contract
+  pending_decision: V5_B_stage_4_contract_submission
+  next_action: V5_B_session_prepares_lean_stage_4_contract
   roadmap_reconsideration_open: false
 ```
 
@@ -35,7 +36,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_2_accepted_stage_3_implementation_active
+    status: stage_3_accepted_stage_4_contract_preparation
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -62,7 +63,8 @@ repository:
   V5_B_accepted_stage_2_contract_head: a931e2863f3ae245205c1f64bad7e45d25f03225
   V5_B_accepted_stage_2_head: f879c80c0f547195a40d6804b6057debd077d11a
   V5_B_accepted_stage_3_contract_head: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
-  V5_B_execution_schema_source: 12
+  V5_B_accepted_stage_3_head: 2d4d3397085dd9fe1b6d01533ce5743536b23740
+  V5_B_execution_schema_source: 13
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
   merge_conflicts: 0
@@ -75,7 +77,7 @@ live_runtime:
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 376
+  sync_runs: 382
   research_tasks: 0
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
@@ -127,6 +129,15 @@ accepted_results:
       - durable_refresh_recovery_retry_dead_letter_and_late_result_fence
       - revision_hash_addressed_export_with_observable_safe_retry
       - minimal_lifecycle_api_and_ui
+  V5_B_STAGE_3:
+    status: accepted
+    capabilities:
+      - bounded_artifact_and_independent_open_corpus_retrieval
+      - fail_closed_direct_incremental_seed_route
+      - exact_current_l1_citation_gated_direct_reuse
+      - targeted_incremental_research_and_contribution_lineage
+      - candidate_only_research_seed_and_safer_user_override
+      - lean_append_only_route_aggregate_and_minimal_api_ui
 ```
 
 # 4. Known limitation carried forward
@@ -172,16 +183,19 @@ research_equals_implementation_authorization: false
 
 # 6. Next action boundary
 
-V5-B Stage 3 Contract `70ba2b2` 已通过主 Session 的目标、authority、依赖顺序与 Gates A-E
-有限审阅。现有 fixed-commit DeepTutor/WeKnora 报告和本地 Stage 2 实现足以支持本 Stage；没有
-为了装饰 Contract 而新增上游研究、依赖或 Provider 语义。
+V5-B Stage 3 实现 `2d4d339` 已通过有限验收。实现按用户的复杂度约束收敛为一张 append-only
+ArtifactRoute 聚合表、一个独立 service、三个公共端点和六个风险导向 Case；没有建设第二套队列、
+索引或工作台。主 Session 独立复跑 Stage 1–3 directed tests `23 passed`，live DB SHA-256 在窗口
+前后均为 `1411d83e...`，仍为 schema 10、Stage 3 表为 0、integrity `ok`。Session 报告的
+affected `160 passed` 和 default `1709 passed, 4 deselected`作为支持证据接受。
 
-同一 V5-B Session 已获准自主实施独立 Artifact/open-corpus 双 lane 检索，以及
-`direct reuse | incremental refresh | research seed` 三路 durable、可解释、fail-closed 判定。
-direct reuse 必须 exact/complete/current；incremental 只覆盖可隔离的小缺口；否则走 seed。
-旧 Artifact 永远不是 verifier，用户只能选择更保守路线，不能强制绕过 Gate。普通 projection、
-fixture、harness 与低风险实现错误继续由 V5-B Session 自行修复和有界复跑。
+同一 V5-B Session 现在只获准准备精简 Stage 4 Contract。Stage 4 必须把 Explicit Memory、
+inferred candidate、Current Focus/KnowledgeProgress、Corpus soft prior 与 SystemExperienceRecord
+收敛为一条可审核的 Workspace state pipeline，优先复用 Event/Receipt/Trace 和已有 UI，不分别建设
+MemoryOS、推断引擎、Corpus 平台或 Experience 平台。所有 inferred/behavioral 内容保持 candidate-only，
+Corpus 只能是 soft prior，Experience 不升级 Skill，且本 Stage 不让这些状态影响 Search/Answer/Route；
+真正 personalized behavior 属于 V5-C。
 
-当前不授权 live DB migration、Stage 4/5、V5-C/D、通用 vector/graph/memory 平台、push/merge/tag
-或自我验收。Provider 不是 Stage 3 mechanical acceptance 前提；若确有必要，DeepSeek 等连续预算包
-预计不超过 2 美元时视为用户已默认授权，超过 2 美元前必须暂停请求确认。
+Stage 4 产品实施需等待 Contract 接受。当前仍不授权 live migration、Stage 5、V5-C/D、
+push/merge/tag 或自我验收；DeepSeek 等连续预算包预计不超过 2 美元时视为用户已默认授权，超过
+2 美元前必须暂停请求确认。
