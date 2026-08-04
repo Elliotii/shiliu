@@ -260,7 +260,7 @@ def _accept_child_fact(core: Application, child_task_id: str, suffix: str) -> di
 def test_stage3_schema_direct_route_open_lane_api_ui_and_citation(app_paths) -> None:
     core = _core(app_paths)
     task_id, fact, artifact, page = _vertical(core, "direct")
-    assert SCHEMA_VERSION == 13
+    assert SCHEMA_VERSION == 14
     with core.db.connect() as connection:
         tables = connection.execute(
             "SELECT name FROM sqlite_master WHERE type='table' "

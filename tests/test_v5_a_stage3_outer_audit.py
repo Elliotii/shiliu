@@ -278,8 +278,8 @@ def test_schema_9_migrates_old_result_enum_and_adds_stage3_tables(app_paths) -> 
     db = Database(app_paths.database)
     db.initialize()
     db.initialize()
-    assert SCHEMA_VERSION == 13
-    assert app_paths.database.with_name("shiliu.pre-v13.backup.db").is_file()
+    assert SCHEMA_VERSION == 14
+    assert app_paths.database.with_name("shiliu.pre-v14.backup.db").is_file()
     with db.connect() as migrated:
         tables = {
             str(row[0])
@@ -294,7 +294,7 @@ def test_schema_9_migrates_old_result_enum_and_adds_stage3_tables(app_paths) -> 
         )
         assert migrated.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "13"
+        ).fetchone()[0] == "14"
         assert migrated.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert migrated.execute("PRAGMA foreign_key_check").fetchall() == []
     assert STAGE3_TABLES.issubset(tables)

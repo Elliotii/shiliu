@@ -14,6 +14,7 @@
   let activeTaskId = root.dataset.initialTaskId || '';
   let current = null;
   let knowledge = null;
+  let personalWorkspace = null;
   let pollTimer = null;
 
   const commandId = prefix => {
@@ -513,6 +514,99 @@
     }
   }
 
+  const workspacePayload = (kind, semanticKey, value, sourceRefs) => {
+    if (kind === 'explicit_memory') return {key: semanticKey, value};
+    if (kind === 'inferred_candidate') return {statement: value};
+    if (kind === 'focus_state') return {topic: semanticKey, state: value};
+    if (kind === 'progress_observation') return {
+      topic: semanticKey, state: value, user_asserted: sourceRefs.length === 0,
+    };
+    if (kind === 'corpus_observation') return {observation_type: 'topic', value};
+    return {
+      observed_pattern: value,
+      outcome: 'observed',
+      environment_fingerprint: 'local-ui-v1',
+    };
+  };
+
+  const decideWorkspaceRecord = async (record, action) => {
+    const status = root.querySelector('[data-workspace-status]');
+    let replacementPayload;
+    if (action === 'correct') {
+      const replacement = window.prompt('Correction 会追加 immutable revision。请输入完整 JSON payload。', JSON.stringify(record.payload));
+      if (replacement === null) return;
+      try { replacementPayload = JSON.parse(replacement); }
+      catch (_error) { status.textContent = 'Correction payload 必须是 JSON object。'; return; }
+    }
+    if (action === 'diagnose') {
+      const diagnosis = window.prompt('Diagnosis 会保留 observed payload 与 Trace lineage。', '{"cause":""}');
+      if (diagnosis === null) return;
+      try { replacementPayload = JSON.parse(diagnosis); }
+      catch (_error) { status.textContent = 'Diagnosis 必须是 JSON object。'; return; }
+    }
+    status.textContent = `正在追加 ${action} decision…`;
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records/${encodeURIComponent(record.record_id)}/decisions`, {
+        method: 'POST', body: JSON.stringify({
+          command_id: commandId(`workspace-${action}`), action,
+          expected_version: record.version, reason: `local operator ${action}`,
+          ...(replacementPayload ? {replacement_payload: replacementPayload} : {}),
+        }),
+      });
+      status.textContent = 'Decision 已追加；旧 revision 与 source boundary 保留。';
+      await loadPersonalWorkspace();
+    } catch (error) { status.textContent = error.message; }
+  };
+
+  const renderPersonalWorkspace = value => {
+    personalWorkspace = value;
+    const list = root.querySelector('[data-workspace-records]');
+    list.replaceChildren(element('h4', '', `WorkspaceRecord · ${value.records.length}`));
+    value.records.forEach(record => {
+      const card = element('article', 'research-knowledge-card');
+      card.append(
+        element('span', `research-currentness${['current', 'confirmed'].includes(record.effective_status) ? '' : ' is-stale'}`, `${record.record_kind} · ${record.effective_status}`),
+        element('strong', '', record.semantic_key),
+        element('small', '', `${record.authority_class} · v${record.version} · behavior effect false`),
+        element('pre', 'research-advanced-trace', JSON.stringify(record.payload, null, 2)),
+      );
+      if (record.confidence !== null) card.append(element('small', '', `confidence ${record.confidence}`));
+      if (record.expires_at) card.append(element('small', '', `expiry ${record.expires_at}`));
+      record.source_refs.forEach(ref => {
+        const source = element('a', '', `${ref.ref_type} · ${ref.ref_id}`);
+        source.href = ref.href; card.append(source);
+      });
+      const history = element('details');
+      history.append(element('summary', '', `Immutable history · ${record.history.length}`));
+      history.append(element('pre', 'research-advanced-trace', JSON.stringify(record.history, null, 2)));
+      card.append(history);
+      if (record.allowed_actions.length) {
+        const actions = element('div', 'research-control-buttons');
+        record.allowed_actions.forEach(action => {
+          const button = element('button', ['reject', 'tombstone', 'invalidate'].includes(action) ? 'ghost is-destructive' : 'ghost', action);
+          button.type = 'button'; button.addEventListener('click', () => decideWorkspaceRecord(record, action)); actions.append(button);
+        });
+        card.append(actions);
+      }
+      list.append(card);
+    });
+    if (!value.records.length) list.append(element('p', 'muted', '当前筛选下没有 WorkspaceRecord。'));
+  };
+
+  async function loadPersonalWorkspace() {
+    if (!activeTaskId) return;
+    const params = new URLSearchParams();
+    const kind = root.querySelector('[data-workspace-kind-filter]').value;
+    const status = root.querySelector('[data-workspace-status-filter]').value;
+    if (kind) params.set('record_kind', kind);
+    if (status) params.set('status', status);
+    try {
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const data = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace${suffix}`);
+      renderPersonalWorkspace(data.workspace);
+    } catch (error) { root.querySelector('[data-workspace-status]').textContent = error.message; }
+  }
+
   const executeControl = async kind => {
     const context = current.control.action_context;
     if (kind === 'cancel' && !window.confirm('取消会形成持久终态；未知外部副作用会进入 cancel-pending。继续吗？')) return;
@@ -698,6 +792,7 @@
     renderDeltas(product);
     renderTrace(product);
     loadKnowledge();
+    loadPersonalWorkspace();
     showTaskState('content');
     if (pollTimer !== null) window.clearTimeout(pollTimer);
     // A background run can still be claiming a freshly created READY task when
@@ -796,6 +891,35 @@
       await loadKnowledge();
     } catch (error) { status.textContent = error.message; }
   });
+  root.querySelector('[data-workspace-record-form]').addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = root.querySelector('[data-workspace-status]');
+    let sourceRefs = [];
+    try { sourceRefs = form.elements.source_refs.value.trim() ? JSON.parse(form.elements.source_refs.value) : []; }
+    catch (_error) { status.textContent = 'Source refs 必须是 JSON array。'; return; }
+    const kind = form.elements.record_kind.value;
+    const semanticKey = form.elements.semantic_key.value.trim();
+    const value = form.elements.record_value.value.trim();
+    const confidenceValue = form.elements.confidence.value;
+    const expiresValue = form.elements.expires_at.value;
+    status.textContent = '正在创建 typed append-only WorkspaceRecord…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records`, {
+        method: 'POST', body: JSON.stringify({
+          command_id: commandId('workspace-create'), record_kind: kind,
+          semantic_key: semanticKey, payload: workspacePayload(kind, semanticKey, value, sourceRefs),
+          source_refs: sourceRefs, reason: 'local operator explicit create',
+          ...(confidenceValue ? {confidence: Number(confidenceValue)} : {}),
+          ...(expiresValue ? {expires_at: new Date(expiresValue).toISOString()} : {}),
+        }),
+      });
+      status.textContent = 'Record 已创建；authority 与 product non-interference 已显式标记。';
+      form.reset(); await loadPersonalWorkspace();
+    } catch (error) { status.textContent = error.message; }
+  });
+  root.querySelector('[data-workspace-kind-filter]').addEventListener('change', loadPersonalWorkspace);
+  root.querySelector('[data-workspace-status-filter]').addEventListener('change', loadPersonalWorkspace);
   window.addEventListener('popstate', () => {
     const match = location.pathname.match(/^\/research\/([^/]+)$/);
     activeTaskId = match ? decodeURIComponent(match[1]) : '';

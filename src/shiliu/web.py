@@ -61,8 +61,11 @@ from shiliu.research.product_contracts import (
     RunProductResearchRequest,
 )
 from shiliu.research.knowledge_contracts import (
+    AssessArtifactRouteRequest,
     BuildKnowledgeArtifactRequest,
     BuildTopicPageRequest,
+    CreateWorkspaceRecordRequest,
+    DecideWorkspaceRecordRequest,
     IntakeKnowledgeCandidatesRequest,
     ReviewKnowledgeCandidateRequest,
     ReviewTopicPageRequest,
@@ -75,7 +78,6 @@ from shiliu.research.knowledge_contracts import (
     ReviewFactUpdateRequest,
     RevertTopicPageRequest,
     RunKnowledgeOperationRequest,
-    AssessArtifactRouteRequest,
     ProceedArtifactRouteRequest,
 )
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
@@ -899,6 +901,68 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "route": route})
+
+    @web.get("/api/research/product/tasks/{task_id}/workspace")
+    async def get_research_personal_workspace(
+        task_id: str,
+        request: Request,
+        record_kind: str | None = None,
+        status: str | None = None,
+    ) -> JSONResponse:
+        try:
+            workspace_value = await asyncio.to_thread(
+                _core(request).research_knowledge.get_personal_workspace,
+                task_id,
+                record_kind=record_kind,
+                status=status,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "workspace": workspace_value})
+
+    @web.post("/api/research/product/tasks/{task_id}/workspace/records")
+    async def create_research_personal_workspace_record(
+        task_id: str,
+        payload: CreateWorkspaceRecordRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.create_personal_workspace_record,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/workspace/records/{record_id}/decisions"
+    )
+    async def decide_research_personal_workspace_record(
+        task_id: str,
+        record_id: str,
+        payload: DecideWorkspaceRecordRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.decide_personal_workspace_record,
+                task_id,
+                record_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
 
     @web.post("/api/research/product/tasks/{task_id}/run")
     async def run_product_research_task(

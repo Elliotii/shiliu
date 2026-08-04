@@ -25,6 +25,65 @@ KNOWLEDGE_REVALIDATION_POLICY_VERSION = "v5-b-stage2-revalidation-v1"
 KNOWLEDGE_UPDATE_POLICY_VERSION = "v5-b-stage2-update-v1"
 KNOWLEDGE_EXPORT_POLICY_VERSION = "v5-b-stage2-export-v1"
 ARTIFACT_ROUTE_POLICY_VERSION = "v5-b-stage3-artifact-route-v1"
+PERSONAL_WORKSPACE_POLICY_VERSION = "v5-b-stage4-personal-workspace-v1"
+
+
+def prepare_research_schema_v14(connection: sqlite3.Connection) -> None:
+    """Add the single append-only Stage 4 WorkspaceRecord aggregate."""
+    connection.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS research_workspace_records (
+            record_revision_id TEXT PRIMARY KEY,
+            record_id TEXT NOT NULL,
+            version INTEGER NOT NULL CHECK(version >= 1),
+            parent_revision_id TEXT REFERENCES research_workspace_records(record_revision_id) ON DELETE RESTRICT,
+            command_task_id TEXT NOT NULL REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            record_kind TEXT NOT NULL CHECK(record_kind IN (
+                'explicit_memory', 'inferred_candidate', 'focus_state',
+                'progress_observation', 'corpus_observation', 'system_experience'
+            )),
+            authority_class TEXT NOT NULL CHECK(authority_class IN (
+                'user_authored', 'user_confirmed', 'behavioral_candidate',
+                'evidence_backed_observation', 'corpus_soft_prior',
+                'experience_candidate'
+            )),
+            status TEXT NOT NULL CHECK(status IN (
+                'current', 'candidate', 'confirmed', 'rejected', 'expired',
+                'tombstoned', 'superseded', 'invalidated', 'observed',
+                'diagnosed', 'candidate_source'
+            )),
+            semantic_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            source_refs_json TEXT NOT NULL,
+            source_boundary_hash TEXT NOT NULL,
+            confidence REAL CHECK(confidence IS NULL OR (confidence >= 0 AND confidence <= 1)),
+            expires_at TEXT,
+            decision_action TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            policy_version TEXT NOT NULL,
+            content_hash TEXT NOT NULL,
+            command_id TEXT NOT NULL,
+            command_payload_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(record_id, version),
+            UNIQUE(command_task_id, command_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_research_workspace_records_projection
+        ON research_workspace_records(record_kind, semantic_key, record_id, version);
+
+        CREATE TRIGGER IF NOT EXISTS trg_research_workspace_records_immutable_update
+        BEFORE UPDATE ON research_workspace_records BEGIN
+            SELECT RAISE(ABORT, 'WorkspaceRecord revisions are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_research_workspace_records_immutable_delete
+        BEFORE DELETE ON research_workspace_records BEGIN
+            SELECT RAISE(ABORT, 'WorkspaceRecord revisions are immutable');
+        END;
+        """
+    )
 
 
 def prepare_research_schema_v13(connection: sqlite3.Connection) -> None:

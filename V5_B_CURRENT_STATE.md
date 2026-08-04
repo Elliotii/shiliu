@@ -1,90 +1,84 @@
 # 拾流 V5-B Current State
 
 ```yaml
-document_status: stage_4_contract_submission_pending_v5_main_review
+document_status: stage_4_implementation_submission_pending_v5_main_review
 version: V5-B
 version_session: Shiliu V5-B Version Session
-updated_at: 2026-08-04
+updated_at: 2026-08-05
 branch: codex/v5-b
 version_starting_commit: b85340540cb92c2e46bfb8619598e7aa987171d4
-accepted_v5_a_code_baseline: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
 stage_1_accepted_commit: abe002ab95025b38565464e69ca8b3abe651f1ae
-stage_1_acceptance_record: 2f4dabf_on_codex_v5_main_not_cherry_picked
 stage_2_accepted_commit: f879c80c0f547195a40d6804b6057debd077d11a
-stage_2_acceptance_record: 2d89dfc_on_codex_v5_main_not_cherry_picked
-stage_3_contract_commit: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
 stage_3_accepted_commit: 2d4d3397085dd9fe1b6d01533ce5743536b23740
-stage_3_acceptance_record: 65706f4_on_codex_v5_main_not_cherry_picked
+stage_4_contract_commit: 560293da5987478eea822197582beb3829dfa9ae
+stage_4_acceptance_and_authorization_record: 9ff82483bf957f14315386621f9255b8c69ccedf_on_codex_v5_main_not_cherry_picked
 charter_status: accepted_by_v5_main
-stage_1_implementation_status: accepted_by_v5_main
-stage_2_implementation_status: accepted_by_v5_main
-stage_3_implementation_status: accepted_by_v5_main
-stage_4_contract_preparation_authorized: true
-stage_4_contract_status: draft_pending_v5_main_acceptance
-stage_4_implementation_authorized: false
-schema_source_version: 13
+stage_1_to_3_implementation_status: accepted_by_v5_main
+stage_4_contract_status: accepted_by_v5_main
+stage_4_implementation_authorized: true
+stage_4_implementation_status: implemented_pending_v5_main_acceptance
+schema_source_version: 14
 provider_runs_performed_this_action: false
 provider_cost_usd: 0
 credentials_or_keychain_accessed: false
-live_database_accessed_or_mutated_this_action: false
+live_database_sqlite_accessed_or_mutated_this_action: false
+live_database_hash_sentinel: e6dd58b4fd115b4768694c0de4f9e84cb1cc62f12cfc228f39c5e06705c6740f_unchanged
 stage_5_authorized: false
 ```
 
 ## 1. 当前状态
 
-V5 Main已以Program-only `codex/v5-main@65706f4`接受Stage 3 commit `2d4d3397085dd9fe1b6d01533ce5743536b23740`；Main独立验证`23 passed`，live DB SHA-256前后均为`1411d83ea22ebcd0d24dfca3ff1d52300de485772c62c773327ec2ec2210b1c6`，schema 10、Stage 3 table count 0、integrity ok。reported `160 passed`受影响回归和`1709 passed, 4 deselected`默认套件被接受为supporting evidence；known limits不触发rework。
+V5 Main已接受Stage 4 Contract commit `560293da5987478eea822197582beb3829dfa9ae`并以Program-only `codex/v5-main@9ff82483bf957f14315386621f9255b8c69ccedf`授权实施；该Program commit未merge/cherry-pick。
 
-当前唯一授权动作是准备compact `V5_B_STAGE_4_CONTRACT.md`。Contract已起草，Stage 4产品/schema/API/UI/tests未实施且未获授权。
-
-## 2. Stage 4 target
+Stage 4已在Contract内实现，当前等待Main有限验收：
 
 ```text
-inspect Personal and Corpus Workspace
-→ explicit create or review a typed candidate/observation
-→ inspect authority, provenance, confidence/expiry and history
-→ confirm | correct | reject | expire | tombstone
-→ restart-stable projection with no silent resurrection
+inspect one Personal and Corpus Workspace
+→ explicit create or candidate/observation intake
+→ typed authority + source boundary + confidence/expiry + immutable history
+→ confirm | correct | reject | expire | tombstone | diagnose | invalidate
+→ restart-stable projection with old-boundary no-resurrection
+→ Search / Ask / Research / ArtifactRoute remain unchanged
 ```
 
-Capability families在一条auditable pipeline中保留不同authority：
+## 2. Lean implementation shape
 
-- Explicit User Memory：只有user-authored或explicitly confirmed才是user-state authority；
-- Behavioral/Inferred Candidate：必须有source events/evidence、confidence、expiry和review，不静默promotion；
-- Current Focus/Knowledge Progress：区分显式状态与evidence-backed observation，机械阻止watched=learned等shortcut；
-- Corpus Observation：对frozen collection/taxonomy snapshot做versioned folder/topic/uploader/series/source/search-term/limitation observation，只是future soft prior；
-- System Experience：保存Trace/outcome/environment lineage和observed→diagnosed→candidate_source/invalidated，不成为Active Skill/Policy。
+- schema source升至14，只新增一张`research_workspace_records` aggregate table与immutable update/delete triggers；没有supporting table。
+- 一个`ResearchPersonalWorkspaceService`复用V5-A Research Task、Event、CommandReceipt和现有transaction/fault基础；没有scheduler、queue、vector index、inference/rules engine或平台拆分。
+- `record_kind`、`authority_class`与typed status分离；source refs由服务器对真实Event/Trace/Result/Fact/Artifact/frozen taxonomy snapshot校验并hash。
+- 三类public API：Workspace read、record create、record decision；一个Research页内compact Workspace surface。
+- expiry按投影时间确定性计算；correction/reject/expire/tombstone/diagnose/invalidate均追加revision，不原地改写或物理删除。
 
-## 3. Lean Contract shape
+## 3. Authority and cross-version boundary
 
-- 默认一张append-only/revisioned `WorkspaceRecord` aggregate，使用`record_kind`、`authority_class`、typed status、confidence/expiry、source refs/hash和user decision保留语义差异；最多一张由具体FK/query invariant证明必需的supporting table。
-- 复用Event、CommandReceipt、Research Trace/Result、Fact/Artifact lineage、collection membership、frozen taxonomy snapshot和现有API/UI foundation。
-- correction/reject/expire/tombstone追加revision/decision，不原地改写或物理删除；old source boundary重放不得恢复rejected/deleted candidate。
-- expiry在projection/command time deterministic计算，不新建background scheduler；不建MemoryOS、inference/corpus/experience平台、vector memory或rules engine。
-- public surface默认为Workspace read、record create、record decision三类API和一个compact Workspace UI。
+- Explicit Memory只有`user_authored`或显式确认后的`user_confirmed`且状态current/confirmed时具user-state authority。
+- inferred/focus behavioral material至少需要两个不同Research Event，先进入candidate；旧source boundary重放只写Event/Receipt，不新增revision或复活terminal lineage。
+- learned/understood/familiar必须有`user_asserted=true`；watch/search/single event不能机械提升。
+- Corpus observation必须引用一个frozen taxonomy snapshot，始终是`corpus_soft_prior`且`product_behavior_effect=false`。
+- System Experience必须有同Task Trace与Result，只有observed→diagnosed→candidate_source/invalidated记录链；未创建或修改Skill/Policy/prompt/tool/retrieval/runtime。
+- Personal Workspace未接入Search、Ask、Research knowledge projection、ArtifactRoute、prompt、budget或主动行为；V5-C/V5-D与Stage 5未启动。
 
-## 4. Strict cross-version boundary
+## 4. Mechanical evidence
 
-Stage 4只存储和展示Workspace state，不让它影响Search/Ask/Research/ArtifactRoute、prompt、budget、proactive behavior或Provider调用。Corpus不得hard-filter/citation/self-reinforce；Experience不得改Skill/Policy/runtime。V5-C personalized behavior、V5-D promotion、Stage 5 relations/product evaluation全部排除。
+- Stage 4 compact matrix：`6 passed`。
+- V5-B Stage 1–4 directed：`29 passed`。
+- Stage 1–4、V5-A Research/migration、library/taxonomy affected set：`179 passed`。
+- Search/Ask/public Research API affected set：`56 passed`。
+- default no-provider submission suite：`1715 passed, 4 deselected, 7 warnings`。
+- Python `py_compile`、`node --check`、`git diff --check`通过；docs/JSONL validation在commit前完成。
+- full-suite前后只对live DB文件执行SHA-256，不建立SQLite连接；两端均为`e6dd58b4fd115b4768694c0de4f9e84cb1cc62f12cfc228f39c5e06705c6740f`，无迁移或content mutation。
 
-## 5. JIT evidence decision
+## 5. Honest limits and current gate
 
-已检查Registry/Research Log、accepted DeepTutor/WeKnora fixed-commit reports、Charter/Stage 1–3以及本地collection/taxonomy/Event/Trace/Result/Receipt/Fact/Artifact实现。
-
-- DeepTutor已覆盖stable explicit preference/edit reference和拾流拒绝physical delete/overwrite的边界。
-- frozen taxonomy snapshot/membership提供versioned Corpus input，Research Event/Trace/Result提供Experience provenance，Stage 1–3提供revision/Receipt/projection/fault基础。
-- WeKnora没有Stage 4必需的新authority/expiry/no-resurrection语义。
-
-因此不新增upstream research/report/checkout/dependency，不调用Provider，cost USD 0。
-
-## 6. Docs-only non-actions and current gate
-
-未改产品/schema/API/UI/tests，未访问live DB/content、credential/Keychain或Provider，未更新Program authority/Registry/Research Log，未push/merge/tag/self-accept，未启动Stage 5。
+- bounded limitation：record payload/source refs采用32 KiB/32 refs上限与结构化JSON；UI只提供compact typed create/review，不是批量管理或rich diff产品。
+- not exercised：真实长期用户行为分布、大规模corpus profiling、Provider辅助候选措辞、多设备并发与后台expiry通知；均非Stage 4机械Gate。
+- unproven：Workspace对未来V5-C个性化效果、Experience对未来V5-D Skill proposal质量、Stage 5 relations/product evaluation。
+- Provider、credential/Keychain、新依赖/upstream copy、live SQLite连接/migration、push/merge/tag/self-accept均未发生。
 
 ```yaml
-stage_3_main_acceptance: accepted_at_65706f4
-stage_4_contract_preparation_authorized: true
-stage_4_contract_status: draft_pending_v5_main_acceptance
-stage_4_implementation_authorized: false
+stage_4_contract_status: accepted_by_v5_main
+stage_4_implementation_status: implemented_pending_v5_main_acceptance
 stage_4_self_accepted: false
-next_action: limited_v5_main_stage_4_target_boundary_review
+stage_5_authorized: false
+next_action: limited_v5_main_stage_4_implementation_acceptance_review
 ```

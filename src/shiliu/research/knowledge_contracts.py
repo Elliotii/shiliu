@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -426,4 +427,134 @@ class ProceedArtifactRouteRequest(_StrictModel):
                 raise ValueError("outcome fields are only allowed for finalize")
         elif self.route is not None:
             raise ValueError("route is only allowed for confirm")
+        return self
+
+
+class WorkspaceSourceRef(_StrictModel):
+    ref_type: Literal[
+        "research_task",
+        "research_event",
+        "research_attempt",
+        "research_trace",
+        "research_result",
+        "fact_revision",
+        "artifact_revision",
+        "taxonomy_snapshot",
+    ]
+    ref_id: str = Field(min_length=1, max_length=200)
+    task_id: str | None = Field(default=None, max_length=160)
+    boundary_hash: str | None = Field(default=None, max_length=128)
+
+    @field_validator("ref_id")
+    @classmethod
+    def normalize_ref_id(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("ref_id must not be blank")
+        return value
+
+    @field_validator("task_id", "boundary_hash")
+    @classmethod
+    def normalize_optional_ref(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
+    @model_validator(mode="after")
+    def validate_scope(self) -> "WorkspaceSourceRef":
+        if self.ref_type == "taxonomy_snapshot":
+            if self.task_id is not None:
+                raise ValueError("taxonomy_snapshot must not carry task_id")
+        elif self.task_id is None:
+            raise ValueError("task-bound source refs require task_id")
+        return self
+
+
+class CreateWorkspaceRecordRequest(_StrictModel):
+    command_id: str = Field(min_length=1, max_length=160)
+    record_kind: Literal[
+        "explicit_memory",
+        "inferred_candidate",
+        "focus_state",
+        "progress_observation",
+        "corpus_observation",
+        "system_experience",
+    ]
+    semantic_key: str = Field(min_length=1, max_length=300)
+    payload: dict[str, Any]
+    source_refs: list[WorkspaceSourceRef] = Field(default_factory=list, max_length=32)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    expires_at: datetime | None = None
+    reason: str = Field(default="", max_length=1000)
+    reopen_reason: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("command_id", "semantic_key")
+    @classmethod
+    def normalize_required_workspace_text(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if not value:
+            raise ValueError("value must not be blank")
+        return value
+
+    @field_validator("reason")
+    @classmethod
+    def normalize_workspace_reason(cls, value: str) -> str:
+        return value.strip()
+
+    @field_validator("reopen_reason")
+    @classmethod
+    def normalize_reopen_reason(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
+    @field_validator("source_refs")
+    @classmethod
+    def unique_source_refs(
+        cls, values: list[WorkspaceSourceRef]
+    ) -> list[WorkspaceSourceRef]:
+        identities = [(value.ref_type, value.ref_id, value.task_id) for value in values]
+        if len(identities) != len(set(identities)):
+            raise ValueError("source_refs must be unique")
+        return values
+
+
+class DecideWorkspaceRecordRequest(_StrictModel):
+    command_id: str = Field(min_length=1, max_length=160)
+    action: Literal[
+        "confirm",
+        "correct",
+        "reject",
+        "expire",
+        "tombstone",
+        "diagnose",
+        "candidate_source",
+        "invalidate",
+    ]
+    expected_version: int = Field(ge=1)
+    replacement_payload: dict[str, Any] | None = None
+    reason: str = Field(default="", max_length=1000)
+
+    @field_validator("command_id")
+    @classmethod
+    def normalize_workspace_command_id(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("command_id must not be blank")
+        return value
+
+    @field_validator("reason")
+    @classmethod
+    def normalize_decision_reason(cls, value: str) -> str:
+        return value.strip()
+
+    @model_validator(mode="after")
+    def validate_replacement(self) -> "DecideWorkspaceRecordRequest":
+        requires_payload = self.action in {"correct", "diagnose"}
+        if requires_payload and self.replacement_payload is None:
+            raise ValueError("replacement_payload is required for correct/diagnose")
+        if not requires_payload and self.replacement_payload is not None:
+            raise ValueError("replacement_payload is only allowed for correct/diagnose")
         return self

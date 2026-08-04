@@ -23,8 +23,9 @@ provider_cost_usd: 0
 new_dependencies: false
 live_database_migrated_or_mutated_by_this_session: false
 self_accepted: false
-stage_4_contract_preparation_authorized: true
-stage_4_implementation_authorized: false
+stage_4_contract_status: accepted_at_560293da5987478eea822197582beb3829dfa9ae
+stage_4_implementation_authorized: true_at_9ff82483bf957f14315386621f9255b8c69ccedf
+stage_4_implementation_status: implemented_pending_v5_main_acceptance
 ```
 
 ## 1. 提交结论
@@ -197,9 +198,10 @@ supporting_evidence_accepted:
   affected: 160_passed
   default_filtered: 1709_passed_4_deselected
 self_accepted: false
-stage_4_contract_preparation_authorized: true
-stage_4_implementation_authorized: false
-next_action: prepare_compact_stage_4_contract
+stage_4_contract_status: accepted_at_560293da5987478eea822197582beb3829dfa9ae
+stage_4_implementation_authorized: true_at_9ff82483bf957f14315386621f9255b8c69ccedf
+stage_4_implementation_status: implemented_pending_v5_main_acceptance
+next_action: limited_v5_main_stage_4_implementation_acceptance_review
 ```
 
-V5 Main已以Program-only `codex/v5-main@65706f4`接受Stage 3 commit `2d4d3397085dd9fe1b6d01533ce5743536b23740`；该Program commit未merge/cherry-pick。known limits被接受为honest limits，不触发rework。后续只授权Stage 4 Contract准备，未授权Stage 4实施。
+V5 Main已以Program-only `codex/v5-main@65706f4`接受Stage 3 commit `2d4d3397085dd9fe1b6d01533ce5743536b23740`；该Program commit未merge/cherry-pick。随后Main接受Stage 4 Contract并以`codex/v5-main@9ff82483bf957f14315386621f9255b8c69ccedf`授权实施；Stage 4现已实现并等待有限验收。

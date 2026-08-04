@@ -37,7 +37,7 @@ def test_schema_upgrade_adds_library_defaults_without_changing_ignore(app_paths)
 
     db.initialize()
     video = db.get_video(video_id)
-    assert SCHEMA_VERSION == 13
+    assert SCHEMA_VERSION == 14
     assert video["reading_state"] == "unread"
     assert video["is_marked"] == 0
     assert video["archived_at"] is None

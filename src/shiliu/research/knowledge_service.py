@@ -21,6 +21,8 @@ from shiliu.research.knowledge_contracts import (
     AssessArtifactRouteRequest,
     BuildKnowledgeArtifactRequest,
     BuildTopicPageRequest,
+    CreateWorkspaceRecordRequest,
+    DecideWorkspaceRecordRequest,
     EditTopicPageRequest,
     ExportTopicPageRequest,
     IntakeKnowledgeCandidatesRequest,
@@ -37,6 +39,7 @@ from shiliu.research.knowledge_contracts import (
 )
 from shiliu.research.knowledge_lifecycle import ResearchKnowledgeLifecycleService
 from shiliu.research.knowledge_reuse import ResearchArtifactRouteService
+from shiliu.research.personal_workspace import ResearchPersonalWorkspaceService
 from shiliu.research.product_service import (
     CANDIDATE_DELTA_SCHEMA_VERSION,
     ResearchProductService,
@@ -108,10 +111,16 @@ class ResearchKnowledgeService:
             retrieval=retrieval,
             fault_injector=self.fault_injector,
         )
+        self.personal_workspace = ResearchPersonalWorkspaceService(
+            db,
+            kernel=kernel,
+            fault_injector=self.fault_injector,
+        )
 
     def _sync_lifecycle_fault_injector(self) -> None:
         self.lifecycle.fault_injector = self.fault_injector
         self.reuse.fault_injector = self.fault_injector
+        self.personal_workspace.fault_injector = self.fault_injector
 
     def intake_candidates(
         self, task_id: str, request: IntakeKnowledgeCandidatesRequest
@@ -1671,6 +1680,49 @@ class ResearchKnowledgeService:
 
     def get_artifact_route(self, task_id: str, route_id: str) -> dict[str, Any]:
         return self.reuse.get(task_id, route_id)
+
+    def create_personal_workspace_record(
+        self,
+        task_id: str,
+        request: CreateWorkspaceRecordRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.personal_workspace.create(
+            task_id,
+            request,
+            principal_id=principal_id,
+        )
+
+    def decide_personal_workspace_record(
+        self,
+        task_id: str,
+        record_id: str,
+        request: DecideWorkspaceRecordRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.personal_workspace.decide(
+            task_id,
+            record_id,
+            request,
+            principal_id=principal_id,
+        )
+
+    def get_personal_workspace(
+        self,
+        task_id: str,
+        *,
+        record_kind: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        return self.personal_workspace.get_workspace(
+            task_id,
+            record_kind=record_kind,
+            status=status,
+        )
 
     def revalidate_knowledge(
         self, task_id: str, request: RevalidateKnowledgeRequest

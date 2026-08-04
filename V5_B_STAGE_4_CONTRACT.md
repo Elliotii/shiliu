@@ -3,23 +3,25 @@
 ```yaml
 stage: V5-B Stage 4
 title: Personal and Corpus Workspace
-contract_status: draft_pending_v5_main_acceptance
+contract_status: accepted_by_v5_main
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-04
 branch: codex/v5-b
+contract_commit: 560293da5987478eea822197582beb3829dfa9ae
+main_acceptance_and_implementation_authorization_record: 9ff82483bf957f14315386621f9255b8c69ccedf_on_codex_v5_main_not_cherry_picked
 accepted_stage_3_commit: 2d4d3397085dd9fe1b6d01533ce5743536b23740
 stage_3_main_acceptance_record: 65706f4_on_codex_v5_main_not_cherry_picked
 schema_baseline: 13
 contract_preparation_authorized: true
-implementation_authorized: false
-implementation_started: false
+implementation_authorized: true
+implementation_status: implemented_pending_v5_main_acceptance
 provider_runs_performed: false
 provider_cost_usd: 0
 live_database_migration_authorized: false
 ```
 
-> V5 Main已接受Stage 3，并只授权本次Stage 4 Contract准备。本文不授权schema/runtime/API/UI/test实施，不构成V5-B自我验收。
+> V5 Main已在Program-only `codex/v5-main@9ff82483bf957f14315386621f9255b8c69ccedf`接受本Contract并授权Stage 4实施；该Program commit未merge/cherry-pick。实现仍须Main有限验收，本文不构成V5-B自我验收。
 
 ## 1. User outcome and one journey
 
@@ -168,8 +170,9 @@ Main接受Contract后，V5-B Session可在不改变边界的前提下确定：
 
 ```yaml
 stage_3_status: accepted_by_v5_main_at_65706f4
-stage_4_contract_status: draft_pending_v5_main_acceptance
-stage_4_implementation_authorized: false
+stage_4_contract_status: accepted_at_560293da5987478eea822197582beb3829dfa9ae
+stage_4_implementation_authorized: true_at_9ff82483bf957f14315386621f9255b8c69ccedf
+stage_4_implementation_status: implemented_pending_v5_main_acceptance
 jit_research: existing_fixed_commit_reports_and_local_models_sufficient
 provider_runs_performed: false
 requested_review:
@@ -178,7 +181,7 @@ requested_review:
   - corpus_soft_prior_and_behavior_non_interference
   - experience_candidate_and_no_skill_mutation
   - lean_api_ui_and_cross_version_boundary
-decision_requested: accept_or_return_one_bounded_contract_correction
+decision_requested: accept_or_return_one_bounded_implementation_correction
 ```
 
-请求V5 Main只审查Stage 4 target、authority boundary、lean aggregate、dependency order和compact acceptance matrix。在Main明确接受并授权前，不实施Stage 4，不启动Stage 5。
+请求V5 Main有限审查Stage 4实现是否满足已接受target、authority boundary、lean aggregate与compact acceptance matrix。V5-B Session不自我接受，也不启动Stage 5。
