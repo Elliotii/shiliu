@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-04T23:48:49+08:00
+> Updated at: 2026-08-05T00:09:36+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STAGE_4_CONTRACT
+  current_formal_stage: V5_B_STAGE_4_IMPLEMENTATION
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -21,9 +21,10 @@ resume_anchor:
   V5_B_accepted_stage_2_head: f879c80c0f547195a40d6804b6057debd077d11a
   V5_B_accepted_stage_3_contract_head: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
   V5_B_accepted_stage_3_head: 2d4d3397085dd9fe1b6d01533ce5743536b23740
+  V5_B_accepted_stage_4_contract_head: 560293da5987478eea822197582beb3829dfa9ae
   branch: codex/v5-main
-  pending_decision: V5_B_stage_4_contract_submission
-  next_action: V5_B_session_prepares_lean_stage_4_contract
+  pending_decision: V5_B_stage_4_implementation_submission
+  next_action: V5_B_session_implements_lean_stage_4
   roadmap_reconsideration_open: false
 ```
 
@@ -36,7 +37,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_3_accepted_stage_4_contract_preparation
+    status: stage_3_accepted_stage_4_implementation_authorized
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -64,6 +65,7 @@ repository:
   V5_B_accepted_stage_2_head: f879c80c0f547195a40d6804b6057debd077d11a
   V5_B_accepted_stage_3_contract_head: 70ba2b2c22f642ac52ddce0d3d30184d3b3235d6
   V5_B_accepted_stage_3_head: 2d4d3397085dd9fe1b6d01533ce5743536b23740
+  V5_B_accepted_stage_4_contract_head: 560293da5987478eea822197582beb3829dfa9ae
   V5_B_execution_schema_source: 13
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -189,13 +191,16 @@ ArtifactRoute 聚合表、一个独立 service、三个公共端点和六个风�
 前后均为 `1411d83e...`，仍为 schema 10、Stage 3 表为 0、integrity `ok`。Session 报告的
 affected `160 passed` 和 default `1709 passed, 4 deselected`作为支持证据接受。
 
-同一 V5-B Session 现在只获准准备精简 Stage 4 Contract。Stage 4 必须把 Explicit Memory、
-inferred candidate、Current Focus/KnowledgeProgress、Corpus soft prior 与 SystemExperienceRecord
-收敛为一条可审核的 Workspace state pipeline，优先复用 Event/Receipt/Trace 和已有 UI，不分别建设
-MemoryOS、推断引擎、Corpus 平台或 Experience 平台。所有 inferred/behavioral 内容保持 candidate-only，
-Corpus 只能是 soft prior，Experience 不升级 Skill，且本 Stage 不让这些状态影响 Search/Answer/Route；
-真正 personalized behavior 属于 V5-C。
+Stage 4 Contract `560293d` 已通过有限审查并授权同一 V5-B Session 实施。Contract 将 Explicit
+Memory、inferred candidate、Current Focus/Knowledge Progress、Corpus soft prior 与
+SystemExperienceRecord 收敛为一条 append-only/revisioned WorkspaceRecord 管线：默认一张 aggregate
+table，只有具体 FK/query invariant 证明必要时才允许一张窄 supporting table；公共面限定为三类 API
+与一个 Workspace surface，不拆 4A/4B，也不建设 MemoryOS、推断引擎、Corpus/Experience 平台、
+vector memory、rules engine 或 background scheduler。
 
-Stage 4 产品实施需等待 Contract 接受。当前仍不授权 live migration、Stage 5、V5-C/D、
-push/merge/tag 或自我验收；DeepSeek 等连续预算包预计不超过 2 美元时视为用户已默认授权，超过
+实施必须保持 authority 分离、append-only correction/tombstone、deterministic expiry 和 old-boundary
+no-resurrection。所有 inferred/behavioral 内容先保持 candidate-only，Corpus 只是 versioned soft prior，
+Experience 不升级 Skill/Policy；必须用 seeded-vs-empty Workspace 机械证明 Search/Ask/Research/
+ArtifactRoute 行为不受影响。当前仍不授权 live migration、Stage 5、V5-C/D、push/merge/tag 或自我验收；
+Provider 不构成机械验收前置，DeepSeek 等连续预算包预计不超过 2 美元时视为用户已默认授权，超过
 2 美元前必须暂停请求确认。
