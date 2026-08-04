@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-04T14:20:25+08:00
+> Updated at: 2026-08-04T15:01:01+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,13 +11,14 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STARTUP_AND_CHARTER
+  current_formal_stage: V5_B_STAGE_1
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
+  V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   branch: codex/v5-main
-  pending_decision: V5_B_charter_and_stage_1_contract_review
-  next_action: V5_B_session_completes_JIT_research_and_startup_package
+  pending_decision: none
+  next_action: V5_B_session_implements_bounded_stage_1
   roadmap_reconsideration_open: false
 ```
 
@@ -30,7 +31,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: startup_active
+    status: active_stage_1
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -52,6 +53,7 @@ repository:
   branch: codex/v5-main
   V5_A_fast_forward_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
+  V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
   merge_conflicts: 0
@@ -135,16 +137,17 @@ upstream:
   youtu_agent:
     status: deferred
   V5_B_JIT_research:
-    DeepTutor: in_progress_P0
-    WeKnora: in_progress_bounded_P1
+    DeepTutor: adopted_reference_only_at_44fa7a1
+    WeKnora: adopted_reference_only_at_fcc4cd6
 download_equals_adoption: false
 research_equals_implementation_authorization: false
 ```
 
 # 6. Next action boundary
 
-V5-B Version Session 已在 `codex/v5-b` 启动，当前只执行现场复核、DeepTutor/WeKnora
-Just-in-time 研究、Version Charter 与 Stage 1 Contract 准备。主 Session 下一次只做
-Charter/Stage 1 的目标与边界级审阅；在接受前不开始 V5-B 产品实现。
+V5-B Charter、五阶段依赖序列、DeepTutor/WeKnora reference-only 采用边界和经一次
+docs-only 收敛后的 Stage 1 Contract 已由主 Session 接受。V5-B Session 已获授权实现
+Candidate → Fact → deterministic Artifact → first Topic Page → publish-or-return 的无 Provider
+纵切；Page/Fact 完整生命周期、filesystem export、async update/rebuild 仍属于 Stage 2。
 
 当前无技术阻塞，也无待用户决定的材料性路线问题。

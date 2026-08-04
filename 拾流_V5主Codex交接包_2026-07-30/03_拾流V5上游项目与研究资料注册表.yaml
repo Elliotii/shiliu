@@ -6,8 +6,8 @@ registry_metadata:
   registry_id: shiliu_v5_upstream_and_research_registry
   schema_version: '1.0'
   generated_at: '2026-07-30T08:22:00+08:00'
-  status: V5_A_stage_1_authorized
-  updated_at: '2026-07-31T01:08:24+08:00'
+  status: V5_B_stage_1_authorized
+  updated_at: '2026-08-04T15:01:01+08:00'
   purpose: 维护拾流 V5 外部项目、论文、官方资料、索引和本地研究备忘录的当前权威状态：来源、本地存在性、版本、License、研究深度、版本相关性、使用历史、当前采用判断和下一研究触发条件。
   authority_boundary: 本注册表是研究与采用状态表，不是实施授权。只有进入已接受的 Version Charter / Stage Contract 且 implementation_authorized=true 的机制才可正式实施。
   upstream_files:
@@ -304,6 +304,8 @@ resources:
   priority: P0
   source:
     official_url: https://github.com/HKUDS/DeepTutor
+    pinned_commit: 44fa7a1552b88f9d8ce2c22259128a15ae2eb0c8
+    source_last_checked: '2026-08-04'
     secondary_urls:
     - https://arxiv.org/abs/2604.26962
     - https://github.com/HKUDS/DeepTutor/blob/main/LICENSE
@@ -312,26 +314,34 @@ resources:
     path: null
     release_or_commit: null
     fetched_at: null
-    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+    notes: 正式产品仓库中无本资源副本；V5-B 使用了不进入产品树的临时稀疏 checkout 完成固定 Commit 研究。
   license:
     name: Apache-2.0
     verified: true
-    verification_source: https://github.com/HKUDS/DeepTutor/blob/main/LICENSE
+    verification_source: https://github.com/HKUDS/DeepTutor/blob/44fa7a1552b88f9d8ce2c22259128a15ae2eb0c8/LICENSE
     notes: 正式复制或派生时仍需保留许可证和版权通知。
   research:
-    status: docs_reviewed
+    status: tests_reviewed
     depth:
     - official_readme
     - release_notes
     - license
     - planning_analysis
-    last_reviewed_at: '2026-07-30'
+    - fixed_commit_source_review
+    - l1_l2_l3_CRUD_and_lineage_review
+    - idempotency_and_user_correction_review
+    - related_tests_source_review
+    last_reviewed_at: '2026-08-04'
     reviewed_by:
     - planning_session
+    - Shiliu V5-B Version Session
+    - Shiliu V5 Main Codex Session
     source_reports:
     - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
     - 拾流_V5及后续版本规划_现阶段整合版.md
-    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+    - V5_B_UPSTREAM_DEEPTUTOR_RESEARCH_REPORT.md
+    - V5_B_VERSION_CHARTER.md
+    scope_note: 已完成固定 Commit 的源码与相关测试源码审阅；上游测试因有界 sparse checkout 的包级导入链不足而未执行，不代表上游运行通过。
   relevance:
     versions:
     - V5-B
@@ -345,22 +355,22 @@ resources:
     - idempotent_memory_write
     - editable_memory_ui
   current_assessment:
-    adoption_status: candidate
+    adoption_status: adopted
     recommended_modes:
     - reimplement_pattern
-    - copy_and_adapt
     - product_or_behavior_reference
-    summary: V5-B 三层可审计知识与 Memory 的主要源码研究候选。借鉴文件/层级/Lineage/可编辑写入；拾流需重新定义为 L1 Evidence/Event、L2 Grounded Fact、L3 Research
-      Synthesis。
+    - test_reference
+    summary: 以 reference-only、Shiliu-native independent reimplementation 方式采用分层、稳定 Entry ID、refs-required batch preflight、ID-set incremental 与 editable review 模式；不采用其 L1/L2/L3 权威或文件布局。
     risks:
     - DeepTutor 的个性化学习语义不能直接当作拾流事实权威
     - 完整产品范围远超拾流
-    - 正式复制前需核查当前 Commit 和第三方组件
+    - 上游测试未执行，不能报告 DeepTutor 运行通过
     unresolved_questions:
-    - 三层 Memory 的当前目录、对象合同和写入测试
-    - Memory Graph 如何映射到 SQLite + Filesystem Artifacts
-    - 幂等写入、删除和用户修正的精确实现
-    implementation_authorized: false
+    - 任何未来源码、测试或 UI 复制仍需文件级 License 与最新 Commit 核验
+    implementation_authorized: true
+    implementation_authority_scope: V5-B Stage 1 selected patterns, Shiliu-native implementation only
+    direct_dependency_authorized: false
+    source_copy_authorized: false
   usage_history:
   - version: V5 planning
     stage: V5-B formation
@@ -369,9 +379,16 @@ resources:
     local_artifacts:
     - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
     - 拾流_V5及后续版本规划_现阶段整合版.md
+  - version: V5-B
+    stage: Stage 1 authorization
+    level: design_reference
+    result: 固定 Commit 研究获接受；selected layering、stable ID、preflight、incremental 与 review patterns 获独立重实现授权。
+    local_artifacts:
+    - V5_B_UPSTREAM_DEEPTUTOR_RESEARCH_REPORT.md
+    - V5_B_VERSION_CHARTER.md
+    - V5_B_STAGE_1_CONTRACT.md
   next_research_triggers:
-  - before_V5_B_version_charter
-  - before_V5_B_lineage_stage
+  - before_any_dependency_source_test_or_UI_copy
   - upstream_major_release
   notes: null
 - id: weknora
@@ -380,6 +397,8 @@ resources:
   priority: P1
   source:
     official_url: https://github.com/Tencent/WeKnora
+    pinned_commit: fcc4cd6a9f29a94818e481b3a604f44ce51c55e2
+    source_last_checked: '2026-08-04'
     secondary_urls:
     - https://github.com/Tencent/WeKnora/blob/main/README_CN.md
     - https://github.com/Tencent/WeKnora/releases
@@ -389,27 +408,36 @@ resources:
     path: null
     release_or_commit: null
     fetched_at: null
-    notes: 2026-07-30 主 Codex 现场审计未在正式仓库中发现本 Registry 资源的本地副本。
+    notes: 正式产品仓库中无本资源副本；V5-B 使用了不进入产品树的临时稀疏 checkout 完成固定 Commit 研究。
   license:
     name: MIT
     verified: true
-    verification_source: https://github.com/Tencent/WeKnora/blob/main/LICENSE
+    verification_source: https://github.com/Tencent/WeKnora/blob/fcc4cd6a9f29a94818e481b3a604f44ce51c55e2/LICENSE
     notes: 主项目为 MIT；LICENSE 同时列出第三方组件及其独立条款，复制或集成时必须逐项核验。
   research:
-    status: docs_reviewed
+    status: tests_reviewed
     depth:
     - official_readme
     - official_docs
     - releases
     - license
     - planning_analysis
-    last_reviewed_at: '2026-07-30'
+    - fixed_commit_page_revision_and_link_review
+    - durable_pending_retry_dead_letter_recovery_review
+    - generation_finalize_rebuild_observability_review
+    - relevant_go_and_frontend_tests_source_review
+    - two_pure_frontend_tests_executed
+    last_reviewed_at: '2026-08-04'
     reviewed_by:
     - planning_session
+    - Shiliu V5-B Version Session
+    - Shiliu V5 Main Codex Session
     source_reports:
     - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
     - 拾流_V5及后续版本规划_现阶段整合版.md
-    scope_note: 当前记录来自规划阶段的公开资料研究；除非明确写明，不代表主 Codex 已对本地 Clone、固定 Commit、源码符号和测试完成正式审计。
+    - V5_B_UPSTREAM_WEKNORA_RESEARCH_REPORT.md
+    - V5_B_VERSION_CHARTER.md
+    scope_note: 已完成固定 Commit 的页面、revision、持久 pending/recovery 和 UI/test 有界审阅；只执行 2 项纯前端状态测试，Go/queue/generation 未执行。
   relevance:
     versions:
     - V5-B
@@ -422,20 +450,22 @@ resources:
     - knowledge_browsing
     - observability_reference
   current_assessment:
-    adoption_status: candidate
+    adoption_status: adopted
     recommended_modes:
     - product_or_behavior_reference
     - reimplement_pattern
-    summary: 主要作为 V5-B Topic Page / Auto-Wiki 产品形态和异步生成流程参考。V4 已完成 Fast/Deep，不再把 WeKnora 作为 RAG/Agentic Search 基础，也不直接采用其企业知识平台。
+    - test_reference
+    summary: 以 reference-only 方式采用 Topic Page/revision review UI、optimistic version、atomic snapshot、revert-as-new 和 durable pending/recovery/dead-letter 模式；不替换拾流 RAG/Evidence/Citation，也不采用企业平台范围。
     risks:
     - Wiki 页面不天然满足拾流 Claim-level Citation 与 Source Version Lineage
     - 企业多租户、Connector、RBAC 和多后端属于过度范围
-    - 第三方组件许可证需单独核验
+    - 任何代码、组件或 UI 复制仍需逐项核验第三方许可证
     unresolved_questions:
-    - Wiki 任务状态、更新和重建流程的当前源码实现
-    - 页面间关系如何绑定拾流 Grounded Fact / Transcript Evidence
-    - 是否有适合局部复制的异步任务或前端组件
-    implementation_authorized: false
+    - Go Wiki/queue tests 与 Provider generation 未执行
+    implementation_authorized: true
+    implementation_authority_scope: V5-B Stage 1 selected page and revision patterns, Shiliu-native implementation only
+    direct_dependency_authorized: false
+    source_copy_authorized: false
   usage_history:
   - version: V5 planning
     stage: V5-B productization
@@ -444,9 +474,17 @@ resources:
     local_artifacts:
     - SHILIU_EXTERNAL_PROJECTS_RESEARCH_HANDOFF拾流后续可参考的外部项目与机制研究交接.md
     - 拾流_V5及后续版本规划_现阶段整合版.md
+  - version: V5-B
+    stage: Stage 1 authorization
+    level: product_reference
+    result: 固定 Commit 的 Topic Page/revision/queue 研究获接受；Stage 1 仅授权首版 Page 与 review 所需的 Shiliu-native selected patterns。
+    local_artifacts:
+    - V5_B_UPSTREAM_WEKNORA_RESEARCH_REPORT.md
+    - V5_B_VERSION_CHARTER.md
+    - V5_B_STAGE_1_CONTRACT.md
   next_research_triggers:
-  - before_V5_B_topic_page_stage
-  - if_async_wiki_generation_is_selected
+  - before_any_dependency_source_test_UI_or_component_copy
+  - before_V5_B_Stage_2_async_update_rebuild
   notes: null
 - id: youtu_agent
   name: TencentCloudADP Youtu-Agent
