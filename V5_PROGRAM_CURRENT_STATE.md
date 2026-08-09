@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-09T23:01:03+08:00
+> Updated at: 2026-08-10T00:21:15+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_STAGE_1
+  current_formal_stage: V5_C_STAGE_2_contract_preparation
   active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -28,9 +28,10 @@ resume_anchor:
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_C_startup_governance_head: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
   V5_C_accepted_startup_head: 2429debf9be426d825c6847e80030a537cc991a9
+  V5_C_accepted_stage_1_head: 9e83ff096d2148d6837e4ed67b30752fca781ccd
   branch: codex/v5-main
-  pending_decision: V5_C_STAGE_1_implementation_result
-  next_action: V5_C_version_session_implements_accepted_stage_1_and_submits_one_integrated_report
+  pending_decision: V5_C_STAGE_2_contract
+  next_action: V5_C_version_session_prepares_lean_stage_2_contract_for_limited_main_review
   roadmap_reconsideration_open: false
 ```
 
@@ -46,7 +47,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: stage_1_active
+    status: stage_1_accepted_stage_2_contract_preparation
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -78,6 +79,7 @@ repository:
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_C_startup_governance_head: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
   V5_C_accepted_startup_head: 2429debf9be426d825c6847e80030a537cc991a9
+  V5_C_accepted_stage_1_head: 9e83ff096d2148d6837e4ed67b30752fca781ccd
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -93,7 +95,7 @@ live_runtime:
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 436
+  sync_runs: 438
   research_tasks: 0
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
@@ -257,9 +259,13 @@ V5-C Session 已在 `codex/v5-c` 以 `2429debf` 提交 docs-only startup/JIT pac
 Research limitations panel 的前后位置；答案、证据、引用、检索、Prompt、route、budget 与 Provider
 不得变化。
 
-同一个 V5-C Session 现获授权自主实施 Stage 1，并自行处理 Contract 内普通 Bug 与有界复跑。
-Feedback→Candidate 来源除同 Task、同 key/value 与 exact target/hash 外，必须匹配当前 principal；
-不得为 Gate A–F 分别建立独立验收文档，只提交一个 integrated implementation report。默认保持
-schema/table/index/migration/dependency/Prompt/Provider/background worker 增量为 0，最多一个窄只读
-projection adapter，复用既有 endpoint/surface。live DB、凭据、Push、Merge、Tag、Stage 2、V5-D/
-Post-V5 仍未授权。
+同一个 V5-C Session 已以 `9e83ff09` 完成 Stage 1，Main 有限验收正式接受 Confirmed Personalized
+Answer Presentation：确认态 preference 可以且只能改变 Research limitations panel 的前后位置；
+Feedback→Candidate 在创建和确认时均重新验证 receipt、同 Task、exact target/hash、key/value 与
+principal。实现保持 schema/table/index/migration/dependency/Prompt/Provider/background worker 增量为
+0，只新增一个只读 projection adapter，完整默认无 Provider 回归 `1725 passed, 4 deselected`；Main
+独立复跑 Stage 1 + Workspace/Feedback 16 项 Python 和 2 项 Node 测试通过，live DB hash 不变。
+
+Stage 1 不证明完整 Personalized Answer 或真实用户收益。当前仅授权同一 V5-C Session 使用本地证据
+优先原则准备精简 Stage 2 Corpus-aware Search Contract，并在确有具体材料缺口时做最小 JIT 研究；
+不授权 Stage 2 产品实施、live DB、Provider、凭据、Push、Merge、Tag、V5-D 或 Post-V5。
