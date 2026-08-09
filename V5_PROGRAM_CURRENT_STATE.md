@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-05T00:59:39+08:00
+> Updated at: 2026-08-09T15:49:03+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STAGE_5_CONTRACT
+  current_formal_stage: V5_B_STAGE_5_IMPLEMENTATION
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -23,9 +23,10 @@ resume_anchor:
   V5_B_accepted_stage_3_head: 2d4d3397085dd9fe1b6d01533ce5743536b23740
   V5_B_accepted_stage_4_contract_head: 560293da5987478eea822197582beb3829dfa9ae
   V5_B_accepted_stage_4_head: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+  V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
   branch: codex/v5-main
-  pending_decision: V5_B_stage_5_contract_submission
-  next_action: V5_B_session_prepares_lean_stage_5_contract
+  pending_decision: V5_B_stage_5_implementation_and_closeout_submission
+  next_action: V5_B_session_implements_lean_stage_5_and_prepares_closeout_report
   roadmap_reconsideration_open: false
 ```
 
@@ -38,7 +39,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_4_accepted_stage_5_contract_preparation
+    status: stage_4_accepted_stage_5_implementation_authorized
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -68,6 +69,7 @@ repository:
   V5_B_accepted_stage_3_head: 2d4d3397085dd9fe1b6d01533ce5743536b23740
   V5_B_accepted_stage_4_contract_head: 560293da5987478eea822197582beb3829dfa9ae
   V5_B_accepted_stage_4_head: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
+  V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -208,8 +210,15 @@ whitespace 检查通过；live DB SHA-256 在测试窗口前后均为
 `e6dd58b4fd115b4768694c0de4f9e84cb1cc62f12cfc228f39c5e06705c6740f`。Session 报告的 affected
 `179 passed`、Search/Ask/API `56 passed` 与 default `1715 passed, 4 deselected`作为支持证据接受。
 
-同一 V5-B Session 现在只获准准备精简 Stage 5 Contract。Stage 5 应收口已有产品路径、bounded
-inter-page relations、observability/Feedback Event、版本级故障与兼容性证据以及必要的产品评估；不得默认
-建设 GraphRAG、通用 graph/eval 平台、第二套 workspace/runtime，亦不得把 Stage 5 变成 V5-C 个性化或
-V5-D Skill promotion。Stage 5 产品实施、live migration、Provider evaluation、push/merge/tag 与自我验收
-仍需保持各自边界；DeepSeek 等连续预算包预计不超过 2 美元时视为用户已默认授权，超过 2 美元前暂停确认。
+Stage 5 Contract `5b7c96c` 已通过有限审查并授权同一 V5-B Session 实施。现有
+PageRevision→FactRevision、Fact current state 与 immutable `confirmed_conflict` observation 足以派生
+`shared_current_fact` 和 `confirmed_conflict` 两类 navigation-only relation；Feedback 复用 Event 与
+CommandReceipt。默认零新表，最多一张由具体 invariant 证明的窄 supporting table；最多一个 composition
+adapter、两类 endpoint 和一个既有 Workspace surface 扩展，不建设 GraphRAG、通用 graph/eval/telemetry
+平台、第二套 runtime、queue 或 scheduler。
+
+Stage 5 必须完成 reuse-first 与 research-change 两条路径、minimal Feedback、derived observability、
+cross-Stage fault/restart/compatibility 和 V5-B closeout evidence。Mechanical Gate 完全 no-provider；只有在
+机械闭环通过且能回答具体产品问题时，V5-B Session 才可选择运行已冻结的 4–6 case DeepSeek 对照，连续
+总预算不超过 USD 2，且结果始终 non-gating。当前仍不授权 live migration、merge/tag、自我验收或启动
+V5-C/V5-D；这些属于 Stage 5 被接受后的 Main-owned version closeout。
