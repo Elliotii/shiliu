@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-09T22:10:27+08:00
+> Updated at: 2026-08-09T23:01:03+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: startup_and_JIT_planning
+  current_formal_stage: V5_C_STAGE_1
   active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -26,9 +26,11 @@ resume_anchor:
   V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
   V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
+  V5_C_startup_governance_head: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
+  V5_C_accepted_startup_head: 2429debf9be426d825c6847e80030a537cc991a9
   branch: codex/v5-main
-  pending_decision: V5_C_charter_and_stage_1_contract
-  next_action: V5_C_version_session_prepares_startup_package_for_limited_main_review
+  pending_decision: V5_C_STAGE_1_implementation_result
+  next_action: V5_C_version_session_implements_accepted_stage_1_and_submits_one_integrated_report
   roadmap_reconsideration_open: false
 ```
 
@@ -44,7 +46,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: startup_planning_active
+    status: stage_1_active
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -74,6 +76,10 @@ repository:
   V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
   V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
+  V5_C_startup_governance_head: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
+  V5_C_accepted_startup_head: 2429debf9be426d825c6847e80030a537cc991a9
+  V5_C_execution_branch: codex/v5-c
+  V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -87,7 +93,7 @@ live_runtime:
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 435
+  sync_runs: 436
   research_tasks: 0
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
@@ -245,7 +251,15 @@ V5-C Entry 的机械前提已具备，但 live Research/Feedback/Workspace 数�
 主 Session 仅做阶段边界有限验收的模型。启动现场确认 schema 14、integrity ok、FK 0，相关
 live 业务记录均为 0；61 项无 Provider 定向测试通过，五个只读页面/API 为 200。
 
-当前只授权源码侦察、材料性 JIT 研究、Charter、精简 Stage 序列、Stage 1 Contract、V5-C
-Current State/Decision Ledger 和 docs-only commit。产品实施、Provider、凭据、live migration、
-Push、Tag、V5-D/Post-V5 仍未授权。下一步由 V5-C Session 提交一个 integrated startup report，
-请求主 Session 对 Charter、Stage 1 和必要的上游 adoption proposal 做有限审阅。
+V5-C Session 已在 `codex/v5-c` 以 `2429debf` 提交 docs-only startup/JIT package。Main 有限审阅
+接受 Version Charter、五 Stage 依赖序列、无材料性新上游研究的判断与 Stage 1 Contract。Stage 1
+只实现一个无 Provider 的 Confirmed Personalized Answer Presentation 纵切：确认态 preference 可改变
+Research limitations panel 的前后位置；答案、证据、引用、检索、Prompt、route、budget 与 Provider
+不得变化。
+
+同一个 V5-C Session 现获授权自主实施 Stage 1，并自行处理 Contract 内普通 Bug 与有界复跑。
+Feedback→Candidate 来源除同 Task、同 key/value 与 exact target/hash 外，必须匹配当前 principal；
+不得为 Gate A–F 分别建立独立验收文档，只提交一个 integrated implementation report。默认保持
+schema/table/index/migration/dependency/Prompt/Provider/background worker 增量为 0，最多一个窄只读
+projection adapter，复用既有 endpoint/surface。live DB、凭据、Push、Merge、Tag、Stage 2、V5-D/
+Post-V5 仍未授权。
