@@ -938,6 +938,12 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         record_kind: str | None = None,
         status: str | None = None,
         personalization_enabled: bool = True,
+        routing_enabled: bool = True,
+        current_explicit_path: str | None = None,
+        allow_provider_answer: bool = False,
+        allow_high_cost_or_durable: bool = False,
+        allow_manual_asr: bool = False,
+        asr_video_id: int | None = None,
     ) -> JSONResponse:
         try:
             workspace_value = await asyncio.to_thread(
@@ -946,6 +952,13 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 record_kind=record_kind,
                 status=status,
                 personalization_enabled=personalization_enabled,
+                principal_id=request.app.state.research_control_principal,
+                routing_enabled=routing_enabled,
+                current_explicit_path=current_explicit_path,
+                allow_provider_answer=allow_provider_answer,
+                allow_high_cost_or_durable=allow_high_cost_or_durable,
+                allow_manual_asr=allow_manual_asr,
+                asr_video_id=asr_video_id,
             )
         except ResearchError as exc:
             return JSONResponse(

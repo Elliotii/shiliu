@@ -46,6 +46,7 @@ from shiliu.research.product_service import (
     CANDIDATE_DELTA_SCHEMA_VERSION,
     ResearchProductService,
 )
+from shiliu.research.routing_recommendation import RouteRecommendationProjection
 from shiliu.research.schema import (
     KNOWLEDGE_ARTIFACT_POLICY_VERSION,
     KNOWLEDGE_VALIDATION_POLICY_VERSION,
@@ -117,6 +118,10 @@ class ResearchKnowledgeService:
             db,
             kernel=kernel,
             fault_injector=self.fault_injector,
+        )
+        self.route_recommendation = RouteRecommendationProjection(
+            db,
+            artifact_routes=self.reuse,
         )
         self.closeout = ResearchProductCloseoutService(
             db,
@@ -1750,13 +1755,53 @@ class ResearchKnowledgeService:
         record_kind: str | None = None,
         status: str | None = None,
         personalization_enabled: bool = True,
+        principal_id: str | None = None,
+        routing_enabled: bool = False,
+        current_explicit_path: str | None = None,
+        allow_provider_answer: bool = False,
+        allow_high_cost_or_durable: bool = False,
+        allow_manual_asr: bool = False,
+        asr_video_id: int | None = None,
     ) -> dict[str, Any]:
-        return self.personal_workspace.get_workspace(
+        workspace = self.personal_workspace.get_workspace(
             task_id,
             record_kind=record_kind,
             status=status,
             personalization_enabled=personalization_enabled,
         )
+        if principal_id is None and not routing_enabled:
+            return workspace
+        recommendation = self.route_recommendation.project(
+            task_id,
+            principal_id=principal_id,
+            enabled=routing_enabled,
+            current_explicit_path=current_explicit_path,
+            allow_provider_answer=allow_provider_answer,
+            allow_high_cost_or_durable=allow_high_cost_or_durable,
+            allow_manual_asr=allow_manual_asr,
+            asr_video_id=asr_video_id,
+        )
+        applied_revision_id = (
+            recommendation["preference"]["record_revision_id"]
+            if recommendation["status"] == "recommended"
+            and recommendation["preference"] is not None
+            and (
+                "confirmed_default_path_recommended"
+                in recommendation["reason_codes"]
+                or "exact_video_manual_asr_prerequisite"
+                in recommendation["reason_codes"]
+            )
+            else None
+        )
+        for record in workspace["records"]:
+            record["route_recommendation_effect"] = (
+                record["record_revision_id"] == applied_revision_id
+            )
+        workspace["route_recommendation"] = recommendation
+        workspace["authority"]["product_behavior"] = (
+            "v5_c_stage1_answer_stage2_search_and_stage3_advisory_route_presentation_only"
+        )
+        return workspace
 
     def revalidate_knowledge(
         self, task_id: str, request: RevalidateKnowledgeRequest

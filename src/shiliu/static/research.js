@@ -17,6 +17,7 @@
   let knowledge = null;
   let personalWorkspace = null;
   let personalizationEnabled = true;
+  let routingEnabled = true;
   let pollTimer = null;
 
   const commandId = prefix => {
@@ -720,6 +721,7 @@
   const renderPersonalWorkspace = value => {
     personalWorkspace = value;
     renderPersonalization(value.personalization_context);
+    renderRouteRecommendation(value.route_recommendation);
     const list = root.querySelector('[data-workspace-records]');
     list.replaceChildren(element('h4', '', `WorkspaceRecord · ${value.records.length}`));
     value.records.forEach(record => {
@@ -727,7 +729,7 @@
       card.append(
         element('span', `research-currentness${['current', 'confirmed'].includes(record.effective_status) ? '' : ' is-stale'}`, `${record.record_kind} · ${record.effective_status}`),
         element('strong', '', record.semantic_key),
-        element('small', '', `${record.authority_class} · v${record.version} · behavior effect ${record.product_behavior_effect ? 'research answer presentation' : 'false'}`),
+        element('small', '', `${record.authority_class} · v${record.version} · answer effect ${record.product_behavior_effect ? 'presentation' : 'false'} · route effect ${record.route_recommendation_effect ? 'advisory only' : 'false'}`),
         element('pre', 'research-advanced-trace', JSON.stringify(record.payload, null, 2)),
       );
       if (record.confidence !== null) card.append(element('small', '', `confidence ${record.confidence}`));
@@ -757,6 +759,39 @@
     if (!value.records.length) list.append(element('p', 'muted', '当前筛选下没有 WorkspaceRecord。'));
   };
 
+  const renderRouteRecommendation = context => {
+    const status = root.querySelector('[data-routing-status]');
+    const explanation = root.querySelector('[data-routing-explanation]');
+    const cta = root.querySelector('[data-routing-cta]');
+    cta.replaceChildren();
+    if (!context) {
+      status.textContent = 'Routing projection 未启用；现有选择保持不变。';
+      explanation.textContent = '';
+      return;
+    }
+    const target = context.recommendation;
+    const path = target?.path ? ` · ${target.path}` : '';
+    status.textContent = `${context.status}${path} · ${context.reason_codes.join(' / ')} · execution authority false`;
+    explanation.textContent = JSON.stringify(context, null, 2);
+    if (!target?.cta) return;
+    if (target.cta.kind === 'prefill_ask' || target.cta.kind === 'inspect_video_transcript') {
+      const link = element('a', 'ghost compact-button', target.cta.kind === 'prefill_ask' ? '打开已预填 Ask（仍需显式提交）' : '检查 exact video transcript');
+      link.href = target.cta.href;
+      cta.append(link);
+      return;
+    }
+    const focus = element('button', 'ghost compact-button', target.cta.kind === 'focus_artifact_route' ? '聚焦现有 ArtifactRoute control' : '聚焦现有 Research control');
+    focus.type = 'button';
+    focus.addEventListener('click', () => {
+      const control = target.cta.kind === 'focus_artifact_route'
+        ? root.querySelector('[data-artifact-route-form] input[name="route_query"]')
+        : root.querySelector('[data-control-buttons] button, [data-research-create] textarea');
+      control?.scrollIntoView({behavior: 'smooth', block: 'center'});
+      control?.focus({preventScroll: true});
+    });
+    cta.append(focus);
+  };
+
   async function loadPersonalWorkspace() {
     if (!activeTaskId) return;
     const params = new URLSearchParams();
@@ -765,6 +800,14 @@
     if (kind) params.set('record_kind', kind);
     if (status) params.set('status', status);
     if (!personalizationEnabled) params.set('personalization_enabled', 'false');
+    params.set('routing_enabled', String(routingEnabled));
+    const explicitPath = root.querySelector('[data-routing-explicit-path]').value;
+    if (explicitPath) params.set('current_explicit_path', explicitPath);
+    params.set('allow_provider_answer', String(root.querySelector('[data-routing-provider-permission]').checked));
+    params.set('allow_high_cost_or_durable', String(root.querySelector('[data-routing-cost-permission]').checked));
+    params.set('allow_manual_asr', String(root.querySelector('[data-routing-asr-permission]').checked));
+    const videoId = Number(root.querySelector('[data-routing-video-id]').value);
+    if (Number.isInteger(videoId) && videoId > 0) params.set('asr_video_id', String(videoId));
     try {
       const suffix = params.toString() ? `?${params.toString()}` : '';
       const data = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace${suffix}`);
@@ -1085,6 +1128,14 @@
   });
   root.querySelector('[data-workspace-kind-filter]').addEventListener('change', loadPersonalWorkspace);
   root.querySelector('[data-workspace-status-filter]').addEventListener('change', loadPersonalWorkspace);
+  root.querySelector('[data-routing-refresh]').addEventListener('click', loadPersonalWorkspace);
+  root.querySelector('[data-routing-enabled]').addEventListener('change', event => {
+    routingEnabled = event.currentTarget.checked;
+    loadPersonalWorkspace();
+  });
+  root.querySelectorAll('[data-routing-explicit-path], [data-routing-provider-permission], [data-routing-cost-permission], [data-routing-asr-permission], [data-routing-video-id]').forEach(control => {
+    control.addEventListener('change', loadPersonalWorkspace);
+  });
   root.querySelector('[data-personalization-enabled]').addEventListener('change', event => {
     personalizationEnabled = event.currentTarget.checked;
     loadPersonalWorkspace();

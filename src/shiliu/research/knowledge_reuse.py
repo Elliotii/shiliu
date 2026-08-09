@@ -392,6 +392,70 @@ class ResearchArtifactRouteService:
             ).fetchall()
         return [self._project(row) for row in rows]
 
+    def recommendation_assessment(self, task_id: str) -> dict[str, Any] | None:
+        """Revalidate the sole active assessment without proceeding or writing."""
+        with self.db.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT r.* FROM research_artifact_routes r
+                JOIN (
+                    SELECT route_id, MAX(version) AS version
+                    FROM research_artifact_routes WHERE task_id=? GROUP BY route_id
+                ) latest ON latest.route_id=r.route_id AND latest.version=r.version
+                WHERE r.task_id=? AND r.record_kind='assessment' AND r.status='assessed'
+                ORDER BY r.created_at, r.route_id
+                """,
+                (task_id, task_id),
+            ).fetchall()
+            if not rows:
+                return None
+            if len(rows) != 1:
+                raise ResearchConflict(
+                    "multiple active ArtifactRoute assessments require explicit selection"
+                )
+            row = rows[0]
+            query_value = _json(row["query_json"], expected=dict)
+            retrieval_value = _json(row["retrieval_json"], expected=dict)
+            gates = _json(row["gates_json"], expected=list)
+            open_corpus = retrieval_value.get("open_corpus")
+            if (
+                not isinstance(open_corpus, dict)
+                or open_corpus.get("independent_lane") is not True
+                or open_corpus.get("hard_filter") is not False
+            ):
+                raise ResearchConflict("ArtifactRoute open-corpus authority drifted")
+            selected_id = retrieval_value.get("selected_artifact_revision_id")
+            selected_gate = next(
+                (
+                    value
+                    for value in gates
+                    if value.get("artifact_revision_id") == selected_id
+                ),
+                None,
+            )
+            recommended_route = str(row["recommended_route"])
+            if recommended_route not in ROUTE_ORDER:
+                raise ResearchConflict("ArtifactRoute recommendation drifted")
+            self._assert_authority_fence(
+                connection,
+                query_value=query_value,
+                selected_gate=selected_gate,
+                expected_hash=str(row["expected_authority_hash"]),
+            )
+            return {
+                "status": "available",
+                "route_id": str(row["route_id"]),
+                "version": int(row["version"]),
+                "recommended_route": recommended_route,
+                "expected_authority_hash": str(row["expected_authority_hash"]),
+                "open_corpus": {
+                    "independent_lane": True,
+                    "hard_filter": False,
+                    "summary_hash": open_corpus.get("summary_hash"),
+                },
+                "selected_gate": selected_gate,
+            }
+
     def _open_retrieval_summary(self, query: str, *, top_k: int) -> dict[str, Any]:
         results = self.retrieval.search(query, level="all", top_k=top_k)
         bounded = []

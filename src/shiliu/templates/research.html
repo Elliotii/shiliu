@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}拾流 · 长期研究{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/research.css?v=1"><link rel="stylesheet" href="/static/research-personalization.css?v=1">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/research.css?v=2"><link rel="stylesheet" href="/static/research-personalization.css?v=1">{% endblock %}
 {% block content %}
 <main class="research-shell" data-research-page data-initial-task-id="{{ initial_task_id }}">
   <header class="research-hero">
@@ -80,6 +80,37 @@
           </div>
           <div class="research-control-buttons" data-control-buttons></div>
           <p class="muted" data-control-status aria-live="polite"></p>
+        </section>
+
+        <section class="research-routing" aria-labelledby="research-routing-title" data-route-recommendation-panel>
+          <div class="research-section-heading">
+            <div><p class="result-kicker">V5-C · STAGE 3</p><h3 id="research-routing-title">Next path recommendation</h3></div>
+            <button class="ghost compact-button" type="button" data-routing-refresh>刷新只读建议</button>
+          </div>
+          <p class="muted">只读建议不会改变你的选择、request、permission 或 budget，也不会提交 Ask、Research、ArtifactRoute 或 ASR。</p>
+          <div class="research-routing-controls">
+            <label><input type="checkbox" data-routing-enabled checked> 使用已确认的路径偏好</label>
+            <label>本次已明确选择
+              <select data-routing-explicit-path>
+                <option value="">尚未选择</option>
+                <option value="artifact_route">ArtifactRoute</option>
+                <option value="fast">Ask Fast</option>
+                <option value="deep">Ask Deep</option>
+                <option value="research">Durable Research</option>
+                <option value="manual_asr">Manual ASR</option>
+              </select>
+            </label>
+            <label><input type="checkbox" data-routing-provider-permission> 本次允许 Provider-backed Ask</label>
+            <label><input type="checkbox" data-routing-cost-permission> 本次允许高成本 / durable path</label>
+            <label><input type="checkbox" data-routing-asr-permission> 本次允许显示 manual ASR prerequisite</label>
+            <label>Exact video ID<input type="number" min="1" step="1" inputmode="numeric" data-routing-video-id placeholder="可选；只读核验 transcript/ASR 状态"></label>
+          </div>
+          <p class="muted" data-routing-status aria-live="polite">正在读取 advisory-only routing context…</p>
+          <div class="research-routing-cta" data-routing-cta></div>
+          <details>
+            <summary>为什么推荐、阻止或保持 baseline</summary>
+            <pre class="research-advanced-trace" data-routing-explanation></pre>
+          </details>
         </section>
 
         <section class="research-effects" data-effect-panel hidden aria-labelledby="research-effects-title">
@@ -197,7 +228,7 @@
               </label>
             </div>
           </div>
-          <p class="muted">“不会影响 Search、Ask、Research、ArtifactRoute”仍是非白名单记录与未确认态的 baseline。唯一例外是已确认的 answer.presentation.limitations_position 可改变当前 Research 限制项的前后位置；答案内容、prompt、budget 与其他 authority 不变。</p>
+          <p class="muted">“不会影响 Search、Ask、Research、ArtifactRoute”仍是非白名单记录与未确认态的 baseline。仅两个 exact、已确认 key 可进入窄展示：answer.presentation.limitations_position 调整限制项位置；research.routing.default_path 只解释 Next path 建议。二者都不改答案、prompt、request、permission、budget 或执行 authority。</p>
           <form data-workspace-record-form class="research-create-form">
             <label>Record kind
               <select name="record_kind">
@@ -209,8 +240,8 @@
                 <option value="system_experience">System experience</option>
               </select>
             </label>
-            <label>Semantic key<input name="semantic_key" maxlength="300" required placeholder="Stage 1: answer.presentation.limitations_position"></label>
-            <label>Value / state<textarea name="record_value" rows="2" required placeholder="Stage 1: before_answer 或 after_answer"></textarea></label>
+            <label>Semantic key<input name="semantic_key" maxlength="300" required placeholder="例如 research.routing.default_path"></label>
+            <label>Value / state<textarea name="record_value" rows="2" required placeholder="Stage 3: fast、deep 或 research"></textarea></label>
             <label>Source refs JSON<textarea name="source_refs" rows="3" placeholder='候选/观察必填，例如 [{"ref_type":"research_event","ref_id":"…","task_id":"…"}]'></textarea></label>
             <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" placeholder="候选可填 0..1"></label>
             <label>Expiry<input name="expires_at" type="datetime-local"></label>
@@ -241,4 +272,4 @@
   </div>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=1"></script><script src="/static/research.js?v=2"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=1"></script><script src="/static/research.js?v=3"></script>{% endblock %}
