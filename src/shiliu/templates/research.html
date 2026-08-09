@@ -126,6 +126,92 @@
           <div class="research-delta-grid" data-delta-grid></div>
         </section>
 
+        <section class="research-knowledge" aria-labelledby="research-knowledge-title">
+          <div class="research-section-heading">
+            <div><p class="result-kicker">V5-B · STAGE 2</p><h3 id="research-knowledge-title">知识生命周期与 Topic Page 刷新</h3></div>
+            <div class="research-control-buttons">
+              <button class="ghost compact-button" type="button" data-knowledge-revalidate>验证当前 Evidence</button>
+              <button class="ghost compact-button" type="button" data-knowledge-intake>接收 KnowledgeDelta</button>
+            </div>
+          </div>
+          <p class="muted">Candidate 必须由你显式审查；Accept 会由服务器重新验证当前 Evidence；Page 保持 publish-or-return。Stage 5 关系仅限 shared_current_fact / confirmed_conflict 导航。</p>
+          <p class="muted" data-knowledge-status aria-live="polite"></p>
+          <div class="research-knowledge-column" data-knowledge-closeout></div>
+          <div class="research-knowledge-column" data-knowledge-candidates></div>
+          <div class="research-knowledge-column" data-knowledge-facts></div>
+          <div class="research-knowledge-column" data-knowledge-artifacts></div>
+          <div class="research-knowledge-column" data-knowledge-pages></div>
+          <div class="research-knowledge-column" data-knowledge-updates></div>
+          <div class="research-knowledge-column" data-knowledge-operations></div>
+          <div class="research-knowledge-column">
+            <div class="research-section-heading">
+              <div><p class="result-kicker">V5-B · STAGE 3</p><h4>Artifact reuse route</h4></div>
+            </div>
+            <form data-artifact-route-form>
+              <label>Query<input name="route_query" maxlength="2000" required placeholder="输入要复用或继续研究的问题"></label>
+              <label>Required aspects<textarea name="route_aspects" rows="3" placeholder="每行一个明确 aspect；缺失时会 fail closed 到 Research Seed"></textarea></label>
+              <button class="ghost compact-button" type="submit">评估 direct / incremental / seed</button>
+            </form>
+            <p class="muted">Artifact ranking 只排序检查；open corpus lane 始终独立保留。用户只能选择同等或更安全的 route。</p>
+            <div data-knowledge-routes></div>
+          </div>
+        </section>
+
+        <section class="research-trace" aria-labelledby="personal-workspace-title" data-personal-workspace>
+          <div class="research-section-heading">
+            <div>
+              <p class="result-kicker">V5-B · STAGE 4</p>
+              <h3 id="personal-workspace-title">Personal and Corpus Workspace</h3>
+            </div>
+            <div class="research-control-buttons">
+              <label>Kind filter
+                <select data-workspace-kind-filter>
+                  <option value="">All kinds</option>
+                  <option value="explicit_memory">Explicit memory</option>
+                  <option value="inferred_candidate">Inferred candidate</option>
+                  <option value="focus_state">Current focus</option>
+                  <option value="progress_observation">Knowledge progress</option>
+                  <option value="corpus_observation">Corpus observation</option>
+                  <option value="system_experience">System experience</option>
+                </select>
+              </label>
+              <label>Status filter
+                <select data-workspace-status-filter>
+                  <option value="">All statuses</option>
+                  <option value="candidate">Candidate</option>
+                  <option value="current">Current</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="expired">Expired</option>
+                  <option value="invalidated">Invalidated</option>
+                  <option value="tombstoned">Tombstoned</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <p class="muted">这些记录只存储和解释状态；不会影响 Search、Ask、Research、ArtifactRoute、prompt 或 budget。</p>
+          <form data-workspace-record-form class="research-create-form">
+            <label>Record kind
+              <select name="record_kind">
+                <option value="explicit_memory">Explicit memory</option>
+                <option value="inferred_candidate">Inferred candidate</option>
+                <option value="focus_state">Current focus</option>
+                <option value="progress_observation">Knowledge progress</option>
+                <option value="corpus_observation">Corpus observation</option>
+                <option value="system_experience">System experience</option>
+              </select>
+            </label>
+            <label>Semantic key<input name="semantic_key" maxlength="300" required placeholder="例如 explanation-depth 或 mcp-progress"></label>
+            <label>Value / state<textarea name="record_value" rows="2" required placeholder="用户明确内容，或候选/观察值"></textarea></label>
+            <label>Source refs JSON<textarea name="source_refs" rows="3" placeholder='候选/观察必填，例如 [{"ref_type":"research_event","ref_id":"…","task_id":"…"}]'></textarea></label>
+            <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" placeholder="候选可填 0..1"></label>
+            <label>Expiry<input name="expires_at" type="datetime-local"></label>
+            <button class="ghost compact-button" type="submit">Create typed record</button>
+          </form>
+          <p class="muted" data-workspace-status aria-live="polite"></p>
+          <div class="research-knowledge-column" data-workspace-records></div>
+        </section>
+
         <section class="research-trace" aria-labelledby="research-trace-title">
           <div class="research-section-heading">
             <div><p class="result-kicker">DURABLE TRACE</p><h3 id="research-trace-title">为什么继续或停止</h3></div>

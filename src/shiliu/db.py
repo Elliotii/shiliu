@@ -12,10 +12,13 @@ from shiliu.research.schema import (
     initialize_research_schema,
     prepare_research_schema_v9,
     prepare_research_schema_v10,
+    prepare_research_schema_v12,
+    prepare_research_schema_v13,
+    prepare_research_schema_v14,
 )
 
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 14
 
 
 def utc_now() -> str:
@@ -32,6 +35,7 @@ class Database:
         with self.connect() as connection:
             prepare_research_schema_v9(connection)
             prepare_research_schema_v10(connection)
+            prepare_research_schema_v12(connection)
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS schema_meta (
@@ -293,6 +297,8 @@ class Database:
             self._ensure_columns(connection)
             self._ensure_source_order(connection)
             initialize_research_schema(connection)
+            prepare_research_schema_v13(connection)
+            prepare_research_schema_v14(connection)
             connection.execute(
                 "INSERT INTO schema_meta(key, value) VALUES('schema_version', ?) "
                 "ON CONFLICT(key) DO UPDATE SET value=excluded.value",

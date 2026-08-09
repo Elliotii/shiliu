@@ -37,6 +37,7 @@ from shiliu.research.inner_tools import LocalInnerToolAdapter
 from shiliu.research.service import ResearchTaskService
 from shiliu.research.control_service import ResearchControlService
 from shiliu.research.product_service import ResearchProductService
+from shiliu.research.knowledge_service import ResearchKnowledgeService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
 from shiliu.taxonomy.comparison import ProfileDiscoveryComparisonService
@@ -69,6 +70,7 @@ class Application:
         self._research_inner: InnerResearchService | None = None
         self._research_outer: OuterResearchService | None = None
         self._research_product: ResearchProductService | None = None
+        self._research_knowledge: ResearchKnowledgeService | None = None
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,
@@ -343,6 +345,18 @@ class Application:
                 control=self.research_control,
             )
         return self._research_product
+
+    @property
+    def research_knowledge(self) -> ResearchKnowledgeService:
+        if self._research_knowledge is None:
+            self._research_knowledge = ResearchKnowledgeService(
+                db=self.db,
+                kernel=self.research,
+                product=self.research_product,
+                retrieval=self.retrieval,
+                export_root=self.paths.content_dir / "knowledge-exports",
+            )
+        return self._research_knowledge
 
     def provider(self, role: str = "formal_summary") -> OpenAICompatibleProvider:
         try:
