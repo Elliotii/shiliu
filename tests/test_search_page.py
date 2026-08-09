@@ -27,8 +27,8 @@ def test_search_page_route_and_required_surface(app_paths) -> None:
     assert '<option value="auto" selected>自动</option>' in text
     assert '<option value="all">全部内容</option>' in text
     assert "工程学习" in text
-    assert "/static/search.css?v=3" in text
-    assert "/static/search.js?v=5" in text
+    assert "/static/search.css?v=4" in text
+    assert "/static/search.js?v=6" in text
     assert 'name="uploader_contains"' in text
 
 
@@ -61,7 +61,7 @@ def test_search_page_preserves_url_state_for_client_restore(app_paths) -> None:
         "/search?q=MCP&mode=auto&scope=transcript_chunk&reading_state=unread&marked=true"
     )
     assert response.status_code == 200
-    script = client.get("/static/search.js?v=5").text
+    script = client.get("/static/search.js?v=6").text
     assert "new URLSearchParams(location.search)" in script
     assert "pushState" in script and "popstate" in script
     assert "AbortController" in script and "requestSequence" in script
@@ -71,11 +71,11 @@ def test_search_page_preserves_url_state_for_client_restore(app_paths) -> None:
 def test_frontend_initial_mode_and_first_request_payload_are_auto(app_paths) -> None:
     client = TestClient(create_web_app(Application(app_paths)))
     page = client.get("/search").text
-    script = client.get("/static/search.js?v=5").text
+    script = client.get("/static/search.js?v=6").text
     assert '<option value="auto" selected>自动</option>' in page
     assert "mode: form.elements.mode.value || 'auto'" in script
     assert "params.get('mode') : 'auto'" in script
-    assert "return {query: state.q, mode: state.mode" in script
+    assert "query: state.q, mode: state.mode" in script
     for mode in ("auto", "lexical", "dense", "hybrid"):
         assert f"value=\"{mode}\"" in page
 
@@ -85,7 +85,7 @@ def test_product_ui_sends_contains_field_without_overloading_exact_uploader(
 ) -> None:
     client = TestClient(create_web_app(Application(app_paths)))
     page = client.get("/search").text
-    script = client.get("/static/search.js?v=5").text
+    script = client.get("/static/search.js?v=6").text
 
     assert 'name="uploader_contains"' in page
     assert 'name="uploader"' not in page

@@ -380,7 +380,16 @@ def create_web_app(application: Application | None = None) -> FastAPI:
     @web.post("/api/search")
     async def product_search(payload: ProductSearchRequest, request: Request) -> JSONResponse:
         try:
-            response = await asyncio.to_thread(_core(request).product_search.search, payload)
+            service = _core(request).product_search
+            response = (
+                await asyncio.to_thread(
+                    service.search,
+                    payload,
+                    principal_id=request.app.state.research_control_principal,
+                )
+                if payload.corpus_task_id is not None
+                else await asyncio.to_thread(service.search, payload)
+            )
         except SearchExecutionError as exc:
             return JSONResponse(
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status

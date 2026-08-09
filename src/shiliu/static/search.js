@@ -51,10 +51,12 @@
     reading_state: form.elements.reading_state.value,
     marked: form.elements.marked.value,
     uploader_contains: form.elements.uploader_contains.value.trim(),
+    corpus_task_id: form.elements.corpus_task_id.value.trim(),
     favorite_time_from: form.elements.favorite_time_from.value,
     favorite_time_to: form.elements.favorite_time_to.value,
     archived: form.elements.archived.checked,
     ignored: form.elements.ignored.checked,
+    corpus_aware: form.elements.corpus_aware.checked,
     sufficiency: form.elements.sufficiency.checked,
   });
 
@@ -63,11 +65,12 @@
     queryInput.value = params.get('q') || '';
     form.elements.mode.value = ['lexical', 'auto', 'dense', 'hybrid'].includes(params.get('mode')) ? params.get('mode') : 'auto';
     form.elements.scope.value = ['all', 'video', 'transcript_chunk'].includes(params.get('scope')) ? params.get('scope') : 'all';
-    for (const name of ['folder_id', 'reading_state', 'marked', 'uploader_contains', 'favorite_time_from', 'favorite_time_to']) {
+    for (const name of ['folder_id', 'reading_state', 'marked', 'uploader_contains', 'corpus_task_id', 'favorite_time_from', 'favorite_time_to']) {
       form.elements[name].value = params.get(name) || '';
     }
     form.elements.archived.checked = params.get('archived') === 'true';
     form.elements.ignored.checked = params.get('ignored') === 'true';
+    form.elements.corpus_aware.checked = params.get('corpus_aware') !== 'false';
     form.elements.sufficiency.checked = params.get('sufficiency') === 'true';
     updateModeHelp();
   };
@@ -77,11 +80,12 @@
     if (state.q) params.set('q', state.q);
     if (state.mode !== 'auto') params.set('mode', state.mode);
     if (state.scope !== 'all') params.set('scope', state.scope);
-    for (const name of ['folder_id', 'reading_state', 'marked', 'uploader_contains', 'favorite_time_from', 'favorite_time_to']) {
+    for (const name of ['folder_id', 'reading_state', 'marked', 'uploader_contains', 'corpus_task_id', 'favorite_time_from', 'favorite_time_to']) {
       if (state[name]) params.set(name, state[name]);
     }
     if (state.archived) params.set('archived', 'true');
     if (state.ignored) params.set('ignored', 'true');
+    if (!state.corpus_aware) params.set('corpus_aware', 'false');
     if (state.sufficiency) params.set('sufficiency', 'true');
     const url = `${location.pathname}${params.size ? `?${params}` : ''}`;
     history[replace ? 'replaceState' : 'pushState']({}, '', url);
@@ -97,7 +101,14 @@
     const to = dateEpoch(state.favorite_time_to, true);
     if (from !== null) filters.favorite_time_from = from;
     if (to !== null) filters.favorite_time_to = to;
-    return {query: state.q, mode: state.mode, scope: state.scope, result_limit: 10, max_windows_per_video: 5, filters};
+    return {
+      query: state.q, mode: state.mode, scope: state.scope,
+      result_limit: 10, max_windows_per_video: 5, filters,
+      ...(!state.sufficiency && state.corpus_task_id ? {
+        corpus_task_id: state.corpus_task_id,
+        corpus_aware: Boolean(state.corpus_aware),
+      } : {}),
+    };
   };
 
   const appendMeta = (container, text, className = '') => {
@@ -129,7 +140,7 @@
     });
   };
 
-  const renderResult = (result, index, warningVideoIds) => {
+  const renderResult = (result, index, warningVideoIds, contribution) => {
     const card = element('article', 'search-result-card');
     card.dataset.videoId = result.video_id;
     card.dataset.resultIndex = index;
@@ -160,6 +171,13 @@
     (result.folder_names || []).forEach(folder => appendMeta(meta, folder));
     if (result.marked) appendMeta(meta, '已 Mark', 'marked-tag');
     if (result.duration) appendMeta(meta, `时长 ${formatTime(result.duration)}`);
+    if (contribution?.lane === 'corpus_soft_prior') {
+      appendMeta(meta, `Corpus soft prior · baseline #${contribution.baseline_rank} → #${contribution.displayed_rank}`, 'corpus-lane-tag');
+    } else if (contribution?.lane === 'open_counterexample') {
+      appendMeta(meta, `Open counterexample · baseline #${contribution.baseline_rank}`, 'counterexample-tag');
+    } else if (contribution) {
+      appendMeta(meta, `Open lane · baseline #${contribution.baseline_rank}`);
+    }
     body.append(meta);
     const summary = result.windows?.length
       ? `命中 ${result.matched_unit_count} 处内容 · ${result.total_window_count} 个相关时间段`
@@ -199,6 +217,27 @@
     return card;
   };
 
+  const renderCorpusContext = data => {
+    const panel = root.querySelector('[data-corpus-search-context]');
+    const context = data.corpus_context;
+    if (!context || (!context.task_id && context.status === 'baseline')) {
+      panel.hidden = true;
+      return;
+    }
+    panel.hidden = false;
+    const contributionCounts = (data.result_contributions || []).reduce((counts, value) => {
+      counts[value.lane] = (counts[value.lane] || 0) + 1;
+      return counts;
+    }, {});
+    root.querySelector('[data-corpus-search-status]').textContent = context.applied
+      ? `已应用 bounded composition · open ${Number(contributionCounts.open_baseline || 0) + Number(contributionCounts.open_counterexample || 0)} · corpus ${Number(contributionCounts.corpus_soft_prior || 0)}`
+      : `保持 baseline · ${(context.reason_codes || []).join(', ')}`;
+    root.querySelector('[data-corpus-search-explanation]').textContent = JSON.stringify({
+      ...context,
+      result_contributions: data.result_contributions || [],
+    }, null, 2);
+  };
+
   const renderSuccess = data => {
     if (data.pipeline_contract_version) {
       renderPipeline(data);
@@ -206,12 +245,16 @@
     }
     root.querySelector('[data-pipeline-summary]').hidden = true;
     root.querySelector('[data-integration-limitations]').hidden = true;
+    renderCorpusContext(data);
     fallbackNotice.hidden = !data.fallback;
     const count = Number(data.returned_group_count ?? data.results?.length ?? 0);
     root.querySelector('[data-result-summary]').textContent = `找到 ${count} 个相关视频`;
     root.querySelector('[data-mode-summary]').textContent = modeLabels[data.executed_mode] || '搜索结果';
     const warningVideoIds = new Set((data.warnings || []).map(item => Number(item.video_id)).filter(Number.isFinite));
-    resultList.replaceChildren(...(data.results || []).map((result, index) => renderResult(result, index, warningVideoIds)));
+    const contributions = new Map((data.result_contributions || []).map(value => [Number(value.video_id), value]));
+    resultList.replaceChildren(...(data.results || []).map((result, index) => renderResult(
+      result, index, warningVideoIds, contributions.get(Number(result.video_id)),
+    )));
     showState(count ? 'success' : 'empty');
   };
 
@@ -246,6 +289,7 @@
 
   const renderPipeline = data => {
     fallbackNotice.hidden = true;
+    root.querySelector('[data-corpus-search-context]').hidden = true;
     const summary = root.querySelector('[data-pipeline-summary]');
     summary.hidden = false;
     summary.replaceChildren();
