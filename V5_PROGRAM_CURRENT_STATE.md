@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-09T17:24:34+08:00
+> Updated at: 2026-08-09T22:10:27+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,11 +8,11 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: none
+  current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: none
-  active_execution_session: none
+  current_formal_stage: startup_and_JIT_planning
+  active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
@@ -27,8 +27,8 @@ resume_anchor:
   V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   branch: codex/v5-main
-  pending_decision: none
-  next_action: await_user_direction_for_V5_C_startup_planning
+  pending_decision: V5_C_charter_and_stage_1_contract
+  next_action: V5_C_version_session_prepares_startup_package_for_limited_main_review
   roadmap_reconsideration_open: false
 ```
 
@@ -44,7 +44,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: not_started
+    status: startup_planning_active
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -87,7 +87,7 @@ live_runtime:
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 434
+  sync_runs: 435
   research_tasks: 0
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
@@ -210,8 +210,8 @@ session_limits:
   active_subversion_limit: 1
   active_formal_stage_or_goal_limit: 1
 current_usage:
-  active_subversions: 0
-  active_formal_stages: 0
+  active_subversions: 1
+  active_formal_stages: 1
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -241,6 +241,11 @@ Web/sync 已恢复，`/`、`/search`、`/ask`、`/research` 和 Research Task li
 HTTP smoke 窗口未改变 DB hash。完整证据和恢复路径见 `V5_B_FINAL_CLOSEOUT.md`。
 
 V5-C Entry 的机械前提已具备，但 live Research/Feedback/Workspace 数据仍为 cold start。
-因此当前状态是 `ready_for_startup_planning_with_cold_start_input_gap`，不是 V5-C 实施授权；
-未创建 V5-C Session，也未调用 Provider、访问凭据、Push 或 Tag。下一步等待用户决定是否进入
-V5-C startup/JIT planning。
+用户已授权进入 startup/JIT planning，并采用一个持续 V5-C Version Session 主导完整子版本、
+主 Session 仅做阶段边界有限验收的模型。启动现场确认 schema 14、integrity ok、FK 0，相关
+live 业务记录均为 0；61 项无 Provider 定向测试通过，五个只读页面/API 为 200。
+
+当前只授权源码侦察、材料性 JIT 研究、Charter、精简 Stage 序列、Stage 1 Contract、V5-C
+Current State/Decision Ledger 和 docs-only commit。产品实施、Provider、凭据、live migration、
+Push、Tag、V5-D/Post-V5 仍未授权。下一步由 V5-C Session 提交一个 integrated startup report，
+请求主 Session 对 Charter、Stage 1 和必要的上游 adoption proposal 做有限审阅。
