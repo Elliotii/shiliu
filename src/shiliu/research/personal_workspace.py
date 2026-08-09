@@ -19,6 +19,11 @@ from shiliu.research.knowledge_contracts import (
     DecideWorkspaceRecordRequest,
     WorkspaceSourceRef,
 )
+from shiliu.research.personalization import (
+    LIMITATIONS_POSITION_KEY,
+    LIMITATIONS_POSITIONS,
+    PersonalizationContextProjection,
+)
 from shiliu.research.schema import PERSONAL_WORKSPACE_POLICY_VERSION
 from shiliu.research.service import ResearchTaskService
 
@@ -114,6 +119,7 @@ class ResearchPersonalWorkspaceService:
         self.kernel = kernel
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
+        self.personalization = PersonalizationContextProjection()
 
     def create(
         self,
@@ -147,14 +153,26 @@ class ResearchPersonalWorkspaceService:
 
             payload = dict(request.payload)
             self._assert_safe_payload(payload)
+            semantic_key = _normalized_key(request.semantic_key)
             source_refs = self._validate_source_refs(connection, request.source_refs)
+            if (
+                request.record_kind == "inferred_candidate"
+                and semantic_key == LIMITATIONS_POSITION_KEY
+            ):
+                self._validate_feedback_preference_sources(
+                    connection,
+                    command_task_id=command_task_id,
+                    source_refs=source_refs,
+                    semantic_key=semantic_key,
+                    payload=payload,
+                    principal_id=principal_id,
+                )
             authority_class, status = self._create_semantics(
                 request.record_kind,
                 payload,
                 source_refs,
             )
             expires_at = self._expires_value(request.expires_at)
-            semantic_key = _normalized_key(request.semantic_key)
             record_id = _id(
                 "workspacerecord",
                 {
@@ -322,6 +340,19 @@ class ResearchPersonalWorkspaceService:
                 source_refs,
             )
             self._assert_safe_payload(next_payload)
+            if (
+                str(latest["record_kind"]) == "inferred_candidate"
+                and str(latest["semantic_key"]) == LIMITATIONS_POSITION_KEY
+                and request.action == "confirm"
+            ):
+                self._validate_feedback_preference_sources(
+                    connection,
+                    command_task_id=command_task_id,
+                    source_refs=source_refs,
+                    semantic_key=str(latest["semantic_key"]),
+                    payload=next_payload,
+                    principal_id=principal_id,
+                )
             self._create_semantics(str(latest["record_kind"]), next_payload, source_refs)
             version = int(latest["version"]) + 1
             revision_id = _id(
@@ -396,6 +427,7 @@ class ResearchPersonalWorkspaceService:
         *,
         record_kind: str | None = None,
         status: str | None = None,
+        personalization_enabled: bool = True,
     ) -> dict[str, Any]:
         with self.db.connect() as connection:
             self.kernel._task(connection, command_task_id)
@@ -408,7 +440,7 @@ class ResearchPersonalWorkspaceService:
         grouped: dict[str, list[sqlite3.Row]] = {}
         for row in rows:
             grouped.setdefault(str(row["record_id"]), []).append(row)
-        records = []
+        all_records = []
         for history_rows in grouped.values():
             latest = self._project(history_rows[-1])
             latest["history"] = [
@@ -419,16 +451,32 @@ class ResearchPersonalWorkspaceService:
                     "status": str(row["status"]),
                     "decision_action": str(row["decision_action"]),
                     "reason": str(row["reason"]),
+                    "payload": _decode(row["payload_json"], dict),
                     "content_hash": str(row["content_hash"]),
                     "created_at": str(row["created_at"]),
                 }
                 for row in history_rows
             ]
-            if record_kind and latest["record_kind"] != record_kind:
-                continue
-            if status and latest["effective_status"] != status:
-                continue
-            records.append(latest)
+            all_records.append(latest)
+        personalization_context = self.personalization.project(
+            all_records, enabled=personalization_enabled
+        )
+        applied_revision_id = (
+            personalization_context["preference"]["record_revision_id"]
+            if personalization_context["applied"]
+            and personalization_context["preference"] is not None
+            else None
+        )
+        for value in all_records:
+            value["product_behavior_effect"] = (
+                value["record_revision_id"] == applied_revision_id
+            )
+        records = [
+            value
+            for value in all_records
+            if (record_kind is None or value["record_kind"] == record_kind)
+            and (status is None or value["effective_status"] == status)
+        ]
         records.sort(
             key=lambda value: (
                 value["record_kind"],
@@ -445,9 +493,10 @@ class ResearchPersonalWorkspaceService:
                 "inferred": "candidate_until_explicit_decision",
                 "corpus": "soft_prior_storage_only_not_consumed",
                 "experience": "candidate_record_only_no_skill_or_policy",
-                "product_behavior": "unchanged_until_v5_c",
+                "product_behavior": "v5_c_stage1_confirmed_research_presentation_only",
             },
             "records": records,
+            "personalization_context": personalization_context,
             "counts": {
                 "records": len(records),
                 "candidate": sum(
@@ -593,6 +642,117 @@ class ResearchPersonalWorkspaceService:
         if ref.ref_type == "taxonomy_snapshot":
             return f"/taxonomy?snapshot_id={ref.ref_id}"
         return f"/research/{ref.task_id}"
+
+    @staticmethod
+    def _validate_feedback_preference_sources(
+        connection: sqlite3.Connection,
+        *,
+        command_task_id: str,
+        source_refs: list[dict[str, Any]],
+        semantic_key: str,
+        payload: dict[str, Any],
+        principal_id: str,
+    ) -> None:
+        if set(payload) != {"statement"}:
+            raise ResearchValidationError(
+                "Stage 1 preference candidate requires exact statement payload"
+            )
+        proposed_value = _normalized_key(str(payload["statement"]))
+        if (
+            semantic_key != LIMITATIONS_POSITION_KEY
+            or proposed_value not in LIMITATIONS_POSITIONS
+        ):
+            raise ResearchValidationError("unsupported Stage 1 preference candidate")
+        if len(source_refs) < 2 or any(
+            value["ref_type"] != "research_event" for value in source_refs
+        ):
+            raise ResearchValidationError(
+                "Stage 1 preference candidate requires at least two Feedback Events"
+            )
+
+        for ref in source_refs:
+            row = connection.execute(
+                "SELECT task_id, event_id, event_type, payload_json, command_id "
+                "FROM research_events WHERE event_id=?",
+                (ref["ref_id"],),
+            ).fetchone()
+            if (
+                row is None
+                or str(row["task_id"]) != command_task_id
+                or str(row["event_type"]) != "v5b_product_feedback_recorded"
+            ):
+                raise ResearchValidationError(
+                    "preference candidate sources must be same-Task Feedback Events"
+                )
+            try:
+                event_payload = json.loads(str(row["payload_json"]))
+            except (TypeError, ValueError) as exc:
+                raise ResearchConflict("Feedback Event payload is invalid") from exc
+            if not isinstance(event_payload, dict):
+                raise ResearchConflict("Feedback Event payload is invalid")
+            preference = event_payload.get("candidate_preference")
+            if not isinstance(preference, dict) or set(preference) != {
+                "semantic_key",
+                "proposed_value",
+            }:
+                raise ResearchValidationError(
+                    "Feedback Event lacks an exact structured candidate preference"
+                )
+            if (
+                _normalized_key(str(preference["semantic_key"])) != semantic_key
+                or _normalized_key(str(preference["proposed_value"]))
+                != proposed_value
+            ):
+                raise ResearchValidationError(
+                    "Feedback Events must have the exact candidate key and value"
+                )
+            if str(event_payload.get("principal_id") or "") != principal_id:
+                raise ResearchValidationError(
+                    "Feedback Event principal_id does not match the current principal"
+                )
+            if event_payload.get("authority") != "advisory_feedback_only" or (
+                event_payload.get("automatic_action") is not False
+            ):
+                raise ResearchValidationError("Feedback Event authority is invalid")
+
+            target_kind = str(event_payload.get("target_kind") or "")
+            target_id = str(event_payload.get("target_id") or "")
+            target_hash = str(event_payload.get("target_hash") or "")
+            if target_kind == "topic_page_revision":
+                target = connection.execute(
+                    "SELECT content_hash FROM research_topic_page_revisions "
+                    "WHERE task_id=? AND page_revision_id=?",
+                    (command_task_id, target_id),
+                ).fetchone()
+                hash_column = "content_hash"
+            elif target_kind == "artifact_route":
+                target = connection.execute(
+                    "SELECT expected_authority_hash FROM research_artifact_routes "
+                    "WHERE task_id=? AND record_id=?",
+                    (command_task_id, target_id),
+                ).fetchone()
+                hash_column = "expected_authority_hash"
+            else:
+                target = None
+                hash_column = ""
+            if target is None or str(target[hash_column]) != target_hash:
+                raise ResearchValidationError(
+                    "Feedback Event target/hash is not the exact immutable target"
+                )
+            receipt = connection.execute(
+                "SELECT 1 FROM research_command_receipts "
+                "WHERE task_id=? AND command_id=? AND outcome_reference=? "
+                "AND command_type='v5b_product_feedback' AND status='committed'",
+                (
+                    command_task_id,
+                    str(row["command_id"]),
+                    str(row["event_id"]),
+                ),
+            ).fetchone()
+            if receipt is None:
+                raise ResearchValidationError(
+                    "Feedback Event lacks its committed CommandReceipt"
+                )
 
     def _create_semantics(
         self,

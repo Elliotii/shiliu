@@ -928,6 +928,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         request: Request,
         record_kind: str | None = None,
         status: str | None = None,
+        personalization_enabled: bool = True,
     ) -> JSONResponse:
         try:
             workspace_value = await asyncio.to_thread(
@@ -935,6 +936,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 task_id,
                 record_kind=record_kind,
                 status=status,
+                personalization_enabled=personalization_enabled,
             )
         except ResearchError as exc:
             return JSONResponse(

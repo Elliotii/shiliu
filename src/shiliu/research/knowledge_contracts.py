@@ -430,6 +430,11 @@ class ProceedArtifactRouteRequest(_StrictModel):
         return self
 
 
+class FeedbackCandidatePreference(_StrictModel):
+    semantic_key: Literal["answer.presentation.limitations_position"]
+    proposed_value: Literal["before_answer", "after_answer"]
+
+
 class SubmitKnowledgeFeedbackRequest(_StrictModel):
     command_id: str = Field(min_length=1, max_length=160)
     target_kind: Literal["topic_page_revision", "artifact_route"]
@@ -440,6 +445,7 @@ class SubmitKnowledgeFeedbackRequest(_StrictModel):
     ]
     note: str = Field(default="", max_length=500)
     expected_hash: str = Field(min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$")
+    candidate_preference: FeedbackCandidatePreference | None = None
 
     @field_validator("command_id", "target_id")
     @classmethod

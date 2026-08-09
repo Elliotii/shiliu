@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}拾流 · 长期研究{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/research.css?v=1">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/research.css?v=1"><link rel="stylesheet" href="/static/research-personalization.css?v=1">{% endblock %}
 {% block content %}
 <main class="research-shell" data-research-page data-initial-task-id="{{ initial_task_id }}">
   <header class="research-hero">
@@ -106,6 +106,14 @@
           <div class="research-section-heading">
             <div><p class="result-kicker">GROUNDED OUTPUT</p><h3>当前回答</h3></div>
           </div>
+          <aside class="research-personalization" data-personalization-panel>
+            <label><input type="checkbox" data-personalization-enabled checked> 使用已确认的回答展示偏好</label>
+            <p data-personalization-status aria-live="polite">正在读取可审计 Personalization Context…</p>
+            <details>
+              <summary>为什么采用或保持 baseline</summary>
+              <pre data-personalization-explanation></pre>
+            </details>
+          </aside>
           <div class="research-answer-blocks" data-answer-blocks></div>
           <div class="research-limitations" data-limitations hidden><strong>限制</strong><ul></ul></div>
         </section>
@@ -189,7 +197,7 @@
               </label>
             </div>
           </div>
-          <p class="muted">这些记录只存储和解释状态；不会影响 Search、Ask、Research、ArtifactRoute、prompt 或 budget。</p>
+          <p class="muted">“不会影响 Search、Ask、Research、ArtifactRoute”仍是非白名单记录与未确认态的 baseline。唯一例外是已确认的 answer.presentation.limitations_position 可改变当前 Research 限制项的前后位置；答案内容、prompt、budget 与其他 authority 不变。</p>
           <form data-workspace-record-form class="research-create-form">
             <label>Record kind
               <select name="record_kind">
@@ -201,8 +209,8 @@
                 <option value="system_experience">System experience</option>
               </select>
             </label>
-            <label>Semantic key<input name="semantic_key" maxlength="300" required placeholder="例如 explanation-depth 或 mcp-progress"></label>
-            <label>Value / state<textarea name="record_value" rows="2" required placeholder="用户明确内容，或候选/观察值"></textarea></label>
+            <label>Semantic key<input name="semantic_key" maxlength="300" required placeholder="Stage 1: answer.presentation.limitations_position"></label>
+            <label>Value / state<textarea name="record_value" rows="2" required placeholder="Stage 1: before_answer 或 after_answer"></textarea></label>
             <label>Source refs JSON<textarea name="source_refs" rows="3" placeholder='候选/观察必填，例如 [{"ref_type":"research_event","ref_id":"…","task_id":"…"}]'></textarea></label>
             <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" placeholder="候选可填 0..1"></label>
             <label>Expiry<input name="expires_at" type="datetime-local"></label>
@@ -233,4 +241,4 @@
   </div>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research.js?v=1"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=1"></script><script src="/static/research.js?v=2"></script>{% endblock %}

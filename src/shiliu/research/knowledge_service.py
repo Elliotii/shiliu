@@ -1749,11 +1749,13 @@ class ResearchKnowledgeService:
         *,
         record_kind: str | None = None,
         status: str | None = None,
+        personalization_enabled: bool = True,
     ) -> dict[str, Any]:
         return self.personal_workspace.get_workspace(
             task_id,
             record_kind=record_kind,
             status=status,
+            personalization_enabled=personalization_enabled,
         )
 
     def revalidate_knowledge(

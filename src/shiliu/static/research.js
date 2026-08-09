@@ -1,7 +1,8 @@
 (() => {
   const root = document.querySelector('[data-research-page]');
   const evidenceUI = window.ShiliuEvidenceUI;
-  if (!root || !evidenceUI) return;
+  const personalizationUI = window.ShiliuResearchPersonalization;
+  if (!root || !evidenceUI || !personalizationUI) return;
 
   const {element, renderEvidenceCard} = evidenceUI;
   const createForm = root.querySelector('[data-research-create]');
@@ -15,6 +16,7 @@
   let current = null;
   let knowledge = null;
   let personalWorkspace = null;
+  let personalizationEnabled = true;
   let pollTimer = null;
 
   const commandId = prefix => {
@@ -93,9 +95,38 @@
     });
     section.hidden = !product.answer_blocks.length && !product.limitations.length;
     const limitations = root.querySelector('[data-limitations]');
+    container.after(limitations);
     limitations.hidden = !product.limitations.length;
     const list = limitations.querySelector('ul');
     list.replaceChildren(...product.limitations.map(value => element('li', '', value)));
+  };
+
+  const renderPersonalization = context => {
+    const answerSection = root.querySelector('[data-answer-section]');
+    const answerBlocks = root.querySelector('[data-answer-blocks]');
+    const limitations = root.querySelector('[data-limitations]');
+    const position = personalizationUI.applyAnswerPresentation(
+      answerSection, answerBlocks, limitations, context,
+    );
+    const status = root.querySelector('[data-personalization-status]');
+    const preference = context.preference;
+    const focus = context.current_focus;
+    if (context.applied && preference) {
+      status.textContent = `已应用 ${preference.value} · ${preference.authority_class} · v${preference.version}${focus ? ` · Current Focus: ${focus.topic} (${focus.state})` : ''}`;
+    } else {
+      status.textContent = `保持 baseline (${position}) · ${(context.reason_codes || []).join(', ')}`;
+    }
+    root.querySelector('[data-personalization-explanation]').textContent = JSON.stringify({
+      policy_version: context.policy_version,
+      enabled: context.enabled,
+      applied: context.applied,
+      effect_scope: context.effect_scope,
+      preference: context.preference,
+      current_focus: context.current_focus,
+      reason_codes: context.reason_codes,
+      context_hash: context.context_hash,
+      authority: context.authority,
+    }, null, 2);
   };
 
   const renderEvidence = product => {
@@ -189,7 +220,7 @@
     } catch (error) { status.textContent = error.message; }
   };
 
-  const submitKnowledgeFeedback = (targetKind, targetId, expectedHash, decision) => {
+  const submitKnowledgeFeedback = (targetKind, targetId, expectedHash, decision, proposedValue = '') => {
     const note = window.prompt(
       decision === 'helpful' ? '可选：哪里有帮助？' : '可选：哪里需要修正？',
       '',
@@ -203,20 +234,81 @@
       reason_code: targetKind === 'artifact_route' ? 'route' : 'answer_quality',
       note: note.trim(),
       expected_hash: expectedHash,
+      ...(proposedValue ? {candidate_preference: {
+        semantic_key: 'answer.presentation.limitations_position',
+        proposed_value: proposedValue,
+      }} : {}),
     }, '正在记录 advisory Feedback Event…');
   };
 
   const feedbackControls = (targetKind, targetId, expectedHash) => {
     const controls = element('div', 'research-control-buttons');
+    const preferenceLabel = element('label', '', 'Candidate preference');
+    const preference = element('select');
+    [['', 'No preference hint'], ['before_answer', 'Limitations first'], ['after_answer', 'Limitations after answer']]
+      .forEach(([value, label]) => {
+        const option = element('option', '', label); option.value = value; preference.append(option);
+      });
+    preferenceLabel.append(preference);
+    controls.append(preferenceLabel);
     [['helpful', 'Helpful'], ['needs_fix', 'Needs fix']].forEach(([decision, label]) => {
       const button = element('button', 'ghost compact-button', label);
       button.type = 'button';
       button.addEventListener('click', () => submitKnowledgeFeedback(
-        targetKind, targetId, expectedHash, decision,
+        targetKind, targetId, expectedHash, decision, preference.value,
       ));
       controls.append(button);
     });
     return controls;
+  };
+
+  const createPreferenceCandidate = async group => {
+    const status = root.querySelector('[data-workspace-status]');
+    status.textContent = '正在从 exact Feedback Events 创建 candidate；确认前不会改变产品行为…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records`, {
+        method: 'POST', body: JSON.stringify({
+          command_id: commandId('feedback-preference-candidate'),
+          record_kind: 'inferred_candidate',
+          semantic_key: group.semanticKey,
+          payload: {statement: group.proposedValue},
+          source_refs: group.events.slice(0, 32).map(value => ({
+            ref_type: 'research_event', ref_id: value.event_id, task_id: activeTaskId,
+          })),
+          confidence: 1,
+          reason: 'explicitly created from compatible exact-target structured Feedback Events',
+        }),
+      });
+      status.textContent = 'Candidate 已创建；必须显式 confirm 才可能影响 Research 展示。';
+      await loadPersonalWorkspace();
+    } catch (error) { status.textContent = error.message; }
+  };
+
+  const renderFeedbackPreferenceCandidates = (observability, target) => {
+    const groups = new Map();
+    (observability.feedback || []).forEach(value => {
+      const preference = value.candidate_preference;
+      if (!preference) return;
+      const key = `${preference.semantic_key}\u0000${preference.proposed_value}\u0000${value.principal_id || ''}`;
+      if (!groups.has(key)) groups.set(key, {
+        semanticKey: preference.semantic_key,
+        proposedValue: preference.proposed_value,
+        principalId: value.principal_id || '',
+        events: [],
+      });
+      groups.get(key).events.push(value);
+    });
+    groups.forEach(group => {
+      if (group.events.length < 2) return;
+      const card = element('article', 'research-knowledge-card');
+      card.append(
+        element('strong', '', `Candidate · ${group.semanticKey} = ${group.proposedValue}`),
+        element('small', '', `${group.events.length} compatible Feedback Events · principal ${group.principalId}`),
+      );
+      const button = element('button', 'ghost compact-button', 'Create candidate for review');
+      button.type = 'button'; button.addEventListener('click', () => createPreferenceCandidate(group));
+      card.append(button); target.append(card);
+    });
   };
 
   const reviewCandidate = (candidate, decision) => {
@@ -300,6 +392,7 @@
     const paths = closeout.product_paths || {};
     if (paths.reuse_first) closeoutList.append(element('p', 'research-currentness', `Reuse-first · ${paths.reuse_first.route} · ${paths.reuse_first.status}`));
     if (paths.research_change) closeoutList.append(element('p', 'research-currentness', `Research-change · ${paths.research_change.route} · ${paths.research_change.status}`));
+    renderFeedbackPreferenceCandidates(observability, closeoutList);
     const candidateList = root.querySelector('[data-knowledge-candidates]');
     candidateList.replaceChildren(element('h4', '', `Candidate · ${knowledge.candidates.length}`));
     knowledge.candidates.forEach(candidate => {
@@ -589,6 +682,15 @@
   const decideWorkspaceRecord = async (record, action) => {
     const status = root.querySelector('[data-workspace-status]');
     let replacementPayload;
+    let requestAction = action;
+    let reason = `local operator ${action}`;
+    if (action === 'restore') {
+      const prior = record.history.length > 1 ? record.history[record.history.length - 2] : null;
+      if (!prior) { status.textContent = '没有可恢复的历史 revision。'; return; }
+      replacementPayload = prior.payload;
+      requestAction = 'correct';
+      reason = `restore_previous_value:v${prior.version}`;
+    }
     if (action === 'correct') {
       const replacement = window.prompt('Correction 会追加 immutable revision。请输入完整 JSON payload。', JSON.stringify(record.payload));
       if (replacement === null) return;
@@ -601,12 +703,12 @@
       try { replacementPayload = JSON.parse(diagnosis); }
       catch (_error) { status.textContent = 'Diagnosis 必须是 JSON object。'; return; }
     }
-    status.textContent = `正在追加 ${action} decision…`;
+    status.textContent = `正在追加 ${requestAction} decision…`;
     try {
       await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records/${encodeURIComponent(record.record_id)}/decisions`, {
         method: 'POST', body: JSON.stringify({
-          command_id: commandId(`workspace-${action}`), action,
-          expected_version: record.version, reason: `local operator ${action}`,
+          command_id: commandId(`workspace-${action}`), action: requestAction,
+          expected_version: record.version, reason,
           ...(replacementPayload ? {replacement_payload: replacementPayload} : {}),
         }),
       });
@@ -617,6 +719,7 @@
 
   const renderPersonalWorkspace = value => {
     personalWorkspace = value;
+    renderPersonalization(value.personalization_context);
     const list = root.querySelector('[data-workspace-records]');
     list.replaceChildren(element('h4', '', `WorkspaceRecord · ${value.records.length}`));
     value.records.forEach(record => {
@@ -624,7 +727,7 @@
       card.append(
         element('span', `research-currentness${['current', 'confirmed'].includes(record.effective_status) ? '' : ' is-stale'}`, `${record.record_kind} · ${record.effective_status}`),
         element('strong', '', record.semantic_key),
-        element('small', '', `${record.authority_class} · v${record.version} · behavior effect false`),
+        element('small', '', `${record.authority_class} · v${record.version} · behavior effect ${record.product_behavior_effect ? 'research answer presentation' : 'false'}`),
         element('pre', 'research-advanced-trace', JSON.stringify(record.payload, null, 2)),
       );
       if (record.confidence !== null) card.append(element('small', '', `confidence ${record.confidence}`));
@@ -643,6 +746,10 @@
           const button = element('button', ['reject', 'tombstone', 'invalidate'].includes(action) ? 'ghost is-destructive' : 'ghost', action);
           button.type = 'button'; button.addEventListener('click', () => decideWorkspaceRecord(record, action)); actions.append(button);
         });
+        if (record.allowed_actions.includes('correct') && record.history.length > 1) {
+          const restore = element('button', 'ghost', 'restore previous as new revision');
+          restore.type = 'button'; restore.addEventListener('click', () => decideWorkspaceRecord(record, 'restore')); actions.append(restore);
+        }
         card.append(actions);
       }
       list.append(card);
@@ -657,6 +764,7 @@
     const status = root.querySelector('[data-workspace-status-filter]').value;
     if (kind) params.set('record_kind', kind);
     if (status) params.set('status', status);
+    if (!personalizationEnabled) params.set('personalization_enabled', 'false');
     try {
       const suffix = params.toString() ? `?${params.toString()}` : '';
       const data = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace${suffix}`);
@@ -977,6 +1085,10 @@
   });
   root.querySelector('[data-workspace-kind-filter]').addEventListener('change', loadPersonalWorkspace);
   root.querySelector('[data-workspace-status-filter]').addEventListener('change', loadPersonalWorkspace);
+  root.querySelector('[data-personalization-enabled]').addEventListener('change', event => {
+    personalizationEnabled = event.currentTarget.checked;
+    loadPersonalWorkspace();
+  });
   window.addEventListener('popstate', () => {
     const match = location.pathname.match(/^\/research\/([^/]+)$/);
     activeTaskId = match ? decodeURIComponent(match[1]) : '';
