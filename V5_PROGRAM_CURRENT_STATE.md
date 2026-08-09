@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T01:49:06+08:00
+> Updated at: 2026-08-10T02:12:27+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_STAGE_3_contract_preparation
+  current_formal_stage: V5_C_STAGE_3_implementation
   active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -31,9 +31,10 @@ resume_anchor:
   V5_C_accepted_stage_1_head: 9e83ff078dee0ad038f012d197d812ff0e87a6f5
   V5_C_accepted_stage_2_contract_head: 20aca5b726c0c5585f5066e72778b30dcc2f32b5
   V5_C_accepted_stage_2_head: 95749a1d557dbbb51383b58821519e0524227566
+  V5_C_accepted_stage_3_contract_head: 4368f39c90767f29ffb38efcafe4533be3aa816f
   branch: codex/v5-main
-  pending_decision: V5_C_STAGE_3_contract
-  next_action: V5_C_version_session_prepares_lean_stage_3_contract_for_limited_main_review
+  pending_decision: V5_C_STAGE_3_implementation_acceptance
+  next_action: V5_C_version_session_autonomously_implements_stage_3_and_submits_one_integrated_report
   roadmap_reconsideration_open: false
 ```
 
@@ -49,7 +50,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: stage_2_accepted_stage_3_contract_preparation
+    status: stage_2_accepted_stage_3_implementation_authorized
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -84,6 +85,7 @@ repository:
   V5_C_accepted_stage_1_head: 9e83ff078dee0ad038f012d197d812ff0e87a6f5
   V5_C_accepted_stage_2_contract_head: 20aca5b726c0c5585f5066e72778b30dcc2f32b5
   V5_C_accepted_stage_2_head: 95749a1d557dbbb51383b58821519e0524227566
+  V5_C_accepted_stage_3_contract_head: 4368f39c90767f29ffb38efcafe4533be3aa816f
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -284,5 +286,13 @@ schema/table/index/migration/dependency/Prompt/Provider/background worker/platfo
 projection adapter。Session 报告完整默认 no-provider `1729 passed, 4 deselected`；Main 独立复跑
 Stage 2/Search/Stage 1 风险集合 33 项通过，live DB hash 在测试窗口不变。
 
-当前仅授权同一 V5-C Session 准备精简 Stage 3 Personalized Routing Contract，并按本地证据优先原则做
-材料性 JIT 判断；不授权 Stage 3 产品实施、live DB、Provider、凭据、Push、Merge、Tag、V5-D 或 Post-V5。
+Main 已有限审阅并接受 Stage 3 Contract `4368f39c90767f29ffb38efcafe4533be3aa816f`：只允许在
+现有 Research Task/Workspace surface 显示 task-scoped、advisory-only 的 Next path recommendation。
+显式 current choice、request-local permission/cost 与 ArtifactRoute currentness/citation/open-lane/late-hash
+Gate 始终优先；Profile/Corpus/Focus 不获得 route authority，Fast、Deep、Research 与 manual ASR 不得被
+自动提交。当前英文 transcript cleanup 不是独立 Translation route。
+
+现授权同一 V5-C Version Session 自主实施 Stage 3，普通低风险实现与测试问题自行修复并有界复跑。
+默认保持零 schema/table/index/migration/dependency/Prompt/Provider/background worker/router-policy-platform
+增量，最多一个窄的只读 recommendation projection；只允许 temp-DB/no-provider 验证。不授权 live DB、
+凭据、Push、Merge、Tag、Stage 4、V5-D 或 Post-V5。
