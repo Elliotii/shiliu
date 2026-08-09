@@ -3,7 +3,7 @@
 ```yaml
 stage: V5-B Stage 5
 title: Product Completion, Relations and Evaluation
-contract_status: draft_pending_v5_main_acceptance
+contract_status: accepted_by_v5_main
 proposal_authority: V5-B execution session
 acceptance_authority: V5 main session
 created_at: 2026-08-05
@@ -12,14 +12,17 @@ accepted_stage_4_commit: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
 stage_4_main_acceptance_record: a483f2db81ee8b9434eadbf0fac09c4b07e1e15e_on_codex_v5_main_not_cherry_picked
 schema_baseline: 14
 contract_preparation_authorized: true
-implementation_authorized: false
-provider_evaluation_authorized_by_this_contract: false
+implementation_authorized: true
+accepted_contract_commit: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
+implementation_authorization_record: cbe605dc76ed04842f9acc48b437c049b1376e68_on_codex_v5_main_not_cherry_picked
+implementation_status: complete_pending_v5_main_acceptance
+provider_evaluation_authorized_by_execution_message: bounded_optional_up_to_usd_2
 provider_runs_performed_this_action: false
 provider_cost_usd: 0
 live_database_migration_authorized: false
 ```
 
-> V5 Main已接受Stage 4 implementation commit `ccfd8d9729eb5093ded5d397e5d5fd942fdab755`，本次只授权Stage 5 Contract准备。本文不授权Stage 5 product/schema/API/UI/test实施或Provider评价，不构成V5-B自我验收。
+> V5 Main已接受本Contract commit `5b7c96ca277fb303a4307e7a25b8f136c3d68ca1`，并以Program-only record `codex/v5-main@cbe605dc76ed04842f9acc48b437c049b1376e68`授权Stage 5实施。实现已完成并请求有限验收；本文及实现均不构成V5-B自我验收。
 
 ## 1. Version-closeout user outcome
 
@@ -225,17 +228,16 @@ Stage 5 implementation完成后，V5-B Session只提交一个integrated implemen
 
 ```yaml
 stage_4_status: accepted_by_v5_main_at_a483f2db81ee8b9434eadbf0fac09c4b07e1e15e
-stage_5_contract_status: draft_pending_v5_main_acceptance
-stage_5_implementation_authorized: false
+stage_5_contract_status: accepted_at_5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
+stage_5_implementation_authorized: true_at_cbe605dc76ed04842f9acc48b437c049b1376e68
+stage_5_implementation_status: complete_pending_v5_main_acceptance
 jit_research: existing_fixed_commit_reports_and_local_stage_1_to_4_code_sufficient
 provider_runs_performed: false
 requested_review:
-  - version_closeout_user_journey_and_two_path_comparison
-  - bounded_derived_relation_authority_and_complexity_budget
-  - observability_feedback_event_and_non_interference
-  - compact_mechanical_matrix_and_provider_evaluation_boundary
-  - closeout_and_main_owned_version_actions
-decision_requested: accept_or_return_one_bounded_contract_correction
+  - integrated_stage_5_implementation
+  - v5_b_version_closeout
+  - preliminary_v5_c_entry_gate_evidence
+decision_requested: accept_or_return_stage_5_and_v5_b
 ```
 
-请求V5 Main只审查Stage 5 target、relations/feedback authority、lean complexity budget、mechanical/provider evaluation boundary与version closeout ownership。在Main明确接受并授权前，不实施Stage 5，不启动V5-C/V5-D。
+实现与证据见`V5_B_STAGE_5_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md`。请求V5 Main有限审查Stage 5与V5-B version closeout；V5-B Session不启动V5-C/V5-D。

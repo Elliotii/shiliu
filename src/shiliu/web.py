@@ -78,6 +78,7 @@ from shiliu.research.knowledge_contracts import (
     ReviewFactUpdateRequest,
     RevertTopicPageRequest,
     RunKnowledgeOperationRequest,
+    SubmitKnowledgeFeedbackRequest,
     ProceedArtifactRouteRequest,
 )
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
@@ -901,6 +902,25 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "route": route})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/feedback")
+    async def submit_research_knowledge_feedback(
+        task_id: str,
+        payload: SubmitKnowledgeFeedbackRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.submit_feedback,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
 
     @web.get("/api/research/product/tasks/{task_id}/workspace")
     async def get_research_personal_workspace(

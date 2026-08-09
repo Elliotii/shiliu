@@ -156,7 +156,7 @@ def _stable_research(value: dict) -> dict:
     return {
         key: item
         for key, item in value.items()
-        if key not in {"artifact_routes", "updated_at"}
+        if key not in {"artifact_routes", "closeout", "updated_at"}
     }
 
 

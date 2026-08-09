@@ -36,10 +36,12 @@ from shiliu.research.knowledge_contracts import (
     ReviewTopicPageRequest,
     RevertTopicPageRequest,
     RunKnowledgeOperationRequest,
+    SubmitKnowledgeFeedbackRequest,
 )
 from shiliu.research.knowledge_lifecycle import ResearchKnowledgeLifecycleService
 from shiliu.research.knowledge_reuse import ResearchArtifactRouteService
 from shiliu.research.personal_workspace import ResearchPersonalWorkspaceService
+from shiliu.research.product_closeout import ResearchProductCloseoutService
 from shiliu.research.product_service import (
     CANDIDATE_DELTA_SCHEMA_VERSION,
     ResearchProductService,
@@ -116,11 +118,17 @@ class ResearchKnowledgeService:
             kernel=kernel,
             fault_injector=self.fault_injector,
         )
+        self.closeout = ResearchProductCloseoutService(
+            db,
+            kernel=kernel,
+            fault_injector=self.fault_injector,
+        )
 
     def _sync_lifecycle_fault_injector(self) -> None:
         self.lifecycle.fault_injector = self.fault_injector
         self.reuse.fault_injector = self.fault_injector
         self.personal_workspace.fault_injector = self.fault_injector
+        self.closeout.fault_injector = self.fault_injector
 
     def intake_candidates(
         self, task_id: str, request: IntakeKnowledgeCandidatesRequest
@@ -1631,6 +1639,17 @@ class ResearchKnowledgeService:
             )
             value["update_available"] = bool(affected)
             value["affected_fact_ids"] = [item["fact_id"] for item in affected]
+        artifact_routes = self.reuse.list(task_id)
+        closeout = self.closeout.project(
+            task_id,
+            facts=facts,
+            artifact_routes=artifact_routes,
+        )
+        relations_by_page = closeout["relations"]["by_page"]
+        for page in pages:
+            page["relations"] = relations_by_page.get(
+                page["page_id"], {"items": [], "total": 0, "truncated": False}
+            )
         return {
             "workspace_schema_version": KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
             "task_id": task_id,
@@ -1646,7 +1665,8 @@ class ResearchKnowledgeService:
             "artifacts": artifacts,
             "pages": pages,
             "build_runs": builds,
-            "artifact_routes": self.reuse.list(task_id),
+            "artifact_routes": artifact_routes,
+            "closeout": closeout,
             **stage2,
             "counts": {
                 "candidates": len(candidates),
@@ -1655,6 +1675,18 @@ class ResearchKnowledgeService:
                 "pages": len(pages),
             },
         }
+
+    def submit_feedback(
+        self,
+        task_id: str,
+        request: SubmitKnowledgeFeedbackRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        self._sync_lifecycle_fault_injector()
+        return self.closeout.submit_feedback(
+            task_id, request, principal_id=principal_id
+        )
 
     def assess_artifact_route(
         self, task_id: str, request: AssessArtifactRouteRequest

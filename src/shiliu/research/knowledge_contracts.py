@@ -430,6 +430,31 @@ class ProceedArtifactRouteRequest(_StrictModel):
         return self
 
 
+class SubmitKnowledgeFeedbackRequest(_StrictModel):
+    command_id: str = Field(min_length=1, max_length=160)
+    target_kind: Literal["topic_page_revision", "artifact_route"]
+    target_id: str = Field(min_length=1, max_length=160)
+    decision: Literal["helpful", "needs_fix"]
+    reason_code: Literal[
+        "answer_quality", "citation", "currentness", "route", "usability", "other"
+    ]
+    note: str = Field(default="", max_length=500)
+    expected_hash: str = Field(min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$")
+
+    @field_validator("command_id", "target_id")
+    @classmethod
+    def normalize_feedback_ids(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("value must not be blank")
+        return value
+
+    @field_validator("note")
+    @classmethod
+    def normalize_feedback_note(cls, value: str) -> str:
+        return value.strip()
+
+
 class WorkspaceSourceRef(_StrictModel):
     ref_type: Literal[
         "research_task",

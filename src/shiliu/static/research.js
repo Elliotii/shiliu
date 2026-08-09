@@ -189,6 +189,36 @@
     } catch (error) { status.textContent = error.message; }
   };
 
+  const submitKnowledgeFeedback = (targetKind, targetId, expectedHash, decision) => {
+    const note = window.prompt(
+      decision === 'helpful' ? '可选：哪里有帮助？' : '可选：哪里需要修正？',
+      '',
+    );
+    if (note === null) return;
+    knowledgeAction('/feedback', {
+      command_id: commandId(`feedback-${decision}`),
+      target_kind: targetKind,
+      target_id: targetId,
+      decision,
+      reason_code: targetKind === 'artifact_route' ? 'route' : 'answer_quality',
+      note: note.trim(),
+      expected_hash: expectedHash,
+    }, '正在记录 advisory Feedback Event…');
+  };
+
+  const feedbackControls = (targetKind, targetId, expectedHash) => {
+    const controls = element('div', 'research-control-buttons');
+    [['helpful', 'Helpful'], ['needs_fix', 'Needs fix']].forEach(([decision, label]) => {
+      const button = element('button', 'ghost compact-button', label);
+      button.type = 'button';
+      button.addEventListener('click', () => submitKnowledgeFeedback(
+        targetKind, targetId, expectedHash, decision,
+      ));
+      controls.append(button);
+    });
+    return controls;
+  };
+
   const reviewCandidate = (candidate, decision) => {
     let editedClaim = null;
     if (decision === 'edit') {
@@ -259,6 +289,17 @@
 
   const renderKnowledge = workspaceData => {
     knowledge = workspaceData;
+    const closeout = knowledge.closeout || {};
+    const observability = closeout.observability || {counts: {}, feedback: []};
+    const closeoutList = root.querySelector('[data-knowledge-closeout]');
+    closeoutList.replaceChildren(
+      element('h4', '', 'V5-B · Stage 5 product completion'),
+      element('p', 'muted', 'Relations 只用于 navigation；Feedback 只写 Event + Receipt，均不会改变检索、route 或发布 authority。'),
+      element('small', '', `Derived observability · ${observability.counts.events || 0} events · ${observability.counts.receipts || 0} receipts · ${observability.counts.build_runs || 0} builds · ${observability.counts.artifact_routes || 0} route records · ${observability.counts.feedback || 0} feedback`),
+    );
+    const paths = closeout.product_paths || {};
+    if (paths.reuse_first) closeoutList.append(element('p', 'research-currentness', `Reuse-first · ${paths.reuse_first.route} · ${paths.reuse_first.status}`));
+    if (paths.research_change) closeoutList.append(element('p', 'research-currentness', `Research-change · ${paths.research_change.route} · ${paths.research_change.status}`));
     const candidateList = root.querySelector('[data-knowledge-candidates]');
     candidateList.replaceChildren(element('h4', '', `Candidate · ${knowledge.candidates.length}`));
     knowledge.candidates.forEach(candidate => {
@@ -366,6 +407,19 @@
         element('small', '', `${page.page_revision_id} · version ${page.version} · published ${page.published_version || 'none'}`),
       );
       (page.body.facts || []).forEach(fact => card.append(element('p', 'research-knowledge-claim', fact.claim)));
+      const relations = page.relations || {items: [], total: 0, truncated: false};
+      relations.items.forEach(relation => {
+        const relationRow = element('div', 'research-citation-drilldown');
+        const target = element('a', '', `${relation.kind} → ${relation.target.title}`);
+        target.href = `#knowledge-page-${encodeURIComponent(relation.target.page_id)}`;
+        relationRow.append(target, element('span', '', ` · ${relation.reason}`));
+        (relation.supporting_facts || []).flatMap(fact => fact.citations || []).slice(0, 2).forEach(citation => {
+          const drill = element('a', '', 'L1');
+          drill.href = citation.transcript_href; drill.target = '_blank'; relationRow.append(drill);
+        });
+        card.append(relationRow);
+      });
+      if (relations.truncated) card.append(element('small', 'muted', `显示 ${relations.items.length}/${relations.total} 条 bounded relations`));
       if (page.review_status === 'draft') {
         const actions = element('div', 'research-control-buttons');
         ['publish', 'return'].forEach(decision => {
@@ -403,7 +457,9 @@
       const historyOutput = element('pre', 'research-advanced-trace'); historyOutput.hidden = true;
       const historyButton = element('button', 'ghost', 'History / diff'); historyButton.type = 'button';
       historyButton.addEventListener('click', () => inspectPageHistory(page, historyOutput));
-      lifecycle.append(edit, revert, historyButton, exportButton); card.append(lifecycle, historyOutput);
+      lifecycle.append(edit, revert, historyButton, exportButton);
+      card.id = `knowledge-page-${page.page_id}`;
+      card.append(lifecycle, feedbackControls('topic_page_revision', page.page_revision_id, page.content_hash), historyOutput);
       pageList.append(card);
     });
 
@@ -500,6 +556,7 @@
       }
       if (route.outcome_artifact_revision_id) card.append(element('small', '', `Outcome Artifact · ${route.outcome_artifact_revision_id}`));
       if (Object.keys(route.contribution || {}).length) card.append(element('pre', 'research-advanced-trace', JSON.stringify(route.contribution, null, 2)));
+      card.append(feedbackControls('artifact_route', route.record_id, route.expected_authority_hash));
       routeList.append(card);
     });
   };
