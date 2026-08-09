@@ -1,28 +1,31 @@
 # 拾流 V5-C Current State
 
 ```yaml
-document_status: stage_1_implemented_pending_v5_main_acceptance
+document_status: stage_1_accepted_stage_2_contract_proposed
 version: V5-C
-updated_at: 2026-08-09
+updated_at: 2026-08-10
 execution_branch: codex/v5-c
 required_starting_ref: codex/v5-main
 starting_commit: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
 accepted_code_baseline_merge: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
 startup_commit: 2429debf9be426d825c6847e80030a537cc991a9
 main_acceptance_and_stage_1_authorization: 272affa0e6ed2f0bc6f14d002a4d36dc26094430
-stage_1_implementation_commit: git_commit_containing_stage_1_report
-active_formal_stage: V5_C_stage_1
-stage_1_status: implemented_pending_v5_main_acceptance
+stage_1_local_implementation_commit: 9e83ff078dee0ad038f012d197d812ff0e87a6f5
+stage_1_accepted_identifier_recorded_by_main: 9e83ff096d2148d6837e4ed67b30752fca781ccd
+main_stage_1_acceptance: 36338515db001fb86af1c653c1241efc313cfa4e
+active_formal_stage: V5_C_stage_2_contract_preparation
+stage_1_status: accepted_by_v5_main
+stage_2_contract_status: proposed_pending_v5_main_acceptance
 charter_status: accepted_by_v5_main
-implementation_authorized: true
+stage_2_implementation_authorized: false
 product_files_changed: true
 schema_source_version: 14
 live_schema_observed: 14
 provider_runs_performed: false
 credentials_or_keychain_accessed: false
 live_database_mutated: false
-external_JIT_research_performed: false
-stage_2_entered: false
+stage_2_external_JIT_research_performed: false
+stage_2_product_implementation_started: false
 ```
 
 ## 1. Git 与 authority 状态
@@ -39,8 +42,15 @@ Main 在 `codex/v5-main@272affa0e6ed2f0bc6f14d002a4d36dc26094430` 接受 startup
 `2429debf` 的 Charter、五 Stage 序列、JIT 判断和 Stage 1 Contract，并授权同一 V5-C Session
 实施 Stage 1。该 Program authority 仅做只读引用，没有 cherry-pick/merge 到执行分支。
 
-当前唯一 active formal Stage 是 `V5_C_stage_1`；实现已完成并等待 Main 有限验收。Stage 2 未进入。
-V5-C Session 未修改 Program Current State/Decision Ledger，也未自我接受 Stage 1。
+Main 又在 `codex/v5-main@36338515db001fb86af1c653c1241efc313cfa4e` 正式接受 Stage 1，并且只
+授权准备精简 Stage 2 Contract。当前本地执行对象是
+`9e83ff078dee0ad038f012d197d812ff0e87a6f5`；Main authority 与用户交接记录的 accepted identifier 是
+`9e83ff096d2148d6837e4ed67b30752fca781ccd`，该完整对象在当前本地 object store 不存在。两者共享短号
+`9e83ff0`，但 V5-C Session 不擅自改写历史或 Program authority；这一 identifier 差异作为 Main 对账项，
+不改变明确的 Stage 1 接受结论与 Stage 2 Contract-only 授权。
+
+当前唯一 active formal Stage 是 `V5_C_stage_2_contract_preparation`。Stage 2 产品实现未开始。V5-C
+Session 未修改 Program Current State/Decision Ledger，也未自我接受 Stage 1 或 Stage 2 Contract。
 
 ## 2. Live schema 14 只读观测
 
@@ -154,7 +164,7 @@ live ArtifactRoute/TopicPage = cold start
 - 没有独立 Translation service/table/API/route。英文字幕在现有 `transcript_cleanup` Prompt 中保留 raw
   English、整理结果输出 Chinese；这是付费 transcript processing 的组合能力，不是独立路由。
 
-## 5. Stage 1 实现状态
+## 5. Stage 1 接受状态
 
 Stage 1 已复用 WorkspaceRecord 作为唯一状态 authority，并以一个只读、可重建、consumer-whitelisted
 `PersonalizationContextProjection` 向现有 Research surface 暴露 confirmed state。唯一消费 key：
@@ -181,15 +191,24 @@ migration/dependency/Prompt/Provider/background worker 增量均为 0；没有�
 Search/Ask 受影响集合 `92 passed`；完整默认 no-provider suite `1725 passed, 4 deselected`。唯一 warnings
 是既有 Starlette/httpx 与 multiprocessing fork deprecation。
 
-完整 Stage 序列和边界见 `V5_C_VERSION_CHARTER.md`；可执行 Contract 见
-`V5_C_STAGE_1_CONTRACT.md`。
+Main 独立复跑 Stage 1 + Workspace/Feedback 相关 Python `16 passed` 与 Node DOM `2 passed`，测试窗口内
+live DB hash 不变，未要求 bounded rework。完整 Stage 序列和边界见 `V5_C_VERSION_CHARTER.md`；Stage 1
+的 accepted Contract 与实现证据见 `V5_C_STAGE_1_CONTRACT.md` 和
+`V5_C_STAGE_1_IMPLEMENTATION_REPORT.md`。
 
-## 6. JIT 研究状态
+## 6. Stage 2 Contract 与 JIT 状态
 
-本地 accepted evidence 足以约束 Charter/Stage 1，因此未访问外部网络、未下载/checkout 上游、未新增
-依赖，也未创建 upstream report。DeepTutor/WeKnora 只延续 V5-B accepted reference-only 身份；本轮
-没有新 adopt/reimplement/copy proposal。若未来 Stage 出现具体材料缺口，再按官方来源、固定 Commit、
-License、相关源码/测试和明确 adopt/reimplement/reject 开新 episode。
+`V5_C_STAGE_2_CONTRACT.md` 已提出一个窄的 Corpus-aware Search vertical slice：只有显式 task context
+内 current、snapshot-bound 的 `corpus_observation` 可形成 soft prior；现有 Product Search raw query、
+mode、filters、planner、retrieval 和 candidate pool 独立执行，语料只对同一 baseline pool 做 bounded
+deterministic presentation composition。至少一半展示槽保留 baseline open lane，并保留最高排名的
+corpus-nonmatching counterexample。Citation、Verifier、hard filter 与事实 authority 均为 false。
+
+本地 Workspace/snapshot/Product Search/ArtifactRoute 源码与 V5-B accepted tests 已能冻结 authority、
+open lane、non-interference 和 paired matrix，因此本轮没有材料性 JIT 缺口：未访问外部网络、未下载/
+checkout 上游、未新增依赖或 upstream report。Contract 默认零 schema/migration/index/dependency/Prompt/
+Provider/background worker/vector/reranker/graph/eval/telemetry platform 增量，最多一个新的只读 projection
+adapter。Stage 2 implementation 仍未授权。
 
 ## 7. 未证明项与下一动作
 
@@ -203,5 +222,6 @@ License、相关源码/测试和明确 adopt/reimplement/reject 开新 episode�
 - large Workspace、multi-process UI ordering、Provider 主观质量；
 - V5-A compound long-query grounded completion。
 
-下一动作仅是等待 V5 Main 对 Stage 1 integrated implementation 做有限验收。验收前不进入 Stage 2，
-不做 mainline/live migration/push/tag，也不自我接受。
+下一动作仅是等待 V5 Main 对 `V5_C_STAGE_2_CONTRACT.md` 做有限审阅，并由 Main 对账 accepted Stage 1
+完整 identifier。Main 接受并明确授权前不实施 Stage 2，不访问 live DB/Provider/凭据，不修改 Program
+authority，不做 mainline/push/merge/tag，也不自我接受或进入 Stage 3。
