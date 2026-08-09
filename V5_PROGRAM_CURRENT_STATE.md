@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-09T15:49:03+08:00
+> Updated at: 2026-08-09T16:45:59+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_B
   last_completed_subversion: V5_A
   last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_STAGE_5_IMPLEMENTATION
+  current_formal_stage: V5_B_VERSION_CLOSEOUT
   active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
   accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -24,9 +24,10 @@ resume_anchor:
   V5_B_accepted_stage_4_contract_head: 560293da5987478eea822197582beb3829dfa9ae
   V5_B_accepted_stage_4_head: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
   V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
+  V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
   branch: codex/v5-main
-  pending_decision: V5_B_stage_5_implementation_and_closeout_submission
-  next_action: V5_B_session_implements_lean_stage_5_and_prepares_closeout_report
+  pending_decision: V5_B_main_owned_merge_live_migration_smoke_and_version_closeout
+  next_action: prepare_V5_B_main_owned_integration_closeout
   roadmap_reconsideration_open: false
 ```
 
@@ -39,7 +40,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_4_accepted_stage_5_implementation_authorized
+    status: stage_5_accepted_version_integration_closeout_pending
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -70,6 +71,7 @@ repository:
   V5_B_accepted_stage_4_contract_head: 560293da5987478eea822197582beb3829dfa9ae
   V5_B_accepted_stage_4_head: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
   V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
+  V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -153,6 +155,15 @@ accepted_results:
       - frozen_corpus_snapshot_soft_prior
       - trace_result_lineage_experience_candidate_without_skill_mutation
       - product_behavior_non_interference_and_compact_workspace_ui
+  V5_B_STAGE_5:
+    status: accepted
+    capabilities:
+      - integrated_reuse_first_and_research_change_product_paths
+      - bounded_shared_current_fact_and_confirmed_conflict_page_navigation
+      - current_fact_to_l1_citation_relation_drilldown
+      - exact_target_advisory_feedback_event_and_command_receipt
+      - derived_existing_record_observability
+      - zero_schema_delta_and_stage_1_to_5_product_non_interference
 ```
 
 # 4. Known limitation carried forward
@@ -198,27 +209,25 @@ research_equals_implementation_authorization: false
 
 # 6. Next action boundary
 
-V5-B Stage 4 实现 `ccfd8d9` 已通过有限验收。实现按 Contract 收敛为一张 immutable
-`research_workspace_records` aggregate、零 supporting table、一个 service、三类公共 API 和一个
-Workspace surface；没有 scheduler、queue、inference/vector/rules engine 或平台拆分。Explicit Memory、
-inferred/focus/progress、Corpus soft prior 与 System Experience 保持独立 authority；correction/decision/
-expiry/tombstone 是 append-only revision，old source boundary replay 不复活 terminal lineage，Experience
-不生成 Skill/Policy。
+V5-B Stage 5 实现 `27c8c30` 已通过有限验收。实现保持 schema source 14 且零 Stage 5 table/index/migration，
+只新增一个 composition adapter、一个 feedback endpoint 类型和一个既有 Knowledge Workspace 扩展；没有
+GraphRAG、通用 graph/eval/telemetry 平台、第二套 runtime、queue、scheduler、新依赖或上游复制。
 
-主 Session 独立复跑 Stage 1–4 directed tests `29 passed`，Python compile、JavaScript syntax、JSONL 与
-whitespace 检查通过；live DB SHA-256 在测试窗口前后均为
-`e6dd58b4fd115b4768694c0de4f9e84cb1cc62f12cfc228f39c5e06705c6740f`。Session 报告的 affected
-`179 passed`、Search/Ask/API `56 passed` 与 default `1715 passed, 4 deselected`作为支持证据接受。
+主 Session 有限源码审阅确认：`shared_current_fact` 与 `confirmed_conflict` 只从 published PageRevision、
+current Fact head、current L1 citation 和 accepted conflict observation 派生，并明确保持 navigation-only；
+Feedback 绑定 exact PageRevision/content hash 或 ArtifactRoute/authority hash，以现有 Event + CommandReceipt
+原子记录，不能自动修改 Fact、Artifact、Page、Route、Workspace、Skill 或 Policy；observability 只组合既有
+durable records。Stage 4 的 non-interference harness 仅排除新增派生 `closeout` 字段，仍逐项比较 Search、Ask、
+core Research、ArtifactRoute 与 open-corpus 结果。
 
-Stage 5 Contract `5b7c96c` 已通过有限审查并授权同一 V5-B Session 实施。现有
-PageRevision→FactRevision、Fact current state 与 immutable `confirmed_conflict` observation 足以派生
-`shared_current_fact` 和 `confirmed_conflict` 两类 navigation-only relation；Feedback 复用 Event 与
-CommandReceipt。默认零新表，最多一张由具体 invariant 证明的窄 supporting table；最多一个 composition
-adapter、两类 endpoint 和一个既有 Workspace surface 扩展，不建设 GraphRAG、通用 graph/eval/telemetry
-平台、第二套 runtime、queue 或 scheduler。
+主 Session 独立复跑 Stage 1–5 directed tests `35 passed`，V5-B embedded Decision Ledger JSONL、primary
+references 与 whitespace 检查通过；live DB SHA-256 在测试窗口前后均为
+`99ff1cfe03c44621f4d378f5832572c92ae7dd3764bf767543102dcc0b07867a`，size 均为 `94588928`。Session
+报告的 Stage 5 `6 passed`、affected `241 passed` 与 default no-provider `1721 passed, 4 deselected`作为支持
+证据接受；Provider 未运行且成本 USD 0，符合 Contract 的 optional/non-gating 边界。
 
-Stage 5 必须完成 reuse-first 与 research-change 两条路径、minimal Feedback、derived observability、
-cross-Stage fault/restart/compatibility 和 V5-B closeout evidence。Mechanical Gate 完全 no-provider；只有在
-机械闭环通过且能回答具体产品问题时，V5-B Session 才可选择运行已冻结的 4–6 case DeepSeek 对照，连续
-总预算不超过 USD 2，且结果始终 non-gating。当前仍不授权 live migration、merge/tag、自我验收或启动
-V5-C/V5-D；这些属于 Stage 5 被接受后的 Main-owned version closeout。
+Stage 5 功能实现已经接受，V5-B 的代码级功能闭环成立；但 V5-B 尚未宣布最终 Version Complete。下一步由
+Main Session 执行 version-level integration closeout：先核验 exact merge range 与 live process/schema 现场，
+再进行合并、可恢复 live schema 10→14 migration、最小 HTTP/产品 smoke、Program/Registry 最终同步及必要的
+版本级 Git。per-task relation、每页最多 8 条、大 corpus latency、多进程 UI polling 与 subjective Provider
+质量保留为诚实限制，不阻塞本次 Stage 5 验收。V5-C 尚未启动或授权。
