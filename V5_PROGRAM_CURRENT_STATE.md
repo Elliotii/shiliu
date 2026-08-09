@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-09T16:45:59+08:00
+> Updated at: 2026-08-09T17:24:34+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,12 +8,12 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: V5_B
-  last_completed_subversion: V5_A
-  last_completed_status: accepted_with_known_retrieval_limitation
-  current_formal_stage: V5_B_VERSION_CLOSEOUT
-  active_execution_session: 019fcb6c-0f37-70c3-be68-9d39f1b69112
-  accepted_code_head: 04e5c5bbb94311a00f6efafa142908fd7b2b97de
+  current_subversion: none
+  last_completed_subversion: V5_B
+  last_completed_status: accepted_with_known_limits
+  current_formal_stage: none
+  active_execution_session: none
+  accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
@@ -25,9 +25,10 @@ resume_anchor:
   V5_B_accepted_stage_4_head: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
   V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
   V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
+  V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   branch: codex/v5-main
-  pending_decision: V5_B_main_owned_merge_live_migration_smoke_and_version_closeout
-  next_action: prepare_V5_B_main_owned_integration_closeout
+  pending_decision: none
+  next_action: await_user_direction_for_V5_C_startup_planning
   roadmap_reconsideration_open: false
 ```
 
@@ -40,7 +41,7 @@ program:
     status: accepted_with_known_retrieval_limitation
   V5_B:
     goal: Evidence-backed Personal Knowledge and Corpus Workspace
-    status: stage_5_accepted_version_integration_closeout_pending
+    status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
     status: not_started
@@ -51,8 +52,8 @@ program:
     status: conditional_long_term_direction
 ```
 
-长期路线与功能目标未改变。V5-B/C/D 的具体 Schema、框架、Commit、Goal 数量和版本内
-顺序仍未冻结，也没有提前实施。
+长期路线与功能目标未改变。V5-B 的实际 schema、实现与版本内顺序已随 closeout 固定；
+V5-C/D 的具体 Schema、框架、Commit、Goal 数量和版本内顺序仍未冻结，也没有提前实施。
 
 # 2. Repository and runtime
 
@@ -72,6 +73,7 @@ repository:
   V5_B_accepted_stage_4_head: ccfd8d9729eb5093ded5d397e5d5fd942fdab755
   V5_B_accepted_stage_5_contract_head: 5b7c96ca277fb303a4307e7a25b8f136c3d68ca1
   V5_B_accepted_stage_5_head: 27c8c30d2704dcb3d0a792e53bfc96f2e1a1c930
+  V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -80,12 +82,12 @@ repository:
   tagged: false
 live_runtime:
   database: /Users/elliot/Library/Application Support/Shiliu/shiliu.db
-  schema: 10
+  schema: 14
   integrity_check: ok
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 382
+  sync_runs: 434
   research_tasks: 0
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
@@ -119,6 +121,14 @@ accepted_results:
       - hitl_interrupt_resume_cancel_and_input_control
       - durable_trace_product_page_and_api
       - provider_receipt_usage_cost_and_honest_stop
+  V5_B:
+    status: accepted_with_known_limits
+    capabilities:
+      - evidence_backed_topic_page_and_l1_l2_l3_lineage
+      - append_only_knowledge_lifecycle_and_durable_refresh
+      - explainable_artifact_reuse_incremental_refresh_and_research_seed
+      - typed_personal_corpus_workspace_and_experience_candidate
+      - bounded_related_pages_feedback_and_durable_observability
   V5_B_STAGE_1:
     status: accepted
     capabilities:
@@ -166,7 +176,7 @@ accepted_results:
       - zero_schema_delta_and_stage_1_to_5_product_non_interference
 ```
 
-# 4. Known limitation carried forward
+# 4. Known limitations carried forward
 
 V5-A 没有证明任意长复合查询都能完成 grounded answer。最终代表性 smoke 在 dense
 model not ready 时降级到 lexical 并得到 0 个命中，因此 EvidenceUse/citation 为 0。
@@ -182,6 +192,17 @@ known_retrieval_limitation:
   must_not_be_reported_as_success: true
 ```
 
+```yaml
+V5_B_known_limits:
+  relations_are_per_task_not_corpus_wide_graph: true
+  relation_projection_limit_per_page: 8
+  large_real_corpus_relation_latency_proven: false
+  multi_process_UI_polling_order_proven: false
+  subjective_provider_product_comparison_exercised: false
+  live_research_feedback_workspace_population: cold_start
+  goal_met_despite_limits: true
+```
+
 # 5. Governance and upstream boundary
 
 ```yaml
@@ -189,8 +210,8 @@ session_limits:
   active_subversion_limit: 1
   active_formal_stage_or_goal_limit: 1
 current_usage:
-  active_subversions: 1
-  active_formal_stages: 1
+  active_subversions: 0
+  active_formal_stages: 0
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -209,25 +230,17 @@ research_equals_implementation_authorization: false
 
 # 6. Next action boundary
 
-V5-B Stage 5 实现 `27c8c30` 已通过有限验收。实现保持 schema source 14 且零 Stage 5 table/index/migration，
-只新增一个 composition adapter、一个 feedback endpoint 类型和一个既有 Knowledge Workspace 扩展；没有
-GraphRAG、通用 graph/eval/telemetry 平台、第二套 runtime、queue、scheduler、新依赖或上游复制。
+V5-B 已以 `accepted_with_known_limits` 完成。产品代码通过 merge commit `7d9af900` 集成到
+`codex/v5-main`；live SQLite 在验证过的 schema 10 备份和副本演练后迁移到 schema 14。
+迁移前后 157 videos、140 completed videos、434 sync runs 与 0 research tasks 无漂移，
+`integrity_check=ok`、FK violations 0。
 
-主 Session 有限源码审阅确认：`shared_current_fact` 与 `confirmed_conflict` 只从 published PageRevision、
-current Fact head、current L1 citation 和 accepted conflict observation 派生，并明确保持 navigation-only；
-Feedback 绑定 exact PageRevision/content hash 或 ArtifactRoute/authority hash，以现有 Event + CommandReceipt
-原子记录，不能自动修改 Fact、Artifact、Page、Route、Workspace、Skill 或 Policy；observability 只组合既有
-durable records。Stage 4 的 non-interference harness 仅排除新增派生 `closeout` 字段，仍逐项比较 Search、Ask、
-core Research、ArtifactRoute 与 open-corpus 结果。
+Main Session 在合并后运行 Stage 1–5 与 Search/Ask/Web/API 关键兼容集合 108 项；V5-B
+Session 提交的 full default no-provider `1721 passed, 4 deselected`继续作为版本级支持证据。
+Web/sync 已恢复，`/`、`/search`、`/ask`、`/research` 和 Research Task list API 均返回 200，
+HTTP smoke 窗口未改变 DB hash。完整证据和恢复路径见 `V5_B_FINAL_CLOSEOUT.md`。
 
-主 Session 独立复跑 Stage 1–5 directed tests `35 passed`，V5-B embedded Decision Ledger JSONL、primary
-references 与 whitespace 检查通过；live DB SHA-256 在测试窗口前后均为
-`99ff1cfe03c44621f4d378f5832572c92ae7dd3764bf767543102dcc0b07867a`，size 均为 `94588928`。Session
-报告的 Stage 5 `6 passed`、affected `241 passed` 与 default no-provider `1721 passed, 4 deselected`作为支持
-证据接受；Provider 未运行且成本 USD 0，符合 Contract 的 optional/non-gating 边界。
-
-Stage 5 功能实现已经接受，V5-B 的代码级功能闭环成立；但 V5-B 尚未宣布最终 Version Complete。下一步由
-Main Session 执行 version-level integration closeout：先核验 exact merge range 与 live process/schema 现场，
-再进行合并、可恢复 live schema 10→14 migration、最小 HTTP/产品 smoke、Program/Registry 最终同步及必要的
-版本级 Git。per-task relation、每页最多 8 条、大 corpus latency、多进程 UI polling 与 subjective Provider
-质量保留为诚实限制，不阻塞本次 Stage 5 验收。V5-C 尚未启动或授权。
+V5-C Entry 的机械前提已具备，但 live Research/Feedback/Workspace 数据仍为 cold start。
+因此当前状态是 `ready_for_startup_planning_with_cold_start_input_gap`，不是 V5-C 实施授权；
+未创建 V5-C Session，也未调用 Provider、访问凭据、Push 或 Tag。下一步等待用户决定是否进入
+V5-C startup/JIT planning。

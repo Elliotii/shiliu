@@ -368,7 +368,7 @@ resources:
     unresolved_questions:
     - 任何未来源码、测试或 UI 复制仍需文件级 License 与最新 Commit 核验
     implementation_authorized: true
-    implementation_authority_scope: V5-B Stage 1 selected patterns, Shiliu-native implementation only
+    implementation_authority_scope: V5-B accepted Stages 1-5 selected patterns, Shiliu-native implementation only
     direct_dependency_authorized: false
     source_copy_authorized: false
   usage_history:
@@ -387,6 +387,15 @@ resources:
     - V5_B_UPSTREAM_DEEPTUTOR_RESEARCH_REPORT.md
     - V5_B_VERSION_CHARTER.md
     - V5_B_STAGE_1_CONTRACT.md
+  - version: V5-B
+    stage: Final closeout
+    level: design_product_and_test_reference
+    result: 分层 lineage、稳定 ID、refs-required preflight、incremental 与 editable review 模式已在拾流原生 Candidate/Fact/Artifact/Page/Workspace 生命周期中使用；没有引入 DeepTutor 依赖、源码、测试、Prompt 或文件权威。
+    local_artifacts:
+    - V5_B_FINAL_CLOSEOUT.md
+    - V5_B_UPSTREAM_DEEPTUTOR_RESEARCH_REPORT.md
+    - V5_B_STAGE_1_IMPLEMENTATION_REPORT.md
+    - V5_B_STAGE_2_IMPLEMENTATION_REPORT.md
   next_research_triggers:
   - before_any_dependency_source_test_or_UI_copy
   - upstream_major_release
@@ -463,7 +472,7 @@ resources:
     unresolved_questions:
     - Go Wiki/queue tests 与 Provider generation 未执行
     implementation_authorized: true
-    implementation_authority_scope: V5-B Stage 1 selected page and revision patterns, Shiliu-native implementation only
+    implementation_authority_scope: V5-B accepted Stages 1-5 selected page, revision, durable operation and product patterns, Shiliu-native implementation only
     direct_dependency_authorized: false
     source_copy_authorized: false
   usage_history:
@@ -482,6 +491,15 @@ resources:
     - V5_B_UPSTREAM_WEKNORA_RESEARCH_REPORT.md
     - V5_B_VERSION_CHARTER.md
     - V5_B_STAGE_1_CONTRACT.md
+  - version: V5-B
+    stage: Final closeout
+    level: product_revision_async_and_test_reference
+    result: Topic Page/revision review、optimistic version、revert-as-new、durable pending/recovery/dead-letter 与 bounded relation/observability 参考已在拾流原生 schema/service/UI 中使用；没有替换拾流 Retrieval/Evidence/Citation，也没有复制上游源码、测试或 UI。
+    local_artifacts:
+    - V5_B_FINAL_CLOSEOUT.md
+    - V5_B_UPSTREAM_WEKNORA_RESEARCH_REPORT.md
+    - V5_B_STAGE_2_IMPLEMENTATION_REPORT.md
+    - V5_B_STAGE_5_IMPLEMENTATION_AND_CLOSEOUT_REPORT.md
   next_research_triggers:
   - before_any_dependency_source_test_UI_or_component_copy
   - before_V5_B_Stage_2_async_update_rebuild
