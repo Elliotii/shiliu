@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T00:21:15+08:00
+> Updated at: 2026-08-10T00:49:36+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_STAGE_2_contract_preparation
+  current_formal_stage: V5_C_STAGE_2_implementation
   active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -28,10 +28,11 @@ resume_anchor:
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_C_startup_governance_head: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
   V5_C_accepted_startup_head: 2429debf9be426d825c6847e80030a537cc991a9
-  V5_C_accepted_stage_1_head: 9e83ff096d2148d6837e4ed67b30752fca781ccd
+  V5_C_accepted_stage_1_head: 9e83ff078dee0ad038f012d197d812ff0e87a6f5
+  V5_C_accepted_stage_2_contract_head: 20aca5b726c0c5585f5066e72778b30dcc2f32b5
   branch: codex/v5-main
-  pending_decision: V5_C_STAGE_2_contract
-  next_action: V5_C_version_session_prepares_lean_stage_2_contract_for_limited_main_review
+  pending_decision: V5_C_STAGE_2_implementation_acceptance
+  next_action: V5_C_version_session_autonomously_implements_stage_2_and_submits_one_integrated_report
   roadmap_reconsideration_open: false
 ```
 
@@ -47,7 +48,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: stage_1_accepted_stage_2_contract_preparation
+    status: stage_1_accepted_stage_2_implementation_authorized
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -79,7 +80,8 @@ repository:
   V5_B_mainline_merge_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_C_startup_governance_head: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
   V5_C_accepted_startup_head: 2429debf9be426d825c6847e80030a537cc991a9
-  V5_C_accepted_stage_1_head: 9e83ff096d2148d6837e4ed67b30752fca781ccd
+  V5_C_accepted_stage_1_head: 9e83ff078dee0ad038f012d197d812ff0e87a6f5
+  V5_C_accepted_stage_2_contract_head: 20aca5b726c0c5585f5066e72778b30dcc2f32b5
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -259,13 +261,21 @@ V5-C Session 已在 `codex/v5-c` 以 `2429debf` 提交 docs-only startup/JIT pac
 Research limitations panel 的前后位置；答案、证据、引用、检索、Prompt、route、budget 与 Provider
 不得变化。
 
-同一个 V5-C Session 已以 `9e83ff09` 完成 Stage 1，Main 有限验收正式接受 Confirmed Personalized
+同一个 V5-C Session 已以 `9e83ff078dee0ad038f012d197d812ff0e87a6f5` 完成 Stage 1，Main 有限验收正式接受 Confirmed Personalized
 Answer Presentation：确认态 preference 可以且只能改变 Research limitations panel 的前后位置；
 Feedback→Candidate 在创建和确认时均重新验证 receipt、同 Task、exact target/hash、key/value 与
 principal。实现保持 schema/table/index/migration/dependency/Prompt/Provider/background worker 增量为
 0，只新增一个只读 projection adapter，完整默认无 Provider 回归 `1725 passed, 4 deselected`；Main
 独立复跑 Stage 1 + Workspace/Feedback 16 项 Python 和 2 项 Node 测试通过，live DB hash 不变。
 
-Stage 1 不证明完整 Personalized Answer 或真实用户收益。当前仅授权同一 V5-C Session 使用本地证据
-优先原则准备精简 Stage 2 Corpus-aware Search Contract，并在确有具体材料缺口时做最小 JIT 研究；
-不授权 Stage 2 产品实施、live DB、Provider、凭据、Push、Merge、Tag、V5-D 或 Post-V5。
+Stage 1 不证明完整 Personalized Answer 或真实用户收益。Main 已有限审阅并接受 Stage 2 Contract
+`20aca5b726c0c5585f5066e72778b30dcc2f32b5`：只允许 task-scoped、current、snapshot-bound 的
+`corpus_observation` 对既有 Product Search candidate pool 做 deterministic bounded presentation
+composition；原 query、mode、filters、planner 和 raw retrieval 独立运行，至少一半展示槽保留 open lane，
+并保留最高 baseline corpus-nonmatching counterexample。Corpus prior 不获得 Citation、Verifier、事实或
+hard-filter authority，缺失、不确定、冲突或 snapshot drift 时回到 baseline。
+
+现授权同一 V5-C Version Session 自主实施 Stage 2，普通低风险实现与测试问题自行修复并有界复跑。
+默认保持零 schema/table/index/migration/dependency/Prompt/Provider/background worker/platform 增量，最多
+一个窄的只读 projection adapter；只允许 temp-DB/no-provider 验证。不授权 live DB、凭据、Push、Merge、
+Tag、Stage 3、V5-D 或 Post-V5。
