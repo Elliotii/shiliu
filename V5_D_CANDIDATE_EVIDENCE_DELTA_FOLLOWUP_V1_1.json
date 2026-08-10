@@ -1,0 +1,219 @@
+{
+  "schema_version": "v5-d-candidate-revision-contract-v1",
+  "candidate_id": "V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001",
+  "parent_candidate": "V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001@1.0.0",
+  "candidate_type": "domain_specific_search_research_policy",
+  "candidate_surface": "follow_up_strategy",
+  "version": "1.1.0",
+  "lifecycle_status": "proposed_non_active",
+  "frozen_at": "2026-08-11T03:51:14+08:00",
+  "runtime_registration": null,
+  "active": false,
+  "shadow": false,
+  "failure_family": "non_progress_search_repetition_without_recovery",
+  "re_attribution_identity": "V5D-R1-REATTRIBUTION-20260811-A",
+  "remaining_mechanism_identity": "V5D-R1-MECHANISM-COVERAGE-HANDOFF-001",
+  "revised_causal_hypothesis": {
+    "hypothesis_id": "V5D-R1-HYPOTHESIS-COVERAGE-BUNDLE-HANDOFF-001",
+    "claim": "For applicable multi-source research tasks, one objective-derived coverage-bundle Evidence action followed by a deterministic post-recovery completion gate will prevent non-progress Baseline re-entry and improve grounded required-aspect and current-citation coverage without adding a second recovery.",
+    "falsification": "Either valid frozen D02 or D04 pair fails any R1 Source Gate, including required-aspect delta, current grounded Citation delta, required source diversity, recovery quality, stop correctness, no material regression, protected boundaries or overhead."
+  },
+  "source_failure_evidence": {
+    "case_id": "V5D-S0-D-02",
+    "treatment_trace_sha256": "22a7caa30604cf7a7d6ed70e99511b628028634adf1d20e7ef146e873e7bce57",
+    "source_pair_sha256": "0518795a65ee02134f742b3f2ca972a28702c610fd6424527c1210275b26d74a",
+    "observed": [
+      "one_material_recovery_added_current_evidence",
+      "post_recovery_candidate_control_was_released",
+      "next_baseline_decision_reselected_a_prior_exact_action",
+      "two_current_citations_resolved_to_one_source",
+      "required_aspect_coverage_remained_zero"
+    ]
+  },
+  "applicability": {
+    "mode": [
+      "deep_research"
+    ],
+    "decision_phases": [
+      "pre_follow_up_action",
+      "post_candidate_recovery_handoff"
+    ],
+    "required_state": [
+      "at_least_one_tool_observation_exists",
+      "one_or_more_explicit_user_objective_evidence_or_source_coverage_requirements_remain_unresolved",
+      "current_source_index_and_runtime_health_are_valid",
+      "remaining_decision_and_tool_budget_is_known"
+    ]
+  },
+  "non_applicable_scope": [
+    "initial_query_planning_before_any_observation",
+    "already_sufficient_grounded_answer",
+    "provider_infrastructure_or_evaluator_invalid_run",
+    "stale_missing_or_unready_source_or_index",
+    "fast_answer_or_plain_search",
+    "tasks_without_an_explicit_unresolved_evidence_or_source_coverage_obligation",
+    "answer_presentation_citation_validation_or_evidence_authority"
+  ],
+  "trigger": {
+    "initial_any": [
+      "last_evidence_seeking_action_added_zero_current_transcript_evidence_while_explicit_coverage_remains_open",
+      "a_proposed_follow_up_reuses_a_prior_exact_routing_or_evidence_action_while_explicit_coverage_remains_open_and_routing_targets_exist"
+    ],
+    "post_recovery": "the_single_candidate_recovery_action_completed",
+    "termination_reason_dependency": false,
+    "repeat_count_dependency": false
+  },
+  "required_preconditions": [
+    "decision_view_exposes_objective_last_observation_previous_action_keys_routing_documents_current_evidence_sources_open_questions_and_remaining_budget",
+    "coverage_obligations_are_derived_only_from_explicit_user_objective_open_questions_and_current_routing_observations",
+    "candidate_package_identity_and_lifecycle_status_are_valid",
+    "treatment_is_explicitly_enabled_only_by_the_frozen_R1_experiment_entry",
+    "candidate_has_no_gold_evaluator_split_reserve_or_promotion_access"
+  ],
+  "procedure": [
+    {
+      "step": 1,
+      "action": "build_objective_coverage_snapshot",
+      "fields": [
+        "explicit_named_sources",
+        "explicit_minimum_distinct_source_count",
+        "current_grounded_source_count",
+        "previous_action_keys",
+        "routing_observations",
+        "last_current_evidence_delta",
+        "remaining_budget"
+      ]
+    },
+    {
+      "step": 2,
+      "action": "classify_follow_up_and_handoff",
+      "rule": "Trigger only on zero current Evidence with unresolved explicit coverage or on a proposed exact prior action with unresolved explicit coverage; routing hits alone are not grounded completion."
+    },
+    {
+      "step": 3,
+      "action": "select_one_coverage_bundle_recovery",
+      "rule": "Issue at most one Evidence-bearing transcript action whose bounded source set or corpus scope is derived from the explicit objective and routing observations and is capable of satisfying the unresolved distinct-source obligation in one action."
+    },
+    {
+      "step": 4,
+      "action": "retain_post_recovery_control",
+      "rule": "After the one recovery, compare current grounded source coverage and Evidence delta with the objective coverage snapshot before any Baseline handoff."
+    },
+    {
+      "step": 5,
+      "action": "complete_or_honestly_stop",
+      "rule": "Stop for grounded synthesis when explicit source coverage is satisfied; otherwise stop partial with the remaining coverage deficit when current Evidence exists, or insufficient when none exists. Never return to an uncontrolled follow-up that can repeat a prior action."
+    }
+  ],
+  "recovery_logic": {
+    "maximum_candidate_recovery_actions": 1,
+    "unit": "one_objective_coverage_bundle_action",
+    "named_source_rule": "When the objective explicitly names multiple sources, target the matching routed sources together in one transcript action.",
+    "open_collection_rule": "When the objective specifies a minimum distinct-source count without naming sources, use one objective-scoped corpus transcript action rather than selecting one arbitrary routed source.",
+    "materiality": "The action key, source-set or corpus scope and expected coverage must differ materially from prior actions.",
+    "second_recovery_authorized": false
+  },
+  "stop_conditions": [
+    "post_recovery_explicit_source_coverage_is_satisfied_and_current_evidence_supports_grounded_synthesis",
+    "post_recovery_current_evidence_exists_but_explicit_source_coverage_remains_incomplete_then_honest_partial_stop",
+    "post_recovery_current_evidence_delta_is_zero_then_honest_insufficient_stop",
+    "no_eligible_objective_derived_coverage_bundle_exists",
+    "budget_deadline_permission_control_or_health_boundary_requires_stop"
+  ],
+  "forbidden_behavior": [
+    "perform_more_than_one_candidate_recovery_action",
+    "treat_one_positive_evidence_delta_as_objective_completion_without_coverage_review",
+    "return_to_uncontrolled_baseline_follow_up_after_the_candidate_recovery",
+    "continue_unconditionally_because_only_one_source_is_grounded",
+    "repeat_an_exact_normalized_action_key",
+    "derive_source_count_targets_or_aspects_from_gold_evaluator_outputs_split_labels_or_sealed_reserve_content",
+    "treat_navigation_hits_answer_length_search_count_or_repeated_search_absence_as_grounded_success",
+    "modify_evidence_citation_currentness_verifier_authority_source_lineage_provider_route_tool_permission_or_corpus_boundary",
+    "hide_or_reclassify_invalid_runs_or_candidate_quality_failures"
+  ],
+  "baseline_fallback": {
+    "behavior": "execute_the_existing_no_skill_baseline_unchanged",
+    "required_when": [
+      "candidate_package_missing_or_invalid",
+      "candidate_not_explicitly_enabled_by_the_frozen_R1_treatment",
+      "applicability_or_preconditions_not_satisfied",
+      "identity_lineage_health_or_protected_boundary_check_fails",
+      "R1_rejection_or_rollback_is_recorded"
+    ]
+  },
+  "expected_behavior_change": [
+    "D02_recovery_targets_the_objective_named_source_bundle_in_one_action",
+    "D02_post_recovery_decision_uses_the_coverage_gate_instead_of_round_5_baseline_reentry",
+    "D04_exact_repeated_routing_proposal_can_be_replaced_by_one_objective_scoped_coverage_bundle",
+    "all_post_recovery_paths_end_in_grounded_synthesis_or_an_explicit_coverage_deficit_stop"
+  ],
+  "v1_0_to_v1_1_delta": {
+    "unchanged": [
+      "same_candidate_id_failure_family_and_follow_up_surface",
+      "zero_evidence_or_nonincremental_follow_up_causal_entry",
+      "at_most_one_candidate_recovery_action",
+      "current_transcript_evidence_authority",
+      "no_skill_fallback_and_all_protected_boundaries"
+    ],
+    "removed": [
+      "one_arbitrary_untried_document_as_default_recovery_unit",
+      "positive_evidence_delta_immediately_releases_candidate_control_to_baseline"
+    ],
+    "added": [
+      "explicit_objective_coverage_snapshot",
+      "one_multi_source_or_objective_scoped_coverage_bundle_action",
+      "post_recovery_completion_or_honest_deficit_stop_gate",
+      "pre_guard_interception_of_an_exact_repeated_follow_up_when_explicit_coverage_is_open"
+    ],
+    "not_added": [
+      "second_recovery",
+      "larger_recovery_count",
+      "single_source_continue_search_heuristic",
+      "termination_reason_or_repeat_count_trigger"
+    ]
+  },
+  "falsification_conditions": [
+    "either_valid_D02_or_D04_pair_fails_any_frozen_R1_source_gate",
+    "coverage_bundle_does_not_materially_change_the_post_recovery_handoff",
+    "required_aspect_delta_is_less_than_one",
+    "current_grounded_citation_delta_is_less_than_one",
+    "required_source_diversity_stop_correctness_or_recovery_quality_fails",
+    "final_answer_materially_regresses_or_overhead_or_protected_boundary_is_exceeded"
+  ],
+  "expected_cost_delta": {
+    "scope": "per_applicable_treatment_run_relative_to_valid_baseline",
+    "maximum_incremental_provider_logical_calls": 2,
+    "maximum_incremental_http_attempts": 4,
+    "maximum_incremental_input_tokens": 25000,
+    "maximum_incremental_output_tokens": 6000,
+    "maximum_incremental_paid_cost_usd": "0.03"
+  },
+  "expected_tool_provider_delta": {
+    "provider_route_delta": 0,
+    "new_provider_roles": 0,
+    "maximum_incremental_executed_tool_calls": 1,
+    "tool_permission_delta": 0
+  },
+  "protected_boundaries": [
+    "transcript_source_authority",
+    "stable_citation_identity",
+    "source_version_validation",
+    "evidence_and_artifact_lineage",
+    "dataset_and_split_identity",
+    "frozen_evaluator_and_judge",
+    "promotion_gate",
+    "invalid_run_policy",
+    "experiment_identity",
+    "provider_usage_and_cost_accounting",
+    "tool_permission_boundary",
+    "explicit_user_control",
+    "no_skill_baseline_fallback"
+  ],
+  "rollback_or_rejection_behavior": {
+    "candidate_state": "rejected_or_rolled_back",
+    "runtime_effect": "none",
+    "fallback": "existing_no_skill_baseline",
+    "historical_evidence_mutation": false,
+    "v1_2_automatic_revision": false
+  }
+}

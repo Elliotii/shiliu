@@ -1,0 +1,286 @@
+{
+  "schema_version": "v5-d-stage2-experiment-freeze-v1",
+  "experiment_id": "V5D-S2-PAIRED-EVAL-001",
+  "status": "frozen_pending_freeze_commit",
+  "control_logic_commit_binding": "the_clean_commit_containing_this_manifest",
+  "stage_2_entry_head": "900953df64676a5d1438743918ac806961dfff14",
+  "main_authority_commit": "7ef5dc7ec12689222d3bd277935cbeb586389d38",
+  "candidate_freeze": {
+    "candidate_id": "V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001",
+    "version": "1.0.0",
+    "lifecycle_status": "proposed_non_active",
+    "runtime_registration": null,
+    "active": false,
+    "shadow": false,
+    "artifact_sha256": "6bcda6e5c5428c304807f067570c9acb7977cbd991c355edaeb9346d3d13cdbe",
+    "trigger_sha256": "b4976230a95960d07e908e5555b9ef6fc99767d71b29dd7f1f7a641752589f87",
+    "applicability_sha256": "94fb797c3d9d31731ea5c645dc56ecb3b2f755fbea8b1a4175cc874044f90ed1",
+    "required_preconditions_sha256": "be089bbd8fd58a7f883a8deb74591f631c8c8fcd8618967902fb956a641a7a55",
+    "procedure_sha256": "9e9f447b751d5ddc9e8d0f314ae3c4538f0b6fe1411d0290636096181ee2f9f7",
+    "stop_conditions_sha256": "c1cb08954e7768b21105dcb4c28761e7c4089a11f9f4e2ed497db6e65c633fe7",
+    "forbidden_behavior_sha256": "762b8eeb51e04f309b585e416a46e13e1ad894282ad1734b8a03dbc9c6bc2f55",
+    "baseline_fallback_sha256": "e0f8445be05054709b1196666ca0275680c99c9ea73fae8f495ee98f18780707",
+    "protected_boundaries_sha256": "762e582e17591e23711716be8c843491b0b6ae7e40947c7b06eda7dfc3a70dbb",
+    "materially_different_target_definition": {
+      "evidence_bearing_actions": [
+        "search_transcripts",
+        "read_transcript_window"
+      ],
+      "exact_prior_action_key_forbidden": true,
+      "source_target_change": "transcript video-id set differs and includes an untried routing-observed source",
+      "query_scope_change": "normalized proposed query adds one or more substantive alphanumeric or CJK scope terms relative to the previous evidence-seeking query",
+      "navigation_is_evidence": false,
+      "target_inputs": [
+        "user_objective",
+        "open_questions",
+        "current_navigation_routing_observations"
+      ],
+      "forbidden_target_inputs": [
+        "Gold",
+        "evaluator",
+        "split_label",
+        "reserve_semantics",
+        "promotion_threshold"
+      ]
+    },
+    "recovery_rule": "after an applicable zero-current-Evidence-delta observation, select at most one materially different evidence-bearing target; no eligible target means honest stop",
+    "recovery_count": 1,
+    "stop_rule": "after the one recovery, a second zero-current-Evidence delta produces honest partial/insufficient stop without another Provider decision; Evidence gain returns to the unchanged baseline decision path",
+    "candidate_context_version": "v5-d-stage2-evidence-delta-context-v1",
+    "candidate_instruction_sha256": "8d343e90e9416ab6065d4a3aa1ca5f3a80886b976e0c196dca46e417281b3856"
+  },
+  "experiment_freeze": {
+    "baseline_version": "existing-no-skill-v4-deep-policy-v1-at-stage2-entry",
+    "baseline_product_source_tree": "41ccf576cdd6ce6282b0eb8d35a31b75bc0cad01",
+    "baseline_no_skill_scaffold_sha256": "126d774fd8f5d43db8e3439e86b4603009ac31f464125de545d1d3bf304d7647",
+    "treatment_version": "v5-d-stage2-evidence-delta-followup-treatment-v1",
+    "source_and_tests": {
+      "scripts/v5_d_stage2_treatment.py": "09d8ef4fc50001e499bfd2afa01337220e4cc16fa4f98790d09184fcf90eb3f0",
+      "scripts/v5_d_stage2_paired_runner.py": "10f343123f05c5ffd4c767d425dee6ad1c1a4adf5f06c30a4f044b7691e57e47",
+      "scripts/v5_d_stage2_evaluator.py": "6efc8a0f6118dad39b56b87c675fe5ffa3d8781c316fe0d26889013782177966",
+      "tests/test_v5_d_stage2_treatment.py": "7476fb976184c5708f140e5969c89180077b30a6cd291be999d7fcba5de6d2a1",
+      "tests/test_v5_d_stage2_evaluator.py": "4b6da691c60dd67878a564f9d7b0e7c24520112aebb7b85e79711df9c34c15c4"
+    },
+    "prompt_versions": {
+      "query_analysis": "current product configuration at freeze commit",
+      "baseline_agent_action": "v4-deep-policy-v1",
+      "treatment_agent_action_context": "v5-d-stage2-evidence-delta-context-v1",
+      "grounded_answer": "current product configuration at freeze commit"
+    },
+    "provider_configuration": {
+      "provider": "deepseek_openai_compatible",
+      "protocol": "openai-compatible",
+      "base_url": "https://api.deepseek.com/v1",
+      "model": "deepseek-v4-pro",
+      "roles": [
+        "query_analysis",
+        "agent_action",
+        "grounded_answer"
+      ],
+      "provider_switch_allowed": false,
+      "credential": "existing_keychain_reference_runtime_only_no_value_recording"
+    },
+    "retrieval_version": {
+      "lexical": "v3-stage1-lexical-v1",
+      "dense": "v3-dense-qwen3-0.6b-mrl512-v1",
+      "dense_model": "Qwen/Qwen3-Embedding-0.6B",
+      "stage0_retrieval_unit_manifest_sha256": "afbdeeb2274b407b939cedbfc1216c4174757fa1adc5948d81a6c854fe52ac5b",
+      "stage2_explicit_retrieval_unit_manifest_sha256": "d9f16b50abb855400a8b5efaa6199814f8b7e65b0e5e0d6d6f757a1e27aeba94"
+    },
+    "corpus_snapshot": {
+      "source": "copy_of_stage0_isolated_post_run_snapshot",
+      "database_sha256_before_stage2_runs": "a6497202263bdc318783a0efc35394dbbb53f282af034a76cbf648fc79172b8f",
+      "schema": 14,
+      "videos": 157,
+      "completed_videos": 140,
+      "lexical_units": 1633,
+      "dense_vectors": 1633,
+      "source_version_set_sha256": "d7092edf4cece5fa54b574469740b5cdaef86275c993226d8d3f63eabacf4b9b",
+      "artifact_snapshot_file_count": 1391,
+      "artifact_snapshot_manifest_sha256": "5da478bc2a91945f0f6c17e4516865db75508641b361286163866f4805cd1b21"
+    },
+    "evaluator_version": "v5-d-stage2-paired-grounded-outcome-evaluator-v1",
+    "evaluator": {
+      "judge": "deterministic_contract_checks_plus_isolated_manual_frozen_aspect_review",
+      "model_judge": false,
+      "required_metrics": [
+        "frozen_required_aspect_coverage",
+        "current_grounded_citations",
+        "materially_new_recovery",
+        "source_diversity_when_required",
+        "counterexample_or_limitation_preservation",
+        "answer_status",
+        "stop_correctness",
+        "one_recovery_stop_risk",
+        "provider_tool_token_cost",
+        "invalid_and_protected_boundary_state"
+      ],
+      "success_proxies_forbidden": [
+        "answer_length",
+        "navigation_hits",
+        "search_count"
+      ]
+    },
+    "source_cases": {
+      "case_ids": [
+        "V5D-S0-D-02",
+        "V5D-S0-D-04"
+      ],
+      "generalization_evidence": false
+    },
+    "dataset_assignment_rule": {
+      "inputs": [
+        "preregistered_case_id",
+        "preregistered_archetype",
+        "body_sha256",
+        "source_boundary_sha256",
+        "access_state"
+      ],
+      "outcome_or_run_input_forbidden": true,
+      "related_eligible_archetypes": [
+        "multi_video_comparison",
+        "collection_wide_or_source_diverse_research"
+      ],
+      "related_selection": "minimum sha256(experiment_id + case_id) among eligible sealed cases",
+      "unrelated_archetypes": [
+        "single_video_grounded_synthesis",
+        "claim_with_counterevidence_or_limitations"
+      ],
+      "unrelated_selection": "both exact preregistered unrelated archetypes, ordered by sha256(experiment_id + case_id)",
+      "spare_selection": "the one remaining related-eligible sealed case",
+      "spare_use": "pre-run contamination or eligibility failure only; never outcome-based",
+      "required_split": "1_related_plus_2_unrelated_plus_1_spare",
+      "split_failure_exit": "insufficient_uncontaminated_split_before_any_heldout_provider_run"
+    },
+    "arm_order_rule": "sha256(experiment_id + case_id) integer parity: even baseline_then_treatment, odd treatment_then_baseline",
+    "task_identity_rule": "rtask_ + first32hex(sha256(experiment_id|case_id|arm|outer_attempt))",
+    "invalid_run_policy": {
+      "eligible_classes": [
+        "provider_failure",
+        "infrastructure_invalid_run",
+        "evaluation_invalid_run"
+      ],
+      "replacement_per_arm": 1,
+      "replacement_requires_identical_freeze": true,
+      "candidate_quality_or_no_improvement_replacement": false,
+      "opportunity_resampling": false,
+      "best_of_rollout": false
+    },
+    "arm_envelopes": {
+      "baseline": {
+        "logical_provider_calls": 12,
+        "http_attempts": 24,
+        "input_tokens": 125000,
+        "output_tokens": 15000,
+        "executed_tool_calls": 12,
+        "wall_time_seconds": 720
+      },
+      "treatment": {
+        "logical_provider_calls": 14,
+        "http_attempts": 28,
+        "input_tokens": 140000,
+        "output_tokens": 20000,
+        "executed_tool_calls": 13,
+        "wall_time_seconds": 720
+      }
+    },
+    "whole_experiment_budget": {
+      "valid_arms": 10,
+      "outer_attempts_including_replacements": 20,
+      "logical_provider_calls": 260,
+      "http_attempts": 520,
+      "input_tokens": 2750000,
+      "output_tokens": 350000,
+      "deep_tool_calls": 250,
+      "wall_time_seconds": 14400,
+      "paid_cost_hard_stop_usd": "0.50",
+      "paid_cost_reserve_stop_usd": "0.40",
+      "unknown_reservations_accounted_worst_case": true
+    },
+    "durable_phase_budget_allocation": {
+      "reason": "the accepted Runtime requires every Task in one durable budget policy to exist before its first snapshot; source tasks can be preregistered without reserve access, while held-out Tasks may exist only after custody assignment",
+      "source": {
+        "membership": "D02_and_D04_x_baseline_treatment_x_primary_replacement",
+        "logical_provider_calls": 104,
+        "http_attempts": 208,
+        "input_tokens": 1060000,
+        "output_tokens": 140000,
+        "deep_tool_calls": 100,
+        "wall_time_seconds": 5760,
+        "paid_cost_reserve_stop_usd": 0.16,
+        "paid_cost_hard_stop_usd": 0.20
+      },
+      "heldout": {
+        "membership": "three_assigned_cases_x_baseline_treatment_x_primary_replacement",
+        "logical_provider_calls": 156,
+        "http_attempts": 312,
+        "input_tokens": 1590000,
+        "output_tokens": 210000,
+        "deep_tool_calls": 150,
+        "wall_time_seconds": 8640,
+        "paid_cost_reserve_stop_usd": 0.24,
+        "paid_cost_hard_stop_usd": 0.30
+      },
+      "sum": {
+        "logical_provider_calls": 260,
+        "http_attempts": 520,
+        "input_tokens": 2650000,
+        "output_tokens": 350000,
+        "deep_tool_calls": 250,
+        "wall_time_seconds": 14400,
+        "paid_cost_reserve_stop_usd": 0.40,
+        "paid_cost_hard_stop_usd": 0.50
+      },
+      "whole_contract_cap_not_exceeded": true,
+      "cost_allocation_is_additive_not_resettable": true
+    },
+    "success_gates": {
+      "source_each": "valid pair; baseline attributed repeated-search mechanism; treatment material recovery; >=1 required-aspect delta; >=1 current-grounded-citation delta; currentness/lineage/stop/boundary/overhead pass",
+      "related": "same grounded improvement and recovery/stop gate as source",
+      "unrelated_each": "no material regression in answer status, aspects, grounded citations, counterexample/limitation, source diversity, stop correctness",
+      "negative_transfer": "0_of_2",
+      "per_pair_overhead": {
+        "logical_provider_calls": 2,
+        "http_attempts": 4,
+        "input_tokens": 25000,
+        "output_tokens": 5000,
+        "executed_tool_calls": 1,
+        "provider_route_delta": 0,
+        "tool_permission_delta": 0
+      }
+    },
+    "contamination_rule": {
+      "candidate_designer_may_receive": [
+        "redacted_case_identity",
+        "body_hash",
+        "source_boundary_hash",
+        "assignment_role",
+        "aggregate_frozen_metrics",
+        "invalid_state",
+        "verdict_evidence"
+      ],
+      "candidate_designer_must_not_receive": [
+        "heldout_body",
+        "Gold",
+        "Evidence_refs",
+        "raw_Provider_response",
+        "arm_semantic_output",
+        "private_evaluator_inputs"
+      ],
+      "candidate_or_evaluator_change_after_split": "close_current_experiment",
+      "heldout_reuse_after_candidate_change": false
+    }
+  },
+  "non_product_boundary": {
+    "explicit_runner_only": "scripts/v5_d_stage2_paired_runner.py",
+    "default_product_import_or_discovery": false,
+    "live_prompt_or_provider_route_change": false,
+    "evidence_citation_verifier_currentness_change": false,
+    "tool_permission_or_authority_change": false,
+    "active_or_shadow_registration": false,
+    "baseline_fallback": "existing_No-Skill_unchanged",
+    "generic_platform": false,
+    "second_candidate": false
+  },
+  "modification_rule": "after the freeze commit, any trigger/applicability/material-target/recovery/count/stop/fallback/Candidate-context/evaluator/scaffold/success-threshold change closes V5D-S2-PAIRED-EVAL-001; held-out may not be reused"
+}
