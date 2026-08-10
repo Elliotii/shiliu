@@ -4,9 +4,9 @@
 > Goal: Controlled Experience-driven Search Policy Improvement
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: candidate_revision_R1_accepted_invalid_run
+> Status: candidate_revision_R1_E1_authorized
 > Planning authority: user-authorized
-> Execution authority: none_pending_user_direction
+> Execution authority: R1_E1_mechanical_execution_only
 > Accepted by: user
 > Accepted at: 2026-08-11
 > V5-D Version Session created: true
@@ -87,7 +87,7 @@ mechanical_foundation_ready: true
 empirical_entry_gate_met: true
 bounded_stage_0_status: accepted
 candidate_product_integration_authorized: false
-experiment_only_treatment_implementation_authorized: false
+experiment_only_treatment_implementation_authorized: true_R1_E1_mechanical_only
 stage_2_status: accepted_rejected
 candidate_evaluation_status: rejected
 ```
@@ -433,7 +433,7 @@ V5_D_session_created: true
 stage_0_status: accepted
 stage_0_execution_authorized: closed_completed
 product_implementation_authorized: false
-provider_runs_authorized: false
+provider_runs_authorized: true_R1_E1_residual_source_gate_only
 candidate_contract_status: accepted_proposed_non_active
 candidate_evaluation_status: rejected
 candidate_revision_R1_authorized: closed_completed
@@ -441,8 +441,11 @@ candidate_revision_R1_target_version: 1.1.0
 candidate_revision_R1_status: accepted_invalid_run
 candidate_v1_1_effectiveness: unproven
 candidate_v1_1_source_gate: not_reached
+candidate_revision_R1_E1_authorized: true
+candidate_revision_R1_E1_kind: mechanical_execution_only
+candidate_revision_R1_E1_status: authorized_pending_execution
 further_major_revision_default_authorized: false
-experiment_only_treatment_implementation_authorized: false
+experiment_only_treatment_implementation_authorized: true_R1_E1_mechanical_only
 reserve_open_authorized: false
 skill_repository_authorized: false
 promotion_authorized: false
@@ -454,5 +457,7 @@ stage_3_execution_authorized: false
 
 本 Charter 是持续 V5-D Version Session 的上位合同。R1 已以 exact `invalid_run` 完成并由 Main 有限验收：
 Candidate v1.1 作为同家族 `proposed_non_active` 包保留，但 Source Gate 未达到、effectiveness unproven。
-任何只修正 frozen per-arm envelope 的 `R1-E1` execution amendment 仍需用户另行授权；Reserve、held-out、
-Stage 3、active/shadow registration、promotion、live DB 与版本集成均未授权，v1.2 也未授权。
+用户现已授权 `V5_D_CANDIDATE_REVISION_R1_E1_MECHANICAL_EXECUTION_AMENDMENT_CONTRACT.md`：只修正 frozen
+per-arm envelope、补真实 Runtime boundary regression、携带且不重跑 D02 Baseline，并以原 R1 累计剩余预算
+完成 D02/D04 Source Gate。Reserve、held-out、Stage 3、active/shadow registration、promotion、live DB 与
+版本集成均未授权，v1.2 也未授权。

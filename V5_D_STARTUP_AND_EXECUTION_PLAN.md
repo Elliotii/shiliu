@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: candidate_revision_R1_accepted_invalid_run
+> Status: candidate_revision_R1_E1_authorized
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: none_pending_user_direction
+> Execution authorization: R1_E1_mechanical_execution_only
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -516,8 +516,9 @@ Stage 2 已在 effective freeze `0c72277` 下完成。D02 valid source pair 未�
 
 用户随后授权一次且默认仅一次 `Candidate Revision Cycle R1`。该 Cycle 先对 D02 v1.0 Treatment 后的
 remaining failure 做 Attribution，再形成同一 Failure Family 的 v1.1，冻结后只做 D02/D04 Source Gate。
-它不是新的正式路线 Stage；当前 `active_formal_stage_or_goal_limit=1` 由 R1 占用。Reserve/held-out 与 Stage 3
-保持关闭。
+它不是新的正式路线 Stage；R1 exact `invalid_run` 已关闭，当前
+`active_formal_stage_or_goal_limit=1` 由其 mechanical execution amendment R1-E1 占用。Reserve/held-out 与
+Stage 3 保持关闭。
 
 ---
 
@@ -564,7 +565,7 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 ```yaml
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
-authorized_scope: completed_startup_stage_0_stage_1_stage_2_plus_current_candidate_revision_R1
+authorized_scope: completed_startup_stage_0_stage_1_stage_2_R1_plus_R1_E1_mechanical_execution
 V5_D_session_created: true
 stage_0_started: true
 stage_0_status: accepted
@@ -579,16 +580,20 @@ candidate_revision_R1_provider_hard_stop_usd: 0.20
 candidate_revision_R1_status: accepted_invalid_run
 candidate_v1_1_effectiveness: unproven
 candidate_v1_1_source_gate: not_reached
+candidate_revision_R1_E1_authorized: true
+candidate_revision_R1_E1_status: authorized_pending_execution
+candidate_revision_R1_E1_residual_hard_stop_usd: 0.199353387
 further_major_revision_default_authorized: false
 stage_1_execution_authorized: closed_completed
 stage_2_execution_authorized: closed_completed
 stage_2_acceptance_status: accepted_rejected
 stage_3_execution_authorized: false
-next_action: await_user_direction_on_R1_E1_mechanical_amendment_or_close_candidate_effort
+next_action: persistent_V5_D_session_executes_R1_E1_then_stops_at_Source_Gate
 ```
 
 Stage 2 已完成并由 Main 有限验收，Candidate v1.0 evaluation status 为 `rejected`。R1 也已完成并由 Main
 接受 exact `invalid_run`：v1.1 Attribution/Candidate package 形成，但 frozen Treatment per-arm input cap
-超过 accepted Runtime 上限，Source Gate 未达到。当前没有 execution authority；Reserve 保持 sealed，
-held-out、Stage 3、v1.2、live DB 与 merge/push/tag 未授权。用户可选择授权一个不改变 Candidate logic 的
-R1-E1 mechanical execution amendment，或关闭该 Candidate effort。
+超过 accepted Runtime 上限，Source Gate 未达到。用户已授权一个不改变 Candidate/Treatment/Evaluator/
+success gate 的 R1-E1 mechanical execution amendment：补真实 Runtime envelope regression，以增量 freeze
+携带且禁止重跑 D02 Baseline，只运行 D02 Treatment 与 D04 Treatment/Baseline，并沿用原 R1 累计剩余预算。
+Source Gate 后立即停止；Reserve 保持 sealed，held-out、Stage 3、v1.2、live DB 与 merge/push/tag 未授权。
