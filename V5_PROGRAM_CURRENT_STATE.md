@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T03:25:50+08:00
+> Updated at: 2026-08-11T03:42:36+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: none
+  current_formal_stage: Candidate_Revision_Cycle_R1
   active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -57,8 +57,11 @@ resume_anchor:
   V5_D_stage_2_status: accepted_rejected
   V5_D_stage_2_effective_freeze_head: 0c72277e7b30bac68800ef27acc9e8d52222efd6
   V5_D_stage_2_execution_head: 254d72a03a1251ee0d08cac49d100b91b5de7593
-  pending_decision: revise_same_failure_family_candidate_or_close_rejected_effort
-  next_action: await_user_direction_before_any_candidate_revision_or_closeout
+  V5_D_candidate_revision_R1_authorized: true
+  V5_D_candidate_revision_R1_target_version: 1.1.0
+  V5_D_candidate_revision_R1_reserve_authorized: false
+  pending_decision: V5_D_candidate_revision_R1_execution_and_main_acceptance
+  next_action: persistent_V5_D_session_executes_R1_then_stops
   roadmap_reconsideration_open: false
 ```
 
@@ -86,7 +89,10 @@ program:
     proposed_non_active_candidate_contract_status: accepted
     candidate_effectiveness_proven: false
     candidate_evaluation_status: rejected
-    experiment_only_treatment_implementation_authorized: false
+    candidate_revision_R1_status: authorized
+    candidate_revision_R1_target_version: 1.1.0
+    further_major_revision_default_authorized: false
+    experiment_only_treatment_implementation_authorized: true_for_R1_only
     active_or_shadow_registration_authorized: false
   Post_V5:
     status: conditional_long_term_direction
@@ -301,7 +307,7 @@ session_limits:
   active_formal_stage_or_goal_limit: 1
 current_usage:
   active_subversions: 1
-  active_formal_stages: 0
+  active_formal_stages: 1
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -461,6 +467,9 @@ USD 0.008692373。Reserve 始终 sealed，access log 4、post-freeze access 0、
 因此 related generalization、unrelated regression 与 negative transfer 均未证明。
 
 Candidate artifact 保持 proposed/non-active，但其 evaluation status 已正式为 `rejected`。Stage 3 Entry Gate
-未满足；当前 active formal Stage 为 0，Provider、reserve open、candidate revision、active/shadow、promotion、
-live DB 与 merge/push/tag 均未授权。下一步等待用户决定：为同一 Failure Family 授权一个全新 bounded
-Candidate revision 合同，或以 `closed_candidate_rejected` 诚实关闭当前 V5-D effort。
+未满足。用户已选择并授权唯一一次 major Candidate Revision Cycle R1：先离线重新归因 D02 v1.0 Treatment
+后的 remaining mechanism，再形成同一 Failure Family 的 Candidate v1.1，冻结 experiment-only Treatment 后
+仅运行 D02/D04 Source Gate。R1 Provider hard stop 为 USD 0.20，最多 4 valid arms / 8 outer attempts；Reserve
+继续完全 sealed，held-out、Stage 3、active/shadow、promotion、live DB 与 merge/push/tag 均未授权。R1 完成
+后必须停止等待 Main 有限验收；source failure 默认关闭当前 Candidate/Failure Family revision attempt，不得
+自行创建 v1.2。

@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_2_accepted_candidate_rejected
+> Status: candidate_revision_cycle_R1_authorized
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: none_pending_user_direction
+> Execution authorization: Candidate Revision Cycle R1 only
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -514,6 +514,11 @@ Stage 2 已在 effective freeze `0c72277` 下完成。D02 valid source pair 未�
 与 recovery/stop gates，Candidate v1.0 exact verdict 为 `rejected`；D04 与 reserve/held-out 未运行。Main 已接受
 该实验和拒绝判定。Stage 3 Entry Gate 未满足，不得自动进入 Stage 3。
 
+用户随后授权一次且默认仅一次 `Candidate Revision Cycle R1`。该 Cycle 先对 D02 v1.0 Treatment 后的
+remaining failure 做 Attribution，再形成同一 Failure Family 的 v1.1，冻结后只做 D02/D04 Source Gate。
+它不是新的正式路线 Stage；当前 `active_formal_stage_or_goal_limit=1` 由 R1 占用。Reserve/held-out 与 Stage 3
+保持关闭。
+
 ---
 
 # 15. Stop and Escalation Conditions
@@ -559,7 +564,7 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 ```yaml
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
-authorized_scope: completed_startup_stage_0_stage_1_stage_2
+authorized_scope: completed_startup_stage_0_stage_1_stage_2_plus_current_candidate_revision_R1
 V5_D_session_created: true
 stage_0_started: true
 stage_0_status: accepted
@@ -568,14 +573,17 @@ product_implementation_started: false
 provider_runs_performed: true_within_completed_stage_0_and_stage_2
 candidate_contract_status: accepted_proposed_non_active
 candidate_evaluation_status: rejected
+candidate_revision_R1_authorized: true
+candidate_revision_R1_target_version: 1.1.0
+candidate_revision_R1_provider_hard_stop_usd: 0.20
+further_major_revision_default_authorized: false
 stage_1_execution_authorized: closed_completed
 stage_2_execution_authorized: closed_completed
 stage_2_acceptance_status: accepted_rejected
 stage_3_execution_authorized: false
-next_action: await_user_direction_on_bounded_candidate_revision_or_closed_candidate_rejected
+next_action: persistent_V5_D_session_executes_R1_and_stops_for_main_acceptance
 ```
 
-Stage 2 已完成并由 Main 有限验收。Candidate artifact 仍为 proposed/non-active，但 evaluation status 为
-`rejected`；reserve 保持 sealed，Stage 3、Provider、candidate revision、live DB 与 merge/push/tag 未授权。
-持续 V5-D Session 保留但停止，等待用户决定继续同一 Failure Family 的 bounded Candidate revision，或以
-`closed_candidate_rejected` 关闭当前 effort。
+Stage 2 已完成并由 Main 有限验收。Candidate v1.0 evaluation status 为 `rejected`。用户已授权同一持续
+V5-D Session 执行一次 R1：Attribution-first Candidate v1.1 + frozen D02/D04 Source Gate。Reserve 保持
+sealed，held-out、Stage 3、live DB 与 merge/push/tag 未授权。R1 完成后停止；不得自动创建 v1.2。
