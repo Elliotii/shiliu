@@ -3,20 +3,27 @@
 ```yaml
 version: V5-C
 stage: Stage 5 - Integrated Personalized Research Journey and Evaluation
-report_role: integrated_stage_5_implementation_and_v5_c_closeout_request
-report_status: implementation_complete_pending_v5_main_acceptance
+report_role: main_integrated_v5_c_final_closeout
+report_status: accepted_with_known_limits
 execution_branch: codex/v5-c
 accepted_contract: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
 main_authority: 151709b9d6135c324d88460a4264a8831df244df
 main_decision: V5D-20260810-031
 implementation_commit: e6c13d72dc064abcaefdb5360e1a775153d7803d
+closeout_docs_correction: bdc0812836dac08644f05dea946d6e51f287a68d
+main_execution_acceptance: f36b4e75cbd47bf98fa033879806ee16d1949838
+mainline_merge: 8904e27df07becebae13110f9be17cd829373b20
+main_final_decision: V5D-20260810-033
 schema_version: 14
-stage_5_accepted: false
-v5_c_accepted: false
+stage_5_accepted: true
+v5_c_accepted: true
+mainline_integrated: true
+live_migration_performed: false
+readonly_live_smoke_passed: true
 self_acceptance: forbidden
 ```
 
-本提交完成已接受 Contract 冻结的最终纵切：existing Research Task 页面新增一个只读 Journey rail，组合 Stage 1 Answer、Stage 2 Search 入口、Stage 3 Routing 与 Stage 4 Progress/Assistance；唯一新增 Answer behavior 是 confirmed `answer.presentation.detail_level=standard|compact`。本报告请求 V5 Main 对 Stage 5 与 V5-C 做有限验收，不自行宣布接受，也不执行 mainline/live 操作。
+V5-C 已完成并由 V5 Main 正式收口。Stage 5 在 existing Research Task 页面增加只读 Journey rail，组合 Stage 1 Answer、Stage 2 Search 入口、Stage 3 Routing 与 Stage 4 Progress/Assistance；唯一新增 Answer behavior 是 confirmed `answer.presentation.detail_level=standard|compact`。执行分支没有自我接受；Main 已完成有限验收、mainline merge、风险导向集成验证与无迁移的只读 live smoke。
 
 ## 1. 实现结果与 diff scope
 
@@ -108,7 +115,7 @@ push_merge_tag: 0
 v5_d_work: 0
 ```
 
-本 Session 依授权没有访问 live DB，因此本轮没有 live DB SHA-256；历史 Stage hash 不被复用或冒充 Stage 5 证据。live integration/smoke/hash 仍属于 Main 的后续 authority。未运行 Provider comparison，原因仍是本 Stage 的 DOM/authority 产品问题已由本地机械证据回答。
+V5-C Session 依授权没有访问 live DB，因此其实现轮没有 live DB SHA-256；历史 Stage hash 未被复用或冒充 Stage 5 证据。Main 随后在独立 closeout authority 下完成备份、mainline integration 与只读 smoke/hash。未运行 Provider comparison，原因仍是本 Stage 的 DOM/authority 产品问题已由本地机械证据回答。
 
 ## 5. Evidence tier 与未证明项
 
@@ -130,16 +137,33 @@ temp DB 中无 confirmed Profile/Focus/detail preference 时，Answer/Route/Assi
 - `compact` 是客户端 presentation；它不截断或改写 API answer，0–1 个 block 与 standard 可见等价。
 - Journey hash 不是 completion、telemetry 或 evaluation identity，不跨 consumer 修复 conflict/drift。
 - Session all-off 不持久化；刷新后按页面默认重新读取 contexts。Durable correction/rollback 仍只能经 existing append-only Workspace decisions。
-- 没有 live DB/hash、Provider、真实用户或 mainline integration 证据；这些属于 Main 后续有限验收/集成判断。
+- Main 已证明 mainline integration、schema 14 无迁移与只读 live smoke/hash；live Research/Profile/Focus/Feedback/Workspace 仍为空，因此真实用户个性化收益仍未证明。
 
-## 7. Main 有限决策请求
+## 7. Main integration and final decision
 
-请 V5 Main 只决定：
+Main 按用户一次性授权完成：
 
-1. 是否接受 integrated commit 中的 Stage 5 implementation；
-2. 是否接受 `detail_level=standard|compact` 纯 DOM behavior 及其独立 fail-closed/principal/Feedback authority；
-3. 是否接受 Journey rail 为 Stage 1–4 context 的 inert composition、Search explicit-query deep-link 与 session all-off；
-4. 是否接受 paired matrix、`1741 passed` 的一次完整 no-provider suite、静态/零增量审计与 evidence-tier 分层；
-5. 是否接受 V5-C 完成，并授权 Main 自行执行 mainline integration、风险导向 live smoke/hash 与 Program authority closeout。
+1. 固定 Main `f36b4e75cbd47bf98fa033879806ee16d1949838`、V5-C `bdc0812836dac08644f05dea946d6e51f287a68d` 与 merge base `5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084`；分叉 10/11 commits，修改文件重叠为 0；
+2. 预览 tree `af6d166cb925ab7feb7c6145deec5173e43f5eb5`，`--no-ff` merge commit `8904e27df07becebae13110f9be17cd829373b20` 的 tree 完全一致，两个输入 HEAD 均为其父提交；
+3. 合并后风险导向 Python 集合 `98 passed, 1 warning`，Node DOM `4 passed`，compile、JavaScript syntax、Ledger JSONL 与 whitespace checks 通过；
+4. 停止 Web/scheduled sync 后建立一份时间戳备份 `/Users/elliot/Library/Application Support/Shiliu/backups/shiliu.v5-c-pre-closeout-20260810T174724+0800.db`，SHA-256 `dd9594931f2fbd6c593f055d0bcf972893d158999a2f1037d9fee4fb2f0344ad`，schema 14、integrity ok、FK 0；
+5. 合并后 Web 恢复运行，scheduled sync 恢复为每小时 loaded 状态；`/`、`/search`、`/ask`、`/research`、Research Task API 与 Research JavaScript 均为 200，V5-C template/JavaScript markers 存在；
+6. live DB 在 smoke 前后 SHA-256 均为 `2a695deae36965462c5202b6d68d7f89cca5efe98d04f287225154afeba0b93f`，schema 14、integrity ok、FK 0、157 videos、140 completed、447 sync runs、0 active sync、0 Research Task/Event/Workspace/Route/Page。
 
-本 V5-C Session 不请求也不执行自我接受、mainline merge、live migration、push/tag、Provider 或 V5-D。
+```yaml
+final_decision:
+  decision: accepted_with_known_limits
+  V5_C_goal_met: true
+  five_stages_accepted: true
+  mainline_merge: 8904e27df07becebae13110f9be17cd829373b20
+  live_schema: 14
+  live_migration_performed: false
+  readonly_live_smoke_passed: true
+  product_runtime_running: true
+  active_subversion_after_closeout: none
+  provider_runs_performed: false
+  credentials_accessed: false
+  push_performed: false
+  tag_created: false
+  V5_D_started: false
+```

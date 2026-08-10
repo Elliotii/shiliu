@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T17:38:12+08:00
+> Updated at: 2026-08-10T17:50:01+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,12 +8,12 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: V5_C
-  last_completed_subversion: V5_B
+  current_subversion: none
+  last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_MAIN_INTEGRATION_AND_CLOSEOUT
-  active_execution_session: V5_Main_session
-  accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
+  current_formal_stage: none
+  active_execution_session: none
+  accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
@@ -38,9 +38,10 @@ resume_anchor:
   V5_C_accepted_stage_5_contract_head: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
   V5_C_accepted_stage_5_head: e6c13d72dc064abcaefdb5360e1a775153d7803d
   V5_C_closeout_docs_head: bdc0812836dac08644f05dea946d6e51f287a68d
+  V5_C_mainline_merge_head: 8904e27df07becebae13110f9be17cd829373b20
   branch: codex/v5-main
-  pending_decision: V5_C_final_mainline_integration_and_live_smoke_closeout
-  next_action: main_session_prepares_V5_C_merge_and_risk_directed_live_smoke
+  pending_decision: V5_D_startup_direction
+  next_action: await_user_direction_before_V5_D_startup_planning
   roadmap_reconsideration_open: false
 ```
 
@@ -56,7 +57,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: all_stages_accepted_pending_main_integration_closeout
+    status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -99,6 +100,7 @@ repository:
   V5_C_accepted_stage_5_contract_head: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
   V5_C_accepted_stage_5_head: e6c13d72dc064abcaefdb5360e1a775153d7803d
   V5_C_closeout_docs_head: bdc0812836dac08644f05dea946d6e51f287a68d
+  V5_C_mainline_merge_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -114,8 +116,14 @@ live_runtime:
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 438
+  sync_runs: 447
+  active_sync_runs: 0
   research_tasks: 0
+  research_events: 0
+  workspace_records: 0
+  artifact_routes: 0
+  topic_pages: 0
+  sha256: 2a695deae36965462c5202b6d68d7f89cca5efe98d04f287225154afeba0b93f
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
 ```
@@ -202,7 +210,7 @@ accepted_results:
       - derived_existing_record_observability
       - zero_schema_delta_and_stage_1_to_5_product_non_interference
   V5_C:
-    status: all_stages_accepted_pending_main_integration_closeout
+    status: accepted_with_known_limits
     capabilities:
       - confirmed_revisable_personalized_answer_presentation
       - task_scoped_corpus_aware_search_with_open_counterexample_lane
@@ -223,7 +231,6 @@ known_retrieval_limitation:
   durable_runtime_regression: false
   representative_grounded_completion_proven: false
   candidate_future_owners:
-    - V5_C
     - V5_D
   must_not_be_reported_as_success: true
 ```
@@ -248,7 +255,7 @@ V5_C_known_limits:
   distinct_translation_route_implemented: false
   V5_A_compound_query_retrieval_limitation_resolved: false
   execution_branch_goal_met_despite_limits: true
-  mainline_integration_and_live_smoke_complete: false
+  mainline_integration_and_live_smoke_complete: true
 ```
 
 # 5. Governance and upstream boundary
@@ -258,8 +265,8 @@ session_limits:
   active_subversion_limit: 1
   active_formal_stage_or_goal_limit: 1
 current_usage:
-  active_subversions: 1
-  active_formal_stages: 1
+  active_subversions: 0
+  active_formal_stages: 0
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -361,7 +368,19 @@ migration、dependency、Prompt、Provider、background worker 与新 truth stor
 default no-provider 结果为 `1741 passed, 4 deselected, 1 warning`；Main 独立复跑 Stage 5 Python 4 项与
 Stage 1/5 Node 4 项通过，live DB hash 在测试窗口前后不变。30 条 V5-C Ledger JSONL 有效且无重复 ID。
 
-V5-C 五个 Stage 的执行分支实现现已全部接受；尚未宣布最终集成收口。下一步由 Main 独立完成 merge 预检、
-mainline 集成、风险导向 no-provider 测试与只读 live smoke/hash。schema source 与 live schema 均为 14，当前
-没有 migration 需求。除非集成发现具体产品缺陷，不再唤回 V5-C Session。不授权 Provider、凭据、Push、Tag、
-V5-D/Post-V5 实施或材料性路线修改。
+V5-C 已通过 merge commit `8904e27df07becebae13110f9be17cd829373b20` 集成到 `codex/v5-main`；实际
+merge tree 与预览 `af6d166cb925ab7feb7c6145deec5173e43f5eb5` 一致，双方修改文件重叠为 0。
+Main 在合并后运行 Stage 1–5、Workspace、Feedback、Search、Research、Web/API 风险集合 `98 passed`，
+Node DOM `4 passed`，静态与 Ledger checks 通过。V5-C Session 的完整 default no-provider
+`1741 passed, 4 deselected, 1 warning` 继续作为版本级支持证据。
+
+live schema 保持 14，无 migration。时间戳备份
+`shiliu.v5-c-pre-closeout-20260810T174724+0800.db` 的 SHA-256 为
+`dd9594931f2fbd6c593f055d0bcf972893d158999a2f1037d9fee4fb2f0344ad`，integrity ok、FK 0。
+`/`、`/search`、`/ask`、`/research`、Research Task API 与 Research JavaScript 均为 200，V5-C marker
+存在；live DB hash 在 smoke 前后均为 `2a695deae36965462c5202b6d68d7f89cca5efe98d04f287225154afeba0b93f`。
+Web 已运行，scheduled sync 已加载，未创建 live task、event、workspace、route 或 page 数据。
+
+V5-C 现以 `accepted_with_known_limits` 完成。真实用户个性化收益、大 Workspace/多进程顺序、Provider
+主观比较、独立 Translation route 和 V5-A 长复合查询召回限制仍未证明或解决。当前没有 active
+subversion/formal Stage；V5-D 未启动，等待用户后续方向。
