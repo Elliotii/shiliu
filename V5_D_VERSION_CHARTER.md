@@ -4,9 +4,9 @@
 > Goal: Controlled Experience-driven Search Policy Improvement
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_0_accepted_pending_user_stage_1_authorization
+> Status: stage_1_authorized
 > Planning authority: user-authorized
-> Execution authority: none currently; Stage 0 closed, Stage 1 pending user authorization
+> Execution authority: Stage 1 Attribution + One Candidate Contract only
 > Accepted by: user
 > Accepted at: 2026-08-11
 > V5-D Version Session created: true
@@ -431,14 +431,15 @@ stage_0_status: accepted
 stage_0_execution_authorized: closed_completed
 product_implementation_authorized: false
 provider_runs_authorized: false
-candidate_creation_authorized: false
+candidate_creation_authorized: one_proposed_non_active_contract_only
 skill_repository_authorized: false
 promotion_authorized: false
-stage_1_execution_authorized: false
+stage_1_execution_authorized: true
 stage_2_execution_authorized: false
 stage_3_execution_authorized: false
 ```
 
 本 Charter 是持续 V5-D Version Session 的上位合同。Stage 0 已由 Main 接受，资格化
-`non_progress_search_repetition_without_recovery` Failure Family；这不等于 Candidate 已定义或验证。
-当前没有 active Stage 执行权，Stage 1 需要用户再次明确授权。
+`non_progress_search_repetition_without_recovery` Failure Family。用户现只授权 Stage 1 Attribution 与一个
+`proposed_non_active` Candidate Contract；Provider、reserve 解封、active/shadow Runtime 与 Stage 2
+execution 仍未授权。

@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_0_accepted_pending_user_stage_1_authorization
+> Status: stage_1_authorized
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: none currently; Stage 0 closed, Stage 1 pending user authorization
+> Execution authorization: Stage 1 Attribution + One Candidate Contract only
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -499,20 +499,18 @@ V5_D_execution_pre_authorization:
 该包让 V5-D 得到真实 Entry 证据，同时不预设 Candidate、不污染 held-out，也不把 Stage 0 变成产品
 实现。
 
-## 14.2 Possible future standing authority — not granted
+## 14.2 Current Stage 1 and remaining future authority
 
-当前用户明确只授权 Startup + Stage 0，以下权限尚未授予。若未来希望连续推进，可以另行考虑，
-且每个 Stage 仍需 Contract 和 Main 有限验收：
+用户已在 Stage 0 被 Main 接受后，授权 `V5_D_STAGE_1_ATTRIBUTION_AND_ONE_CANDIDATE_CONTRACT.md`：
 
-- `qualified_failure_family_found` 被接受且用户再次明确授权后，允许 V5-D Session 起草 Stage 1 Contract；
-- Contract 不改变路线、Candidate 只在 initial surface、无 live write/provider/新 License/成本扩张时，
-  Main 可授权同一 Session 实施；
-- 普通低风险 Bug 和测试入口问题由 Version Session 自主修复、复跑；
-- 单个连续 DeepSeek 包不超过 USD 2 时可按冻结 Contract 运行；超过 USD 2 必须先问用户；
+- 同一 V5-D Session 可以分析 authorized discovery evidence、完成 Attribution/Hypothesis、定义一个
+  proposed/non-active Candidate，并准备 Stage 2 plan；
+- 普通低风险 docs、package validation 和测试入口问题由 Version Session 自主修复、复跑；
+- Stage 1 Provider runs、reserve access、active/shadow injection 和 live write 均未授权；
 - Stage 2 held-out Eval、Stage 3 human promotion、live DB/migration、Push/Tag 仍保留单独明确边界；
 - 任何 generic platform、第二 Candidate、材料性 schema/cost/scope、License/data 风险都暂停讨论。
 
-用户当前只批准 14.1，因此 Stage 0 后 Main 必须停止并提交判断。
+Stage 1 完成后 Main 只做一次有限验收并停止；不得自动进入 Stage 2。
 
 ---
 
@@ -559,7 +557,7 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 ```yaml
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
-authorized_scope: startup_and_stage_0_only
+authorized_scope: completed_startup_stage_0_plus_current_stage_1_contract
 V5_D_session_created: true
 stage_0_started: true
 stage_0_status: accepted
@@ -567,10 +565,12 @@ stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
 product_implementation_started: false
 provider_runs_performed: true_within_completed_stage_0
 candidate_created: false
-stage_1_execution_authorized: false
-next_action: await_user_authorization_before_any_stage_1_work
+stage_1_execution_authorized: true
+stage_2_execution_authorized: false
+next_action: V5_D_session_executes_stage_1_and_submits_closeout_then_stops
 ```
 
-用户已于 2026-08-11 接受本计划并授权 Startup + Stage 0。Stage 0 已完成并由 Main 有限验收接受；
-持续 V5-D Version Session 当前停止。`qualified_failure_family_found` 只满足 Stage 1 的经验 Entry Gate，
-不授权 Stage 1 Contract、Candidate 或产品实现；下一步等待用户再次明确授权。
+Stage 0 已完成并由 Main 有限验收接受。用户现授权同一持续 V5-D Version Session 执行 Stage 1：完成
+Trace-level Attribution、alternative-cause review、一个可证伪 Hypothesis、最多一个 proposed/non-active
+Candidate Contract 和只规划不执行的 Stage 2 frozen evaluation design。Reserve、Provider、active/shadow
+Runtime、Stage 2 execution、live DB 与 merge/push/tag 仍未授权；Stage 1 完成后必须停止。
