@@ -18,6 +18,8 @@
   let personalWorkspace = null;
   let personalizationEnabled = true;
   let routingEnabled = true;
+  let assistanceEnabled = true;
+  const sessionDismissedAssistance = new Set();
   let pollTimer = null;
 
   const commandId = prefix => {
@@ -722,6 +724,7 @@
     personalWorkspace = value;
     renderPersonalization(value.personalization_context);
     renderRouteRecommendation(value.route_recommendation);
+    renderKnowledgeAssistance(value.knowledge_assistance);
     const list = root.querySelector('[data-workspace-records]');
     list.replaceChildren(element('h4', '', `WorkspaceRecord · ${value.records.length}`));
     value.records.forEach(record => {
@@ -757,6 +760,70 @@
       list.append(card);
     });
     if (!value.records.length) list.append(element('p', 'muted', '当前筛选下没有 WorkspaceRecord。'));
+  };
+
+  const durableDismissAssistance = async card => {
+    if (!card.dismiss_control) return;
+    const status = root.querySelector('[data-assistance-status]');
+    const expiry = root.querySelector('[data-assistance-dismiss-expiry]').value;
+    status.textContent = '正在追加 exact-boundary dismiss decision…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records`, {
+        method: 'POST',
+        body: JSON.stringify({
+          command_id: commandId('assistance-dismiss'),
+          ...card.dismiss_control,
+          reason: 'explicit durable dismiss from bounded assistance panel',
+          ...(expiry ? {expires_at: new Date(expiry).toISOString()} : {}),
+        }),
+      });
+      status.textContent = '已追加 durable dismiss；历史与 exact source boundary 保留。';
+      await loadPersonalWorkspace();
+    } catch (error) { status.textContent = error.message; }
+  };
+
+  const renderKnowledgeAssistance = context => {
+    const status = root.querySelector('[data-assistance-status]');
+    const explanation = root.querySelector('[data-assistance-explanation]');
+    const grid = root.querySelector('[data-assistance-cards]');
+    grid.replaceChildren();
+    if (!context) {
+      status.textContent = 'Assistance projection 未启用；baseline 保持不变。';
+      explanation.textContent = '';
+      return;
+    }
+    status.textContent = `${context.status} · ${context.context_hash.slice(0, 12)} · execution / notification authority false`;
+    explanation.textContent = JSON.stringify(context, null, 2);
+    Object.entries(context.lanes).forEach(([name, lane]) => {
+      const section = element('section', 'research-assistance-lane');
+      section.append(element('h4', '', `${name} · ${lane.status}`));
+      lane.cards.filter(card => !sessionDismissedAssistance.has(card.candidate_id)).forEach(card => {
+        const article = element('article', 'research-knowledge-card');
+        article.append(
+          element('span', 'research-currentness', card.mastery ? 'explicit mastery' : card.kind),
+          element('strong', '', card.title),
+          element('p', 'muted', card.explanation),
+          element('code', '', card.candidate_id),
+        );
+        if (card.dismiss_control) {
+          const controls = element('div', 'research-control-buttons');
+          const sessionButton = element('button', 'ghost compact-button', '本次 session 隐藏');
+          sessionButton.type = 'button';
+          sessionButton.addEventListener('click', () => {
+            sessionDismissedAssistance.add(card.candidate_id);
+            renderKnowledgeAssistance(context);
+          });
+          const durableButton = element('button', 'ghost compact-button', 'Durable dismiss');
+          durableButton.type = 'button';
+          durableButton.addEventListener('click', () => durableDismissAssistance(card));
+          controls.append(sessionButton, durableButton);
+          article.append(controls);
+        }
+        section.append(article);
+      });
+      if (section.children.length === 1) section.append(element('p', 'muted', lane.reason_codes.join(' / ')));
+      grid.append(section);
+    });
   };
 
   const renderRouteRecommendation = context => {
@@ -801,6 +868,11 @@
     if (status) params.set('status', status);
     if (!personalizationEnabled) params.set('personalization_enabled', 'false');
     params.set('routing_enabled', String(routingEnabled));
+    params.set('assistance_enabled', String(assistanceEnabled));
+    const baselineSnapshot = Number(root.querySelector('[data-assistance-baseline-snapshot]').value);
+    const currentSnapshot = Number(root.querySelector('[data-assistance-current-snapshot]').value);
+    if (Number.isInteger(baselineSnapshot) && baselineSnapshot > 0) params.set('baseline_snapshot_id', String(baselineSnapshot));
+    if (Number.isInteger(currentSnapshot) && currentSnapshot > 0) params.set('current_snapshot_id', String(currentSnapshot));
     const explicitPath = root.querySelector('[data-routing-explicit-path]').value;
     if (explicitPath) params.set('current_explicit_path', explicitPath);
     params.set('allow_provider_answer', String(root.querySelector('[data-routing-provider-permission]').checked));
@@ -1129,6 +1201,14 @@
   root.querySelector('[data-workspace-kind-filter]').addEventListener('change', loadPersonalWorkspace);
   root.querySelector('[data-workspace-status-filter]').addEventListener('change', loadPersonalWorkspace);
   root.querySelector('[data-routing-refresh]').addEventListener('click', loadPersonalWorkspace);
+  root.querySelector('[data-assistance-refresh]').addEventListener('click', loadPersonalWorkspace);
+  root.querySelector('[data-assistance-enabled]').addEventListener('change', event => {
+    assistanceEnabled = event.currentTarget.checked;
+    loadPersonalWorkspace();
+  });
+  root.querySelectorAll('[data-assistance-baseline-snapshot], [data-assistance-current-snapshot]').forEach(control => {
+    control.addEventListener('change', loadPersonalWorkspace);
+  });
   root.querySelector('[data-routing-enabled]').addEventListener('change', event => {
     routingEnabled = event.currentTarget.checked;
     loadPersonalWorkspace();

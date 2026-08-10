@@ -1,7 +1,7 @@
 # 拾流 V5-C Current State
 
 ```yaml
-document_status: stage_3_accepted_stage_4_contract_proposed
+document_status: stage_4_implementation_complete_pending_v5_main_acceptance
 version: V5-C
 updated_at: 2026-08-10
 execution_branch: codex/v5-c
@@ -9,18 +9,20 @@ starting_commit: 5fbe1641ecf52aa8d09c5f838d41a7d1bad7c084
 accepted_stage_1_baseline: 9e83ff078dee0ad038f012d197d812ff0e87a6f5
 accepted_stage_2_baseline: 95749a1d557dbbb51383b58821519e0524227566
 accepted_stage_3_baseline: 68e704e56bc0ba99de0506e9e2b93176b5c978a9
-main_stage_3_acceptance: ba167b3c9b9309df244b3770b347e22698c2187c
-main_stage_3_decision: V5D-20260810-028
-active_formal_stage: V5_C_stage_4_contract_preparation
+accepted_stage_4_contract: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
+main_stage_4_contract_authority: 3a085c5e082a522c0c3b46cad686b60a0fc2674d
+main_stage_4_contract_decision: V5D-20260810-029
+active_formal_stage: V5_C_stage_4_implementation_pending_main_acceptance
 stage_1_status: accepted_by_v5_main
 stage_2_status: accepted_by_v5_main
 stage_3_status: accepted_by_v5_main
-stage_4_contract_status: proposed_pending_v5_main_acceptance
-stage_4_implementation_authorized: false
-stage_4_implementation_started: false
+stage_4_contract_status: accepted_by_v5_main
+stage_4_implementation_status: complete_pending_v5_main_acceptance
+stage_4_self_accepted: false
 stage_5_entered: false
 schema_source_version: 14
-live_database_access_this_contract_round: false
+schema_table_index_migration_delta: 0
+live_database_access_this_stage: false
 provider_runs_performed: false
 credentials_or_keychain_accessed: false
 external_JIT_research_performed: false
@@ -28,77 +30,76 @@ external_JIT_research_performed: false
 
 ## 1. Authority 与 accepted baseline
 
-V5 Main 在 `codex/v5-main@ba167b3c9b9309df244b3770b347e22698c2187c` / Decision
-`V5D-20260810-028` 正式接受 Stage 3 implementation
-`68e704e56bc0ba99de0506e9e2b93176b5c978a9`，无 bounded rework；只授权同一 V5-C Session 准备精简
-Stage 4 Knowledge Progress and Bounded Assistance Contract 与材料性 JIT 判断。Main authority 仅作只读引用，
-没有 cherry-pick/merge 到执行分支。
+V5 Main 在 `codex/v5-main@3a085c5e082a522c0c3b46cad686b60a0fc2674d` / Decision
+`V5D-20260810-029` 接受 Stage 4 Contract
+`55d8e403bd19049534ddb8b4a6078f0ed1e4b457`，无 bounded docs rework，并授权同一 V5-C Session 实施
+Knowledge Progress and Bounded Assistance。Main authority 仅只读引用，没有 cherry-pick/merge 到执行分支。
 
-Main 独立证据为 Stage 1–3 directed matrix `12 passed`，live DB SHA-256 在其测试窗口前后均为
-`d07037d112c3835e0c2ceb06fd165596a16934684c540610958bd920183c0ce9`，V5-C worktree clean，Program
-authority unchanged。本 Contract round 没有再次访问或 hash live DB。
+Stage 1–3 accepted baseline 保持不变。本轮只实施 Stage 4 frozen vertical slice，不进入 Stage 5，不修改 Program
+Current State/Ledger，不访问 live DB、Provider 或 credential/Keychain，不 push/merge/tag，也不自我接受。
 
-当前唯一 active formal Stage 是 Stage 4 Contract preparation。Stage 4 产品实现未开始；未进入 Stage 5，
-未修改 Program authority，未 push/merge/tag 或自我接受。
+## 2. Stage 4 实现状态
 
-## 2. Accepted Stage 1–3 boundary
+Existing Research/Workspace surface 现在 additive 返回并展示一个 request-time、pull-only
+`KnowledgeAssistanceProjection`：
 
-- Stage 1：confirmed/user-authored limitations-position 只改变 Research answer presentation；Feedback candidate
-  未确认前零行为；
-- Stage 2：task/principal/snapshot-bound Corpus soft prior 只对 unchanged Product Search baseline pool 做 bounded
-  presentation composition，保留 independent open/counterexample lane；
-- Stage 3：task/principal-bound confirmed route preference 只产生 advisory recommendation；显式选择、
-  permission/cost 与 ArtifactRoute authority fence 优先，CTA 不自动执行；
-- 三者都不授予 Profile/Corpus/Workspace Citation、Verifier、fact、Prompt、Provider 或 execution authority。
+- Knowledge Progress：`learned|understood|mastered|familiar` 仅接受 current principal 的 exact
+  `user_asserted=true` user-authored/user-confirmed record；watched/searched/collected/transcript/research activity
+  仍是 evidence-backed observation，永不进入 mastery；
+- Staleness：直接只读 existing persisted Fact state 与 current Artifact/Page fact lineage，最多两张 card；不调用会
+  ensure initial heads 的 high-level lifecycle projection，也不 revalidate 或修改 Fact/Page；
+- Collection Delta：仅对用户本次给出的 same-scope immutable baseline/current taxonomy snapshots，在逐卡 hash
+  与 current read-only preview 重验通过后形成最多三条 added/removed/changed observation；
+- Early Project Radar：每次最多一条；必须有 exactly one confirmed Current Focus、verified added delta、managed
+  current raw transcript/ASR file、current lexical sync identity 与 deterministic NFKC/casefold exact token/phrase match；
+  title/description/summary 不能单独触发；
+- Control：off/page load/refresh/session dismiss 零写。Durable dismiss 只在用户点击时通过 existing Workspace
+  endpoint 追加 exact `progress_observation` control；projection 重验 principal、payload、current source hashes 与
+  matching candidate boundary；expiry 恢复，tombstone 阻止 old boundary 自动复活，corrected `dismissed=false`
+  以新 revision 恢复。
 
-## 3. Stage 4 local audit
+`mastered` 是唯一 existing enum 窄扩展。没有新 schema/table/index/migration、record kind、authority store、endpoint
+type、dependency、Prompt、Provider、background worker、scheduler、notification、rules、generic inbox、telemetry、
+eval 或 agent loop。
 
-- Existing `progress_observation` 已区分 `user_authored|user_confirmed` 与
-  `evidence_backed_observation`，并机械拒绝“带事件来源的 learned”；learned/understood/familiar 需要 explicit
-  `user_asserted=true`；`mastered` 尚未在 validator enum，若获 implementation authority 只需同白名单窄增量，
-  不需 schema；
-- Existing Workspace revision 支持 exact source refs/boundary/content hash、principal、expiry、correct、tombstone、
-  restore-as-new 和 same-boundary no-resurrection；schema-14 CHECK 已足以复用 progress record 承载 exact
-  assistance control，不新增 record kind/table；
-- Frozen taxonomy snapshots 包含 selected source IDs、snapshot/card/discovery hashes，read-only `preview` 可重建
-  current membership/card boundary；同 scope snapshot pair 可形成 added/removed/changed observation；
-- Existing Fact state 与 Artifact/Page lineage 已给出 current/stale/potential-conflict/conflicted 和 affected IDs；
-  但 high-level lifecycle projection 会确保/补写 initial heads，Stage 4 read-only projection 不得调用该路径，
-  应直接读 existing persisted heads；
-- Current Focus 已有 confirmed/user-authored Workspace authority。Early Project Radar 必须再绑定 added delta 的
-  current transcript/ASR Evidence，title/description/summary 单独不足。
+## 3. Authority 与 non-interference
 
-## 4. Proposed Stage 4 slice
+Projection 的 authority 均为 presentation/candidate only：
 
-`V5_C_STAGE_4_CONTRACT.md` 提议在 existing Research Task/Workspace surface 增加一个 pull-only panel，最多显示
-5 条 progress、2 条 staleness、3 条 collection delta 和 1 条 Radar candidate。一个只读 projection 同时处理：
+- Workspace revision 仍是唯一 durable user-state authority；projected card 默认不持久化；
+- activity、collection、transcript presence 与 Research action 不代表用户理解或兴趣；
+- Staleness 只是 persisted revalidation candidate，不是 Verifier 结论；Delta 只是 collection observation；
+- Radar 不创建/运行 Research，不自动 Search/ASR/Provider，不修改 Profile、Prompt、Route、Skill、Fact 或 Page；
+- Citation、Verifier、Search baseline、Stage 1 answer presentation、Stage 2 Corpus composition、Stage 3 advisory routing
+  与 Fast/Deep/Research/ArtifactRoute/ASR execution contracts 未改变；
+- absent/incomplete/malformed/conflicting/expired/drifted/unsafe input deterministic baseline 或 fail closed。
 
-- mastery 仅来自显式 user assertion；watch/search/collection/transcript presence 永远只作 observation；
-- persisted Fact/Artifact/Page non-current boundary 只生成 revalidation candidate，不自动改知识；
-- 用户显式给出的 same-scope baseline/current snapshot pair 经 current preview 重验后只生成 bounded delta；
-- Radar 只从 added delta 中，在 exactly one confirmed Focus + current L1 transcript/ASR Evidence + deterministic
-  exact overlap 时形成一条 candidate；无 Focus/证据或 drift 返回 baseline；
-- per-request/session off/dismiss 零写；durable dismiss 必须用户明确点击并复用 exact append-only
-  `progress_observation` control，支持 expiry/tombstone/correct/restore-as-new/no-resurrection。
+## 4. Directed + affected evidence
 
-默认预算为零 schema/table/index/migration/dependency/Prompt/Provider/background worker/scheduler/notification/
-rules/telemetry/generic inbox/agent-loop 平台，最多一个 read-only `KnowledgeAssistanceProjection`，无新 endpoint
-type。唯一预期窄 product validator change 是加入 explicit-only `mastered` state。
+所有测试均为 temp DB/no-provider：
 
-## 5. JIT、测试纪律与未证明项
+- Stage 4 directed matrix：`4 passed`；
+- Stage 4 + affected V5-B Workspace/Lifecycle + accepted Stage 1–3：`31 passed`；
+- existing Stage 1 Node DOM non-interference：`2 passed`；
+- `py_compile`、`node --check`、`git diff --check`：通过；
+- warning 仅为既有 Starlette/httpx deprecation。
 
-本地 accepted Workspace/Focus、taxonomy snapshot、Knowledge lifecycle/currentness 与 Stage 1–3 evidence 已关闭
-Contract 缺口，因此没有材料性外部研究，不新增 upstream report/adoption proposal，未浏览网络、下载上游、
-引入依赖或复制 source/test/Prompt/UI。
+按 Main 冻结的优化纪律，本 Stage 没有材料共享核心风险，因此没有重复完整 default no-provider suite；完整套件保留
+到 V5-C closeout。
 
-按 Main 优化后的纪律，本 Contract round 只复跑四项材料相关 temp-DB/no-provider tests：explicit progress /
-watched-not-learned、candidate expiry/no-resurrection、immutable taxonomy snapshot delta、Fact/Page staleness
-append-only，结果 `4 passed`；未重复完整 default suite。
+## 5. Live/JIT 与未证明项
 
-未证明：真实用户 progress/radar 帮助收益、真实 collection delta 规模/延迟、Focus-to-Evidence relevance 质量、
-large Workspace/multi-process ordering、Provider 主观质量、独立 Translation route，以及 Stage 5 integrated
+Main 明确禁止本 Stage 访问 live DB，因此没有打开、查询、写入或 hash live DB；本 Stage live hash 为
+`not_observed_by_authority`。Main 在 Stage 3 验收窗口记录的历史 hash
+`d07037d112c3835e0c2ceb06fd165596a16934684c540610958bd920183c0ce9` 不冒充本轮观测。Fixture/temp DB 仅证明
+mechanics，不证明 live 用户掌握、Focus、collection delta 或帮助收益。
+
+本地 accepted evidence 足以实现，无材料性外部 JIT、upstream report/adoption proposal、网络浏览、下载、新依赖或
+source/test/Prompt/UI copy。
+
+未证明：真实用户 progress/radar 帮助收益与 relevance quality、真实 collection delta 规模/latency、large
+Workspace/multi-process ordering、Provider 主观质量、distinct Translation route，以及 Stage 5 integrated
 journey/evaluation。
 
-下一动作仅为等待 V5 Main 对 Stage 4 Contract、zero-schema vertical slice、dismiss/no-resurrection 和无材料性
-JIT 判断做有限审阅。Main 接受并明确授权前不实施 Stage 4，不访问 live DB/Provider/凭据，不修改 Program
-authority，不 push/merge/tag，也不进入 Stage 5。
+下一动作仅为等待 V5 Main 对 Stage 4 implementation 做有限验收。Main 接受前不进入 Stage 5，不做 live
+migration/mainline/push/merge/tag 或自我接受。

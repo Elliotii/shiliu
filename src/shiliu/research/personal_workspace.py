@@ -58,8 +58,10 @@ PROGRESS_STATES = {
     "learned",
     "understood",
     "familiar",
+    "mastered",
 }
-SELF_ASSESSMENT_STATES = {"learned", "understood", "familiar"}
+SELF_ASSESSMENT_STATES = {"learned", "understood", "familiar", "mastered"}
+ASSISTANCE_CONTROL_PREFIX = "assistance.control."
 CORPUS_OBSERVATION_TYPES = {
     "folder",
     "topic",
@@ -155,6 +157,11 @@ class ResearchPersonalWorkspaceService:
             self._assert_safe_payload(payload)
             semantic_key = _normalized_key(request.semantic_key)
             source_refs = self._validate_source_refs(connection, request.source_refs)
+            self._validate_assistance_control(
+                semantic_key=semantic_key,
+                payload=payload,
+                source_refs=source_refs,
+            )
             if (
                 request.record_kind == "inferred_candidate"
                 and semantic_key == LIMITATIONS_POSITION_KEY
@@ -186,6 +193,13 @@ class ResearchPersonalWorkspaceService:
             version = 1
             parent_revision_id = None
             if latest is not None:
+                if (
+                    semantic_key.startswith(ASSISTANCE_CONTROL_PREFIX)
+                    and str(latest["principal_id"]) != principal_id
+                ):
+                    raise ResearchValidationError(
+                        "assistance control belongs to a different principal"
+                    )
                 projected_latest = self._project(latest)
                 same_boundary = (
                     str(latest["source_boundary_hash"]) == source_boundary_hash
@@ -324,6 +338,13 @@ class ResearchPersonalWorkspaceService:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             latest = self._latest(connection, record_id)
+            if (
+                str(latest["semantic_key"]).startswith(ASSISTANCE_CONTROL_PREFIX)
+                and str(latest["principal_id"]) != principal_id
+            ):
+                raise ResearchValidationError(
+                    "assistance control belongs to a different principal"
+                )
             if int(latest["version"]) != request.expected_version:
                 raise ResearchConflict("stale WorkspaceRecord expected_version")
             projected_latest = self._project(latest)
@@ -340,6 +361,11 @@ class ResearchPersonalWorkspaceService:
                 source_refs,
             )
             self._assert_safe_payload(next_payload)
+            self._validate_assistance_control(
+                semantic_key=str(latest["semantic_key"]),
+                payload=next_payload,
+                source_refs=source_refs,
+            )
             if (
                 str(latest["record_kind"]) == "inferred_candidate"
                 and str(latest["semantic_key"]) == LIMITATIONS_POSITION_KEY
@@ -785,7 +811,15 @@ class ResearchPersonalWorkspaceService:
             user_asserted = payload.get("user_asserted") is True
             if state in SELF_ASSESSMENT_STATES and not user_asserted:
                 raise ResearchValidationError(
-                    "learned/understood/familiar requires explicit user assertion"
+                    "learned/understood/familiar/mastered requires explicit user assertion"
+                )
+            if state in SELF_ASSESSMENT_STATES and set(payload) != {
+                "topic",
+                "state",
+                "user_asserted",
+            }:
+                raise ResearchValidationError(
+                    "explicit mastery progress requires exact topic/state/user_asserted payload"
                 )
             if user_asserted:
                 return "user_authored", "current"
@@ -819,6 +853,52 @@ class ResearchPersonalWorkspaceService:
                 )
             return "experience_candidate", "observed"
         raise ResearchValidationError("unsupported WorkspaceRecord kind")
+
+    @staticmethod
+    def _validate_assistance_control(
+        *,
+        semantic_key: str,
+        payload: dict[str, Any],
+        source_refs: list[dict[str, Any]],
+    ) -> None:
+        is_control = semantic_key.startswith(ASSISTANCE_CONTROL_PREFIX)
+        if not is_control:
+            return
+        required = {
+            "topic",
+            "state",
+            "user_asserted",
+            "control",
+            "dismissed",
+            "candidate_id",
+            "candidate_kind",
+            "boundary_hash",
+        }
+        if set(payload) != required:
+            raise ResearchValidationError(
+                "assistance control requires exact bounded dismiss payload"
+            )
+        candidate_id = str(payload.get("candidate_id") or "")
+        if (
+            semantic_key != f"{ASSISTANCE_CONTROL_PREFIX}{candidate_id}"
+            or not str(payload.get("topic") or "").strip()
+            or payload.get("state") != "reviewed"
+            or payload.get("user_asserted") is not True
+            or payload.get("control") != "dismiss"
+            or not isinstance(payload.get("dismissed"), bool)
+            or payload.get("candidate_kind")
+            not in {"staleness", "collection_delta", "early_project_radar"}
+            or len(str(payload.get("boundary_hash") or "")) != 64
+        ):
+            raise ResearchValidationError("assistance dismiss control identity is invalid")
+        if not source_refs or any(
+            value["ref_type"]
+            not in {"fact_revision", "artifact_revision", "taxonomy_snapshot"}
+            for value in source_refs
+        ):
+            raise ResearchValidationError(
+                "assistance dismiss requires exact persisted boundary refs"
+            )
 
     @staticmethod
     def _decision_semantics(

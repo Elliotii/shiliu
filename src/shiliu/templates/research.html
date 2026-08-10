@@ -196,6 +196,29 @@
           </div>
         </section>
 
+        <section class="research-assistance" aria-labelledby="research-assistance-title" data-knowledge-assistance>
+          <div class="research-section-heading">
+            <div>
+              <p class="result-kicker">V5-C · STAGE 4</p>
+              <h3 id="research-assistance-title">Knowledge Progress &amp; Assistance</h3>
+            </div>
+            <button class="ghost compact-button" type="button" data-assistance-refresh>刷新只读 projection</button>
+          </div>
+          <p class="muted">仅在当前请求读取既有 Workspace、Fact/Page/Artifact lineage 与 frozen collection snapshots。活动不等于掌握；Radar 不会触发搜索、通知或后台任务。</p>
+          <div class="research-assistance-controls">
+            <label><input type="checkbox" data-assistance-enabled checked> 显示 bounded assistance</label>
+            <label>Baseline snapshot ID<input type="number" min="1" step="1" data-assistance-baseline-snapshot placeholder="可选"></label>
+            <label>Current snapshot ID<input type="number" min="1" step="1" data-assistance-current-snapshot placeholder="可选"></label>
+            <label>Temporary durable dismiss expiry<input type="datetime-local" data-assistance-dismiss-expiry></label>
+          </div>
+          <p class="muted" data-assistance-status aria-live="polite">正在读取 pull-only context…</p>
+          <div class="research-assistance-grid" data-assistance-cards></div>
+          <details>
+            <summary>Authority、解释与 fail-closed trace</summary>
+            <pre class="research-advanced-trace" data-assistance-explanation></pre>
+          </details>
+        </section>
+
         <section class="research-trace" aria-labelledby="personal-workspace-title" data-personal-workspace>
           <div class="research-section-heading">
             <div>
@@ -272,4 +295,4 @@
   </div>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=1"></script><script src="/static/research.js?v=3"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=1"></script><script src="/static/research.js?v=4"></script>{% endblock %}

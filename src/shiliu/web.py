@@ -944,6 +944,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         allow_high_cost_or_durable: bool = False,
         allow_manual_asr: bool = False,
         asr_video_id: int | None = None,
+        assistance_enabled: bool = True,
+        baseline_snapshot_id: int | None = None,
+        current_snapshot_id: int | None = None,
     ) -> JSONResponse:
         try:
             workspace_value = await asyncio.to_thread(
@@ -959,6 +962,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 allow_high_cost_or_durable=allow_high_cost_or_durable,
                 allow_manual_asr=allow_manual_asr,
                 asr_video_id=asr_video_id,
+                assistance_enabled=assistance_enabled,
+                baseline_snapshot_id=baseline_snapshot_id,
+                current_snapshot_id=current_snapshot_id,
             )
         except ResearchError as exc:
             return JSONResponse(
