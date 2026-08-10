@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T04:28:48+08:00
+> Updated at: 2026-08-11T05:01:55+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_D_candidate_revision_R1_E1
+  current_formal_stage: none
   active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -63,13 +63,15 @@ resume_anchor:
   V5_D_candidate_revision_R1_status: accepted_invalid_run
   V5_D_candidate_revision_R1_freeze_head: 789cf176adcc8c7a66dccbf0c507e875537bcc1a
   V5_D_candidate_revision_R1_execution_head: ae3367548943098904d88623b9a3d132936563ac
-  V5_D_candidate_v1_1_status: proposed_non_active_effectiveness_unproven
-  V5_D_candidate_v1_1_source_gate_status: not_reached
-  V5_D_candidate_revision_R1_E1_authorized: true
-  V5_D_candidate_revision_R1_E1_status: authorized_pending_execution
+  V5_D_candidate_v1_1_status: proposed_non_active_rejected
+  V5_D_candidate_v1_1_source_gate_status: failed_on_valid_D02_pair
+  V5_D_candidate_revision_R1_E1_authorized: closed_completed
+  V5_D_candidate_revision_R1_E1_status: accepted_candidate_v1_1_rejected
+  V5_D_candidate_revision_R1_E1_freeze_head: cbc8917aaa625897ae7e718e7d15e784aeeb0705
+  V5_D_candidate_revision_R1_E1_execution_head: 68fd655b3e54ba2529aee8395860ed876ee88c1a
   V5_D_candidate_revision_R1_E1_reserve_authorized: false
-  pending_decision: R1_E1_execution_result_and_main_acceptance
-  next_action: persistent_V5_D_session_executes_R1_E1_then_stops_at_Source_Gate
+  pending_decision: close_V5_D_without_validated_candidate_or_materially_reauthorize_new_direction
+  next_action: await_user_direction_before_any_V5_D_closeout_or_new_candidate_work
   roadmap_reconsideration_open: false
 ```
 
@@ -88,7 +90,7 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: candidate_revision_R1_E1_authorized
+    status: candidate_v1_1_rejected_pending_version_direction
     empirical_entry_gate_met: true
     qualified_failure_family: non_progress_search_repetition_without_recovery
     accepted_initial_surface: follow_up_strategy
@@ -101,11 +103,12 @@ program:
     candidate_revision_R1_target_version: 1.1.0
     candidate_v1_1_status: proposed_non_active
     candidate_v1_1_effectiveness_proven: false
-    candidate_v1_1_source_gate_reached: false
-    candidate_revision_R1_E1_status: authorized_pending_execution
+    candidate_v1_1_evaluation_status: rejected
+    candidate_v1_1_source_gate_reached: true_failed
+    candidate_revision_R1_E1_status: accepted_candidate_v1_1_rejected
     candidate_revision_R1_E1_kind: mechanical_execution_only
     further_major_revision_default_authorized: false
-    experiment_only_treatment_implementation_authorized: true_R1_E1_mechanical_only
+    experiment_only_treatment_implementation_authorized: false
     active_or_shadow_registration_authorized: false
   Post_V5:
     status: conditional_long_term_direction
@@ -320,7 +323,7 @@ session_limits:
   active_formal_stage_or_goal_limit: 1
 current_usage:
   active_subversions: 1
-  active_formal_stages: 1
+  active_formal_stages: 0
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -493,11 +496,13 @@ completion/deficit gate。但 Source Gate 未形成：D02 Baseline A1 有效完�
 cap `175000` 被 accepted Runtime `140000` 上限在 Provider dispatch 前拒绝。该 Treatment attempt 使用 0
 Provider budget，不能支持或证伪 v1.1；D04 未运行。
 
-Main 复跑 18 项机械测试通过并确认 test gap、隔离 DB integrity/FK、累计 USD 0.000646613 与 reserve sealed
-状态。用户已授权 `R1-E1` mechanical execution amendment：Candidate/Treatment logic/Evaluator 与 Source
-Gate 不变，只把 Treatment per-arm input cap 收敛为 accepted Runtime 合法值 `140000`，补真实 Runtime
-boundary regression，并在独立新 freeze 下固定携带已观察的 D02 Baseline。该 Baseline 禁止重跑、替换或
-重新采样；其 8893 input tokens 远低于 amended cap，cap change 对它 non-binding。E1 只运行 D02 Treatment
-和 D04 Treatment/Baseline，累计预算继续受原 R1 hard caps 约束，剩余 hard cost 为 USD 0.199353387。
-当前 active formal Stage/Goal 为唯一的 R1-E1；reserve、held-out、v1.2、Stage 3、live DB 与
-merge/push/tag 仍未授权。
+R1-E1 execution head `68fd655` 已由 Main 有限验收并接受 exact `candidate_v1_1_rejected`。E1 保持
+Candidate/Treatment logic/Evaluator 与 Source Gate 不变，把 Treatment cap 收敛到 accepted Runtime
+`140000`，补真实 Runtime boundary regression，并固定携带未重跑的 D02 Baseline。有效 D02 Treatment 触发
+一次 coverage-bundle recovery，但没有新增 Evidence/Citation/source/required-aspect，post-recovery gate 未
+到达；冻结 pair 的 grounded improvement、source diversity、mechanism 与 recovery/stop gates 失败。
+
+D02 valid failure 已使 all-source-pairs Gate 不可恢复，Session 按 exact-exit stop 未运行 D04。Main 复跑
+22 项定向测试通过；产品 `src` tree 未变，R1+E1 累计 USD 0.001311757，reserve key mode 000、access log 4、
+runs 0。Candidate v1.0/v1.1 均 rejected，当前 active formal Stage 为 0；没有 v1.2、Provider、Reserve、
+Held-out、Stage 3 或版本集成授权。下一步等待用户选择诚实 closeout 或材料性重新授权新方向。

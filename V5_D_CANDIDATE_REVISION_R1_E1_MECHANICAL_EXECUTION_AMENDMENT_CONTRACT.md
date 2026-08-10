@@ -1,6 +1,6 @@
 # Shiliu V5-D Candidate Revision R1-E1 Mechanical Execution Amendment Contract
 
-> Status: authorized_for_execution
+> Status: completed_and_main_accepted_candidate_v1_1_rejected
 > Authorized at: 2026-08-11
 > Owner: persistent V5-D Version Session
 > Execution branch: `codex/v5-d`
@@ -11,6 +11,9 @@
 > Reserve open/assignment/run authorized: false
 > Held-out evaluation authorized: false
 > Stage 3 authorized: false
+> Freeze commit: `cbc8917aaa625897ae7e718e7d15e784aeeb0705`
+> Accepted execution head: `68fd655b3e54ba2529aee8395860ed876ee88c1a`
+> Exact E1 result: `candidate_v1_1_rejected`
 
 ---
 
@@ -225,3 +228,10 @@ tag: false
 ```
 
 完成 Source Gate 或任一 exact exit 后停止，等待 Main Session 有限验收。
+
+# 10. Closeout Status
+
+R1-E1 已在有效 D02 Source pair 后以 exact `candidate_v1_1_rejected` 完成并由 Main 有限验收。Treatment
+触发一次 coverage-bundle recovery，但 required-aspect、grounded Citation 与 grounded source delta 均为
+0，post-recovery gate 未到达；因此冻结 Source Gate 失败。D04 按 all-pairs Gate 不可恢复和 exact-exit
+stop 未运行。Candidate 保持 non-active/rejected；Reserve、Held-out、Stage 3、v1.2 与版本集成仍未授权。
