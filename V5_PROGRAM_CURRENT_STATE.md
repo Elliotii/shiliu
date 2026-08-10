@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T17:07:14+08:00
+> Updated at: 2026-08-10T17:38:12+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,8 +11,8 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_STAGE_5_implementation_and_closeout_preparation
-  active_execution_session: V5_C_version_session
+  current_formal_stage: V5_C_MAIN_INTEGRATION_AND_CLOSEOUT
+  active_execution_session: V5_Main_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
@@ -36,9 +36,11 @@ resume_anchor:
   V5_C_accepted_stage_4_contract_head: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
   V5_C_accepted_stage_4_head: b9a07004267b2131121d558f5343063e5293db24
   V5_C_accepted_stage_5_contract_head: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
+  V5_C_accepted_stage_5_head: e6c13d72dc064abcaefdb5360e1a775153d7803d
+  V5_C_closeout_docs_head: bdc0812836dac08644f05dea946d6e51f287a68d
   branch: codex/v5-main
-  pending_decision: V5_C_STAGE_5_implementation_and_version_closeout_acceptance
-  next_action: V5_C_version_session_autonomously_implements_stage_5_and_submits_V5_C_FINAL_CLOSEOUT
+  pending_decision: V5_C_final_mainline_integration_and_live_smoke_closeout
+  next_action: main_session_prepares_V5_C_merge_and_risk_directed_live_smoke
   roadmap_reconsideration_open: false
 ```
 
@@ -54,7 +56,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: stage_4_accepted_stage_5_implementation_authorized
+    status: all_stages_accepted_pending_main_integration_closeout
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -63,7 +65,8 @@ program:
 ```
 
 长期路线与功能目标未改变。V5-B 的实际 schema、实现与版本内顺序已随 closeout 固定；
-V5-C/D 的具体 Schema、框架、Commit、Goal 数量和版本内顺序仍未冻结，也没有提前实施。
+V5-C 的五 Stage 实现边界已随执行分支 closeout 固定，V5-D 的具体 Schema、框架、Commit、Goal 数量
+和版本内顺序仍未冻结，也没有提前实施。
 
 # 2. Repository and runtime
 
@@ -94,6 +97,8 @@ repository:
   V5_C_accepted_stage_4_contract_head: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
   V5_C_accepted_stage_4_head: b9a07004267b2131121d558f5343063e5293db24
   V5_C_accepted_stage_5_contract_head: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
+  V5_C_accepted_stage_5_head: e6c13d72dc064abcaefdb5360e1a775153d7803d
+  V5_C_closeout_docs_head: bdc0812836dac08644f05dea946d6e51f287a68d
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -196,6 +201,15 @@ accepted_results:
       - exact_target_advisory_feedback_event_and_command_receipt
       - derived_existing_record_observability
       - zero_schema_delta_and_stage_1_to_5_product_non_interference
+  V5_C:
+    status: all_stages_accepted_pending_main_integration_closeout
+    capabilities:
+      - confirmed_revisable_personalized_answer_presentation
+      - task_scoped_corpus_aware_search_with_open_counterexample_lane
+      - advisory_personalized_routing_with_explicit_authority_precedence
+      - explicit_mastery_progress_staleness_collection_delta_and_bounded_radar
+      - integrated_read_only_personalized_research_journey
+      - explain_correct_disable_rollback_and_fail_closed_authority
 ```
 
 # 4. Known limitations carried forward
@@ -223,6 +237,18 @@ V5_B_known_limits:
   subjective_provider_product_comparison_exercised: false
   live_research_feedback_workspace_population: cold_start
   goal_met_despite_limits: true
+```
+
+```yaml
+V5_C_known_limits:
+  live_personalization_inputs: cold_start
+  real_user_personalization_benefit_proven: false
+  large_workspace_and_multi_process_order_proven: false
+  subjective_provider_comparison_exercised: false
+  distinct_translation_route_implemented: false
+  V5_A_compound_query_retrieval_limitation_resolved: false
+  execution_branch_goal_met_despite_limits: true
+  mainline_integration_and_live_smoke_complete: false
 ```
 
 # 5. Governance and upstream boundary
@@ -327,7 +353,15 @@ Main 已有限审阅并接受 Stage 5 Contract `68419dd822d2a3531155b16d75c6ca06
 之后的现有 answer blocks，不能截断、改写或重排 answer/Citation/Evidence；Prompt 与 Provider 增量为零。
 Journey 不建 truth store、telemetry 或 eval platform，不预跑 Search 或自动执行任何路径。
 
-现授权同一 V5-C Version Session 自主实施 Stage 5，并以单一 `V5_C_FINAL_CLOSEOUT.md` 同时提交 Stage 5
-implementation 与 V5-C closeout 请求。Stage 5 必须运行一次完整 default no-provider suite 作为版本级证据，
-并保持 cold/fixture/real-user evidence 分层。不授权 Provider、live DB、凭据、Program authority、mainline/live
-migration、Push、Merge、Tag、V5-D 或 Post-V5；最终版本接受与集成仍由 Main 决定。
+同一个 V5-C Version Session 已以 `e6c13d72dc064abcaefdb5360e1a775153d7803d` 完成 Stage 5，随后以
+`bdc0812836dac08644f05dea946d6e51f287a68d` 完成 bounded docs-only consistency correction。Main 有限验收
+正式接受 Stage 5 implementation 与执行分支版本 closeout：只读 Integrated Journey 组合既有 Stage 1–4
+contexts，Search 仍需显式 query，Next path 仍为 inert advisory，compact 只改变 DOM presentation；schema、
+migration、dependency、Prompt、Provider、background worker 与新 truth store 增量均为零。Session 的完整
+default no-provider 结果为 `1741 passed, 4 deselected, 1 warning`；Main 独立复跑 Stage 5 Python 4 项与
+Stage 1/5 Node 4 项通过，live DB hash 在测试窗口前后不变。30 条 V5-C Ledger JSONL 有效且无重复 ID。
+
+V5-C 五个 Stage 的执行分支实现现已全部接受；尚未宣布最终集成收口。下一步由 Main 独立完成 merge 预检、
+mainline 集成、风险导向 no-provider 测试与只读 live smoke/hash。schema source 与 live schema 均为 14，当前
+没有 migration 需求。除非集成发现具体产品缺陷，不再唤回 V5-C Session。不授权 Provider、凭据、Push、Tag、
+V5-D/Post-V5 实施或材料性路线修改。
