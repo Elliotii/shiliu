@@ -16,6 +16,10 @@ from shiliu.retrieval.consolidation import (
     SearchResultConsolidator,
     VideoResultGroupDraft,
 )
+from shiliu.retrieval.corpus_search import (
+    CorpusSearchContextProjection,
+    compose_corpus_search_results,
+)
 from shiliu.retrieval.enrichment import (
     CHAPTER_ENRICHMENT_VERSION,
     JUMP_ANCHOR_VERSION,
@@ -68,9 +72,19 @@ class ProductSearchRequest(BaseModel):
     scope: Scope = "all"
     result_limit: int = Field(default=10, ge=1, le=20)
     max_windows_per_video: int = Field(default=2, ge=1, le=5)
+    corpus_task_id: str | None = Field(default=None, min_length=1, max_length=160)
+    corpus_aware: bool = True
     filters: ProductSearchFilterRequest = Field(
         default_factory=ProductSearchFilterRequest
     )
+
+    @field_validator("corpus_task_id")
+    @classmethod
+    def normalize_corpus_task_id(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
 
     @field_validator("filters", mode="before")
     @classmethod
@@ -91,6 +105,15 @@ class ProductSearchRequest(BaseModel):
     @property
     def original_requested_mode(self) -> SearchMode | None:
         return None if self.default_applied else self.mode
+
+    @model_serializer(mode="wrap")
+    def serialize_compatibly(self, handler):
+        value = handler(self)
+        if self.corpus_task_id is None:
+            value.pop("corpus_task_id", None)
+        if self.corpus_aware:
+            value.pop("corpus_aware", None)
+        return value
 
 
 @dataclass(frozen=True)
@@ -163,6 +186,8 @@ class ProductSearchResponse:
     group_count_before_limit: int
     returned_group_count: int
     results: tuple[ProductVideoResult, ...]
+    corpus_context: dict[str, object]
+    result_contributions: tuple[dict[str, object], ...]
     warnings: tuple[dict[str, object], ...]
     timing: ProductSearchTiming
     error: dict[str, object] | None = None
@@ -171,6 +196,7 @@ class ProductSearchResponse:
         return {
             **asdict(self),
             "results": [item.as_dict() for item in self.results],
+            "result_contributions": list(self.result_contributions),
             "warnings": list(self.warnings),
             "timing": self.timing.as_dict(),
         }
@@ -207,6 +233,7 @@ class ProductSearchService:
         self.raw_search = raw_search
         self.consolidator = consolidator
         self.enricher = enricher
+        self.corpus_search = CorpusSearchContextProjection(db)
         self.persist_trace = persist_trace
         if self.persist_trace:
             self.initialize_schema()
@@ -285,17 +312,24 @@ class ProductSearchService:
                     )
 
     def search(
-        self, request: ProductSearchRequest, *, video_ids: tuple[int, ...] = ()
+        self,
+        request: ProductSearchRequest,
+        *,
+        video_ids: tuple[int, ...] = (),
+        principal_id: str | None = None,
     ) -> ProductSearchResponse:
         if video_ids:
-            return self.search_with_raw(request, video_ids=video_ids)[1]
-        return self.search_with_raw(request)[1]
+            return self.search_with_raw(
+                request, video_ids=video_ids, principal_id=principal_id
+            )[1]
+        return self.search_with_raw(request, principal_id=principal_id)[1]
 
     def search_with_raw(
         self,
         request: ProductSearchRequest,
         *,
         video_ids: tuple[int, ...] = (),
+        principal_id: str | None = None,
     ) -> tuple[RawSearchResponse, ProductSearchResponse]:
         started = time.monotonic()
         raw_top_k = min(100, max(50, request.result_limit * 5))
@@ -323,7 +357,19 @@ class ProductSearchService:
                 normalized_query=raw.plan.normalized_query,
                 query_type=raw.plan.query_type,
             )
-            selected = consolidated.groups[: request.result_limit]
+            projection = self.corpus_search.project(
+                task_id=request.corpus_task_id,
+                principal_id=principal_id,
+                normalized_query=raw.plan.normalized_query,
+                enabled=request.corpus_aware,
+            )
+            selected, corpus_context, result_contributions = (
+                compose_corpus_search_results(
+                    consolidated.groups,
+                    result_limit=request.result_limit,
+                    projection=projection,
+                )
+            )
             display_metadata = self._display_metadata(
                 [group.video_id for group in selected]
             )
@@ -376,6 +422,8 @@ class ProductSearchService:
             group_count_before_limit=len(consolidated.groups),
             returned_group_count=len(results),
             results=results,
+            corpus_context=corpus_context,
+            result_contributions=result_contributions,
             warnings=tuple(warnings),
             timing=provisional_timing,
         )

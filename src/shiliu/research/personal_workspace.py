@@ -19,6 +19,14 @@ from shiliu.research.knowledge_contracts import (
     DecideWorkspaceRecordRequest,
     WorkspaceSourceRef,
 )
+from shiliu.research.personalization import (
+    ANSWER_PRESENTATION_KEYS,
+    DETAIL_LEVELS,
+    DETAIL_LEVEL_KEY,
+    LIMITATIONS_POSITION_KEY,
+    LIMITATIONS_POSITIONS,
+    PersonalizationContextProjection,
+)
 from shiliu.research.schema import PERSONAL_WORKSPACE_POLICY_VERSION
 from shiliu.research.service import ResearchTaskService
 
@@ -53,8 +61,10 @@ PROGRESS_STATES = {
     "learned",
     "understood",
     "familiar",
+    "mastered",
 }
-SELF_ASSESSMENT_STATES = {"learned", "understood", "familiar"}
+SELF_ASSESSMENT_STATES = {"learned", "understood", "familiar", "mastered"}
+ASSISTANCE_CONTROL_PREFIX = "assistance.control."
 CORPUS_OBSERVATION_TYPES = {
     "folder",
     "topic",
@@ -114,6 +124,7 @@ class ResearchPersonalWorkspaceService:
         self.kernel = kernel
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
+        self.personalization = PersonalizationContextProjection()
 
     def create(
         self,
@@ -147,14 +158,31 @@ class ResearchPersonalWorkspaceService:
 
             payload = dict(request.payload)
             self._assert_safe_payload(payload)
+            semantic_key = _normalized_key(request.semantic_key)
             source_refs = self._validate_source_refs(connection, request.source_refs)
+            self._validate_assistance_control(
+                semantic_key=semantic_key,
+                payload=payload,
+                source_refs=source_refs,
+            )
+            if (
+                request.record_kind == "inferred_candidate"
+                and semantic_key in ANSWER_PRESENTATION_KEYS
+            ):
+                self._validate_feedback_preference_sources(
+                    connection,
+                    command_task_id=command_task_id,
+                    source_refs=source_refs,
+                    semantic_key=semantic_key,
+                    payload=payload,
+                    principal_id=principal_id,
+                )
             authority_class, status = self._create_semantics(
                 request.record_kind,
                 payload,
                 source_refs,
             )
             expires_at = self._expires_value(request.expires_at)
-            semantic_key = _normalized_key(request.semantic_key)
             record_id = _id(
                 "workspacerecord",
                 {
@@ -168,6 +196,13 @@ class ResearchPersonalWorkspaceService:
             version = 1
             parent_revision_id = None
             if latest is not None:
+                if (
+                    semantic_key.startswith(ASSISTANCE_CONTROL_PREFIX)
+                    and str(latest["principal_id"]) != principal_id
+                ):
+                    raise ResearchValidationError(
+                        "assistance control belongs to a different principal"
+                    )
                 projected_latest = self._project(latest)
                 same_boundary = (
                     str(latest["source_boundary_hash"]) == source_boundary_hash
@@ -306,6 +341,13 @@ class ResearchPersonalWorkspaceService:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             latest = self._latest(connection, record_id)
+            if (
+                str(latest["semantic_key"]).startswith(ASSISTANCE_CONTROL_PREFIX)
+                and str(latest["principal_id"]) != principal_id
+            ):
+                raise ResearchValidationError(
+                    "assistance control belongs to a different principal"
+                )
             if int(latest["version"]) != request.expected_version:
                 raise ResearchConflict("stale WorkspaceRecord expected_version")
             projected_latest = self._project(latest)
@@ -322,6 +364,24 @@ class ResearchPersonalWorkspaceService:
                 source_refs,
             )
             self._assert_safe_payload(next_payload)
+            self._validate_assistance_control(
+                semantic_key=str(latest["semantic_key"]),
+                payload=next_payload,
+                source_refs=source_refs,
+            )
+            if (
+                str(latest["record_kind"]) == "inferred_candidate"
+                and str(latest["semantic_key"]) in ANSWER_PRESENTATION_KEYS
+                and request.action == "confirm"
+            ):
+                self._validate_feedback_preference_sources(
+                    connection,
+                    command_task_id=command_task_id,
+                    source_refs=source_refs,
+                    semantic_key=str(latest["semantic_key"]),
+                    payload=next_payload,
+                    principal_id=principal_id,
+                )
             self._create_semantics(str(latest["record_kind"]), next_payload, source_refs)
             version = int(latest["version"]) + 1
             revision_id = _id(
@@ -396,6 +456,8 @@ class ResearchPersonalWorkspaceService:
         *,
         record_kind: str | None = None,
         status: str | None = None,
+        personalization_enabled: bool = True,
+        principal_id: str | None = None,
     ) -> dict[str, Any]:
         with self.db.connect() as connection:
             self.kernel._task(connection, command_task_id)
@@ -408,7 +470,7 @@ class ResearchPersonalWorkspaceService:
         grouped: dict[str, list[sqlite3.Row]] = {}
         for row in rows:
             grouped.setdefault(str(row["record_id"]), []).append(row)
-        records = []
+        all_records = []
         for history_rows in grouped.values():
             latest = self._project(history_rows[-1])
             latest["history"] = [
@@ -419,16 +481,40 @@ class ResearchPersonalWorkspaceService:
                     "status": str(row["status"]),
                     "decision_action": str(row["decision_action"]),
                     "reason": str(row["reason"]),
+                    "payload": _decode(row["payload_json"], dict),
                     "content_hash": str(row["content_hash"]),
                     "created_at": str(row["created_at"]),
                 }
                 for row in history_rows
             ]
-            if record_kind and latest["record_kind"] != record_kind:
-                continue
-            if status and latest["effective_status"] != status:
-                continue
-            records.append(latest)
+            all_records.append(latest)
+        personalization_context = self.personalization.project(
+            all_records,
+            enabled=personalization_enabled,
+            principal_id=principal_id,
+        )
+        applied_revision_ids = {
+            value["record_revision_id"]
+            for value, applied in (
+                (
+                    personalization_context["preference"],
+                    personalization_context["applied"],
+                ),
+                (
+                    personalization_context["detail_preference"],
+                    personalization_context["detail_applied"],
+                ),
+            )
+            if applied and value is not None
+        }
+        for value in all_records:
+            value["product_behavior_effect"] = value["record_revision_id"] in applied_revision_ids
+        records = [
+            value
+            for value in all_records
+            if (record_kind is None or value["record_kind"] == record_kind)
+            and (status is None or value["effective_status"] == status)
+        ]
         records.sort(
             key=lambda value: (
                 value["record_kind"],
@@ -443,11 +529,12 @@ class ResearchPersonalWorkspaceService:
                 "sqlite": "sole_workspace_record_authority",
                 "explicit_memory": "user_authored_or_confirmed_only",
                 "inferred": "candidate_until_explicit_decision",
-                "corpus": "soft_prior_storage_only_not_consumed",
+                "corpus": "v5_c_stage2_task_scoped_search_presentation_soft_prior_only",
                 "experience": "candidate_record_only_no_skill_or_policy",
-                "product_behavior": "unchanged_until_v5_c",
+                "product_behavior": "v5_c_stage1_answer_and_stage2_search_presentation_only",
             },
             "records": records,
+            "personalization_context": personalization_context,
             "counts": {
                 "records": len(records),
                 "candidate": sum(
@@ -594,6 +681,118 @@ class ResearchPersonalWorkspaceService:
             return f"/taxonomy?snapshot_id={ref.ref_id}"
         return f"/research/{ref.task_id}"
 
+    @staticmethod
+    def _validate_feedback_preference_sources(
+        connection: sqlite3.Connection,
+        *,
+        command_task_id: str,
+        source_refs: list[dict[str, Any]],
+        semantic_key: str,
+        payload: dict[str, Any],
+        principal_id: str,
+    ) -> None:
+        if set(payload) != {"statement"}:
+            raise ResearchValidationError(
+                "Stage 1 preference candidate requires exact statement payload"
+            )
+        proposed_value = _normalized_key(str(payload["statement"]))
+        supported_values = {
+            LIMITATIONS_POSITION_KEY: LIMITATIONS_POSITIONS,
+            DETAIL_LEVEL_KEY: DETAIL_LEVELS,
+        }
+        if proposed_value not in supported_values.get(semantic_key, set()):
+            raise ResearchValidationError("unsupported Stage 1 preference candidate")
+        if len(source_refs) < 2 or any(
+            value["ref_type"] != "research_event" for value in source_refs
+        ):
+            raise ResearchValidationError(
+                "Stage 1 preference candidate requires at least two Feedback Events"
+            )
+
+        for ref in source_refs:
+            row = connection.execute(
+                "SELECT task_id, event_id, event_type, payload_json, command_id "
+                "FROM research_events WHERE event_id=?",
+                (ref["ref_id"],),
+            ).fetchone()
+            if (
+                row is None
+                or str(row["task_id"]) != command_task_id
+                or str(row["event_type"]) != "v5b_product_feedback_recorded"
+            ):
+                raise ResearchValidationError(
+                    "preference candidate sources must be same-Task Feedback Events"
+                )
+            try:
+                event_payload = json.loads(str(row["payload_json"]))
+            except (TypeError, ValueError) as exc:
+                raise ResearchConflict("Feedback Event payload is invalid") from exc
+            if not isinstance(event_payload, dict):
+                raise ResearchConflict("Feedback Event payload is invalid")
+            preference = event_payload.get("candidate_preference")
+            if not isinstance(preference, dict) or set(preference) != {
+                "semantic_key",
+                "proposed_value",
+            }:
+                raise ResearchValidationError(
+                    "Feedback Event lacks an exact structured candidate preference"
+                )
+            if (
+                _normalized_key(str(preference["semantic_key"])) != semantic_key
+                or _normalized_key(str(preference["proposed_value"]))
+                != proposed_value
+            ):
+                raise ResearchValidationError(
+                    "Feedback Events must have the exact candidate key and value"
+                )
+            if str(event_payload.get("principal_id") or "") != principal_id:
+                raise ResearchValidationError(
+                    "Feedback Event principal_id does not match the current principal"
+                )
+            if event_payload.get("authority") != "advisory_feedback_only" or (
+                event_payload.get("automatic_action") is not False
+            ):
+                raise ResearchValidationError("Feedback Event authority is invalid")
+
+            target_kind = str(event_payload.get("target_kind") or "")
+            target_id = str(event_payload.get("target_id") or "")
+            target_hash = str(event_payload.get("target_hash") or "")
+            if target_kind == "topic_page_revision":
+                target = connection.execute(
+                    "SELECT content_hash FROM research_topic_page_revisions "
+                    "WHERE task_id=? AND page_revision_id=?",
+                    (command_task_id, target_id),
+                ).fetchone()
+                hash_column = "content_hash"
+            elif target_kind == "artifact_route":
+                target = connection.execute(
+                    "SELECT expected_authority_hash FROM research_artifact_routes "
+                    "WHERE task_id=? AND record_id=?",
+                    (command_task_id, target_id),
+                ).fetchone()
+                hash_column = "expected_authority_hash"
+            else:
+                target = None
+                hash_column = ""
+            if target is None or str(target[hash_column]) != target_hash:
+                raise ResearchValidationError(
+                    "Feedback Event target/hash is not the exact immutable target"
+                )
+            receipt = connection.execute(
+                "SELECT 1 FROM research_command_receipts "
+                "WHERE task_id=? AND command_id=? AND outcome_reference=? "
+                "AND command_type='v5b_product_feedback' AND status='committed'",
+                (
+                    command_task_id,
+                    str(row["command_id"]),
+                    str(row["event_id"]),
+                ),
+            ).fetchone()
+            if receipt is None:
+                raise ResearchValidationError(
+                    "Feedback Event lacks its committed CommandReceipt"
+                )
+
     def _create_semantics(
         self,
         record_kind: str,
@@ -625,7 +824,15 @@ class ResearchPersonalWorkspaceService:
             user_asserted = payload.get("user_asserted") is True
             if state in SELF_ASSESSMENT_STATES and not user_asserted:
                 raise ResearchValidationError(
-                    "learned/understood/familiar requires explicit user assertion"
+                    "learned/understood/familiar/mastered requires explicit user assertion"
+                )
+            if state in SELF_ASSESSMENT_STATES and set(payload) != {
+                "topic",
+                "state",
+                "user_asserted",
+            }:
+                raise ResearchValidationError(
+                    "explicit mastery progress requires exact topic/state/user_asserted payload"
                 )
             if user_asserted:
                 return "user_authored", "current"
@@ -659,6 +866,52 @@ class ResearchPersonalWorkspaceService:
                 )
             return "experience_candidate", "observed"
         raise ResearchValidationError("unsupported WorkspaceRecord kind")
+
+    @staticmethod
+    def _validate_assistance_control(
+        *,
+        semantic_key: str,
+        payload: dict[str, Any],
+        source_refs: list[dict[str, Any]],
+    ) -> None:
+        is_control = semantic_key.startswith(ASSISTANCE_CONTROL_PREFIX)
+        if not is_control:
+            return
+        required = {
+            "topic",
+            "state",
+            "user_asserted",
+            "control",
+            "dismissed",
+            "candidate_id",
+            "candidate_kind",
+            "boundary_hash",
+        }
+        if set(payload) != required:
+            raise ResearchValidationError(
+                "assistance control requires exact bounded dismiss payload"
+            )
+        candidate_id = str(payload.get("candidate_id") or "")
+        if (
+            semantic_key != f"{ASSISTANCE_CONTROL_PREFIX}{candidate_id}"
+            or not str(payload.get("topic") or "").strip()
+            or payload.get("state") != "reviewed"
+            or payload.get("user_asserted") is not True
+            or payload.get("control") != "dismiss"
+            or not isinstance(payload.get("dismissed"), bool)
+            or payload.get("candidate_kind")
+            not in {"staleness", "collection_delta", "early_project_radar"}
+            or len(str(payload.get("boundary_hash") or "")) != 64
+        ):
+            raise ResearchValidationError("assistance dismiss control identity is invalid")
+        if not source_refs or any(
+            value["ref_type"]
+            not in {"fact_revision", "artifact_revision", "taxonomy_snapshot"}
+            for value in source_refs
+        ):
+            raise ResearchValidationError(
+                "assistance dismiss requires exact persisted boundary refs"
+            )
 
     @staticmethod
     def _decision_semantics(

@@ -380,7 +380,16 @@ def create_web_app(application: Application | None = None) -> FastAPI:
     @web.post("/api/search")
     async def product_search(payload: ProductSearchRequest, request: Request) -> JSONResponse:
         try:
-            response = await asyncio.to_thread(_core(request).product_search.search, payload)
+            service = _core(request).product_search
+            response = (
+                await asyncio.to_thread(
+                    service.search,
+                    payload,
+                    principal_id=request.app.state.research_control_principal,
+                )
+                if payload.corpus_task_id is not None
+                else await asyncio.to_thread(service.search, payload)
+            )
         except SearchExecutionError as exc:
             return JSONResponse(
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
@@ -928,6 +937,17 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         request: Request,
         record_kind: str | None = None,
         status: str | None = None,
+        personalization_enabled: bool = True,
+        routing_enabled: bool = True,
+        current_explicit_path: str | None = None,
+        allow_provider_answer: bool = False,
+        allow_high_cost_or_durable: bool = False,
+        allow_manual_asr: bool = False,
+        asr_video_id: int | None = None,
+        assistance_enabled: bool = True,
+        baseline_snapshot_id: int | None = None,
+        current_snapshot_id: int | None = None,
+        journey_enabled: bool = True,
     ) -> JSONResponse:
         try:
             workspace_value = await asyncio.to_thread(
@@ -935,6 +955,18 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 task_id,
                 record_kind=record_kind,
                 status=status,
+                personalization_enabled=personalization_enabled,
+                principal_id=request.app.state.research_control_principal,
+                routing_enabled=routing_enabled,
+                current_explicit_path=current_explicit_path,
+                allow_provider_answer=allow_provider_answer,
+                allow_high_cost_or_durable=allow_high_cost_or_durable,
+                allow_manual_asr=allow_manual_asr,
+                asr_video_id=asr_video_id,
+                assistance_enabled=assistance_enabled,
+                baseline_snapshot_id=baseline_snapshot_id,
+                current_snapshot_id=current_snapshot_id,
+                journey_enabled=journey_enabled,
             )
         except ResearchError as exc:
             return JSONResponse(

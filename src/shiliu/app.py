@@ -354,6 +354,7 @@ class Application:
                 kernel=self.research,
                 product=self.research_product,
                 retrieval=self.retrieval,
+                taxonomy=self.taxonomy_corpus,
                 export_root=self.paths.content_dir / "knowledge-exports",
             )
         return self._research_knowledge

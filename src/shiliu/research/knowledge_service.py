@@ -17,6 +17,7 @@ from shiliu.research.errors import (
     ResearchValidationError,
 )
 from shiliu.research.inner_evidence import PersistentEvidenceAuthority
+from shiliu.research.integrated_journey import IntegratedJourneyProjection
 from shiliu.research.knowledge_contracts import (
     AssessArtifactRouteRequest,
     BuildKnowledgeArtifactRequest,
@@ -38,6 +39,7 @@ from shiliu.research.knowledge_contracts import (
     RunKnowledgeOperationRequest,
     SubmitKnowledgeFeedbackRequest,
 )
+from shiliu.research.knowledge_assistance import KnowledgeAssistanceProjection
 from shiliu.research.knowledge_lifecycle import ResearchKnowledgeLifecycleService
 from shiliu.research.knowledge_reuse import ResearchArtifactRouteService
 from shiliu.research.personal_workspace import ResearchPersonalWorkspaceService
@@ -46,6 +48,7 @@ from shiliu.research.product_service import (
     CANDIDATE_DELTA_SCHEMA_VERSION,
     ResearchProductService,
 )
+from shiliu.research.routing_recommendation import RouteRecommendationProjection
 from shiliu.research.schema import (
     KNOWLEDGE_ARTIFACT_POLICY_VERSION,
     KNOWLEDGE_VALIDATION_POLICY_VERSION,
@@ -54,6 +57,7 @@ from shiliu.research.schema import (
 )
 from shiliu.research.service import ResearchTaskService
 from shiliu.retrieval.service import RetrievalService
+from shiliu.taxonomy.corpus import TaxonomyCorpusService
 
 
 FaultInjector = Callable[[str], None]
@@ -92,6 +96,7 @@ class ResearchKnowledgeService:
         kernel: ResearchTaskService,
         product: ResearchProductService,
         retrieval: RetrievalService,
+        taxonomy: TaxonomyCorpusService | None = None,
         export_root: Path | None = None,
         fault_injector: FaultInjector | None = None,
     ) -> None:
@@ -118,6 +123,15 @@ class ResearchKnowledgeService:
             kernel=kernel,
             fault_injector=self.fault_injector,
         )
+        self.route_recommendation = RouteRecommendationProjection(
+            db,
+            artifact_routes=self.reuse,
+        )
+        self.knowledge_assistance = KnowledgeAssistanceProjection(
+            db,
+            taxonomy=taxonomy or TaxonomyCorpusService(db, retrieval.artifacts),
+        )
+        self.integrated_journey = IntegratedJourneyProjection()
         self.closeout = ResearchProductCloseoutService(
             db,
             kernel=kernel,
@@ -1749,12 +1763,88 @@ class ResearchKnowledgeService:
         *,
         record_kind: str | None = None,
         status: str | None = None,
+        personalization_enabled: bool = True,
+        principal_id: str | None = None,
+        routing_enabled: bool = False,
+        current_explicit_path: str | None = None,
+        allow_provider_answer: bool = False,
+        allow_high_cost_or_durable: bool = False,
+        allow_manual_asr: bool = False,
+        asr_video_id: int | None = None,
+        assistance_enabled: bool = False,
+        baseline_snapshot_id: int | None = None,
+        current_snapshot_id: int | None = None,
+        journey_enabled: bool = False,
     ) -> dict[str, Any]:
-        return self.personal_workspace.get_workspace(
+        complete_workspace = self.personal_workspace.get_workspace(
             task_id,
-            record_kind=record_kind,
-            status=status,
+            personalization_enabled=personalization_enabled,
+            principal_id=principal_id,
         )
+        workspace = complete_workspace
+        if record_kind is not None or status is not None:
+            workspace = self.personal_workspace.get_workspace(
+                task_id,
+                record_kind=record_kind,
+                status=status,
+                personalization_enabled=personalization_enabled,
+                principal_id=principal_id,
+            )
+        if (
+            principal_id is None
+            and not routing_enabled
+            and not assistance_enabled
+            and not journey_enabled
+        ):
+            return workspace
+        recommendation = self.route_recommendation.project(
+            task_id,
+            principal_id=principal_id,
+            enabled=routing_enabled,
+            current_explicit_path=current_explicit_path,
+            allow_provider_answer=allow_provider_answer,
+            allow_high_cost_or_durable=allow_high_cost_or_durable,
+            allow_manual_asr=allow_manual_asr,
+            asr_video_id=asr_video_id,
+        )
+        applied_revision_id = (
+            recommendation["preference"]["record_revision_id"]
+            if recommendation["status"] == "recommended"
+            and recommendation["preference"] is not None
+            and (
+                "confirmed_default_path_recommended"
+                in recommendation["reason_codes"]
+                or "exact_video_manual_asr_prerequisite"
+                in recommendation["reason_codes"]
+            )
+            else None
+        )
+        for record in workspace["records"]:
+            record["route_recommendation_effect"] = (
+                record["record_revision_id"] == applied_revision_id
+            )
+        workspace["route_recommendation"] = recommendation
+        assistance = self.knowledge_assistance.project(
+            task_id,
+            principal_id=principal_id,
+            records=complete_workspace["records"],
+            enabled=assistance_enabled,
+            baseline_snapshot_id=baseline_snapshot_id,
+            current_snapshot_id=current_snapshot_id,
+        )
+        workspace["knowledge_assistance"] = assistance
+        workspace["integrated_journey"] = self.integrated_journey.project(
+            task_id,
+            principal_id=principal_id,
+            enabled=journey_enabled,
+            personalization=workspace["personalization_context"],
+            routing=recommendation,
+            assistance=assistance,
+        )
+        workspace["authority"]["product_behavior"] = (
+            "v5_c_stage1_to_stage4_behavior_plus_stage5_read_only_composition"
+        )
+        return workspace
 
     def revalidate_knowledge(
         self, task_id: str, request: RevalidateKnowledgeRequest

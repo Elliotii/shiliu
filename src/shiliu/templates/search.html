@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}拾流 · 搜索{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/search.css?v=3">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/search.css?v=4">{% endblock %}
 {% block content %}
 <main class="search-shell" data-search-page>
   <header class="search-hero">
@@ -63,9 +63,14 @@
           </select>
           <small data-mode-help>适合明确工具、项目或术语</small>
         </label>
+        <label for="search-corpus-task">Research Task context
+          <input id="search-corpus-task" name="corpus_task_id" type="text" maxlength="160" placeholder="可选：task_id">
+          <small>只读取该 Task 的 current、snapshot-bound Corpus soft prior</small>
+        </label>
         <div class="boolean-filters">
           <label><input name="archived" type="checkbox"> 包含归档</label>
           <label><input name="ignored" type="checkbox"> 包含忽略</label>
+          <label><input name="corpus_aware" type="checkbox" checked> Corpus-aware</label>
           <label><input name="sufficiency" type="checkbox"> 判断证据充分性（约 1–3 分钟）</label>
         </div>
       </div>
@@ -98,6 +103,11 @@
 
   <section class="search-results" data-success-state hidden>
     <div class="results-heading"><h2 data-result-summary aria-live="polite"></h2><span data-mode-summary></span></div>
+    <aside class="corpus-search-context" data-corpus-search-context hidden>
+      <strong>Corpus-aware Search</strong>
+      <p data-corpus-search-status></p>
+      <details><summary>查看 soft-prior / open-lane explanation</summary><pre data-corpus-search-explanation></pre></details>
+    </aside>
     <section class="pipeline-summary" data-pipeline-summary hidden></section>
     <div class="result-list" data-result-list></div>
     <aside class="integration-limitations" data-integration-limitations hidden>
@@ -107,4 +117,4 @@
   </section>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/search.js?v=5"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/search.js?v=6"></script>{% endblock %}

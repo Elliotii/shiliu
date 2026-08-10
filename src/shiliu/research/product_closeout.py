@@ -91,12 +91,13 @@ class ResearchProductCloseoutService:
         request = SubmitKnowledgeFeedbackRequest.model_validate(
             request.model_dump(mode="json")
         )
+        request_value = request.model_dump(mode="json", exclude_none=True)
         payload_hash = _hash(
             {
                 "operation": "submit_v5b_product_feedback",
                 "task_id": task_id,
                 "principal_id": principal_id,
-                **request.model_dump(mode="json"),
+                **request_value,
             }
         )
         with self._command_lock, self.kernel._transaction() as connection:
@@ -122,6 +123,21 @@ class ResearchProductCloseoutService:
                 )
 
             now = _now()
+            event_payload = {
+                "target_kind": request.target_kind,
+                "target_id": request.target_id,
+                "target_hash": target["expected_hash"],
+                "decision": request.decision,
+                "reason_code": request.reason_code,
+                "note": request.note,
+                "principal_id": principal_id,
+                "authority": "advisory_feedback_only",
+                "automatic_action": False,
+            }
+            if request.candidate_preference is not None:
+                event_payload["candidate_preference"] = (
+                    request.candidate_preference.model_dump(mode="json")
+                )
             event_id = self.kernel._event(
                 connection,
                 task_id=task_id,
@@ -131,17 +147,7 @@ class ResearchProductCloseoutService:
                     else None
                 ),
                 event_type="v5b_product_feedback_recorded",
-                payload={
-                    "target_kind": request.target_kind,
-                    "target_id": request.target_id,
-                    "target_hash": target["expected_hash"],
-                    "decision": request.decision,
-                    "reason_code": request.reason_code,
-                    "note": request.note,
-                    "principal_id": principal_id,
-                    "authority": "advisory_feedback_only",
-                    "automatic_action": False,
-                },
+                payload=event_payload,
                 command_id=request.command_id,
                 owner_epoch=int(task["owner_epoch"]),
                 now=now,
@@ -158,6 +164,10 @@ class ResearchProductCloseoutService:
                 "advisory_only": True,
                 "automatic_action": False,
             }
+            if request.candidate_preference is not None:
+                response["candidate_preference"] = (
+                    request.candidate_preference.model_dump(mode="json")
+                )
             self.kernel._insert_receipt(
                 connection,
                 task_id=task_id,

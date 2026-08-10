@@ -1,7 +1,8 @@
 (() => {
   const root = document.querySelector('[data-research-page]');
   const evidenceUI = window.ShiliuEvidenceUI;
-  if (!root || !evidenceUI) return;
+  const personalizationUI = window.ShiliuResearchPersonalization;
+  if (!root || !evidenceUI || !personalizationUI) return;
 
   const {element, renderEvidenceCard} = evidenceUI;
   const createForm = root.querySelector('[data-research-create]');
@@ -15,6 +16,11 @@
   let current = null;
   let knowledge = null;
   let personalWorkspace = null;
+  let personalizationEnabled = true;
+  let routingEnabled = true;
+  let assistanceEnabled = true;
+  let journeyEnabled = true;
+  const sessionDismissedAssistance = new Set();
   let pollTimer = null;
 
   const commandId = prefix => {
@@ -76,7 +82,9 @@
   const renderAnswer = product => {
     const section = root.querySelector('[data-answer-section]');
     const container = root.querySelector('[data-answer-blocks]');
+    const compactContainer = root.querySelector('[data-answer-compact-blocks]');
     container.replaceChildren();
+    compactContainer.replaceChildren();
     const numbering = new Map(product.citations.map((item, index) => [item.citation_id, index + 1]));
     (product.answer_blocks || []).forEach(block => {
       const card = element('article', 'research-answer-block');
@@ -93,9 +101,52 @@
     });
     section.hidden = !product.answer_blocks.length && !product.limitations.length;
     const limitations = root.querySelector('[data-limitations]');
+    container.after(limitations);
     limitations.hidden = !product.limitations.length;
     const list = limitations.querySelector('ul');
     list.replaceChildren(...product.limitations.map(value => element('li', '', value)));
+  };
+
+  const renderPersonalization = context => {
+    const answerSection = root.querySelector('[data-answer-section]');
+    const answerBlocks = root.querySelector('[data-answer-blocks]');
+    const limitations = root.querySelector('[data-limitations]');
+    const compactDetails = root.querySelector('[data-answer-compact-details]');
+    const compactBlocks = root.querySelector('[data-answer-compact-blocks]');
+    const detail = personalizationUI.applyAnswerDetail(
+      answerBlocks, compactDetails, compactBlocks, context,
+    );
+    root.querySelector('[data-answer-compact-count]').textContent = String(detail.compactedCount);
+    const position = personalizationUI.applyAnswerPresentation(
+      answerSection, answerBlocks, limitations, context, compactDetails,
+    );
+    const status = root.querySelector('[data-personalization-status]');
+    const preference = context.preference;
+    const focus = context.current_focus;
+    if ((context.applied && preference) || context.detail_applied) {
+      const effects = [
+        ...(context.applied && preference ? [`limitations ${preference.value}`] : []),
+        ...(context.detail_applied ? [`detail ${detail.detailLevel}`] : []),
+      ];
+      status.textContent = `已应用 ${effects.join(' · ')}${focus ? ` · Current Focus: ${focus.topic} (${focus.state})` : ''}`;
+    } else {
+      status.textContent = `保持 baseline (${position}, ${detail.detailLevel}) · ${(context.reason_codes || []).join(', ')}`;
+    }
+    root.querySelector('[data-personalization-explanation]').textContent = JSON.stringify({
+      policy_version: context.policy_version,
+      enabled: context.enabled,
+      applied: context.applied,
+      effect_scope: context.effect_scope,
+      preference: context.preference,
+      detail_level: context.detail_level,
+      detail_applied: context.detail_applied,
+      detail_preference: context.detail_preference,
+      detail_reason_codes: context.detail_reason_codes,
+      current_focus: context.current_focus,
+      reason_codes: context.reason_codes,
+      context_hash: context.context_hash,
+      authority: context.authority,
+    }, null, 2);
   };
 
   const renderEvidence = product => {
@@ -189,7 +240,7 @@
     } catch (error) { status.textContent = error.message; }
   };
 
-  const submitKnowledgeFeedback = (targetKind, targetId, expectedHash, decision) => {
+  const submitKnowledgeFeedback = (targetKind, targetId, expectedHash, decision, proposedValue = '') => {
     const note = window.prompt(
       decision === 'helpful' ? '可选：哪里有帮助？' : '可选：哪里需要修正？',
       '',
@@ -203,20 +254,81 @@
       reason_code: targetKind === 'artifact_route' ? 'route' : 'answer_quality',
       note: note.trim(),
       expected_hash: expectedHash,
+      ...(proposedValue ? {candidate_preference: {
+        semantic_key: 'answer.presentation.limitations_position',
+        proposed_value: proposedValue,
+      }} : {}),
     }, '正在记录 advisory Feedback Event…');
   };
 
   const feedbackControls = (targetKind, targetId, expectedHash) => {
     const controls = element('div', 'research-control-buttons');
+    const preferenceLabel = element('label', '', 'Candidate preference');
+    const preference = element('select');
+    [['', 'No preference hint'], ['before_answer', 'Limitations first'], ['after_answer', 'Limitations after answer']]
+      .forEach(([value, label]) => {
+        const option = element('option', '', label); option.value = value; preference.append(option);
+      });
+    preferenceLabel.append(preference);
+    controls.append(preferenceLabel);
     [['helpful', 'Helpful'], ['needs_fix', 'Needs fix']].forEach(([decision, label]) => {
       const button = element('button', 'ghost compact-button', label);
       button.type = 'button';
       button.addEventListener('click', () => submitKnowledgeFeedback(
-        targetKind, targetId, expectedHash, decision,
+        targetKind, targetId, expectedHash, decision, preference.value,
       ));
       controls.append(button);
     });
     return controls;
+  };
+
+  const createPreferenceCandidate = async group => {
+    const status = root.querySelector('[data-workspace-status]');
+    status.textContent = '正在从 exact Feedback Events 创建 candidate；确认前不会改变产品行为…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records`, {
+        method: 'POST', body: JSON.stringify({
+          command_id: commandId('feedback-preference-candidate'),
+          record_kind: 'inferred_candidate',
+          semantic_key: group.semanticKey,
+          payload: {statement: group.proposedValue},
+          source_refs: group.events.slice(0, 32).map(value => ({
+            ref_type: 'research_event', ref_id: value.event_id, task_id: activeTaskId,
+          })),
+          confidence: 1,
+          reason: 'explicitly created from compatible exact-target structured Feedback Events',
+        }),
+      });
+      status.textContent = 'Candidate 已创建；必须显式 confirm 才可能影响 Research 展示。';
+      await loadPersonalWorkspace();
+    } catch (error) { status.textContent = error.message; }
+  };
+
+  const renderFeedbackPreferenceCandidates = (observability, target) => {
+    const groups = new Map();
+    (observability.feedback || []).forEach(value => {
+      const preference = value.candidate_preference;
+      if (!preference) return;
+      const key = `${preference.semantic_key}\u0000${preference.proposed_value}\u0000${value.principal_id || ''}`;
+      if (!groups.has(key)) groups.set(key, {
+        semanticKey: preference.semantic_key,
+        proposedValue: preference.proposed_value,
+        principalId: value.principal_id || '',
+        events: [],
+      });
+      groups.get(key).events.push(value);
+    });
+    groups.forEach(group => {
+      if (group.events.length < 2) return;
+      const card = element('article', 'research-knowledge-card');
+      card.append(
+        element('strong', '', `Candidate · ${group.semanticKey} = ${group.proposedValue}`),
+        element('small', '', `${group.events.length} compatible Feedback Events · principal ${group.principalId}`),
+      );
+      const button = element('button', 'ghost compact-button', 'Create candidate for review');
+      button.type = 'button'; button.addEventListener('click', () => createPreferenceCandidate(group));
+      card.append(button); target.append(card);
+    });
   };
 
   const reviewCandidate = (candidate, decision) => {
@@ -300,6 +412,7 @@
     const paths = closeout.product_paths || {};
     if (paths.reuse_first) closeoutList.append(element('p', 'research-currentness', `Reuse-first · ${paths.reuse_first.route} · ${paths.reuse_first.status}`));
     if (paths.research_change) closeoutList.append(element('p', 'research-currentness', `Research-change · ${paths.research_change.route} · ${paths.research_change.status}`));
+    renderFeedbackPreferenceCandidates(observability, closeoutList);
     const candidateList = root.querySelector('[data-knowledge-candidates]');
     candidateList.replaceChildren(element('h4', '', `Candidate · ${knowledge.candidates.length}`));
     knowledge.candidates.forEach(candidate => {
@@ -589,6 +702,15 @@
   const decideWorkspaceRecord = async (record, action) => {
     const status = root.querySelector('[data-workspace-status]');
     let replacementPayload;
+    let requestAction = action;
+    let reason = `local operator ${action}`;
+    if (action === 'restore') {
+      const prior = record.history.length > 1 ? record.history[record.history.length - 2] : null;
+      if (!prior) { status.textContent = '没有可恢复的历史 revision。'; return; }
+      replacementPayload = prior.payload;
+      requestAction = 'correct';
+      reason = `restore_previous_value:v${prior.version}`;
+    }
     if (action === 'correct') {
       const replacement = window.prompt('Correction 会追加 immutable revision。请输入完整 JSON payload。', JSON.stringify(record.payload));
       if (replacement === null) return;
@@ -601,12 +723,12 @@
       try { replacementPayload = JSON.parse(diagnosis); }
       catch (_error) { status.textContent = 'Diagnosis 必须是 JSON object。'; return; }
     }
-    status.textContent = `正在追加 ${action} decision…`;
+    status.textContent = `正在追加 ${requestAction} decision…`;
     try {
       await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records/${encodeURIComponent(record.record_id)}/decisions`, {
         method: 'POST', body: JSON.stringify({
-          command_id: commandId(`workspace-${action}`), action,
-          expected_version: record.version, reason: `local operator ${action}`,
+          command_id: commandId(`workspace-${action}`), action: requestAction,
+          expected_version: record.version, reason,
           ...(replacementPayload ? {replacement_payload: replacementPayload} : {}),
         }),
       });
@@ -617,6 +739,10 @@
 
   const renderPersonalWorkspace = value => {
     personalWorkspace = value;
+    renderPersonalization(value.personalization_context);
+    renderRouteRecommendation(value.route_recommendation);
+    renderKnowledgeAssistance(value.knowledge_assistance);
+    renderIntegratedJourney(value.integrated_journey);
     const list = root.querySelector('[data-workspace-records]');
     list.replaceChildren(element('h4', '', `WorkspaceRecord · ${value.records.length}`));
     value.records.forEach(record => {
@@ -624,7 +750,7 @@
       card.append(
         element('span', `research-currentness${['current', 'confirmed'].includes(record.effective_status) ? '' : ' is-stale'}`, `${record.record_kind} · ${record.effective_status}`),
         element('strong', '', record.semantic_key),
-        element('small', '', `${record.authority_class} · v${record.version} · behavior effect false`),
+        element('small', '', `${record.authority_class} · v${record.version} · answer effect ${record.product_behavior_effect ? 'presentation' : 'false'} · route effect ${record.route_recommendation_effect ? 'advisory only' : 'false'}`),
         element('pre', 'research-advanced-trace', JSON.stringify(record.payload, null, 2)),
       );
       if (record.confidence !== null) card.append(element('small', '', `confidence ${record.confidence}`));
@@ -643,11 +769,137 @@
           const button = element('button', ['reject', 'tombstone', 'invalidate'].includes(action) ? 'ghost is-destructive' : 'ghost', action);
           button.type = 'button'; button.addEventListener('click', () => decideWorkspaceRecord(record, action)); actions.append(button);
         });
+        if (record.allowed_actions.includes('correct') && record.history.length > 1) {
+          const restore = element('button', 'ghost', 'restore previous as new revision');
+          restore.type = 'button'; restore.addEventListener('click', () => decideWorkspaceRecord(record, 'restore')); actions.append(restore);
+        }
         card.append(actions);
       }
       list.append(card);
     });
     if (!value.records.length) list.append(element('p', 'muted', '当前筛选下没有 WorkspaceRecord。'));
+  };
+
+  const renderIntegratedJourney = context => {
+    const status = root.querySelector('[data-journey-status]');
+    const explanation = root.querySelector('[data-journey-explanation]');
+    const steps = root.querySelector('[data-journey-steps]');
+    steps.replaceChildren();
+    if (!context) {
+      status.textContent = 'Journey composition 未启用；各 consumer 保持自身 baseline。';
+      explanation.textContent = '';
+      return;
+    }
+    status.textContent = `${context.enabled ? 'read-only composition' : 'session all-off'} · ${context.journey_hash.slice(0, 12)} · execution false`;
+    const labels = {answer: 'Answer', search: 'Search', routing: 'Next path', assistance: 'Progress & Assistance'};
+    Object.entries(context.steps).forEach(([name, step]) => {
+      const link = element('a', 'research-journey-step');
+      link.href = step.href;
+      link.append(
+        element('strong', '', labels[name] || name),
+        element('small', '', step.status),
+        element('code', '', step.context_hash ? step.context_hash.slice(0, 12) : 'no execution context'),
+      );
+      steps.append(link);
+    });
+    explanation.textContent = JSON.stringify(context, null, 2);
+  };
+
+  const durableDismissAssistance = async card => {
+    if (!card.dismiss_control) return;
+    const status = root.querySelector('[data-assistance-status]');
+    const expiry = root.querySelector('[data-assistance-dismiss-expiry]').value;
+    status.textContent = '正在追加 exact-boundary dismiss decision…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records`, {
+        method: 'POST',
+        body: JSON.stringify({
+          command_id: commandId('assistance-dismiss'),
+          ...card.dismiss_control,
+          reason: 'explicit durable dismiss from bounded assistance panel',
+          ...(expiry ? {expires_at: new Date(expiry).toISOString()} : {}),
+        }),
+      });
+      status.textContent = '已追加 durable dismiss；历史与 exact source boundary 保留。';
+      await loadPersonalWorkspace();
+    } catch (error) { status.textContent = error.message; }
+  };
+
+  const renderKnowledgeAssistance = context => {
+    const status = root.querySelector('[data-assistance-status]');
+    const explanation = root.querySelector('[data-assistance-explanation]');
+    const grid = root.querySelector('[data-assistance-cards]');
+    grid.replaceChildren();
+    if (!context) {
+      status.textContent = 'Assistance projection 未启用；baseline 保持不变。';
+      explanation.textContent = '';
+      return;
+    }
+    status.textContent = `${context.status} · ${context.context_hash.slice(0, 12)} · execution / notification authority false`;
+    explanation.textContent = JSON.stringify(context, null, 2);
+    Object.entries(context.lanes).forEach(([name, lane]) => {
+      const section = element('section', 'research-assistance-lane');
+      section.append(element('h4', '', `${name} · ${lane.status}`));
+      lane.cards.filter(card => !sessionDismissedAssistance.has(card.candidate_id)).forEach(card => {
+        const article = element('article', 'research-knowledge-card');
+        article.append(
+          element('span', 'research-currentness', card.mastery ? 'explicit mastery' : card.kind),
+          element('strong', '', card.title),
+          element('p', 'muted', card.explanation),
+          element('code', '', card.candidate_id),
+        );
+        if (card.dismiss_control) {
+          const controls = element('div', 'research-control-buttons');
+          const sessionButton = element('button', 'ghost compact-button', '本次 session 隐藏');
+          sessionButton.type = 'button';
+          sessionButton.addEventListener('click', () => {
+            sessionDismissedAssistance.add(card.candidate_id);
+            renderKnowledgeAssistance(context);
+          });
+          const durableButton = element('button', 'ghost compact-button', 'Durable dismiss');
+          durableButton.type = 'button';
+          durableButton.addEventListener('click', () => durableDismissAssistance(card));
+          controls.append(sessionButton, durableButton);
+          article.append(controls);
+        }
+        section.append(article);
+      });
+      if (section.children.length === 1) section.append(element('p', 'muted', lane.reason_codes.join(' / ')));
+      grid.append(section);
+    });
+  };
+
+  const renderRouteRecommendation = context => {
+    const status = root.querySelector('[data-routing-status]');
+    const explanation = root.querySelector('[data-routing-explanation]');
+    const cta = root.querySelector('[data-routing-cta]');
+    cta.replaceChildren();
+    if (!context) {
+      status.textContent = 'Routing projection 未启用；现有选择保持不变。';
+      explanation.textContent = '';
+      return;
+    }
+    const target = context.recommendation;
+    const path = target?.path ? ` · ${target.path}` : '';
+    status.textContent = `${context.status}${path} · ${context.reason_codes.join(' / ')} · execution authority false`;
+    explanation.textContent = JSON.stringify(context, null, 2);
+    if (!target?.cta) return;
+    if (target.cta.kind === 'prefill_ask' || target.cta.kind === 'inspect_video_transcript') {
+      const link = element('a', 'ghost compact-button', target.cta.kind === 'prefill_ask' ? '打开已预填 Ask（仍需显式提交）' : '检查 exact video transcript');
+      link.href = target.cta.href;
+      cta.append(link);
+      return;
+    }
+    const focus = element('button', 'ghost compact-button', target.cta.kind === 'focus_artifact_route' ? '聚焦现有 ArtifactRoute control' : '聚焦现有 Research control');
+    focus.type = 'button';
+    focus.addEventListener('click', () => {
+      const control = target.cta.kind === 'focus_artifact_route'
+        ? root.querySelector('[data-artifact-route-form] input[name="route_query"]')
+        : root.querySelector('[data-control-buttons] button, [data-research-create] textarea');
+      control?.scrollIntoView({behavior: 'smooth', block: 'center'});
+      control?.focus({preventScroll: true});
+    });
+    cta.append(focus);
   };
 
   async function loadPersonalWorkspace() {
@@ -657,6 +909,21 @@
     const status = root.querySelector('[data-workspace-status-filter]').value;
     if (kind) params.set('record_kind', kind);
     if (status) params.set('status', status);
+    if (!personalizationEnabled) params.set('personalization_enabled', 'false');
+    params.set('routing_enabled', String(routingEnabled));
+    params.set('assistance_enabled', String(assistanceEnabled));
+    params.set('journey_enabled', String(journeyEnabled));
+    const baselineSnapshot = Number(root.querySelector('[data-assistance-baseline-snapshot]').value);
+    const currentSnapshot = Number(root.querySelector('[data-assistance-current-snapshot]').value);
+    if (Number.isInteger(baselineSnapshot) && baselineSnapshot > 0) params.set('baseline_snapshot_id', String(baselineSnapshot));
+    if (Number.isInteger(currentSnapshot) && currentSnapshot > 0) params.set('current_snapshot_id', String(currentSnapshot));
+    const explicitPath = root.querySelector('[data-routing-explicit-path]').value;
+    if (explicitPath) params.set('current_explicit_path', explicitPath);
+    params.set('allow_provider_answer', String(root.querySelector('[data-routing-provider-permission]').checked));
+    params.set('allow_high_cost_or_durable', String(root.querySelector('[data-routing-cost-permission]').checked));
+    params.set('allow_manual_asr', String(root.querySelector('[data-routing-asr-permission]').checked));
+    const videoId = Number(root.querySelector('[data-routing-video-id]').value);
+    if (Number.isInteger(videoId) && videoId > 0) params.set('asr_video_id', String(videoId));
     try {
       const suffix = params.toString() ? `?${params.toString()}` : '';
       const data = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace${suffix}`);
@@ -977,6 +1244,51 @@
   });
   root.querySelector('[data-workspace-kind-filter]').addEventListener('change', loadPersonalWorkspace);
   root.querySelector('[data-workspace-status-filter]').addEventListener('change', loadPersonalWorkspace);
+  root.querySelector('[data-routing-refresh]').addEventListener('click', loadPersonalWorkspace);
+  root.querySelector('[data-assistance-refresh]').addEventListener('click', loadPersonalWorkspace);
+  root.querySelector('[data-assistance-enabled]').addEventListener('change', event => {
+    assistanceEnabled = event.currentTarget.checked;
+    if (assistanceEnabled) {
+      journeyEnabled = true;
+      root.querySelector('[data-journey-enabled]').checked = true;
+    }
+    loadPersonalWorkspace();
+  });
+  root.querySelectorAll('[data-assistance-baseline-snapshot], [data-assistance-current-snapshot]').forEach(control => {
+    control.addEventListener('change', loadPersonalWorkspace);
+  });
+  root.querySelector('[data-routing-enabled]').addEventListener('change', event => {
+    routingEnabled = event.currentTarget.checked;
+    if (routingEnabled) {
+      journeyEnabled = true;
+      root.querySelector('[data-journey-enabled]').checked = true;
+    }
+    loadPersonalWorkspace();
+  });
+  root.querySelectorAll('[data-routing-explicit-path], [data-routing-provider-permission], [data-routing-cost-permission], [data-routing-asr-permission], [data-routing-video-id]').forEach(control => {
+    control.addEventListener('change', loadPersonalWorkspace);
+  });
+  root.querySelector('[data-personalization-enabled]').addEventListener('change', event => {
+    personalizationEnabled = event.currentTarget.checked;
+    if (personalizationEnabled) {
+      journeyEnabled = true;
+      root.querySelector('[data-journey-enabled]').checked = true;
+    }
+    loadPersonalWorkspace();
+  });
+  root.querySelector('[data-journey-enabled]').addEventListener('change', event => {
+    journeyEnabled = event.currentTarget.checked;
+    personalizationEnabled = journeyEnabled;
+    routingEnabled = journeyEnabled;
+    assistanceEnabled = journeyEnabled;
+    root.querySelector('[data-personalization-enabled]').checked = journeyEnabled;
+    root.querySelector('[data-routing-enabled]').checked = journeyEnabled;
+    root.querySelector('[data-assistance-enabled]').checked = journeyEnabled;
+    loadPersonalWorkspace();
+  });
+  root.querySelector('[data-journey-workspace-focus]').addEventListener('click', () => {
+    root.querySelector('[data-personal-workspace]')?.scrollIntoView({behavior: 'smooth'});
+  });
   window.addEventListener('popstate', () => {
     const match = location.pathname.match(/^\/research\/([^/]+)$/);
     activeTaskId = match ? decodeURIComponent(match[1]) : '';
