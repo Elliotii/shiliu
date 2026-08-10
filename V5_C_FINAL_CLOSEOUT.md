@@ -9,8 +9,7 @@ execution_branch: codex/v5-c
 accepted_contract: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
 main_authority: 151709b9d6135c324d88460a4264a8831df244df
 main_decision: V5D-20260810-031
-implementation_commit: THIS_INTEGRATED_COMMIT
-implementation_commit_resolution: exact_object_id_is_reported_in_the_final_handoff_because_a_commit_cannot_embed_its_own_hash
+implementation_commit: e6c13d72dc064abcaefdb5360e1a775153d7803d
 schema_version: 14
 stage_5_accepted: false
 v5_c_accepted: false
