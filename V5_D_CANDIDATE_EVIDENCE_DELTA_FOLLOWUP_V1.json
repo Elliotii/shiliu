@@ -1,0 +1,181 @@
+{
+  "schema_version": "v5-d-stage1-candidate-contract-v1",
+  "candidate_id": "V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001",
+  "candidate_type": "domain_specific_search_research_policy",
+  "candidate_surface": "follow_up_strategy",
+  "version": "1.0.0",
+  "lifecycle_status": "proposed_non_active",
+  "frozen_at": "2026-08-11T01:33:06+08:00",
+  "runtime_registration": null,
+  "active": false,
+  "shadow": false,
+  "attribution_identity": "V5D-S1-ATTRIBUTION-20260811-A",
+  "hypothesis_identity": "V5D-S1-HYPOTHESIS-20260811-A",
+  "failure_family": "non_progress_search_repetition_without_recovery",
+  "applicability": {
+    "mode": [
+      "deep_research"
+    ],
+    "decision_phase": "pre_follow_up_action",
+    "required_state": [
+      "at_least_one_tool_observation_exists",
+      "one_or_more_user_objective_evidence_requirements_remain_unresolved",
+      "current_source_index_and_runtime_health_are_valid",
+      "remaining_decision_and_tool_budget_is_known"
+    ]
+  },
+  "non_applicable_scope": [
+    "initial_query_planning_before_any_observation",
+    "already_sufficient_grounded_answer",
+    "provider_infrastructure_or_evaluator_invalid_run",
+    "stale_missing_or_unready_source_or_index",
+    "fast_answer_or_plain_search",
+    "answer_presentation_citation_validation_or_evidence_authority",
+    "tasks_without_an_unresolved_evidence_target_or_a_safe_honest_stop"
+  ],
+  "trigger": {
+    "all": [
+      "last_completed_action_was_evidence_seeking_or_empty_navigation_transcript_fallback",
+      "last_action_current_transcript_evidence_delta_equals_zero",
+      "user_objective_or_open_questions_still_identify_unresolved_evidence_work",
+      "run_is_not_invalid_and_budget_is_not_exhausted"
+    ],
+    "termination_reason_dependency": false,
+    "repeat_count_dependency": false
+  },
+  "required_preconditions": [
+    "decision_view_exposes_last_observation_summary_previous_action_keys_visited_summary_open_questions_and_remaining_budget",
+    "unresolved_targets_are_derived_only_from_user_objective_open_questions_and_current_routing_observations",
+    "candidate_package_identity_and_lifecycle_status_are_valid",
+    "treatment_is_explicitly_authorized_by_a_future_frozen_experiment",
+    "candidate_has_no_gold_evaluator_split_reserve_or_promotion_access"
+  ],
+  "procedure": [
+    {
+      "step": 1,
+      "action": "build_progress_snapshot",
+      "fields": [
+        "current_evidence_count",
+        "current_citation_coverage",
+        "visited_source_count",
+        "previous_action_keys",
+        "last_observation_summary",
+        "unresolved_user_objective_requirements",
+        "remaining_budget"
+      ]
+    },
+    {
+      "step": 2,
+      "action": "classify_last_action_information_delta",
+      "allowed_values": [
+        "grounded_evidence_progress",
+        "routing_only_progress",
+        "no_grounded_progress"
+      ],
+      "rule": "navigation results are routing observations and never grounded evidence"
+    },
+    {
+      "step": 3,
+      "action": "derive_eligible_recovery_targets",
+      "rule": "derive targets from unresolved user-objective requirements and current routing observations; exclude Gold, evaluator output, reserve metadata semantics and previously used exact action keys"
+    },
+    {
+      "step": 4,
+      "action": "select_at_most_one_bounded_recovery_action",
+      "rule": "the action must be evidence-bearing, tied to one unresolved target, materially different in query scope or source target, within permissions and capable of adding current transcript evidence"
+    },
+    {
+      "step": 5,
+      "action": "reevaluate_or_honestly_stop",
+      "rule": "after the bounded recovery, continue only when current grounded evidence increased and an answer remains feasible; otherwise stop partial when current evidence supports a bounded answer or insufficient when none does"
+    }
+  ],
+  "stop_conditions": [
+    "current_grounded_evidence_supports_the_bounded_user_objective_with_explicit_limitations",
+    "no_untried_evidence_bearing_recovery_target_is_eligible",
+    "one_candidate_recovery_action_completed_without_current_evidence_gain",
+    "budget_deadline_permission_or_control_boundary_requires_stop",
+    "provider_infrastructure_source_index_or_evaluator_state_becomes_invalid"
+  ],
+  "forbidden_behavior": [
+    "repeat_an_exact_normalized_action_key",
+    "use_rephrasing_only_when_scope_source_target_and_expected_evidence_are_unchanged",
+    "treat_navigation_hit_count_answer_length_or_search_count_as_grounded_success",
+    "derive_targets_from_gold_evaluator_outputs_split_labels_or_sealed_reserve_content",
+    "modify_evidence_citation_currentness_verifier_authority_or_source_lineage",
+    "expand_tool_permission_provider_route_or_corpus_scope",
+    "continue_searching_when_no_eligible_recovery_target_exists",
+    "hide_or_reclassify_provider_infrastructure_evaluation_or_implementation_invalid_runs"
+  ],
+  "baseline_fallback": {
+    "behavior": "execute_the_existing_no_skill_baseline_unchanged",
+    "required_when": [
+      "candidate_package_missing_or_invalid",
+      "candidate_not_explicitly_enabled_by_the_frozen_treatment",
+      "applicability_or_preconditions_not_satisfied",
+      "identity_lineage_or_protected_boundary_check_fails",
+      "rollback_or_rejection_is_recorded"
+    ]
+  },
+  "source_experience": {
+    "supporting_traces": [
+      {
+        "case_id": "V5D-S0-D-02",
+        "trace_file_sha256": "470e6d13356e2af3ae7a3ce521d5aaa47aa9f6e28e2fda0d8ddb9a3b82548e41",
+        "provider_trace_sha256": "778bae8588c26f8f67cff892a941958e959ccab0fcca48c713855fb422d81894"
+      },
+      {
+        "case_id": "V5D-S0-D-04",
+        "trace_file_sha256": "02506732cea28a2216eb51129562636f26c964d37cbda6e0cdc0e070341951ee",
+        "provider_trace_sha256": "4a75a16b876ec899679b4bfa1870a06b654beb388211d0775f02420d4c41c806"
+      }
+    ],
+    "bounded_controls": [
+      {
+        "case_id": "V5D-S0-D-03",
+        "role": "same_environment_valid_partial_control",
+        "trace_file_sha256": "9fcb0f50a4b70507ab5cdb0b93dc85eba3dcd077a0cdc01f66205cfdb69f25fb"
+      },
+      {
+        "case_id": "V5D-S0-D-01",
+        "role": "provider_domain_exclusion_control",
+        "replacement_trace_file_sha256": "e30c0a83c611b5a23332f424dcf1904dd200908dba062e2ad0e80caa403e65dd"
+      }
+    ]
+  },
+  "protected_boundaries": [
+    "transcript_source_authority",
+    "stable_citation_identity",
+    "source_version_validation",
+    "evidence_and_artifact_lineage",
+    "dataset_and_split_identity",
+    "frozen_evaluator_and_judge",
+    "promotion_gate",
+    "invalid_run_policy",
+    "experiment_identity",
+    "provider_usage_and_cost_accounting",
+    "tool_permission_boundary",
+    "explicit_user_control",
+    "no_skill_baseline_fallback"
+  ],
+  "expected_cost_delta": {
+    "scope": "per_applicable_treatment_run",
+    "local_policy_checks": 1,
+    "maximum_incremental_provider_logical_calls": 2,
+    "maximum_incremental_http_attempts": 4,
+    "maximum_incremental_input_tokens": 25000,
+    "maximum_incremental_output_tokens": 5000
+  },
+  "expected_tool_provider_delta": {
+    "provider_route_delta": 0,
+    "new_provider_roles": 0,
+    "maximum_incremental_executed_tool_calls": 1,
+    "tool_permission_delta": 0
+  },
+  "rollback_or_rejection_behavior": {
+    "candidate_state": "rejected_or_rolled_back",
+    "runtime_effect": "none",
+    "fallback": "existing_no_skill_baseline",
+    "historical_evidence_mutation": false
+  }
+}
