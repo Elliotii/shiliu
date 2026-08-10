@@ -47,16 +47,18 @@ WORKTREE = Path("/Users/elliot/.codex/worktrees/5eb4/Shiliu")
 STAGE0_ROOT = Path(
     "/Users/elliot/.codex/private/Shiliu/V5-D/stage0-20260811-MAoyel"
 )
-R1_ROOT = Path(
+OLD_R1_ROOT = Path(
     "/Users/elliot/.codex/private/Shiliu/V5-D/r1-20260811-frozen-A"
 )
-EXPERIMENT_ID = "V5D-R1-SOURCE-GATE-001"
+R1_ROOT = Path(
+    "/Users/elliot/.codex/private/Shiliu/V5-D/r1-e1-20260811-frozen-A"
+)
+EXPERIMENT_ID = "V5D-R1-E1-SOURCE-GATE-001"
 AUTHORIZED_ENDPOINT = "https://api.deepseek.com/v1"
 AUTHORIZED_MODEL = "deepseek-v4-pro"
 SOURCE_CASE_IDS = ("V5D-S0-D-02", "V5D-S0-D-04")
 ARMS = ("baseline", "treatment")
 FROZEN_SEQUENCE = (
-    ("V5D-S0-D-02", "baseline"),
     ("V5D-S0-D-02", "treatment"),
     ("V5D-S0-D-04", "treatment"),
     ("V5D-S0-D-04", "baseline"),
@@ -148,8 +150,7 @@ def task_id(case_id: str, arm: str, outer_attempt: int) -> str:
 def all_task_ids() -> tuple[str, ...]:
     return tuple(
         task_id(case_id, arm, attempt)
-        for case_id in SOURCE_CASE_IDS
-        for arm in ARMS
+        for case_id, arm in FROZEN_SEQUENCE
         for attempt in (1, 2)
     )
 
@@ -162,10 +163,24 @@ def task_identity_manifest() -> list[dict[str, Any]]:
             "outer_attempt": attempt,
             "task_id_sha256": digest(task_id(case_id, arm, attempt)),
         }
-        for case_id in SOURCE_CASE_IDS
-        for arm in ARMS
+        for case_id, arm in FROZEN_SEQUENCE
         for attempt in (1, 2)
     ]
+
+
+def residual_budget_policy(started_at: str) -> ProviderRunBudgetPolicy:
+    return ProviderRunBudgetPolicy(
+        run_id=EXPERIMENT_ID,
+        task_ids=all_task_ids(),
+        max_logical_calls=99,
+        max_http_attempts=203,
+        max_input_tokens=1_051_107,
+        max_output_tokens=139_451,
+        max_wall_seconds=5_719,
+        reserve_stop_usd=Decimal("0.159353387"),
+        absolute_max_cost_usd=Decimal("0.199353387"),
+        started_at=started_at,
+    )
 
 
 def corpus_snapshot(database: Path) -> dict[str, Any]:
@@ -234,26 +249,43 @@ def load_source_cases() -> list[dict[str, Any]]:
 def validate_entry() -> dict[str, Any]:
     receipt_path = R1_ROOT / "freeze_receipt.private.json"
     if not receipt_path.is_file():
-        raise RuntimeError("R1 freeze receipt is missing")
+        raise RuntimeError("R1-E1 freeze receipt is missing")
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     if receipt.get("experiment_id") != EXPERIMENT_ID:
-        raise RuntimeError("R1 experiment identity mismatch")
+        raise RuntimeError("R1-E1 experiment identity mismatch")
     if git("branch", "--show-current") != "codex/v5-d":
-        raise RuntimeError("R1 branch identity mismatch")
+        raise RuntimeError("R1-E1 branch identity mismatch")
     if git("rev-parse", "HEAD") != receipt["freeze_commit"]:
-        raise RuntimeError("R1 freeze commit mismatch")
+        raise RuntimeError("R1-E1 freeze commit mismatch")
     if git("status", "--porcelain"):
-        raise RuntimeError("R1 frozen worktree is not clean")
-    manifest_path = WORKTREE / "V5_D_CANDIDATE_REVISION_R1_EXPERIMENT_FREEZE.json"
+        raise RuntimeError("R1-E1 frozen worktree is not clean")
+    manifest_path = (
+        WORKTREE / "V5_D_CANDIDATE_REVISION_R1_E1_EXPERIMENT_FREEZE.json"
+    )
     if digest(manifest_path.read_bytes()) != receipt["experiment_manifest_sha256"]:
-        raise RuntimeError("R1 experiment manifest drift")
+        raise RuntimeError("R1-E1 experiment manifest drift")
     if corpus_snapshot(R1_ROOT / "isolated/eval.db") != receipt["corpus_snapshot"]:
-        raise RuntimeError("R1 corpus/index snapshot drift")
+        raise RuntimeError("R1-E1 corpus/index snapshot drift")
     artifact_manifest = R1_ROOT / "artifact_snapshot.sha256"
     if digest(artifact_manifest.read_bytes()) != receipt[
         "artifact_snapshot_manifest_sha256"
     ]:
-        raise RuntimeError("R1 artifact snapshot manifest drift")
+        raise RuntimeError("R1-E1 artifact snapshot manifest drift")
+    provenance = receipt["carried_forward_provenance"]
+    historical_paths = {
+        "old_private_freeze_receipt_sha256": OLD_R1_ROOT
+        / "freeze_receipt.private.json",
+        "old_private_run_manifest_sha256": OLD_R1_ROOT
+        / "runs/run_manifest.private.json",
+        "old_final_isolated_db_sha256": OLD_R1_ROOT / "isolated/eval.db",
+        "old_invalid_d02_treatment_evidence_sha256": OLD_R1_ROOT
+        / "runs/attempts/V5D-S0-D-02/treatment/A1/exception.private.json",
+        "d02_baseline_deep_trace_sha256": OLD_R1_ROOT
+        / "runs/attempts/V5D-S0-D-02/baseline/A1/deep_provider_trace.private.json",
+    }
+    for key, path in historical_paths.items():
+        if digest(path.read_bytes()) != provenance[key]:
+            raise RuntimeError(f"R1-E1 historical provenance drift: {key}")
     reserve_key = STAGE0_ROOT / "custody/reserve_key.sealed"
     reserve_ciphertext = STAGE0_ROOT / "custody/reserve_manifest.aes256.enc"
     if reserve_key.stat().st_mode & 0o777:
@@ -269,7 +301,7 @@ def validate_entry() -> dict[str, Any]:
         .splitlines()
         if line.strip()
     ) != receipt["reserve_access_log_entries_at_freeze"]:
-        raise RuntimeError("reserve access log changed after R1 freeze")
+        raise RuntimeError("reserve access log changed after R1-E1 freeze")
     return receipt
 
 
@@ -314,9 +346,9 @@ def _validate_attempt_order(
         and value["outer_attempt"] == outer_attempt
         for value in attempts
     ):
-        raise RuntimeError("R1 arm attempt is already recorded")
-    if len(attempts) >= 8:
-        raise RuntimeError("R1 outer-attempt cap reached")
+        raise RuntimeError("R1-E1 arm attempt is already recorded")
+    if len(attempts) >= 6:
+        raise RuntimeError("R1-E1 residual outer-attempt cap reached")
     if outer_attempt == 2:
         first = next(
             (
@@ -333,7 +365,7 @@ def _validate_attempt_order(
             "infrastructure_invalid",
             "evaluation_execution_invalid",
         }:
-            raise RuntimeError("R1 replacement lacks a legal frozen invalid A1")
+            raise RuntimeError("R1-E1 replacement lacks a legal frozen invalid A1")
         return
     completed_a1 = [
         (value["case_id"], value["arm"])
@@ -342,10 +374,10 @@ def _validate_attempt_order(
     ]
     expected_prefix = list(FROZEN_SEQUENCE[: len(completed_a1)])
     if completed_a1 != expected_prefix:
-        raise RuntimeError("R1 recorded A1 order drift")
+        raise RuntimeError("R1-E1 recorded A1 order drift")
     expected = FROZEN_SEQUENCE[len(completed_a1)]
     if (case_id, arm) != expected:
-        raise RuntimeError(f"R1 next frozen arm is {expected}")
+        raise RuntimeError(f"R1-E1 next frozen arm is {expected}")
 
 
 def run() -> None:
@@ -363,20 +395,9 @@ def run() -> None:
         manifest, arguments.case_id, arguments.arm, arguments.outer_attempt
     )
 
-    policy = ProviderRunBudgetPolicy(
-        run_id=EXPERIMENT_ID,
-        task_ids=all_task_ids(),
-        max_logical_calls=104,
-        max_http_attempts=208,
-        max_input_tokens=1_060_000,
-        max_output_tokens=140_000,
-        max_wall_seconds=5_760,
-        reserve_stop_usd=Decimal("0.16"),
-        absolute_max_cost_usd=Decimal("0.20"),
-        started_at=manifest["started_at"],
-    )
+    policy = residual_budget_policy(manifest["started_at"])
     if manifest.get("run_budget_policy_hash") not in (None, policy.policy_hash):
-        raise RuntimeError("R1 run budget policy drift")
+        raise RuntimeError("R1-E1 residual run budget policy drift")
     manifest["run_budget_policy_hash"] = policy.policy_hash
     manifest["run_budget_policy"] = policy.manifest()
     manifest["task_identities"] = task_identity_manifest()
@@ -404,7 +425,7 @@ def run() -> None:
         inner=inner,
         outer=app.research_outer,
         control=app.research_control,
-        runner_id="v5-d-r1-frozen-worker",
+        runner_id="v5-d-r1-e1-frozen-worker",
     )
     wiring = ReceiptBoundProviderService(
         db=app.db,
@@ -412,17 +433,19 @@ def run() -> None:
         provider_dispatch_authorized=True,
     )
 
-    for preregistered_case in cases:
-        for preregistered_arm in ARMS:
-            for preregistered_attempt in (1, 2):
-                identifier = task_id(
-                    preregistered_case["case_id"],
-                    preregistered_arm,
-                    preregistered_attempt,
-                )
-                created = app.research.create_task(
+    for preregistered_case_id, preregistered_arm in FROZEN_SEQUENCE:
+        preregistered_case = next(
+            value for value in cases if value["case_id"] == preregistered_case_id
+        )
+        for preregistered_attempt in (1, 2):
+            identifier = task_id(
+                preregistered_case["case_id"],
+                preregistered_arm,
+                preregistered_attempt,
+            )
+            created = app.research.create_task(
                     command_id=(
-                        f"v5d-r1:{EXPERIMENT_ID}:"
+                        f"v5d-r1-e1:{EXPERIMENT_ID}:"
                         f"{preregistered_case['case_id']}:"
                         f"{preregistered_arm}:A{preregistered_attempt}:create"
                     ),
@@ -436,7 +459,7 @@ def run() -> None:
                         "product_execution": "receipt_bound_provider",
                         "constraint_profile": "grounded_current_evidence",
                         "experiment_id": EXPERIMENT_ID,
-                        "phase": "r1_source_gate",
+                        "phase": "r1_e1_source_gate",
                         "case_id": preregistered_case["case_id"],
                         "arm": preregistered_arm,
                         "outer_attempt": preregistered_attempt,
@@ -452,9 +475,9 @@ def run() -> None:
                         ),
                     },
                     _server_constraint_profile=grounded_current_evidence_profile(),
-                )
-                if created["task_id"] != identifier:
-                    raise RuntimeError("R1 Task identity mismatch")
+            )
+            if created["task_id"] != identifier:
+                raise RuntimeError("R1-E1 Task identity mismatch")
 
     identifier = task_id(
         arguments.case_id, arguments.arm, arguments.outer_attempt
@@ -542,13 +565,13 @@ def run() -> None:
         result = orchestrator.run_to_boundary(
             identifier,
             command_id=(
-                f"v5d-r1:{arguments.case_id}:{arguments.arm}:"
+                f"v5d-r1-e1:{arguments.case_id}:{arguments.arm}:"
                 f"A{arguments.outer_attempt}:provider-product-once"
             ),
             max_continuation_cycles=1,
             max_logical_calls=15 if treatment else 12,
             max_http_attempts=30 if treatment else 24,
-            max_input_tokens=175_000 if treatment else 125_000,
+            max_input_tokens=140_000 if treatment else 125_000,
             max_output_tokens=25_000 if treatment else 15_000,
             max_wall_time_seconds=720,
             case_deadline_at=deadline.isoformat(timespec="microseconds"),
@@ -558,7 +581,7 @@ def run() -> None:
             product=product,
             task_id=identifier,
             command_id=(
-                f"v5d-r1:{arguments.case_id}:{arguments.arm}:"
+                f"v5d-r1-e1:{arguments.case_id}:{arguments.arm}:"
                 f"A{arguments.outer_attempt}:completion"
             ),
             current_result=result,

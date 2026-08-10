@@ -90,7 +90,7 @@ recovery count, single-source-continue heuristic, termination-reason trigger or 
 | Freeze tree | `3e276d0d1f7113dede8af63e027d89d14c18950b` |
 | Freeze manifest | `230989ebc8c8437b56edd051ebe2d810cc6f38d80adfd9de089a79c0509d0d9c` |
 | Private freeze receipt | `b24b05d94d741e48e82d62ff2a9b46271451f88aeb8a607c9df53dfcc3b766f4` |
-| Treatment | `cdb52593fec31876df2a8fe73ea67cbcc21d0fd22ef83466aa486927f4254f` |
+| Treatment | `cdb52593fec31876df2a8fe73ea67cbccbc21d0fd22ef83466aa486927f4254f` |
 | Runner | `caf739bd95ae279f5021589e5865276f754e7f7be9147f64188deea81bbd144d` |
 | Evaluator | `4227dafd04e2d0e8fb6909f144a853919105bf7f50a3a25e2b3932d4c5d51c08` |
 | Product `src` tree | `41ccf576cdd6ce6282b0eb8d35a31b75bc0cad01` unchanged |

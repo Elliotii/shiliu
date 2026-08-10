@@ -3,10 +3,17 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
 FREEZE = ROOT / "V5_D_CANDIDATE_REVISION_R1_EXPERIMENT_FREEZE.json"
+R1_FREEZE_COMMIT = "789cf176adcc8c7a66dccbf0c507e875537bcc1a"
+E1_MECHANICALLY_SUPERSEDED_FILES = {
+    "scripts/v5_d_r1_source_runner.py",
+    "tests/test_v5_d_r1_runner.py",
+    "tests/test_v5_d_r1_freeze.py",
+}
 
 
 def _sha256(path: Path) -> str:
@@ -23,7 +30,20 @@ def test_freeze_binds_all_repo_artifacts_and_non_product_boundary() -> None:
     assert payload["non_product_boundary"]["product_src_modification"] is False
     assert payload["non_product_boundary"]["default_product_import_or_discovery"] is False
     for relative, expected in payload["repo_file_sha256"].items():
-        assert _sha256(ROOT / relative) == expected
+        if relative in E1_MECHANICALLY_SUPERSEDED_FILES:
+            historical = subprocess.run(
+                [
+                    "git",
+                    "show",
+                    f"{R1_FREEZE_COMMIT}:{relative}",
+                ],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+            ).stdout
+            assert hashlib.sha256(historical).hexdigest() == expected
+        else:
+            assert _sha256(ROOT / relative) == expected
 
 
 def test_freeze_has_exact_source_order_budget_and_hard_gates() -> None:
