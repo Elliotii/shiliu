@@ -1,29 +1,35 @@
 # Shiliu V5-D Current State
 
-> Updated at: 2026-08-11T04:54:30+08:00
-> Updated by: Shiliu V5-D Version Session
-> Authority: R1-E1 execution submission; pending V5 Main limited acceptance
+> Updated at: 2026-08-11 Program Closeout
+> Updated by: Shiliu V5 Main Codex Session
+> Authority: final V5-D and V5 Program closeout snapshot
 
 ```yaml
 resume_anchor:
   version: V5-D
-  active_cycle: Candidate_Revision_R1_E1
-  exact_result: candidate_v1_1_rejected
-  cycle_status: closed_pending_main_acceptance
+  active_cycle: none
+  final_status: closed_no_validated_candidate
+  exact_R1_E1_result: candidate_v1_1_rejected
+  cycle_status: accepted_and_closed
   execution_branch: codex/v5-d
+  accepted_execution_head: 68fd655b3e54ba2529aee8395860ed876ee88c1a
+  mainline_evidence_merge: 2d10844eee564af830bf38b4c792d2834381de63
   E1_entry_head: ae3367548943098904d88623b9a3d132936563ac
   main_authority_commit: 1dab08972ecb4c70524be8d93b9b5c9a5c127ebd
   E1_freeze_commit: cbc8917aaa625897ae7e718e7d15e784aeeb0705
-  closeout_commit_binding: commit_containing_this_state_ledger_and_report
+  final_closeout: V5_D_FINAL_CLOSEOUT.md
   candidate_id: V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001
   candidate_v1_0_evaluation_status: rejected_accepted
   candidate_v1_1_version: 1.1.0
-  candidate_v1_1_status: proposed_non_active
+  candidate_v1_1_status: proposed_non_active_rejected
   candidate_v1_1_evaluation_status: rejected
   source_gate_status: failed_on_valid_D02_pair
   D04_status: not_run_due_exact_rejection_stop
+  validated_candidate: false
+  active_or_shadow_policy: none
   heldout_or_reserve_authorized: false
   stage_3_authorized: false
+  further_V5_D_execution_authorized: false
 ```
 
 ## R1-E1 result
@@ -148,5 +154,13 @@ non_actions:
   generic_skill_eval_harness_or_learning_platform: false
   stage_3_execution: false
   push_merge_tag: false
-next_action: stop_and_request_V5_Main_limited_acceptance_of_exact_candidate_v1_1_rejected
+next_action: none_V5_D_closed
 ```
+
+## Main final disposition
+
+Main 已接受 R1-E1 exact `candidate_v1_1_rejected`，并在用户 Program Closeout 授权下将 V5-D 以
+`closed_no_validated_candidate` 收口。Candidate v1.0/v1.1 均 rejected，Reserve/Held-out/Stage 3 从未进入。
+V5-D evidence-only branch 已通过 `2d10844eee564af830bf38b4c792d2834381de63` 无冲突合入
+`codex/v5-main`；产品 `src` tree 未改变。最终可继承边界见 `V5_D_FINAL_CLOSEOUT.md` 与
+`SHILIU_V5_PROGRAM_FINAL_CLOSEOUT.md`。

@@ -4,9 +4,9 @@
 > Goal: Controlled Experience-driven Search Policy Improvement
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: candidate_v1_1_rejected_pending_version_direction
+> Status: closed_no_validated_candidate
 > Planning authority: user-authorized
-> Execution authority: none_pending_user_direction
+> Execution authority: closed_no_further_V5_D_execution
 > Accepted by: user
 > Accepted at: 2026-08-11
 > V5-D Version Session created: true
@@ -461,4 +461,5 @@ R1-E1 已由 Main 有限验收为 exact `candidate_v1_1_rejected`：有效 D02 T
 行为，但没有改善 required-aspect、grounded Citation 或 source outcome，因此 Source Gate 失败并按合同停止
 D04。Candidate v1.0/v1.1 均 rejected，唯一 major revision budget 已使用。当前没有 execution authority；
 Reserve、held-out、Stage 3、active/shadow registration、promotion、live DB 与版本集成均未授权，v1.2 也
-未授权。下一步等待用户决定诚实 closeout 或材料性重新授权新方向。
+未授权。用户随后决定以 `no_validated_candidate` 诚实关闭 V5-D 与整个 V5 Program；最终边界见
+`V5_D_FINAL_CLOSEOUT.md`。没有后续 V5-D execution authority。

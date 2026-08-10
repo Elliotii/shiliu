@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T05:01:55+08:00
+> Updated at: 2026-08-11 Program Final Closeout
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,12 +8,16 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: V5_D
-  last_completed_subversion: V5_C
-  last_completed_status: accepted_with_known_limits
+  program_status: closed_with_known_limits_and_no_validated_V5_D_candidate
+  current_subversion: none
+  last_completed_subversion: V5_D
+  last_completed_status: closed_no_validated_candidate
   current_formal_stage: none
-  active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
-  accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
+  active_execution_session: none
+  accepted_product_code_head: 8904e27df07becebae13110f9be17cd829373b20
+  accepted_product_src_tree: 41ccf576cdd6ce6282b0eb8d35a31b75bc0cad01
+  V5_D_evidence_merge_head: 2d10844eee564af830bf38b4c792d2834381de63
+  V5_final_closeout_commit: commit_containing_SHILIU_V5_PROGRAM_FINAL_CLOSEOUT
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
   V5_B_accepted_stage_1_head: abe002ab95025b38565464e69ca8b3abe651f1ae
@@ -51,8 +55,8 @@ resume_anchor:
   V5_D_stage_1_status: accepted
   V5_D_stage_1_execution_head: 900953df64676a5d1438743918ac806961dfff14
   V5_D_candidate_id: V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001
-  V5_D_candidate_artifact_status: proposed_non_active_unchanged
-  V5_D_candidate_evaluation_status: rejected
+  V5_D_candidate_artifact_status: proposed_non_active_rejected
+  V5_D_candidate_evaluation_status: v1_0_and_v1_1_rejected
   V5_D_stage_2_authorized: closed_completed
   V5_D_stage_2_status: accepted_rejected
   V5_D_stage_2_effective_freeze_head: 0c72277e7b30bac68800ef27acc9e8d52222efd6
@@ -70,8 +74,11 @@ resume_anchor:
   V5_D_candidate_revision_R1_E1_freeze_head: cbc8917aaa625897ae7e718e7d15e784aeeb0705
   V5_D_candidate_revision_R1_E1_execution_head: 68fd655b3e54ba2529aee8395860ed876ee88c1a
   V5_D_candidate_revision_R1_E1_reserve_authorized: false
-  pending_decision: close_V5_D_without_validated_candidate_or_materially_reauthorize_new_direction
-  next_action: await_user_direction_before_any_V5_D_closeout_or_new_candidate_work
+  V5_D_final_status: closed_no_validated_candidate
+  V5_D_validated_candidate: false
+  V5_D_mainline_evidence_merge_head: 2d10844eee564af830bf38b4c792d2834381de63
+  pending_decision: none_V5_Program_closed
+  next_action: none_until_user_separately_authorizes_future_version_planning
   roadmap_reconsideration_open: false
 ```
 
@@ -90,7 +97,7 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: candidate_v1_1_rejected_pending_version_direction
+    status: closed_no_validated_candidate
     empirical_entry_gate_met: true
     qualified_failure_family: non_progress_search_repetition_without_recovery
     accepted_initial_surface: follow_up_strategy
@@ -111,12 +118,15 @@ program:
     experiment_only_treatment_implementation_authorized: false
     active_or_shadow_registration_authorized: false
   Post_V5:
-    status: conditional_long_term_direction
+    status: superseded_as_default_next_roadmap
+    implementation_authorized: false
+    becomes_V6_requirements: false
+    ideas_preserved_as_deferred_reusable: true
 ```
 
-长期路线与功能目标未改变。V5-B 的实际 schema、实现与版本内顺序已随 closeout 固定；
-V5-C 的五 Stage 实现边界已随执行分支 closeout 固定。V5-D 已完成 planning-only roadmap
-calibration，建议采用四 Stage 序列；具体 Schema、框架、上游 Commit 和实现仍未冻结，也没有提前实施。
+V5-A/B/C 的实际实现与 known limits 已随各版本 closeout 固定。V5-D 以
+`closed_no_validated_candidate` 完成，Stage 3 未进入。原 Post-V5 仍保留 reusable ideas，但已被正式
+supersede 为默认下一路线；不自动成为 V6 requirements。本状态不定义 V6。
 
 # 2. Repository and runtime
 
@@ -158,6 +168,9 @@ repository:
   V5_D_execution_thread: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   V5_D_stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
   V5_D_stage_1_execution_head: 900953df64676a5d1438743918ac806961dfff14
+  V5_D_accepted_execution_head: 68fd655b3e54ba2529aee8395860ed876ee88c1a
+  V5_D_mainline_evidence_merge_head: 2d10844eee564af830bf38b4c792d2834381de63
+  V5_D_mainline_merge_tree: 1992bffe9cffaeba6356d53f4afd2544c5b504fa
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -171,14 +184,15 @@ live_runtime:
   foreign_key_violations: 0
   videos: 157
   completed_videos: 140
-  sync_runs: 447
+  sync_runs: 456
   active_sync_runs: 0
   research_tasks: 0
   research_events: 0
   workspace_records: 0
   artifact_routes: 0
   topic_pages: 0
-  sha256: 2a695deae36965462c5202b6d68d7f89cca5efe98d04f287225154afeba0b93f
+  sha256: 1bf5d8b22bb79c9c5b97a2620aba66ce530de27c6d97a8b2949247e167e697f4
+  closeout_readonly_smoke: six_of_six_HTTP_200_hash_unchanged
   web_launch_agent: running
   scheduled_sync_launch_agent: loaded
 ```
@@ -286,9 +300,9 @@ known_retrieval_limitation:
   durable_runtime_regression: false
   representative_grounded_completion_proven: false
   classification: unclassified_policy_vs_infrastructure
-  default_V5_D_owner: false
-  V5_D_candidate_authorized: false
-  reassess_during_V5_D_stage_0: true
+  default_future_owner: none
+  V5_D_policy_failure_proven: false
+  resolved_by_V5: false
   must_not_be_reported_as_success: true
 ```
 
@@ -322,7 +336,7 @@ session_limits:
   active_subversion_limit: 1
   active_formal_stage_or_goal_limit: 1
 current_usage:
-  active_subversions: 1
+  active_subversions: 0
   active_formal_stages: 0
 upstream:
   deer_flow:
@@ -342,6 +356,18 @@ upstream:
     HDSO: conditional_primary_paper_review_before_hypothesis_freeze
     Youtu_Agent: conditional_only_if_existing_experiment_identity_is_insufficient
     SkillOS_and_MUSE: deferred_until_one_candidate_is_validated
+Post_V5_original_direction:
+  status: superseded_as_default_next_roadmap
+  implementation_authorized: false
+  becomes_V6_requirements: false
+  deferred_reusable_ideas:
+    - Long_term_Research_Threads
+    - Full_Project_Radar
+    - Background_Knowledge_Maintenance
+    - Optional_Reviewer_eval_gated
+GraphRAG:
+  status: eval_gated_candidate
+  automatic_V6_backlog: false
 download_equals_adoption: false
 research_equals_implementation_authorization: false
 ```
@@ -505,4 +531,19 @@ Candidate/Treatment logic/Evaluator 与 Source Gate 不变，把 Treatment cap �
 D02 valid failure 已使 all-source-pairs Gate 不可恢复，Session 按 exact-exit stop 未运行 D04。Main 复跑
 22 项定向测试通过；产品 `src` tree 未变，R1+E1 累计 USD 0.001311757，reserve key mode 000、access log 4、
 runs 0。Candidate v1.0/v1.1 均 rejected，当前 active formal Stage 为 0；没有 v1.2、Provider、Reserve、
-Held-out、Stage 3 或版本集成授权。下一步等待用户选择诚实 closeout 或材料性重新授权新方向。
+Held-out 或 Stage 3 授权。
+
+用户最终决定 V5-D 以 `no_validated_candidate` 收口，并关闭整个 V5 Program。Main 对 V5-D 做只读 merge
+preflight：共同基线 `98ee944`，Main/V5-D 分叉 10/9 commits、修改文件重叠 0、产品 `src` delta 0；以
+`--no-ff` merge commit `2d10844eee564af830bf38b4c792d2834381de63` 纳入已接受的实验/测试/证据，实际
+tree 与 preview `1992bffe9cffaeba6356d53f4afd2544c5b504fa` 相同。合并后 V5-D directed 34 项、完整
+no-provider 1775 项与静态/Ledger checks 通过。
+
+V5 Program 最终 live 只读现场为 schema 14、integrity ok、FK 0、157 videos、140 completed、456 sync
+runs、0 active sync，以及 0 Research/Fact/Artifact/Page/Workspace/Route 业务记录；六项 HTTP smoke 为 200，
+DB SHA-256 前后均为 `1bf5d8b22bb79c9c5b97a2620aba66ce530de27c6d97a8b2949247e167e697f4`。
+
+原 Post-V5 Proactive Knowledge Companion 方向已被 supersede 为默认下一路线，但 Long-term Threads、Project
+Radar、Background Maintenance 与 Eval-gated Optional Reviewer 作为 deferred/reusable ideas 保留；GraphRAG
+继续 Eval-gated。没有 Push/Tag，也没有 V6 planning/implementation authority。完整继承边界见
+`SHILIU_V5_PROGRAM_FINAL_CLOSEOUT.md`。

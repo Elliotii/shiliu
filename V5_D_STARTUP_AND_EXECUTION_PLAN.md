@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: candidate_v1_1_rejected_pending_version_direction
+> Status: closed_no_validated_candidate
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: none_pending_user_direction
+> Execution authorization: closed_no_further_V5_D_execution
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -588,7 +588,7 @@ stage_1_execution_authorized: closed_completed
 stage_2_execution_authorized: closed_completed
 stage_2_acceptance_status: accepted_rejected
 stage_3_execution_authorized: false
-next_action: await_user_direction_on_honest_V5_D_closeout_or_material_new_direction
+next_action: none_V5_D_and_V5_Program_closed
 ```
 
 Stage 2 已完成并由 Main 有限验收，Candidate v1.0 evaluation status 为 `rejected`。R1 的 mechanical
@@ -596,4 +596,5 @@ invalid run 由 R1-E1 合法修正；Main 已接受 E1 exact `candidate_v1_1_rej
 虽触发一次 coverage-bundle recovery 并避免再次 repeated search，但没有新增 grounded Outcome，冻结
 Source Gate 失败；D04 按不可恢复的 all-pairs gate 与 exact-exit stop 未运行。Candidate v1.0/v1.1 均已
 falsified，当前没有 execution authority。Reserve 保持 sealed，held-out、Stage 3、v1.2、live DB 与
-merge/push/tag 未授权；等待用户决定诚实 closeout 或材料性重新授权新方向。
+merge/push/tag 未在执行 Session 内授权。用户随后决定以 `no_validated_candidate` 诚实收口 V5-D；Main 仅将
+已接受 evidence branch 本地合入 `codex/v5-main`，未 Push/Tag。V5-D 与 V5 Program 均已停止。
