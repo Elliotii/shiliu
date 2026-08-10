@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_2_authorized
+> Status: stage_2_accepted_candidate_rejected
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: Stage 2 Frozen Paired Evaluation only
+> Execution authorization: none_pending_user_direction
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -499,9 +499,9 @@ V5_D_execution_pre_authorization:
 该包让 V5-D 得到真实 Entry 证据，同时不预设 Candidate、不污染 held-out，也不把 Stage 0 变成产品
 实现。
 
-## 14.2 Current Stage 2 and remaining future authority
+## 14.2 Completed Stage 2 and remaining future authority
 
-用户已在 Stage 1 被 Main 接受后，授权 `V5_D_STAGE_2_FROZEN_PAIRED_EVALUATION_CONTRACT.md`：
+用户曾在 Stage 1 被 Main 接受后，授权 `V5_D_STAGE_2_FROZEN_PAIRED_EVALUATION_CONTRACT.md`：
 
 - 同一 V5-D Session 可以创建最小 experiment-only Treatment、冻结实验、通过 source gate 后在隔离
   Custodian 下分配 reserve，并完成有界 paired Provider evaluation；
@@ -510,7 +510,9 @@ V5_D_execution_pre_authorization:
 - Stage 3 human promotion、active/shadow registration、live DB/migration、Push/Tag 仍保留单独明确边界；
 - 任何 generic platform、第二 Candidate、材料性 schema/cost/scope、License/data 风险都暂停讨论。
 
-Stage 2 完成后 Main 只做一次有限验收并停止；不得自动进入 Stage 3。
+Stage 2 已在 effective freeze `0c72277` 下完成。D02 valid source pair 未通过 required-aspect、source-diversity
+与 recovery/stop gates，Candidate v1.0 exact verdict 为 `rejected`；D04 与 reserve/held-out 未运行。Main 已接受
+该实验和拒绝判定。Stage 3 Entry Gate 未满足，不得自动进入 Stage 3。
 
 ---
 
@@ -557,20 +559,23 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 ```yaml
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
-authorized_scope: completed_startup_stage_0_stage_1_plus_current_stage_2
+authorized_scope: completed_startup_stage_0_stage_1_stage_2
 V5_D_session_created: true
 stage_0_started: true
 stage_0_status: accepted
 stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
 product_implementation_started: false
-provider_runs_performed: true_within_completed_stage_0
+provider_runs_performed: true_within_completed_stage_0_and_stage_2
 candidate_contract_status: accepted_proposed_non_active
+candidate_evaluation_status: rejected
 stage_1_execution_authorized: closed_completed
-stage_2_execution_authorized: true
+stage_2_execution_authorized: closed_completed
+stage_2_acceptance_status: accepted_rejected
 stage_3_execution_authorized: false
-next_action: V5_D_session_executes_frozen_paired_evaluation_and_submits_closeout
+next_action: await_user_direction_on_bounded_candidate_revision_or_closed_candidate_rejected
 ```
 
-Stage 1 已完成并由 Main 有限验收接受。用户现授权 Stage 2：创建最小 experiment-only Treatment，在完整
-freeze 后先过 D02/D04 source gate，再由隔离 Custodian 分配 sealed reserve 并执行 related/unrelated paired
-evaluation。Candidate 仍不得 active/shadow；Stage 3、live DB 与 merge/push/tag 未授权。Stage 2 完成后停止。
+Stage 2 已完成并由 Main 有限验收。Candidate artifact 仍为 proposed/non-active，但 evaluation status 为
+`rejected`；reserve 保持 sealed，Stage 3、Provider、candidate revision、live DB 与 merge/push/tag 未授权。
+持续 V5-D Session 保留但停止，等待用户决定继续同一 Failure Family 的 bounded Candidate revision，或以
+`closed_candidate_rejected` 关闭当前 effort。

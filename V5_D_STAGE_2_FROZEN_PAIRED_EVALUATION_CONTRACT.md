@@ -1,6 +1,6 @@
 # Shiliu V5-D Stage 2 Contract — Frozen Paired Evaluation
 
-> Status: authorized_by_user
+> Status: completed_and_main_accepted_rejected
 > Stage: Stage 2 — Frozen Paired Evaluation
 > Authorized at: 2026-08-11
 > Owner: persistent V5-D Version Session with isolated Reserve Custodian boundary
@@ -11,6 +11,9 @@
 > Active/shadow product registration authorized: false
 > Live database write authorized: false
 > Stage 3 authorized: false
+> Effective freeze: `0c72277e7b30bac68800ef27acc9e8d52222efd6`
+> Accepted execution head: `254d72a03a1251ee0d08cac49d100b91b5de7593`
+> Exact verdict: `rejected`
 
 ---
 
@@ -304,3 +307,10 @@ tag: false
 ```
 
 Stage 2 完成后停止并等待 Main 有限验收。即使 Candidate 为 `validated`，也不得进入 Stage 3。
+
+## Closeout Status
+
+Stage 2 已按本 Contract 停止于第一个决定性有效 source-pair failure。D02 Treatment 有局部 grounded
+Citation 增量，但 required-aspect、source-diversity 与 recovery/stop gates 未通过，因此 exact verdict 为
+`rejected`。D04 和 reserve/held-out 未运行；reserve 始终 sealed。Main 已在
+`V5_D_STAGE_2_MAIN_SESSION_ACCEPTANCE_DECISION.md` 接受该实验与拒绝判定。Stage 3 Entry Gate 未满足。
