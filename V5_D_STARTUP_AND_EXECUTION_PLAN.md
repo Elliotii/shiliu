@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: accepted_startup_and_stage_0_authorized
+> Status: stage_0_accepted_pending_user_stage_1_authorization
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: Startup and Stage 0 only
+> Execution authorization: none currently; Stage 0 closed, Stage 1 pending user authorization
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -562,13 +562,15 @@ user_execution_pre_authorization_received: true
 authorized_scope: startup_and_stage_0_only
 V5_D_session_created: true
 stage_0_started: true
+stage_0_status: accepted
+stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
 product_implementation_started: false
-provider_runs_performed: false
+provider_runs_performed: true_within_completed_stage_0
 candidate_created: false
 stage_1_execution_authorized: false
-next_action: V5_D_session_executes_stage_0_and_submits_report
+next_action: await_user_authorization_before_any_stage_1_work
 ```
 
-用户已于 2026-08-11 接受本计划并授权 Startup + Stage 0。Main 下一步创建执行分支/工作环境与一个
-持续 V5-D Version Session；该 Session 只运行 Stage 0，完成报告后停止等待 Main 验收和用户对
-Stage 1 的再次授权。
+用户已于 2026-08-11 接受本计划并授权 Startup + Stage 0。Stage 0 已完成并由 Main 有限验收接受；
+持续 V5-D Version Session 当前停止。`qualified_failure_family_found` 只满足 Stage 1 的经验 Entry Gate，
+不授权 Stage 1 Contract、Candidate 或产品实现；下一步等待用户再次明确授权。

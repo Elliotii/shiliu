@@ -1,6 +1,6 @@
 # Shiliu V5-D Stage 0 Contract — Bounded Entry Calibration
 
-> Status: authorized
+> Status: completed_and_accepted_by_main
 > Version Charter: `V5_D_VERSION_CHARTER.md`
 > Startup Plan: `V5_D_STARTUP_AND_EXECUTION_PLAN.md`
 > Baseline branch: `codex/v5-main`
@@ -467,10 +467,13 @@ current:
   contract_prepared: true
   contract_accepted_by_user: true
   V5_D_session_created: true
-  case_manifest_created: false
+  case_manifest_created: true
   stage_0_execution_started: true
-  provider_runs_performed: false
-  credentials_accessed: false
+  stage_0_execution_completed: true
+  stage_0_accepted_by_main: true
+  stage_0_exit_decision: qualified_failure_family_found
+  provider_runs_performed: true_within_contract
+  credentials_accessed: true_via_runtime_without_value_exposure
   live_database_modified: false
   product_code_modified: false
   product_tests_modified: false
@@ -485,5 +488,6 @@ current:
   stage_3_execution_authorized: false
 ```
 
-本 Contract 已获 Startup + Stage 0 执行授权。Stage 0 Report 提交后必须停止；不得把
-`qualified_failure_family_found` 自动解释为 Stage 1 或 Candidate 实施授权。
+本 Contract 已完成。Main 接受 `qualified_failure_family_found`，但该结论只资格化
+`non_progress_search_repetition_without_recovery` Failure Family；不得自动解释为 Stage 1、Candidate、
+reserve 解封、Provider 或产品实施授权。

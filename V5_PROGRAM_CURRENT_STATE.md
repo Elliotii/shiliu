@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T00:09:46+08:00
+> Updated at: 2026-08-11T01:03:11+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: Stage_0_Entry_Calibration
+  current_formal_stage: none_pending_user_stage_1_authorization
   active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -44,10 +44,12 @@ resume_anchor:
   V5_D_planning_status: accepted
   V5_D_version_session_created: true
   V5_D_stage_0_started: true
-  V5_D_stage_0_authorized: true
+  V5_D_stage_0_authorized: closed_completed
+  V5_D_stage_0_status: accepted
+  V5_D_stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
   V5_D_stage_1_authorized: false
-  pending_decision: V5_D_stage_0_report_and_main_acceptance
-  next_action: V5_D_session_executes_stage_0_and_submits_report
+  pending_decision: user_stage_1_direction_and_authorization
+  next_action: await_user_authorization_before_any_stage_1_work
   roadmap_reconsideration_open: false
 ```
 
@@ -66,8 +68,10 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: stage_0_in_progress
-    empirical_entry_gate_met: false
+    status: stage_0_accepted_pending_stage_1_authorization
+    empirical_entry_gate_met: true
+    qualified_failure_family: non_progress_search_repetition_without_recovery
+    accepted_initial_surface: follow_up_strategy
     bounded_stage_0_required: true
     candidate_implementation_authorized: false
   Post_V5:
@@ -116,6 +120,7 @@ repository:
   V5_D_execution_branch: codex/v5-d
   V5_D_execution_worktree: /Users/elliot/.codex/worktrees/5eb4/Shiliu
   V5_D_execution_thread: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
+  V5_D_stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -281,7 +286,7 @@ session_limits:
   active_formal_stage_or_goal_limit: 1
 current_usage:
   active_subversions: 1
-  active_formal_stages: 1
+  active_formal_stages: 0
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -413,10 +418,15 @@ Learning/Harness Platform。用户同时冻结三条 Eval 约束：代表性任�
 Portfolio-ready 硬门。
 
 Main 已完成 planning-only 的 `V5_D_VERSION_CHARTER.md`、
-`V5_D_STARTUP_AND_EXECUTION_PLAN.md` 和 `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`。用户已接受
-这些材料并授权 Startup + Stage 0。Stage
-序列为 Entry Calibration → Attribution/one Candidate → Frozen Paired Evaluation → Controlled Use /
-Closeout。V5-D / Stage 0 是唯一 active subversion/formal Stage；`codex/v5-d` 已从 `98ee944` 建立，
-持续 Version Session `019fec6e-bb8d-7443-a5a1-a6053f61fb51` 已在隔离 worktree
-`/Users/elliot/.codex/worktrees/5eb4/Shiliu` 启动并核验 actual branch/HEAD/clean tree。当前正在执行
-startup audit，尚无 Provider run、产品实现或 Candidate；Stage 1–3 仍未授权。
+`V5_D_STARTUP_AND_EXECUTION_PLAN.md` 和 `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`。Stage 序列保持
+Entry Calibration → Attribution/one Candidate → Frozen Paired Evaluation → Controlled Use / Closeout。
+
+Stage 0 execution head `fbf7a0d` 已由 Main 有限验收并接受。四个有效 discovery outcomes 中，D02 与
+D04 在不同真实代表性任务上共同资格化 `non_progress_search_repetition_without_recovery` Failure Family，
+初始归因 surface 为 `follow_up_strategy`；D01 Provider failures 已隔离，D03 为同环境 `valid_partial`。
+四个 reserve tasks 仍为 ciphertext + sealed key，runs 0、post-freeze access 0。该结果只满足 empirical
+Entry Gate，不定义 Candidate/Hypothesis/Trigger/Procedure/Stop Rule，也不证明泛化、负迁移或产品收益。
+
+持续 Version Session `019fec6e-bb8d-7443-a5a1-a6053f61fb51` 保留但应停止；当前 active formal Stage 为
+0。Stage 1–3、Provider、Candidate、产品代码、reserve 解封与 merge/push/tag 均未授权，下一步等待
+用户对 Stage 1 方向与执行边界的再次明确授权。
