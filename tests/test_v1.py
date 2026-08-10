@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sqlite3
+from dataclasses import replace
 from unittest.mock import patch
 
 import httpx
@@ -10,7 +11,7 @@ from fastapi.testclient import TestClient
 from shiliu.app import Application
 from shiliu.artifacts import ArtifactStore
 from shiliu.bilibili import BilibiliAdapter
-from shiliu.config import load_config
+from shiliu.config import AppConfig, load_config, save_config
 from shiliu.db import Database
 from shiliu.domain import (
     FavoriteItem,
@@ -23,6 +24,7 @@ from shiliu.llm import OpenAICompatibleProvider
 from shiliu.pipeline import PipelineService
 from shiliu.domain import SyncMode
 from shiliu.sync import SyncService
+from shiliu.stage5 import SEMANTIC_JUDGE_MODEL
 from shiliu.web import create_web_app
 
 
@@ -128,6 +130,114 @@ formal_reasoning_effort = "xhigh"
     config = load_config(app_paths)
     assert config.formal_reasoning_effort == "high"
     assert config.model_for("fast_transcript") == "demo"
+
+
+def test_legacy_model_config_routes_all_role_families_without_rewrite(app_paths) -> None:
+    app_paths.state_dir.mkdir(parents=True)
+    app_paths.config.write_text(
+        f'''[app]
+content_dir = "{app_paths.content_dir}"
+[llm]
+base_url = "https://example.com/v1"
+model = "legacy-model"
+''',
+        encoding="utf-8",
+    )
+
+    config = load_config(app_paths)
+
+    assert config.model_for("fast_transcript") == "legacy-model"
+    assert config.model_for("formal_summary") == "legacy-model"
+    assert config.model_for("taxonomy_global") == "legacy-model"
+    assert config.model_for("query_analysis") == "legacy-model"
+    assert config.model_for("agent_action") == "legacy-model"
+    assert config.model_for("grounded_answer") == "legacy-model"
+
+
+def test_role_family_model_routing_round_trips_independently(app_paths) -> None:
+    config = replace(
+        AppConfig.default(app_paths),
+        llm_model="interactive-pro",
+        ingestion_model="ingestion-flash",
+        interactive_model="interactive-pro",
+        taxonomy_model="taxonomy-pro",
+    )
+
+    save_config(config, app_paths)
+    loaded = load_config(app_paths)
+
+    assert loaded.model_for("fast_transcript") == "ingestion-flash"
+    assert loaded.model_for("formal_transcript") == "ingestion-flash"
+    assert loaded.model_for("formal_summary") == "ingestion-flash"
+    assert loaded.model_for("taxonomy_local") == "taxonomy-pro"
+    assert loaded.model_for("taxonomy_global") == "taxonomy-pro"
+    assert loaded.model_for("query_analysis") == "interactive-pro"
+    assert loaded.model_for("agent_action") == "interactive-pro"
+    assert loaded.model_for("grounded_answer") == "interactive-pro"
+    assert SEMANTIC_JUDGE_MODEL == "gpt-5.6-terra"
+
+
+def test_web_setup_summary_and_interactive_edits_are_isolated(app_paths) -> None:
+    initial = replace(
+        AppConfig.default(app_paths),
+        llm_base_url="https://example.com/v1",
+        llm_model="interactive-pro",
+        ingestion_model="ingestion-flash-v1",
+        interactive_model="interactive-pro",
+        taxonomy_model="taxonomy-pro",
+    )
+    save_config(initial, app_paths)
+    application = Application(app_paths)
+    client = TestClient(create_web_app(application))
+    common = {
+        "content_dir": str(app_paths.content_dir),
+        "favorite_id": None,
+        "favorite_title": "",
+        "base_url": "https://example.com/v1",
+        "api_key": "",
+    }
+
+    with patch("shiliu.web._resolve_api_key", return_value="redacted"):
+        summary = client.post(
+            "/api/setup/draft",
+            json={**common, "formal_summary_model": "ingestion-flash-v2"},
+        )
+    assert summary.status_code == 200
+    after_summary = load_config(app_paths)
+    assert after_summary.model_for("formal_summary") == "ingestion-flash-v2"
+    assert after_summary.model_for("grounded_answer") == "interactive-pro"
+    assert after_summary.model_for("taxonomy_global") == "taxonomy-pro"
+
+    with patch("shiliu.web._resolve_api_key", return_value="redacted"):
+        interactive = client.post(
+            "/api/setup/draft",
+            json={**common, "interactive_model": "interactive-pro-v2"},
+        )
+    assert interactive.status_code == 200
+    after_interactive = load_config(app_paths)
+    assert after_interactive.model_for("grounded_answer") == "interactive-pro-v2"
+    assert after_interactive.model_for("formal_summary") == "ingestion-flash-v2"
+    assert after_interactive.model_for("taxonomy_global") == "taxonomy-pro"
+
+
+def test_application_provider_uses_static_role_families(app_paths) -> None:
+    application = Application(app_paths)
+    application.config = replace(
+        application.config,
+        llm_model="interactive-pro",
+        ingestion_model="ingestion-flash",
+        interactive_model="interactive-pro",
+        taxonomy_model="taxonomy-pro",
+    )
+
+    with patch("shiliu.app.load_api_key", return_value="redacted"):
+        assert application.provider("fast_transcript").model == "ingestion-flash"
+        assert application.provider("formal_summary").model == "ingestion-flash"
+        assert application.provider("taxonomy_local").model == "taxonomy-pro"
+        assert application.provider("taxonomy_global").model == "taxonomy-pro"
+        assert application.provider("query_analysis").model == "interactive-pro"
+        assert application.provider("agent_action").model == "interactive-pro"
+        assert application.provider("grounded_answer").model == "interactive-pro"
 
 
 def test_schema_migration_keeps_pre_v3_database_backup(app_paths) -> None:

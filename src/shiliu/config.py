@@ -67,6 +67,9 @@ class AppConfig:
     favorite_title: str = ""
     llm_base_url: str = "https://api.openai.com/v1"
     llm_model: str = ""
+    ingestion_model: str = ""
+    interactive_model: str = ""
+    taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
     formal_summary_model: str = ""
@@ -81,13 +84,16 @@ class AppConfig:
     bili_cli_root: str = ""
 
     def model_for(self, role: str) -> str:
-        if role == "formal_transcript":
-            return self.fast_transcript_model or self.formal_transcript_model or self.llm_model
-        configured = {
-            "fast_transcript": self.fast_transcript_model,
-            "formal_summary": self.formal_summary_model,
-        }.get(role, "")
-        return configured or self.llm_model
+        if role in {"fast_transcript", "formal_transcript"}:
+            legacy = self.fast_transcript_model or self.formal_transcript_model
+            return self.ingestion_model or legacy or self.llm_model
+        if role == "formal_summary":
+            return self.ingestion_model or self.formal_summary_model or self.llm_model
+        if role.startswith("taxonomy_"):
+            return self.taxonomy_model or self.llm_model
+        if role in {"query_analysis", "agent_action", "grounded_answer"}:
+            return self.interactive_model or self.llm_model
+        return self.llm_model
 
     @classmethod
     def default(cls, paths: AppPaths | None = None) -> "AppConfig":
@@ -116,6 +122,9 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
         favorite_title=str(bili.get("favorite_title", "")),
         llm_base_url=str(llm.get("base_url", "https://api.openai.com/v1")),
         llm_model=legacy_model,
+        ingestion_model=str(llm.get("ingestion_model", "")),
+        interactive_model=str(llm.get("interactive_model", "")),
+        taxonomy_model=str(llm.get("taxonomy_model", "")),
         fast_transcript_model=str(
             llm.get(
                 "fast_transcript_model",
@@ -155,7 +164,10 @@ def save_config(config: AppConfig, paths: AppPaths | None = None) -> AppPaths:
         "",
         "[llm]",
         f"base_url = {_toml_string(config.llm_base_url.rstrip('/'))}",
-        f"model = {_toml_string(config.llm_model)}",
+        f"model = {_toml_string(config.model_for('grounded_answer'))}",
+        f"ingestion_model = {_toml_string(config.ingestion_model)}",
+        f"interactive_model = {_toml_string(config.interactive_model)}",
+        f"taxonomy_model = {_toml_string(config.taxonomy_model)}",
         f"fast_transcript_model = {_toml_string(config.model_for('fast_transcript'))}",
         f"formal_transcript_model = {_toml_string(config.model_for('formal_transcript'))}",
         f"formal_summary_model = {_toml_string(config.model_for('formal_summary'))}",
@@ -201,6 +213,9 @@ def public_config(config: AppConfig) -> dict[str, Any]:
         "favorite_title": config.favorite_title,
         "llm_base_url": config.llm_base_url,
         "llm_model": config.llm_model,
+        "ingestion_model": config.model_for("formal_summary"),
+        "interactive_model": config.model_for("grounded_answer"),
+        "taxonomy_model": config.model_for("taxonomy_global"),
         "fast_transcript_model": config.model_for("fast_transcript"),
         "formal_transcript_model": config.model_for("formal_transcript"),
         "formal_summary_model": config.model_for("formal_summary"),

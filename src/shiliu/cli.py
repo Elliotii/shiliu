@@ -624,6 +624,9 @@ def run_setup() -> int:
         favorite_title=str(selected.get("title", "")),
         llm_base_url=base_url.rstrip("/"),
         llm_model=model,
+        ingestion_model=model,
+        interactive_model=model,
+        taxonomy_model=model,
         baseline_confirmed=True,
     )
     resolved = save_config(config, paths)

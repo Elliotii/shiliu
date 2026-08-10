@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from datetime import datetime, timedelta, timezone
@@ -417,8 +418,20 @@ class PipelineService:
             return None
         revision = "fast" if profile == ProcessingProfile.FAST.value else "refined"
         _, markdown_path = self.artifacts.save_transcript(bvid, result, revision=revision)
+        provenance = self._generation_provenance(
+            provider=provider,
+            prompt_version=TRANSCRIPT_PROMPT_VERSION,
+            schema=TranscriptResult,
+            source_payload=segments_data,
+            thinking_enabled=False,
+            reasoning_effort=None,
+        )
+        self.artifacts.save_generation_provenance(
+            bvid, "transcript", provenance, revision=revision
+        )
         if revision == "refined":
             self.artifacts.save_transcript(bvid, result)
+            self.artifacts.save_generation_provenance(bvid, "transcript", provenance)
         self.db.update_stage(
             video_id,
             StageName.TRANSCRIPT,
@@ -499,8 +512,22 @@ class PipelineService:
         _, markdown_path = self.artifacts.save_summary(
             str(video["source_id"]), result, revision=revision
         )
+        provenance = self._generation_provenance(
+            provider=provider,
+            prompt_version=SUMMARY_PROMPT_VERSION,
+            schema=SummaryResult,
+            source_payload=transcript.model_dump(mode="json"),
+            thinking_enabled=True,
+            reasoning_effort="high",
+        )
+        self.artifacts.save_generation_provenance(
+            str(video["source_id"]), "summary", provenance, revision=revision
+        )
         if revision == "refined":
             self.artifacts.save_summary(str(video["source_id"]), result)
+            self.artifacts.save_generation_provenance(
+                str(video["source_id"]), "summary", provenance
+            )
         now = utc_now()
         self.db.update_stage(
             video_id,
@@ -574,6 +601,19 @@ class PipelineService:
             )
             return None
         self.artifacts.save_transcript(bvid, result, revision="refined")
+        self.artifacts.save_generation_provenance(
+            bvid,
+            "transcript",
+            self._generation_provenance(
+                provider=provider,
+                prompt_version=TRANSCRIPT_PROMPT_VERSION,
+                schema=TranscriptResult,
+                source_payload=segments_data,
+                thinking_enabled=False,
+                reasoning_effort=None,
+            ),
+            revision="refined",
+        )
         self.db.update_stage(
             video_id,
             StageName.REFINED_TRANSCRIPT,
@@ -662,9 +702,30 @@ class PipelineService:
         _, summary_markdown = self.artifacts.save_summary(
             bvid, final_summary, revision="refined"
         )
+        transcript_provenance = self.artifacts.load_generation_provenance(
+            bvid, "transcript", revision="refined"
+        )
+        summary_provenance = self._generation_provenance(
+            provider=provider,
+            prompt_version=REFINEMENT_REVIEW_PROMPT_VERSION,
+            schema=SummaryReviewResult,
+            source_payload={
+                "transcript": refined_transcript.model_dump(mode="json"),
+                "fast_summary": fast_summary.model_dump(mode="json"),
+            },
+            thinking_enabled=True,
+            reasoning_effort="high",
+        )
+        self.artifacts.save_generation_provenance(
+            bvid, "summary", summary_provenance, revision="refined"
+        )
         # Keep the V0 filenames as readable aliases for external local-file use.
         self.artifacts.save_transcript(bvid, refined_transcript)
         self.artifacts.save_summary(bvid, final_summary)
+        self.artifacts.save_generation_provenance(
+            bvid, "transcript", transcript_provenance
+        )
+        self.artifacts.save_generation_provenance(bvid, "summary", summary_provenance)
         now = utc_now()
         self.db.update_stage(
             video_id,
@@ -697,6 +758,32 @@ class PipelineService:
     def _sync_index(self, video_id: int, trigger: str) -> None:
         if self.index_coordinator is not None:
             self.index_coordinator.safe_sync_video(video_id, trigger=trigger)
+
+    @staticmethod
+    def _generation_provenance(
+        *,
+        provider: OpenAICompatibleProvider,
+        prompt_version: str,
+        schema: type,
+        source_payload: object,
+        thinking_enabled: bool,
+        reasoning_effort: str | None,
+    ) -> dict[str, object]:
+        encoded = json.dumps(
+            source_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        return {
+            "provenance_status": "recorded",
+            "provider": provider.name,
+            "model": provider.model,
+            "prompt_version": prompt_version,
+            "schema": schema.__name__,
+            "generated_at": utc_now(),
+            "thinking_enabled": thinking_enabled,
+            "reasoning_effort": reasoning_effort,
+            "source_hash": f"sha256:{hashlib.sha256(encoded).hexdigest()}",
+            "source_hash_version": "canonical-json-v1",
+        }
 
     def _record_refinement_failure(
         self, video_id: int, stage_name: StageName, attempt: int, error: PipelineError

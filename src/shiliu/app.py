@@ -372,11 +372,10 @@ class Application:
             "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
         }
         is_ask_light = role in {"query_analysis", "agent_action"}
-        model_role = "formal_summary" if role.startswith("taxonomy_") else role
         return OpenAICompatibleProvider(
             base_url=self.config.llm_base_url,
             api_key=api_key,
-            model=self.config.model_for(model_role),
+            model=self.config.model_for(role),
             timeout_seconds=180 if is_transcript or role in {
                 "query_analysis", "agent_action", "grounded_answer"
             } else 600,

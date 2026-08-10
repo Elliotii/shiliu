@@ -101,6 +101,9 @@ class SetupDraftRequest(ProviderRequest):
     content_dir: str
     favorite_id: int | None = Field(default=None, gt=0)
     favorite_title: str = ""
+    ingestion_model: str = ""
+    interactive_model: str = ""
+    taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
     formal_summary_model: str = ""
@@ -113,6 +116,9 @@ class SetupRequest(BaseModel):
     base_url: str
     api_key: str
     model: str
+    ingestion_model: str = ""
+    interactive_model: str = ""
+    taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
     formal_summary_model: str = ""
@@ -1765,10 +1771,43 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 favorite_id=payload.favorite_id,
                 favorite_title=payload.favorite_title,
                 llm_base_url=payload.base_url.rstrip("/"),
-                llm_model=payload.model,
-                fast_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_summary_model=payload.formal_summary_model or payload.model,
+                llm_model=(
+                    payload.interactive_model
+                    or payload.model
+                    or core.config.model_for("grounded_answer")
+                ),
+                ingestion_model=(
+                    payload.ingestion_model
+                    or payload.formal_summary_model
+                    or payload.fast_transcript_model
+                    or core.config.model_for("formal_summary")
+                    or payload.model
+                ),
+                interactive_model=(
+                    payload.interactive_model
+                    or payload.model
+                    or core.config.model_for("grounded_answer")
+                ),
+                taxonomy_model=(
+                    payload.taxonomy_model
+                    or core.config.model_for("taxonomy_global")
+                    or payload.model
+                ),
+                fast_transcript_model=(
+                    payload.fast_transcript_model
+                    or core.config.fast_transcript_model
+                    or payload.ingestion_model
+                ),
+                formal_transcript_model=(
+                    payload.fast_transcript_model
+                    or core.config.formal_transcript_model
+                    or payload.ingestion_model
+                ),
+                formal_summary_model=(
+                    payload.formal_summary_model
+                    or core.config.formal_summary_model
+                    or payload.ingestion_model
+                ),
                 formal_reasoning_effort="high",
             )
             save_config(config, core.paths)
@@ -1787,7 +1826,12 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             provider = OpenAICompatibleProvider(
                 base_url=payload.base_url,
                 api_key=api_key,
-                model=payload.formal_summary_model or payload.model,
+                model=(
+                    payload.ingestion_model
+                    or payload.formal_summary_model
+                    or payload.fast_transcript_model
+                    or payload.model
+                ),
                 timeout_seconds=600,
                 thinking_enabled=True,
                 reasoning_effort="high",
@@ -1806,10 +1850,30 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 favorite_id=payload.favorite_id,
                 favorite_title=payload.favorite_title or str(selected.get("title", "")),
                 llm_base_url=payload.base_url.rstrip("/"),
-                llm_model=payload.model,
-                fast_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_summary_model=payload.formal_summary_model or payload.model,
+                llm_model=payload.interactive_model or payload.model,
+                ingestion_model=(
+                    payload.ingestion_model
+                    or payload.formal_summary_model
+                    or payload.fast_transcript_model
+                    or payload.model
+                ),
+                interactive_model=payload.interactive_model or payload.model,
+                taxonomy_model=payload.taxonomy_model or payload.model,
+                fast_transcript_model=(
+                    payload.fast_transcript_model
+                    or payload.ingestion_model
+                    or payload.model
+                ),
+                formal_transcript_model=(
+                    payload.fast_transcript_model
+                    or payload.ingestion_model
+                    or payload.model
+                ),
+                formal_summary_model=(
+                    payload.formal_summary_model
+                    or payload.ingestion_model
+                    or payload.model
+                ),
                 formal_reasoning_effort="high",
                 baseline_confirmed=True,
                 auto_sync_enabled=payload.install_scheduler,
