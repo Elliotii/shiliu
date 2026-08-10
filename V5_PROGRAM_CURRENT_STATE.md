@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T17:50:01+08:00
+> Updated at: 2026-08-10T23:45:39+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -40,8 +40,12 @@ resume_anchor:
   V5_C_closeout_docs_head: bdc0812836dac08644f05dea946d6e51f287a68d
   V5_C_mainline_merge_head: 8904e27df07becebae13110f9be17cd829373b20
   branch: codex/v5-main
-  pending_decision: V5_D_startup_direction
-  next_action: await_user_direction_before_V5_D_startup_planning
+  V5_D_calibration_status: accepted
+  V5_D_planning_status: complete_pending_user_review_and_execution_pre_authorization
+  V5_D_version_session_created: false
+  V5_D_stage_0_started: false
+  pending_decision: V5_D_execution_pre_authorization
+  next_action: user_reviews_V5_D_charter_long_range_plan_stage_0_contract_and_execution_boundary
   roadmap_reconsideration_open: false
 ```
 
@@ -60,14 +64,17 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: not_started
+    status: planning_complete_pending_execution_pre_authorization
+    empirical_entry_gate_met: false
+    bounded_stage_0_required: true
+    candidate_implementation_authorized: false
   Post_V5:
     status: conditional_long_term_direction
 ```
 
 长期路线与功能目标未改变。V5-B 的实际 schema、实现与版本内顺序已随 closeout 固定；
-V5-C 的五 Stage 实现边界已随执行分支 closeout 固定，V5-D 的具体 Schema、框架、Commit、Goal 数量
-和版本内顺序仍未冻结，也没有提前实施。
+V5-C 的五 Stage 实现边界已随执行分支 closeout 固定。V5-D 已完成 planning-only roadmap
+calibration，建议采用四 Stage 序列；具体 Schema、框架、上游 Commit 和实现仍未冻结，也没有提前实施。
 
 # 2. Repository and runtime
 
@@ -230,8 +237,10 @@ model not ready 时降级到 lexical 并得到 0 个命中，因此 EvidenceUse/
 known_retrieval_limitation:
   durable_runtime_regression: false
   representative_grounded_completion_proven: false
-  candidate_future_owners:
-    - V5_D
+  classification: unclassified_policy_vs_infrastructure
+  default_V5_D_owner: false
+  V5_D_candidate_authorized: false
+  reassess_during_V5_D_stage_0: true
   must_not_be_reported_as_success: true
 ```
 
@@ -279,6 +288,12 @@ upstream:
   V5_B_JIT_research:
     DeepTutor: adopted_reference_only_at_44fa7a1
     WeKnora: adopted_reference_only_at_fcc4cd6
+  V5_D_JIT_research:
+    SearchCLI: conditional_before_concrete_experiment_workflow_gap
+    SkillAdaptor: conditional_before_concrete_attribution_gap
+    HDSO: conditional_primary_paper_review_before_hypothesis_freeze
+    Youtu_Agent: conditional_only_if_existing_experiment_identity_is_insufficient
+    SkillOS_and_MUSE: deferred_until_one_candidate_is_validated
 download_equals_adoption: false
 research_equals_implementation_authorization: false
 ```
@@ -382,5 +397,17 @@ live schema 保持 14，无 migration。时间戳备份
 Web 已运行，scheduled sync 已加载，未创建 live task、event、workspace、route 或 page 数据。
 
 V5-C 现以 `accepted_with_known_limits` 完成。真实用户个性化收益、大 Workspace/多进程顺序、Provider
-主观比较、独立 Translation route 和 V5-A 长复合查询召回限制仍未证明或解决。当前没有 active
-subversion/formal Stage；V5-D 未启动，等待用户后续方向。
+主观比较、独立 Translation route 和 V5-A 长复合查询召回限制仍未证明或解决。
+
+用户已接受 `V5_D_STARTUP_DIRECTION_CALIBRATION.md`：保留原受控 Search Policy Improvement 核心，
+增加 bounded Stage 0，initial Candidate Surface 收敛到 domain-specific Search/Research Policy，一个
+强 Candidate 完整闭环即可 Portfolio-ready，Progressive Disclosure 后置，不建设 generic Agent
+Learning/Harness Platform。用户同时冻结三条 Eval 约束：代表性任务先于 Failure/Hypothesis 选择与
+冻结；held-out 不得参与 Candidate/Trigger/Procedure/Stop Rule 调整；Environment Shift 不是
+Portfolio-ready 硬门。
+
+Main 已完成 planning-only 的 `V5_D_VERSION_CHARTER.md`、
+`V5_D_STARTUP_AND_EXECUTION_PLAN.md` 和 `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`。建议 Stage
+序列为 Entry Calibration → Attribution/one Candidate → Frozen Paired Evaluation → Controlled Use /
+Closeout。当前没有 active subversion/formal Stage，没有创建 V5-D branch/worktree/Session，没有运行
+Stage 0、Provider 或产品实现；下一动作是用户审查规划并明确 V5-D 执行预授权。
