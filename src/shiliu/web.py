@@ -947,6 +947,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         assistance_enabled: bool = True,
         baseline_snapshot_id: int | None = None,
         current_snapshot_id: int | None = None,
+        journey_enabled: bool = True,
     ) -> JSONResponse:
         try:
             workspace_value = await asyncio.to_thread(
@@ -965,6 +966,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 assistance_enabled=assistance_enabled,
                 baseline_snapshot_id=baseline_snapshot_id,
                 current_snapshot_id=current_snapshot_id,
+                journey_enabled=journey_enabled,
             )
         except ResearchError as exc:
             return JSONResponse(

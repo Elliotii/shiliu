@@ -19,6 +19,7 @@
   let personalizationEnabled = true;
   let routingEnabled = true;
   let assistanceEnabled = true;
+  let journeyEnabled = true;
   const sessionDismissedAssistance = new Set();
   let pollTimer = null;
 
@@ -81,7 +82,9 @@
   const renderAnswer = product => {
     const section = root.querySelector('[data-answer-section]');
     const container = root.querySelector('[data-answer-blocks]');
+    const compactContainer = root.querySelector('[data-answer-compact-blocks]');
     container.replaceChildren();
+    compactContainer.replaceChildren();
     const numbering = new Map(product.citations.map((item, index) => [item.citation_id, index + 1]));
     (product.answer_blocks || []).forEach(block => {
       const card = element('article', 'research-answer-block');
@@ -108,16 +111,26 @@
     const answerSection = root.querySelector('[data-answer-section]');
     const answerBlocks = root.querySelector('[data-answer-blocks]');
     const limitations = root.querySelector('[data-limitations]');
+    const compactDetails = root.querySelector('[data-answer-compact-details]');
+    const compactBlocks = root.querySelector('[data-answer-compact-blocks]');
+    const detail = personalizationUI.applyAnswerDetail(
+      answerBlocks, compactDetails, compactBlocks, context,
+    );
+    root.querySelector('[data-answer-compact-count]').textContent = String(detail.compactedCount);
     const position = personalizationUI.applyAnswerPresentation(
-      answerSection, answerBlocks, limitations, context,
+      answerSection, answerBlocks, limitations, context, compactDetails,
     );
     const status = root.querySelector('[data-personalization-status]');
     const preference = context.preference;
     const focus = context.current_focus;
-    if (context.applied && preference) {
-      status.textContent = `已应用 ${preference.value} · ${preference.authority_class} · v${preference.version}${focus ? ` · Current Focus: ${focus.topic} (${focus.state})` : ''}`;
+    if ((context.applied && preference) || context.detail_applied) {
+      const effects = [
+        ...(context.applied && preference ? [`limitations ${preference.value}`] : []),
+        ...(context.detail_applied ? [`detail ${detail.detailLevel}`] : []),
+      ];
+      status.textContent = `已应用 ${effects.join(' · ')}${focus ? ` · Current Focus: ${focus.topic} (${focus.state})` : ''}`;
     } else {
-      status.textContent = `保持 baseline (${position}) · ${(context.reason_codes || []).join(', ')}`;
+      status.textContent = `保持 baseline (${position}, ${detail.detailLevel}) · ${(context.reason_codes || []).join(', ')}`;
     }
     root.querySelector('[data-personalization-explanation]').textContent = JSON.stringify({
       policy_version: context.policy_version,
@@ -125,6 +138,10 @@
       applied: context.applied,
       effect_scope: context.effect_scope,
       preference: context.preference,
+      detail_level: context.detail_level,
+      detail_applied: context.detail_applied,
+      detail_preference: context.detail_preference,
+      detail_reason_codes: context.detail_reason_codes,
       current_focus: context.current_focus,
       reason_codes: context.reason_codes,
       context_hash: context.context_hash,
@@ -725,6 +742,7 @@
     renderPersonalization(value.personalization_context);
     renderRouteRecommendation(value.route_recommendation);
     renderKnowledgeAssistance(value.knowledge_assistance);
+    renderIntegratedJourney(value.integrated_journey);
     const list = root.querySelector('[data-workspace-records]');
     list.replaceChildren(element('h4', '', `WorkspaceRecord · ${value.records.length}`));
     value.records.forEach(record => {
@@ -760,6 +778,31 @@
       list.append(card);
     });
     if (!value.records.length) list.append(element('p', 'muted', '当前筛选下没有 WorkspaceRecord。'));
+  };
+
+  const renderIntegratedJourney = context => {
+    const status = root.querySelector('[data-journey-status]');
+    const explanation = root.querySelector('[data-journey-explanation]');
+    const steps = root.querySelector('[data-journey-steps]');
+    steps.replaceChildren();
+    if (!context) {
+      status.textContent = 'Journey composition 未启用；各 consumer 保持自身 baseline。';
+      explanation.textContent = '';
+      return;
+    }
+    status.textContent = `${context.enabled ? 'read-only composition' : 'session all-off'} · ${context.journey_hash.slice(0, 12)} · execution false`;
+    const labels = {answer: 'Answer', search: 'Search', routing: 'Next path', assistance: 'Progress & Assistance'};
+    Object.entries(context.steps).forEach(([name, step]) => {
+      const link = element('a', 'research-journey-step');
+      link.href = step.href;
+      link.append(
+        element('strong', '', labels[name] || name),
+        element('small', '', step.status),
+        element('code', '', step.context_hash ? step.context_hash.slice(0, 12) : 'no execution context'),
+      );
+      steps.append(link);
+    });
+    explanation.textContent = JSON.stringify(context, null, 2);
   };
 
   const durableDismissAssistance = async card => {
@@ -869,6 +912,7 @@
     if (!personalizationEnabled) params.set('personalization_enabled', 'false');
     params.set('routing_enabled', String(routingEnabled));
     params.set('assistance_enabled', String(assistanceEnabled));
+    params.set('journey_enabled', String(journeyEnabled));
     const baselineSnapshot = Number(root.querySelector('[data-assistance-baseline-snapshot]').value);
     const currentSnapshot = Number(root.querySelector('[data-assistance-current-snapshot]').value);
     if (Number.isInteger(baselineSnapshot) && baselineSnapshot > 0) params.set('baseline_snapshot_id', String(baselineSnapshot));
@@ -1204,6 +1248,10 @@
   root.querySelector('[data-assistance-refresh]').addEventListener('click', loadPersonalWorkspace);
   root.querySelector('[data-assistance-enabled]').addEventListener('change', event => {
     assistanceEnabled = event.currentTarget.checked;
+    if (assistanceEnabled) {
+      journeyEnabled = true;
+      root.querySelector('[data-journey-enabled]').checked = true;
+    }
     loadPersonalWorkspace();
   });
   root.querySelectorAll('[data-assistance-baseline-snapshot], [data-assistance-current-snapshot]').forEach(control => {
@@ -1211,6 +1259,10 @@
   });
   root.querySelector('[data-routing-enabled]').addEventListener('change', event => {
     routingEnabled = event.currentTarget.checked;
+    if (routingEnabled) {
+      journeyEnabled = true;
+      root.querySelector('[data-journey-enabled]').checked = true;
+    }
     loadPersonalWorkspace();
   });
   root.querySelectorAll('[data-routing-explicit-path], [data-routing-provider-permission], [data-routing-cost-permission], [data-routing-asr-permission], [data-routing-video-id]').forEach(control => {
@@ -1218,7 +1270,24 @@
   });
   root.querySelector('[data-personalization-enabled]').addEventListener('change', event => {
     personalizationEnabled = event.currentTarget.checked;
+    if (personalizationEnabled) {
+      journeyEnabled = true;
+      root.querySelector('[data-journey-enabled]').checked = true;
+    }
     loadPersonalWorkspace();
+  });
+  root.querySelector('[data-journey-enabled]').addEventListener('change', event => {
+    journeyEnabled = event.currentTarget.checked;
+    personalizationEnabled = journeyEnabled;
+    routingEnabled = journeyEnabled;
+    assistanceEnabled = journeyEnabled;
+    root.querySelector('[data-personalization-enabled]').checked = journeyEnabled;
+    root.querySelector('[data-routing-enabled]').checked = journeyEnabled;
+    root.querySelector('[data-assistance-enabled]').checked = journeyEnabled;
+    loadPersonalWorkspace();
+  });
+  root.querySelector('[data-journey-workspace-focus]').addEventListener('click', () => {
+    root.querySelector('[data-personal-workspace]')?.scrollIntoView({behavior: 'smooth'});
   });
   window.addEventListener('popstate', () => {
     const match = location.pathname.match(/^\/research\/([^/]+)$/);

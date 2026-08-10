@@ -20,6 +20,9 @@ from shiliu.research.knowledge_contracts import (
     WorkspaceSourceRef,
 )
 from shiliu.research.personalization import (
+    ANSWER_PRESENTATION_KEYS,
+    DETAIL_LEVELS,
+    DETAIL_LEVEL_KEY,
     LIMITATIONS_POSITION_KEY,
     LIMITATIONS_POSITIONS,
     PersonalizationContextProjection,
@@ -164,7 +167,7 @@ class ResearchPersonalWorkspaceService:
             )
             if (
                 request.record_kind == "inferred_candidate"
-                and semantic_key == LIMITATIONS_POSITION_KEY
+                and semantic_key in ANSWER_PRESENTATION_KEYS
             ):
                 self._validate_feedback_preference_sources(
                     connection,
@@ -368,7 +371,7 @@ class ResearchPersonalWorkspaceService:
             )
             if (
                 str(latest["record_kind"]) == "inferred_candidate"
-                and str(latest["semantic_key"]) == LIMITATIONS_POSITION_KEY
+                and str(latest["semantic_key"]) in ANSWER_PRESENTATION_KEYS
                 and request.action == "confirm"
             ):
                 self._validate_feedback_preference_sources(
@@ -454,6 +457,7 @@ class ResearchPersonalWorkspaceService:
         record_kind: str | None = None,
         status: str | None = None,
         personalization_enabled: bool = True,
+        principal_id: str | None = None,
     ) -> dict[str, Any]:
         with self.db.connect() as connection:
             self.kernel._task(connection, command_task_id)
@@ -485,18 +489,26 @@ class ResearchPersonalWorkspaceService:
             ]
             all_records.append(latest)
         personalization_context = self.personalization.project(
-            all_records, enabled=personalization_enabled
+            all_records,
+            enabled=personalization_enabled,
+            principal_id=principal_id,
         )
-        applied_revision_id = (
-            personalization_context["preference"]["record_revision_id"]
-            if personalization_context["applied"]
-            and personalization_context["preference"] is not None
-            else None
-        )
-        for value in all_records:
-            value["product_behavior_effect"] = (
-                value["record_revision_id"] == applied_revision_id
+        applied_revision_ids = {
+            value["record_revision_id"]
+            for value, applied in (
+                (
+                    personalization_context["preference"],
+                    personalization_context["applied"],
+                ),
+                (
+                    personalization_context["detail_preference"],
+                    personalization_context["detail_applied"],
+                ),
             )
+            if applied and value is not None
+        }
+        for value in all_records:
+            value["product_behavior_effect"] = value["record_revision_id"] in applied_revision_ids
         records = [
             value
             for value in all_records
@@ -684,10 +696,11 @@ class ResearchPersonalWorkspaceService:
                 "Stage 1 preference candidate requires exact statement payload"
             )
         proposed_value = _normalized_key(str(payload["statement"]))
-        if (
-            semantic_key != LIMITATIONS_POSITION_KEY
-            or proposed_value not in LIMITATIONS_POSITIONS
-        ):
+        supported_values = {
+            LIMITATIONS_POSITION_KEY: LIMITATIONS_POSITIONS,
+            DETAIL_LEVEL_KEY: DETAIL_LEVELS,
+        }
+        if proposed_value not in supported_values.get(semantic_key, set()):
             raise ResearchValidationError("unsupported Stage 1 preference candidate")
         if len(source_refs) < 2 or any(
             value["ref_type"] != "research_event" for value in source_refs

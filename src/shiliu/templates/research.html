@@ -82,7 +82,22 @@
           <p class="muted" data-control-status aria-live="polite"></p>
         </section>
 
-        <section class="research-routing" aria-labelledby="research-routing-title" data-route-recommendation-panel>
+        <section class="research-journey" aria-labelledby="research-journey-title" data-integrated-journey>
+          <div class="research-section-heading">
+            <div><p class="result-kicker">V5-C · STAGE 5</p><h3 id="research-journey-title">Personalized research journey</h3></div>
+          </div>
+          <p class="muted">只组合现有 Answer、Search、Routing 与 Assistance 上下文；不执行 Search、Research、ArtifactRoute、ASR 或 Provider。</p>
+          <label><input type="checkbox" data-journey-enabled checked> 本次 session 启用 personalized journey</label>
+          <p class="muted" data-journey-status aria-live="polite">正在组合既有只读 context…</p>
+          <nav class="research-journey-steps" data-journey-steps aria-label="Personalized research journey"></nav>
+          <button class="ghost compact-button" type="button" data-journey-workspace-focus>解释、修正与 rollback</button>
+          <details>
+            <summary>组合 explanation 与 authority</summary>
+            <pre class="research-advanced-trace" data-journey-explanation></pre>
+          </details>
+        </section>
+
+        <section class="research-routing" id="research-routing" aria-labelledby="research-routing-title" data-route-recommendation-panel>
           <div class="research-section-heading">
             <div><p class="result-kicker">V5-C · STAGE 3</p><h3 id="research-routing-title">Next path recommendation</h3></div>
             <button class="ghost compact-button" type="button" data-routing-refresh>刷新只读建议</button>
@@ -133,7 +148,7 @@
           </form>
         </section>
 
-        <section class="research-answer" data-answer-section hidden>
+        <section class="research-answer" id="research-answer" data-answer-section hidden>
           <div class="research-section-heading">
             <div><p class="result-kicker">GROUNDED OUTPUT</p><h3>当前回答</h3></div>
           </div>
@@ -146,6 +161,10 @@
             </details>
           </aside>
           <div class="research-answer-blocks" data-answer-blocks></div>
+          <details class="research-answer-compact" data-answer-compact-details hidden>
+            <summary>展开其余回答（<span data-answer-compact-count>0</span>）</summary>
+            <div class="research-answer-blocks" data-answer-compact-blocks></div>
+          </details>
           <div class="research-limitations" data-limitations hidden><strong>限制</strong><ul></ul></div>
         </section>
 
@@ -196,7 +215,7 @@
           </div>
         </section>
 
-        <section class="research-assistance" aria-labelledby="research-assistance-title" data-knowledge-assistance>
+        <section class="research-assistance" id="research-assistance" aria-labelledby="research-assistance-title" data-knowledge-assistance>
           <div class="research-section-heading">
             <div>
               <p class="result-kicker">V5-C · STAGE 4</p>
@@ -295,4 +314,4 @@
   </div>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=1"></script><script src="/static/research.js?v=4"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/research-personalization.js?v=2"></script><script src="/static/research.js?v=5"></script>{% endblock %}

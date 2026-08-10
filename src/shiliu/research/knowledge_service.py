@@ -17,6 +17,7 @@ from shiliu.research.errors import (
     ResearchValidationError,
 )
 from shiliu.research.inner_evidence import PersistentEvidenceAuthority
+from shiliu.research.integrated_journey import IntegratedJourneyProjection
 from shiliu.research.knowledge_contracts import (
     AssessArtifactRouteRequest,
     BuildKnowledgeArtifactRequest,
@@ -130,6 +131,7 @@ class ResearchKnowledgeService:
             db,
             taxonomy=taxonomy or TaxonomyCorpusService(db, retrieval.artifacts),
         )
+        self.integrated_journey = IntegratedJourneyProjection()
         self.closeout = ResearchProductCloseoutService(
             db,
             kernel=kernel,
@@ -1772,10 +1774,12 @@ class ResearchKnowledgeService:
         assistance_enabled: bool = False,
         baseline_snapshot_id: int | None = None,
         current_snapshot_id: int | None = None,
+        journey_enabled: bool = False,
     ) -> dict[str, Any]:
         complete_workspace = self.personal_workspace.get_workspace(
             task_id,
             personalization_enabled=personalization_enabled,
+            principal_id=principal_id,
         )
         workspace = complete_workspace
         if record_kind is not None or status is not None:
@@ -1784,8 +1788,14 @@ class ResearchKnowledgeService:
                 record_kind=record_kind,
                 status=status,
                 personalization_enabled=personalization_enabled,
+                principal_id=principal_id,
             )
-        if principal_id is None and not routing_enabled and not assistance_enabled:
+        if (
+            principal_id is None
+            and not routing_enabled
+            and not assistance_enabled
+            and not journey_enabled
+        ):
             return workspace
         recommendation = self.route_recommendation.project(
             task_id,
@@ -1814,7 +1824,7 @@ class ResearchKnowledgeService:
                 record["record_revision_id"] == applied_revision_id
             )
         workspace["route_recommendation"] = recommendation
-        workspace["knowledge_assistance"] = self.knowledge_assistance.project(
+        assistance = self.knowledge_assistance.project(
             task_id,
             principal_id=principal_id,
             records=complete_workspace["records"],
@@ -1822,8 +1832,17 @@ class ResearchKnowledgeService:
             baseline_snapshot_id=baseline_snapshot_id,
             current_snapshot_id=current_snapshot_id,
         )
+        workspace["knowledge_assistance"] = assistance
+        workspace["integrated_journey"] = self.integrated_journey.project(
+            task_id,
+            principal_id=principal_id,
+            enabled=journey_enabled,
+            personalization=workspace["personalization_context"],
+            routing=recommendation,
+            assistance=assistance,
+        )
         workspace["authority"]["product_behavior"] = (
-            "v5_c_stage1_answer_stage2_search_stage3_route_and_stage4_pull_only_presentation"
+            "v5_c_stage1_to_stage4_behavior_plus_stage5_read_only_composition"
         )
         return workspace
 

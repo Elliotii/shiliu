@@ -431,8 +431,24 @@ class ProceedArtifactRouteRequest(_StrictModel):
 
 
 class FeedbackCandidatePreference(_StrictModel):
-    semantic_key: Literal["answer.presentation.limitations_position"]
-    proposed_value: Literal["before_answer", "after_answer"]
+    semantic_key: Literal[
+        "answer.presentation.limitations_position",
+        "answer.presentation.detail_level",
+    ]
+    proposed_value: Literal["before_answer", "after_answer", "standard", "compact"]
+
+    @model_validator(mode="after")
+    def validate_key_value_pair(self) -> "FeedbackCandidatePreference":
+        allowed = {
+            "answer.presentation.limitations_position": {
+                "before_answer",
+                "after_answer",
+            },
+            "answer.presentation.detail_level": {"standard", "compact"},
+        }
+        if self.proposed_value not in allowed[self.semantic_key]:
+            raise ValueError("candidate preference key/value pair is unsupported")
+        return self
 
 
 class SubmitKnowledgeFeedbackRequest(_StrictModel):
