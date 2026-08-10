@@ -4,9 +4,9 @@
 > Goal: Controlled Experience-driven Search Policy Improvement
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_1_accepted_pending_user_stage_2_authorization
+> Status: stage_2_authorized
 > Planning authority: user-authorized
-> Execution authority: none currently; Stage 1 closed, Stage 2 pending user authorization
+> Execution authority: Stage 2 Frozen Paired Evaluation only
 > Accepted by: user
 > Accepted at: 2026-08-11
 > V5-D Version Session created: true
@@ -84,9 +84,10 @@ limitation 仍是 `unclassified_policy_vs_infrastructure`，不自动成为 V5-D
 
 ```yaml
 mechanical_foundation_ready: true
-empirical_entry_gate_met: false
-bounded_stage_0_required: true
-candidate_implementation_authorized: false
+empirical_entry_gate_met: true
+bounded_stage_0_status: accepted
+candidate_product_integration_authorized: false
+experiment_only_treatment_implementation_authorized: true
 ```
 
 ---
@@ -430,16 +431,17 @@ V5_D_session_created: true
 stage_0_status: accepted
 stage_0_execution_authorized: closed_completed
 product_implementation_authorized: false
-provider_runs_authorized: false
+provider_runs_authorized: true_within_stage_2_contract_and_USD_0_50_total_cap
 candidate_contract_status: accepted_proposed_non_active
+experiment_only_treatment_implementation_authorized: true
+reserve_open_authorized: custody_only_after_complete_freeze_and_source_gate
 skill_repository_authorized: false
 promotion_authorized: false
 stage_1_execution_authorized: closed_completed
-stage_2_execution_authorized: false
+stage_2_execution_authorized: true
 stage_3_execution_authorized: false
 ```
 
-本 Charter 是持续 V5-D Version Session 的上位合同。Stage 1 已由 Main 接受；唯一 Candidate
-`V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001` 仍为 `proposed_non_active`，effectiveness 未证明。当前没有
-active Stage 执行权；Provider、reserve 解封、treatment、active/shadow Runtime 与 Stage 2 execution 均需
-用户另行明确授权。
+本 Charter 是持续 V5-D Version Session 的上位合同。用户现授权 Stage 2 的最小 experiment-only Treatment、
+freeze、custody assignment 与 paired Provider evaluation。Candidate 始终保持 `proposed_non_active`；
+Stage 3、active/shadow registration、promotion、live DB 与版本集成仍未授权。

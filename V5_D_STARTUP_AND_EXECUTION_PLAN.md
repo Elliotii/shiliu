@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_1_accepted_pending_user_stage_2_authorization
+> Status: stage_2_authorized
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: none currently; Stage 1 closed, Stage 2 pending user authorization
+> Execution authorization: Stage 2 Frozen Paired Evaluation only
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -499,18 +499,18 @@ V5_D_execution_pre_authorization:
 该包让 V5-D 得到真实 Entry 证据，同时不预设 Candidate、不污染 held-out，也不把 Stage 0 变成产品
 实现。
 
-## 14.2 Current Stage 1 and remaining future authority
+## 14.2 Current Stage 2 and remaining future authority
 
-用户已在 Stage 0 被 Main 接受后，授权 `V5_D_STAGE_1_ATTRIBUTION_AND_ONE_CANDIDATE_CONTRACT.md`：
+用户已在 Stage 1 被 Main 接受后，授权 `V5_D_STAGE_2_FROZEN_PAIRED_EVALUATION_CONTRACT.md`：
 
-- 同一 V5-D Session 可以分析 authorized discovery evidence、完成 Attribution/Hypothesis、定义一个
-  proposed/non-active Candidate，并准备 Stage 2 plan；
-- 普通低风险 docs、package validation 和测试入口问题由 Version Session 自主修复、复跑；
-- Stage 1 Provider runs、reserve access、active/shadow injection 和 live write 均未授权；
-- Stage 2 held-out Eval、Stage 3 human promotion、live DB/migration、Push/Tag 仍保留单独明确边界；
+- 同一 V5-D Session 可以创建最小 experiment-only Treatment、冻结实验、通过 source gate 后在隔离
+  Custodian 下分配 reserve，并完成有界 paired Provider evaluation；
+- 普通低风险 treatment plumbing、机械测试与冻结前 fixture 问题由 Version Session 自主修复、复跑；
+- held-out 打开后不得修改 Candidate 或 evaluator 并复用同一 held-out；
+- Stage 3 human promotion、active/shadow registration、live DB/migration、Push/Tag 仍保留单独明确边界；
 - 任何 generic platform、第二 Candidate、材料性 schema/cost/scope、License/data 风险都暂停讨论。
 
-Stage 1 完成后 Main 只做一次有限验收并停止；不得自动进入 Stage 2。
+Stage 2 完成后 Main 只做一次有限验收并停止；不得自动进入 Stage 3。
 
 ---
 
@@ -557,7 +557,7 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 ```yaml
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
-authorized_scope: completed_startup_stage_0_stage_1
+authorized_scope: completed_startup_stage_0_stage_1_plus_current_stage_2
 V5_D_session_created: true
 stage_0_started: true
 stage_0_status: accepted
@@ -566,11 +566,11 @@ product_implementation_started: false
 provider_runs_performed: true_within_completed_stage_0
 candidate_contract_status: accepted_proposed_non_active
 stage_1_execution_authorized: closed_completed
-stage_2_execution_authorized: false
-next_action: await_user_authorization_before_any_stage_2_work
+stage_2_execution_authorized: true
+stage_3_execution_authorized: false
+next_action: V5_D_session_executes_frozen_paired_evaluation_and_submits_closeout
 ```
 
-Stage 1 已完成并由 Main 有限验收接受。Attribution、Hypothesis、唯一 proposed/non-active Candidate
-Contract 与 Stage 2 frozen evaluation proposal 均已形成，但 Candidate effectiveness、related 泛化、
-unrelated regression 与 negative transfer 均未证明。Reserve、Provider、treatment、active/shadow Runtime、
-Stage 2 execution、live DB 与 merge/push/tag 仍未授权；当前等待用户对 Stage 2 的再次明确授权。
+Stage 1 已完成并由 Main 有限验收接受。用户现授权 Stage 2：创建最小 experiment-only Treatment，在完整
+freeze 后先过 D02/D04 source gate，再由隔离 Custodian 分配 sealed reserve 并执行 related/unrelated paired
+evaluation。Candidate 仍不得 active/shadow；Stage 3、live DB 与 merge/push/tag 未授权。Stage 2 完成后停止。

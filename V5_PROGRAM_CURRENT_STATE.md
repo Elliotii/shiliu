@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T01:56:08+08:00
+> Updated at: 2026-08-11T02:07:12+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: none_pending_user_stage_2_authorization
+  current_formal_stage: Stage_2_Frozen_Paired_Evaluation
   active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -52,9 +52,10 @@ resume_anchor:
   V5_D_stage_1_execution_head: 900953df64676a5d1438743918ac806961dfff14
   V5_D_candidate_id: V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001
   V5_D_candidate_status: proposed_non_active
-  V5_D_stage_2_authorized: false
-  pending_decision: user_stage_2_direction_and_authorization
-  next_action: await_user_authorization_before_any_stage_2_work
+  V5_D_stage_2_authorized: true
+  V5_D_stage_2_status: authorized_for_persistent_version_session
+  pending_decision: V5_D_stage_2_closeout_and_main_acceptance
+  next_action: V5_D_session_freezes_and_executes_paired_evaluation_then_stops
   roadmap_reconsideration_open: false
 ```
 
@@ -73,14 +74,16 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: stage_1_accepted_pending_stage_2_authorization
+    status: stage_2_authorized
     empirical_entry_gate_met: true
     qualified_failure_family: non_progress_search_repetition_without_recovery
     accepted_initial_surface: follow_up_strategy
     bounded_stage_0_required: true
-    candidate_implementation_authorized: false
+    candidate_product_integration_authorized: false
     proposed_non_active_candidate_contract_status: accepted
     candidate_effectiveness_proven: false
+    experiment_only_treatment_implementation_authorized: true
+    active_or_shadow_registration_authorized: false
   Post_V5:
     status: conditional_long_term_direction
 ```
@@ -294,7 +297,7 @@ session_limits:
   active_formal_stage_or_goal_limit: 1
 current_usage:
   active_subversions: 1
-  active_formal_stages: 0
+  active_formal_stages: 1
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -442,7 +445,12 @@ Hypothesis `V5D-S1-HYPOTHESIS-20260811-A` 可由 paired evaluation 证伪；唯�
 `V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001` 仅为 versioned `proposed_non_active` Contract，未注册、
 未 active/shadow，默认回到 existing No-Skill。
 
-四个 reserve tasks 继续 sealed，runs 0、post-freeze access 0。Stage 2 plan 仅作为未来授权提案被接受：
-1 related + 2 unrelated + 1 spare 的语义 assignment 尚未发生，treatment implementation 也未创建或冻结。
-当前 active formal Stage 为 0；Stage 2、Provider/Keychain、reserve open、product activation、live DB 与
-merge/push/tag 均未授权，下一步等待用户再次明确授权。
+用户已批准 Stage 1 Main Acceptance，并授权 Stage 2 Frozen Paired Evaluation。持续 V5-D Session 是唯一
+正式执行主体；当前唯一 active formal Stage 为 Stage 2。它可创建最小 experiment-only Treatment、完成
+mechanical tests、冻结 Candidate/Treatment/Baseline/Scaffold/Evaluator/assignment/budget、先执行 D02/D04
+source gate，再由隔离 Custodian 分配 `1 related + 2 unrelated + 1 spare` 并完成 paired evaluation。
+
+Stage 2 总预算冻结为 10 valid arms、20 outer attempts、260 logical calls、2,750,000/350,000 tokens、250
+tool calls 与 USD 0.50 hard stop。Reserve 只能在完整 freeze 和 source gate 通过后按 custody 解封；如果 split
+不足则在 held-out Provider run 前诚实停止。Candidate 仍为 proposed/non-active，Stage 3、active/shadow、
+promotion、live DB 与 merge/push/tag 均未授权。Stage 2 完成后必须停止等待 Main 有限验收。
