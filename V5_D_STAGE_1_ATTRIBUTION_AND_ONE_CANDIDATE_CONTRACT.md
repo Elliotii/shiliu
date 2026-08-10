@@ -1,6 +1,6 @@
 # Shiliu V5-D Stage 1 Contract — Attribution and One Candidate
 
-> Status: authorized_by_user
+> Status: completed_and_accepted_by_main
 > Stage: Stage 1 — Attribution + One Candidate Contract
 > Authorized at: 2026-08-11
 > Owner: persistent V5-D Version Session
@@ -11,6 +11,8 @@
 > Provider runs authorized: false
 > Reserve open authorized: false
 > Stage 2 execution authorized: false
+> Accepted execution head: `900953df64676a5d1438743918ac806961dfff14`
+> Main acceptance: `V5_D_STAGE_1_MAIN_SESSION_ACCEPTANCE_DECISION.md`
 
 ---
 
@@ -308,4 +310,5 @@ stage_1_result:
 3. 更新 `V5_D_CURRENT_STATE.md` 与 `V5_D_DECISION_LEDGER.md`；
 4. 创建一个清晰的本地 Stage 1 commit，并保持 working tree clean。
 
-Stage 1 完成后停止，由 Main 做一次有限验收；不得自动进入 Stage 2。
+Stage 1 已完成并由 Main 接受，结果为 `candidate_contract_ready`。唯一 Candidate 保持
+`proposed_non_active`，Stage 2、reserve 解封、Provider、treatment 与产品激活仍未授权。

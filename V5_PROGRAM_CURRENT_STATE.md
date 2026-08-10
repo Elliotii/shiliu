@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T01:23:14+08:00
+> Updated at: 2026-08-11T01:56:08+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: Stage_1_Attribution_and_One_Candidate
+  current_formal_stage: none_pending_user_stage_2_authorization
   active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -47,10 +47,14 @@ resume_anchor:
   V5_D_stage_0_authorized: closed_completed
   V5_D_stage_0_status: accepted
   V5_D_stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
-  V5_D_stage_1_authorized: true
-  V5_D_stage_1_status: authorized_for_persistent_version_session
-  pending_decision: V5_D_stage_1_closeout_and_main_acceptance
-  next_action: V5_D_session_executes_attribution_and_one_candidate_contract_then_stops
+  V5_D_stage_1_authorized: closed_completed
+  V5_D_stage_1_status: accepted
+  V5_D_stage_1_execution_head: 900953df64676a5d1438743918ac806961dfff14
+  V5_D_candidate_id: V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001
+  V5_D_candidate_status: proposed_non_active
+  V5_D_stage_2_authorized: false
+  pending_decision: user_stage_2_direction_and_authorization
+  next_action: await_user_authorization_before_any_stage_2_work
   roadmap_reconsideration_open: false
 ```
 
@@ -69,13 +73,14 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: stage_1_authorized
+    status: stage_1_accepted_pending_stage_2_authorization
     empirical_entry_gate_met: true
     qualified_failure_family: non_progress_search_repetition_without_recovery
     accepted_initial_surface: follow_up_strategy
     bounded_stage_0_required: true
     candidate_implementation_authorized: false
-    one_proposed_non_active_candidate_contract_authorized: true
+    proposed_non_active_candidate_contract_status: accepted
+    candidate_effectiveness_proven: false
   Post_V5:
     status: conditional_long_term_direction
 ```
@@ -123,6 +128,7 @@ repository:
   V5_D_execution_worktree: /Users/elliot/.codex/worktrees/5eb4/Shiliu
   V5_D_execution_thread: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   V5_D_stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
+  V5_D_stage_1_execution_head: 900953df64676a5d1438743918ac806961dfff14
   V5_B_execution_schema_source: 14
   V5_B_execution_branch: codex/v5-b
   V5_B_execution_worktree: /Users/elliot/.codex/worktrees/ec16/Shiliu
@@ -288,7 +294,7 @@ session_limits:
   active_formal_stage_or_goal_limit: 1
 current_usage:
   active_subversions: 1
-  active_formal_stages: 1
+  active_formal_stages: 0
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -429,12 +435,14 @@ D04 在不同真实代表性任务上共同资格化 `non_progress_search_repeti
 四个 reserve tasks 仍为 ciphertext + sealed key，runs 0、post-freeze access 0。该结果只满足 empirical
 Entry Gate，不定义 Candidate/Hypothesis/Trigger/Procedure/Stop Rule，也不证明泛化、负迁移或产品收益。
 
-用户已接受 Stage 0 Main Acceptance，并授权 Stage 1 Attribution + One Candidate Contract。持续 Version
-Session `019fec6e-bb8d-7443-a5a1-a6053f61fb51` 是唯一执行主体；当前唯一 active formal Stage 为 Stage 1。
-工作顺序必须是 Attribution first、Candidate second：先在 D02/D04 authorized discovery evidence 上定位
-first actionable mechanism、审查 alternative causes，再决定是否冻结一个可证伪 Hypothesis 和最多一个
-versioned `proposed_non_active` Candidate。四个 reserve tasks 继续 sealed，不得读取、运行或参与调参。
+Stage 1 execution head `900953d` 已由 Main 有限验收接受。Attribution
+`V5D-S1-ATTRIBUTION-20260811-A` 把 first actionable failure 定位在 final guard 前的 follow-up decision：
+zero current Evidence delta 与未完成目标已可见，却没有选择 materially new target 或 honest stop。
+Hypothesis `V5D-S1-HYPOTHESIS-20260811-A` 可由 paired evaluation 证伪；唯一 Candidate
+`V5D-CANDIDATE-EVIDENCE-DELTA-FOLLOWUP-001` 仅为 versioned `proposed_non_active` Contract，未注册、
+未 active/shadow，默认回到 existing No-Skill。
 
-Stage 1 不授权 Provider/Keychain、live DB、active/shadow Candidate、Promotion、generic Skill/Eval/Harness
-platform、Stage 2 execution 或 merge/push/tag。完成后 Session 提交一个精简 Closeout/Evidence Package 并
-停止，等待 Main 有限验收；Stage 2 仍需用户另行明确授权。
+四个 reserve tasks 继续 sealed，runs 0、post-freeze access 0。Stage 2 plan 仅作为未来授权提案被接受：
+1 related + 2 unrelated + 1 spare 的语义 assignment 尚未发生，treatment implementation 也未创建或冻结。
+当前 active formal Stage 为 0；Stage 2、Provider/Keychain、reserve open、product activation、live DB 与
+merge/push/tag 均未授权，下一步等待用户再次明确授权。

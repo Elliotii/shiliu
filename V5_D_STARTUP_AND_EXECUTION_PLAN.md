@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: stage_1_authorized
+> Status: stage_1_accepted_pending_user_stage_2_authorization
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: Stage 1 Attribution + One Candidate Contract only
+> Execution authorization: none currently; Stage 1 closed, Stage 2 pending user authorization
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -557,20 +557,20 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 ```yaml
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
-authorized_scope: completed_startup_stage_0_plus_current_stage_1_contract
+authorized_scope: completed_startup_stage_0_stage_1
 V5_D_session_created: true
 stage_0_started: true
 stage_0_status: accepted
 stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
 product_implementation_started: false
 provider_runs_performed: true_within_completed_stage_0
-candidate_created: false
-stage_1_execution_authorized: true
+candidate_contract_status: accepted_proposed_non_active
+stage_1_execution_authorized: closed_completed
 stage_2_execution_authorized: false
-next_action: V5_D_session_executes_stage_1_and_submits_closeout_then_stops
+next_action: await_user_authorization_before_any_stage_2_work
 ```
 
-Stage 0 已完成并由 Main 有限验收接受。用户现授权同一持续 V5-D Version Session 执行 Stage 1：完成
-Trace-level Attribution、alternative-cause review、一个可证伪 Hypothesis、最多一个 proposed/non-active
-Candidate Contract 和只规划不执行的 Stage 2 frozen evaluation design。Reserve、Provider、active/shadow
-Runtime、Stage 2 execution、live DB 与 merge/push/tag 仍未授权；Stage 1 完成后必须停止。
+Stage 1 已完成并由 Main 有限验收接受。Attribution、Hypothesis、唯一 proposed/non-active Candidate
+Contract 与 Stage 2 frozen evaluation proposal 均已形成，但 Candidate effectiveness、related 泛化、
+unrelated regression 与 negative transfer 均未证明。Reserve、Provider、treatment、active/shadow Runtime、
+Stage 2 execution、live DB 与 merge/push/tag 仍未授权；当前等待用户对 Stage 2 的再次明确授权。
