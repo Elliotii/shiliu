@@ -2,9 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: planning_complete_pending_user_review_and_execution_pre_authorization
+> Status: accepted_startup_and_stage_0_authorized
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
+> Execution authorization: Startup and Stage 0 only
 > Execution started: false
 > V5-D Version Session created: false
 
@@ -108,7 +109,8 @@ Goal 模式适合：Stage 1 多文件 lifecycle 实施、Stage 2 多轮冻结实
 5. Version Session 在执行分支创建精简 `V5_D_CURRENT_STATE.md`、`V5_D_DECISION_LEDGER.md`；
 6. 只完成 Stage 0 startup audit、case freeze 和授权运行；
 7. Version Session 提交单一 Stage 0 Report；
-8. Main 有限验收后决定：停止、基础设施另行定约，或允许起草 Stage 1 Contract。
+8. Main 有限验收后提交停止、基础设施另行定约或 Stage 1 Entry 建议；无论结果如何都停止，等待
+   用户再次明确授权 Stage 1。
 
 启动不等于 Stage 1 Candidate 实施授权。
 
@@ -236,8 +238,8 @@ Environment shift: conditional, not Portfolio-ready hard gate
 - 用更多 hits/longer answer 代替 grounded outcome；
 - promotion 或 product injection。
 
-**Entry Gate:** Stage 1 accepted；Candidate frozen；held-out uncompromised；准确 Provider 预算由用户或
-既有 standing authority 覆盖。
+**Entry Gate:** Stage 1 accepted；Candidate frozen；held-out uncompromised；准确 Provider 预算由用户
+明确授权覆盖。
 
 **Exit Gate:**
 
@@ -451,8 +453,8 @@ V5-D Session，不由 Main 顺手修复。
 - `V5_D_STARTUP_DIRECTION_CALIBRATION.md`：记录 accepted 和三条用户约束；
 - `V5_D_VERSION_CHARTER.md`：版本功能/证据/非目标合同；
 - `V5_D_STARTUP_AND_EXECUTION_PLAN.md`：全版本操作计划；
-- `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`：未授权 Stage 0 合同；
-- `V5_PROGRAM_CURRENT_STATE.md`：状态改为 planning complete / pending execution pre-authorization；
+- `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`：已授权 Stage 0 合同；
+- `V5_PROGRAM_CURRENT_STATE.md`：状态改为 Startup + Stage 0 authorized；
 - `V5_PROGRAM_DECISION_LEDGER.md`：记录已接受 calibration 和 planning-only boundary。
 
 本轮不创建 `V5_D_CURRENT_STATE.md`、`V5_D_DECISION_LEDGER.md`、execution worktree/session、Case
@@ -464,7 +466,7 @@ manifest、Candidate、Eval repository 或 product code。这些只在后续授�
 
 ## 14.1 Recommended immediate package: startup + Stage 0 only
 
-建议用户下一轮批准：
+用户已批准以下 immediate package：
 
 ```yaml
 V5_D_execution_pre_authorization:
@@ -497,11 +499,12 @@ V5_D_execution_pre_authorization:
 该包让 V5-D 得到真实 Entry 证据，同时不预设 Candidate、不污染 held-out，也不把 Stage 0 变成产品
 实现。
 
-## 14.2 Standing authority recommended after Stage 0
+## 14.2 Possible future standing authority — not granted
 
-用户可同时允许 Main 在以下边界内自主推进，但每个 Stage 仍需 Contract 和 Main 有限验收：
+当前用户明确只授权 Startup + Stage 0，以下权限尚未授予。若未来希望连续推进，可以另行考虑，
+且每个 Stage 仍需 Contract 和 Main 有限验收：
 
-- `qualified_failure_family_found` 被接受后，允许 V5-D Session 起草 Stage 1 Contract；
+- `qualified_failure_family_found` 被接受且用户再次明确授权后，允许 V5-D Session 起草 Stage 1 Contract；
 - Contract 不改变路线、Candidate 只在 initial surface、无 live write/provider/新 License/成本扩张时，
   Main 可授权同一 Session 实施；
 - 普通低风险 Bug 和测试入口问题由 Version Session 自主修复、复跑；
@@ -509,8 +512,7 @@ V5_D_execution_pre_authorization:
 - Stage 2 held-out Eval、Stage 3 human promotion、live DB/migration、Push/Tag 仍保留单独明确边界；
 - 任何 generic platform、第二 Candidate、材料性 schema/cost/scope、License/data 风险都暂停讨论。
 
-如果用户只批准 14.1，Stage 0 后 Main 停止并提交判断；这是当前推荐的最小、安全且不拖慢进度的
-选择。
+用户当前只批准 14.1，因此 Stage 0 后 Main 必须停止并提交判断。
 
 ---
 
@@ -556,13 +558,17 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 
 ```yaml
 planning_artifacts_prepared: true
-user_execution_pre_authorization_received: false
+user_execution_pre_authorization_received: true
+authorized_scope: startup_and_stage_0_only
 V5_D_session_created: false
 stage_0_started: false
 product_implementation_started: false
 provider_runs_performed: false
 candidate_created: false
-next_action: user_reviews_plan_stage_0_contract_and_pre_authorization_boundary
+stage_1_execution_authorized: false
+next_action: main_creates_codex_v5_d_and_persistent_version_session
 ```
 
-本计划提交后停止，不创建或启动执行 Session，不运行 Stage 0。
+用户已于 2026-08-11 接受本计划并授权 Startup + Stage 0。Main 下一步创建执行分支/工作环境与一个
+持续 V5-D Version Session；该 Session 只运行 Stage 0，完成报告后停止等待 Main 验收和用户对
+Stage 1 的再次授权。

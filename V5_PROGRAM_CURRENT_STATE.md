@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T23:45:39+08:00
+> Updated at: 2026-08-11T00:05:00+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -8,11 +8,11 @@
 
 ```yaml
 resume_anchor:
-  current_subversion: none
+  current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: none
-  active_execution_session: none
+  current_formal_stage: Stage_0_Entry_Calibration
+  active_execution_session: pending_authorized_creation
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
   V5_B_accepted_startup_head: 4efaed413cb2fd9d2eeabe411da96f5132ce6276
@@ -41,11 +41,13 @@ resume_anchor:
   V5_C_mainline_merge_head: 8904e27df07becebae13110f9be17cd829373b20
   branch: codex/v5-main
   V5_D_calibration_status: accepted
-  V5_D_planning_status: complete_pending_user_review_and_execution_pre_authorization
+  V5_D_planning_status: accepted
   V5_D_version_session_created: false
   V5_D_stage_0_started: false
-  pending_decision: V5_D_execution_pre_authorization
-  next_action: user_reviews_V5_D_charter_long_range_plan_stage_0_contract_and_execution_boundary
+  V5_D_stage_0_authorized: true
+  V5_D_stage_1_authorized: false
+  pending_decision: create_V5_D_version_session_and_begin_stage_0
+  next_action: main_creates_codex_v5_d_and_persistent_version_session
   roadmap_reconsideration_open: false
 ```
 
@@ -64,7 +66,7 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: planning_complete_pending_execution_pre_authorization
+    status: startup_and_stage_0_authorized_pending_session_creation
     empirical_entry_gate_met: false
     bounded_stage_0_required: true
     candidate_implementation_authorized: false
@@ -274,8 +276,8 @@ session_limits:
   active_subversion_limit: 1
   active_formal_stage_or_goal_limit: 1
 current_usage:
-  active_subversions: 0
-  active_formal_stages: 0
+  active_subversions: 1
+  active_formal_stages: 1
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -407,7 +409,9 @@ Learning/Harness Platform。用户同时冻结三条 Eval 约束：代表性任�
 Portfolio-ready 硬门。
 
 Main 已完成 planning-only 的 `V5_D_VERSION_CHARTER.md`、
-`V5_D_STARTUP_AND_EXECUTION_PLAN.md` 和 `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`。建议 Stage
+`V5_D_STARTUP_AND_EXECUTION_PLAN.md` 和 `V5_D_STAGE_0_ENTRY_CALIBRATION_CONTRACT.md`。用户已接受
+这些材料并授权 Startup + Stage 0。Stage
 序列为 Entry Calibration → Attribution/one Candidate → Frozen Paired Evaluation → Controlled Use /
-Closeout。当前没有 active subversion/formal Stage，没有创建 V5-D branch/worktree/Session，没有运行
-Stage 0、Provider 或产品实现；下一动作是用户审查规划并明确 V5-D 执行预授权。
+Closeout。当前已将 V5-D / Stage 0 标记为唯一 active subversion/formal Stage，尚未创建 execution
+branch/worktree/Session，也未运行 Stage 0、Provider 或产品实现；下一动作是 Main 创建 `codex/v5-d`
+和持续 V5-D Version Session。Stage 1–3 仍未授权。

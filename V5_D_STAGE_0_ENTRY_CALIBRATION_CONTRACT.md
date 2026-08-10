@@ -1,16 +1,16 @@
 # Shiliu V5-D Stage 0 Contract — Bounded Entry Calibration
 
-> Status: draft_not_authorized
+> Status: authorized
 > Version Charter: `V5_D_VERSION_CHARTER.md`
 > Startup Plan: `V5_D_STARTUP_AND_EXECUTION_PLAN.md`
 > Baseline branch: `codex/v5-main`
 > Baseline accepted code commit: `8904e27df07becebae13110f9be17cd829373b20`
 > Planning head at preparation: `f85d504`
 > Planned execution branch: `codex/v5-d`
-> Authorized by: none
-> Authorized at: none
+> Authorized by: user
+> Authorized at: 2026-08-11
 > Product implementation authorized: false
-> Provider runs authorized: false
+> Provider runs authorized: true within Contract, maximum total paid cost USD 2
 
 ---
 
@@ -152,11 +152,26 @@ hash。该 check 不能运行 Candidate、调整 query 或向 Candidate designer
 若没有独立 Session，应使用等强度的文件权限/加密封装与独立 custodian；不能让 Candidate designer
 先阅读 reserve bodies 后仅靠“承诺不使用”声称真正 held-out。
 
+## 4.5 User-frozen sealed reserve rule
+
+4 个 reserve tasks 必须保持真正 sealed。在 Stage 0 discovery、Failure Attribution、Failure Family
+qualification 以及任何 Candidate Hypothesis 形成过程中：
+
+- 不得运行 reserve tasks；
+- 不得查看其运行结果；
+- 不得依据 reserve tasks 调整 discovery tasks；
+- 不得依据 reserve tasks 调整 Failure Family 定义；
+- 不得依据 reserve tasks 设计 Candidate、trigger、procedure 或 stop rule。
+
+Reserve tasks 只有在后续正式评测用途被新的 Stage Contract 明确授权后才能解封。本 Stage 即使已经
+资格化 Failure Family，也只能记录 reserve 的 ID/hash、access state 和未来 split 可行性，不能打开
+task body、Gold、Evidence refs 或任何运行结果。
+
 ---
 
 # 5. Authorized Changes
 
-当前尚未授权。用户批准本 Contract 后，建议只允许：
+用户已批准本 Contract，当前只允许：
 
 ```yaml
 allowed_changes:
@@ -216,7 +231,7 @@ protected:
 
 # 8. Authorized Runs and Budget
 
-当前授权全部为 `false`。建议用户执行预授权后改为：
+用户已按以下边界给予执行预授权：
 
 ```yaml
 runs:
@@ -382,8 +397,9 @@ success:
       - blocked_by_infrastructure_or_data
 ```
 
-`qualified_failure_family_found` 不等于 Candidate validated，不授权 Stage 1 产品实现。Main 接受后只
-允许起草 Stage 1 Contract，除非用户已给予更宽 standing authority。
+`qualified_failure_family_found` 不等于 Candidate validated，也不授权 Stage 1 Contract 或产品实现。
+Stage 0 只能提交 Failure Family、建议 Candidate 方向和 Stage 1 Entry 条件；随后停止等待用户再次
+明确授权。
 
 ---
 
@@ -449,7 +465,7 @@ Main 不设计 Candidate，不读取 held-out Gold，不实施代码，也不把
 ```yaml
 current:
   contract_prepared: true
-  contract_accepted_by_user: false
+  contract_accepted_by_user: true
   V5_D_session_created: false
   case_manifest_created: false
   stage_0_execution_started: false
@@ -464,6 +480,10 @@ current:
   active_skill_promoted: false
   upstream_downloaded: false
   git_merge_push_tag: false
+  stage_1_execution_authorized: false
+  stage_2_execution_authorized: false
+  stage_3_execution_authorized: false
 ```
 
-本 Contract 在用户完成执行预授权前保持 `draft_not_authorized`。
+本 Contract 已获 Startup + Stage 0 执行授权。Stage 0 Report 提交后必须停止；不得把
+`qualified_failure_family_found` 自动解释为 Stage 1 或 Candidate 实施授权。

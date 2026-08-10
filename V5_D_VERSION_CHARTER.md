@@ -4,9 +4,11 @@
 > Goal: Controlled Experience-driven Search Policy Improvement
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: draft_pending_user_review_and_execution_pre_authorization
+> Status: accepted_startup_and_stage_0_authorized
 > Planning authority: user-authorized
-> Execution authority: not granted
+> Execution authority: Startup and Stage 0 only
+> Accepted by: user
+> Accepted at: 2026-08-11
 > V5-D Version Session created: false
 > Product implementation started: false
 
@@ -422,14 +424,18 @@ Raw Provider response、私人 Query/Evidence、凭据、完整上游仓库和�
 
 ```yaml
 planning_complete: true
-charter_accepted_by_user: false
-V5_D_session_creation_authorized: false
-stage_0_execution_authorized: false
+charter_accepted_by_user: true
+V5_D_session_creation_authorized: true
+stage_0_execution_authorized: true
 product_implementation_authorized: false
-provider_runs_authorized: false
+provider_runs_authorized: true_within_stage_0_contract_and_USD_2_total_cap
 candidate_creation_authorized: false
 skill_repository_authorized: false
 promotion_authorized: false
+stage_1_execution_authorized: false
+stage_2_execution_authorized: false
+stage_3_execution_authorized: false
 ```
 
-本 Charter 只有在用户审查并给予执行预授权后，才成为持续 V5-D Version Session 的上位合同。
+本 Charter 已成为持续 V5-D Version Session 的上位合同，但当前执行权只覆盖 Startup 与 Stage 0。
+Stage 0 无论得出何种结果都必须提交 Main 验收并停止；Stage 1 需要用户再次明确授权。
