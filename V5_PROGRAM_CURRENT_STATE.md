@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T16:57:09+08:00
+> Updated at: 2026-08-10T17:07:14+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_STAGE_5_contract_preparation
+  current_formal_stage: V5_C_STAGE_5_implementation_and_closeout_preparation
   active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -35,9 +35,10 @@ resume_anchor:
   V5_C_accepted_stage_3_head: 68e704e56bc0ba99de0506e9e2b93176b5c978a9
   V5_C_accepted_stage_4_contract_head: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
   V5_C_accepted_stage_4_head: b9a07004267b2131121d558f5343063e5293db24
+  V5_C_accepted_stage_5_contract_head: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
   branch: codex/v5-main
-  pending_decision: V5_C_STAGE_5_contract
-  next_action: V5_C_version_session_prepares_lean_stage_5_contract_for_limited_main_review
+  pending_decision: V5_C_STAGE_5_implementation_and_version_closeout_acceptance
+  next_action: V5_C_version_session_autonomously_implements_stage_5_and_submits_V5_C_FINAL_CLOSEOUT
   roadmap_reconsideration_open: false
 ```
 
@@ -53,7 +54,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: stage_4_accepted_stage_5_contract_preparation
+    status: stage_4_accepted_stage_5_implementation_authorized
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -92,6 +93,7 @@ repository:
   V5_C_accepted_stage_3_head: 68e704e56bc0ba99de0506e9e2b93176b5c978a9
   V5_C_accepted_stage_4_contract_head: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
   V5_C_accepted_stage_4_head: b9a07004267b2131121d558f5343063e5293db24
+  V5_C_accepted_stage_5_contract_head: 68419dd822d2a3531155b16d75c6ca06c0e72c1b
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -319,6 +321,13 @@ background platform 增量，只新增一个只读 projection 与 `mastered` enu
 affected 31 项通过且按规则未跑完整套件；Main 只复跑 Stage 1–4 定向矩阵 16 项，全部通过且 live DB hash
 不变。
 
-当前仅授权同一 V5-C Session 准备精简 Stage 5 Integrated Personalized Research Journey and Evaluation Contract，
-冻结最终集成纵切、版本级评估与 closeout 边界；不授权 Stage 5 产品实施、Provider、live DB、凭据、Push、
-Merge、Tag、V5-D 或 Post-V5。
+Main 已有限审阅并接受 Stage 5 Contract `68419dd822d2a3531155b16d75c6ca06c0e72c1b`：最终 Stage 只新增
+一个组合 Stage 1–4 context 的 Research Journey rail，以及一个窄的
+`answer.presentation.detail_level=standard|compact` DOM presentation behavior。Compact 只折叠第二个及
+之后的现有 answer blocks，不能截断、改写或重排 answer/Citation/Evidence；Prompt 与 Provider 增量为零。
+Journey 不建 truth store、telemetry 或 eval platform，不预跑 Search 或自动执行任何路径。
+
+现授权同一 V5-C Version Session 自主实施 Stage 5，并以单一 `V5_C_FINAL_CLOSEOUT.md` 同时提交 Stage 5
+implementation 与 V5-C closeout 请求。Stage 5 必须运行一次完整 default no-provider suite 作为版本级证据，
+并保持 cold/fixture/real-user evidence 分层。不授权 Provider、live DB、凭据、Program authority、mainline/live
+migration、Push、Merge、Tag、V5-D 或 Post-V5；最终版本接受与集成仍由 Main 决定。
