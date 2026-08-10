@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-10T16:12:16+08:00
+> Updated at: 2026-08-10T16:26:55+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_C
   last_completed_subversion: V5_B
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: V5_C_STAGE_4_contract_preparation
+  current_formal_stage: V5_C_STAGE_4_implementation
   active_execution_session: V5_C_version_session
   accepted_code_head: 7d9af9009926c13cd94e149b9e54c87cdf2ffc9d
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -33,9 +33,10 @@ resume_anchor:
   V5_C_accepted_stage_2_head: 95749a1d557dbbb51383b58821519e0524227566
   V5_C_accepted_stage_3_contract_head: 4368f39c90767f29ffb38efcafe4533be3aa816f
   V5_C_accepted_stage_3_head: 68e704e56bc0ba99de0506e9e2b93176b5c978a9
+  V5_C_accepted_stage_4_contract_head: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
   branch: codex/v5-main
-  pending_decision: V5_C_STAGE_4_contract
-  next_action: V5_C_version_session_prepares_lean_stage_4_contract_for_limited_main_review
+  pending_decision: V5_C_STAGE_4_implementation_acceptance
+  next_action: V5_C_version_session_autonomously_implements_stage_4_and_submits_one_integrated_report
   roadmap_reconsideration_open: false
 ```
 
@@ -51,7 +52,7 @@ program:
     status: accepted_with_known_limits
   V5_C:
     goal: Personalized Research Agent
-    status: stage_3_accepted_stage_4_contract_preparation
+    status: stage_3_accepted_stage_4_implementation_authorized
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
     status: not_started
@@ -88,6 +89,7 @@ repository:
   V5_C_accepted_stage_2_head: 95749a1d557dbbb51383b58821519e0524227566
   V5_C_accepted_stage_3_contract_head: 4368f39c90767f29ffb38efcafe4533be3aa816f
   V5_C_accepted_stage_3_head: 68e704e56bc0ba99de0506e9e2b93176b5c978a9
+  V5_C_accepted_stage_4_contract_head: 55d8e403bd19049534ddb8b4a6078f0ed1e4b457
   V5_C_execution_branch: codex/v5-c
   V5_C_execution_worktree: /Users/elliot/.codex/worktrees/3bf8/Shiliu
   V5_B_execution_schema_source: 14
@@ -301,6 +303,14 @@ permission/cost 与 ArtifactRoute authority fence 始终优先，CTA 不自动�
 增量，只新增一个只读 projection。Session 报告完整默认 no-provider `1733 passed, 4 deselected`；Main
 按优化后的纪律只复跑 Stage 1–3 定向矩阵 12 项，全部通过且 live DB hash 不变。
 
-当前仅授权同一 V5-C Session 准备精简 Stage 4 Knowledge Progress and Bounded Assistance Contract，并按
-本地证据优先原则做材料性 JIT 判断；不授权 Stage 4 产品实施、live DB、Provider、凭据、Push、Merge、
-Tag、V5-D 或 Post-V5。
+Main 已有限审阅并接受 Stage 4 Contract `55d8e403bd19049534ddb8b4a6078f0ed1e4b457`：Knowledge Progress、
+Staleness、Collection Delta 与 bounded Early Project Radar 被收敛为一个 request-time、pull-only panel。
+Mastery 只来自用户明确自述；活动只形成 observation；Delta 必须重验同 scope snapshot，Radar 最多一条且
+必须绑定 confirmed Focus 与 current transcript/ASR Evidence。durable dismiss 复用 append-only Workspace，
+同 boundary 不复活；无 scheduler、notification、rules、generic inbox、telemetry 或 agent loop。
+
+现授权同一 V5-C Version Session 自主实施 Stage 4，普通低风险实现与测试问题自行修复并有界复跑。
+默认保持零 schema/table/index/migration/dependency/Prompt/Provider/background worker/platform 增量，最多一个
+只读 assistance projection 和现有 `mastered` enum 窄扩展；实现默认只跑 directed + affected tests，完整
+default suite 留到材料性共享核心风险或 V5-C closeout。不授权 live DB、凭据、Push、Merge、Tag、Stage 5、
+V5-D 或 Post-V5。
