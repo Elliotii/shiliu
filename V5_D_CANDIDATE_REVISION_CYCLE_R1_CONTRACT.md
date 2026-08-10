@@ -1,6 +1,6 @@
 # Shiliu V5-D Candidate Revision Cycle R1 Contract
 
-> Status: authorized_by_user
+> Status: completed_and_main_accepted_invalid_run
 > Authorized at: 2026-08-11
 > Owner: persistent V5-D Version Session
 > Execution branch: `codex/v5-d`
@@ -11,6 +11,9 @@
 > Reserve open/assignment/run authorized: false
 > Held-out evaluation authorized: false
 > Stage 3 authorized: false
+> Freeze commit: `789cf176adcc8c7a66dccbf0c507e875537bcc1a`
+> Accepted execution head: `ae3367548943098904d88623b9a3d132936563ac`
+> Exact R1 result: `invalid_run`
 
 ---
 
@@ -321,3 +324,10 @@ push: false
 merge: false
 tag: false
 ```
+
+# 14. Closeout Status
+
+R1 已完成 Attribution、Candidate v1.1 与 freeze，但 Source Gate 因 frozen Treatment per-arm input cap
+`175000` 超过 accepted Product Runtime `140000` 上限而在 Provider dispatch 前停止。Main 已接受 exact
+`invalid_run`；Candidate v1.1 effectiveness 仍未证明。任何 corrected execution 必须由用户另行授权，并
+处理已观察的有效 D02 Baseline；当前不得继续。

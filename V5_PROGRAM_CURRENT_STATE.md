@@ -1,6 +1,6 @@
 # Shiliu V5 Program Current State
 
-> Updated at: 2026-08-11T03:42:36+08:00
+> Updated at: 2026-08-11T04:20:26+08:00
 > Updated by: Shiliu V5 Main Codex Session
 > Authority status: current
 
@@ -11,7 +11,7 @@ resume_anchor:
   current_subversion: V5_D
   last_completed_subversion: V5_C
   last_completed_status: accepted_with_known_limits
-  current_formal_stage: Candidate_Revision_Cycle_R1
+  current_formal_stage: none
   active_execution_session: 019fec6e-bb8d-7443-a5a1-a6053f61fb51
   accepted_code_head: 8904e27df07becebae13110f9be17cd829373b20
   V5_B_startup_governance_head: b85340540cb92c2e46bfb8619598e7aa987171d4
@@ -57,11 +57,16 @@ resume_anchor:
   V5_D_stage_2_status: accepted_rejected
   V5_D_stage_2_effective_freeze_head: 0c72277e7b30bac68800ef27acc9e8d52222efd6
   V5_D_stage_2_execution_head: 254d72a03a1251ee0d08cac49d100b91b5de7593
-  V5_D_candidate_revision_R1_authorized: true
+  V5_D_candidate_revision_R1_authorized: closed_completed
   V5_D_candidate_revision_R1_target_version: 1.1.0
   V5_D_candidate_revision_R1_reserve_authorized: false
-  pending_decision: V5_D_candidate_revision_R1_execution_and_main_acceptance
-  next_action: persistent_V5_D_session_executes_R1_then_stops
+  V5_D_candidate_revision_R1_status: accepted_invalid_run
+  V5_D_candidate_revision_R1_freeze_head: 789cf176adcc8c7a66dccbf0c507e875537bcc1a
+  V5_D_candidate_revision_R1_execution_head: ae3367548943098904d88623b9a3d132936563ac
+  V5_D_candidate_v1_1_status: proposed_non_active_effectiveness_unproven
+  V5_D_candidate_v1_1_source_gate_status: not_reached
+  pending_decision: authorize_R1_E1_mechanical_execution_amendment_or_close_candidate_effort
+  next_action: await_user_direction_before_any_R1_E1_or_closeout
   roadmap_reconsideration_open: false
 ```
 
@@ -80,7 +85,7 @@ program:
     status: accepted_with_known_limits
   V5_D:
     goal: Controlled Experience-driven Search Policy Improvement
-    status: stage_2_accepted_candidate_rejected
+    status: candidate_revision_R1_accepted_invalid_run
     empirical_entry_gate_met: true
     qualified_failure_family: non_progress_search_repetition_without_recovery
     accepted_initial_surface: follow_up_strategy
@@ -89,10 +94,13 @@ program:
     proposed_non_active_candidate_contract_status: accepted
     candidate_effectiveness_proven: false
     candidate_evaluation_status: rejected
-    candidate_revision_R1_status: authorized
+    candidate_revision_R1_status: accepted_invalid_run
     candidate_revision_R1_target_version: 1.1.0
+    candidate_v1_1_status: proposed_non_active
+    candidate_v1_1_effectiveness_proven: false
+    candidate_v1_1_source_gate_reached: false
     further_major_revision_default_authorized: false
-    experiment_only_treatment_implementation_authorized: true_for_R1_only
+    experiment_only_treatment_implementation_authorized: false
     active_or_shadow_registration_authorized: false
   Post_V5:
     status: conditional_long_term_direction
@@ -307,7 +315,7 @@ session_limits:
   active_formal_stage_or_goal_limit: 1
 current_usage:
   active_subversions: 1
-  active_formal_stages: 1
+  active_formal_stages: 0
 upstream:
   deer_flow:
     adoption: pattern_only_reimplementation
@@ -473,3 +481,15 @@ Candidate artifact 保持 proposed/non-active，但其 evaluation status 已正�
 继续完全 sealed，held-out、Stage 3、active/shadow、promotion、live DB 与 merge/push/tag 均未授权。R1 完成
 后必须停止等待 Main 有限验收；source failure 默认关闭当前 Candidate/Failure Family revision attempt，不得
 自行创建 v1.2。
+
+R1 execution head `ae33675` 已由 Main 有限验收，接受 exact `invalid_run`。Post-treatment re-attribution 与
+Candidate v1.1 的同家族因果连续性通过；v1.1 仍最多一次 coverage-bundle recovery，并增加 post-recovery
+completion/deficit gate。但 Source Gate 未形成：D02 Baseline A1 有效完成后，冻结 Treatment 的 per-arm input
+cap `175000` 被 accepted Runtime `140000` 上限在 Provider dispatch 前拒绝。该 Treatment attempt 使用 0
+Provider budget，不能支持或证伪 v1.1；D04 未运行。
+
+Main 复跑 18 项机械测试通过并确认 test gap、隔离 DB integrity/FK、累计 USD 0.000646613 与 reserve sealed
+状态。R1 当前关闭，active formal Stage 为 0。任何 `R1-E1` 只能是用户另行授权的 mechanical execution
+amendment：Candidate/Treatment logic/Evaluator 不变、修正 cap 并新增 boundary preflight、固定携带已观察的
+D02 Baseline，禁止重跑，累计预算仍受原 R1 hard caps 约束。当前 Provider、reserve、held-out、v1.2、
+Stage 3、live DB 与 merge/push/tag 均未授权。

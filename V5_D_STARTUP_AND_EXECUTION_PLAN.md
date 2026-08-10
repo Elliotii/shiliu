@@ -2,10 +2,10 @@
 
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: candidate_revision_cycle_R1_authorized
+> Status: candidate_revision_R1_accepted_invalid_run
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
-> Execution authorization: Candidate Revision Cycle R1 only
+> Execution authorization: none_pending_user_direction
 > Execution started: true
 > V5-D Version Session created: true
 
@@ -570,20 +570,25 @@ stage_0_started: true
 stage_0_status: accepted
 stage_0_execution_head: fbf7a0d56816797d0ad481b2381b6d5aba81657c
 product_implementation_started: false
-provider_runs_performed: true_within_completed_stage_0_and_stage_2
+provider_runs_performed: true_within_completed_stage_0_stage_2_and_R1
 candidate_contract_status: accepted_proposed_non_active
 candidate_evaluation_status: rejected
-candidate_revision_R1_authorized: true
+candidate_revision_R1_authorized: closed_completed
 candidate_revision_R1_target_version: 1.1.0
 candidate_revision_R1_provider_hard_stop_usd: 0.20
+candidate_revision_R1_status: accepted_invalid_run
+candidate_v1_1_effectiveness: unproven
+candidate_v1_1_source_gate: not_reached
 further_major_revision_default_authorized: false
 stage_1_execution_authorized: closed_completed
 stage_2_execution_authorized: closed_completed
 stage_2_acceptance_status: accepted_rejected
 stage_3_execution_authorized: false
-next_action: persistent_V5_D_session_executes_R1_and_stops_for_main_acceptance
+next_action: await_user_direction_on_R1_E1_mechanical_amendment_or_close_candidate_effort
 ```
 
-Stage 2 已完成并由 Main 有限验收。Candidate v1.0 evaluation status 为 `rejected`。用户已授权同一持续
-V5-D Session 执行一次 R1：Attribution-first Candidate v1.1 + frozen D02/D04 Source Gate。Reserve 保持
-sealed，held-out、Stage 3、live DB 与 merge/push/tag 未授权。R1 完成后停止；不得自动创建 v1.2。
+Stage 2 已完成并由 Main 有限验收，Candidate v1.0 evaluation status 为 `rejected`。R1 也已完成并由 Main
+接受 exact `invalid_run`：v1.1 Attribution/Candidate package 形成，但 frozen Treatment per-arm input cap
+超过 accepted Runtime 上限，Source Gate 未达到。当前没有 execution authority；Reserve 保持 sealed，
+held-out、Stage 3、v1.2、live DB 与 merge/push/tag 未授权。用户可选择授权一个不改变 Candidate logic 的
+R1-E1 mechanical execution amendment，或关闭该 Candidate effort。

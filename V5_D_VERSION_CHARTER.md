@@ -4,9 +4,9 @@
 > Goal: Controlled Experience-driven Search Policy Improvement
 > Prepared by: Shiliu V5 Main Codex Session
 > Prepared at: 2026-08-10
-> Status: candidate_revision_cycle_R1_authorized
+> Status: candidate_revision_R1_accepted_invalid_run
 > Planning authority: user-authorized
-> Execution authority: Candidate Revision Cycle R1 only
+> Execution authority: none_pending_user_direction
 > Accepted by: user
 > Accepted at: 2026-08-11
 > V5-D Version Session created: true
@@ -87,7 +87,7 @@ mechanical_foundation_ready: true
 empirical_entry_gate_met: true
 bounded_stage_0_status: accepted
 candidate_product_integration_authorized: false
-experiment_only_treatment_implementation_authorized: true_for_R1_only
+experiment_only_treatment_implementation_authorized: false
 stage_2_status: accepted_rejected
 candidate_evaluation_status: rejected
 ```
@@ -436,10 +436,13 @@ product_implementation_authorized: false
 provider_runs_authorized: false
 candidate_contract_status: accepted_proposed_non_active
 candidate_evaluation_status: rejected
-candidate_revision_R1_authorized: true
+candidate_revision_R1_authorized: closed_completed
 candidate_revision_R1_target_version: 1.1.0
+candidate_revision_R1_status: accepted_invalid_run
+candidate_v1_1_effectiveness: unproven
+candidate_v1_1_source_gate: not_reached
 further_major_revision_default_authorized: false
-experiment_only_treatment_implementation_authorized: true_for_R1_only
+experiment_only_treatment_implementation_authorized: false
 reserve_open_authorized: false
 skill_repository_authorized: false
 promotion_authorized: false
@@ -449,8 +452,7 @@ stage_2_acceptance_status: accepted_rejected
 stage_3_execution_authorized: false
 ```
 
-本 Charter 是持续 V5-D Version Session 的上位合同。Stage 2 已以 exact `rejected` verdict 完成并由 Main
-有限验收。用户现只授权 `V5_D_CANDIDATE_REVISION_CYCLE_R1_CONTRACT.md`：对同一 Failure Family 完成
-post-treatment re-attribution、Candidate v1.1、experiment-only freeze 与 D02/D04 Source Gate。Reserve、
-held-out、Stage 3、active/shadow registration、promotion、live DB 与版本集成仍未授权。v1.1 有效 source
-failure 后不得自行创建 v1.2。
+本 Charter 是持续 V5-D Version Session 的上位合同。R1 已以 exact `invalid_run` 完成并由 Main 有限验收：
+Candidate v1.1 作为同家族 `proposed_non_active` 包保留，但 Source Gate 未达到、effectiveness unproven。
+任何只修正 frozen per-arm envelope 的 `R1-E1` execution amendment 仍需用户另行授权；Reserve、held-out、
+Stage 3、active/shadow registration、promotion、live DB 与版本集成均未授权，v1.2 也未授权。
