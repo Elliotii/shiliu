@@ -6,8 +6,8 @@
 > Governing Charter: `V5_D_VERSION_CHARTER.md`
 > Accepted calibration: `V5_D_STARTUP_DIRECTION_CALIBRATION.md`
 > Execution authorization: Startup and Stage 0 only
-> Execution started: false
-> V5-D Version Session created: false
+> Execution started: true
+> V5-D Version Session created: true
 
 ---
 
@@ -560,13 +560,13 @@ restart/recovery、authority、mainline/live-safe closeout。两者必须在报�
 planning_artifacts_prepared: true
 user_execution_pre_authorization_received: true
 authorized_scope: startup_and_stage_0_only
-V5_D_session_created: false
-stage_0_started: false
+V5_D_session_created: true
+stage_0_started: true
 product_implementation_started: false
 provider_runs_performed: false
 candidate_created: false
 stage_1_execution_authorized: false
-next_action: main_creates_codex_v5_d_and_persistent_version_session
+next_action: V5_D_session_executes_stage_0_and_submits_report
 ```
 
 用户已于 2026-08-11 接受本计划并授权 Startup + Stage 0。Main 下一步创建执行分支/工作环境与一个

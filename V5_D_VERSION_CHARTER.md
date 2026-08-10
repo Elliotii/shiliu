@@ -9,7 +9,7 @@
 > Execution authority: Startup and Stage 0 only
 > Accepted by: user
 > Accepted at: 2026-08-11
-> V5-D Version Session created: false
+> V5-D Version Session created: true
 > Product implementation started: false
 
 ---
@@ -426,6 +426,7 @@ Raw Provider response、私人 Query/Evidence、凭据、完整上游仓库和�
 planning_complete: true
 charter_accepted_by_user: true
 V5_D_session_creation_authorized: true
+V5_D_session_created: true
 stage_0_execution_authorized: true
 product_implementation_authorized: false
 provider_runs_authorized: true_within_stage_0_contract_and_USD_2_total_cap

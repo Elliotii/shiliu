@@ -466,9 +466,9 @@ Main 不设计 Candidate，不读取 held-out Gold，不实施代码，也不把
 current:
   contract_prepared: true
   contract_accepted_by_user: true
-  V5_D_session_created: false
+  V5_D_session_created: true
   case_manifest_created: false
-  stage_0_execution_started: false
+  stage_0_execution_started: true
   provider_runs_performed: false
   credentials_accessed: false
   live_database_modified: false
