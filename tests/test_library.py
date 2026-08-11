@@ -37,7 +37,7 @@ def test_schema_upgrade_adds_library_defaults_without_changing_ignore(app_paths)
 
     db.initialize()
     video = db.get_video(video_id)
-    assert SCHEMA_VERSION == 14
+    assert SCHEMA_VERSION == 15
     assert video["reading_state"] == "unread"
     assert video["is_marked"] == 0
     assert video["archived_at"] is None
@@ -143,8 +143,12 @@ def test_archive_and_reentry_reset_only_the_required_state(app_paths) -> None:
 
     # Removing every relationship hides all views; reactivating resets again.
     application.library.set_reading_state(video_id, "in_progress")
-    application.db.record_source_snapshot(first, [], processing_profile="formal")
-    application.db.record_source_snapshot(second, [], processing_profile="formal")
+    application.db.record_source_snapshot(
+        first, [], processing_profile="formal", authoritative=True
+    )
+    application.db.record_source_snapshot(
+        second, [], processing_profile="formal", authoritative=True
+    )
     assert application.db.list_video_cards() == []
     assert application.db.list_video_cards(view="marked") == []
     assert application.db.list_video_cards(view="noted") == []
@@ -183,7 +187,9 @@ def test_importing_a_new_source_reenters_an_archived_existing_video(app_paths) -
     new_source = application.db.create_favorite_source(folder_id=2, folder_title="新导入")
 
     application.db.initialize_source_memberships(
-        new_source, [favorite("BV1234567890", "测试视频", None)]
+        new_source,
+        [favorite("BV1234567890", "测试视频", None)],
+        authoritative=True,
     )
 
     video = application.db.get_video(video_id)

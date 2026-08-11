@@ -116,10 +116,16 @@ async def fetch_favorites_page(folder_id: int, page: int) -> dict[str, Any]:
     if credential is None:
         raise RuntimeError("authentication_required: 没有已保存的 B 站登录凭据")
     data = await client.get_favorite_videos(folder_id, credential, page=page)
+    info = data.get("info") or {}
     return {
         "folder_id": folder_id,
         "page": page,
         "has_more": bool(data.get("has_more", False)),
+        "remote_total": (
+            int(info["media_count"])
+            if page == 1 and info.get("media_count") is not None
+            else None
+        ),
         "items": [_normalize_favorite_media(item) for item in (data.get("medias") or [])],
     }
 

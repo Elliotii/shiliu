@@ -150,13 +150,13 @@ def test_stage1_schema_is_temp_db_only_reentrant_and_exposes_minimal_ui(
     app_paths,
 ) -> None:
     core = _fixture_core(app_paths)
-    assert SCHEMA_VERSION == 14
+    assert SCHEMA_VERSION == 15
     assert core.db.path == app_paths.database
     core.db.initialize()
     with core.db.connect() as connection:
         assert connection.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "14"
+        ).fetchone()[0] == "15"
         tables = {
             str(row[0])
             for row in connection.execute(

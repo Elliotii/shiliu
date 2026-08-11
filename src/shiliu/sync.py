@@ -10,7 +10,7 @@ from typing import Callable, Protocol
 
 from shiliu.bilibili import BilibiliAdapter
 from shiliu.db import Database, utc_now
-from shiliu.domain import PipelineError, SyncMode, SyncResult
+from shiliu.domain import FavoriteScan, PipelineError, SyncMode, SyncResult
 from shiliu.pipeline import PipelineService
 
 
@@ -144,9 +144,11 @@ class SyncService:
             if self.favorite_id is None:
                 raise PipelineError("尚未添加收藏夹来源", code="setup_required", retryable=False)
             with ProcessLock(self.lock_path):
+                self.db.recover_stale_sync_runs(exclude_run_id=run_id)
                 return self._sync_legacy(result, run_id=run_id)
 
         with ProcessLock(self.lock_path):
+            self.db.recover_stale_sync_runs(exclude_run_id=run_id)
             return self._sync_sources(
                 result,
                 sources,
@@ -168,6 +170,7 @@ class SyncService:
         )
         result.run_id = active_run_id
         discovered_ids: list[int] = []
+        successful_source_ids: set[int] = set()
         try:
             if quiet_hours:
                 result.skipped_quiet_hours = True
@@ -180,6 +183,16 @@ class SyncService:
             else:
                 for source in sources:
                     source_id = int(source["id"])
+                    current_source = self.db.get_source(source_id)
+                    if current_source is None or current_source.get("status") not in {
+                        "active",
+                        "cooldown",
+                    }:
+                        result.messages.append(
+                            f"{source['folder_title']} 状态已变化，本轮已安全跳过"
+                        )
+                        continue
+                    source = current_source
                     if self._source_is_cooling_down(source):
                         result.messages.append(f"{source['folder_title']} 正在冷却，已跳过")
                         continue
@@ -189,7 +202,8 @@ class SyncService:
                         message=f"正在读取 {source['account_name']} / {source['folder_title']}",
                     )
                     try:
-                        items = self.adapter.list_favorite_items(int(source["folder_id"]))
+                        scan = self._favorite_scan(int(source["folder_id"]))
+                        items = scan.items
                     except PipelineError as exc:
                         self._record_source_failure(source_id, exc, history=False)
                         if exc.code == "authentication_required":
@@ -204,37 +218,74 @@ class SyncService:
                         result.failed_count += 1
                         continue
                     self.db.update_video_durations(items)
-                    result.current_count += len(items)
+                    result.current_count += int(
+                        scan.remote_total
+                        if scan.remote_total is not None
+                        else len(items)
+                    )
                     if not bool(source.get("baseline_initialized")):
-                        queued = self.db.initialize_source_memberships(source_id, items)
-                        self._sync_source_videos(source_id, "source_baseline_initialized")
-                        result.baseline_created = True
-                        result.messages.append(
-                            f"{source['folder_title']} 已建立基线，历史待处理 {queued} 条"
+                        queued = self.db.initialize_source_memberships(
+                            source_id,
+                            items,
+                            authoritative=scan.is_complete,
+                            remote_total=scan.remote_total,
                         )
+                        self._sync_source_videos(source_id, "source_baseline_initialized")
+                        if scan.is_complete:
+                            successful_source_ids.add(source_id)
+                            result.baseline_created = True
+                            result.messages.append(
+                                f"{source['folder_title']} 已建立完整基线，历史待处理 {queued} 条"
+                            )
                     else:
                         profile = "fast" if result.mode == SyncMode.MANUAL else "formal"
                         new_ids = self.db.record_source_snapshot(
                             source_id,
                             items,
                             processing_profile=profile,
+                            authoritative=scan.is_complete,
+                            remote_total=scan.remote_total,
                         )
                         self._sync_source_videos(source_id, "source_snapshot_recorded")
                         discovered_ids.extend(new_ids)
                         result.discovered_count += len(new_ids)
+                        if scan.is_complete:
+                            successful_source_ids.add(source_id)
+
+                    if not scan.is_complete:
+                        error = PipelineError(
+                            "收藏夹扫描未通过完整性校验；已保留观察结果且未执行删除对账",
+                            code="incomplete_snapshot",
+                            retryable=True,
+                        )
+                        self._record_source_failure(source_id, error, history=False)
+                        result.failed_count += 1
+                        result.messages.append(
+                            f"{source['folder_title']} 扫描不完整，未执行 removal reconciliation"
+                        )
 
                 self._process_new_and_due(
                     active_run_id,
                     result,
                     discovered_ids,
-                    allowed_source_ids={int(source["id"]) for source in sources},
+                    allowed_source_ids=successful_source_ids,
                 )
 
                 if result.mode == SyncMode.SCHEDULED:
                     self._process_pending_refinements(active_run_id, result)
 
-            if result.mode == SyncMode.SCHEDULED:
-                self._process_history_backlog(active_run_id, result)
+            history_source_ids = (
+                {
+                    int(source["id"])
+                    for source in sources
+                    if (self.db.get_source(int(source["id"])) or {}).get("status") == "active"
+                }
+                if quiet_hours
+                else successful_source_ids
+            )
+            self._process_history_backlog(
+                active_run_id, result, source_ids=history_source_ids
+            )
 
             result.history_pending_count = self.db.history_pending_count()
             status = "completed" if result.failed_count == 0 else "completed_with_errors"
@@ -292,9 +343,8 @@ class SyncService:
             due = [
                 video
                 for video in due
-                if any(
-                    int(source["id"]) in allowed_source_ids
-                    for source in self.db.video_sources(int(video["id"]))
+                if self.db.video_has_active_source(
+                    int(video["id"]), allowed_source_ids=allowed_source_ids
                 )
             ]
         new_set = set(discovered_ids)
@@ -336,8 +386,10 @@ class SyncService:
             if self.pipeline.process_refinement(video_id):
                 result.processed_count += 1
 
-    def _process_history_backlog(self, run_id: int, result: SyncResult) -> None:
-        backlog = self.db.list_history_backlog(limit=8)
+    def _process_history_backlog(
+        self, run_id: int, result: SyncResult, *, source_ids: set[int] | None = None
+    ) -> None:
+        backlog = self.db.list_history_backlog(limit=8, source_ids=source_ids)
         for index, membership in enumerate(backlog):
             video_id = self.db.materialize_history_membership(
                 int(membership["source_id"]), str(membership["bvid"])
@@ -409,6 +461,20 @@ class SyncService:
             code=error.code,
             message=message,
             cooldown_until=cooldown,
+        )
+
+    def _favorite_scan(self, folder_id: int) -> FavoriteScan:
+        scan_method = getattr(self.adapter, "list_favorite_scan", None)
+        if scan_method is not None:
+            scan = scan_method(folder_id)
+            return scan if isinstance(scan, FavoriteScan) else FavoriteScan.model_validate(scan)
+        items = self.adapter.list_favorite_items(folder_id)
+        return FavoriteScan(
+            items=items,
+            remote_total=len(items),
+            is_complete=True,
+            pages_fetched=1,
+            raw_item_count=len(items),
         )
 
     @staticmethod

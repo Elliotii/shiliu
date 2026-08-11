@@ -53,7 +53,7 @@ def test_multi_source_memberships_deduplicate_video_and_sort_by_favorite_time(ap
         favorite("BV2222222222", favorite_time=200, title="次新"),
         favorite("BV3333333333", favorite_time=100, title="旧视频"),
     ]
-    assert db.initialize_source_memberships(first, items) == 2
+    assert db.initialize_source_memberships(first, items, authoritative=True) == 2
     assert db.history_pending_count() == 2
 
     video_id = db.materialize_history_membership(first, "BV1111111111")
@@ -67,7 +67,9 @@ def test_multi_source_memberships_deduplicate_video_and_sort_by_favorite_time(ap
         history_policy="future_only",
     )
     db.initialize_source_memberships(
-        second, [favorite("BV1111111111", favorite_time=400, title="同一视频")]
+        second,
+        [favorite("BV1111111111", favorite_time=400, title="同一视频")],
+        authoritative=True,
     )
     assert len(db.video_sources(video_id)) == 2
 
@@ -324,7 +326,7 @@ def test_public_favorite_url_preview_parses_fid_without_importing(tmp_path: Path
 
 class BundleAdapter:
     def fetch_video_bundle(self, bvid: str):
-        from tests.test_pipeline import bundle
+        from test_pipeline import bundle
 
         return bundle()
 
@@ -359,7 +361,7 @@ class RefinementProvider:
 
 
 def test_fast_result_is_refined_atomically_and_keep_preserves_summary(app_paths) -> None:
-    from tests.test_pipeline import bundle
+    from test_pipeline import bundle
 
     db = Database(app_paths.database)
     db.initialize()
@@ -430,7 +432,7 @@ def test_scheduled_history_backlog_uses_formal_profile_and_caps_batch_at_eight(a
         favorite(f"BV{i:010d}", favorite_time=1000 - i, title=f"历史 {i}")
         for i in range(10)
     ]
-    assert db.initialize_source_memberships(source_id, items) == 10
+    assert db.initialize_source_memberships(source_id, items, authoritative=True) == 10
 
     class Adapter:
         def list_favorite_items(self, folder_id: int):
@@ -478,7 +480,7 @@ def test_scheduled_sync_runs_normally_during_former_quiet_hours(app_paths) -> No
         history_policy="all",
     )
     items = [favorite("BV0000000001", favorite_time=1000, title="历史 1")]
-    assert db.initialize_source_memberships(source_id, items) == 1
+    assert db.initialize_source_memberships(source_id, items, authoritative=True) == 1
 
     class Adapter:
         calls = 0

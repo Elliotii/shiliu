@@ -94,6 +94,14 @@ class FavoriteItem(BaseModel):
     favorite_time: int | None = None
 
 
+class FavoriteScan(BaseModel):
+    items: list[FavoriteItem]
+    remote_total: int | None = None
+    is_complete: bool = False
+    pages_fetched: int = 0
+    raw_item_count: int = 0
+
+
 class FavoriteSourcePreview(BaseModel):
     account_id: int
     account_name: str

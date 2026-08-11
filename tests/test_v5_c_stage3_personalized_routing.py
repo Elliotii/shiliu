@@ -77,7 +77,7 @@ def test_stage3_baseline_confirmed_disabled_override_restart_and_rollback(
 ) -> None:
     core = _core(app_paths)
     task_id, _, _, _ = _vertical(core, "v5c3-paired")
-    assert SCHEMA_VERSION == 14
+    assert SCHEMA_VERSION == 15
     schema_before = _schema_identity(core)
 
     baseline_counts = _counts(core)

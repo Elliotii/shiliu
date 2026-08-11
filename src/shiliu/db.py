@@ -18,7 +18,7 @@ from shiliu.research.schema import (
 )
 
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 
 
 def utc_now() -> str:
@@ -369,6 +369,10 @@ class Database:
             },
             "favorite_sources": {
                 "sort_order": "INTEGER NOT NULL DEFAULT 0",
+                "history_cutoff_time": "INTEGER",
+                "discovery_complete": "INTEGER NOT NULL DEFAULT 0",
+                "last_snapshot_complete": "INTEGER NOT NULL DEFAULT 0",
+                "history_updated_at": "TEXT",
             },
         }
         for table, columns in additions.items():
@@ -639,19 +643,52 @@ class Database:
             connection.execute("DELETE FROM favorite_sources WHERE id=?", (source_db_id,))
 
     def initialize_source_memberships(
-        self, source_db_id: int, items: list[FavoriteItem]
+        self,
+        source_db_id: int,
+        items: list[FavoriteItem],
+        *,
+        authoritative: bool,
+        remote_total: int | None = None,
     ) -> int:
         source = self.get_source(source_db_id)
         if source is None:
             raise KeyError(source_db_id)
         policy = str(source["history_policy"])
         limit = source.get("history_limit")
-        requested = len(items) if policy == "all" else int(limit or 0) if policy == "latest_n" else 0
-        selected = min(len(items), requested)
         now = utc_now()
+        ordered = sorted(
+            enumerate(items),
+            key=lambda pair: (
+                pair[1].favorite_time is None,
+                -(pair[1].favorite_time or 0),
+                pair[0],
+            ),
+        )
+        requested = (
+            len(items)
+            if policy == "all"
+            else int(limit or 0)
+            if policy == "latest_n"
+            else 0
+        )
+        selected_items = [item for _, item in ordered[:requested]] if authoritative else []
+        selected_bvids = {item.bvid for item in selected_items}
+        selected = len(selected_bvids)
+        known_selected_times = [
+            int(item.favorite_time)
+            for item in selected_items
+            if item.favorite_time is not None
+        ]
+        cutoff = (
+            min(known_selected_times)
+            if known_selected_times
+            else _epoch_seconds(now)
+            if policy == "future_only"
+            else None
+        )
         with self.connect() as connection:
             for position, item in enumerate(items):
-                queued = position < selected
+                queued = item.bvid in selected_bvids
                 existing_video = connection.execute(
                     "SELECT id, archived_at FROM videos WHERE platform='bilibili' AND source_id=? AND part=1",
                     (item.bvid,),
@@ -704,16 +741,141 @@ class Database:
                         "UPDATE videos SET duration_seconds=?, updated_at=? WHERE id=?",
                         (item.duration_seconds, now, int(existing_video["id"])),
                     )
+            if authoritative:
+                connection.execute(
+                    """
+                    UPDATE favorite_sources
+                    SET baseline_initialized=1, media_count=?, last_sync_at=?, updated_at=?,
+                        history_cutoff_time=?, discovery_complete=1,
+                        last_snapshot_complete=1, history_updated_at=?,
+                        last_error_code=NULL, last_error_message=NULL
+                    WHERE id=?
+                    """,
+                    (
+                        int(remote_total if remote_total is not None else len(items)),
+                        now,
+                        now,
+                        cutoff,
+                        now,
+                        source_db_id,
+                    ),
+                )
+            else:
+                connection.execute(
+                    """
+                    UPDATE favorite_sources
+                    SET last_snapshot_complete=0, updated_at=?
+                    WHERE id=?
+                    """,
+                    (now, source_db_id),
+                )
+        return selected
+
+    def update_source_history_coverage(
+        self,
+        source_db_id: int,
+        *,
+        history_policy: str,
+        history_limit: int | None = None,
+    ) -> int:
+        if history_policy not in {"future_only", "latest_n", "all"}:
+            raise ValueError("Unsupported history policy")
+        if history_policy == "latest_n" and (history_limit is None or history_limit < 1):
+            raise ValueError("latest_n requires a positive limit")
+        source = self.get_source(source_db_id)
+        if source is None:
+            raise KeyError(source_db_id)
+        if not bool(source.get("discovery_complete")):
+            raise ValueError("历史范围只能基于完整收藏夹发现结果更新")
+        current_limit = (
+            int(source["history_limit"])
+            if source.get("history_limit") is not None
+            else None
+        )
+        requested_limit = history_limit if history_policy == "latest_n" else None
+        if (
+            str(source.get("history_policy")) == history_policy
+            and current_limit == requested_limit
+            and source.get("history_updated_at") is not None
+        ):
+            with self.connect() as connection:
+                row = connection.execute(
+                    """
+                    SELECT COUNT(*) FROM video_source_memberships
+                    WHERE source_id=? AND removed_at IS NULL AND queued_history=1
+                    """,
+                    (source_db_id,),
+                ).fetchone()
+            return int(row[0] if row else 0)
+
+        now = utc_now()
+        with self.connect() as connection:
+            rows = [
+                dict(row)
+                for row in connection.execute(
+                    """
+                    SELECT * FROM video_source_memberships
+                    WHERE source_id=? AND removed_at IS NULL
+                    ORDER BY favorite_time IS NULL, favorite_time DESC, source_position ASC, bvid ASC
+                    """,
+                    (source_db_id,),
+                ).fetchall()
+            ]
+            if history_policy == "all":
+                selected = rows
+            elif history_policy == "latest_n":
+                selected = rows[: int(history_limit or 0)]
+            else:
+                selected = []
+            selected_bvids = {str(row["bvid"]) for row in selected}
+            selected_times = [
+                int(row["favorite_time"])
+                for row in selected
+                if row.get("favorite_time") is not None
+            ]
+            cutoff = (
+                min(selected_times)
+                if selected_times
+                else _epoch_seconds(now)
+                if history_policy == "future_only"
+                else None
+            )
+            for row in rows:
+                eligible = str(row["bvid"]) in selected_bvids
+                queued = eligible and row.get("video_id") is None
+                connection.execute(
+                    """
+                    UPDATE video_source_memberships
+                    SET queued_history=?,
+                        is_baseline=CASE WHEN ? THEN 0 ELSE is_baseline END
+                    WHERE source_id=? AND bvid=?
+                    """,
+                    (int(queued), int(eligible), source_db_id, str(row["bvid"])),
+                )
             connection.execute(
                 """
                 UPDATE favorite_sources
-                SET baseline_initialized=1, media_count=?, last_sync_at=?, updated_at=?,
-                    last_error_code=NULL, last_error_message=NULL
+                SET history_policy=?, history_limit=?, history_cutoff_time=?,
+                    history_updated_at=?, updated_at=?
                 WHERE id=?
                 """,
-                (len(items), now, now, source_db_id),
+                (
+                    history_policy,
+                    history_limit if history_policy == "latest_n" else None,
+                    cutoff,
+                    now,
+                    now,
+                    source_db_id,
+                ),
             )
-        return selected
+            pending = connection.execute(
+                """
+                SELECT COUNT(*) FROM video_source_memberships
+                WHERE source_id=? AND removed_at IS NULL AND queued_history=1
+                """,
+                (source_db_id,),
+            ).fetchone()[0]
+        return int(pending)
 
     def record_source_snapshot(
         self,
@@ -721,6 +883,8 @@ class Database:
         items: list[FavoriteItem],
         *,
         processing_profile: str,
+        authoritative: bool = False,
+        remote_total: int | None = None,
     ) -> list[int]:
         now = utc_now()
         current = {item.bvid for item in items}
@@ -740,7 +904,7 @@ class Database:
             effective_time = item.favorite_time or _epoch_seconds(now)
             existing_video = self.get_video_by_source(item.bvid)
             video_id = int(prior["video_id"]) if prior and prior.get("video_id") else None
-            if membership_is_new:
+            if membership_is_new or (membership_reactivated and video_id is None):
                 video_id = self.create_video(
                     item.bvid,
                     item.title,
@@ -767,8 +931,6 @@ class Database:
                 active_memberships_before = int(row["count"] if row else 0)
 
             observed_favorite_time = item.favorite_time
-            if observed_favorite_time is None and (membership_is_new or membership_reactivated):
-                observed_favorite_time = effective_time
             with self.connect() as connection:
                 connection.execute(
                     """
@@ -828,14 +990,14 @@ class Database:
                             (item.duration_seconds, now, video_id),
                         )
         with self.connect() as connection:
-            if current:
+            if authoritative and current:
                 placeholders = ",".join("?" for _ in current)
                 connection.execute(
                     f"UPDATE video_source_memberships SET removed_at=COALESCE(removed_at, ?) "
                     f"WHERE source_id=? AND bvid NOT IN ({placeholders})",
                     [now, source_db_id, *sorted(current)],
                 )
-            else:
+            elif authoritative:
                 connection.execute(
                     "UPDATE video_source_memberships SET removed_at=COALESCE(removed_at, ?) WHERE source_id=?",
                     (now, source_db_id),
@@ -843,13 +1005,27 @@ class Database:
             connection.execute(
                 """
                 UPDATE favorite_sources
-                SET media_count=?, last_sync_at=?, status='active', cooldown_until=NULL,
+                SET media_count=CASE WHEN ? THEN ? ELSE media_count END,
+                    last_sync_at=?,
+                    status=CASE WHEN status='paused' THEN status ELSE 'active' END,
+                    cooldown_until=CASE WHEN status='paused' THEN cooldown_until ELSE NULL END,
+                    discovery_complete=CASE WHEN ? THEN 1 ELSE discovery_complete END,
+                    last_snapshot_complete=?,
                     last_error_code=NULL, last_error_message=NULL, updated_at=?
                 WHERE id=?
                 """,
-                (len(items), now, now, source_db_id),
+                (
+                    int(authoritative),
+                    int(remote_total if remote_total is not None else len(items)),
+                    now,
+                    int(authoritative),
+                    int(authoritative),
+                    now,
+                    source_db_id,
+                ),
             )
-            connection.execute(
+            if authoritative:
+                connection.execute(
                 """
                 UPDATE videos
                 SET removed_at=CASE
@@ -866,29 +1042,46 @@ class Database:
                     WHERE source_id=? AND video_id IS NOT NULL
                 )
                 """,
-                (now, now, source_db_id),
-            )
+                    (now, now, source_db_id),
+                )
         return created
 
-    def list_history_backlog(self, *, limit: int = 8) -> list[dict[str, Any]]:
+    def list_history_backlog(
+        self, *, limit: int = 8, source_ids: set[int] | None = None
+    ) -> list[dict[str, Any]]:
+        source_clause = ""
+        params: list[Any] = []
+        if source_ids is not None:
+            if not source_ids:
+                return []
+            placeholders = ",".join("?" for _ in source_ids)
+            source_clause = f" AND m.source_id IN ({placeholders})"
+            params.extend(sorted(source_ids))
+        params.append(limit)
         with self.connect() as connection:
             rows = connection.execute(
-                """
+                f"""
                 SELECT m.*, s.folder_title, s.status AS source_status, s.cooldown_until
                 FROM video_source_memberships m
                 JOIN favorite_sources s ON s.id=m.source_id
                 WHERE m.queued_history=1 AND m.removed_at IS NULL AND s.status='active'
+                {source_clause}
                 ORDER BY m.first_observed_at, m.source_id, m.source_position
                 LIMIT ?
                 """,
-                (limit,),
+                params,
             ).fetchall()
         return [dict(row) for row in rows]
 
     def materialize_history_membership(self, source_db_id: int, bvid: str) -> int:
         with self.connect() as connection:
             row = connection.execute(
-                "SELECT * FROM video_source_memberships WHERE source_id=? AND bvid=?",
+                """
+                SELECT m.* FROM video_source_memberships m
+                JOIN favorite_sources s ON s.id=m.source_id
+                WHERE m.source_id=? AND m.bvid=? AND m.removed_at IS NULL
+                  AND m.queued_history=1 AND s.status='active'
+                """,
                 (source_db_id, bvid),
             ).fetchone()
         if row is None:
@@ -915,6 +1108,65 @@ class Database:
                 "SELECT COUNT(*) AS count FROM video_source_memberships WHERE queued_history=1 AND removed_at IS NULL"
             ).fetchone()
         return int(row["count"] if row else 0)
+
+    def source_sync_metrics(self, source_db_id: int) -> dict[str, Any]:
+        with self.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    COUNT(*) AS remote_detected,
+                    SUM(m.video_id IS NOT NULL) AS imported,
+                    SUM(m.video_id IS NOT NULL AND v.status='completed') AS completed,
+                    SUM(m.queued_history=1) AS pending_history,
+                    SUM(m.video_id IS NOT NULL AND v.status IN ('discovered', 'subtitle_pending',
+                        'transcript_processing', 'summary_processing', 'retry_wait')) AS pending_pipeline,
+                    SUM(m.video_id IS NOT NULL AND v.status IN ('needs_review', 'failed')) AS failed,
+                    SUM(m.video_id IS NULL AND m.queued_history=0) AS not_backfilled,
+                    MIN(CASE WHEN m.video_id IS NOT NULL THEN m.favorite_time END) AS oldest_covered_favorite_time
+                FROM video_source_memberships m
+                LEFT JOIN videos v ON v.id=m.video_id
+                WHERE m.source_id=? AND m.removed_at IS NULL
+                """,
+                (source_db_id,),
+            ).fetchone()
+        values = dict(row) if row else {}
+        for key in (
+            "remote_detected",
+            "imported",
+            "completed",
+            "pending_history",
+            "pending_pipeline",
+            "failed",
+            "not_backfilled",
+        ):
+            values[key] = int(values.get(key) or 0)
+        values["pending"] = values["pending_history"] + values["pending_pipeline"]
+        return values
+
+    def video_has_active_source(
+        self, video_id: int, *, allowed_source_ids: set[int] | None = None
+    ) -> bool:
+        source_clause = ""
+        params: list[Any] = [video_id]
+        if allowed_source_ids is not None:
+            if not allowed_source_ids:
+                return False
+            placeholders = ",".join("?" for _ in allowed_source_ids)
+            source_clause = f" AND s.id IN ({placeholders})"
+            params.extend(sorted(allowed_source_ids))
+        with self.connect() as connection:
+            row = connection.execute(
+                f"""
+                SELECT 1
+                FROM video_source_memberships m
+                JOIN favorite_sources s ON s.id=m.source_id
+                WHERE m.video_id=? AND m.removed_at IS NULL AND s.status='active'
+                {source_clause}
+                LIMIT 1
+                """,
+                params,
+            ).fetchone()
+        return row is not None
 
     def video_sources(
         self, video_id: int, *, connection: sqlite3.Connection | None = None
@@ -1512,16 +1764,20 @@ class Database:
                 f"UPDATE sync_runs SET {assignments} WHERE id=?", [*fields.values(), run_id]
             )
 
-    def recover_stale_sync_runs(self) -> None:
+    def recover_stale_sync_runs(self, *, exclude_run_id: int | None = None) -> None:
         now = utc_now()
+        exclusion = " AND id<>?" if exclude_run_id is not None else ""
+        params: list[Any] = [now]
+        if exclude_run_id is not None:
+            params.append(exclude_run_id)
         with self.connect() as connection:
             connection.execute(
-                """
+                f"""
                 UPDATE sync_runs
                 SET status='interrupted', finished_at=?, error_summary='应用进程中断，等待下次同步恢复'
-                WHERE status='running'
+                WHERE status='running'{exclusion}
                 """,
-                (now,),
+                params,
             )
 
 

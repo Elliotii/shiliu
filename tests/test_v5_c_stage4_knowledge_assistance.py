@@ -114,7 +114,7 @@ def _snapshot_pair(core: Application) -> tuple[int, int]:
 def test_stage4_cold_explicit_progress_watched_not_mastered_disabled_and_restart(app_paths) -> None:
     core = _core(app_paths)
     task_id, _, _, _ = _vertical(core, "v5c4-progress")
-    assert SCHEMA_VERSION == 14
+    assert SCHEMA_VERSION == 15
     before = _counts(core)
     cold = _project(core, task_id)
     assert cold["policy_version"] == POLICY_VERSION

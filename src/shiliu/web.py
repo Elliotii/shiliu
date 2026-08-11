@@ -29,7 +29,7 @@ from shiliu.config import (
     store_api_key,
 )
 from shiliu.db import Database
-from shiliu.domain import PipelineError, SyncMode
+from shiliu.domain import FavoriteScan, PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
 from shiliu.library import LibraryNotFound, LibraryValidationError
@@ -139,6 +139,11 @@ class MoveFavoriteSourceRequest(BaseModel):
     direction: str
 
 
+class HistoryCoverageRequest(BaseModel):
+    history_policy: str
+    history_limit: int | None = Field(default=None, ge=1)
+
+
 class ASRSettingsRequest(BaseModel):
     base_url: str = "https://dashscope.aliyuncs.com/api/v1"
     api_key: str = ""
@@ -194,7 +199,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 "videos": cards,
                 "latest_sync": core.db.latest_sync_run(),
                 "config": public_config(core.config),
-                "sources": core.db.list_sources(),
+                "sources": _source_views(core),
                 "selected_source": source_db_id,
                 "selected_view": selected_view,
                 "history_pending_count": core.db.history_pending_count(),
@@ -208,7 +213,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             "setup.html",
             {
                 "config": public_config(_core(request).config),
-                "sources": _core(request).db.list_sources(),
+                "sources": _source_views(_core(request)),
             },
         )
 
@@ -1602,28 +1607,48 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             preview = await asyncio.to_thread(core.adapter.preview_favorite_url, payload.url)
             if core.db.get_source_by_folder(preview.folder_id):
                 return JSONResponse({"ok": False, "error": "该收藏夹已经添加"}, status_code=409)
-            items = await asyncio.to_thread(core.adapter.list_favorite_items, preview.folder_id)
-            source_db_id = core.db.create_favorite_source(
-                folder_id=preview.folder_id,
-                folder_title=preview.folder_title,
-                account_id=preview.account_id,
-                account_name=preview.account_name,
-                original_url=payload.url,
-                media_count=preview.media_count,
-                history_policy=payload.history_policy,
-                history_limit=payload.history_limit,
-            )
-            queued = core.db.initialize_source_memberships(source_db_id, items)
-            _sync_source_video_ids(core, source_db_id, "source_added")
+            scan = await asyncio.to_thread(_favorite_scan, core.adapter, preview.folder_id)
+            if not scan.is_complete:
+                raise PipelineError(
+                    "收藏夹发现结果不完整，未创建来源",
+                    code="incomplete_snapshot",
+                    retryable=True,
+                )
+            with ProcessLock(core.paths.sync_lock):
+                source_db_id = core.db.create_favorite_source(
+                    folder_id=preview.folder_id,
+                    folder_title=preview.folder_title,
+                    account_id=preview.account_id,
+                    account_name=preview.account_name,
+                    original_url=payload.url,
+                    media_count=int(
+                        scan.remote_total
+                        if scan.remote_total is not None
+                        else preview.media_count
+                    ),
+                    history_policy=payload.history_policy,
+                    history_limit=payload.history_limit,
+                )
+                queued = core.db.initialize_source_memberships(
+                    source_db_id,
+                    scan.items,
+                    authoritative=True,
+                    remote_total=scan.remote_total,
+                )
+                _sync_source_video_ids(core, source_db_id, "source_added")
         except PipelineError as exc:
             return JSONResponse(
                 {"ok": False, "error": str(exc), "code": exc.code}, status_code=400
+            )
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后重试"}, status_code=409
             )
         return JSONResponse(
             {
                 "ok": True,
                 "source_id": source_db_id,
-                "baseline_count": len(items),
+                "baseline_count": len(scan.items),
                 "history_queued": queued,
             }
         )
@@ -1633,8 +1658,14 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
-        core.db.set_source_status(source_db_id, "paused")
-        _sync_source_video_ids(core, source_db_id, "source_paused")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                core.db.set_source_status(source_db_id, "paused")
+                _sync_source_video_ids(core, source_db_id, "source_paused")
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后暂停"}, status_code=409
+            )
         return JSONResponse({"ok": True})
 
     @web.post("/api/sources/{source_db_id}/resume")
@@ -1642,9 +1673,45 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
-        core.db.set_source_status(source_db_id, "active")
-        _sync_source_video_ids(core, source_db_id, "source_resumed")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                core.db.set_source_status(source_db_id, "active")
+                _sync_source_video_ids(core, source_db_id, "source_resumed")
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后启用"}, status_code=409
+            )
         return JSONResponse({"ok": True})
+
+    @web.post("/api/sources/{source_db_id}/history-coverage")
+    async def update_history_coverage(
+        source_db_id: int,
+        payload: HistoryCoverageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        if core.db.get_source(source_db_id) is None:
+            raise HTTPException(404, "来源不存在")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                pending = core.db.update_source_history_coverage(
+                    source_db_id,
+                    history_policy=payload.history_policy,
+                    history_limit=payload.history_limit,
+                )
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后调整历史范围"}, status_code=409
+            )
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+        return JSONResponse(
+            {
+                "ok": True,
+                "history_pending": pending,
+                "metrics": core.db.source_sync_metrics(source_db_id),
+            }
+        )
 
     @web.post("/api/sources/{source_db_id}/move")
     async def move_source(
@@ -1666,23 +1733,31 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         source = core.db.get_source(source_db_id)
         if source is None:
             raise HTTPException(404, "来源不存在")
-        if core.config.favorite_id == int(source["folder_id"]):
-            config = replace(core.config, favorite_id=None, favorite_title="")
-            save_config(config, core.paths)
-            core.config = config
-            core.sync_service.favorite_id = None
-        with core.db.connect() as connection:
-            affected_video_ids = [
-                int(row[0])
-                for row in connection.execute(
-                    "SELECT DISTINCT video_id FROM video_source_memberships "
-                    "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
-                    (source_db_id,),
-                )
-            ]
-        core.db.remove_source(source_db_id)
-        for video_id in affected_video_ids:
-            core.retrieval_coordinator.safe_sync_video(video_id, trigger="source_removed")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                if core.config.favorite_id == int(source["folder_id"]):
+                    config = replace(core.config, favorite_id=None, favorite_title="")
+                    save_config(config, core.paths)
+                    core.config = config
+                    core.sync_service.favorite_id = None
+                with core.db.connect() as connection:
+                    affected_video_ids = [
+                        int(row[0])
+                        for row in connection.execute(
+                            "SELECT DISTINCT video_id FROM video_source_memberships "
+                            "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                            (source_db_id,),
+                        )
+                    ]
+                core.db.remove_source(source_db_id)
+                for video_id in affected_video_ids:
+                    core.retrieval_coordinator.safe_sync_video(
+                        video_id, trigger="source_removed"
+                    )
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后移除"}, status_code=409
+            )
         return JSONResponse({"ok": True})
 
     @web.post("/api/setup/models")
@@ -1902,6 +1977,44 @@ def create_web_app(application: Application | None = None) -> FastAPI:
 
 def _core(request: Request) -> Application:
     return request.app.state.core
+
+
+def _favorite_scan(adapter: object, folder_id: int) -> FavoriteScan:
+    method = getattr(adapter, "list_favorite_scan", None)
+    if method is not None:
+        scan = method(folder_id)
+        return scan if isinstance(scan, FavoriteScan) else FavoriteScan.model_validate(scan)
+    items = adapter.list_favorite_items(folder_id)  # type: ignore[attr-defined]
+    return FavoriteScan(
+        items=items,
+        remote_total=len(items),
+        is_complete=True,
+        pages_fetched=1,
+        raw_item_count=len(items),
+    )
+
+
+def _source_views(core: Application) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for source in core.db.list_sources():
+        value = dict(source)
+        value.update(core.db.source_sync_metrics(int(source["id"])))
+        policy = str(source.get("history_policy") or "future_only")
+        if policy == "all":
+            value["history_coverage_label"] = "All history"
+        elif policy == "latest_n":
+            value["history_coverage_label"] = f"Latest {int(source.get('history_limit') or 0)}"
+        else:
+            value["history_coverage_label"] = "From now only"
+        cutoff = source.get("history_cutoff_time")
+        value["history_cutoff_label"] = (
+            datetime.fromtimestamp(int(cutoff)).date().isoformat() if cutoff else "unknown"
+        )
+        value["continuous_sync"] = bool(
+            core.config.auto_sync_enabled and source.get("status") != "paused"
+        )
+        result.append(value)
+    return result
 
 
 def _resolve_api_key(submitted: str, core: Application) -> str:

@@ -192,7 +192,9 @@ def test_not_eligible_cleanup_and_reconcile_repairs_drift(app_paths) -> None:
     repaired = coordinator.reconcile_all()
     assert repaired.failed == 0
     assert_consistent(db)
-    db.record_source_snapshot(source_id, [], processing_profile="formal")
+    db.record_source_snapshot(
+        source_id, [], processing_profile="formal", authoritative=True
+    )
     removed = coordinator.sync_video(video_id, trigger="membership_removed")
     assert removed.success and removed.desired_state == "absent"
     with db.connect() as connection:
@@ -349,9 +351,17 @@ def test_web_source_membership_add_pause_resume_remove_hooks(app_paths) -> None:
         account_id=1, account_name="Account", folder_id=999,
         folder_title="Lifecycle Folder", media_count=1,
     )
-    application.adapter.list_favorite_items = lambda _folder_id: [
-        FavoriteItem(bvid="BV3000000099", title="Existing", uploader="UP", favorite_time=2)
-    ]
+    application.adapter.list_favorite_scan = lambda _folder_id: {
+        "items": [
+            FavoriteItem(
+                bvid="BV3000000099", title="Existing", uploader="UP", favorite_time=2
+            )
+        ],
+        "remote_total": 1,
+        "is_complete": True,
+        "pages_fetched": 1,
+        "raw_item_count": 1,
+    }
     client = TestClient(create_web_app(application))
     added = client.post(
         "/api/sources", json={"url": "https://example.invalid/favorite", "history_policy": "future_only"}

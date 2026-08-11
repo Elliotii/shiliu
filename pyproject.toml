@@ -40,6 +40,7 @@ packages = ["src/shiliu"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = [".", "tests"]
 addopts = "-q -m 'not external_artifact and not live_provider'"
 markers = [
   "external_artifact: requires an intentionally external historical artifact or workspace",

@@ -14,6 +14,7 @@ def test_product_results_add_display_metadata_in_one_batch(app_paths, monkeypatc
     core.db.initialize_source_memberships(
         source,
         [FavoriteItem(bvid="BV0000000001", title="Canonical 1", favorite_time=100)],
+        authoritative=True,
     )
     core.db.set_reading_state(1, "read")
     core.db.set_marked(1, True)

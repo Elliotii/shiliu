@@ -291,7 +291,9 @@ def test_full_rebuild_removes_video_without_active_membership(app_paths) -> None
     retrieval.rebuild()
     assert retrieval.search("Stale Retrieval Unit")
 
-    db.record_source_snapshot(source_id, [], processing_profile="formal")
+    db.record_source_snapshot(
+        source_id, [], processing_profile="formal", authoritative=True
+    )
     rebuilt = retrieval.rebuild()
 
     assert rebuilt.eligible_video_count == 0
@@ -425,7 +427,9 @@ def test_short_query_uses_documented_fallback(app_paths) -> None:
     db.set_reading_state(fourth_id, "read")
     db.set_archived(first_id, True)
     db.set_ignored(ignored_id, True)
-    db.record_source_snapshot(removed_source, [], processing_profile="formal")
+    db.record_source_snapshot(
+        removed_source, [], processing_profile="formal", authoritative=True
+    )
     retrieval.rebuild()
 
     first = retrieval.search("AI", level="video", top_k=1)
@@ -606,7 +610,9 @@ def test_mixed_active_removed_memberships_only_index_active_folder_provenance(ap
         folder_title="Active Folder",
     )
     assert same_video_id == video_id
-    db.record_source_snapshot(removed_source, [], processing_profile="formal")
+    db.record_source_snapshot(
+        removed_source, [], processing_profile="formal", authoritative=True
+    )
 
     rebuilt = retrieval.rebuild()
     assert rebuilt.eligible_video_count == 1
@@ -634,7 +640,9 @@ def test_mixed_active_removed_memberships_only_index_active_folder_provenance(ap
         ).fetchall()
     assert [tuple(row) for row in folder_rows] == [(active_source, 202)]
 
-    db.record_source_snapshot(active_source, [], processing_profile="formal")
+    db.record_source_snapshot(
+        active_source, [], processing_profile="formal", authoritative=True
+    )
     replaced = retrieval.replace_video(video_id)
     assert replaced == {"video_id": video_id, "video_units": 0, "chunk_units": 0}
     assert not retrieval.search("Mixed Membership Entity", level="video")

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from shiliu.domain import FavoriteItem, FavoriteSourcePreview, PipelineError, VideoBundle
+from shiliu.domain import FavoriteItem, FavoriteScan, FavoriteSourcePreview, PipelineError, VideoBundle
 
 
 class BilibiliAdapter:
@@ -35,14 +35,31 @@ class BilibiliAdapter:
         return [item for item in data if isinstance(item, dict)]
 
     def list_favorite_items(self, favorite_id: int) -> list[FavoriteItem]:
+        scan = self.list_favorite_scan(favorite_id)
+        if not scan.is_complete:
+            raise PipelineError(
+                "收藏夹分页结果不完整，已拒绝作为权威快照",
+                code="incomplete_snapshot",
+                retryable=True,
+            )
+        return scan.items
+
+    def list_favorite_scan(self, favorite_id: int) -> FavoriteScan:
         items: list[FavoriteItem] = []
         page = 1
+        remote_total: int | None = None
+        raw_item_count = 0
+        invalid_item_count = 0
         while True:
             data = self._run_bridge(["favorites-page", str(favorite_id), str(page)])
             if not isinstance(data, dict):
                 raise PipelineError("收藏夹页面返回格式无效", code="upstream_schema", retryable=True)
+            if page == 1 and data.get("remote_total") is not None:
+                remote_total = max(0, int(data["remote_total"]))
             for raw in data.get("items", []) or []:
+                raw_item_count += 1
                 if not isinstance(raw, dict) or not raw.get("bvid"):
+                    invalid_item_count += 1
                     continue
                 upper = raw.get("upper") or {}
                 uploader = upper.get("name", "") if isinstance(upper, dict) else str(upper)
@@ -62,7 +79,14 @@ class BilibiliAdapter:
             page += 1
             if page > 500:
                 raise PipelineError("收藏夹分页超过安全上限", code="pagination_limit", retryable=False)
-        return items
+        count_matches = remote_total is None or raw_item_count == remote_total
+        return FavoriteScan(
+            items=items,
+            remote_total=remote_total,
+            is_complete=invalid_item_count == 0 and count_matches,
+            pages_fetched=page,
+            raw_item_count=raw_item_count,
+        )
 
     def preview_favorite_url(self, url: str) -> FavoriteSourcePreview:
         parsed = urlparse(url.strip())

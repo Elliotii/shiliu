@@ -46,14 +46,12 @@
       <label>历史内容
         <select data-history-policy>
           <option value="future_only">只处理之后新增的</option>
-          <option value="latest_n:10">导入最新 10 条</option>
-          <option value="latest_n:30">导入最新 30 条</option>
           <option value="latest_n:100">导入最新 100 条</option>
-          <option value="latest_n:custom">导入自定义数量</option>
+          <option value="latest_n:300">导入最新 300 条</option>
+          <option value="latest_n:500">导入最新 500 条</option>
           <option value="all">导入全部历史内容</option>
         </select>
       </label>
-      <label data-history-custom hidden>自定义数量<input data-history-limit type="number" min="1" value="10"></label>
       <button type="button" class="primary" data-add-source disabled>确认添加来源</button>
       <p data-source-status></p>
       {% if sources %}
@@ -62,7 +60,17 @@
         <article>
           <div class="source-order">
             <span class="order-number">{{ loop.index }}</span>
-            <div><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>{{ source.media_count }} 条 · {{ source.status }}</small></div>
+            <div><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>Source status: {{ source.status }} · Continuous sync: {{ 'ON' if source.continuous_sync else 'OFF' }}</small><small>Remote detected {{ source.remote_detected }} · Imported {{ source.imported }} · Completed {{ source.completed }} · Pending {{ source.pending }} · Failed {{ source.failed }} · Not backfilled {{ source.not_backfilled }}</small><small>History coverage: {{ source.history_coverage_label }} · {{ source.history_cutoff_label }} → now · Oldest covered favorite_time: {{ source.oldest_covered_favorite_time or 'unknown' }}</small></div>
+          </div>
+          <div class="inline-actions">
+            <select data-source-coverage="{{ source.id }}">
+              <option value="future_only" {% if source.history_policy == 'future_only' %}selected{% endif %}>From now only</option>
+              <option value="latest_n:100" {% if source.history_policy == 'latest_n' and source.history_limit == 100 %}selected{% endif %}>Latest 100</option>
+              <option value="latest_n:300" {% if source.history_policy == 'latest_n' and source.history_limit == 300 %}selected{% endif %}>Latest 300</option>
+              <option value="latest_n:500" {% if source.history_policy == 'latest_n' and source.history_limit == 500 %}selected{% endif %}>Latest 500</option>
+              <option value="all" {% if source.history_policy == 'all' %}selected{% endif %}>All</option>
+            </select>
+            <button type="button" class="secondary" data-update-source-coverage="{{ source.id }}">Expand / adjust history</button>
           </div>
           <div class="inline-actions">
             <button type="button" class="secondary order-button" data-source-move="up" data-source-id="{{ source.id }}" aria-label="上移 {{ source.folder_title }}" {% if loop.first %}disabled{% endif %}>↑ 上移</button>
