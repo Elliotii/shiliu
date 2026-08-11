@@ -97,6 +97,7 @@ class OnboardingRunner:
 
         retryable_codes = {
             "incomplete_snapshot",
+            "local_api_unavailable",
             "upstream_error",
             "upstream_retryable",
             "upstream_timeout",
