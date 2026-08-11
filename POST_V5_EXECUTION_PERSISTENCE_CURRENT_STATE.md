@@ -53,11 +53,12 @@
 - Semantics: all pre-existing deterministic Search, Fast, Deep, and Research suites pass; no retrieval, prompt, policy, budget, answer, citation, or Research runtime behavior was changed.
 - Next: Goal 5 closeout, independent read-only review, final checkpoint and handoff.
 
-## Goal 5 — ready for final checkpoint
+## Goal 5 — complete
 
 - Closeout: `POST_V5_EXECUTION_PERSISTENCE_CLOSEOUT.md` contains baseline, schema/migration, Fast/Deep behavior, Search/Research boundaries, tests, limitations/non-goals, and owner-only live integration instructions.
 - Independent review: fresh GPT-5.6 Sol/High read-only review found one High gap in failed Search lineage. The Main Owner applied a narrow fix, added Fast/Deep durable-error-trace join tests, and the bounded re-review confirmed the High resolved with no Blocking/High findings remaining.
 - Review follow-through: migrated v15-shaped DB tests now execute and restart-read both Fast and Deep; unexpected failures are classified; duplicate link/event/result copies were removed from `trace_json`; Search persistence status/error is retained beside each reference without copying Search payloads.
 - Verification: final exact-tree full suite is 1,802 passed, 4 deselected; compileall and `git diff --check` pass.
 - Live isolation: read-only recheck shows the live branch/HEAD and pre-existing Markdown-only status are unchanged.
-- Next: commit, push, report final branch HEAD, and stop.
+- Checkpoint: reviewed fix and closeout commit `770801c` is pushed; this final Goal-status marker is the only later documentation change.
+- Next: report the pushed branch tip to the Post-V5 Main Owner and stop. No next architecture phase is planned.
