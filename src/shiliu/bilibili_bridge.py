@@ -130,6 +130,36 @@ async def fetch_favorites_page(folder_id: int, page: int) -> dict[str, Any]:
     }
 
 
+async def fetch_favorite_scan(folder_id: int) -> dict[str, Any]:
+    """Fetch an authoritative lightweight snapshot in one bridge process."""
+    credential = get_credential(mode="optional")
+    if credential is None:
+        raise RuntimeError("authentication_required: 没有已保存的 B 站登录凭据")
+    items: list[dict[str, Any]] = []
+    remote_total: int | None = None
+    page = 1
+    while True:
+        data = await client.get_favorite_videos(folder_id, credential, page=page)
+        info = data.get("info") or {}
+        if page == 1 and info.get("media_count") is not None:
+            remote_total = max(0, int(info["media_count"]))
+        items.extend(
+            _normalize_favorite_media(item) for item in (data.get("medias") or [])
+        )
+        if not bool(data.get("has_more", False)):
+            break
+        page += 1
+        if page > 500:
+            raise RuntimeError("pagination_limit: 收藏夹分页超过安全上限")
+    return {
+        "folder_id": folder_id,
+        "remote_total": remote_total,
+        "pages_fetched": page,
+        "raw_item_count": len(items),
+        "items": items,
+    }
+
+
 def _normalize_favorite_media(item: dict[str, Any]) -> dict[str, Any]:
     normalized = payloads.normalize_favorite_media(item)
     normalized["fav_time"] = item.get("fav_time")
@@ -185,6 +215,7 @@ async def main() -> int:
         "qr-login-file": 3,
         "favorite-folders": 2,
         "favorites-page": 4,
+        "favorites-scan": 3,
         "favorite-preview": 3,
         "download-audio": 4,
     }
@@ -201,6 +232,8 @@ async def main() -> int:
             data = await fetch_favorite_folders()
         elif command == "favorites-page":
             data = await fetch_favorites_page(int(sys.argv[2]), int(sys.argv[3]))
+        elif command == "favorites-scan":
+            data = await fetch_favorite_scan(int(sys.argv[2]))
         elif command == "favorite-preview":
             data = await fetch_favorite_preview(int(sys.argv[2]))
         elif command != "download-audio":

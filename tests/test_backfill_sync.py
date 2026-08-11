@@ -301,28 +301,28 @@ def test_materialize_rejects_paused_or_no_longer_queued_membership(app_paths) ->
 
 def test_bilibili_scan_exposes_completeness_and_rejects_count_mismatch(tmp_path: Path) -> None:
     adapter = BilibiliAdapter(tmp_path)
-    pages = {
-        1: {
-            "items": [favorite(1, 200).model_dump()],
-            "has_more": True,
-            "remote_total": 2,
-        },
-        2: {
-            "items": [favorite(2, 100).model_dump()],
-            "has_more": False,
-            "remote_total": None,
-        },
+    scan_payload = {
+        "items": [favorite(1, 200).model_dump(), favorite(2, 100).model_dump()],
+        "remote_total": 2,
+        "pages_fetched": 2,
     }
-    adapter._run_bridge = lambda args: pages[int(args[-1])]  # type: ignore[method-assign]
+    bridge_calls: list[tuple[list[str], int | None]] = []
+
+    def bridge(args: list[str], *, timeout_seconds: int | None = None):
+        bridge_calls.append((args, timeout_seconds))
+        return scan_payload
+
+    adapter._run_bridge = bridge  # type: ignore[method-assign]
     scan = adapter.list_favorite_scan(1)
     assert scan.is_complete is True
     assert scan.remote_total == 2
     assert scan.pages_fetched == 2
+    assert bridge_calls == [(["favorites-scan", "1"], 900)]
 
-    pages[1] = {
+    scan_payload = {
         "items": [favorite(1, 200).model_dump()],
-        "has_more": False,
         "remote_total": 2,
+        "pages_fetched": 1,
     }
     mismatch = adapter.list_favorite_scan(1)
     assert mismatch.is_complete is False

@@ -45,46 +45,43 @@ class BilibiliAdapter:
         return scan.items
 
     def list_favorite_scan(self, favorite_id: int) -> FavoriteScan:
+        data = self._run_bridge(
+            ["favorites-scan", str(favorite_id)],
+            timeout_seconds=max(self.timeout_seconds, 900),
+        )
+        if not isinstance(data, dict):
+            raise PipelineError("收藏夹分页返回格式无效", code="upstream_schema", retryable=True)
         items: list[FavoriteItem] = []
-        page = 1
-        remote_total: int | None = None
+        remote_total = _int_or_none(data.get("remote_total"))
         raw_item_count = 0
         invalid_item_count = 0
-        while True:
-            data = self._run_bridge(["favorites-page", str(favorite_id), str(page)])
-            if not isinstance(data, dict):
-                raise PipelineError("收藏夹页面返回格式无效", code="upstream_schema", retryable=True)
-            if page == 1 and data.get("remote_total") is not None:
-                remote_total = max(0, int(data["remote_total"]))
-            for raw in data.get("items", []) or []:
-                raw_item_count += 1
-                if not isinstance(raw, dict) or not raw.get("bvid"):
-                    invalid_item_count += 1
-                    continue
-                upper = raw.get("upper") or {}
-                uploader = upper.get("name", "") if isinstance(upper, dict) else str(upper)
-                items.append(
-                    FavoriteItem(
-                        bvid=str(raw["bvid"]),
-                        title=str(raw.get("title", "")),
-                        uploader=str(uploader),
-                        duration_seconds=_duration_seconds(
-                            raw.get("duration_seconds", raw.get("duration", 0))
-                        ),
-                        favorite_time=_int_or_none(raw.get("fav_time") or raw.get("favorite_time")),
-                    )
+        for raw in data.get("items", []) or []:
+            raw_item_count += 1
+            if not isinstance(raw, dict) or not raw.get("bvid"):
+                invalid_item_count += 1
+                continue
+            upper = raw.get("upper") or {}
+            uploader = upper.get("name", "") if isinstance(upper, dict) else str(upper)
+            items.append(
+                FavoriteItem(
+                    bvid=str(raw["bvid"]),
+                    title=str(raw.get("title", "")),
+                    uploader=str(uploader),
+                    duration_seconds=_duration_seconds(
+                        raw.get("duration_seconds", raw.get("duration", 0))
+                    ),
+                    favorite_time=_int_or_none(
+                        raw.get("fav_time") or raw.get("favorite_time")
+                    ),
                 )
-            if not bool(data.get("has_more")):
-                break
-            page += 1
-            if page > 500:
-                raise PipelineError("收藏夹分页超过安全上限", code="pagination_limit", retryable=False)
+            )
+        pages_fetched = max(1, int(data.get("pages_fetched") or 1))
         count_matches = remote_total is None or raw_item_count == remote_total
         return FavoriteScan(
             items=items,
             remote_total=remote_total,
             is_complete=invalid_item_count == 0 and count_matches,
-            pages_fetched=page,
+            pages_fetched=pages_fetched,
             raw_item_count=raw_item_count,
         )
 
