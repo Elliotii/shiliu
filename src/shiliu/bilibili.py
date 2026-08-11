@@ -151,7 +151,9 @@ class BilibiliAdapter:
         if result.returncode != 0 or not payload.get("ok"):
             error = payload.get("error", {}) if isinstance(payload, dict) else {}
             code = str(error.get("code", "upstream_error"))
-            message = str(error.get("message", result.stderr.strip() or "B 站读取失败"))
+            message = _bounded_error_message(
+                str(error.get("message", result.stderr.strip() or "B 站读取失败"))
+            )
             raise PipelineError(
                 message,
                 code=code,
@@ -228,6 +230,11 @@ def _parse_json_output(output: str) -> dict[str, Any]:
     except json.JSONDecodeError as exc:
         raise PipelineError("上游命令没有返回合法 JSON", code="upstream_schema", retryable=True) from exc
     return value if isinstance(value, dict) else {"data": value}
+
+
+def _bounded_error_message(value: str, limit: int = 600) -> str:
+    compact = " ".join(value.split())
+    return compact if len(compact) <= limit else compact[: limit - 1] + "…"
 
 
 def _int_or_none(value: object) -> int | None:

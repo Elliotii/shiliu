@@ -151,6 +151,10 @@ async def fetch_favorite_scan(folder_id: int) -> dict[str, Any]:
         page += 1
         if page > 500:
             raise RuntimeError("pagination_limit: 收藏夹分页超过安全上限")
+        # Reusing one authenticated process removes the old per-page startup
+        # delay. Keep a small deterministic pause so a large folder does not
+        # become a burst of 100+ API calls and trigger Bilibili 412 controls.
+        await asyncio.sleep(2)
     return {
         "folder_id": folder_id,
         "remote_total": remote_total,
