@@ -177,6 +177,9 @@ class DeepSearchGraph:
                 kind="navigation",
                 summary=f"navigation returned {len(documents)} videos",
                 navigation_documents=documents,
+                search_executions=list(
+                    getattr(documents, "search_executions", [])
+                ),
                 latency_ms=max(0, (self.clock() - started) * 1000),
             )
         except Exception as exc:
@@ -209,6 +212,13 @@ class DeepSearchGraph:
                 evidence_spans=list(result.spans),
                 stale_reasons=list(result.stale_reasons),
                 dropped_evidence_count=result.dropped_span_count,
+                search_executions=[
+                    {
+                        "execution_id": result.execution_id,
+                        "search_trace_id": result.search_trace_id,
+                        "query": result.query,
+                    }
+                ],
                 latency_ms=max(0, (self.clock() - started) * 1000),
             )
         except Exception as exc:

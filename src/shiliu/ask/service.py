@@ -12,7 +12,7 @@ from shiliu.ask.deep.service import DeepSearchService
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
 from shiliu.ask.query_analysis import QueryAnalyzer
-from shiliu.ask.persistence import AskRunStore
+from shiliu.ask.persistence import AskRunStore, final_evidence_identities
 from shiliu.db import Database
 from shiliu.evidence.search import EvidenceSearchService
 from shiliu.retrieval.product_search import ProductSearchRequest, ProductSearchService
@@ -72,16 +72,13 @@ class AskService:
             if isinstance(resolved_artifacts, ArtifactStore)
             else None
         )
-        self._traces: dict[str, dict[str, object]] = {}
-
     def ask(self, request: AskRequest) -> AskResponse:
         if request.mode == "deep":
             if self.deep_service is None:
                 raise AskModeNotImplemented(
                     "Deep Search 缺少 ArtifactStore 接线"
                 )
-            response, trace = self.deep_service.ask(request)
-            self._traces[response.run_id] = trace
+            response, _trace = self.deep_service.ask(request)
             return response
         return self._ask_fast(request)
 
@@ -205,7 +202,7 @@ class AskService:
                 "citation_ids": [
                     value.citation_id for value in response.citations
                 ],
-                "final_evidence": _final_evidence_identities(
+                "final_evidence": final_evidence_identities(
                     all_spans,
                     {value.citation_id for value in response.citations},
                 ),
@@ -248,26 +245,8 @@ class AskService:
         durable = self.run_store.get_trace(run_id)
         if durable is not None:
             return durable
-        value = self._traces.get(run_id)
-        return dict(value) if value is not None else None
+        return None
 
 
 def _milliseconds(started: float) -> float:
     return round((time.monotonic() - started) * 1000, 3)
-
-
-def _final_evidence_identities(spans, citation_ids: set[str]) -> list[dict[str, object]]:
-    return [
-        {
-            "citation_id": span.citation_id,
-            "citation_identity_version": span.citation_identity_version,
-            "video_id": span.video_id,
-            "source_artifact_id": span.source_artifact_id,
-            "source_version": span.source_version,
-            "timeline_run_id": span.timeline_run_id,
-            "segment_ids": list(span.segment_ids),
-            "retrieval_provenance": list(span.retrieval_provenance),
-        }
-        for span in spans
-        if span.citation_id in citation_ids
-    ]

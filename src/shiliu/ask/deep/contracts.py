@@ -131,6 +131,9 @@ class ToolObservation(_StrictModel):
     dropped_evidence_count: int = Field(default=0, ge=0)
     error: str | None = Field(default=None, max_length=500)
     latency_ms: float = Field(default=0, ge=0)
+    search_executions: list[dict[str, Any]] = Field(
+        default_factory=list, max_length=3
+    )
 
 
 class DeepSearchState(TypedDict):

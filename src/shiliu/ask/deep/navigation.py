@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from uuid import uuid4
 
 from shiliu.artifacts import ArtifactStore
 from shiliu.ask.deep.contracts import NavigationDocument, NavigationSourceLabel
@@ -47,10 +48,18 @@ class NavigationService:
                 filters=filters,
             )
         )
-        return [
+        documents = NavigationSearchDocuments(
             self._project(result.video_id, result.match_excerpt)
             for result in response.results
+        )
+        documents.search_executions = [
+            {
+                "execution_id": f"navigation_execution_{uuid4().hex}",
+                "search_trace_id": response.trace_id,
+                "query": query,
+            }
         ]
+        return documents
 
     def _project(self, video_id: int, matched_excerpt: str) -> NavigationDocument:
         video = self.db.get_video(video_id)
@@ -216,6 +225,12 @@ class NavigationService:
 def _bounded(value: str, limit: int) -> str:
     normalized = " ".join(str(value).split())
     return normalized if len(normalized) <= limit else normalized[: limit - 1] + "…"
+
+
+class NavigationSearchDocuments(list[NavigationDocument]):
+    def __init__(self, values=()) -> None:
+        super().__init__(values)
+        self.search_executions: list[dict[str, str]] = []
 
 
 def _object_text(value: object) -> str:

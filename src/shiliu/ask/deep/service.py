@@ -21,6 +21,7 @@ from shiliu.ask.deep.transcript import (
 )
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
+from shiliu.ask.persistence import AskRunStore, final_evidence_identities
 from shiliu.db import Database
 from shiliu.evidence.search import EvidenceSearchService
 from shiliu.retrieval.product_search import ProductSearchService
@@ -43,6 +44,7 @@ class DeepSearchService:
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.db = db
+        self.run_store = AskRunStore(db)
         self.artifacts = artifacts
         self.product_search = product_search
         self.provider_factory = provider_factory
@@ -91,6 +93,31 @@ class DeepSearchService:
     def ask(self, request: AskRequest) -> tuple[AskResponse, dict[str, object]]:
         started = self.clock()
         run_id = f"ask_run_{uuid4().hex}"
+        created_at = self.run_store.start(
+            run_id=run_id,
+            query=request.query,
+            mode="deep",
+            filters=request.filters.model_dump(mode="json", exclude_none=True),
+        )
+        try:
+            return self._execute(
+                request,
+                run_id=run_id,
+                created_at=created_at,
+                started=started,
+            )
+        except Exception as exc:
+            self.run_store.fail(run_id, exc)
+            raise
+
+    def _execute(
+        self,
+        request: AskRequest,
+        *,
+        run_id: str,
+        created_at: str,
+        started: float,
+    ) -> tuple[AskResponse, dict[str, object]]:
         state = self._initial_state(run_id, request, started)
         state = self.graph.run(state)
         termination_reason = state["termination_reason"] or "budget_exhausted"
@@ -147,8 +174,18 @@ class DeepSearchService:
             termination_reason=final.termination_reason,
             trace_summary=summary,
         )
+        search_executions = _deep_search_executions(state["events"])
+        final_evidence = final_evidence_identities(
+            state["evidence_spans"],
+            {value.citation_id for value in response.citations},
+        )
+        provider_usage = {
+            "agent_actions": state["usage"],
+            "answer": final.trace.get("answer_usage", []),
+        }
         trace: dict[str, object] = {
             "run_id": run_id,
+            "created_at": created_at,
             "query": request.query,
             "mode": "deep",
             "policy_version": DEEP_POLICY_VERSION,
@@ -157,6 +194,7 @@ class DeepSearchService:
             "finalization_started_at": finalization_started,
             "answer_deadline": answer_deadline,
             "events": state["events"],
+            "search_executions": search_executions,
             "stale_reasons": state["stale_reasons"],
             "errors": state["errors"],
             "termination_reason": final.termination_reason,
@@ -170,11 +208,52 @@ class DeepSearchService:
             "evidence_candidate_dropped_count": dropped_evidence_count,
             "total_latency_ms": latency_ms,
             "usage": state["usage"],
+            "provider_usage": provider_usage,
+            "open_questions": list(state["open_questions"]),
+            "resolved_questions": list(state["resolved_questions"]),
+            "visited_video_ids": list(state["visited_video_ids"]),
+            "visited_segment_ids": list(state["visited_segment_ids"]),
+            "guard_state": {
+                "previous_queries": list(state["previous_queries"]),
+                "repeated_action_keys": list(state["repeated_action_keys"]),
+                "consecutive_no_new_evidence": state[
+                    "consecutive_no_new_evidence"
+                ],
+                "decision_rounds": state["decision_rounds"],
+                "tool_calls": state["tool_calls"],
+            },
             "finalization": final.trace,
+            "final_evidence": final_evidence,
             "citation_ids": [
                 value.citation_id for value in response.citations
             ],
+            "answer_blocks": [
+                value.model_dump(mode="json") for value in response.answer_blocks
+            ],
+            "citations": [
+                value.model_dump(mode="json") for value in response.citations
+            ],
+            "limitations": list(response.limitations),
         }
+        self.run_store.complete(
+            run_id=run_id,
+            trace=trace,
+            answer_status=response.status,
+            termination_reason=response.termination_reason,
+            query_analysis={
+                "strategy": "deep_agent_decisions",
+                "open_questions": list(state["open_questions"]),
+                "resolved_questions": list(state["resolved_questions"]),
+            },
+            rewrites=[],
+            search_executions=search_executions,
+            final_evidence=final_evidence,
+            citations=trace["citations"],
+            answer_blocks=trace["answer_blocks"],
+            limitations=response.limitations,
+            usage_summary=provider_usage,
+            events=state["events"],
+        )
         return response, trace
 
     def _initial_state(
@@ -208,3 +287,32 @@ class DeepSearchService:
             "usage": [],
             "termination_reason": None,
         }
+
+
+def _deep_search_executions(
+    events: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    result: list[dict[str, object]] = []
+    decision_sequence: int | None = None
+    for event in events:
+        if event.get("event_type") == "decision":
+            value = event.get("decision_round")
+            decision_sequence = int(value) if isinstance(value, int) else None
+        references = event.get("search_executions")
+        if not isinstance(references, list):
+            continue
+        for reference in references:
+            if not isinstance(reference, dict) or not reference.get(
+                "search_trace_id"
+            ):
+                continue
+            result.append(
+                {
+                    "relation_kind": "deep_search",
+                    "decision_sequence": decision_sequence,
+                    "execution_id": reference.get("execution_id"),
+                    "search_trace_id": reference["search_trace_id"],
+                    "query": reference.get("query") or "",
+                }
+            )
+    return result

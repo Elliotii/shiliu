@@ -31,3 +31,13 @@
 - Gate: retrieval calls/results, answer generation, citation validation, Fast response shape, and failure semantics are unchanged; existing Fast tests all pass.
 - Known limit: Fast persists successful child Search references at finalization; an abrupt mid-request process death leaves the run identity as `running`, but crash-resume and partial step journaling are out of scope.
 - Next: Goal 3 Deep diagnostic persistence.
+
+## Goal 3 — complete
+
+- Implementation: Deep now creates the same Ask identity before execution and stores its bounded ordered decisions, guards and observations; navigation/transcript Search references; window-read segment identities; visited videos/segments; worklist state; budgets/guards; termination; adopted evidence; answer/citations/limitations; and provider usage.
+- Lineage: navigation and transcript searches retain ordered references to their existing durable Search traces, including decision round and query. Transcript-window reads stay typed events and do not copy transcript context.
+- Restart: a fresh `AskService` loads the entire Deep diagnostic record from SQLite, including ordered actions, two child Search traces, final evidence, and result.
+- Tests: 45 passed across the full Fast/Deep Ask, Ask page, migration, and restart suites. Deep coverage includes navigation + transcript search + window read, normal completion, repeated/no-new/guard stops, budget/deadline stops, insufficient results, and provider failures.
+- Gate: Deep policy version, prompts, graph/checkpointer choice, budgets, tool actions, retrieval, finalizer, answer/citation semantics, and HTTP response shape are unchanged.
+- Known limit: Deep is diagnostically durable but intentionally not resumable after a crash.
+- Next: Goal 4 product alignment and full regression/forensic validation.

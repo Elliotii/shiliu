@@ -243,6 +243,7 @@ class DeepStateReducer:
                 "evidence_count": len(updated["evidence_spans"]),
                 "latency_ms": observation.latency_ms,
                 "dropped_evidence_count": observation.dropped_evidence_count,
+                "search_executions": list(observation.search_executions),
             }
         )
         if (

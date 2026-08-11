@@ -227,9 +227,14 @@ class AskRunStore:
                 "created_at": record["created_at"],
                 "completed_at": record["completed_at"],
                 "lifecycle_status": record["lifecycle_status"],
+                "parent_run_id": record["parent_run_id"],
+                "filters": record["filters"],
+                "termination_reason": record["termination_reason"],
                 "search_executions": record["search_executions"],
             }
         )
+        if record["answer_status"] is not None:
+            trace["status"] = record["answer_status"]
         if record["mode"] == "deep":
             trace["events"] = record["events"]
         if record["error"]:
@@ -281,3 +286,24 @@ def _json(value: Any) -> str:
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+
+
+def final_evidence_identities(
+    spans: Iterable[Any], citation_ids: set[str]
+) -> list[dict[str, Any]]:
+    """Project bounded source/provenance identity for adopted evidence only."""
+
+    return [
+        {
+            "citation_id": span.citation_id,
+            "citation_identity_version": span.citation_identity_version,
+            "video_id": span.video_id,
+            "source_artifact_id": span.source_artifact_id,
+            "source_version": span.source_version,
+            "timeline_run_id": span.timeline_run_id,
+            "segment_ids": list(span.segment_ids),
+            "retrieval_provenance": list(span.retrieval_provenance),
+        }
+        for span in spans
+        if span.citation_id in citation_ids
+    ]
