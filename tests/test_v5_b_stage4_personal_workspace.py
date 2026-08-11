@@ -163,7 +163,7 @@ def _stable_research(value: dict) -> dict:
 def test_stage4_schema_explicit_memory_api_ui_restart_and_idempotency(app_paths) -> None:
     core = _core(app_paths)
     task_id, _, _, _ = _vertical(core, "workspace-explicit")
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     with core.db.connect() as connection:
         tables = connection.execute(
             "SELECT name FROM sqlite_master WHERE type='table' "

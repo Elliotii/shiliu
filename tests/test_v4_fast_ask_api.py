@@ -245,6 +245,57 @@ def test_fast_ask_api_complete_and_multi_query_deduplicated(app_paths) -> None:
     assert len(trace["search_executions"]) == 1
 
 
+def test_fast_ask_is_durable_across_service_recreation(app_paths) -> None:
+    provider = _Provider(rewrites=("RAG", "AI"))
+    core, _ = _application(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+
+    restarted = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+    trace = restarted.get_trace(body["run_id"])
+    run = restarted.run_store.get_run(body["run_id"])
+
+    assert trace is not None and run is not None
+    assert trace["query"] == "MCP"
+    assert trace["normalized_intent"] == "解释 MCP"
+    assert trace["queries"] == ["MCP", "RAG", "AI"]
+    assert trace["status"] == body["status"] == "complete"
+    assert trace["termination_reason"] == "answer_ready"
+    assert trace["answer_blocks"] == body["answer_blocks"]
+    assert trace["citations"] == body["citations"]
+    assert trace["final_evidence"][0]["citation_id"] == body["citations"][0]["citation_id"]
+    assert trace["provider_usage"]["query_analysis"] == {
+        "prompt_tokens": 10,
+        "completion_tokens": 8,
+    }
+    assert run["lifecycle_status"] == "completed"
+    assert run["answer_status"] == "complete"
+    assert run["query_analysis"]["entities"] == ["MCP"]
+    assert run["rewrites"] == ["MCP", "RAG", "AI"]
+    assert [value["relation_kind"] for value in run["search_executions"]] == [
+        "original_query",
+        "rewrite",
+        "rewrite",
+    ]
+    with core.db.connect() as connection:
+        linked = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM ask_search_trace_links l
+            JOIN retrieval_search_traces s ON s.trace_id=l.search_trace_id
+            WHERE l.run_id=?
+            """,
+            (body["run_id"],),
+        ).fetchone()[0]
+    assert linked == 3
+
+
 def test_three_distinct_queries_execute_exactly_three_retrievals_and_keep_filters(
     app_paths,
 ) -> None:

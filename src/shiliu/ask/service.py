@@ -12,6 +12,7 @@ from shiliu.ask.deep.service import DeepSearchService
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
 from shiliu.ask.query_analysis import QueryAnalyzer
+from shiliu.ask.persistence import AskRunStore
 from shiliu.db import Database
 from shiliu.evidence.search import EvidenceSearchService
 from shiliu.retrieval.product_search import ProductSearchRequest, ProductSearchService
@@ -35,6 +36,7 @@ class AskService:
         artifacts: ArtifactStore | None = None,
     ) -> None:
         self.db = db
+        self.run_store = AskRunStore(db)
         self.evidence_search = evidence_search or EvidenceSearchService(
             db=db,
             product_search=product_search,
@@ -86,6 +88,28 @@ class AskService:
     def _ask_fast(self, request: AskRequest) -> AskResponse:
         started = time.monotonic()
         run_id = f"ask_run_{uuid4().hex}"
+        created_at = self.run_store.start(
+            run_id=run_id,
+            query=request.query,
+            mode="fast",
+            filters=request.filters.model_dump(mode="json", exclude_none=True),
+        )
+        try:
+            return self._execute_fast(
+                request, run_id=run_id, created_at=created_at, started=started
+            )
+        except Exception as exc:
+            self.run_store.fail(run_id, exc)
+            raise
+
+    def _execute_fast(
+        self,
+        request: AskRequest,
+        *,
+        run_id: str,
+        created_at: str,
+        started: float,
+    ) -> AskResponse:
         plan = self.query_analyzer.analyze(request.query)
         all_spans = []
         stale_reasons: list[str] = []
@@ -118,6 +142,7 @@ class AskService:
 
         trace: dict[str, object] = {
             "run_id": run_id,
+            "created_at": created_at,
             "query": request.query,
             "mode": "fast",
             "normalized_intent": plan.analysis.normalized_intent,
@@ -132,8 +157,11 @@ class AskService:
                     "execution_id": value.execution_id,
                     "search_trace_id": value.raw_response.trace_id,
                     "query": value.request.query,
+                    "relation_kind": (
+                        "original_query" if index == 0 else "rewrite"
+                    ),
                 }
-                for value in executions
+                for index, value in enumerate(executions)
             ],
             "retrieval_errors": retrieval_errors,
             "stale_reasons": stale_reasons,
@@ -177,15 +205,69 @@ class AskService:
                 "citation_ids": [
                     value.citation_id for value in response.citations
                 ],
+                "final_evidence": _final_evidence_identities(
+                    all_spans,
+                    {value.citation_id for value in response.citations},
+                ),
+                "answer_blocks": [
+                    value.model_dump(mode="json") for value in response.answer_blocks
+                ],
+                "citations": [
+                    value.model_dump(mode="json") for value in response.citations
+                ],
+                "limitations": list(response.limitations),
+                "provider_usage": {
+                    "query_analysis": plan.usage,
+                    "answer": final.trace.get("answer_usage", []),
+                },
             }
         )
-        self._traces[run_id] = trace
+        self.run_store.complete(
+            run_id=run_id,
+            trace=trace,
+            answer_status=response.status,
+            termination_reason=response.termination_reason,
+            query_analysis={
+                **plan.analysis.model_dump(mode="json"),
+                "error": plan.error,
+                "latency_ms": plan.latency_ms,
+                "finish_reason": plan.finish_reason,
+                "retry_count": plan.retry_count,
+            },
+            rewrites=plan.queries,
+            search_executions=trace["search_executions"],
+            final_evidence=trace["final_evidence"],
+            citations=trace["citations"],
+            answer_blocks=trace["answer_blocks"],
+            limitations=response.limitations,
+            usage_summary=trace["provider_usage"],
+        )
         return response
 
     def get_trace(self, run_id: str) -> dict[str, object] | None:
+        durable = self.run_store.get_trace(run_id)
+        if durable is not None:
+            return durable
         value = self._traces.get(run_id)
         return dict(value) if value is not None else None
 
 
 def _milliseconds(started: float) -> float:
     return round((time.monotonic() - started) * 1000, 3)
+
+
+def _final_evidence_identities(spans, citation_ids: set[str]) -> list[dict[str, object]]:
+    return [
+        {
+            "citation_id": span.citation_id,
+            "citation_identity_version": span.citation_identity_version,
+            "video_id": span.video_id,
+            "source_artifact_id": span.source_artifact_id,
+            "source_version": span.source_version,
+            "timeline_run_id": span.timeline_run_id,
+            "segment_ids": list(span.segment_ids),
+            "retrieval_provenance": list(span.retrieval_provenance),
+        }
+        for span in spans
+        if span.citation_id in citation_ids
+    ]

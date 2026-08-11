@@ -18,7 +18,7 @@ from shiliu.research.schema import (
 )
 
 
-SCHEMA_VERSION = 15
+SCHEMA_VERSION = 16
 
 
 def utc_now() -> str:
@@ -299,6 +299,9 @@ class Database:
             initialize_research_schema(connection)
             prepare_research_schema_v13(connection)
             prepare_research_schema_v14(connection)
+            from shiliu.ask.persistence import initialize_ask_schema
+
+            initialize_ask_schema(connection)
             connection.execute(
                 "INSERT INTO schema_meta(key, value) VALUES('schema_version', ?) "
                 "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
