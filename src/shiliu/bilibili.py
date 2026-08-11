@@ -55,16 +55,23 @@ class BilibiliAdapter:
         remote_total = _int_or_none(data.get("remote_total"))
         raw_item_count = 0
         invalid_item_count = 0
+        duplicate_item_count = 0
+        seen_bvids: set[str] = set()
         for raw in data.get("items", []) or []:
             raw_item_count += 1
             if not isinstance(raw, dict) or not raw.get("bvid"):
                 invalid_item_count += 1
                 continue
+            bvid = str(raw["bvid"])
+            if bvid in seen_bvids:
+                duplicate_item_count += 1
+                continue
+            seen_bvids.add(bvid)
             upper = raw.get("upper") or {}
             uploader = upper.get("name", "") if isinstance(upper, dict) else str(upper)
             items.append(
                 FavoriteItem(
-                    bvid=str(raw["bvid"]),
+                    bvid=bvid,
                     title=str(raw.get("title", "")),
                     uploader=str(uploader),
                     duration_seconds=_duration_seconds(
@@ -76,13 +83,26 @@ class BilibiliAdapter:
                 )
             )
         pages_fetched = max(1, int(data.get("pages_fetched") or 1))
-        count_matches = remote_total is None or raw_item_count == remote_total
+        pagination_complete = bool(data.get("pagination_complete"))
+        count_not_overrun = remote_total is None or raw_item_count <= remote_total
+        unavailable_remote_count = (
+            max(0, remote_total - raw_item_count) if remote_total is not None else 0
+        )
         return FavoriteScan(
             items=items,
             remote_total=remote_total,
-            is_complete=invalid_item_count == 0 and count_matches,
+            is_complete=(
+                pagination_complete
+                and invalid_item_count == 0
+                and duplicate_item_count == 0
+                and count_not_overrun
+            ),
+            pagination_complete=pagination_complete,
             pages_fetched=pages_fetched,
             raw_item_count=raw_item_count,
+            invalid_item_count=invalid_item_count,
+            duplicate_item_count=duplicate_item_count,
+            unavailable_remote_count=unavailable_remote_count,
         )
 
     def preview_favorite_url(self, url: str) -> FavoriteSourcePreview:

@@ -98,8 +98,12 @@ class FavoriteScan(BaseModel):
     items: list[FavoriteItem]
     remote_total: int | None = None
     is_complete: bool = False
+    pagination_complete: bool = False
     pages_fetched: int = 0
     raw_item_count: int = 0
+    invalid_item_count: int = 0
+    duplicate_item_count: int = 0
+    unavailable_remote_count: int = 0
 
 
 class FavoriteSourcePreview(BaseModel):

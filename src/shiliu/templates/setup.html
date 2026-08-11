@@ -60,7 +60,7 @@
         <article>
           <div class="source-order">
             <span class="order-number">{{ loop.index }}</span>
-            <div><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>Source status: {{ source.status }} · Continuous sync: {{ 'ON' if source.continuous_sync else 'OFF' }}</small><small>Remote detected {{ source.remote_detected }} · Imported {{ source.imported }} · Completed {{ source.completed }} · Pending {{ source.pending }} · Failed {{ source.failed }} · Not backfilled {{ source.not_backfilled }}</small><small>History coverage: {{ source.history_coverage_label }} · {{ source.history_cutoff_label }} → now · Oldest covered favorite_time: {{ source.oldest_covered_favorite_time or 'unknown' }}</small></div>
+            <div><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>Source status: {{ source.status }} · Continuous sync: {{ 'ON' if source.continuous_sync else 'OFF' }}</small><small>Remote detected {{ source.remote_detected }} · Visible memberships {{ source.discovered_memberships }} · Remote unavailable {{ source.remote_unavailable }} · Imported {{ source.imported }} · Completed {{ source.completed }} · Pending {{ source.pending }} · Failed {{ source.failed }} · Not backfilled {{ source.not_backfilled }}</small><small>History coverage: {{ source.history_coverage_label }} · {{ source.history_cutoff_label }} → now · Oldest covered favorite_time: {{ source.oldest_covered_favorite_time or 'unknown' }}</small></div>
           </div>
           <div class="inline-actions">
             <select data-source-coverage="{{ source.id }}">

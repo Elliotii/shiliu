@@ -1114,7 +1114,8 @@ class Database:
             row = connection.execute(
                 """
                 SELECT
-                    COUNT(*) AS remote_detected,
+                    COALESCE(s.media_count, COUNT(m.bvid)) AS remote_detected,
+                    COUNT(m.bvid) AS discovered_memberships,
                     SUM(m.video_id IS NOT NULL) AS imported,
                     SUM(m.video_id IS NOT NULL AND v.status='completed') AS completed,
                     SUM(m.queued_history=1) AS pending_history,
@@ -1123,15 +1124,19 @@ class Database:
                     SUM(m.video_id IS NOT NULL AND v.status IN ('needs_review', 'failed')) AS failed,
                     SUM(m.video_id IS NULL AND m.queued_history=0) AS not_backfilled,
                     MIN(CASE WHEN m.video_id IS NOT NULL THEN m.favorite_time END) AS oldest_covered_favorite_time
-                FROM video_source_memberships m
+                FROM favorite_sources s
+                LEFT JOIN video_source_memberships m
+                    ON m.source_id=s.id AND m.removed_at IS NULL
                 LEFT JOIN videos v ON v.id=m.video_id
-                WHERE m.source_id=? AND m.removed_at IS NULL
+                WHERE s.id=?
+                GROUP BY s.id
                 """,
                 (source_db_id,),
             ).fetchone()
         values = dict(row) if row else {}
         for key in (
             "remote_detected",
+            "discovered_memberships",
             "imported",
             "completed",
             "pending_history",
@@ -1140,6 +1145,9 @@ class Database:
             "not_backfilled",
         ):
             values[key] = int(values.get(key) or 0)
+        values["remote_unavailable"] = max(
+            0, values["remote_detected"] - values["discovered_memberships"]
+        )
         values["pending"] = values["pending_history"] + values["pending_pipeline"]
         return values
 

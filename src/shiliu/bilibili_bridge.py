@@ -158,6 +158,7 @@ async def fetch_favorite_scan(folder_id: int) -> dict[str, Any]:
     return {
         "folder_id": folder_id,
         "remote_total": remote_total,
+        "pagination_complete": True,
         "pages_fetched": page,
         "raw_item_count": len(items),
         "items": items,

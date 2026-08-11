@@ -263,6 +263,8 @@ class OnboardingRunner:
             "fts_units": fts,
             "removed_memberships": removed,
             "remote_detected": int(metrics["remote_detected"]),
+            "visible_memberships": int(metrics["discovered_memberships"]),
+            "remote_unavailable": int(metrics["remote_unavailable"]),
             "imported": int(metrics["imported"]),
             "completed": int(metrics["completed"]),
             "pending": int(metrics["pending"]),
@@ -285,7 +287,8 @@ class OnboardingRunner:
             row = connection.execute(
                 """
                 SELECT
-                  COALESCE(s.media_count, COUNT(m.id)) AS remote_detected,
+                  COALESCE(s.media_count, COUNT(m.bvid)) AS remote_detected,
+                  COUNT(m.bvid) AS discovered_memberships,
                   SUM(m.video_id IS NOT NULL) AS imported,
                   SUM(v.status='completed') AS completed,
                   SUM(m.queued_history=1) AS pending_history,
@@ -306,6 +309,7 @@ class OnboardingRunner:
         value = dict(row)
         for key in (
             "remote_detected",
+            "discovered_memberships",
             "imported",
             "completed",
             "pending_history",
@@ -314,6 +318,9 @@ class OnboardingRunner:
             "not_backfilled",
         ):
             value[key] = int(value.get(key) or 0)
+        value["remote_unavailable"] = max(
+            0, int(value["remote_detected"]) - int(value["discovered_memberships"])
+        )
         value["pending"] = int(value["pending_history"]) + int(value["pending_pipeline"])
         return value
 

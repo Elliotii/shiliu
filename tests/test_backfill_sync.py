@@ -304,6 +304,7 @@ def test_bilibili_scan_exposes_completeness_and_rejects_count_mismatch(tmp_path:
     scan_payload = {
         "items": [favorite(1, 200).model_dump(), favorite(2, 100).model_dump()],
         "remote_total": 2,
+        "pagination_complete": True,
         "pages_fetched": 2,
     }
     bridge_calls: list[tuple[list[str], int | None]] = []
@@ -322,12 +323,28 @@ def test_bilibili_scan_exposes_completeness_and_rejects_count_mismatch(tmp_path:
     scan_payload = {
         "items": [favorite(1, 200).model_dump()],
         "remote_total": 2,
+        "pagination_complete": True,
         "pages_fetched": 1,
     }
+    visibility_gap = adapter.list_favorite_scan(1)
+    assert visibility_gap.is_complete is True
+    assert visibility_gap.unavailable_remote_count == 1
+
+    scan_payload["pagination_complete"] = False
     mismatch = adapter.list_favorite_scan(1)
     assert mismatch.is_complete is False
     with pytest.raises(PipelineError, match="不完整"):
         adapter.list_favorite_items(1)
+
+    scan_payload = {
+        "items": [favorite(1, 200).model_dump(), favorite(1, 200).model_dump()],
+        "remote_total": 2,
+        "pagination_complete": True,
+        "pages_fetched": 1,
+    }
+    duplicate = adapter.list_favorite_scan(1)
+    assert duplicate.is_complete is False
+    assert duplicate.duplicate_item_count == 1
 
 
 def test_source_ui_reports_metrics_and_updates_history_coverage(app_paths) -> None:
@@ -346,6 +363,7 @@ def test_source_ui_reports_metrics_and_updates_history_coverage(app_paths) -> No
     page = client.get("/setup")
     assert page.status_code == 200
     assert "Remote detected 3" in page.text
+    assert "Remote unavailable 0" in page.text
     assert "Imported 0" in page.text
     assert "Not backfilled 0" in page.text
     assert "Latest 100" in page.text
