@@ -358,3 +358,49 @@ def test_source_ui_reports_metrics_and_updates_history_coverage(app_paths) -> No
     assert response.status_code == 200
     assert response.json()["history_pending"] == 0
     assert application.db.source_sync_metrics(source_id)["not_backfilled"] == 3
+
+
+def test_history_drain_reuses_pipeline_without_remote_scan(app_paths) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    source_id = db.create_favorite_source(
+        folder_id=1, folder_title="Drain", history_policy="all"
+    )
+    items = [favorite(index, 1000 - index) for index in range(1, 5)]
+    db.initialize_source_memberships(
+        source_id, items, authoritative=True, remote_total=len(items)
+    )
+
+    class Adapter:
+        def list_favorite_scan(self, folder_id: int):
+            raise AssertionError("history drain must not scan the remote source")
+
+    class Pipeline:
+        def __init__(self):
+            self.video_ids: list[int] = []
+
+        def begin_sync_cycle(self) -> None:
+            pass
+
+        def process_video(self, video_id: int) -> bool:
+            self.video_ids.append(video_id)
+            db.update_video(video_id, status="completed")
+            return True
+
+    pipeline = Pipeline()
+    service = SyncService(
+        db=db,
+        adapter=Adapter(),
+        pipeline=pipeline,
+        favorite_id=None,
+        lock_path=app_paths.sync_lock,
+        sleep=lambda _: None,
+        randint=lambda low, high: low,
+    )
+
+    result = service.drain_history(source_id, batch_limit=2)
+
+    assert result.processed_count == 2
+    assert len(pipeline.video_ids) == 2
+    assert len(db.list_history_backlog(limit=8, source_ids={source_id})) == 2
+    assert db.get_sync_run(int(result.run_id))["status"] == "completed"

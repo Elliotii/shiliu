@@ -156,6 +156,78 @@ class SyncService:
                 quiet_hours=quiet_hours,
             )
 
+    def drain_history(
+        self,
+        source_db_id: int,
+        *,
+        run_id: int | None = None,
+        batch_limit: int = 8,
+    ) -> SyncResult:
+        """Materialize one bounded history batch without rescanning the source.
+
+        Discovery and forward sync remain owned by :meth:`sync`.  This entry
+        point only advances memberships that were selected from an already
+        authoritative baseline, while reusing the global sync lock and normal
+        pipeline/index stages.
+        """
+        if batch_limit < 1:
+            raise ValueError("batch_limit must be positive")
+        result = SyncResult(mode=SyncMode.MANUAL, run_id=run_id)
+        begin_cycle = getattr(self.pipeline, "begin_sync_cycle", None)
+        if begin_cycle is not None:
+            begin_cycle()
+
+        with ProcessLock(self.lock_path):
+            self.db.recover_stale_sync_runs(exclude_run_id=run_id)
+            source = self.db.get_source(source_db_id)
+            if source is None or source.get("status") != "active":
+                raise PipelineError(
+                    "该来源未启用或正在等待人工处理",
+                    code="source_not_active",
+                    retryable=False,
+                )
+            active_run_id = run_id or self.db.start_sync_run(
+                SyncMode.MANUAL.value, scope_source_id=source_db_id
+            )
+            result.run_id = active_run_id
+            try:
+                self.db.update_sync_run(
+                    active_run_id,
+                    current_phase="history",
+                    message="正在继续导入已发现的历史内容",
+                )
+                self._process_history_backlog(
+                    active_run_id,
+                    result,
+                    source_ids={source_db_id},
+                    limit=batch_limit,
+                )
+                result.history_pending_count = self.db.history_pending_count()
+                status = (
+                    "completed" if result.failed_count == 0 else "completed_with_errors"
+                )
+                self.db.finish_sync_run(
+                    active_run_id,
+                    status=status,
+                    processed_count=result.processed_count,
+                    failed_count=result.failed_count,
+                    history_pending_count=result.history_pending_count,
+                    current_phase="completed",
+                    message="历史导入批次完成",
+                )
+                return result
+            except Exception as exc:
+                self.db.finish_sync_run(
+                    active_run_id,
+                    status="failed",
+                    processed_count=result.processed_count,
+                    failed_count=result.failed_count,
+                    history_pending_count=self.db.history_pending_count(),
+                    current_phase="failed",
+                    error_summary=f"{type(exc).__name__}: {exc}",
+                )
+                raise
+
     def _sync_sources(
         self,
         result: SyncResult,
@@ -387,9 +459,14 @@ class SyncService:
                 result.processed_count += 1
 
     def _process_history_backlog(
-        self, run_id: int, result: SyncResult, *, source_ids: set[int] | None = None
+        self,
+        run_id: int,
+        result: SyncResult,
+        *,
+        source_ids: set[int] | None = None,
+        limit: int = 8,
     ) -> None:
-        backlog = self.db.list_history_backlog(limit=8, source_ids=source_ids)
+        backlog = self.db.list_history_backlog(limit=limit, source_ids=source_ids)
         for index, membership in enumerate(backlog):
             video_id = self.db.materialize_history_membership(
                 int(membership["source_id"]), str(membership["bvid"])

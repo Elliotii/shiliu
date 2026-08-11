@@ -369,6 +369,16 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             status_code=202,
         )
 
+    @web.post("/api/sources/{source_db_id}/history-drain")
+    async def drain_source_history(source_db_id: int, request: Request) -> JSONResponse:
+        core = _core(request)
+        if core.db.get_source(source_db_id) is None:
+            raise HTTPException(404, "来源不存在")
+        return JSONResponse(
+            _start_background_history_drain(request.app, core, source_db_id),
+            status_code=202,
+        )
+
     @web.get("/api/sync-runs/{run_id}")
     async def sync_run_status(run_id: int, request: Request) -> JSONResponse:
         run = _core(request).db.get_sync_run(run_id)
@@ -2133,6 +2143,36 @@ def _start_background_sync(app: FastAPI, core: Application, source_db_id: int | 
                     )
 
         thread = threading.Thread(target=target, name=f"shiliu-sync-{run_id}", daemon=True)
+        app.state.background_thread = thread
+        thread.start()
+    return {"ok": True, "run_id": run_id, "reused": False}
+
+
+def _start_background_history_drain(
+    app: FastAPI, core: Application, source_db_id: int
+) -> dict[str, Any]:
+    with app.state.background_lock:
+        active = core.db.active_sync_run()
+        if active is not None:
+            return {"ok": True, "run_id": int(active["id"]), "reused": True}
+        run_id = core.db.start_sync_run("manual", scope_source_id=source_db_id)
+
+        def target() -> None:
+            try:
+                core.sync_service.drain_history(source_db_id, run_id=run_id)
+            except Exception as exc:
+                run = core.db.get_sync_run(run_id)
+                if run and run.get("status") == "running":
+                    core.db.finish_sync_run(
+                        run_id,
+                        status="failed",
+                        current_phase="failed",
+                        error_summary=f"{type(exc).__name__}: {exc}",
+                    )
+
+        thread = threading.Thread(
+            target=target, name=f"shiliu-history-{run_id}", daemon=True
+        )
         app.state.background_thread = thread
         thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}
