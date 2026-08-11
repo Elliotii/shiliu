@@ -122,6 +122,14 @@ class NavigationDocument(_StrictModel):
     authority: Literal["navigation_only"] = "navigation_only"
 
 
+class DeepSearchExecutionReference(_StrictModel):
+    execution_id: str | None = None
+    search_trace_id: str = Field(min_length=1)
+    trace_persisted: bool = True
+    trace_error: dict[str, str] | None = None
+    query: str
+
+
 class ToolObservation(_StrictModel):
     kind: Literal["navigation", "transcript_search", "transcript_window"]
     summary: str = Field(max_length=1000)
@@ -131,7 +139,7 @@ class ToolObservation(_StrictModel):
     dropped_evidence_count: int = Field(default=0, ge=0)
     error: str | None = Field(default=None, max_length=500)
     latency_ms: float = Field(default=0, ge=0)
-    search_executions: list[dict[str, Any]] = Field(
+    search_executions: list[DeepSearchExecutionReference] = Field(
         default_factory=list, max_length=3
     )
 

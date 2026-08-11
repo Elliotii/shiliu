@@ -111,7 +111,7 @@ class AskService:
         all_spans = []
         stale_reasons: list[str] = []
         retrieval_errors: list[str] = []
-        executions = []
+        search_references: list[dict[str, object]] = []
         for query_index, query in enumerate(plan.queries):
             retrieval_request = ProductSearchRequest(
                 query=query,
@@ -125,7 +125,18 @@ class AskService:
                 execution = self.evidence_search.execute_search(
                     retrieval_request
                 )
-                executions.append(execution)
+                search_references.append(
+                    {
+                        "execution_id": execution.execution_id,
+                        "search_trace_id": execution.raw_response.trace_id,
+                        "trace_persisted": execution.raw_response.trace_persisted,
+                        "trace_error": execution.raw_response.trace_error,
+                        "query": execution.request.query,
+                        "relation_kind": (
+                            "original_query" if query_index == 0 else "rewrite"
+                        ),
+                    }
+                )
                 candidate_set = self.evidence_search.materialize_execution(
                     execution
                 )
@@ -136,6 +147,22 @@ class AskService:
                 stale_reasons.extend(result.stale_reasons)
             except Exception as exc:
                 retrieval_errors.append(f"{type(exc).__name__}: {exc}"[:500])
+                search_trace_id = getattr(exc, "trace_id", None)
+                if search_trace_id:
+                    search_references.append(
+                        {
+                            "execution_id": None,
+                            "search_trace_id": str(search_trace_id),
+                            "trace_persisted": bool(
+                                getattr(exc, "trace_persisted", True)
+                            ),
+                            "trace_error": None,
+                            "query": query,
+                            "relation_kind": (
+                                "original_query" if query_index == 0 else "rewrite"
+                            ),
+                        }
+                    )
 
         trace: dict[str, object] = {
             "run_id": run_id,
@@ -149,17 +176,7 @@ class AskService:
             "query_analysis_latency_ms": plan.latency_ms,
             "query_analysis_finish_reason": plan.finish_reason,
             "query_analysis_retry_count": plan.retry_count,
-            "search_executions": [
-                {
-                    "execution_id": value.execution_id,
-                    "search_trace_id": value.raw_response.trace_id,
-                    "query": value.request.query,
-                    "relation_kind": (
-                        "original_query" if index == 0 else "rewrite"
-                    ),
-                }
-                for index, value in enumerate(executions)
-            ],
+            "search_executions": search_references,
             "retrieval_errors": retrieval_errors,
             "stale_reasons": stale_reasons,
         }

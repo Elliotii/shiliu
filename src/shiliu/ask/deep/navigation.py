@@ -56,6 +56,8 @@ class NavigationService:
             {
                 "execution_id": f"navigation_execution_{uuid4().hex}",
                 "search_trace_id": response.trace_id,
+                "trace_persisted": response.trace_persisted,
+                "trace_error": response.trace_error,
                 "query": query,
             }
         ]
@@ -230,7 +232,7 @@ def _bounded(value: str, limit: int) -> str:
 class NavigationSearchDocuments(list[NavigationDocument]):
     def __init__(self, values=()) -> None:
         super().__init__(values)
-        self.search_executions: list[dict[str, str]] = []
+        self.search_executions: list[dict[str, object]] = []
 
 
 def _object_text(value: object) -> str:

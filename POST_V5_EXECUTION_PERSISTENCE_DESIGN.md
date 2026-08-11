@@ -35,7 +35,7 @@ An interrupted process leaves a durable `running` row, so the execution remains 
 Use three Ask-owned SQLite tables rather than a generic execution runtime:
 
 1. `ask_runs`: one canonical run row with searchable identity/lifecycle columns and bounded JSON payloads for request analysis, final evidence/result, usage, trace, and failure.
-2. `ask_search_trace_links`: ordered Ask-to-Search references. Search trace content remains exclusively in existing Search tables.
+2. `ask_search_trace_links`: ordered Ask-to-Search references plus the Search trace's persistence status/error. Search trace content remains exclusively in existing Search tables.
 3. `ask_events`: ordered, typed, bounded Deep diagnostic events. Fast does not synthesize workflow events.
 
 This is intentionally smaller than Research. JSON is appropriate for bounded versioned diagnostic/result shapes; identity, lifecycle, ordering, and lineage remain relational.
@@ -65,7 +65,7 @@ Ask records follow the product database's current durable retention behavior: no
 - Create the three new tables and indexes with idempotent `CREATE TABLE/INDEX IF NOT EXISTS` statements.
 - Do not rewrite Search or Research rows and do not add foreign keys to lazily-created Search tables.
 - Preserve the existing pre-migration backup convention.
-- Test a v15 temporary database containing Search and Research sentinels, initialize v16, verify preservation, then execute/read new Fast and Deep runs.
+- Test a v15-shaped temporary database containing Search and Research sentinels, initialize v16, verify preservation, then execute and restart-read new Fast and Deep runs.
 
 ## Design Gate
 

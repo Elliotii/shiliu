@@ -312,6 +312,10 @@ def _deep_search_executions(
                     "decision_sequence": decision_sequence,
                     "execution_id": reference.get("execution_id"),
                     "search_trace_id": reference["search_trace_id"],
+                    "trace_persisted": bool(
+                        reference.get("trace_persisted", True)
+                    ),
+                    "trace_error": reference.get("trace_error"),
                     "query": reference.get("query") or "",
                 }
             )

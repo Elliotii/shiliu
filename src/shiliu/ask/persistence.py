@@ -53,6 +53,8 @@ def initialize_ask_schema(connection: sqlite3.Connection) -> None:
             decision_sequence INTEGER,
             execution_id TEXT,
             search_trace_id TEXT NOT NULL,
+            trace_persisted INTEGER NOT NULL CHECK(trace_persisted IN (0, 1)),
+            trace_error TEXT,
             query TEXT NOT NULL,
             created_at TEXT NOT NULL,
             PRIMARY KEY(run_id, sequence)
@@ -130,6 +132,17 @@ class AskRunStore:
         completed_at = _utc_now()
         search_rows = [dict(value) for value in search_executions]
         event_rows = [dict(value) for value in events]
+        trace_payload = dict(trace)
+        for duplicated in (
+            "search_executions",
+            "events",
+            "final_evidence",
+            "citations",
+            "answer_blocks",
+            "limitations",
+            "provider_usage",
+        ):
+            trace_payload.pop(duplicated, None)
         with self.db.connect() as connection:
             cursor = connection.execute(
                 """
@@ -153,7 +166,7 @@ class AskRunStore:
                     _json(list(answer_blocks)),
                     _json(list(limitations)),
                     _json(dict(usage_summary)),
-                    _json(dict(trace)),
+                    _json(trace_payload),
                     run_id,
                 ),
             )
@@ -163,8 +176,9 @@ class AskRunStore:
                 """
                 INSERT INTO ask_search_trace_links(
                     run_id, sequence, relation_kind, decision_sequence,
-                    execution_id, search_trace_id, query, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                    execution_id, search_trace_id, trace_persisted,
+                    trace_error, query, created_at
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -174,6 +188,12 @@ class AskRunStore:
                         value.get("decision_sequence"),
                         value.get("execution_id"),
                         str(value["search_trace_id"]),
+                        int(bool(value.get("trace_persisted", True))),
+                        (
+                            _json(value["trace_error"])
+                            if value.get("trace_error") is not None
+                            else None
+                        ),
                         str(value.get("query") or ""),
                         completed_at,
                     )
@@ -199,19 +219,21 @@ class AskRunStore:
 
     def fail(self, run_id: str, error: Exception) -> None:
         completed_at = _utc_now()
+        termination_reason, failure_class = _failure_disposition(error)
         payload = {
             "error_type": type(error).__name__,
             "error_code": str(getattr(error, "code", type(error).__name__)),
+            "failure_class": failure_class,
             "message": str(error)[:500],
         }
         with self.db.connect() as connection:
             connection.execute(
                 """
                 UPDATE ask_runs SET completed_at=?, lifecycle_status='failed',
-                    termination_reason='provider_error', error_json=?
+                    termination_reason=?, error_json=?
                 WHERE run_id=? AND lifecycle_status='running'
                 """,
-                (completed_at, _json(payload), run_id),
+                (completed_at, termination_reason, _json(payload), run_id),
             )
 
     def get_trace(self, run_id: str) -> dict[str, Any] | None:
@@ -231,6 +253,11 @@ class AskRunStore:
                 "filters": record["filters"],
                 "termination_reason": record["termination_reason"],
                 "search_executions": record["search_executions"],
+                "final_evidence": record["final_evidence"],
+                "citations": record["citations"],
+                "answer_blocks": record["answer_blocks"],
+                "limitations": record["limitations"],
+                "provider_usage": record["usage_summary"],
             }
         )
         if record["answer_status"] is not None:
@@ -251,7 +278,7 @@ class AskRunStore:
             links = connection.execute(
                 """
                 SELECT sequence, relation_kind, decision_sequence, execution_id,
-                       search_trace_id, query
+                       search_trace_id, trace_persisted, trace_error, query
                 FROM ask_search_trace_links
                 WHERE run_id=? ORDER BY sequence
                 """,
@@ -275,7 +302,16 @@ class AskRunStore:
             "error",
         ):
             value[name] = json.loads(str(value.pop(f"{name}_json")))
-        value["search_executions"] = [dict(item) for item in links]
+        value["search_executions"] = []
+        for item in links:
+            link = dict(item)
+            link["trace_persisted"] = bool(link["trace_persisted"])
+            link["trace_error"] = (
+                json.loads(str(link["trace_error"]))
+                if link["trace_error"] is not None
+                else None
+            )
+            value["search_executions"].append(link)
         value["events"] = [json.loads(str(item["payload_json"])) for item in events]
         return value
 
@@ -286,6 +322,18 @@ def _json(value: Any) -> str:
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+
+
+def _failure_disposition(error: Exception) -> tuple[str, str]:
+    code = str(getattr(error, "code", type(error).__name__)).casefold()
+    if code == "deadline_exhausted" or "timeout" in code:
+        return "budget_exhausted", "infrastructure"
+    if code.startswith("provider_") or code in {
+        "invalid_model_output",
+        "bad_provider_config",
+    }:
+        return "provider_error", "provider"
+    return "implementation_error", "implementation"
 
 
 def final_evidence_identities(

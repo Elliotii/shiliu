@@ -183,11 +183,27 @@ class DeepSearchGraph:
                 latency_ms=max(0, (self.clock() - started) * 1000),
             )
         except Exception as exc:
+            search_trace_id = getattr(exc, "trace_id", None)
             observation = ToolObservation(
                 kind="navigation",
                 summary="navigation failed",
                 error=f"{type(exc).__name__}: {exc}"[:500],
                 latency_ms=max(0, (self.clock() - started) * 1000),
+                search_executions=(
+                    [
+                        {
+                            "execution_id": None,
+                            "search_trace_id": str(search_trace_id),
+                            "trace_persisted": bool(
+                                getattr(exc, "trace_persisted", True)
+                            ),
+                            "trace_error": None,
+                            "query": action.query,
+                        }
+                    ]
+                    if search_trace_id
+                    else []
+                ),
             )
         return {**state, "pending_observation": observation}
 
@@ -216,17 +232,35 @@ class DeepSearchGraph:
                     {
                         "execution_id": result.execution_id,
                         "search_trace_id": result.search_trace_id,
+                        "trace_persisted": result.trace_persisted,
+                        "trace_error": result.trace_error,
                         "query": result.query,
                     }
                 ],
                 latency_ms=max(0, (self.clock() - started) * 1000),
             )
         except Exception as exc:
+            search_trace_id = getattr(exc, "trace_id", None)
             observation = ToolObservation(
                 kind="transcript_search",
                 summary="transcript search failed",
                 error=f"{type(exc).__name__}: {exc}"[:500],
                 latency_ms=max(0, (self.clock() - started) * 1000),
+                search_executions=(
+                    [
+                        {
+                            "execution_id": None,
+                            "search_trace_id": str(search_trace_id),
+                            "trace_persisted": bool(
+                                getattr(exc, "trace_persisted", True)
+                            ),
+                            "trace_error": None,
+                            "query": action.query,
+                        }
+                    ]
+                    if search_trace_id
+                    else []
+                ),
             )
         return {**state, "pending_observation": observation}
 

@@ -41,3 +41,23 @@
 - Gate: Deep policy version, prompts, graph/checkpointer choice, budgets, tool actions, retrieval, finalizer, answer/citation semantics, and HTTP response shape are unchanged.
 - Known limit: Deep is diagnostically durable but intentionally not resumable after a crash.
 - Next: Goal 4 product alignment and full regression/forensic validation.
+
+## Goal 4 — complete
+
+- Product gradient: Search remains durable retrieval execution; Fast is durable answer execution; Deep is durable forensic Agent execution; Research remains the separate durable resumable workflow.
+- Final full isolated regression: 1,802 passed, 4 deselected, 7 existing deprecation warnings in 128.17s, with `PYTHONPATH` explicitly pinned to this worktree. No live-provider or external-artifact tests ran.
+- Migration: the v15 temporary DB test preserves Search and Research sentinels, creates the v16 Ask contract, retains the pre-v16 backup, and then supports new Ask records.
+- Restart: fresh Fast and Deep service instances recover query, understanding/decisions, ordered child Search references, adopted evidence, citations, answer, limitations, usage, status, and termination.
+- Forensic scenario: with only `ask_run_id`, the Fast restart test recovers the original query, normalized analysis and rewrites, three child Search traces joined to durable Search rows, final evidence/citation, answer, and termination. Deep provides the same plus ordered decisions/actions/observations and guards.
+- Degraded lineage: focused Fast and Deep tests force a failure after Search has persisted its trace and prove the error trace remains joined to the completed insufficient Ask run.
+- Semantics: all pre-existing deterministic Search, Fast, Deep, and Research suites pass; no retrieval, prompt, policy, budget, answer, citation, or Research runtime behavior was changed.
+- Next: Goal 5 closeout, independent read-only review, final checkpoint and handoff.
+
+## Goal 5 — ready for final checkpoint
+
+- Closeout: `POST_V5_EXECUTION_PERSISTENCE_CLOSEOUT.md` contains baseline, schema/migration, Fast/Deep behavior, Search/Research boundaries, tests, limitations/non-goals, and owner-only live integration instructions.
+- Independent review: fresh GPT-5.6 Sol/High read-only review found one High gap in failed Search lineage. The Main Owner applied a narrow fix, added Fast/Deep durable-error-trace join tests, and the bounded re-review confirmed the High resolved with no Blocking/High findings remaining.
+- Review follow-through: migrated v15-shaped DB tests now execute and restart-read both Fast and Deep; unexpected failures are classified; duplicate link/event/result copies were removed from `trace_json`; Search persistence status/error is retained beside each reference without copying Search payloads.
+- Verification: final exact-tree full suite is 1,802 passed, 4 deselected; compileall and `git diff --check` pass.
+- Live isolation: read-only recheck shows the live branch/HEAD and pre-existing Markdown-only status are unchanged.
+- Next: commit, push, report final branch HEAD, and stop.

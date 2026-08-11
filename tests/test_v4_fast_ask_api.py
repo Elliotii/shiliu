@@ -276,6 +276,8 @@ def test_fast_ask_is_durable_across_service_recreation(app_paths) -> None:
     }
     assert run["lifecycle_status"] == "completed"
     assert run["answer_status"] == "complete"
+    assert "search_executions" not in run["trace"]
+    assert "answer_blocks" not in run["trace"]
     assert run["query_analysis"]["entities"] == ["MCP"]
     assert run["rewrites"] == ["MCP", "RAG", "AI"]
     assert [value["relation_kind"] for value in run["search_executions"]] == [
@@ -283,6 +285,7 @@ def test_fast_ask_is_durable_across_service_recreation(app_paths) -> None:
         "rewrite",
         "rewrite",
     ]
+    assert all(value["trace_persisted"] for value in run["search_executions"])
     with core.db.connect() as connection:
         linked = connection.execute(
             """
@@ -294,6 +297,78 @@ def test_fast_ask_is_durable_across_service_recreation(app_paths) -> None:
             (body["run_id"],),
         ).fetchone()[0]
     assert linked == 3
+
+
+def test_fast_failed_retrieval_keeps_its_durable_search_trace_link(app_paths) -> None:
+    provider = _Provider()
+    core, _ = _application(app_paths, provider)
+    original = core.ask_service.evidence_search.execute_search
+
+    def searched_then_failed(request):
+        execution = original(request)
+        error = RuntimeError("post-search materialization failure")
+        error.trace_id = execution.raw_response.trace_id
+        raise error
+
+    core.ask_service.evidence_search.execute_search = searched_then_failed
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+    trace = core.ask_service.get_trace(body["run_id"])
+
+    assert body["status"] == "insufficient"
+    assert trace is not None
+    assert len(trace["search_executions"]) == 1
+    assert trace["retrieval_errors"] == [
+        "RuntimeError: post-search materialization failure"
+    ]
+    with core.db.connect() as connection:
+        linked = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM ask_search_trace_links l
+            JOIN retrieval_search_traces s ON s.trace_id=l.search_trace_id
+            WHERE l.run_id=?
+            """,
+            (body["run_id"],),
+        ).fetchone()[0]
+    assert linked == 1
+
+
+def test_fast_ask_executes_after_v15_database_migration(app_paths) -> None:
+    provider = _Provider()
+    core, _ = _application(app_paths, provider)
+    with core.db.connect() as connection:
+        connection.executescript(
+            """
+            DROP TABLE ask_events;
+            DROP TABLE ask_search_trace_links;
+            DROP TABLE ask_runs;
+            UPDATE schema_meta SET value='15' WHERE key='schema_version';
+            """
+        )
+    core.db.initialize()
+    core._ask_service = AskService(
+        db=core.db,
+        artifacts=core.artifacts,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+    restarted = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+    )
+
+    assert body["status"] == "complete"
+    assert restarted.get_trace(body["run_id"])["answer_blocks"] == body[
+        "answer_blocks"
+    ]
 
 
 def test_three_distinct_queries_execute_exactly_three_retrievals_and_keep_filters(
