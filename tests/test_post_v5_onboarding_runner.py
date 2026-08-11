@@ -101,7 +101,14 @@ def test_runner_retries_temporary_local_api_unavailability(tmp_path, monkeypatch
         }
 
     runner._post = post  # type: ignore[method-assign]
-    monkeypatch.setattr("scripts.run_post_v5_onboarding.time.sleep", lambda _: None)
+    wait_states = []
+
+    def fake_sleep(_):
+        wait_states.append(json.loads(settings.state_file.read_text(encoding="utf-8")))
+
+    monkeypatch.setattr("scripts.run_post_v5_onboarding.time.sleep", fake_sleep)
 
     assert runner._ensure_source() == 9
     assert calls == 3
+    assert wait_states[0]["status"] == "retry_wait"
+    assert wait_states[0]["error_code"] == "local_api_unavailable"

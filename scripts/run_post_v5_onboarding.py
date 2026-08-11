@@ -16,7 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -139,13 +139,26 @@ class OnboardingRunner:
                 last_error = exc
                 if exc.code not in retryable_codes or attempt >= self.settings.max_discovery_attempts:
                     raise
+                delay = (
+                    60
+                    if exc.code in {"incomplete_snapshot", "local_api_unavailable"}
+                    else self.settings.retry_seconds
+                )
+                retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
+                self._write_state(
+                    status="retry_wait",
+                    phase="latest_100",
+                    discovery_attempt=attempt,
+                    error_code=exc.code or "http_error",
+                    retry_at=retry_at.isoformat(timespec="seconds"),
+                )
                 self._event(
                     "discovery_retry_wait",
                     attempt=attempt,
                     code=exc.code or "http_error",
-                    seconds=self.settings.retry_seconds,
+                    seconds=delay,
                 )
-                time.sleep(self.settings.retry_seconds)
+                time.sleep(delay)
         assert last_error is not None
         raise last_error
 
