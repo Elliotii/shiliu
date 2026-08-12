@@ -71,3 +71,63 @@ adopt primary Thinking Off. The after-Fast sample was slower than the earlier sc
 sample, while bounded Deep was faster; more natural use is required before attributing
 latency change. The new recovery path is deterministically covered but was not induced
 against the live Provider.
+
+## Goal C — Real-corpus Library Scaling
+
+Related observations: RU-012 and RU-014.
+
+Root failure family: the home route loaded and enriched every membership card before
+first paint; Ask's hidden keyboard contract required Cmd/Ctrl+Enter for short queries.
+
+Bounded implementation:
+
+- Added a 40-card server-rendered keyset page using the existing exact ordering tuple:
+  effective favorite time descending, source position ascending, discovery time
+  descending, video ID descending and source ID ascending.
+- The opaque versioned cursor carries the complete unique ordering identity plus a
+  membership-row high-water mark. Before and after navigation use `page_size + 1`; the
+  home route loads Notes, ASR state and summary artifacts only for the returned page.
+  Note counts are also aggregated only for video IDs on that page.
+- Continuation excludes memberships inserted after the traversal began and derives each
+  pre-existing membership's source position at that boundary. This prevents a forward
+  sync in one folder from moving an already-seen non-anchor card behind a cursor anchored
+  in another folder, including equal-favorite-time interleaving.
+- Previous/Next links preserve `view` and `source`; all four views and existing
+  multi-folder membership-card semantics remain unchanged.
+- Ask now submits on Enter outside IME composition, keeps Shift+Enter as newline, retains
+  button and Cmd/Ctrl+Enter behavior, and exposes the keyboard hint. Existing empty and
+  in-flight guards remain in `executeAsk()`.
+
+Deterministic proof:
+
+- Library, Ask-page, Web boundary, v1 source semantics and backfill regressions: 59
+  passed.
+- A temporary SQLite corpus of 2,055 membership cards completed a full 40-card traversal
+  with no missing/duplicate pre-existing membership identities after a realistic full
+  forward-sync refresh inserted a new top favorite and shifted source positions.
+- A separate all-sources, two-folder equal-time regression inserts a new top card in the
+  non-anchor folder after page one and proves exact traversal of the eight boundary-time
+  memberships without duplicate or omission; the new card appears only in a new traversal.
+- Bidirectional page round-trip, bounded HTML, invalid cursor, all views, source filter,
+  multi-folder duplicates and reading/Mark/Notes/archive mutations are covered.
+- Ask checks execute the shared JavaScript keyboard decision for Enter, Cmd/Ctrl+Enter,
+  Shift, IME `isComposing`, keyCode 229 and non-Enter input; template/static checks cover
+  the visible hint plus the existing empty-input and in-flight submission guards.
+
+Live warm-machine measurement using the same local response-completion method as
+RU-012:
+
+| Page | Cards | HTML bytes | Response completion |
+|---|---:|---:|---:|
+| RU-012 baseline, unbounded | 2,055 | 8,465,186 | 8.69 s |
+| Current first page (2,209 active memberships) | 40 | 199,013 | 0.355 s |
+| Current second page (2,209 active memberships) | 40 | 292,741 | 0.336 s |
+
+Gate result: **PASS**. Initial payload is below 1 MB and both measured pages are below
+1.5 seconds by a wide margin. No cache, service/storage layer, pagination framework,
+frontend rewrite or schema change was added.
+
+Residual limitation: the row high-water mark and derived position form an
+insertion-stable traversal boundary, not a general database snapshot. Arbitrary
+concurrent edits to pre-existing favorite times or membership removal can still change
+page composition. View mutations intentionally change view membership on refresh.

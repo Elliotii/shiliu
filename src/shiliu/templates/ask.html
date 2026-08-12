@@ -15,6 +15,7 @@
       <textarea id="ask-query" name="q" rows="3" maxlength="500" placeholder="例如：MCP 如何连接模型与外部工具？"></textarea>
       <button class="primary ask-submit" type="submit" data-ask-submit>开始回答</button>
     </div>
+    <p class="ask-keyboard-hint">Enter 提交 · Shift+Enter 换行 · 中文输入法选字时不会提交</p>
 
     <fieldset class="mode-selector" data-mode-selector>
       <legend>回答方式</legend>
@@ -143,4 +144,4 @@
   </section>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/ask.js?v=2"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/ask-keyboard.js?v=1"></script><script src="/static/ask.js?v=3"></script>{% endblock %}

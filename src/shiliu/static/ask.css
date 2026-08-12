@@ -4,6 +4,7 @@
 .ask-query-label{display:block;margin-bottom:10px;color:var(--ink);font:600 17px/1.3 Georgia,"Songti SC",serif}
 .ask-query-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px}
 .ask-query-row textarea{width:100%;min-width:0;resize:vertical;border:1px solid var(--line);border-radius:2px;background:#fff;padding:16px 18px;color:var(--ink);font:17px/1.55 Inter,"PingFang SC",sans-serif}
+.ask-keyboard-hint{margin:8px 0 0;color:var(--muted);font-size:11px}
 .ask-submit{min-width:112px;height:48px}.mode-selector{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:0;margin:20px 0 0;padding:0}
 .mode-selector legend{width:100%;margin-bottom:9px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.06em}
 .mode-option{position:relative;display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);padding:14px;cursor:pointer}

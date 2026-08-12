@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import html
 import json
 import re
@@ -9,6 +11,7 @@ from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 import markdown
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
@@ -28,7 +31,7 @@ from shiliu.config import (
     save_config,
     store_api_key,
 )
-from shiliu.db import Database
+from shiliu.db import Database, LibraryCardCursor, library_card_cursor
 from shiliu.domain import FavoriteScan, PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
@@ -87,6 +90,67 @@ from shiliu.stage5 import Stage5PipelineRequest
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
+LIBRARY_PAGE_SIZE = 40
+_LIBRARY_CURSOR_VERSION = 2
+
+
+def _encode_library_cursor(cursor: LibraryCardCursor) -> str:
+    payload = json.dumps(
+        [_LIBRARY_CURSOR_VERSION, *cursor],
+        ensure_ascii=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_library_cursor(value: str | None) -> LibraryCardCursor | None:
+    if value is None:
+        return None
+    try:
+        padding = "=" * (-len(value) % 4)
+        payload = json.loads(
+            base64.b64decode(
+                value + padding,
+                altchars=b"-_",
+                validate=True,
+            ).decode("utf-8")
+        )
+    except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Invalid library cursor") from exc
+    if (
+        not isinstance(payload, list)
+        or len(payload) != 7
+        or payload[0] != _LIBRARY_CURSOR_VERSION
+        or not all(isinstance(payload[index], int) for index in (1, 2, 4, 5, 6))
+        or not isinstance(payload[3], str)
+        or not payload[3]
+    ):
+        raise ValueError("Invalid library cursor")
+    return (
+        payload[1],
+        payload[2],
+        payload[3],
+        payload[4],
+        payload[5],
+        payload[6],
+    )
+
+
+def _library_page_url(
+    *,
+    view: str,
+    source_db_id: int | None,
+    after: LibraryCardCursor | None = None,
+    before: LibraryCardCursor | None = None,
+) -> str:
+    params: list[tuple[str, str]] = [("view", view)]
+    if source_db_id is not None:
+        params.append(("source", str(source_db_id)))
+    if after is not None:
+        params.append(("after", _encode_library_cursor(after)))
+    if before is not None:
+        params.append(("before", _encode_library_cursor(before)))
+    return f"/?{urlencode(params)}"
 
 
 class ProviderRequest(BaseModel):
@@ -186,7 +250,19 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             selected_view = "feed"
         selected_source = request.query_params.get("source")
         source_db_id = int(selected_source) if selected_source and selected_source.isdigit() else None
-        rows = core.db.list_video_cards(view=selected_view, source_db_id=source_db_id)
+        try:
+            after = _decode_library_cursor(request.query_params.get("after"))
+            before = _decode_library_cursor(request.query_params.get("before"))
+            page = core.db.page_video_cards(
+                view=selected_view,
+                source_db_id=source_db_id,
+                page_size=LIBRARY_PAGE_SIZE,
+                after=after,
+                before=before,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        rows = page.items
         notes_by_video = core.db.list_notes_for_videos([int(item["id"]) for item in rows])
         cards = [
             _video_view(core, item, notes=notes_by_video.get(int(item["id"]), []))
@@ -203,6 +279,26 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 "selected_source": source_db_id,
                 "selected_view": selected_view,
                 "history_pending_count": core.db.history_pending_count(),
+                "page_size": LIBRARY_PAGE_SIZE,
+                "page_item_count": len(rows),
+                "previous_page_url": (
+                    _library_page_url(
+                        view=selected_view,
+                        source_db_id=source_db_id,
+                        before=library_card_cursor(rows[0]),
+                    )
+                    if page.has_previous and rows
+                    else None
+                ),
+                "next_page_url": (
+                    _library_page_url(
+                        view=selected_view,
+                        source_db_id=source_db_id,
+                        after=library_card_cursor(rows[-1]),
+                    )
+                    if page.has_next and rows
+                    else None
+                ),
             },
         )
 

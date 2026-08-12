@@ -100,5 +100,12 @@
   {% else %}
   <section class="empty-state"><p>{% if selected_view == 'marked' %}还没有 Mark 内容。{% elif selected_view == 'noted' %}还没有笔记。{% elif selected_view == 'archived' %}归档是空的。{% else %}还没有新增内容。{% endif %}</p><span>{% if selected_view == 'feed' %}完成设置后，新收藏的视频会从这里开始出现。{% else %}你可以从内容流中逐条设置。{% endif %}</span></section>
   {% endif %}
+  {% if previous_page_url or next_page_url %}
+  <nav class="library-pagination" aria-label="内容流分页">
+    {% if previous_page_url %}<a class="secondary" href="{{ previous_page_url }}">上一页</a>{% else %}<span></span>{% endif %}
+    <span>本页 {{ page_item_count }} 条 · 每页最多 {{ page_size }} 条</span>
+    {% if next_page_url %}<a class="secondary" href="{{ next_page_url }}">下一页</a>{% else %}<span></span>{% endif %}
+  </nav>
+  {% endif %}
 </main>
 {% endblock %}

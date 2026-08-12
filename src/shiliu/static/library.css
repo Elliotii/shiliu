@@ -41,4 +41,8 @@
 .video-card.is-ignored .library-controls { margin: 0; }
 .collapse-summary { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 22px; padding: 11px 0 2px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--green); font: 650 12px/1 Inter,"PingFang SC",sans-serif; cursor: pointer; }
 .collapse-summary svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.library-pagination { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; margin-top: 34px; }
+.library-pagination > :last-child { justify-self: end; }
+.library-pagination > span { color: var(--muted); font-size: 12px; text-align: center; }
+.library-pagination a { text-decoration: none; justify-self: start; }
 @media(max-width:700px) { nav { gap: 10px; overflow-x: auto; } .library-controls { align-items: stretch; flex-wrap: wrap; } .reading-switch { min-width: 100%; order: 2; } }

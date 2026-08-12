@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
@@ -19,6 +20,27 @@ from shiliu.research.schema import (
 
 
 SCHEMA_VERSION = 16
+
+LibraryCardCursor = tuple[int, int, str, int, int, int]
+
+
+@dataclass(frozen=True)
+class LibraryCardPage:
+    items: list[dict[str, Any]]
+    has_previous: bool
+    has_next: bool
+    snapshot_rowid: int
+
+
+def library_card_cursor(row: dict[str, Any]) -> LibraryCardCursor:
+    return (
+        int(row["card_order_favorite_time"]),
+        int(row["card_order_source_position_desc"]),
+        str(row["discovered_at"]),
+        int(row["id"]),
+        int(row["card_order_source_id_desc"]),
+        int(row["card_snapshot_rowid"]),
+    )
 
 
 def utc_now() -> str:
@@ -1418,27 +1440,92 @@ class Database:
         view: str = "feed",
         source_db_id: int | None = None,
     ) -> list[dict[str, Any]]:
+        return self.page_video_cards(
+            view=view,
+            source_db_id=source_db_id,
+            page_size=None,
+        ).items
+
+    def page_video_cards(
+        self,
+        *,
+        view: str = "feed",
+        source_db_id: int | None = None,
+        page_size: int | None = 40,
+        after: LibraryCardCursor | None = None,
+        before: LibraryCardCursor | None = None,
+    ) -> LibraryCardPage:
         conditions = {
             "feed": "v.archived_at IS NULL",
             "marked": "v.archived_at IS NULL AND v.is_marked=1",
-            "noted": "v.archived_at IS NULL AND COALESCE(n.note_count, 0)>0",
+            "noted": (
+                "v.archived_at IS NULL AND EXISTS "
+                "(SELECT 1 FROM video_notes vn WHERE vn.video_id=v.id)"
+            ),
             "archived": "v.archived_at IS NOT NULL",
         }
         if view not in conditions:
             raise ValueError("Unsupported library view")
+        if after is not None and before is not None:
+            raise ValueError("Library page accepts only one cursor direction")
+        if page_size is not None and not 1 <= page_size <= 200:
+            raise ValueError("Library page size must be between 1 and 200")
+        snapshot_rowid = (
+            after[5]
+            if after is not None
+            else before[5]
+            if before is not None
+            else self._library_membership_snapshot_rowid()
+        )
+        if after is not None:
+            after = self._refresh_library_card_cursor(after)
+        if before is not None:
+            before = self._refresh_library_card_cursor(before)
         params: list[Any] = []
         source_clause = ""
         if source_db_id is not None:
             source_clause = " AND m.source_id=?"
             params.append(source_db_id)
+        params.append(snapshot_rowid)
+        snapshot_position = f"""
+            COALESCE(m.source_position, -1) - (
+                SELECT COUNT(*)
+                FROM video_source_memberships newer
+                WHERE newer.source_id=m.source_id
+                  AND newer.rowid>{snapshot_rowid}
+                  AND newer.removed_at IS NULL
+                  AND newer.video_id IS NOT NULL
+                  AND COALESCE(newer.source_position, -1)
+                      < COALESCE(m.source_position, -1)
+            )
+        """
+        order_values = """
+            COALESCE(
+                m.favorite_time,
+                v.display_favorite_time,
+                CAST(strftime('%s', m.first_observed_at) AS INTEGER),
+                0
+            ),
+            -({snapshot_position}),
+            v.discovered_at,
+            v.id,
+            -m.source_id
+        """.format(snapshot_position=snapshot_position)
+        cursor_clause = ""
+        if after is not None:
+            cursor_clause = f" AND ({order_values}) < (?, ?, ?, ?, ?)"
+            params.extend(after[:5])
+        elif before is not None:
+            cursor_clause = f" AND ({order_values}) > (?, ?, ?, ?, ?)"
+            params.extend(before[:5])
+        order_direction = "ASC" if before is not None else "DESC"
+        limit_clause = ""
+        if page_size is not None:
+            limit_clause = " LIMIT ?"
+            params.append(page_size + 1)
         with self.connect() as connection:
             rows = connection.execute(
                 f"""
-                WITH note_counts AS (
-                    SELECT video_id, COUNT(*) AS note_count
-                    FROM video_notes
-                    GROUP BY video_id
-                )
                 SELECT v.*,
                        m.source_id AS card_source_id,
                        m.favorite_time AS card_favorite_time,
@@ -1448,29 +1535,145 @@ class Database:
                        s.account_name AS card_account_name,
                        s.folder_id AS card_folder_id,
                        s.folder_title AS card_folder_title,
-                       COALESCE(n.note_count, 0) AS note_count
-                FROM video_source_memberships m
-                JOIN videos v ON v.id=m.video_id
-                JOIN favorite_sources s ON s.id=m.source_id
-                LEFT JOIN note_counts n ON n.video_id=v.id
-                WHERE m.removed_at IS NULL
-                  AND m.video_id IS NOT NULL
-                  AND {conditions[view]}
-                  {source_clause}
-                ORDER BY COALESCE(
+                       COALESCE(
                            m.favorite_time,
                            v.display_favorite_time,
                            CAST(strftime('%s', m.first_observed_at) AS INTEGER),
                            0
-                         ) DESC,
-                         m.source_position ASC,
-                         v.discovered_at DESC,
-                         v.id DESC,
-                         m.source_id ASC
+                       ) AS card_order_favorite_time,
+                       -({snapshot_position})
+                           AS card_order_source_position_desc,
+                       -m.source_id AS card_order_source_id_desc,
+                       {snapshot_rowid} AS card_snapshot_rowid
+                FROM video_source_memberships m
+                JOIN videos v ON v.id=m.video_id
+                JOIN favorite_sources s ON s.id=m.source_id
+                WHERE m.removed_at IS NULL
+                  AND m.video_id IS NOT NULL
+                  AND {conditions[view]}
+                  {source_clause}
+                  AND m.rowid<=?
+                  {cursor_clause}
+                ORDER BY COALESCE(
+                             m.favorite_time,
+                             v.display_favorite_time,
+                             CAST(strftime('%s', m.first_observed_at) AS INTEGER),
+                             0
+                         ) {order_direction},
+                         -({snapshot_position}) {order_direction},
+                         v.discovered_at {order_direction},
+                         v.id {order_direction},
+                         -m.source_id {order_direction}
+                {limit_clause}
                 """,
                 params,
             ).fetchall()
-        return [dict(row) for row in rows]
+        values = [dict(row) for row in rows]
+        if page_size is None:
+            return self._finish_library_card_page(
+                values,
+                has_previous=False,
+                has_next=False,
+                snapshot_rowid=snapshot_rowid,
+            )
+        if before is not None:
+            has_previous = len(values) > page_size
+            return self._finish_library_card_page(
+                list(reversed(values[:page_size])),
+                has_previous=has_previous,
+                has_next=True,
+                snapshot_rowid=snapshot_rowid,
+            )
+        has_next = len(values) > page_size
+        return self._finish_library_card_page(
+            values[:page_size],
+            has_previous=after is not None,
+            has_next=has_next,
+            snapshot_rowid=snapshot_rowid,
+        )
+
+    def _library_membership_snapshot_rowid(self) -> int:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT COALESCE(MAX(rowid), 0) FROM video_source_memberships"
+            ).fetchone()
+        return int(row[0])
+
+    def _finish_library_card_page(
+        self,
+        items: list[dict[str, Any]],
+        *,
+        has_previous: bool,
+        has_next: bool,
+        snapshot_rowid: int,
+    ) -> LibraryCardPage:
+        note_counts: dict[int, int] = {}
+        video_ids = sorted({int(item["id"]) for item in items})
+        if video_ids:
+            placeholders = ",".join("?" for _ in video_ids)
+            with self.connect() as connection:
+                rows = connection.execute(
+                    f"""
+                    SELECT video_id, COUNT(*) AS note_count
+                    FROM video_notes
+                    WHERE video_id IN ({placeholders})
+                    GROUP BY video_id
+                    """,
+                    video_ids,
+                ).fetchall()
+            note_counts = {int(row["video_id"]): int(row["note_count"]) for row in rows}
+        for item in items:
+            item["note_count"] = note_counts.get(int(item["id"]), 0)
+            item["card_snapshot_rowid"] = snapshot_rowid
+        return LibraryCardPage(
+            items=items,
+            has_previous=has_previous,
+            has_next=has_next,
+            snapshot_rowid=snapshot_rowid,
+        )
+
+    def _refresh_library_card_cursor(
+        self,
+        cursor: LibraryCardCursor,
+    ) -> LibraryCardCursor:
+        """Re-anchor a cursor after forward sync updates membership positions."""
+
+        video_id = cursor[3]
+        source_db_id = -cursor[4]
+        snapshot_rowid = cursor[5]
+        snapshot_position = f"""
+            COALESCE(m.source_position, -1) - (
+                SELECT COUNT(*)
+                FROM video_source_memberships newer
+                WHERE newer.source_id=m.source_id
+                  AND newer.rowid>{snapshot_rowid}
+                  AND newer.removed_at IS NULL
+                  AND newer.video_id IS NOT NULL
+                  AND COALESCE(newer.source_position, -1)
+                      < COALESCE(m.source_position, -1)
+            )
+        """
+        with self.connect() as connection:
+            row = connection.execute(
+                f"""
+                SELECT v.id, v.discovered_at, m.source_id AS card_source_id,
+                       COALESCE(
+                           m.favorite_time,
+                           v.display_favorite_time,
+                           CAST(strftime('%s', m.first_observed_at) AS INTEGER),
+                           0
+                       ) AS card_order_favorite_time,
+                       -({snapshot_position})
+                           AS card_order_source_position_desc,
+                       -m.source_id AS card_order_source_id_desc,
+                       {snapshot_rowid} AS card_snapshot_rowid
+                FROM video_source_memberships m
+                JOIN videos v ON v.id=m.video_id
+                WHERE v.id=? AND m.source_id=? AND m.rowid<=?
+                """,
+                (video_id, source_db_id, snapshot_rowid),
+            ).fetchone()
+        return library_card_cursor(dict(row)) if row is not None else cursor
 
     def set_reading_state(self, video_id: int, state: str) -> None:
         now = utc_now()

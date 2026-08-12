@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -42,18 +45,48 @@ def test_ask_page_is_primary_shared_fast_deep_entry(app_paths) -> None:
     assert '<a href="/search">搜索证据</a>' in home.text
 
 
+def test_ask_keyboard_submission_decision_executes_in_javascript() -> None:
+    module_path = (
+        Path(__file__).parents[1] / "src" / "shiliu" / "static" / "ask-keyboard.js"
+    )
+    script = """
+const keyboard = require(process.argv[1]);
+const cases = [
+  {key: 'Enter', shiftKey: false, isComposing: false, keyCode: 13},
+  {key: 'Enter', shiftKey: false, isComposing: false, keyCode: 13, metaKey: true},
+  {key: 'Enter', shiftKey: false, isComposing: false, keyCode: 13, ctrlKey: true},
+  {key: 'Enter', shiftKey: true, isComposing: false, keyCode: 13},
+  {key: 'Enter', shiftKey: false, isComposing: true, keyCode: 13},
+  {key: 'Enter', shiftKey: false, isComposing: false, keyCode: 229},
+  {key: 'a', shiftKey: false, isComposing: false, keyCode: 65},
+];
+process.stdout.write(JSON.stringify(cases.map(keyboard.shouldSubmitOnEnter)));
+"""
+
+    result = subprocess.run(
+        ["node", "-e", script, str(module_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout == "[true,true,true,false,false,false,false]"
+
+
 def test_ask_static_resources_expose_safe_state_and_shared_evidence_contract(
     app_paths,
 ) -> None:
     client = TestClient(create_web_app(Application(app_paths)))
 
     ask_js = client.get("/static/ask.js")
+    keyboard_js = client.get("/static/ask-keyboard.js")
     evidence_js = client.get("/static/evidence-ui.js")
     ask_css = client.get("/static/ask.css")
     evidence_css = client.get("/static/evidence-ui.css")
 
     assert (
         ask_js.status_code
+        == keyboard_js.status_code
         == evidence_js.status_code
         == ask_css.status_code
         == evidence_css.status_code
@@ -74,11 +107,19 @@ def test_ask_static_resources_expose_safe_state_and_shared_evidence_contract(
     assert "response.status === 404" in source
     assert "fetch(`/api/ask/traces/" in source
     assert "window.__shiliuAsk" in source
+    assert "shouldSubmitOnEnter" in source
+    assert "!event.shiftKey" in keyboard_js.text
+    assert "!event.isComposing" in keyboard_js.text
+    assert "event.keyCode !== 229" in keyboard_js.text
+    assert "if (!state.q)" in source
+    assert "if (submitButton.disabled) return" in source
+    assert "submitButton.disabled = true" in source
     assert "renderEvidenceCard" in source
     assert "card.closest('.citation-extra[hidden]')" in source
     assert "toggle.setAttribute('aria-expanded', 'true')" in source
     assert "window.ShiliuEvidenceUI" in evidence_js.text
     assert ".is-citation-target" in evidence_css.text
+    assert "Enter 提交 · Shift+Enter 换行" in client.get("/ask").text
 
 
 def test_ui_fixture_covers_shared_renderer_states_trace_404_and_search() -> None:

@@ -1,9 +1,11 @@
 (() => {
   const root = document.querySelector('[data-ask-page]');
   const evidenceUI = window.ShiliuEvidenceUI;
-  if (!root || !evidenceUI) return;
+  const askKeyboard = window.ShiliuAskKeyboard;
+  if (!root || !evidenceUI || !askKeyboard) return;
 
   const {element, formatTime, renderEvidenceCard, sourceLabels} = evidenceUI;
+  const {shouldSubmitOnEnter} = askKeyboard;
   const form = root.querySelector('[data-ask-form]');
   const queryInput = form.elements.q;
   const submitButton = root.querySelector('[data-ask-submit]');
@@ -491,7 +493,7 @@
   });
   form.addEventListener('change', updateFilterCount);
   queryInput.addEventListener('keydown', event => {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+    if (shouldSubmitOnEnter(event)) {
       event.preventDefault();
       executeAsk();
     }
@@ -543,5 +545,5 @@
 
   restoreForm();
   showState('idle');
-  window.__shiliuAsk = {execute: executeAsk, formState};
+  window.__shiliuAsk = {execute: executeAsk, formState, shouldSubmitOnEnter};
 })();
