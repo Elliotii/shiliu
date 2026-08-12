@@ -411,7 +411,7 @@ def test_feedback_expected_hash_cross_task_payload_and_fault_fail_closed(app_pat
 def test_zero_table_composition_and_workspace_feedback_do_not_change_products(app_paths) -> None:
     core = _core(app_paths)
     task_id, fact, _, page = _vertical(core, "stage5-noninterference")
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     with core.db.connect() as connection:
         stage5_tables = connection.execute(
             "SELECT name FROM sqlite_schema WHERE type='table' AND "

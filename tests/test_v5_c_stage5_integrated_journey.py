@@ -117,7 +117,7 @@ def test_stage5_paired_journey_compact_off_rollback_restart_and_noninterference(
 ) -> None:
     core = _core(app_paths)
     task_id, _, _, _ = _vertical(core, "v5c-stage5-journey")
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     product_full_before = core.research_product.get_task(task_id)
     product_before = _product_authority(product_full_before)
     counts_before = _database_counts(core)

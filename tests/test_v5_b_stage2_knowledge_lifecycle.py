@@ -313,12 +313,12 @@ def _insert_second_fact(
 
 def test_stage2_schema_source_is_reentrant_and_v11_page_rows_migrate(app_paths) -> None:
     core = _core(app_paths)
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     core.db.initialize()
     with core.db.connect() as connection:
         assert connection.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "15"
+        ).fetchone()[0] == "16"
         tables = {
             str(row[0])
             for row in connection.execute(

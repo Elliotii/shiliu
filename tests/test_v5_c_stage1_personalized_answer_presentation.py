@@ -140,7 +140,7 @@ def test_stage1_paired_profile_disable_restore_tombstone_and_noninterference(
 ) -> None:
     core = _core(app_paths)
     task_id, _, _, _ = _vertical(core, "v5c-stage1-paired")
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     schema_before = _schema_identity(core)
     product_before = _product_authority(core.research_product.get_task(task_id))
 

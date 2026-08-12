@@ -243,6 +243,10 @@ class DeepStateReducer:
                 "evidence_count": len(updated["evidence_spans"]),
                 "latency_ms": observation.latency_ms,
                 "dropped_evidence_count": observation.dropped_evidence_count,
+                "search_executions": [
+                    value.model_dump(mode="json")
+                    for value in observation.search_executions
+                ],
             }
         )
         if (

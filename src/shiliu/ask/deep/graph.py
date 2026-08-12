@@ -177,14 +177,33 @@ class DeepSearchGraph:
                 kind="navigation",
                 summary=f"navigation returned {len(documents)} videos",
                 navigation_documents=documents,
+                search_executions=list(
+                    getattr(documents, "search_executions", [])
+                ),
                 latency_ms=max(0, (self.clock() - started) * 1000),
             )
         except Exception as exc:
+            search_trace_id = getattr(exc, "trace_id", None)
             observation = ToolObservation(
                 kind="navigation",
                 summary="navigation failed",
                 error=f"{type(exc).__name__}: {exc}"[:500],
                 latency_ms=max(0, (self.clock() - started) * 1000),
+                search_executions=(
+                    [
+                        {
+                            "execution_id": None,
+                            "search_trace_id": str(search_trace_id),
+                            "trace_persisted": bool(
+                                getattr(exc, "trace_persisted", True)
+                            ),
+                            "trace_error": None,
+                            "query": action.query,
+                        }
+                    ]
+                    if search_trace_id
+                    else []
+                ),
             )
         return {**state, "pending_observation": observation}
 
@@ -209,14 +228,39 @@ class DeepSearchGraph:
                 evidence_spans=list(result.spans),
                 stale_reasons=list(result.stale_reasons),
                 dropped_evidence_count=result.dropped_span_count,
+                search_executions=[
+                    {
+                        "execution_id": result.execution_id,
+                        "search_trace_id": result.search_trace_id,
+                        "trace_persisted": result.trace_persisted,
+                        "trace_error": result.trace_error,
+                        "query": result.query,
+                    }
+                ],
                 latency_ms=max(0, (self.clock() - started) * 1000),
             )
         except Exception as exc:
+            search_trace_id = getattr(exc, "trace_id", None)
             observation = ToolObservation(
                 kind="transcript_search",
                 summary="transcript search failed",
                 error=f"{type(exc).__name__}: {exc}"[:500],
                 latency_ms=max(0, (self.clock() - started) * 1000),
+                search_executions=(
+                    [
+                        {
+                            "execution_id": None,
+                            "search_trace_id": str(search_trace_id),
+                            "trace_persisted": bool(
+                                getattr(exc, "trace_persisted", True)
+                            ),
+                            "trace_error": None,
+                            "query": action.query,
+                        }
+                    ]
+                    if search_trace_id
+                    else []
+                ),
             )
         return {**state, "pending_observation": observation}
 

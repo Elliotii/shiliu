@@ -748,6 +748,159 @@ def test_deep_api_replans_navigation_search_window_and_shared_answer(
         assert "create_agent" not in source
 
 
+def test_deep_diagnostics_are_durable_across_service_recreation(app_paths) -> None:
+    provider = _ScriptedProvider(_dynamic_policy)
+    core, _ = _make_core(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask",
+        json={"query": "MCP 如何连接外部能力", "mode": "deep"},
+    ).json()
+
+    restarted = AskService(
+        db=core.db,
+        artifacts=core.artifacts,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+    trace = restarted.get_trace(body["run_id"])
+    run = restarted.run_store.get_run(body["run_id"])
+
+    assert trace is not None and run is not None
+    assert trace["query"] == "MCP 如何连接外部能力"
+    assert trace["status"] == body["status"] == "complete"
+    assert trace["termination_reason"] == "answer_ready"
+    assert [
+        value["action"]["kind"]
+        for value in trace["events"]
+        if value["event_type"] == "decision"
+    ] == [
+        "search_navigation",
+        "search_transcripts",
+        "read_transcript_window",
+        "finish",
+    ]
+    assert [
+        value["observation_kind"]
+        for value in trace["events"]
+        if value["event_type"] == "observation"
+    ] == ["navigation", "transcript_search", "transcript_window"]
+    assert [
+        value["decision_sequence"] for value in trace["search_executions"]
+    ] == [1, 2]
+    assert trace["visited_video_ids"]
+    assert trace["visited_segment_ids"]
+    assert trace["guard_state"]["tool_calls"] == 3
+    assert trace["answer_blocks"] == body["answer_blocks"]
+    assert trace["citations"] == body["citations"]
+    assert trace["final_evidence"][0]["citation_id"] == body["citations"][0][
+        "citation_id"
+    ]
+    assert run["query_analysis"]["strategy"] == "deep_agent_decisions"
+    assert run["lifecycle_status"] == "completed"
+    assert "events" not in run["trace"]
+    assert "search_executions" not in run["trace"]
+    assert len(run["events"]) == len(trace["events"])
+    with core.db.connect() as connection:
+        linked = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM ask_search_trace_links l
+            JOIN retrieval_search_traces s ON s.trace_id=l.search_trace_id
+            WHERE l.run_id=?
+            """,
+            (body["run_id"],),
+        ).fetchone()[0]
+    assert linked == 2
+
+
+def test_deep_failed_retrieval_keeps_its_durable_search_trace_link(app_paths) -> None:
+    provider = _ScriptedProvider(
+        lambda _round, _payload: {
+            "action": {
+                "kind": "search_transcripts",
+                "query": "MCP",
+                "video_ids": [],
+            }
+        }
+    )
+    core, _ = _make_core(app_paths, provider)
+    transcripts = core.ask_service.deep_service.graph.transcripts
+    original = transcripts.search
+
+    def searched_then_failed(*args, **kwargs):
+        result = original(*args, **kwargs)
+        error = RuntimeError("post-search materialization failure")
+        error.trace_id = result.search_trace_id
+        raise error
+
+    transcripts.search = searched_then_failed
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "deep"}
+    ).json()
+    trace = core.ask_service.get_trace(body["run_id"])
+
+    assert body["status"] == "insufficient"
+    assert trace is not None
+    assert len(trace["search_executions"]) == 1
+    failed_observation = next(
+        value
+        for value in trace["events"]
+        if value.get("observation_kind") == "transcript_search"
+    )
+    assert failed_observation["search_executions"][0]["search_trace_id"] == trace[
+        "search_executions"
+    ][0]["search_trace_id"]
+    with core.db.connect() as connection:
+        linked = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM ask_search_trace_links l
+            JOIN retrieval_search_traces s ON s.trace_id=l.search_trace_id
+            WHERE l.run_id=?
+            """,
+            (body["run_id"],),
+        ).fetchone()[0]
+    assert linked == 1
+
+
+def test_deep_ask_executes_after_v15_database_migration(app_paths) -> None:
+    provider = _ScriptedProvider(_dynamic_policy)
+    core, _ = _make_core(app_paths, provider)
+    with core.db.connect() as connection:
+        connection.executescript(
+            """
+            DROP TABLE ask_events;
+            DROP TABLE ask_search_trace_links;
+            DROP TABLE ask_runs;
+            UPDATE schema_meta SET value='15' WHERE key='schema_version';
+            """
+        )
+    core.db.initialize()
+    core._ask_service = AskService(
+        db=core.db,
+        artifacts=core.artifacts,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "deep"}
+    ).json()
+    restarted = AskService(
+        db=core.db,
+        artifacts=core.artifacts,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+    )
+
+    assert body["status"] == "complete"
+    trace = restarted.get_trace(body["run_id"])
+    assert trace["answer_blocks"] == body["answer_blocks"]
+    assert trace["events"]
+
+
 def test_empty_navigation_forces_one_global_transcript_search_for_arbitrary_wording(
     app_paths,
 ) -> None:

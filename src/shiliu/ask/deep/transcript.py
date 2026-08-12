@@ -46,7 +46,7 @@ class TranscriptSearchService:
         filters: ProductSearchFilterRequest,
         video_ids: tuple[int, ...] = (),
         query_index: int = 0,
-    ) -> MaterializationResult:
+    ) -> "TranscriptSearchResult":
         if len(video_ids) > 8:
             raise ValueError("focused transcript search accepts at most 8 videos")
         request = ProductSearchRequest(
@@ -79,11 +79,25 @@ class TranscriptSearchService:
             character_count += len(span.quote_text)
         if not selected and fused:
             selected.append(fused[0])
-        return MaterializationResult(
+        return TranscriptSearchResult(
             spans=tuple(selected),
             stale_reasons=materialized.stale_reasons,
             dropped_span_count=max(0, len(fused) - len(selected)),
+            execution_id=execution.execution_id,
+            search_trace_id=execution.raw_response.trace_id,
+            trace_persisted=execution.raw_response.trace_persisted,
+            trace_error=execution.raw_response.trace_error,
+            query=execution.request.query,
         )
+
+
+@dataclass(frozen=True)
+class TranscriptSearchResult(MaterializationResult):
+    execution_id: str = ""
+    search_trace_id: str = ""
+    trace_persisted: bool = True
+    trace_error: dict[str, str] | None = None
+    query: str = ""
 
 
 @dataclass(frozen=True)
