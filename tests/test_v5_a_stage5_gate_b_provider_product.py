@@ -452,6 +452,10 @@ def test_provider_product_grounded_and_insufficient_close_durable_lineage(
         assert raw["traces"][-1]["ended_at"] is not None
         assert raw["results"][-1]["is_task_terminal"] == 1
         assert raw["results"][-1]["answer_status"] == "valid_success"
+        assert artifact["limitations"] == ["仍需 Outer Goal Audit 判断目标是否满足"]
+        projection = product.get_task(task_id)
+        assert projection["limitations"] == []
+        assert projection["provider_status"] == "boundary_recorded_not_call_verified"
     before_calls = list(provider.calls)
     before_budget = receipt.budget_snapshot(task_id)
     replay = orchestrator.run_to_boundary(

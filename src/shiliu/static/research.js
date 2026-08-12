@@ -67,7 +67,7 @@
         const button = element('button', `research-task-card${task.task_id === activeTaskId ? ' is-active' : ''}`);
         button.type = 'button';
         button.append(
-          element('span', 'task-card-state', task.status_label),
+          element('span', 'task-card-state', task.user_completion?.label || task.status_label),
           element('strong', '', task.objective),
           element('span', '', `${task.task_id} · ${task.updated_at}`),
         );
@@ -969,12 +969,18 @@
   const deriveTask = async kind => {
     const context = current.control.action_context;
     if (!context.expected_checkpoint_id) return;
+    const label = kind === 'branch' ? 'Branch' : 'Replay';
+    const confirmed = window.confirm(
+      `${label} 会永久创建一个新的派生 Research Task，并保留不可变 lineage；取消不会创建记录。确认继续吗？`,
+    );
+    if (!confirmed) return;
     try {
       const data = await requestJson(`/api/research/tasks/${encodeURIComponent(activeTaskId)}/derivations`, {
         method: 'POST',
         body: JSON.stringify({
           command_id: commandId(kind), kind,
           source_checkpoint_id: context.expected_checkpoint_id,
+          durable_effect_confirmed: true,
         }),
       });
       setActiveTask(data.outcome.task_id);
@@ -1103,10 +1109,14 @@
     root.querySelector('[data-task-id]').textContent = `${product.task.task_id} · Goal revision ${product.goal.revision}`;
     root.querySelector('[data-task-status]').textContent = product.task.status_label;
     root.querySelector('[data-task-phase]').textContent = product.state.phase || 'pending';
-    root.querySelector('[data-answer-status]').textContent = product.state.answer_status;
-    root.querySelector('[data-termination-reason]').textContent = product.state.termination_reason || '尚未停止';
+    root.querySelector('[data-answer-status]').textContent = product.user_completion.label;
+    root.querySelector('[data-termination-reason]').textContent = product.state.termination_label;
     root.querySelector('[data-failure-class]').textContent = product.state.failure_class;
-    root.querySelector('[data-task-reason]').textContent = product.state.reason_detail || product.state.stop_reason || product.state.blocker || product.state.termination_label;
+    root.querySelector('[data-task-reason]').textContent = product.user_completion.detail;
+    root.querySelector('[data-summary-doing]').textContent = product.plain_summary.doing;
+    root.querySelector('[data-summary-found]').textContent = product.plain_summary.found;
+    root.querySelector('[data-summary-why]').textContent = product.plain_summary.why_stopped;
+    root.querySelector('[data-summary-next]').textContent = product.plain_summary.next_action;
     renderConstraintPolicy(product);
     renderControls(product);
     renderEffects(product);

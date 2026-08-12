@@ -1350,6 +1350,17 @@ def create_web_app(application: Application | None = None) -> FastAPI:
     async def derive_research_task(
         task_id: str, payload: DeriveTaskRequest, request: Request
     ) -> JSONResponse:
+        if not payload.durable_effect_confirmed:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "durable_derivation_confirmation_required",
+                        "message": "Branch / Replay 会永久创建派生 Task；请先明确确认。",
+                    },
+                },
+                status_code=400,
+            )
         try:
             outcome = await asyncio.to_thread(
                 _core(request).research_control.derive_task,

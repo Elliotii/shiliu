@@ -219,8 +219,27 @@ class ResearchProductService:
         with self.db.connect() as connection:
             rows = connection.execute(
                 """
-                SELECT t.*, g.objective, g.revision, r.answer_status,
-                       r.termination_reason, r.failure_class
+                SELECT t.*, g.objective, g.revision, g.evidence_policy_json,
+                       r.answer_status,
+                       r.termination_reason, r.failure_class,
+                       EXISTS(
+                           SELECT 1 FROM research_constraint_specs objective_spec
+                           WHERE objective_spec.goal_id=g.goal_id
+                             AND objective_spec.constraint_scope='objective'
+                             AND json_extract(
+                                 objective_spec.evaluator_policy_json, '$.authority'
+                             )='server_registry'
+                       ) AS objective_evaluator_registered,
+                       NOT EXISTS(
+                           SELECT 1 FROM research_constraint_specs semantic_spec
+                           WHERE semantic_spec.goal_id=g.goal_id
+                             AND semantic_spec.constraint_scope='success_constraint'
+                             AND COALESCE(
+                                 json_extract(
+                                     semantic_spec.evaluator_policy_json, '$.authority'
+                                 ), ''
+                             )!='server_registry'
+                       ) AS all_semantic_evaluators_registered
                 FROM research_tasks t
                 JOIN research_goals g ON g.goal_id=t.active_goal_id
                 LEFT JOIN research_results r ON r.result_id=t.terminal_result_id
@@ -228,8 +247,10 @@ class ResearchProductService:
                 """,
                 (bounded,),
             ).fetchall()
-        return [
-            {
+        values = []
+        for row in rows:
+            completion = self._list_completion_projection(dict(row))
+            values.append({
                 "task_id": str(row["task_id"]),
                 "parent_task_id": row["parent_task_id"],
                 "objective": _bounded_text(row["objective"], 240),
@@ -239,13 +260,13 @@ class ResearchProductService:
                     str(row["status"]), str(row["status"])
                 ),
                 "answer_status": row["answer_status"],
+                "user_completion": completion,
                 "termination_reason": row["termination_reason"],
                 "failure_class": row["failure_class"],
                 "updated_at": str(row["updated_at"]),
                 "href": f"/research/{row['task_id']}",
-            }
-            for row in rows
-        ]
+            })
+        return values
 
     def get_task(self, task_id: str) -> dict[str, Any]:
         # Stage 4 status reconciliation may append an expired-input disposition.
@@ -368,6 +389,39 @@ class ResearchProductService:
                     == str(task["status"])
                 ),
             }
+        constraint_policy = self._constraint_policy_projection(
+            raw=raw, outer=outer, active_goal=active_goal
+        )
+        user_completion = self._user_completion_projection(
+            task=task,
+            active_goal=active_goal,
+            answer_status=str(answer_status or "not_produced"),
+            termination_reason=(
+                str(termination_reason) if termination_reason is not None else None
+            ),
+            failure_class=str(failure_class or "none"),
+            artifact=artifact,
+            constraint_policy=constraint_policy,
+            objective_evaluator_registered=self._objective_evaluator_registered(
+                outer=outer, active_goal=active_goal
+            ),
+            events=raw["events"],
+        )
+        limitations = self._reconciled_limitations(
+            list(artifact.get("limitations", [])) if artifact else [],
+            outer_audit_ran=bool(raw["outer_audits"]),
+        )
+        plain_summary = self._plain_summary(
+            objective=str(active_goal["objective"]),
+            user_completion=user_completion,
+            answer_blocks=(list(artifact.get("answer_blocks", [])) if artifact else []),
+            citation_count=len(citations),
+            allowed_operations=allowed,
+        )
+        provider_boundary_recorded = any(
+            value.get("event_type") == "provider_product_boundary"
+            for value in raw["events"]
+        )
         return {
             "projection_schema_version": PRODUCT_PROJECTION_SCHEMA_VERSION,
             "task": {
@@ -387,18 +441,19 @@ class ResearchProductService:
                 "objective": str(active_goal["objective"]),
                 "success_constraints": list(active_goal["success_constraints"]),
             },
-            "constraint_policy": self._constraint_policy_projection(
-                raw=raw, outer=outer, active_goal=active_goal
-            ),
+            "constraint_policy": constraint_policy,
             "attempt": self._attempt_summary(active_attempt),
             "checkpoint": self._checkpoint_summary(latest_checkpoint),
             "state": {
                 "phase": phase_state.get("phase") if phase_state else None,
                 "budget": phase_state.get("budget") if phase_state else None,
                 "answer_status": answer_status,
+                "kernel_answer_status": answer_status,
                 "termination_reason": termination_reason,
-                "termination_label": self.TERMINATION_LABELS.get(
-                    str(termination_reason), str(termination_reason or "尚未停止")
+                "termination_label": (
+                    str(user_completion["label"])
+                    if termination_reason is not None
+                    else "尚未停止"
                 ),
                 "failure_class": failure_class,
                 "reason_detail": result.get("reason_detail") if result else None,
@@ -408,7 +463,9 @@ class ResearchProductService:
             "result": self._result_summary(result),
             "artifact": self._artifact_summary(artifact),
             "answer_blocks": list(artifact.get("answer_blocks", [])) if artifact else [],
-            "limitations": list(artifact.get("limitations", [])) if artifact else [],
+            "limitations": limitations,
+            "user_completion": user_completion,
+            "plain_summary": plain_summary,
             "citations": citations,
             "control": {
                 "allowed_operations": sorted(allowed),
@@ -458,7 +515,185 @@ class ResearchProductService:
             },
             "candidate_deltas": deltas,
             "trace": self._trace_projection(raw, control),
-            "provider_status": "not_exercised",
+            "provider_status": (
+                "boundary_recorded_not_call_verified"
+                if provider_boundary_recorded
+                else "not_exercised"
+            ),
+        }
+
+    @staticmethod
+    def _list_completion_projection(row: dict[str, Any]) -> dict[str, Any]:
+        answer_status = str(row.get("answer_status") or "not_produced")
+        failure_class = str(row.get("failure_class") or "none")
+        task_status = str(row.get("status") or "ready")
+        if failure_class != "none":
+            status, label = "failed_execution", "执行失败"
+        elif task_status == "waiting_user":
+            status, label = "waiting_for_user", "等待你的输入"
+        elif task_status == "blocked":
+            status, label = "blocked", "已安全暂停"
+        elif answer_status == "valid_success" and bool(
+            row.get("objective_evaluator_registered")
+        ) and bool(row.get("all_semantic_evaluators_registered")):
+            status, label = (
+                "verified_objective_completion",
+                "目标已由授权评估路径验证完成",
+            )
+        elif answer_status == "valid_success" and (
+            json.loads(str(row.get("evidence_policy_json") or "{}"))
+            .get("product_execution")
+            == "deterministic_no_provider"
+        ):
+            status, label = "limited_deterministic_output", "已有机械摘录；未验证目标完成"
+        elif answer_status == "valid_success":
+            status, label = "accepted_not_semantically_verified", "内核已接受；产品完成度待核验"
+        elif answer_status == "valid_partial":
+            status, label = "limited_output", "已有受限输出"
+        elif task_status == "terminal":
+            status, label = "ended_without_verified_completion", "已结束，未验证目标完成"
+        else:
+            status, label = "in_progress", "尚未完成"
+        return {"status": status, "label": label}
+
+    @staticmethod
+    def _user_completion_projection(
+        *,
+        task: dict[str, Any],
+        active_goal: dict[str, Any],
+        answer_status: str,
+        termination_reason: str | None,
+        failure_class: str,
+        artifact: dict[str, Any] | None,
+        constraint_policy: dict[str, Any],
+        objective_evaluator_registered: bool,
+        events: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        task_status = str(task["status"])
+        execution = str(
+            active_goal.get("evidence_policy", {}).get("product_execution") or "unknown"
+        )
+        provider_boundary_recorded = any(
+            value.get("event_type") == "provider_product_boundary" for value in events
+        )
+        registered_constraints = constraint_policy.get("semantic_constraints") or []
+        registered_evaluator_success = objective_evaluator_registered and all(
+            bool(value.get("machine_verifiable")) for value in registered_constraints
+        )
+        if failure_class != "none" or termination_reason in {
+            "provider_error",
+            "implementation_error",
+            "evidence_unavailable",
+        }:
+            status = "failed_execution"
+            label = "执行失败，目标未完成"
+            detail = "持久记录已保留；请查看失败分类与可用操作。"
+            verified = False
+        elif task_status == "waiting_user" or termination_reason == "needs_user_input":
+            status = "waiting_for_user"
+            label = "等待你的输入，目标未完成"
+            detail = "当前约束无法由已注册规则验证，需要你改写或补充决定。"
+            verified = False
+        elif task_status == "blocked":
+            status = "blocked"
+            label = "已安全暂停，目标未完成"
+            detail = "运行到达受保护边界；持久进度未丢失。"
+            verified = False
+        elif answer_status == "valid_success" and registered_evaluator_success:
+            status = "verified_objective_completion"
+            label = "目标已由授权评估路径验证完成"
+            detail = "当前结果通过了授权执行或服务器注册的目标评估。"
+            verified = True
+        elif answer_status == "valid_success" and execution == "deterministic_no_provider":
+            status = "limited_deterministic_output"
+            label = "已有机械摘录，未验证目标完成"
+            detail = "Outer Audit 只确认当前证据与机械约束，不证明自然语言目标已完成。"
+            verified = False
+        elif artifact is not None or answer_status == "valid_partial":
+            status = "limited_output"
+            label = "已有受限输出，目标未完成"
+            detail = "可检查现有证据与限制，再决定是否继续。"
+            verified = False
+        elif task_status == "terminal":
+            status = "ended_without_verified_completion"
+            label = "任务已结束，未验证目标完成"
+            detail = "持久运行已停止，但没有授权的目标完成结论。"
+            verified = False
+        else:
+            status = "in_progress"
+            label = "正在运行或等待开始"
+            detail = "尚未到达可验证的用户级结果。"
+            verified = False
+        return {
+            "status": status,
+            "label": label,
+            "detail": detail,
+            "objective_verified": verified,
+            "kernel_answer_status": answer_status,
+            "product_execution": execution,
+            "provider_boundary_recorded": provider_boundary_recorded,
+            "objective_evaluator_registered": objective_evaluator_registered,
+        }
+
+    @staticmethod
+    def _objective_evaluator_registered(
+        *, outer: dict[str, Any], active_goal: dict[str, Any]
+    ) -> bool:
+        return any(
+            value.get("goal_id") == active_goal.get("goal_id")
+            and value.get("constraint_scope") == "objective"
+            and value.get("evaluator_policy", {}).get("authority") == "server_registry"
+            for value in outer.get("constraint_specs", [])
+        )
+
+    @staticmethod
+    def _reconciled_limitations(
+        limitations: list[str], *, outer_audit_ran: bool
+    ) -> list[str]:
+        stale_outer_audit_limitations = {
+            "尚未执行 Outer Goal Audit",
+            "仍需 Outer Goal Audit 判断目标是否满足",
+        }
+        result: list[str] = []
+        for value in limitations:
+            parts = [part.strip(" ；;。.!！") for part in str(value).split("；")]
+            for part in parts:
+                if outer_audit_ran and part in stale_outer_audit_limitations:
+                    continue
+                if part and part not in result:
+                    result.append(part)
+        return result
+
+    @staticmethod
+    def _plain_summary(
+        *,
+        objective: str,
+        user_completion: dict[str, Any],
+        answer_blocks: list[dict[str, Any]],
+        citation_count: int,
+        allowed_operations: set[str],
+    ) -> dict[str, str]:
+        if answer_blocks:
+            found = f"形成 {len(answer_blocks)} 段受限输出，关联 {citation_count} 条当前字幕证据。"
+        elif citation_count:
+            found = f"记录了 {citation_count} 条当前字幕证据，但尚未形成可用输出。"
+        else:
+            found = "尚未形成可展示的研究输出。"
+        if user_completion["status"] == "waiting_for_user":
+            next_action = "查看输入请求并提交修订后的目标或约束。"
+        elif "run" in allowed_operations:
+            next_action = "可以继续安全运行；当前仍是无 Provider 机械路径。"
+        elif "retry" in allowed_operations:
+            next_action = "可以检查证据与限制，或显式创建新的重试 Task。"
+        elif "derive" in allowed_operations:
+            next_action = "可在理解永久派生记录后显式创建 Branch / Replay。"
+        else:
+            next_action = "先检查当前证据、限制和停止原因。"
+        return {
+            "doing": objective,
+            "found": found,
+            "why_stopped": str(user_completion["detail"]),
+            "next_action": next_action,
         }
 
     @staticmethod

@@ -199,3 +199,75 @@ replay. Older Search presentation summaries intentionally retain identities/rank
 but not historical title or body text, so current metadata and exact current retrieval
 unit text are used only when the retained identity still resolves. Search lineages beyond
 the inspection bounds are represented by `truncated=true`, not silently expanded.
+
+## Goal D — Restricted Research Boundary
+
+Related observations: RU-007, RU-009 and RU-015.
+
+Root failure family: the durable Research kernel could honestly finish its mechanical
+no-Provider path while the product UI presented the kernel's `valid_success` as if the
+user's natural-language objective were complete. Terminal artifacts could also retain a
+stage-local “Outer Goal Audit 尚未/仍需执行” limitation after that audit had run, and
+Branch / Replay did not disclose that they permanently create a derived Task.
+
+Bounded implementation:
+
+- Added a user-facing completion projection without changing v16 persistence or
+  reclassifying `research_results.answer_status`. No-Provider mechanical success remains
+  durably `valid_success`, but is presented as `已有机械摘录，未验证目标完成` unless the
+  active Goal has a server-registered objective evaluator and every semantic constraint
+  has a server-registered evaluator.
+- Kept waiting-for-user, blocked, Provider/implementation failure and terminal-without-
+  verified-completion distinct. Recent-task cards use the same registered-evaluator
+  authority test as detail projection.
+- Reconciled exactly two known stale stage-local limitation forms after an Outer Audit is
+  present. The immutable provisional artifact and kernel lineage retain their original
+  text; only the current product projection removes the obsolete claim.
+- Relabelled the navigation and page as `受限研究 · 实验` / `RESTRICTED · EXPERIMENTAL`,
+  states that Provider-backed Research is not enabled, and calls the deterministic output
+  a limited mechanical extract rather than a completed research answer.
+- Branch and Replay now explain that they permanently create a derived Research Task.
+  The public API defaults confirmation to false and rejects both operations before any
+  write unless `durable_effect_confirmed=true`; the UI confirms before sending the POST.
+- Provider state now reports only whether a `provider_product_boundary` event was
+  recorded (`boundary_recorded_not_call_verified`), not whether a Provider call was
+  proven. That signal grants no objective-completion authority.
+- Implemented the bounded plain-language summary (“doing / found / why stopped / next”).
+  Default-collapse work for the existing V5-B/V5-C workspace and diagnostic sections was
+  dropped as optional D-UX: it would require broader information-architecture and
+  workspace redesign beyond this product-truthfulness repair.
+
+Deterministic proof:
+
+- Research kernel/inner/outer/control/product, Provider-product wiring and personalized
+  presentation nearby regressions: 193 passed.
+- Focused Provider-product plus Goal D completion tests: 28 passed.
+- Regressions prove default no-Provider success stays unverified at user level, registered
+  objective plus semantic evaluators can verify, list/detail agree, failure/wait/blocked
+  remain distinct, stale limitation text is removed only from projection, raw artifact
+  text remains immutable, and false Branch/Replay confirmations create no derivation.
+- Python compilation, Research JavaScript syntax and `git diff --check` passed.
+
+Small natural smoke through the normal current-corpus product path:
+
+- Research Task `rtask_9b6de665dc9953db62051d91c08d46af`, objective
+  `梳理收藏中关于 MCP 工具调用安全边界的字幕证据`.
+- Durable kernel result: terminal, `valid_success / answer_ready`, three mechanical answer
+  blocks and seven current evidence uses. Lineage contains 12 events, six checkpoints,
+  five inner actions, one Outer Audit and 12 command receipts.
+- Product result: `limited_deterministic_output`, `objective_verified=false`, with the
+  obsolete pre-audit limitation absent from the current projection and no Provider
+  boundary recorded.
+
+Gate result: **PASS**. The first fresh-context semantic review found one High: the
+terminal projection removed only one exact pre-audit phrase and left its known synonym.
+The narrow fix recognizes only the two existing stage-local forms and preserves raw
+records. It also aligned list/detail registered-evaluator semantics. The sole bounded
+re-review found no Blocking/High/Medium and recommended PASS.
+
+Residual limitation: Research remains a restricted, deterministic no-Provider experiment;
+this repair does not authorize Provider-backed Research, a runtime rewrite or a new
+completion evaluator platform. Historical artifact text intentionally remains immutable,
+so stale stage-local prose may still be visible in raw diagnostics even though the
+current user projection is reconciled. Advanced workspace sections remain expanded under
+the explicitly dropped optional D-UX item.

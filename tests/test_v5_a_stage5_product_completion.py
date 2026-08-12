@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from shiliu.app import Application
 from shiliu.domain import FavoriteItem, SubtitleSegment
+from shiliu.research import AnswerStatus, FailureClass, TerminationReason
 from shiliu.research.control_contracts import ControlCommandRequest, HumanDecisionRequest
 from shiliu.research.errors import ResearchConflict, SimulatedCrash
 from shiliu.research.outer_contracts import RegisteredConstraintEvaluator
@@ -162,7 +163,10 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert 'data-research-page' in page.text
     assert 'href="/research"' in page.text
     assert "候选 Delta" in page.text
-    assert "Provider · NOT EXERCISED" in page.text
+    assert "RESTRICTED · EXPERIMENTAL" in page.text
+    assert "受限实验 · PROVIDER 未启用" in page.text
+    assert "不会仅凭“存在证据”宣称自然语言目标已经完成" in page.text
+    assert "data-summary-doing" in page.text
     assert "data-effect-panel" in page.text
     assert "grounded_current_evidence" in page.text
     assert "data-constraint-profile" in page.text
@@ -177,6 +181,8 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert "confirmed_succeeded" not in script.text
     assert "确认外部动作成功" not in script.text
     assert "constraint_profile: createForm.elements.constraint_profile.value" in script.text
+    assert "永久创建一个新的派生 Research Task" in script.text
+    assert "durable_effect_confirmed: true" in script.text
 
     created = client.post(
         "/api/research/product/tasks",
@@ -195,6 +201,8 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert detail.status_code == 200
     product = detail.json()["product"]
     assert product["task"]["status"] == "waiting_user"
+    assert product["user_completion"]["status"] == "waiting_for_user"
+    assert product["user_completion"]["objective_verified"] is False
     assert product["provider_status"] == "not_exercised"
     assert product["control"]["open_input_requests"]
     assert product["constraint_policy"]["objective_machine_verifiable"] is False
@@ -242,6 +250,23 @@ def test_default_application_server_profile_completes_arbitrary_grounded_task(
     assert product["task"]["status"] == "terminal"
     assert product["state"]["answer_status"] in {"valid_success", "valid_partial"}
     assert product["state"]["termination_reason"] == "answer_ready"
+    assert product["state"]["kernel_answer_status"] in {
+        "valid_success",
+        "valid_partial",
+    }
+    assert product["user_completion"] == {
+        "status": "limited_deterministic_output",
+        "label": "已有机械摘录，未验证目标完成",
+        "detail": "Outer Audit 只确认当前证据与机械约束，不证明自然语言目标已完成。",
+        "objective_verified": False,
+        "kernel_answer_status": product["state"]["answer_status"],
+        "product_execution": "deterministic_no_provider",
+        "provider_boundary_recorded": False,
+        "objective_evaluator_registered": False,
+    }
+    assert product["plain_summary"]["doing"] == "请解释 MCP 工具执行为何需要幂等回执"
+    assert "受限输出" in product["plain_summary"]["found"]
+    assert all("尚未执行 Outer Goal Audit" not in value for value in product["limitations"])
     assert product["citations"]
     assert product["constraint_policy"] == {
         "profile_id": "grounded_current_evidence",
@@ -265,6 +290,103 @@ def test_default_application_server_profile_completes_arbitrary_grounded_task(
     assert json.loads(str(spec["evaluator_policy_json"]))["authority"] == (
         "server_product_profile"
     )
+
+
+def test_public_derivations_require_explicit_durable_effect_confirmation(
+    app_paths,
+) -> None:
+    core = _fixture_core(app_paths)
+    service = core.research_product
+    task_id = _create(service, "durable-confirmation")
+    service.run_to_boundary(
+        task_id,
+        RunProductResearchRequest(command_id="stage5:durable-confirmation:run"),
+    )
+    product = service.get_task(task_id)
+    checkpoint_id = product["control"]["action_context"]["expected_checkpoint_id"]
+    client = TestClient(create_web_app(core))
+    payloads = (
+        {
+            "command_id": "stage5:durable-confirmation:replay",
+            "kind": "replay",
+            "source_checkpoint_id": checkpoint_id,
+        },
+        {
+            "command_id": "stage5:durable-confirmation:branch",
+            "kind": "branch",
+            "source_checkpoint_id": checkpoint_id,
+            "objective": "MCP 派生目标",
+        },
+    )
+
+    for payload in payloads:
+        rejected = client.post(
+            f"/api/research/tasks/{task_id}/derivations",
+            json=payload,
+        )
+        assert rejected.status_code == 400
+        assert rejected.json()["error"]["code"] == (
+            "durable_derivation_confirmation_required"
+        )
+    assert core.research_control.get_status(task_id)["derivations"] == []
+
+    for payload in payloads:
+        accepted = client.post(
+            f"/api/research/tasks/{task_id}/derivations",
+            json={**payload, "durable_effect_confirmed": True},
+        )
+        assert accepted.status_code == 200
+        assert accepted.json()["outcome"]["task_id"] != task_id
+    assert len(core.research_control.get_status(task_id)["derivations"]) == 2
+
+
+def test_product_projection_keeps_provider_failure_distinct(app_paths) -> None:
+    core = _fixture_core(app_paths)
+    task_id = "provider-failure-product-projection"
+    core.research.create_task(
+        task_id=task_id,
+        command_id="provider-failure:create",
+        objective="需要 Provider 的研究",
+        evidence_policy={
+            "authority": "live_current_exact_replay",
+            "product_execution": "provider_authorized",
+        },
+    )
+    owner = core.research.claim_owner(
+        task_id=task_id,
+        command_id="provider-failure:claim",
+        owner_id="provider-worker",
+        expected_state_version=0,
+        lease_seconds=60,
+    )
+    attempt = core.research.start_attempt(
+        task_id=task_id,
+        command_id="provider-failure:start",
+        owner_id="provider-worker",
+        owner_epoch=owner["owner_epoch"],
+        expected_state_version=1,
+    )
+    core.research.complete_attempt(
+        task_id=task_id,
+        attempt_id=attempt["attempt_id"],
+        command_id="provider-failure:complete",
+        owner_id="provider-worker",
+        owner_epoch=owner["owner_epoch"],
+        expected_state_version=2,
+        answer_status=AnswerStatus.VALID_INSUFFICIENT,
+        termination_reason=TerminationReason.PROVIDER_ERROR,
+        failure_class=FailureClass.PROVIDER_FAILURE,
+        reason_detail="provider unavailable",
+        task_terminal=True,
+    )
+
+    product = core.research_product.get_task(task_id)
+
+    assert product["state"]["kernel_answer_status"] == "valid_insufficient"
+    assert product["state"]["failure_class"] == "provider_failure"
+    assert product["user_completion"]["status"] == "failed_execution"
+    assert product["user_completion"]["objective_verified"] is False
+    assert product["user_completion"]["label"] == "执行失败，目标未完成"
 
 
 def test_forged_client_policy_cannot_grant_objective_evaluator(app_paths) -> None:
@@ -574,6 +696,14 @@ def test_registered_deterministic_journey_is_terminal_grounded_and_exact_once(
     assert len(after["events"]) == len(before["events"])
     assert len(after["command_receipts"]) == len(before["command_receipts"])
     assert product["state"]["answer_status"] == "valid_success"
+    assert product["user_completion"]["status"] == "verified_objective_completion"
+    assert product["user_completion"]["objective_verified"] is True
+    listed = core.research_product.list_tasks()
+    assert listed[0]["task_id"] == task_id
+    assert listed[0]["user_completion"] == {
+        "status": "verified_objective_completion",
+        "label": "目标已由授权评估路径验证完成",
+    }
     assert product["state"]["termination_reason"] == "answer_ready"
     assert product["state"]["failure_class"] == "none"
     assert product["answer_blocks"]

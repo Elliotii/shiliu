@@ -47,3 +47,25 @@
   padding: 0.7rem;
   text-decoration: none;
 }
+
+.research-plain-summary {
+  background: #f4efe3;
+  border: 1px solid #d8cdb6;
+  margin: 20px 0 4px;
+  padding: 20px;
+}
+
+.research-plain-summary dl {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.research-plain-summary dl div { display: grid; gap: 5px; }
+.research-plain-summary dt { color: var(--muted); font-size: 11px; font-weight: 700; }
+.research-plain-summary dd { line-height: 1.6; margin: 0; }
+
+@media (max-width: 620px) {
+  .research-plain-summary dl { grid-template-columns: 1fr; }
+}

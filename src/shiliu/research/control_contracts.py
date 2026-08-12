@@ -89,6 +89,7 @@ class DeriveTaskRequest(_StrictModel):
     objective: str | None = Field(default=None, max_length=2000)
     success_constraints: list[str] | None = Field(default=None, max_length=32)
     evidence_policy: dict[str, Any] | None = None
+    durable_effect_confirmed: bool = False
 
 
 class ControlStatusResponse(_StrictModel):
