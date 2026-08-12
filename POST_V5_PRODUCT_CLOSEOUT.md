@@ -56,9 +56,11 @@ The repository now enforces the following product invariants:
 6. History batches are idempotent and resumable through the existing membership queue,
    video pipeline stages and index coordinator.
 
-The pre-implementation audit is in `BACKFILL_SYNC_SAFETY_REVIEW.md`. The fresh final
-review will be recorded in `POST_V5_INDEPENDENT_FINAL_REVIEW.md` after the remaining
-runtime smoke and independent review are complete.
+The pre-implementation audit is in `BACKFILL_SYNC_SAFETY_REVIEW.md`. The persistence
+branch received a fresh independent read-only review; its single High degraded-lineage
+finding was fixed by `770801c` and bounded re-review found no remaining Blocking/High
+issue. The integrated tree then passed local scope review and the full deterministic
+suite before live cutover.
 
 ## Evidence and provenance boundary
 
@@ -82,8 +84,9 @@ self-improvement, GraphRAG or an open-ended autonomous agent.
 
 ## Operational handoff
 
-The redacted real-corpus counts, 100/300/full coverage transitions, scheduled-sync state,
-retrieval checks, product smoke and known limitations are authoritative in
-`POST_V5_REAL_CORPUS_ONBOARDING_REPORT.md`. After the gates there pass, Shiliu enters live
-use and observational mode: natural queries and naturally occurring failures should drive
-selective repair; this closeout does not authorize V6 feature expansion.
+The redacted real-corpus counts, 100/300/full coverage transitions, schema v16 cutover,
+scheduled-sync recovery, retrieval checks, restart smoke and known limitations are
+authoritative in `POST_V5_REAL_CORPUS_ONBOARDING_REPORT.md`. All readiness gates passed on
+2026-08-12. Shiliu is `READY_FOR_REAL_USE_TESTING` and enters live-use/observational mode:
+natural queries and naturally occurring failures should drive selective repair; this
+closeout does not authorize V6 feature expansion.
