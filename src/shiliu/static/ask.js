@@ -317,6 +317,63 @@
     panel.hidden = !(data.limitations || []).length;
   };
 
+  const renderCandidateDisclosure = data => {
+    const section = root.querySelector('[data-candidate-disclosure]');
+    const disclosure = data.candidate_disclosure;
+    section.hidden = !disclosure;
+    if (!disclosure) return;
+    section.open = false;
+    const candidates = disclosure.candidates || [];
+    const countCopy = disclosure.truncated
+      ? `· 显示 ${candidates.length} 条，另有候选未展开`
+      : `· ${candidates.length} 条`;
+    root.querySelector('[data-candidate-count]').textContent = countCopy;
+    const list = root.querySelector('[data-candidate-list]');
+    const empty = root.querySelector('[data-candidate-empty]');
+    list.replaceChildren();
+    candidates.forEach(candidate => {
+      const article = element('article', 'candidate-card');
+      const kind = candidate.candidate_kind === 'metadata_lead'
+        ? '相关视频线索 · 无可用字幕，不能作为回答证据'
+        : '字幕候选 · 未被采用为回答引用';
+      article.append(element('p', 'candidate-kind', kind));
+      article.append(element('h3', '', candidate.title || `Video ${candidate.video_id}`));
+      const identityCopy = candidate.identity_status === 'stale'
+        ? '历史字幕身份已过期；未用当前其他字幕替代。'
+        : candidate.identity_status === 'unavailable'
+          ? '历史视频身份当前不可用；未替换为其他视频。'
+          : `当前视频状态：${candidate.video_status}`;
+      article.append(element('p', 'candidate-identity', identityCopy));
+      article.append(element('p', 'candidate-origin', `检索：${candidate.search_query || '（未记录）'} · 排名 ${candidate.search_rank}`));
+      if (candidate.excerpt) article.append(element('blockquote', '', candidate.excerpt));
+      const actions = element('div', 'candidate-actions');
+      if (candidate.start_time !== null && candidate.start_time !== undefined) {
+        actions.append(element('span', '', `${formatTime(candidate.start_time)}–${formatTime(candidate.end_time)}`));
+      }
+      if (candidate.jump_url) {
+        const link = element('a', '', candidate.candidate_kind === 'metadata_lead' ? '打开视频' : '从候选位置播放');
+        link.href = candidate.jump_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        actions.append(link);
+      } else if (candidate.detail_url) {
+        const link = element('a', '', '查看当前视频记录');
+        link.href = candidate.detail_url;
+        actions.append(link);
+      }
+      if (actions.childNodes.length) article.append(actions);
+      list.append(article);
+    });
+    const emptyMessages = {
+      no_durable_search_lineage: '本次运行没有可用于重建的持久化检索链路。',
+      search_presentations_unavailable: '检索链路存在，但候选呈现当前不可重建。',
+      no_unadopted_candidates: '没有未被回答采用的可重建候选。',
+      candidate_reconstruction_failed: '候选重建暂时不可用；这不影响回答与引用。',
+    };
+    empty.textContent = emptyMessages[disclosure.empty_reason] || '本次检索没有可展示的候选。';
+    empty.hidden = candidates.length !== 0;
+  };
+
   const renderResult = data => {
     lastResponse = data;
     root.querySelector('[data-result-title]').textContent = `${modeLabels[data.mode] || '回答'}结果`;
@@ -329,6 +386,7 @@
     root.querySelector('[data-termination-copy]').textContent = terminationLabels[data.termination_reason] || data.termination_reason;
     renderAnswerBlocks(data);
     renderLimitations(data);
+    renderCandidateDisclosure(data);
     renderEvidence(data);
     renderUserTrace(data);
     root.querySelector('[data-continue-deep]').hidden = !(

@@ -131,3 +131,71 @@ Residual limitation: the row high-water mark and derived position form an
 insertion-stable traversal boundary, not a general database snapshot. Arbitrary
 concurrent edits to pre-existing favorite times or membership removal can still change
 page composition. View mutations intentionally change view membership on refresh.
+
+## Goal B — Terminal Candidate Disclosure
+
+Related observations: RU-003, RU-011 and RU-013.
+
+Root failure family: Ask persisted adopted final evidence and durable child Search
+lineage separately, but its terminal response/UI only projected Answer Citations. Useful
+completed retrieval therefore disappeared whenever answer generation failed or evidence
+coverage remained honestly insufficient.
+
+Bounded implementation:
+
+- Added a non-authoritative `candidate_disclosure` response/trace contract. It is
+  reconstructed from existing `ask_search_trace_links`, durable Search presentation
+  summaries, exact retrieval-unit identities and current video metadata; no new table,
+  column, payload archive or persistence platform was added.
+- Reconstruction inspects at most 12 ordered child Search identities and eight groups per
+  presentation, deduplicates to unique videos across rewrites, returns five by default
+  and enforces a hard maximum of eight. The response reports truncation and unavailable
+  presentations explicitly.
+- Transcript candidates retain producing Search trace/query/rank, exact historical unit
+  and window identity, current exact-unit excerpt and timestamp. Metadata-only groups are
+  labelled `相关视频线索 · 无可用字幕，不能作为回答证据` and carry no transcript unit or
+  excerpt.
+- Missing current video identity is shown as unavailable. A missing or changed exact
+  transcript unit is shown as stale and is never replaced with a different current unit.
+  Candidate projection failure is isolated from Answer/Citation delivery.
+- Candidate records have no Citation ID and never enter `citations` or `final_evidence`.
+  Windows overlapping an adopted Citation are removed; partial answers can disclose only
+  the remaining unadopted comparison candidate.
+- The terminal UI uses a collapsed `本次检索到的候选证据` section, explicitly calls the
+  content a current reconstruction rather than historical replay, and states that
+  retrieval relevance does not prove the requested conclusion. Zero-candidate runs show
+  an honest empty state.
+
+Deterministic proof:
+
+- Ask contracts, Fast/Deep services, Ask page, Product Search presentation and execution
+  persistence regressions: 88 passed.
+- Focused cases cover model-declared insufficiency, Provider-generation failure,
+  multi-rewrite deduplication, Web/service restart, stale exact transcript unit,
+  metadata-only lead, unavailable historical video, five/eight-card bounds, partial
+  comparison coverage and a true zero-candidate run.
+- Existing Citation content/identity, timestamp jump and durable `final_evidence`
+  assertions remain unchanged; focused tests assert candidate objects contain no
+  `citation_id`.
+
+Historical durable-lineage reconstruction on the current real corpus:
+
+| Run | Terminal | Search presentations | Unique reconstructed / visible | First projection |
+|---|---|---:|---:|---|
+| RU-011 `ask_run_1046902129f64af190b4d08797ef9f69` | Fast insufficient | 3 | 18 / 5 | current transcript candidate, rank 1 |
+| RU-011 `ask_run_8c69dd48c8044ee7ad01be05bcc0b281` | Fast insufficient | 1 | 8 / 5 | current transcript candidate, rank 1 |
+| RU-011 `ask_run_4bc7cddeef64416da75d9f103339ad6d` | Fast Provider failure | 3 | 14 / 5 | current transcript candidate, rank 1 |
+| RU-013 `ask_run_cb58ead1fabf46d8a14f44336d251db6` | Deep insufficient | 3 | 9 / 5 | current metadata-only lead, rank 1 |
+
+Gate result: **PASS**. The fresh-context Citation Authority/restart-boundary review found
+one High in its first pass: a historical transcript window missing exact unit identity
+could be projected as current. The bounded repair now makes current transcript candidates
+require exact unit plus complete window identity, marks missing/mismatched identity stale
+without excerpt/jump, and encodes metadata non-authority fields in the contract. The only
+bounded re-review found no Blocking/High/Medium and recommended PASS.
+
+Residual limitation: this is bounded current reconstruction, not exact historical UI
+replay. Older Search presentation summaries intentionally retain identities/ranks/windows
+but not historical title or body text, so current metadata and exact current retrieval
+unit text are used only when the retained identity still resolves. Search lineages beyond
+the inspection bounds are represented by `truncated=true`, not silently expanded.

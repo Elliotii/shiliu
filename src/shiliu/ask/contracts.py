@@ -27,6 +27,8 @@ TerminationReason = Literal[
     "evidence_unavailable",
 ]
 CitationSourceType = Literal["human", "ai", "asr", "unknown"]
+RetrievedCandidateKind = Literal["transcript_candidate", "metadata_lead"]
+RetrievedCandidateIdentityStatus = Literal["current", "stale", "unavailable"]
 
 
 class _StrictModel(BaseModel):
@@ -114,6 +116,62 @@ class TraceSummary(_StrictModel):
     evidence_candidate_dropped_count: int = Field(default=0, ge=0)
 
 
+class RetrievedCandidate(_StrictModel):
+    candidate_kind: RetrievedCandidateKind
+    identity_status: RetrievedCandidateIdentityStatus
+    search_trace_id: str
+    search_query: str
+    search_rank: int = Field(ge=1)
+    video_id: int = Field(ge=1)
+    title: str
+    video_status: str
+    unit_id: str | None = None
+    start_time: float | None = Field(default=None, ge=0)
+    end_time: float | None = Field(default=None, ge=0)
+    excerpt: str | None = None
+    jump_url: str | None = None
+    detail_url: str | None = None
+
+    @model_validator(mode="after")
+    def validate_candidate_shape(self) -> "RetrievedCandidate":
+        if self.candidate_kind == "metadata_lead" and any(
+            value is not None
+            for value in (
+                self.unit_id,
+                self.start_time,
+                self.end_time,
+                self.excerpt,
+            )
+        ):
+            raise ValueError("metadata leads must not claim transcript fields")
+        if self.candidate_kind == "transcript_candidate":
+            if self.identity_status == "current" and (
+                not self.unit_id
+                or self.start_time is None
+                or self.end_time is None
+            ):
+                raise ValueError(
+                    "current transcript candidates require exact unit/window identity"
+                )
+        if self.end_time is not None and self.start_time is not None:
+            if self.end_time < self.start_time:
+                raise ValueError("candidate end_time must not precede start_time")
+        return self
+
+
+class RetrievedCandidateDisclosure(_StrictModel):
+    reconstruction_kind: Literal["durable_search_lineage_current_projection"] = (
+        "durable_search_lineage_current_projection"
+    )
+    candidates: list[RetrievedCandidate] = Field(default_factory=list, max_length=8)
+    inspected_search_trace_count: int = Field(ge=0)
+    available_presentation_count: int = Field(ge=0)
+    failed_or_unavailable_trace_count: int = Field(ge=0)
+    reconstructed_candidate_count: int = Field(ge=0)
+    truncated: bool = False
+    empty_reason: str | None = None
+
+
 class AskResponse(_StrictModel):
     run_id: str
     mode: AskMode
@@ -124,6 +182,7 @@ class AskResponse(_StrictModel):
     limitations: list[str]
     termination_reason: TerminationReason
     trace_summary: TraceSummary
+    candidate_disclosure: RetrievedCandidateDisclosure | None = None
 
     @model_validator(mode="after")
     def validate_answer_shape(self) -> "AskResponse":

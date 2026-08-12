@@ -14,6 +14,8 @@ from shiliu.ask.contracts import (
     Citation,
     GroundedAnswerDraft,
     QueryAnalysis,
+    RetrievedCandidate,
+    RetrievedCandidateDisclosure,
     TraceSummary,
     TranscriptEvidenceSpan,
 )
@@ -30,6 +32,8 @@ __all__ = [
     "ContextBuildResult",
     "GroundedAnswerDraft",
     "QueryAnalysis",
+    "RetrievedCandidate",
+    "RetrievedCandidateDisclosure",
     "TraceSummary",
     "TranscriptContextBuilder",
     "TranscriptEvidenceSpan",

@@ -6,8 +6,14 @@ from uuid import uuid4
 
 from shiliu.artifacts import ArtifactStore
 from shiliu.ask.answer import GroundedAnswerService
+from shiliu.ask.candidates import AskCandidateProjector
 from shiliu.ask.context import TranscriptContextBuilder
-from shiliu.ask.contracts import AskRequest, AskResponse, TraceSummary
+from shiliu.ask.contracts import (
+    AskRequest,
+    AskResponse,
+    RetrievedCandidateDisclosure,
+    TraceSummary,
+)
 from shiliu.ask.deep.service import DeepSearchService
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
@@ -37,6 +43,7 @@ class AskService:
     ) -> None:
         self.db = db
         self.run_store = AskRunStore(db)
+        self.candidate_projector = AskCandidateProjector(db, self.run_store)
         self.evidence_search = evidence_search or EvidenceSearchService(
             db=db,
             product_search=product_search,
@@ -79,8 +86,11 @@ class AskService:
                     "Deep Search 缺少 ArtifactStore 接线"
                 )
             response, _trace = self.deep_service.ask(request)
-            return response
-        return self._ask_fast(request)
+        else:
+            response = self._ask_fast(request)
+        return response.model_copy(
+            update={"candidate_disclosure": self._candidate_disclosure(response.run_id)}
+        )
 
     def _ask_fast(self, request: AskRequest) -> AskResponse:
         started = time.monotonic()
@@ -263,8 +273,23 @@ class AskService:
     def get_trace(self, run_id: str) -> dict[str, object] | None:
         durable = self.run_store.get_trace(run_id)
         if durable is not None:
+            durable["candidate_disclosure"] = self._candidate_disclosure(
+                run_id
+            ).model_dump(mode="json")
             return durable
         return None
+
+    def _candidate_disclosure(self, run_id: str) -> RetrievedCandidateDisclosure:
+        try:
+            return self.candidate_projector.project(run_id)
+        except Exception:
+            return RetrievedCandidateDisclosure(
+                inspected_search_trace_count=0,
+                available_presentation_count=0,
+                failed_or_unavailable_trace_count=0,
+                reconstructed_candidate_count=0,
+                empty_reason="candidate_reconstruction_failed",
+            )
 
 
 def _milliseconds(started: float) -> float:

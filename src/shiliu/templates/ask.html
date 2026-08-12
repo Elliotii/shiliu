@@ -114,6 +114,15 @@
       <h3>限制与未覆盖内容</h3>
       <ul data-limitations-list></ul>
     </section>
+
+    <details class="candidate-disclosure" data-candidate-disclosure hidden>
+      <summary>本次检索到的候选证据 <span data-candidate-count></span></summary>
+      <div class="candidate-disclosure-body">
+        <p class="candidate-warning">这是从持久化检索链路重建的当前投影，不是回答引用；检索相关不等于能够支持问题中的结论。</p>
+        <div class="candidate-list" data-candidate-list></div>
+        <p class="candidate-empty" data-candidate-empty hidden></p>
+      </div>
+    </details>
     <div class="continue-deep" data-continue-deep hidden>
       <div><strong>需要继续查找？</strong><span>保留当前问题和限定范围，明确切换到深入搜索。</span></div>
       <button class="primary" type="button" data-use-deep>使用深入搜索继续</button>

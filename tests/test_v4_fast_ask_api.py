@@ -18,6 +18,7 @@ from shiliu.ask.deep.contracts import AgentDecision
 from shiliu.domain import FavoriteItem, SubtitleSegment
 from shiliu.domain import PipelineError
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
+from shiliu.retrieval.product_search import ProductSearchRequest
 from shiliu.web import create_web_app
 
 
@@ -299,6 +300,326 @@ def test_fast_ask_is_durable_across_service_recreation(app_paths) -> None:
     assert linked == 3
 
 
+def test_candidate_disclosure_deduplicates_and_marks_stale_after_restart(
+    app_paths,
+) -> None:
+    provider = _Provider(rewrites=("协议",), answer_modes=("insufficient",))
+    core, _ = _application(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+    disclosure = body["candidate_disclosure"]
+
+    assert disclosure["inspected_search_trace_count"] == 2
+    assert disclosure["available_presentation_count"] == 2
+    assert disclosure["reconstructed_candidate_count"] == 1
+    assert len(disclosure["candidates"]) == 1
+    unit_id = disclosure["candidates"][0]["unit_id"]
+
+    with core.db.connect() as connection:
+        connection.execute(
+            "DELETE FROM retrieval_units_fts WHERE unit_id=?",
+            (unit_id,),
+        )
+        connection.execute("DELETE FROM retrieval_units WHERE unit_id=?", (unit_id,))
+
+    restarted = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+    core._ask_service = restarted
+    trace = TestClient(create_web_app(core)).get(
+        f"/api/ask/traces/{body['run_id']}"
+    ).json()["trace"]
+    stale = trace["candidate_disclosure"]["candidates"]
+
+    assert len(stale) == 1
+    assert stale[0]["identity_status"] == "stale"
+    assert stale[0]["unit_id"] == unit_id
+    assert stale[0]["excerpt"] is None
+    assert trace["citations"] == trace["final_evidence"] == []
+
+
+def test_restart_marks_transcript_window_without_exact_unit_identity_stale(
+    app_paths,
+) -> None:
+    provider = _Provider(answer_modes=("insufficient",))
+    core, _ = _application(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+    run_id = body["run_id"]
+    trace_id = core.ask_service.run_store.get_run(run_id)["search_executions"][0][
+        "search_trace_id"
+    ]
+    presentation = core.product_search.get_presentation(trace_id)
+    groups = presentation["group_summary"]
+    groups[0]["windows"][0].pop("best_chunk_id")
+    with core.db.connect() as connection:
+        connection.execute(
+            """
+            UPDATE retrieval_search_presentations
+            SET group_summary_json=?
+            WHERE trace_id=?
+            """,
+            (json.dumps(groups, ensure_ascii=False), trace_id),
+        )
+
+    restarted = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda _role: provider,
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+    candidate = restarted.get_trace(run_id)["candidate_disclosure"]["candidates"][0]
+
+    assert candidate["candidate_kind"] == "transcript_candidate"
+    assert candidate["identity_status"] == "stale"
+    assert candidate["unit_id"] is None
+    assert candidate["excerpt"] is None
+    assert candidate["jump_url"] is None
+
+
+def test_metadata_only_lead_and_unavailable_identity_remain_non_authoritative(
+    app_paths,
+) -> None:
+    provider = _Provider()
+    core, _ = _application(app_paths, provider)
+    source_id = core.db.create_favorite_source(
+        folder_id=902,
+        folder_title="Metadata only",
+    )
+    core.db.record_source_snapshot(
+        source_id,
+        [
+            FavoriteItem(
+                bvid="BV0987654321",
+                title="上海本帮菜餐厅清单",
+                uploader="美食 UP",
+                favorite_time=2,
+            )
+        ],
+        processing_profile="formal",
+    )
+    core.retrieval.rebuild()
+    _raw, search = core.product_search.search_with_raw(
+        ProductSearchRequest(
+            query="上海本帮菜餐厅",
+            mode="lexical",
+            scope="video",
+            result_limit=5,
+        )
+    )
+    assert search.results and search.results[0].windows == ()
+
+    run_id = "ask_run_metadata_only_fixture"
+    core.ask_service.run_store.start(
+        run_id=run_id,
+        query="我收藏过哪些上海餐厅视频？",
+        mode="fast",
+        filters={},
+    )
+    core.ask_service.run_store.complete(
+        run_id=run_id,
+        trace={},
+        answer_status="insufficient",
+        termination_reason="answer_ready",
+        query_analysis={},
+        rewrites=[],
+        search_executions=[
+            {
+                "search_trace_id": search.trace_id,
+                "trace_persisted": True,
+                "query": "上海本帮菜餐厅",
+                "relation_kind": "original_query",
+            }
+        ],
+        final_evidence=[],
+        citations=[],
+        answer_blocks=[],
+        limitations=["没有可用字幕"],
+        usage_summary={},
+    )
+    disclosure = core.ask_service.candidate_projector.project(run_id)
+    lead = disclosure.candidates[0]
+
+    assert lead.candidate_kind == "metadata_lead"
+    assert lead.identity_status == "current"
+    assert lead.title == "上海本帮菜餐厅清单"
+    assert lead.unit_id is lead.excerpt is None
+    assert lead.jump_url is not None
+    assert core.ask_service.run_store.get_run(run_id)["citations"] == []
+    assert core.ask_service.run_store.get_run(run_id)["final_evidence"] == []
+
+    presentation = core.product_search.get_presentation(search.trace_id)
+    groups = presentation["group_summary"]
+    groups[0]["video_id"] = 999_999
+    with core.db.connect() as connection:
+        connection.execute(
+            """
+            UPDATE retrieval_search_presentations
+            SET group_summary_json=?
+            WHERE trace_id=?
+            """,
+            (json.dumps(groups, ensure_ascii=False), search.trace_id),
+        )
+    unavailable = core.ask_service.candidate_projector.project(run_id).candidates[0]
+
+    assert unavailable.video_id == 999_999
+    assert unavailable.identity_status == "unavailable"
+    assert unavailable.title == "历史视频 #999999（当前不可用）"
+    assert unavailable.jump_url is unavailable.detail_url is None
+
+    bounded_groups = [
+        {**groups[0], "video_id": 999_000 + index, "best_rank": index}
+        for index in range(1, 10)
+    ]
+    with core.db.connect() as connection:
+        connection.execute(
+            """
+            UPDATE retrieval_search_presentations
+            SET group_summary_json=?
+            WHERE trace_id=?
+            """,
+            (json.dumps(bounded_groups, ensure_ascii=False), search.trace_id),
+        )
+    bounded = core.ask_service.candidate_projector.project(run_id)
+    hard_bounded = core.ask_service.candidate_projector.project(run_id, limit=8)
+
+    assert len(bounded.candidates) == 5
+    assert bounded.reconstructed_candidate_count == 8
+    assert bounded.truncated is True
+    assert len(hard_bounded.candidates) == 8
+    assert hard_bounded.truncated is True
+
+
+def test_zero_candidate_run_reports_honest_empty_reconstruction(app_paths) -> None:
+    provider = _Provider(answer_modes=("insufficient",))
+    core, _ = _application(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask",
+        json={"query": "完全不存在的词xyz987", "mode": "fast"},
+    ).json()
+
+    assert body["status"] == "insufficient"
+    disclosure = body["candidate_disclosure"]
+    assert disclosure["inspected_search_trace_count"] == 1
+    assert disclosure["available_presentation_count"] == 1
+    assert disclosure["candidates"] == []
+    assert disclosure["empty_reason"] == "no_unadopted_candidates"
+
+
+def test_candidate_reconstruction_bounds_lineage_and_reports_missing_presentation(
+    app_paths,
+) -> None:
+    provider = _Provider(answer_modes=("insufficient",))
+    core, _ = _application(app_paths, provider)
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+    run_id = body["run_id"]
+    run = core.ask_service.run_store.get_run(run_id)
+    trace_id = run["search_executions"][0]["search_trace_id"]
+    with core.db.connect() as connection:
+        for sequence in range(1, 13):
+            connection.execute(
+                """
+                INSERT INTO ask_search_trace_links(
+                    run_id, sequence, relation_kind, decision_sequence,
+                    execution_id, search_trace_id, trace_persisted,
+                    trace_error, query, created_at
+                ) VALUES(?, ?, 'rewrite', NULL, NULL, ?, 1, NULL, ?, ?)
+                """,
+                (
+                    run_id,
+                    sequence,
+                    trace_id,
+                    f"rewrite {sequence}",
+                    run["completed_at"],
+                ),
+            )
+    bounded = core.ask_service.candidate_projector.project(run_id)
+
+    assert bounded.inspected_search_trace_count == 12
+    assert bounded.available_presentation_count == 12
+    assert bounded.reconstructed_candidate_count == 1
+    assert bounded.truncated is True
+
+    with core.db.connect() as connection:
+        connection.execute(
+            "DELETE FROM retrieval_search_presentations WHERE trace_id=?",
+            (trace_id,),
+        )
+    missing = core.ask_service.candidate_projector.project(run_id)
+
+    assert missing.inspected_search_trace_count == 12
+    assert missing.available_presentation_count == 0
+    assert missing.failed_or_unavailable_trace_count == 12
+    assert missing.candidates == []
+    assert missing.empty_reason == "search_presentations_unavailable"
+
+
+def test_partial_answer_discloses_only_unadopted_comparison_candidate(
+    app_paths,
+) -> None:
+    provider = _Provider(answer_modes=("partial",))
+    core, _ = _application(app_paths, provider)
+    source_id = core.db.create_favorite_source(
+        folder_id=903,
+        folder_title="Second transcript",
+    )
+    core.db.record_source_snapshot(
+        source_id,
+        [
+            FavoriteItem(
+                bvid="BV1122334455",
+                title="MCP 第二条介绍",
+                uploader="另一位 UP",
+                favorite_time=3,
+            )
+        ],
+        processing_profile="formal",
+    )
+    second = core.db.get_video_by_source("BV1122334455")
+    second_id = int(second["id"])
+    _, raw_path = core.artifacts.save_raw_subtitle(
+        "BV1122334455",
+        [
+            SubtitleSegment.model_validate(
+                {
+                    "from": 30,
+                    "to": 36,
+                    "content": "MCP 在另一条视频中也连接模型与外部工具。",
+                }
+            )
+        ],
+    )
+    core.db.update_video(
+        second_id,
+        status="completed",
+        raw_subtitle_path=str(raw_path),
+        subtitle_source="human",
+        subtitle_language="zh",
+    )
+    core.retrieval.rebuild()
+
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP", "mode": "fast"}
+    ).json()
+    candidates = body["candidate_disclosure"]["candidates"]
+
+    assert body["status"] == "partial"
+    assert len(body["citations"]) == 1
+    assert len(candidates) == 1
+    assert candidates[0]["video_id"] != body["citations"][0]["video_id"]
+    assert candidates[0]["video_id"] in {
+        second_id,
+        int(core.db.get_video_by_source("BV1234567890")["id"]),
+    }
+
+
 def test_fast_failed_retrieval_keeps_its_durable_search_trace_link(app_paths) -> None:
     provider = _Provider()
     core, _ = _application(app_paths, provider)
@@ -447,6 +768,18 @@ def test_fast_ask_partial_and_model_declared_insufficient(app_paths) -> None:
     assert insufficient["limitations"] == [
         "本次检索未找到足以回答该问题的可靠字幕证据"
     ]
+    disclosure = insufficient["candidate_disclosure"]
+    assert disclosure["reconstruction_kind"] == (
+        "durable_search_lineage_current_projection"
+    )
+    assert len(disclosure["candidates"]) == 1
+    candidate = disclosure["candidates"][0]
+    assert candidate["candidate_kind"] == "transcript_candidate"
+    assert candidate["identity_status"] == "current"
+    assert candidate["excerpt"] == "MCP 通过协议连接模型与外部工具。 调用结果会返回给模型继续处理。"
+    assert candidate["search_query"] == "MCP"
+    assert candidate["search_rank"] == 1
+    assert "citation_id" not in candidate
 
 
 def test_unknown_citation_repairs_once_and_repair_failure_fails_closed(
@@ -474,6 +807,9 @@ def test_unknown_citation_repairs_once_and_repair_failure_fails_closed(
     assert failed["execution_outcome"] == "generation_failed"
     assert failed["termination_reason"] == "provider_error"
     assert failed["answer_blocks"] == failed["citations"] == []
+    assert failed["candidate_disclosure"]["candidates"][0][
+        "candidate_kind"
+    ] == "transcript_candidate"
     assert failed_provider.answer_calls == 2
     failed_trace = failed_core.ask_service.get_trace(failed["run_id"])
     assert failed_trace["answer_calls"] == 1

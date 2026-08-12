@@ -108,6 +108,11 @@ def test_ask_static_resources_expose_safe_state_and_shared_evidence_contract(
     assert "fetch(`/api/ask/traces/" in source
     assert "window.__shiliuAsk" in source
     assert "shouldSubmitOnEnter" in source
+    assert "candidate_disclosure" in source
+    assert "字幕候选 · 未被采用为回答引用" in source
+    assert "相关视频线索 · 无可用字幕，不能作为回答证据" in source
+    assert "检索相关不等于能够支持问题中的结论" in client.get("/ask").text
+    assert "data-candidate-disclosure" in client.get("/ask").text
     assert "!event.shiftKey" in keyboard_js.text
     assert "!event.isComposing" in keyboard_js.text
     assert "event.keyCode !== 229" in keyboard_js.text

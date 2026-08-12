@@ -14,7 +14,7 @@ from shiliu.ask import (
     AskResponse,
     stable_citation_id,
 )
-from shiliu.ask.contracts import Citation, TraceSummary
+from shiliu.ask.contracts import Citation, RetrievedCandidate, TraceSummary
 from shiliu.evidence import (
     EvidenceContractError,
     SourceArtifactReference,
@@ -83,6 +83,46 @@ def test_ask_contract_forbids_parallel_answer_and_claims() -> None:
                 "claims": [],
             }
         )
+
+
+def test_candidate_contract_encodes_non_authoritative_identity_boundaries() -> None:
+    base = {
+        "search_trace_id": "trace-1",
+        "search_query": "MCP",
+        "search_rank": 1,
+        "video_id": 1,
+        "title": "MCP",
+        "video_status": "completed",
+    }
+    with pytest.raises(ValidationError):
+        RetrievedCandidate.model_validate(
+            {
+                **base,
+                "candidate_kind": "metadata_lead",
+                "identity_status": "current",
+                "excerpt": "不应存在的字幕",
+            }
+        )
+    with pytest.raises(ValidationError):
+        RetrievedCandidate.model_validate(
+            {
+                **base,
+                "candidate_kind": "transcript_candidate",
+                "identity_status": "current",
+                "start_time": 1,
+                "end_time": 2,
+            }
+        )
+    stale = RetrievedCandidate.model_validate(
+        {
+            **base,
+            "candidate_kind": "transcript_candidate",
+            "identity_status": "stale",
+            "start_time": 1,
+            "end_time": 2,
+        }
+    )
+    assert stale.unit_id is stale.excerpt is stale.jump_url is None
 
 
 def test_stable_citation_ignores_retrieval_rank_and_method(tmp_path) -> None:
