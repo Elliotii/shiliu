@@ -25,6 +25,17 @@ def test_r1_e1_caps_reach_accepted_product_runtime_boundary_without_dispatch(
     kernel = Mock()
     kernel._transaction.return_value = nullcontext()
     kernel._existing_receipt.return_value = None
+    kernel.get_task.return_value = {
+        "task": {"active_goal_id": "goal-provider-authorized"},
+        "goals": [
+            {
+                "goal_id": "goal-provider-authorized",
+                "evidence_policy": {
+                    "product_execution": "receipt_bound_provider",
+                },
+            }
+        ],
+    }
     inner = Mock(provider_runs_authorized=True)
     receipt_service = Mock(provider_dispatch_authorized=True)
     provider_factory = Mock(side_effect=AssertionError("Provider dispatch forbidden"))
