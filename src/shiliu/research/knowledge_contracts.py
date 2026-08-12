@@ -59,6 +59,44 @@ class ReviewKnowledgeCandidateRequest(_StrictModel):
         return self
 
 
+class PublishKnowledgeSelection(_StrictModel):
+    candidate_id: str = Field(min_length=1, max_length=160)
+    expected_state_version: int = Field(ge=0)
+
+    @field_validator("candidate_id")
+    @classmethod
+    def normalize_candidate_id(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("candidate_id must not be blank")
+        return value
+
+
+class PublishResearchKnowledgeRequest(_StrictModel):
+    """One explicit product confirmation over the existing V5-B publish steps."""
+
+    command_id: str = Field(min_length=1, max_length=96)
+    selections: list[PublishKnowledgeSelection] = Field(min_length=1, max_length=32)
+
+    @field_validator("command_id")
+    @classmethod
+    def normalize_command_id(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("command_id must not be blank")
+        return value
+
+    @field_validator("selections")
+    @classmethod
+    def unique_candidates(
+        cls, values: list[PublishKnowledgeSelection]
+    ) -> list[PublishKnowledgeSelection]:
+        candidate_ids = [value.candidate_id for value in values]
+        if len(candidate_ids) != len(set(candidate_ids)):
+            raise ValueError("selections must contain unique candidate_ids")
+        return values
+
+
 class BuildKnowledgeArtifactRequest(_StrictModel):
     command_id: str = Field(min_length=1, max_length=160)
     fact_revision_ids: list[str] = Field(min_length=1, max_length=32)

@@ -198,33 +198,37 @@
 
         <section class="research-knowledge" aria-labelledby="research-knowledge-title">
           <div class="research-section-heading">
-            <div><p class="result-kicker">V5-B · STAGE 2</p><h3 id="research-knowledge-title">知识生命周期与 Topic Page 刷新</h3></div>
+            <div><p class="result-kicker">LONG-TERM KNOWLEDGE</p><h3 id="research-knowledge-title">保存这次研究，在以后继续使用</h3></div>
             <div class="research-control-buttons">
-              <button class="ghost compact-button" type="button" data-knowledge-revalidate>验证当前 Evidence</button>
-              <button class="ghost compact-button" type="button" data-knowledge-intake>接收 KnowledgeDelta</button>
+              <button class="ghost compact-button" type="button" data-knowledge-intake>保存到知识</button>
             </div>
           </div>
-          <p class="muted">Candidate 必须由你显式审查；Accept 会由服务器重新验证当前 Evidence；Page 保持 publish-or-return。Stage 5 关系仅限 shared_current_fact / confirmed_conflict 导航。</p>
+          <p class="muted">先查看准备保存的核心结论、来源和证据状态。只有你明确确认后，才会发布为长期知识；原始字幕仍是事实依据。</p>
           <p class="muted" data-knowledge-status aria-live="polite"></p>
-          <div class="research-knowledge-column" data-knowledge-closeout></div>
           <div class="research-knowledge-column" data-knowledge-candidates></div>
           <div class="research-knowledge-column" data-knowledge-facts></div>
           <div class="research-knowledge-column" data-knowledge-artifacts></div>
           <div class="research-knowledge-column" data-knowledge-pages></div>
-          <div class="research-knowledge-column" data-knowledge-updates></div>
-          <div class="research-knowledge-column" data-knowledge-operations></div>
           <div class="research-knowledge-column">
             <div class="research-section-heading">
-              <div><p class="result-kicker">V5-B · STAGE 3</p><h4>Artifact reuse route</h4></div>
+              <div><p class="result-kicker">ASK AGAIN LATER</p><h4>这个新问题能否使用已有知识？</h4></div>
             </div>
             <form data-artifact-route-form>
-              <label>Query<input name="route_query" maxlength="2000" required placeholder="输入要复用或继续研究的问题"></label>
-              <label>Required aspects<textarea name="route_aspects" rows="3" placeholder="每行一个明确 aspect；缺失时会 fail closed 到 Research Seed"></textarea></label>
-              <button class="ghost compact-button" type="submit">评估 direct / incremental / seed</button>
+              <label>后续问题<input name="route_query" maxlength="2000" required placeholder="例如：把可复用方法做成 Skill，还需要哪些工程能力？"></label>
+              <label>这个问题必须回答的要点<textarea name="route_aspects" rows="3" required placeholder="每行一个要点，例如：按需读取、确定性执行、工程资产"></textarea></label>
+              <button class="ghost compact-button" type="submit">检查已有知识</button>
             </form>
-            <p class="muted">Artifact ranking 只排序检查；open corpus lane 始终独立保留。用户只能选择同等或更安全的 route。</p>
+            <p class="muted">系统会检查已有结论是否仍然有效、来源是否可追溯、要点是否覆盖完整，再建议直接使用、补充研究或重新研究。</p>
             <div data-knowledge-routes></div>
           </div>
+          <details class="research-advanced-trace">
+            <summary>知识维护与高级诊断</summary>
+            <button class="ghost compact-button" type="button" data-knowledge-revalidate>重新验证当前证据</button>
+            <p class="muted">V5-B internal diagnostics: KnowledgeDelta / Grounded Fact revision / ArtifactRoute / publish-or-return / shared_current_fact.</p>
+            <div class="research-knowledge-column" data-knowledge-closeout></div>
+            <div class="research-knowledge-column" data-knowledge-updates></div>
+            <div class="research-knowledge-column" data-knowledge-operations></div>
+          </details>
         </section>
 
         <section class="research-assistance" id="research-assistance" aria-labelledby="research-assistance-title" data-knowledge-assistance>

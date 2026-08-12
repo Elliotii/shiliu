@@ -356,10 +356,10 @@ def test_stage3_schema_direct_route_open_lane_api_ui_and_citation(app_paths) -> 
     assert api.json()["route"]["latest"]["final_route"] == "direct_reuse"
     html = client.get(f"/research/{task_id}").text
     js = client.get("/static/research.js").text
-    assert "Artifact reuse route" in html
+    assert "这个新问题能否使用已有知识" in html
     assert "data-artifact-route-form" in html
     assert "/knowledge/routes/assess" in js
-    assert "independent open corpus" in js
+    assert "系统发现覆盖缺口或证据状态不足" in js
 
 
 def test_direct_fails_closed_for_ambiguous_stale_and_late_authority(app_paths) -> None:

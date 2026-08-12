@@ -15,6 +15,7 @@
   let activeTaskId = root.dataset.initialTaskId || '';
   let current = null;
   let knowledge = null;
+  const knowledgePublishCommands = new Map();
   let personalWorkspace = null;
   let personalizationEnabled = true;
   let routingEnabled = true;
@@ -346,6 +347,32 @@
     }, '正在提交 Candidate 审查…');
   };
 
+  const publishPendingKnowledge = async candidates => {
+    const status = root.querySelector('[data-knowledge-status]');
+    if (!candidates.length) return;
+    const existing = knowledgePublishCommands.get(activeTaskId);
+    const publishCommand = existing || commandId('knowledge-publish');
+    knowledgePublishCommands.set(activeTaskId, publishCommand);
+    status.textContent = '正在重新核验来源并发布长期知识…';
+    try {
+      await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/knowledge/publish`, {
+        method: 'POST',
+        body: JSON.stringify({
+          command_id: publishCommand,
+          selections: candidates.map(candidate => ({
+            candidate_id: candidate.candidate_id,
+            expected_state_version: candidate.state_version,
+          })),
+        }),
+      });
+      knowledgePublishCommands.delete(activeTaskId);
+      status.textContent = '已发布为长期知识。以后遇到相关问题时，可以先检查并直接使用这份知识。';
+      await loadKnowledge();
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  };
+
   const proposeFactUpdate = (fact, kind) => {
     let proposedClaim = null;
     if (['user_correction', 'supersede'].includes(kind)) {
@@ -401,6 +428,10 @@
 
   const renderKnowledge = workspaceData => {
     knowledge = workspaceData;
+    const intakeButton = root.querySelector('[data-knowledge-intake]');
+    const hasPublishedKnowledge = knowledge.pages.some(page => page.review_status === 'published');
+    intakeButton.disabled = hasPublishedKnowledge || knowledge.candidates.length > 0;
+    intakeButton.textContent = hasPublishedKnowledge ? '已保存到知识' : knowledge.candidates.length ? '等待确认发布' : '保存到知识';
     const closeout = knowledge.closeout || {};
     const observability = closeout.observability || {counts: {}, feedback: []};
     const closeoutList = root.querySelector('[data-knowledge-closeout]');
@@ -414,30 +445,48 @@
     if (paths.research_change) closeoutList.append(element('p', 'research-currentness', `Research-change · ${paths.research_change.route} · ${paths.research_change.status}`));
     renderFeedbackPreferenceCandidates(observability, closeoutList);
     const candidateList = root.querySelector('[data-knowledge-candidates]');
-    candidateList.replaceChildren(element('h4', '', `Candidate · ${knowledge.candidates.length}`));
+    const pendingCandidates = knowledge.candidates.filter(candidate => candidate.status === 'pending_review');
+    const candidateHeading = element('div', 'research-section-heading');
+    candidateHeading.append(element('h4', '', pendingCandidates.length ? '发布前确认' : '准备保存的结论'));
+    if (pendingCandidates.length) {
+      const publish = element('button', 'ghost compact-button', `确认发布 ${pendingCandidates.length} 条结论`);
+      publish.type = 'button';
+      publish.addEventListener('click', () => publishPendingKnowledge(pendingCandidates));
+      candidateHeading.append(publish);
+    }
+    candidateList.replaceChildren(candidateHeading);
     knowledge.candidates.forEach(candidate => {
       const card = element('article', 'research-knowledge-card');
+      const statusLabel = {
+        pending_review: '等待你确认', accepted: '已保存', rejected: '已排除',
+        superseded: '已由新版本替代', needs_revalidation: '来源需要重新验证',
+      }[candidate.status] || candidate.status;
       card.append(
-        element('span', `research-currentness${candidate.status === 'pending_review' ? '' : ' is-stale'}`, candidate.status),
+        element('span', `research-currentness${candidate.status === 'pending_review' ? '' : ' is-stale'}`, statusLabel),
         element('p', 'research-knowledge-claim', candidate.claim),
-        element('small', '', `${candidate.candidate_id} · v${candidate.state_version}`),
       );
-      candidate.evidence.forEach(value => card.append(element(
-        'small', value.current_outcome === 'current' ? 'research-currentness' : 'research-currentness is-stale',
-        `Evidence · ${value.current_outcome} · ${value.title || value.reason_code}`,
-      )));
+      candidate.evidence.forEach(value => {
+        const evidence = element('div', 'research-citation-drilldown');
+        evidence.append(element(
+          'span', value.current_outcome === 'current' ? 'research-currentness' : 'research-currentness is-stale',
+          `${value.current_outcome === 'current' ? '来源仍有效' : '来源状态异常'} · ${value.title || value.reason_code} · ${(value.quote || '').slice(0, 360)}${(value.quote || '').length > 360 ? '…' : ''}`,
+        ));
+        if (value.jump_url) {
+          const jump = element('a', '', '打开原视频');
+          jump.href = value.jump_url; jump.target = '_blank'; jump.rel = 'noopener noreferrer'; evidence.append(jump);
+        }
+        if (value.transcript_href) {
+          const transcript = element('a', '', '查看原始字幕');
+          transcript.href = value.transcript_href; transcript.target = '_blank'; evidence.append(transcript);
+        }
+        card.append(evidence);
+      });
       if (['pending_review', 'needs_revalidation'].includes(candidate.status)) {
         const actions = element('div', 'research-control-buttons');
-        if (candidate.status === 'pending_review') {
-          const accept = element('button', 'ghost', 'Accept → Fact');
-          accept.type = 'button';
-          accept.addEventListener('click', () => reviewCandidate(candidate, 'accept'));
-          actions.append(accept);
-        }
-        const reject = element('button', 'ghost is-destructive', 'Reject');
+        const reject = element('button', 'ghost is-destructive', '不保存这条');
         reject.type = 'button';
         reject.addEventListener('click', () => reviewCandidate(candidate, 'reject'));
-        const edit = element('button', 'ghost', 'Edit as new Candidate');
+        const edit = element('button', 'ghost', '修改后重新验证');
         edit.type = 'button';
         edit.addEventListener('click', () => reviewCandidate(candidate, 'edit'));
         actions.append(reject, edit);
@@ -445,32 +494,22 @@
       }
       candidateList.append(card);
     });
-    if (!knowledge.candidates.length) candidateList.append(element('p', 'muted', '尚未接收 KnowledgeDelta Candidate。'));
+    if (!knowledge.candidates.length) candidateList.append(element('p', 'muted', '这次研究还没有准备长期知识。点击“保存到知识”后，系统会先生成待确认内容，不会自动发布。'));
 
     const factList = root.querySelector('[data-knowledge-facts]');
     const factHeading = element('div', 'research-section-heading');
-    factHeading.append(element('h4', '', `Accepted Fact · ${knowledge.facts.length}`));
-    const currentFacts = knowledge.facts.filter(fact => fact.is_current_revision && fact.lifecycle_status === 'current');
-    if (currentFacts.length) {
-      const build = element('button', 'ghost compact-button', '构建确定性 Artifact');
-      build.type = 'button';
-      build.addEventListener('click', () => knowledgeAction('/artifacts', {
-        command_id: commandId('artifact-build'),
-        fact_revision_ids: currentFacts.map(fact => fact.fact_revision_id),
-      }, '正在同步构建 Artifact…'));
-      factHeading.append(build);
-    }
+    factHeading.append(element('h4', '', `已保存结论 · ${knowledge.facts.length}`));
     factList.replaceChildren(factHeading);
     knowledge.facts.forEach(fact => {
       const card = element('article', 'research-knowledge-card');
       card.append(
-        element('span', `research-currentness${fact.currentness_status === 'current' && fact.lifecycle_status === 'current' ? '' : ' is-stale'}`, `${fact.lifecycle_status} · ${fact.currentness_status}`),
+        element('span', `research-currentness${fact.currentness_status === 'current' && fact.lifecycle_status === 'current' ? '' : ' is-stale'}`, fact.currentness_status === 'current' ? '来源仍有效' : '需要检查更新'),
         element('p', 'research-knowledge-claim', fact.claim),
-        element('small', '', `revision ${fact.revision}${fact.is_current_revision ? ' · current head' : ' · history'}`),
+        element('small', '', `保存于 ${fact.created_at}`),
       );
       fact.citations.forEach(citation => {
         const citationRow = element('div', 'research-citation-drilldown');
-        citationRow.append(element('span', '', `${citation.current_outcome} · ${citation.title} · ${citation.quote}`));
+        citationRow.append(element('span', '', `${citation.current_outcome} · ${citation.title} · ${citation.quote.slice(0, 360)}${citation.quote.length > 360 ? '…' : ''}`));
         if (citation.jump_url) {
           const jump = element('a', '', '时间点播放');
           jump.href = citation.jump_url; jump.target = '_blank'; jump.rel = 'noopener noreferrer';
@@ -482,7 +521,7 @@
       });
       if (fact.is_current_revision && fact.lifecycle_status === 'current') {
         const actions = element('div', 'research-control-buttons');
-        [['user_correction', '修正'], ['retire', 'Retire'], ['supersede', 'Supersede']].forEach(([kind, label]) => {
+        [['user_correction', '修正'], ['retire', '停用'], ['supersede', '用新结论替代']].forEach(([kind, label]) => {
           const button = element('button', kind === 'retire' ? 'ghost is-destructive' : 'ghost', label);
           button.type = 'button'; button.addEventListener('click', () => proposeFactUpdate(fact, kind)); actions.append(button);
         });
@@ -492,34 +531,35 @@
     });
 
     const artifactList = root.querySelector('[data-knowledge-artifacts]');
-    artifactList.replaceChildren(element('h4', '', `Artifact revision · ${knowledge.artifacts.length}`));
+    artifactList.replaceChildren(element('h4', '', `知识摘要 · ${knowledge.artifacts.length}`));
     knowledge.artifacts.forEach(artifact => {
       const card = element('article', 'research-knowledge-card');
       card.append(
-        element('span', `research-currentness${artifact.currentness_status === 'current' ? '' : ' is-stale'}`, artifact.currentness_status),
-        element('strong', '', artifact.topic), element('small', '', artifact.artifact_revision_id),
+        element('span', `research-currentness${artifact.currentness_status === 'current' ? '' : ' is-stale'}`, artifact.currentness_status === 'current' ? '当前可用' : '需要更新'),
+        element('strong', '', artifact.topic),
       );
-      if (artifact.currentness_status === 'current') {
-        const build = element('button', 'ghost compact-button', '构建首版 Topic Page');
-        build.type = 'button';
-        build.addEventListener('click', () => knowledgeAction('/pages', {
-          command_id: commandId('page-build'), artifact_revision_id: artifact.artifact_revision_id,
-        }, '正在同步构建首版 Topic Page…'));
-        card.append(build);
-      }
       artifactList.append(card);
     });
 
     const pageList = root.querySelector('[data-knowledge-pages]');
-    pageList.replaceChildren(element('h4', '', `Topic Page · ${knowledge.pages.length}`));
+    pageList.replaceChildren(element('h4', '', `已发布主题 · ${knowledge.pages.length}`));
     knowledge.pages.forEach(page => {
       const card = element('article', 'research-knowledge-card');
       card.append(
-        element('span', `research-currentness${page.currentness_status === 'current' ? '' : ' is-stale'}`, `${page.review_status} · ${page.currentness_status}`),
+        element('span', `research-currentness${page.currentness_status === 'current' ? '' : ' is-stale'}`, `${page.review_status === 'published' ? '已发布' : '草稿'} · ${page.currentness_status === 'current' ? '当前可用' : '需要更新'}`),
         element('strong', '', page.title),
-        element('small', '', `${page.page_revision_id} · version ${page.version} · published ${page.published_version || 'none'}`),
+        element('small', '', `更新于 ${page.updated_at} · 版本 ${page.version}`),
       );
       (page.body.facts || []).forEach(fact => card.append(element('p', 'research-knowledge-claim', fact.claim)));
+      const pageFactIds = new Set((page.body.facts || []).map(fact => fact.fact_revision_id));
+      const pageCitations = new Map();
+      knowledge.facts.filter(fact => pageFactIds.has(fact.fact_revision_id)).flatMap(fact => fact.citations).forEach(citation => pageCitations.set(citation.evidence_id, citation));
+      pageCitations.forEach(citation => {
+        const citationRow = element('div', 'research-citation-drilldown');
+        citationRow.append(element('span', '', `${citation.title} · ${citation.quote.slice(0, 360)}${citation.quote.length > 360 ? '…' : ''}`));
+        const transcript = element('a', '', '下钻到原始字幕');
+        transcript.href = citation.transcript_href; transcript.target = '_blank'; citationRow.append(transcript); card.append(citationRow);
+      });
       const relations = page.relations || {items: [], total: 0, truncated: false};
       relations.items.forEach(relation => {
         const relationRow = element('div', 'research-citation-drilldown');
@@ -536,7 +576,7 @@
       if (page.review_status === 'draft') {
         const actions = element('div', 'research-control-buttons');
         ['publish', 'return'].forEach(decision => {
-          const button = element('button', decision === 'return' ? 'ghost is-destructive' : 'ghost', decision === 'publish' ? 'Publish' : 'Return');
+          const button = element('button', decision === 'return' ? 'ghost is-destructive' : 'ghost', decision === 'publish' ? '确认发布' : '退回修改');
           button.type = 'button';
           button.addEventListener('click', () => knowledgeAction(`/pages/${encodeURIComponent(page.page_id)}/review`, {
             command_id: commandId(`page-${decision}`), decision,
@@ -547,7 +587,7 @@
         card.append(actions);
       }
       const lifecycle = element('div', 'research-control-buttons');
-      const edit = element('button', 'ghost', 'Edit draft');
+      const edit = element('button', 'ghost', '创建新草稿');
       edit.type = 'button'; edit.addEventListener('click', () => {
         const annotation = window.prompt('添加或更新用户注释；Fact blocks 保持引用既有 grounded revision。', page.body.user_annotation || '');
         if (annotation === null) return;
@@ -556,23 +596,25 @@
           annotation, reason: 'local operator edit',
         }, '正在创建新的 Page draft revision…');
       });
-      const revert = element('button', 'ghost', 'Revert to v1');
+      const revert = element('button', 'ghost', '恢复到首版');
       revert.type = 'button'; revert.disabled = page.version === 1;
       revert.addEventListener('click', () => knowledgeAction(`/pages/${encodeURIComponent(page.page_id)}/revert`, {
         command_id: commandId('page-revert'), expected_version: page.version,
         target_version: 1, reason: 'local operator revert',
       }, '正在以新 revision 执行 revert…'));
-      const exportButton = element('button', 'ghost', 'Export Markdown');
+      const exportButton = element('button', 'ghost', '导出 Markdown');
       exportButton.type = 'button'; exportButton.addEventListener('click', () => knowledgeAction('/exports', {
         command_id: commandId('page-export'), page_revision_id: page.page_revision_id,
         export_format: 'markdown',
       }, '正在导出 revision-ID/content-hash addressed Markdown…'));
       const historyOutput = element('pre', 'research-advanced-trace'); historyOutput.hidden = true;
-      const historyButton = element('button', 'ghost', 'History / diff'); historyButton.type = 'button';
+      const historyButton = element('button', 'ghost', '查看历史与差异'); historyButton.type = 'button';
       historyButton.addEventListener('click', () => inspectPageHistory(page, historyOutput));
       lifecycle.append(edit, revert, historyButton, exportButton);
       card.id = `knowledge-page-${page.page_id}`;
-      card.append(lifecycle, feedbackControls('topic_page_revision', page.page_revision_id, page.content_hash), historyOutput);
+      const maintenance = element('details', 'research-advanced-trace');
+      maintenance.append(element('summary', '', '页面维护与反馈'), lifecycle, feedbackControls('topic_page_revision', page.page_revision_id, page.content_hash), historyOutput);
+      card.append(maintenance);
       pageList.append(card);
     });
 
@@ -632,44 +674,50 @@
     });
 
     const routeList = root.querySelector('[data-knowledge-routes]');
-    routeList.replaceChildren(element('h4', '', `ArtifactRoute · ${(knowledge.artifact_routes || []).length}`));
+    routeList.replaceChildren(element('h4', '', `已有知识判断 · ${(knowledge.artifact_routes || []).length}`));
     (knowledge.artifact_routes || []).forEach(route => {
       const card = element('article', 'research-knowledge-card');
+      const routeLabel = {
+        direct_reuse: '已有知识足够，可以直接使用',
+        incremental_refresh: '已有知识可复用，但需要补充',
+        research_seed: '现有知识不足，需要重新研究',
+      }[route.final_route || route.recommended_route] || route.recommended_route;
       card.append(
-        element('span', `research-currentness${route.status === 'completed' ? '' : ' is-stale'}`, `${route.final_route || route.recommended_route} · ${route.status}`),
+        element('span', `research-currentness${route.status === 'completed' ? '' : ' is-stale'}`, routeLabel),
         element('p', 'research-knowledge-claim', route.query.query),
-        element('small', '', `${route.route_id} · v${route.version} · authority ${route.expected_authority_hash.slice(0, 16)}…`),
       );
-      const openCount = route.retrieval.open_corpus?.results?.length || 0;
-      card.append(element('small', '', `Artifact candidates ${(route.gates || []).length} · independent open corpus ${openCount}`));
       (route.gates || []).slice(0, 3).forEach(gate => {
-        card.append(element('p', 'muted', `${gate.artifact_revision_id} · scope ${gate.scope_status} · current ${gate.currentness_status} · citations ${gate.citation_status} · coverage ${gate.completeness_status} → ${gate.candidate_route}`));
-        if ((gate.missing_aspects || []).length) card.append(element('small', 'research-currentness is-stale', `gaps · ${gate.missing_aspects.join(' / ')}`));
-        (gate.facts || []).flatMap(fact => fact.citations || []).slice(0, 3).forEach(citation => {
-          const drill = element('a', '', `L1 · ${citation.evidence_id} · ${citation.start_time}s`);
-          drill.href = citation.transcript_href; drill.target = '_blank'; card.append(drill);
-        });
+        card.append(element('p', 'muted', gate.candidate_route === 'direct_reuse' ? '要点覆盖完整，知识仍有效，且每条结论都能追溯到当前原始字幕。' : '系统发现覆盖缺口或证据状态不足，因此不会把旧知识当作完整答案。'));
+        if ((gate.missing_aspects || []).length) card.append(element('small', 'research-currentness is-stale', `还缺少：${gate.missing_aspects.join(' / ')}`));
+      });
+      const routeCitations = new Map();
+      (route.gates || []).flatMap(gate => gate.facts || []).flatMap(fact => fact.citations || []).forEach(citation => routeCitations.set(citation.evidence_id, citation));
+      routeCitations.forEach(citation => {
+        const drill = element('a', '', `查看原始字幕 · ${citation.start_time}s`);
+        drill.href = citation.transcript_href; drill.target = '_blank'; card.append(drill);
       });
       if (route.record_kind === 'assessment') {
         const actions = element('div', 'research-control-buttons');
         const order = ['direct_reuse', 'incremental_refresh', 'research_seed'];
         const minimum = order.indexOf(route.recommended_route);
         order.slice(minimum).forEach(value => {
-          const button = element('button', 'ghost', value === route.recommended_route ? `Proceed · ${value}` : `Safer · ${value}`);
+          const actionLabel = {direct_reuse: '直接使用已有知识', incremental_refresh: '补充研究后再回答', research_seed: '开始新的研究'}[value];
+          const button = element('button', 'ghost', value === route.recommended_route ? actionLabel : `更谨慎：${actionLabel}`);
           button.type = 'button'; button.addEventListener('click', () => knowledgeAction(`/routes/${encodeURIComponent(route.route_id)}/proceed`, {
             command_id: commandId(`route-${value}`), action: 'confirm', expected_version: route.version,
             route: value, reason: value === route.recommended_route ? 'accepted recommendation' : 'selected safer route',
-          }, '正在持久确认 ArtifactRoute 与 authority fence…')); actions.append(button);
+          }, '正在确认这次知识使用决策…')); actions.append(button);
         });
         card.append(actions);
       }
       if (route.continuation_task_id) {
-        const child = element('a', '', `Continuation Task · ${route.continuation_task_id}`);
+        const child = element('a', '', '打开补充研究任务');
         child.href = `/research/${encodeURIComponent(route.continuation_task_id)}`; card.append(child);
       }
-      if (route.outcome_artifact_revision_id) card.append(element('small', '', `Outcome Artifact · ${route.outcome_artifact_revision_id}`));
-      if (Object.keys(route.contribution || {}).length) card.append(element('pre', 'research-advanced-trace', JSON.stringify(route.contribution, null, 2)));
-      card.append(feedbackControls('artifact_route', route.record_id, route.expected_authority_hash));
+      if (route.outcome_artifact_revision_id) card.append(element('small', '', '已确认使用这份长期知识。'));
+      const diagnostics = element('details', 'research-advanced-trace');
+      diagnostics.append(element('summary', '', '查看判断详情'), element('pre', '', JSON.stringify({route_id: route.route_id, version: route.version, gates: route.gates, contribution: route.contribution}, null, 2)), feedbackControls('artifact_route', route.record_id, route.expected_authority_hash));
+      card.append(diagnostics);
       routeList.append(card);
     });
   };
@@ -1213,7 +1261,7 @@
 
   root.querySelector('[data-refresh-list]').addEventListener('click', loadList);
   root.querySelector('[data-knowledge-intake]').addEventListener('click', () => {
-    knowledgeAction('/intake', {command_id: commandId('knowledge-intake')}, '正在接收 immutable KnowledgeDelta snapshot…');
+    knowledgeAction('/intake', {command_id: commandId('knowledge-intake')}, '正在从这次研究结果准备待确认的长期知识…');
   });
   root.querySelector('[data-knowledge-revalidate]').addEventListener('click', () => {
     knowledgeAction('/revalidate', {command_id: commandId('knowledge-revalidate'), fact_revision_ids: [], trigger: 'explicit'}, '正在追加 current Evidence observations…');
@@ -1222,7 +1270,7 @@
     event.preventDefault();
     const form = event.currentTarget;
     const status = root.querySelector('[data-knowledge-status]');
-    status.textContent = '正在执行 bounded Artifact retrieval、独立 open corpus lane 与 authority gates…';
+    status.textContent = '正在检查已有知识的覆盖范围、更新时间与原始证据…';
     try {
       await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/knowledge/routes/assess`, {
         method: 'POST', body: JSON.stringify({
@@ -1231,7 +1279,7 @@
           max_artifact_candidates: 5, max_open_results: 5,
         }),
       });
-      status.textContent = 'Route assessment已持久保存；ranking不授予reuse authority。';
+      status.textContent = '判断已完成。请查看系统为什么建议直接使用、补充研究或重新研究。';
       await loadKnowledge();
     } catch (error) { status.textContent = error.message; }
   });

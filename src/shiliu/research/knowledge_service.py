@@ -27,6 +27,7 @@ from shiliu.research.knowledge_contracts import (
     EditTopicPageRequest,
     ExportTopicPageRequest,
     IntakeKnowledgeCandidatesRequest,
+    PublishResearchKnowledgeRequest,
     ProceedArtifactRouteRequest,
     ProposeFactUpdateRequest,
     RecoverKnowledgeOperationsRequest,
@@ -560,6 +561,81 @@ class ResearchKnowledgeService:
             )
             self.fault_injector("after_knowledge_review_receipt")
         return {**response, "deduplicated": False}
+
+    def publish_selected_candidates(
+        self,
+        task_id: str,
+        request: PublishResearchKnowledgeRequest,
+        *,
+        principal_id: str,
+    ) -> dict[str, Any]:
+        """Reuse the accepted V5-B steps behind one explicit product confirmation.
+
+        Each sub-command has a stable command id, so retrying the same product
+        confirmation resumes through the existing receipts instead of creating a
+        second Fact, Artifact, or Topic Page.
+        """
+        request = PublishResearchKnowledgeRequest.model_validate(
+            request.model_dump(mode="json")
+        )
+        fact_revision_ids: list[str] = []
+        candidate_ids: list[str] = []
+        for index, selection in enumerate(request.selections):
+            reviewed = self.review_candidate(
+                task_id,
+                selection.candidate_id,
+                ReviewKnowledgeCandidateRequest(
+                    command_id=f"{request.command_id}:candidate:{index}",
+                    decision="accept",
+                    expected_state_version=selection.expected_state_version,
+                    reason="user confirmed long-term knowledge publication",
+                ),
+                principal_id=principal_id,
+            )
+            fact_revision_id = reviewed.get("fact_revision_id")
+            if reviewed.get("status") != "accepted" or not fact_revision_id:
+                raise ResearchValidationError(
+                    "selected conclusion could not pass current evidence validation"
+                )
+            candidate_ids.append(selection.candidate_id)
+            fact_revision_ids.append(str(fact_revision_id))
+
+        artifact = self.build_artifact(
+            task_id,
+            BuildKnowledgeArtifactRequest(
+                command_id=f"{request.command_id}:artifact",
+                fact_revision_ids=fact_revision_ids,
+            ),
+        )
+        page = self.build_topic_page(
+            task_id,
+            BuildTopicPageRequest(
+                command_id=f"{request.command_id}:page",
+                artifact_revision_id=str(artifact["artifact_revision_id"]),
+            ),
+        )
+        published = self.review_page(
+            task_id,
+            str(page["page_id"]),
+            ReviewTopicPageRequest(
+                command_id=f"{request.command_id}:publish",
+                decision="publish",
+                expected_version=int(page["version"]),
+                reason="user confirmed reviewed conclusions and sources",
+            ),
+            principal_id=principal_id,
+        )
+        return {
+            "task_id": task_id,
+            "candidate_ids": candidate_ids,
+            "fact_revision_ids": fact_revision_ids,
+            "artifact_id": artifact["artifact_id"],
+            "artifact_revision_id": artifact["artifact_revision_id"],
+            "page_id": page["page_id"],
+            "page_revision_id": page["page_revision_id"],
+            "review_status": published["review_status"],
+            "published_version": published["version"],
+        }
 
     def _validate_candidate_evidence(
         self,
@@ -2003,6 +2079,11 @@ class ResearchKnowledgeService:
                         else identity["quote_preview"]
                     ),
                     "jump_url": current.span.jump_url if current.span else None,
+                    "transcript_href": (
+                        f"/videos/{int(identity['video_id'])}/transcript"
+                        if video.get("transcript_path")
+                        else f"/media/{int(identity['video_id'])}/raw-subtitle"
+                    ),
                 }
             )
         return {
@@ -2124,6 +2205,7 @@ class ResearchKnowledgeService:
             "state_version": int(row["state_version"]),
             "content_hash": str(row["content_hash"]),
             "created_at": str(row["created_at"]),
+            "updated_at": str(row["updated_at"]),
         }
 
     @staticmethod

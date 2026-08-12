@@ -177,13 +177,13 @@ def test_stage1_schema_is_temp_db_only_reentrant_and_exposes_minimal_ui(
     page = client.get("/research")
     script = client.get("/static/research.js?v=1")
     assert page.status_code == 200
-    assert "知识生命周期与 Topic Page 刷新" in page.text
+    assert "保存这次研究，在以后继续使用" in page.text
     assert "data-knowledge-intake" in page.text
     assert "publish-or-return" in page.text
     assert script.status_code == 200
     assert "knowledgeAction('/intake'" in script.text
-    assert "Accept → Fact" in script.text
-    assert "Edit as new Candidate" in script.text
+    assert "确认发布" in script.text
+    assert "修改后重新验证" in script.text
     assert "transcript_href" in script.text
 
 

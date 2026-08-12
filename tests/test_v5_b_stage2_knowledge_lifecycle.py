@@ -1045,11 +1045,11 @@ def test_public_api_and_minimal_ui_expose_complete_stage2_journey(app_paths) -> 
     html = client.get("/research")
     script = client.get("/static/research.js")
     assert html.status_code == 200
-    assert "V5-B · STAGE 2" in html.text
+    assert "LONG-TERM KNOWLEDGE" in html.text
     assert "data-knowledge-revalidate" in html.text
     assert "data-knowledge-operations" in html.text
     assert "revision-ID/content-hash" in script.text
-    assert "History / diff" in script.text
+    assert "查看历史与差异" in script.text
     assert "Resolve → retry" in script.text
     detail = client.get(f"/api/research/product/tasks/{task_id}/knowledge")
     fact = next(

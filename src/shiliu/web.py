@@ -70,6 +70,7 @@ from shiliu.research.knowledge_contracts import (
     CreateWorkspaceRecordRequest,
     DecideWorkspaceRecordRequest,
     IntakeKnowledgeCandidatesRequest,
+    PublishResearchKnowledgeRequest,
     ReviewKnowledgeCandidateRequest,
     ReviewTopicPageRequest,
     EditTopicPageRequest,
@@ -735,6 +736,25 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
         return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/publish")
+    async def publish_research_knowledge(
+        task_id: str,
+        payload: PublishResearchKnowledgeRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.publish_selected_candidates,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
 
     @web.post("/api/research/product/tasks/{task_id}/knowledge/artifacts")
     async def build_research_knowledge_artifact(
