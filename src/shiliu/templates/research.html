@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}拾流 · 受限研究实验{% endblock %}
+{% block title %}拾流 · 长程研究{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/research.css?v=2"><link rel="stylesheet" href="/static/research-personalization.css?v=1">{% endblock %}
 {% block content %}
 <main class="research-shell" data-research-page data-initial-task-id="{{ initial_task_id }}">
   <header class="research-hero">
     <div>
-      <p class="eyebrow">RESTRICTED · EXPERIMENTAL</p>
-      <h1>受限研究实验：持久记录真实，研究完成度仍受限。</h1>
-      <p class="muted">当前只启用无 Provider 机械摘录路径。它能保存 checkpoint、证据与决定，但不会仅凭“存在证据”宣称自然语言目标已经完成。</p>
+      <p class="eyebrow">LONG-TERM RESEARCH · EXPERIMENTAL</p>
+      <h1>围绕你的问题，进行有证据、可继续的长程研究。</h1>
+      <p class="muted">系统会进行模型驱动的多步搜索，从当前收藏字幕中形成有来源的研究结果，并保存每次进展。结果存在不等于目标已经被验证完成。</p>
     </div>
-    <span class="research-provider-boundary">受限实验 · PROVIDER 未启用</span>
+    <span class="research-provider-boundary">模型驱动 · 来源可追溯</span>
   </header>
 
   <section class="research-create" aria-labelledby="research-create-title">
     <div>
       <p class="result-kicker">NEW TASK</p>
-      <h2 id="research-create-title">开始一个有界研究任务</h2>
-      <p>这是受限实验入口。自然语言约束若没有服务器注册的验证规则，会安全停下并请求你澄清，而不会伪造成功。</p>
+      <h2 id="research-create-title">开始一项长程研究</h2>
+      <p>提出你真正想弄清的问题。服务器会在固定预算与安全边界内授权模型研究；证据不足、等待输入或执行失败都会如实显示。</p>
     </div>
     <form data-research-create novalidate>
       <label for="research-objective">研究目标</label>
@@ -29,7 +29,7 @@
       <label for="research-constraints">成功约束 <small>每行一项，可为空</small></label>
       <textarea id="research-constraints" name="constraints" rows="2" maxlength="4000" placeholder="自由文本约束需要服务器已注册 evaluator；否则会安全停下"></textarea>
       <div class="research-form-actions">
-        <button class="primary" type="submit" data-create-submit>创建并安全运行</button>
+        <button class="primary" type="submit" data-create-submit>开始研究</button>
         <span class="muted" data-create-status aria-live="polite"></span>
       </div>
     </form>

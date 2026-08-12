@@ -151,7 +151,7 @@ def _delta_counts(core: Application, task_id: str) -> tuple[int, int]:
     return events, receipts
 
 
-def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
+def test_research_page_and_public_product_api_fail_honestly_without_provider(
     app_paths,
 ) -> None:
     core = _fixture_core(app_paths)
@@ -163,9 +163,9 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
     assert 'data-research-page' in page.text
     assert 'href="/research"' in page.text
     assert "候选 Delta" in page.text
-    assert "RESTRICTED · EXPERIMENTAL" in page.text
-    assert "受限实验 · PROVIDER 未启用" in page.text
-    assert "不会仅凭“存在证据”宣称自然语言目标已经完成" in page.text
+    assert "LONG-TERM RESEARCH · EXPERIMENTAL" in page.text
+    assert "模型驱动 · 来源可追溯" in page.text
+    assert "结果存在不等于目标已经被验证完成" in page.text
     assert "data-summary-doing" in page.text
     assert "data-effect-panel" in page.text
     assert "grounded_current_evidence" in page.text
@@ -193,36 +193,9 @@ def test_research_page_and_public_product_api_reach_honest_waiting_boundary(
             "run_immediately": True,
         },
     )
-    assert created.status_code == 202
-    task_id = created.json()["outcome"]["task_id"]
-    assert created.json()["href"] == f"/research/{task_id}"
-
-    detail = client.get(f"/api/research/product/tasks/{task_id}")
-    assert detail.status_code == 200
-    product = detail.json()["product"]
-    assert product["task"]["status"] == "waiting_user"
-    assert product["user_completion"]["status"] == "waiting_for_user"
-    assert product["user_completion"]["objective_verified"] is False
-    assert product["provider_status"] == "not_exercised"
-    assert product["control"]["open_input_requests"]
-    assert product["constraint_policy"]["objective_machine_verifiable"] is False
-    assert product["constraint_policy"]["semantic_constraints"] == [
-        {
-            "text": CONSTRAINT,
-            "verification": "requires_supported_rewrite_or_registered_evaluator",
-            "machine_verifiable": False,
-        }
-    ]
-    assert "owner_epoch" not in json.dumps(product, ensure_ascii=False)
-    assert product["candidate_deltas"]["authority"] == "candidate_only_not_promoted"
-    assert {value["delta_kind"] for value in product["candidate_deltas"]["deltas"]} == set(
-        DELTA_KINDS
-    )
-    assert product["trace"]["counts"]["actions"] == 5
-    assert product["trace"]["counts"]["audits"] == 1
-    assert client.get(f"/research/{task_id}").status_code == 200
-    listed = client.get("/api/research/product/tasks").json()["tasks"]
-    assert listed[0]["task_id"] == task_id
+    assert created.status_code == 503
+    assert created.json()["error"]["code"] == "provider_research_unavailable"
+    assert core.research_product.list_tasks() == []
 
 
 def test_default_application_server_profile_completes_arbitrary_grounded_task(

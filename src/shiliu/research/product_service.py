@@ -6,10 +6,16 @@ import threading
 import uuid
 from collections.abc import Callable
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 from shiliu.db import Database
-from shiliu.research.contracts import AttemptCause
+from shiliu.research.contracts import (
+    AnswerStatus,
+    AttemptCause,
+    FailureClass,
+    TerminationReason,
+)
 from shiliu.research.control_contracts import CreateInputRequest
 from shiliu.research.control_service import ResearchControlService
 from shiliu.research.errors import (
@@ -31,6 +37,10 @@ from shiliu.research.product_policy import (
     GROUNDED_CURRENT_EVIDENCE_PROFILE_VERSION,
     grounded_current_evidence_profile,
     is_grounded_current_evidence_profile,
+)
+from shiliu.research.provider_wiring import (
+    ProviderDispatchUnknown,
+    ProviderRunBudgetPolicy,
 )
 from shiliu.research.schema import (
     INNER_RESEARCH_STATE_SCHEMA_VERSION,
@@ -100,6 +110,7 @@ class ResearchProductService:
     MAX_DELTA_ITEMS = 8
     LEASE_SECONDS = 600
     LEASE_RENEW_EVERY = 4
+    PROVIDER_EXECUTION = "receipt_bound_provider"
 
     STATUS_LABELS = {
         "ready": "等待开始",
@@ -213,6 +224,144 @@ class ResearchProductService:
             },
             _server_constraint_profile=grounded_current_evidence_profile(),
         )
+
+    def create_provider_task(
+        self,
+        request: CreateProductResearchRequest,
+        *,
+        parent_task_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Create the server-owned Provider profile; no request field grants it."""
+
+        request = CreateProductResearchRequest.model_validate(
+            request.model_dump(mode="json")
+        )
+        task_id = f"rtask_{hashlib.sha256(request.command_id.encode()).hexdigest()[:32]}"
+        evidence_policy: dict[str, Any] | None = None
+        try:
+            existing = self.kernel.get_task(task_id)
+        except ResearchError as exc:
+            if exc.code != "research_not_found":
+                raise
+        else:
+            initial_goal = min(existing["goals"], key=lambda value: int(value["revision"]))
+            observed = dict(initial_goal.get("evidence_policy") or {})
+            if observed.get("product_execution") != self.PROVIDER_EXECUTION:
+                raise ResearchConflict(
+                    "existing create command is not bound to Provider Research"
+                )
+            evidence_policy = observed
+        if evidence_policy is None:
+            policy = ProviderRunBudgetPolicy(
+                run_id=f"web-research:{task_id}",
+                task_ids=(task_id,),
+                started_at=_now(),
+            )
+            evidence_policy = {
+                "authority": "live_current_exact_replay",
+                "product_execution": self.PROVIDER_EXECUTION,
+                "constraint_profile": request.constraint_profile,
+                "provider_authority": "server_product_action",
+                "provider_run_budget": policy.evidence_policy_binding(
+                    case_id="web_research"
+                ),
+            }
+        return self.kernel.create_task(
+            command_id=request.command_id,
+            task_id=task_id,
+            objective=request.objective,
+            success_constraints=request.success_constraints,
+            evidence_policy=evidence_policy,
+            parent_task_id=parent_task_id,
+            _server_constraint_profile=grounded_current_evidence_profile(),
+        )
+
+    def provider_run_budget(self, task_id: str) -> ProviderRunBudgetPolicy:
+        raw = self.kernel.get_task(task_id)
+        active_goal = next(
+            value for value in raw["goals"]
+            if value["goal_id"] == raw["task"]["active_goal_id"]
+        )
+        evidence_policy = dict(active_goal.get("evidence_policy") or {})
+        if evidence_policy.get("product_execution") != self.PROVIDER_EXECUTION:
+            raise ResearchConflict("Task is not authorized for Provider Research")
+        binding = evidence_policy.get("provider_run_budget")
+        if not isinstance(binding, dict):
+            raise ResearchUnsafeState("Provider Research budget binding is missing")
+        policy = ProviderRunBudgetPolicy(
+            run_id=str(binding["run_id"]),
+            task_ids=tuple(str(value) for value in binding["task_ids"]),
+            started_at=str(binding["started_at"]),
+            max_logical_calls=int(binding["max_logical_calls"]),
+            max_http_attempts=int(binding["max_http_attempts"]),
+            max_input_tokens=int(binding["max_input_tokens"]),
+            max_output_tokens=int(binding["max_output_tokens"]),
+            max_wall_seconds=int(binding["max_wall_seconds"]),
+            reserve_stop_usd=Decimal(str(binding["reserve_stop_usd"])),
+            absolute_max_cost_usd=Decimal(str(binding["absolute_max_cost_usd"])),
+        )
+        if str(binding.get("policy_hash")) != policy.policy_hash:
+            raise ResearchUnsafeState("Provider Research budget binding is invalid")
+        return policy
+
+    def close_provider_failure(
+        self, task_id: str, *, command_id: str, cause: Exception
+    ) -> dict[str, Any] | None:
+        """Close a background Provider failure without replaying its side effect."""
+
+        raw = self.kernel.get_task(task_id)
+        task = raw["task"]
+        if str(task["status"]) != "running" or str(task.get("owner_id") or "") != self.runner_id:
+            return None
+        attempt = next(
+            (value for value in reversed(raw["attempts"]) if value["status"] != "terminal"),
+            None,
+        )
+        if attempt is None:
+            return None
+        latest = next(
+            (
+                value for value in reversed(raw["checkpoints"])
+                if value["attempt_id"] == attempt["attempt_id"]
+            ),
+            None,
+        )
+        artifact = next(
+            (
+                value for value in reversed(raw["provisional_artifacts"])
+                if value["attempt_id"] == attempt["attempt_id"]
+            ),
+            None,
+        )
+        unknown = isinstance(cause, ProviderDispatchUnknown) or any(
+            value["status"] in {"in_flight", "unknown"}
+            for value in raw["side_effects"]
+        )
+        outcome = self.kernel.complete_attempt(
+            task_id=task_id,
+            attempt_id=str(attempt["attempt_id"]),
+            command_id=command_id,
+            owner_id=self.runner_id,
+            owner_epoch=int(task["owner_epoch"]),
+            expected_state_version=int(task["state_version"]),
+            answer_status=AnswerStatus(
+                str(artifact.get("answer_status") or "not_produced")
+                if artifact is not None else "not_produced"
+            ),
+            termination_reason=(
+                TerminationReason.EXTERNAL_SIDE_EFFECT_UNKNOWN
+                if unknown else TerminationReason.PROVIDER_ERROR
+            ),
+            failure_class=FailureClass.PROVIDER_FAILURE,
+            reason_detail=(
+                "Provider 调用结果未知；已停止且禁止自动重放。"
+                if unknown else "Provider Research 执行失败；持久进度与回执已保留。"
+            ),
+            task_terminal=True,
+            checkpoint_id=(str(latest["checkpoint_id"]) if latest else None),
+        )
+        self.ensure_candidate_deltas(task_id)
+        return outcome
 
     def list_tasks(self, *, limit: int = 20) -> list[dict[str, Any]]:
         bounded = max(1, min(int(limit), self.MAX_LIST_TASKS))
@@ -369,6 +518,11 @@ class ResearchProductService:
             if phase_state
             else "none"
         )
+        unresolved_side_effects = [
+            value
+            for value in raw["side_effects"]
+            if value["status"] in {"in_flight", "unknown"}
+        ]
         allowed = set(control["allowed_operations"])
         if self._runner_is_available(task_id, task):
             allowed.add("run")
@@ -406,6 +560,7 @@ class ResearchProductService:
                 outer=outer, active_goal=active_goal
             ),
             events=raw["events"],
+            unresolved_side_effects=unresolved_side_effects,
         )
         limitations = self._reconciled_limitations(
             list(artifact.get("limitations", [])) if artifact else [],
@@ -417,6 +572,11 @@ class ResearchProductService:
             answer_blocks=(list(artifact.get("answer_blocks", [])) if artifact else []),
             citation_count=len(citations),
             allowed_operations=allowed,
+            product_execution=str(
+                active_goal.get("evidence_policy", {}).get("product_execution")
+                or "unknown"
+            ),
+            unresolved_side_effects=unresolved_side_effects,
         )
         provider_boundary_recorded = any(
             value.get("event_type") == "provider_product_boundary"
@@ -485,8 +645,7 @@ class ResearchProductService:
                             "updated_at",
                         )
                     }
-                    for effect in raw["side_effects"]
-                    if effect["status"] in {"in_flight", "unknown"}
+                    for effect in unresolved_side_effects
                 ],
                 "action_context": {
                     "expected_state_version": int(task["state_version"]),
@@ -516,8 +675,15 @@ class ResearchProductService:
             "candidate_deltas": deltas,
             "trace": self._trace_projection(raw, control),
             "provider_status": (
-                "boundary_recorded_not_call_verified"
+                "provider_call_outcome_unresolved"
+                if unresolved_side_effects
+                else "boundary_recorded_not_call_verified"
                 if provider_boundary_recorded
+                else "provider_calls_receipted_boundary_pending"
+                if any(
+                    value["status"] in {"succeeded", "failed"}
+                    for value in raw["side_effects"]
+                )
                 else "not_exercised"
             ),
         }
@@ -547,7 +713,10 @@ class ResearchProductService:
         ):
             status, label = "limited_deterministic_output", "已有机械摘录；未验证目标完成"
         elif answer_status == "valid_success":
-            status, label = "accepted_not_semantically_verified", "内核已接受；产品完成度待核验"
+            status, label = (
+                "accepted_not_semantically_verified",
+                "已有有证据研究结果；目标完成度待核验",
+            )
         elif answer_status == "valid_partial":
             status, label = "limited_output", "已有受限输出"
         elif task_status == "terminal":
@@ -568,6 +737,7 @@ class ResearchProductService:
         constraint_policy: dict[str, Any],
         objective_evaluator_registered: bool,
         events: list[dict[str, Any]],
+        unresolved_side_effects: list[dict[str, Any]],
     ) -> dict[str, Any]:
         task_status = str(task["status"])
         execution = str(
@@ -589,6 +759,11 @@ class ResearchProductService:
             label = "执行失败，目标未完成"
             detail = "持久记录已保留；请查看失败分类与可用操作。"
             verified = False
+        elif unresolved_side_effects:
+            status = "blocked"
+            label = "Provider 调用结果待确认，目标未完成"
+            detail = "外部调用可能已经发生；系统已禁止自动重放，请先处理中断状态。"
+            verified = False
         elif task_status == "waiting_user" or termination_reason == "needs_user_input":
             status = "waiting_for_user"
             label = "等待你的输入，目标未完成"
@@ -608,6 +783,11 @@ class ResearchProductService:
             status = "limited_deterministic_output"
             label = "已有机械摘录，未验证目标完成"
             detail = "Outer Audit 只确认当前证据与机械约束，不证明自然语言目标已完成。"
+            verified = False
+        elif answer_status == "valid_success":
+            status = "grounded_result_not_semantically_verified"
+            label = "已有有证据研究结果，目标尚未验证完成"
+            detail = "当前结果通过了证据与 Outer Audit 检查，但没有授权规则证明自然语言目标已完整完成。"
             verified = False
         elif artifact is not None or answer_status == "valid_partial":
             status = "limited_output"
@@ -672,17 +852,31 @@ class ResearchProductService:
         answer_blocks: list[dict[str, Any]],
         citation_count: int,
         allowed_operations: set[str],
+        product_execution: str,
+        unresolved_side_effects: list[dict[str, Any]],
     ) -> dict[str, str]:
+        provider = product_execution == ResearchProductService.PROVIDER_EXECUTION
         if answer_blocks:
-            found = f"形成 {len(answer_blocks)} 段受限输出，关联 {citation_count} 条当前字幕证据。"
+            found = (
+                f"形成 {len(answer_blocks)} 段模型驱动研究结论，关联 "
+                f"{citation_count} 条当前字幕证据。"
+                if provider else
+                f"形成 {len(answer_blocks)} 段受限输出，关联 {citation_count} 条当前字幕证据。"
+            )
         elif citation_count:
             found = f"记录了 {citation_count} 条当前字幕证据，但尚未形成可用输出。"
         else:
             found = "尚未形成可展示的研究输出。"
-        if user_completion["status"] == "waiting_for_user":
+        if unresolved_side_effects:
+            next_action = "先中断当前运行并检查外部调用状态；未确认前不会自动重放。"
+        elif user_completion["status"] == "waiting_for_user":
             next_action = "查看输入请求并提交修订后的目标或约束。"
         elif "run" in allowed_operations:
-            next_action = "可以继续安全运行；当前仍是无 Provider 机械路径。"
+            next_action = (
+                "可以沿已保存的状态继续 Provider Research。"
+                if provider else
+                "可以继续安全运行；当前仍是无 Provider 机械路径。"
+            )
         elif "retry" in allowed_operations:
             next_action = "可以检查证据与限制，或显式创建新的重试 Task。"
         elif "derive" in allowed_operations:

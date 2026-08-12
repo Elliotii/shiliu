@@ -75,6 +75,8 @@ class ProviderPricePolicy:
     reservation_transport_attempts: int = 2
     absolute_max_cost_usd: Decimal = Decimal("0.50")
     input_overhead_token_upper_bound: int = 256
+    grounded_thinking_enabled: bool = True
+    grounded_reasoning_effort: str | None = "high"
 
     def expected_identity(self, role: str) -> dict[str, object]:
         if role not in SUPPORTED_ROLES:
@@ -85,8 +87,12 @@ class ProviderPricePolicy:
             "base_url": self.base_url.rstrip("/"),
             "model": self.model,
             "role": role,
-            "thinking_enabled": grounded,
-            "reasoning_effort": "high" if grounded else None,
+            "thinking_enabled": (
+                self.grounded_thinking_enabled if grounded else False
+            ),
+            "reasoning_effort": (
+                self.grounded_reasoning_effort if grounded else None
+            ),
         }
 
     def reservation(
@@ -139,6 +145,8 @@ class ProviderPricePolicy:
             ),
             "reservation_transport_attempts": self.reservation_transport_attempts,
             "absolute_max_cost_usd": str(self.absolute_max_cost_usd),
+            "grounded_thinking_enabled": self.grounded_thinking_enabled,
+            "grounded_reasoning_effort": self.grounded_reasoning_effort,
         }
 
 
@@ -1991,9 +1999,11 @@ class ReceiptBoundProviderService:
     @staticmethod
     def _known_failure_response(exc: Exception) -> _KnownFailureResponse | None:
         metadata = getattr(exc, "completion_metadata", None)
-        if not isinstance(metadata, dict) or not metadata.get("content_received"):
+        if not isinstance(metadata, dict):
             return None
         if not isinstance(metadata.get("usage"), dict):
+            return None
+        if not metadata.get("content_received") and not metadata.get("response_id"):
             return None
         return _KnownFailureResponse(
             usage=dict(metadata["usage"]),

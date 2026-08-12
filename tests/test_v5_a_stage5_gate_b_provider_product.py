@@ -10,6 +10,7 @@ import re
 from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
 from shiliu.app import Application
 from shiliu.ask.contracts import (
@@ -24,6 +25,7 @@ from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.query_analysis import QueryAnalyzer
 from shiliu.domain import FavoriteItem, SubtitleSegment
+from shiliu.research.contracts import AttemptCause
 from shiliu.research.control_contracts import HumanDecisionRequest
 from shiliu.research.errors import ResearchConflict, ResearchUnsafeState, SimulatedCrash
 from shiliu.research.inner_evidence import PersistentEvidenceAuthority
@@ -42,6 +44,7 @@ from shiliu.research.provider_wiring import (
     ReceiptBoundProviderService,
 )
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
+from shiliu.web import create_web_app
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -372,7 +375,7 @@ def _fixture(app_paths, *, inner_fault_injector=None):
 
 
 def _create(product: ResearchProductService, suffix: str, objective: str) -> str:
-    created = product.create_task(
+    created = product.create_provider_task(
         CreateProductResearchRequest(
             command_id=f"gate-b-product:create:{suffix}",
             objective=objective,
@@ -410,6 +413,229 @@ def _orchestrator(
         materializer=materializer,
         provider_product_authorized=True,
     ), receipt
+
+
+def _install_web_provider(
+    core: Application,
+    inner: InnerResearchService,
+    product: ResearchProductService,
+    orchestrator: ReceiptBoundResearchProductOrchestrator,
+    receipt: ReceiptBoundProviderService,
+) -> None:
+    core._research_inner = inner
+    core._research_product = product
+    core._research_provider_inner = inner
+    core._research_provider_product = product
+    core._research_provider_receipts = receipt
+    core._research_provider_orchestrator = orchestrator
+    core.provider_research_availability = lambda: {
+        "available": True,
+        "reason": "test server authorization",
+    }
+
+
+def test_web_product_entry_runs_server_owned_receipt_bound_provider_journey(
+    app_paths,
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+    orchestrator, receipt = _orchestrator(
+        core, inner, product, materializer, provider
+    )
+    _install_web_provider(core, inner, product, orchestrator, receipt)
+    client = TestClient(create_web_app(core))
+
+    forbidden = client.post(
+        "/api/research/product/tasks",
+        json={
+            "command_id": "web-provider-forbidden-client-authority",
+            "objective": GROUNDED_OBJECTIVE,
+            "execution_mode": "provider",
+        },
+    )
+    assert forbidden.status_code == 422
+
+    created = client.post(
+        "/api/research/product/tasks",
+        json={
+            "command_id": "web-provider-grounded",
+            "objective": GROUNDED_OBJECTIVE,
+            "success_constraints": [GROUNDED_CONSTRAINT],
+            "run_immediately": True,
+        },
+    )
+    assert created.status_code == 202
+    task_id = str(created.json()["outcome"]["task_id"])
+    detail = client.get(f"/api/research/product/tasks/{task_id}")
+    assert detail.status_code == 200
+    projected = detail.json()["product"]
+    raw = core.research.get_task(task_id)
+
+    assert projected["task"]["status"] == "terminal"
+    assert "user_completion" in projected, ",".join(sorted(projected))
+    assert projected["user_completion"]["product_execution"] == (
+        "receipt_bound_provider"
+    )
+    assert projected["user_completion"]["objective_verified"] is True
+    assert projected["citations"]
+    assert "模型驱动研究结论" in projected["plain_summary"]["found"]
+    assert raw["outer_audits"]
+    assert raw["results"]
+    policy = raw["goals"][0]["evidence_policy"]
+    assert policy["provider_authority"] == "server_product_action"
+    assert policy["provider_run_budget"]["policy_hash"]
+    assert all(value["status"] == "succeeded" for value in raw["side_effects"])
+    assert receipt.budget_snapshot(task_id).logical_calls == len(provider.calls)
+    calls = list(provider.calls)
+    replay = client.post(
+        f"/api/research/product/tasks/{task_id}/run",
+        json={"command_id": "client-command-cannot-rekey-provider-run"},
+    )
+    assert replay.status_code == 202
+    assert replay.json()["run_command_id"] == (
+        f"web:provider-research:{task_id}:run"
+    )
+    assert provider.calls == calls
+    retried = client.post(
+        f"/api/research/product/tasks/{task_id}/retry",
+        json={"command_id": "web-provider-grounded-retry"},
+    )
+    assert retried.status_code == 202
+    child_id = str(retried.json()["outcome"]["task_id"])
+    child = core.research.get_task(child_id)
+    assert child["task"]["parent_task_id"] == task_id
+    assert child["goals"][0]["evidence_policy"]["product_execution"] == (
+        "receipt_bound_provider"
+    )
+
+
+def test_interrupted_in_flight_provider_call_projects_blocked_before_replay(
+    app_paths,
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+
+    def crash(point: str) -> None:
+        if point == "before_provider_factory":
+            raise SimulatedCrash(point)
+
+    receipt = ReceiptBoundProviderService(
+        db=core.db,
+        kernel=core.research,
+        provider_dispatch_authorized=True,
+        fault_injector=crash,
+    )
+    orchestrator = ReceiptBoundResearchProductOrchestrator(
+        db=core.db,
+        kernel=core.research,
+        inner=inner,
+        product=product,
+        receipt_service=receipt,
+        provider_factory=lambda role: provider.for_role(role),
+        deep_executor=_BoundedMockDeepExecutor(core.db),
+        materializer=materializer,
+        provider_product_authorized=True,
+    )
+    task_id = _create(product, "web-interrupted-in-flight", GROUNDED_OBJECTIVE)
+
+    with pytest.raises(ResearchUnsafeState, match="before_provider_factory"):
+        orchestrator.run_to_boundary(
+            task_id,
+            command_id=f"web:provider-research:{task_id}:run",
+        )
+    raw = core.research.get_task(task_id)
+    projected = product.get_task(task_id)
+
+    assert raw["task"]["status"] == "running"
+    assert raw["side_effects"][-1]["status"] == "in_flight"
+    assert projected["user_completion"]["status"] == "blocked"
+    assert projected["provider_status"] == "provider_call_outcome_unresolved"
+    assert "禁止自动重放" in projected["plain_summary"]["why_stopped"]
+    assert "中断当前运行" in projected["plain_summary"]["next_action"]
+
+
+def test_web_concurrent_provider_trigger_does_not_terminalize_active_run(
+    app_paths,
+) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider()
+    orchestrator, receipt = _orchestrator(
+        core, inner, product, materializer, provider
+    )
+
+    class _ClaimThenConflict:
+        def run_to_boundary(self, task_id: str, **_: Any) -> None:
+            task = core.research.get_task(task_id)["task"]
+            core.research.claim_owner(
+                task_id=task_id,
+                command_id=f"test:claim:{task_id}",
+                owner_id=product.runner_id,
+                expected_state_version=int(task["state_version"]),
+                lease_seconds=product.LEASE_SECONDS,
+            )
+            task = core.research.get_task(task_id)["task"]
+            core.research.start_attempt(
+                task_id=task_id,
+                command_id=f"test:start:{task_id}",
+                owner_id=product.runner_id,
+                owner_epoch=int(task["owner_epoch"]),
+                expected_state_version=int(task["state_version"]),
+                cause=AttemptCause.INITIAL,
+            )
+            raise ResearchConflict("concurrent provider trigger")
+
+    _install_web_provider(core, inner, product, orchestrator, receipt)
+    core._research_provider_orchestrator = _ClaimThenConflict()
+    client = TestClient(create_web_app(core))
+
+    created = client.post(
+        "/api/research/product/tasks",
+        json={
+            "command_id": "web-provider-concurrent-trigger",
+            "objective": GROUNDED_OBJECTIVE,
+            "run_immediately": True,
+        },
+    )
+    assert created.status_code == 202
+    task_id = str(created.json()["outcome"]["task_id"])
+    raw = core.research.get_task(task_id)
+
+    assert raw["task"]["status"] == "running"
+    assert raw["task"]["owner_id"] == product.runner_id
+    assert raw["attempts"][-1]["status"] == "running"
+    assert raw["results"] == []
+
+
+def test_web_provider_unknown_is_terminal_honest_and_not_replayed(app_paths) -> None:
+    core, inner, product, materializer = _fixture(app_paths)
+    provider = _ProductMockProvider(fail_transport=True)
+    orchestrator, receipt = _orchestrator(
+        core, inner, product, materializer, provider
+    )
+    _install_web_provider(core, inner, product, orchestrator, receipt)
+    client = TestClient(create_web_app(core))
+
+    created = client.post(
+        "/api/research/product/tasks",
+        json={
+            "command_id": "web-provider-unknown",
+            "objective": GROUNDED_OBJECTIVE,
+            "run_immediately": True,
+        },
+    )
+    assert created.status_code == 202
+    task_id = str(created.json()["outcome"]["task_id"])
+    projected = client.get(
+        f"/api/research/product/tasks/{task_id}"
+    ).json()["product"]
+    raw = core.research.get_task(task_id)
+
+    assert projected["task"]["status"] == "blocked"
+    assert projected["user_completion"]["status"] == "blocked"
+    assert projected["user_completion"]["objective_verified"] is False
+    assert projected["control"]["unresolved_side_effects"][0]["status"] == "unknown"
+    assert [value["status"] for value in raw["side_effects"]] == ["unknown"]
+    assert provider.calls == ["query_analysis"]
 
 
 @pytest.mark.parametrize(
@@ -761,7 +987,7 @@ def test_empty_navigation_real_product_path_commits_current_evidence_no_network(
         materializer=materializer,
         provider_product_authorized=True,
     )
-    task_id = product.create_task(
+    task_id = product.create_provider_task(
         CreateProductResearchRequest(
             command_id="empty-navigation-product:create",
             objective="用任意措辞说明 checkpoint 的人工验收作用",
@@ -875,7 +1101,7 @@ def test_completion_cases_use_product_profile_and_exact_one_hitl_no_network(
 
     grounded = by_id["GB-PC-G-01"]
     grounded_fixture = {**grounded, "objective": GROUNDED_OBJECTIVE}
-    grounded_task = product.create_task(
+    grounded_task = product.create_provider_task(
         CreateProductResearchRequest(
             command_id="completion-test:g:create",
             objective=grounded_fixture["objective"],
@@ -902,7 +1128,7 @@ def test_completion_cases_use_product_profile_and_exact_one_hitl_no_network(
             "success_constraints": [],
         },
     }
-    hitl_task = product.create_task(
+    hitl_task = product.create_provider_task(
         CreateProductResearchRequest(
             command_id="completion-test:h:create",
             objective=hitl_fixture["objective"],

@@ -1223,6 +1223,18 @@ class ResearchControlService:
                     raise ResearchValidationError("invalid success_constraints")
                 if not isinstance(policy, dict):
                     raise ResearchValidationError("invalid evidence_policy")
+                source_goal = connection.execute(
+                    "SELECT evidence_policy_json FROM research_goals WHERE goal_id=?",
+                    (str(attempt["goal_id"]),),
+                ).fetchone()
+                if source_goal is None:
+                    raise ResearchUnsafeState("clarification source Goal is missing")
+                source_policy = json.loads(str(source_goal["evidence_policy_json"]))
+                if source_policy.get("product_execution") == "receipt_bound_provider":
+                    # A user's clarification can change the question and semantic
+                    # constraints, never the server-owned Provider authority,
+                    # receipt policy, or frozen budget binding.
+                    policy = source_policy
                 checkpoint_id = str(input_row["source_checkpoint_id"])
                 result_id = _new_id("result")
                 connection.execute(

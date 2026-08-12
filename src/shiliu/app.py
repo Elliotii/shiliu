@@ -29,6 +29,7 @@ from shiliu.sync import SyncService
 from shiliu.evidence import EvidenceSearchService
 from shiliu.runtime_modes import PRODUCT_RUNTIME_CONFIG
 from shiliu.ask.deep.navigation import NavigationService
+from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.deep.transcript import TranscriptSearchService, TranscriptWindowReader
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.research.inner_service import InnerResearchService
@@ -37,6 +38,14 @@ from shiliu.research.inner_tools import LocalInnerToolAdapter
 from shiliu.research.service import ResearchTaskService
 from shiliu.research.control_service import ResearchControlService
 from shiliu.research.product_service import ResearchProductService
+from shiliu.research.provider_product import (
+    ReceiptBoundDeepResearchExecutor,
+    ReceiptBoundResearchProductOrchestrator,
+)
+from shiliu.research.provider_wiring import (
+    ProviderPricePolicy,
+    ReceiptBoundProviderService,
+)
 from shiliu.research.knowledge_service import ResearchKnowledgeService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
@@ -70,6 +79,12 @@ class Application:
         self._research_inner: InnerResearchService | None = None
         self._research_outer: OuterResearchService | None = None
         self._research_product: ResearchProductService | None = None
+        self._research_provider_inner: InnerResearchService | None = None
+        self._research_provider_product: ResearchProductService | None = None
+        self._research_provider_receipts: ReceiptBoundProviderService | None = None
+        self._research_provider_orchestrator: (
+            ReceiptBoundResearchProductOrchestrator | None
+        ) = None
         self._research_knowledge: ResearchKnowledgeService | None = None
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
@@ -345,6 +360,117 @@ class Application:
                 control=self.research_control,
             )
         return self._research_product
+
+    def provider_research_availability(self) -> dict[str, str | bool]:
+        roles = ("query_analysis", "agent_action", "grounded_answer")
+        models = {self.config.model_for(role) for role in roles}
+        if self.config.llm_base_url.rstrip("/") != "https://api.deepseek.com/v1":
+            return {
+                "available": False,
+                "reason": "当前 Provider 地址没有已注册的 Research 费用策略。",
+            }
+        if models != {"deepseek-v4-pro"}:
+            return {
+                "available": False,
+                "reason": "当前 Research 模型没有已注册的 receipt / 费用策略。",
+            }
+        try:
+            load_api_key(self.config.api_key_ref)
+        except RuntimeError:
+            return {
+                "available": False,
+                "reason": "尚未配置可用的模型凭据，请先在设置中完成连接。",
+            }
+        return {"available": True, "reason": "Provider Research 已由服务器配置。"}
+
+    @property
+    def research_provider_inner(self) -> InnerResearchService:
+        if self._research_provider_inner is None:
+            base = self.research_inner
+            self._research_provider_inner = InnerResearchService(
+                db=self.db,
+                kernel=self.research,
+                tools=base.tools,
+                materializer=base.materializer,
+                provider_runs_authorized=True,
+            )
+        return self._research_provider_inner
+
+    @property
+    def research_provider_product(self) -> ResearchProductService:
+        if self._research_provider_product is None:
+            self._research_provider_product = ResearchProductService(
+                db=self.db,
+                kernel=self.research,
+                inner=self.research_provider_inner,
+                outer=self.research_outer,
+                control=self.research_control,
+                runner_id="web-provider-research",
+            )
+        return self._research_provider_product
+
+    @property
+    def research_provider_receipts(self) -> ReceiptBoundProviderService:
+        if self._research_provider_receipts is None:
+            self._research_provider_receipts = ReceiptBoundProviderService(
+                db=self.db,
+                kernel=self.research,
+                price_policy=ProviderPricePolicy(
+                    base_url=self.config.llm_base_url.rstrip("/"),
+                    model=self.config.model_for("grounded_answer"),
+                    grounded_thinking_enabled=False,
+                    grounded_reasoning_effort=None,
+                ),
+                provider_dispatch_authorized=True,
+            )
+        return self._research_provider_receipts
+
+    @property
+    def research_provider_orchestrator(
+        self,
+    ) -> ReceiptBoundResearchProductOrchestrator:
+        if self._research_provider_orchestrator is None:
+            self._research_provider_orchestrator = (
+                ReceiptBoundResearchProductOrchestrator(
+                    db=self.db,
+                    kernel=self.research,
+                    inner=self.research_provider_inner,
+                    product=self.research_provider_product,
+                    receipt_service=self.research_provider_receipts,
+                    provider_factory=self.research_provider,
+                    deep_executor=ReceiptBoundDeepResearchExecutor(
+                        db=self.db,
+                        artifacts=self.artifacts,
+                        product_search=self.product_search,
+                        runtime_corpus_identity=self.runtime_config.corpus_identity,
+                        budget=DeepSearchBudget(),
+                    ),
+                    provider_product_authorized=True,
+                )
+            )
+        return self._research_provider_orchestrator
+
+    def research_provider(self, role: str) -> OpenAICompatibleProvider:
+        if role not in {"query_analysis", "agent_action", "grounded_answer"}:
+            raise PipelineError(
+                "Research Provider role 未获授权",
+                code="bad_provider_config",
+                retryable=False,
+            )
+        try:
+            api_key = load_api_key(self.config.api_key_ref)
+        except RuntimeError as exc:
+            raise PipelineError(
+                str(exc), code="api_key_missing", retryable=False
+            ) from exc
+        return OpenAICompatibleProvider(
+            base_url=self.config.llm_base_url,
+            api_key=api_key,
+            model=self.config.model_for(role),
+            timeout_seconds=180,
+            thinking_enabled=False,
+            reasoning_effort=None,
+        )
 
     @property
     def research_knowledge(self) -> ResearchKnowledgeService:

@@ -957,7 +957,9 @@
 
   const runTask = async () => {
     const status = root.querySelector('[data-control-status]');
-    status.textContent = '已请求本地无 Provider runner…';
+    status.textContent = current?.user_completion?.product_execution === 'receipt_bound_provider'
+      ? '正在沿已保存状态继续模型研究…'
+      : '正在继续本地受限研究…';
     try {
       await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/run`, {
         method: 'POST', body: JSON.stringify({command_id: commandId('run')}),
@@ -989,6 +991,14 @@
 
   const retryTask = async () => {
     try {
+      if (current.user_completion.product_execution === 'receipt_bound_provider') {
+        const data = await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/retry`, {
+          method: 'POST',
+          body: JSON.stringify({command_id: commandId('provider-retry')}),
+        });
+        setActiveTask(data.outcome.task_id);
+        return;
+      }
       const data = await requestJson(`/api/research/tasks/${encodeURIComponent(activeTaskId)}/commands`, {
         method: 'POST',
         body: JSON.stringify({
@@ -1157,7 +1167,7 @@
     const objective = createForm.elements.objective.value.trim();
     const status = root.querySelector('[data-create-status]');
     if (!objective) { status.textContent = '请填写研究目标。'; return; }
-    status.textContent = '正在先创建持久 Task…';
+    status.textContent = '正在创建研究记录并安全授权模型研究…';
     root.querySelector('[data-create-submit]').disabled = true;
     try {
       const data = await requestJson('/api/research/product/tasks', {
@@ -1169,7 +1179,7 @@
           run_immediately: true,
         }),
       });
-      status.textContent = 'Task 已持久创建；本地 runner 正在推进。';
+      status.textContent = '研究记录已保存；模型正在搜索与取证。';
       createForm.reset();
       setActiveTask(data.outcome.task_id);
     } catch (error) { status.textContent = error.message; }

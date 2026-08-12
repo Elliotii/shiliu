@@ -160,6 +160,18 @@ class ReceiptBoundResearchProductOrchestrator:
             raise ResearchConflict("Provider dispatch is not authorized")
         if not self.inner.provider_runs_authorized:
             raise ResearchConflict("Provider inner ingest is not authorized")
+        raw = self.kernel.get_task(task_id)
+        active_goal = next(
+            value for value in raw["goals"]
+            if value["goal_id"] == raw["task"]["active_goal_id"]
+        )
+        if (
+            active_goal.get("evidence_policy", {}).get("product_execution")
+            != "receipt_bound_provider"
+        ):
+            raise ResearchConflict(
+                "Task policy does not authorize receipt-bound Provider Research"
+            )
         if not 1 <= max_continuation_cycles <= self.MAX_CONTINUATION_CYCLES:
             raise ResearchValidationError("max_continuation_cycles must be 1..2")
         if not 1 <= max_logical_calls <= 17 or not 1 <= max_http_attempts <= 34:

@@ -8,7 +8,7 @@ import json
 import re
 import threading
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -53,7 +53,7 @@ from shiliu.research.control_contracts import (
     HumanDecisionRequest,
     ResolveSideEffectRequest,
 )
-from shiliu.research.errors import ResearchError
+from shiliu.research.errors import ResearchConflict, ResearchError
 from shiliu.research.inner_contracts import (
     ContinueInnerResearchRequest,
     RevalidateInnerEvidenceRequest,
@@ -92,6 +92,10 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
 LIBRARY_PAGE_SIZE = 40
 _LIBRARY_CURSOR_VERSION = 2
+
+
+def _provider_product_run_command(task_id: str) -> str:
+    return f"web:provider-research:{task_id}:run"
 
 
 def _encode_library_cursor(cursor: LibraryCardCursor) -> str:
@@ -547,17 +551,64 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core: Application, task_id: str, command_id: str, max_steps: int = 24
     ) -> None:
         try:
-            core.research_product.run_to_boundary(
-                task_id,
-                RunProductResearchRequest(
-                    command_id=command_id,
-                    max_steps=max_steps,
-                ),
+            raw = core.research.get_task(task_id)
+            goal = next(
+                value for value in raw["goals"]
+                if value["goal_id"] == raw["task"]["active_goal_id"]
             )
-        except ResearchError:
+            execution = str(
+                goal.get("evidence_policy", {}).get("product_execution") or ""
+            )
+            if execution == core.research_product.PROVIDER_EXECUTION:
+                budget = core.research_provider_product.provider_run_budget(task_id)
+                deadline = datetime.fromisoformat(budget.started_at) + timedelta(
+                    seconds=360
+                )
+                core.research_provider_orchestrator.run_to_boundary(
+                    task_id,
+                    command_id=command_id,
+                    max_continuation_cycles=1,
+                    max_logical_calls=17,
+                    max_http_attempts=34,
+                    max_input_tokens=140_000,
+                    max_output_tokens=31_984,
+                    max_wall_time_seconds=360,
+                    case_deadline_at=deadline.isoformat(timespec="microseconds"),
+                    run_budget=budget,
+                )
+            else:
+                core.research_product.run_to_boundary(
+                    task_id,
+                    RunProductResearchRequest(
+                        command_id=command_id,
+                        max_steps=max_steps,
+                    ),
+                )
+        except ResearchConflict as exc:
+            if type(exc) is ResearchConflict:
+                # A concurrent/stale trigger must not terminate the active run.
+                return
+            try:
+                core.research_provider_product.close_provider_failure(
+                    task_id,
+                    command_id=f"{command_id}:provider-failure",
+                    cause=exc,
+                )
+            except ResearchError:
+                pass
+            return
+        except Exception as exc:
             # Durable services have already committed any controlled stop/failure.
             # A concurrent/stale trigger is fail-closed and the product projection
             # remains the source of truth.
+            try:
+                core.research_provider_product.close_provider_failure(
+                    task_id,
+                    command_id=f"{command_id}:provider-failure",
+                    cause=exc,
+                )
+            except ResearchError:
+                pass
             return
 
     @web.get("/api/research/product/tasks")
@@ -577,15 +628,27 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         background_tasks: BackgroundTasks,
     ) -> JSONResponse:
         core = _core(request)
+        availability = await asyncio.to_thread(core.provider_research_availability)
+        if not bool(availability["available"]):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "provider_research_unavailable",
+                        "message": str(availability["reason"]),
+                    },
+                },
+                status_code=503,
+            )
         try:
             outcome = await asyncio.to_thread(
-                core.research_product.create_task, payload
+                core.research_provider_product.create_provider_task, payload
             )
         except ResearchError as exc:
             return JSONResponse(
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
-        run_command_id = f"stage5:run:{outcome['task_id']}"
+        run_command_id = _provider_product_run_command(str(outcome["task_id"]))
         if payload.run_immediately:
             background_tasks.add_task(
                 run_product_background,
@@ -1140,17 +1203,41 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         request: Request,
         background_tasks: BackgroundTasks,
     ) -> JSONResponse:
+        core = _core(request)
         try:
-            await asyncio.to_thread(_core(request).research.get_task, task_id)
+            raw = await asyncio.to_thread(core.research.get_task, task_id)
         except ResearchError as exc:
             return JSONResponse(
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
             )
+        goal = next(
+            value for value in raw["goals"]
+            if value["goal_id"] == raw["task"]["active_goal_id"]
+        )
+        if (
+            goal.get("evidence_policy", {}).get("product_execution")
+            == core.research_product.PROVIDER_EXECUTION
+        ):
+            availability = await asyncio.to_thread(core.provider_research_availability)
+            if not bool(availability["available"]):
+                return JSONResponse(
+                    {
+                        "ok": False,
+                        "error": {
+                            "code": "provider_research_unavailable",
+                            "message": str(availability["reason"]),
+                        },
+                    },
+                    status_code=503,
+                )
+            effective_command_id = _provider_product_run_command(task_id)
+        else:
+            effective_command_id = payload.command_id
         background_tasks.add_task(
             run_product_background,
-            _core(request),
+            core,
             task_id,
-            payload.command_id,
+            effective_command_id,
             payload.max_steps,
         )
         return JSONResponse(
@@ -1159,6 +1246,98 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 "accepted": True,
                 "task_id": task_id,
                 "max_steps": payload.max_steps,
+                "run_command_id": effective_command_id,
+            },
+            status_code=202,
+        )
+
+    @web.post("/api/research/product/tasks/{task_id}/retry")
+    async def retry_product_research_task(
+        task_id: str,
+        payload: RunProductResearchRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            raw = await asyncio.to_thread(core.research.get_task, task_id)
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        if str(raw["task"]["status"]) != "terminal":
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "research_conflict",
+                        "message": "只有已结束的 Research 才能创建重试。",
+                    },
+                },
+                status_code=409,
+            )
+        goal = next(
+            value for value in raw["goals"]
+            if value["goal_id"] == raw["task"]["active_goal_id"]
+        )
+        if (
+            goal.get("evidence_policy", {}).get("product_execution")
+            != core.research_product.PROVIDER_EXECUTION
+        ):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "research_conflict",
+                        "message": "该 Task 不是 Provider Research。",
+                    },
+                },
+                status_code=409,
+            )
+        availability = await asyncio.to_thread(core.provider_research_availability)
+        if not bool(availability["available"]):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "provider_research_unavailable",
+                        "message": str(availability["reason"]),
+                    },
+                },
+                status_code=503,
+            )
+        create_request = CreateProductResearchRequest(
+            command_id=payload.command_id,
+            objective=str(goal["objective"]),
+            success_constraints=list(goal["success_constraints"]),
+            constraint_profile="grounded_current_evidence",
+            run_immediately=True,
+        )
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_provider_product.create_provider_task,
+                create_request,
+                parent_task_id=task_id,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        child_id = str(outcome["task_id"])
+        run_command_id = _provider_product_run_command(child_id)
+        background_tasks.add_task(
+            run_product_background,
+            core,
+            child_id,
+            run_command_id,
+            payload.max_steps,
+        )
+        return JSONResponse(
+            {
+                "ok": True,
+                "outcome": outcome,
+                "href": f"/research/{child_id}",
+                "run_command_id": run_command_id,
             },
             status_code=202,
         )
