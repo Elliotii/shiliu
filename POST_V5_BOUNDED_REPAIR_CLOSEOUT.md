@@ -118,12 +118,18 @@ No reviewer was used to redesign a package, and no review finding expanded froze
 | Deep natural answer | `ask_run_917e153e8c9a4e59a2bc24b4dc7e2005`, 80.4 s total | `ask_run_2173c642c9234e03a88db4639977c020`, `answer_generated`, 69.71 s total |
 | Honest insufficiency | ambiguous pre-repair product copy | Fast `ask_run_3cefac1ebc394ea0ad8f5aacb8b03b15` and Deep `ask_run_02d0729c82614490ba6d9ab69da145a6`, both `evidence_insufficient` |
 
-The final no-Provider natural smoke created Ask run
-`ask_run_1b417701e200464798dc1fb217341b3d` and Search trace
-`5cd16a4c-e0d3-4586-8e01-9f337073d10a`. It completed through the normal Fast Ask product
-service in 0.063 s as `evidence_unavailable`, with zero answer blocks, Citations and
-candidates. This is the required honest empty path, not a fabricated success. The
-Keychain backend was disabled and no network Provider was called.
+The final no-Provider natural smoke produced two durable checks while its report was
+collected:
+
+- Ask run `ask_run_3e54e22365a448feb12d062687adf1bf`, Search trace
+  `e70977fa-66d3-40c9-b4c0-8e5ff64aab6d`, 0.050 s.
+- Ask run `ask_run_1b417701e200464798dc1fb217341b3d`, Search trace
+  `5cd16a4c-e0d3-4586-8e01-9f337073d10a`, 0.063 s.
+
+Both completed through the normal Fast Ask product service as `evidence_unavailable`,
+with zero answer blocks, Citations and candidates. This is the required honest empty
+path, not a fabricated success. The Keychain backend was disabled and no network
+Provider was called.
 
 ### Library
 
