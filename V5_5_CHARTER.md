@@ -1,11 +1,12 @@
 # Shiliu V5.5 Charter — 产品化与真实使用升级
 
 > Date: 2026-08-13
-> Status: GOAL_2_COMPLETE_READY_FOR_GOAL_3
+> Status: FINAL_GATE_COMPLETE_PENDING_FINAL_FREEZE
 > Version role: bounded productization release
 > Initial baseline: `f0c704db88f79794c52b3f4f6e6ac77c320470f2`
 > Goal 1 frozen HEAD: `cc707a62f32698d8fc5cbeb36995e0b05736d066`
-> Current V5.5 checkpoint / Goal 3 baseline: `09e50bd0f3b4c4a7d86ad90306d766369b4b2572`
+> Goal 3 frozen HEAD: `ec5d685ac1512ff2270b404ae4bcc52f674c351b`
+> Final accepted product-code candidate: `a8f4e6c08d37468d8a82a0fd7a48bfcf4afb5350`
 
 ---
 
@@ -106,7 +107,7 @@ Goal 2 不再继续优化。
 
 ### Goal 3 — 个性化体验与全产品使用流程收口
 
-**Status: AUTHORIZED / NEXT**
+**Status: COMPLETE / ACCEPTED / FROZEN**
 
 正式目标：
 
@@ -402,7 +403,9 @@ Goal 3 最终交付 commit 应包含：
 
 ## 10. V5.5 Final Gate
 
-当 Goal 3 验收完成后，再由用户决定是否直接进入 Final Gate。
+**Status: COMPLETE / PASS / PENDING USER FINAL FREEZE**
+
+Goal 3 验收后执行的 Final Gate 已完成。
 
 Final Gate 默认：
 
@@ -416,7 +419,7 @@ Final Gate 默认：
 
 ---
 
-## 11. 当前下一步
+## 11. 当前最终状态
 
 ```text
 V5.5 initial baseline
@@ -428,12 +431,15 @@ cc707a62f32698d8fc5cbeb36995e0b05736d066
 ↓ Goal 2 COMPLETE / FROZEN
 09e50bd0f3b4c4a7d86ad90306d766369b4b2572
 
-↓ NEXT
+↓ Goal 3 COMPLETE / FROZEN
+ec5d685ac1512ff2270b404ae4bcc52f674c351b
 
-Goal 3 — Personalized Product Experience
-         & Whole-product Journey Consolidation
+↓ Final Gate bounded correction / certified product source
+a8f4e6c08d37468d8a82a0fd7a48bfcf4afb5350
+
+↓ Final Gate PASS
+
+READY_FOR_USER_FINAL_ACCEPTANCE_AND_FREEZE
 ```
 
-当前仅授权 Goal 3。
-
-Final Gate 尚未授权。
+当前等待用户最终验收与纯 Git freeze。不得开始新的 Goal、V5.6 或 V6。
