@@ -68,6 +68,12 @@ class _ProviderCallResult:
     transport_retry_count: int
 
 
+_ROLE_RECOVERY_ERROR_CODES = {
+    "output_budget_exhausted",
+    "empty_model_output",
+}
+
+
 class GroundedAnswerService:
     def __init__(
         self,
@@ -113,6 +119,7 @@ class GroundedAnswerService:
             messages=_answer_messages(query=query, context=context),
             usage=usage,
             timeout_seconds=_remaining(deadline, clock),
+            call_kind="initial",
         )
         if _deadline_reached(deadline, clock):
             return _deadline_result(
@@ -169,8 +176,34 @@ class GroundedAnswerService:
                 ),
             )
 
+        repair_provider = provider
+        repair_call_kind = "validation_repair"
+        if first_call.error_code in _ROLE_RECOVERY_ERROR_CODES:
+            repair_call_kind = "generation_recovery"
+            try:
+                repair_provider = self.provider_factory(
+                    "grounded_answer_recovery"
+                )
+            except Exception as exc:
+                return GroundedAnswerResult(
+                    draft=None,
+                    repair_used=True,
+                    usage=tuple(usage),
+                    answer_calls=1,
+                    repair_calls=1,
+                    provider_call_count=1,
+                    transport_retry_count=first_call.transport_retry_count,
+                    initial_validation_errors=issues,
+                    initial_provider_error=first_call.error,
+                    initial_provider_error_code=first_call.error_code,
+                    validation_errors=(),
+                    provider_error=_error_text(exc),
+                    provider_error_code=_error_code(
+                        exc, fallback="provider_factory_error"
+                    ),
+                )
         repair_call = self._call(
-            provider,
+            repair_provider,
             messages=_repair_messages(
                 query=query,
                 context=context,
@@ -178,6 +211,7 @@ class GroundedAnswerService:
             ),
             usage=usage,
             timeout_seconds=_remaining(deadline, clock),
+            call_kind=repair_call_kind,
         )
         total_transport_retries = (
             first_call.transport_retry_count
@@ -255,6 +289,7 @@ class GroundedAnswerService:
         messages: list[dict[str, str]],
         usage: list[dict[str, Any]],
         timeout_seconds: float | None = None,
+        call_kind: str,
     ) -> _ProviderCallResult:
         response: object | None = None
         try:
@@ -286,6 +321,7 @@ class GroundedAnswerService:
             metadata["retry_count"] = int(
                 getattr(response, "retry_count", 0)
             )
+            metadata["call_kind"] = call_kind
             usage.append(metadata)
             return _ProviderCallResult(
                 draft=draft,
@@ -311,6 +347,7 @@ class GroundedAnswerService:
                     value = completion_metadata.get(key)
                     if value is not None:
                         metadata[key] = value
+                metadata["call_kind"] = call_kind
                 usage.append(metadata)
                 retry_count = int(
                     completion_metadata.get("retry_count", 0)
@@ -325,6 +362,7 @@ class GroundedAnswerService:
                 error_code=error_code,
                 repairable=(
                     response is not None
+                    or error_code in _ROLE_RECOVERY_ERROR_CODES
                     or (
                         error_code == "invalid_model_output"
                         and content_received

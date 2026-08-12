@@ -1414,6 +1414,73 @@ def test_httpx_grounded_answer_deadline_maps_to_budget_exhausted(
     assert trace["finalization"]["transport_retry_count"] == 0
 
 
+def test_deep_output_budget_failure_uses_shared_bounded_recovery(
+    app_paths,
+) -> None:
+    def policy(round_number: int, _payload: dict[str, object]):
+        if round_number == 1:
+            return {
+                "action": {
+                    "kind": "search_transcripts",
+                    "query": "MCP",
+                    "video_ids": [],
+                }
+            }
+        return {"action": {"kind": "finish", "summary": "done"}}
+
+    class BudgetFailureProvider:
+        calls = 0
+
+        def generate_structured(self, **kwargs):
+            self.calls += 1
+            error = PipelineError(
+                "reasoning consumed output budget",
+                code="output_budget_exhausted",
+                retryable=False,
+            )
+            error.completion_metadata = {
+                "finish_reason": "length",
+                "usage": {
+                    "completion_tokens": 4096,
+                    "completion_tokens_details": {"reasoning_tokens": 4096},
+                },
+                "latency_ms": 64000,
+                "retry_count": 0,
+                "content_received": False,
+            }
+            raise error
+
+    agent = _ScriptedProvider(policy)
+    primary = BudgetFailureProvider()
+    recovery = _ScriptedProvider(policy)
+    core, _ = _make_core(app_paths, agent)
+    service = core.ask_service.deep_service.__class__(
+        db=core.db,
+        artifacts=core.artifacts,
+        product_search=core.product_search,
+        provider_factory=lambda role: {
+            "agent_action": agent,
+            "grounded_answer": primary,
+            "grounded_answer_recovery": recovery,
+        }[role],
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+
+    response, trace = service.ask(AskRequest(query="MCP", mode="deep"))
+
+    assert response.status == "complete"
+    assert response.execution_outcome == "answer_generated"
+    assert primary.calls == recovery.answer_calls == 1
+    assert trace["finalization"]["initial_provider_error_code"] == (
+        "output_budget_exhausted"
+    )
+    assert trace["finalization"]["answer_provider_call_count"] == 2
+    assert [
+        item["call_kind"]
+        for item in trace["finalization"]["answer_usage"]
+    ] == ["initial", "generation_recovery"]
+
+
 def test_round_tool_no_new_and_context_budgets_are_code_enforced(
     app_paths,
 ) -> None:

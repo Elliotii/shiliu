@@ -12,6 +12,12 @@ CITATION_IDENTITY_VERSION = "v4-citation-identity-v1"
 
 AskMode = Literal["fast", "deep"]
 AnswerStatus = Literal["complete", "partial", "insufficient"]
+AnswerExecutionOutcome = Literal[
+    "answer_generated",
+    "evidence_insufficient",
+    "generation_failed",
+    "evidence_unavailable",
+]
 TerminationReason = Literal[
     "answer_ready",
     "budget_exhausted",
@@ -112,6 +118,7 @@ class AskResponse(_StrictModel):
     run_id: str
     mode: AskMode
     status: AnswerStatus
+    execution_outcome: AnswerExecutionOutcome | None = None
     answer_blocks: list[AnswerBlock]
     citations: list[Citation]
     limitations: list[str]
@@ -120,10 +127,23 @@ class AskResponse(_StrictModel):
 
     @model_validator(mode="after")
     def validate_answer_shape(self) -> "AskResponse":
+        if self.execution_outcome is None:
+            if self.status != "insufficient":
+                self.execution_outcome = "answer_generated"
+            elif self.termination_reason in {"provider_error", "budget_exhausted"}:
+                self.execution_outcome = "generation_failed"
+            elif self.termination_reason == "evidence_unavailable":
+                self.execution_outcome = "evidence_unavailable"
+            else:
+                self.execution_outcome = "evidence_insufficient"
         if self.status == "insufficient" and self.answer_blocks:
             raise ValueError("insufficient responses must not contain answer blocks")
         if self.status != "insufficient" and not self.answer_blocks:
             raise ValueError("answering responses must contain answer blocks")
+        if self.execution_outcome == "answer_generated" and self.status == "insufficient":
+            raise ValueError("answer_generated requires an answering status")
+        if self.execution_outcome != "answer_generated" and self.answer_blocks:
+            raise ValueError("non-answer outcomes must not contain answer blocks")
         citation_ids = {citation.citation_id for citation in self.citations}
         for block in self.answer_blocks:
             if not set(block.citation_ids).issubset(citation_ids):

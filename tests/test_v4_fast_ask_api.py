@@ -432,6 +432,7 @@ def test_fast_ask_partial_and_model_declared_insufficient(app_paths) -> None:
         "/api/ask", json={"query": "MCP"}
     ).json()
     assert partial["status"] == "partial"
+    assert partial["execution_outcome"] == "answer_generated"
     assert partial["answer_blocks"] and partial["limitations"]
 
     insufficient_provider = _Provider(answer_modes=("insufficient",))
@@ -440,6 +441,7 @@ def test_fast_ask_partial_and_model_declared_insufficient(app_paths) -> None:
         "/api/ask", json={"query": "MCP"}
     ).json()
     assert insufficient["status"] == "insufficient"
+    assert insufficient["execution_outcome"] == "evidence_insufficient"
     assert insufficient["termination_reason"] == "answer_ready"
     assert insufficient["answer_blocks"] == insufficient["citations"] == []
     assert insufficient["limitations"] == [
@@ -469,6 +471,7 @@ def test_unknown_citation_repairs_once_and_repair_failure_fails_closed(
         "/api/ask", json={"query": "MCP"}
     ).json()
     assert failed["status"] == "insufficient"
+    assert failed["execution_outcome"] == "generation_failed"
     assert failed["termination_reason"] == "provider_error"
     assert failed["answer_blocks"] == failed["citations"] == []
     assert failed_provider.answer_calls == 2
@@ -576,6 +579,7 @@ def test_provider_network_failure_does_not_enter_repair(app_paths) -> None:
     ).json()
     trace = core.ask_service.get_trace(body["run_id"])
     assert body["status"] == "insufficient"
+    assert body["execution_outcome"] == "generation_failed"
     assert body["termination_reason"] == "provider_error"
     assert body["answer_blocks"] == body["citations"] == []
     assert body["trace_summary"]["repair_used"] is False
@@ -585,6 +589,160 @@ def test_provider_network_failure_does_not_enter_repair(app_paths) -> None:
     assert trace["answer_provider_call_count"] == 1
     assert trace["transport_retry_count"] == 1
     assert trace["provider_error_code"] == "provider_network"
+
+
+def test_output_budget_failure_uses_one_role_specific_recovery(app_paths) -> None:
+    class BudgetFailureProvider(_Provider):
+        def generate_structured(self, **kwargs):
+            if kwargs["role"] != "grounded_answer":
+                return super().generate_structured(**kwargs)
+            self.answer_calls += 1
+            error = PipelineError(
+                "reasoning consumed output budget",
+                code="output_budget_exhausted",
+                retryable=False,
+            )
+            error.completion_metadata = {
+                "finish_reason": "length",
+                "usage": {
+                    "prompt_tokens": 100,
+                    "completion_tokens": 4096,
+                    "completion_tokens_details": {"reasoning_tokens": 4096},
+                },
+                "latency_ms": 64000,
+                "retry_count": 0,
+                "content_received": False,
+            }
+            raise error
+
+    primary = BudgetFailureProvider()
+    recovery = _Provider()
+    core, _ = _application(app_paths, primary)
+    core._ask_service = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda role: (
+            recovery if role == "grounded_answer_recovery" else primary
+        ),
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP"}
+    ).json()
+    trace = core.ask_service.get_trace(body["run_id"])
+
+    assert body["status"] == "complete"
+    assert body["execution_outcome"] == "answer_generated"
+    assert primary.answer_calls == recovery.answer_calls == 1
+    assert trace["repair_calls"] == 1
+    assert trace["answer_provider_call_count"] == 2
+    assert trace["initial_provider_error_code"] == "output_budget_exhausted"
+    assert [item["call_kind"] for item in trace["answer_usage"]] == [
+        "initial",
+        "generation_recovery",
+    ]
+    assert trace["answer_usage"][0]["finish_reason"] == "length"
+    assert trace["answer_usage"][0]["completion_tokens_details"] == {
+        "reasoning_tokens": 4096
+    }
+
+
+def test_output_budget_recovery_failure_remains_generation_failure(app_paths) -> None:
+    class BudgetFailureProvider(_Provider):
+        def generate_structured(self, **kwargs):
+            if kwargs["role"] != "grounded_answer":
+                return super().generate_structured(**kwargs)
+            self.answer_calls += 1
+            error = PipelineError(
+                "reasoning consumed output budget",
+                code="output_budget_exhausted",
+                retryable=False,
+            )
+            error.completion_metadata = {
+                "finish_reason": "length",
+                "usage": {"completion_tokens": 4096},
+                "latency_ms": 1,
+                "retry_count": 0,
+                "content_received": False,
+            }
+            raise error
+
+    primary = BudgetFailureProvider()
+    recovery = BudgetFailureProvider()
+    core, _ = _application(app_paths, primary)
+    core._ask_service = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda role: (
+            recovery if role == "grounded_answer_recovery" else primary
+        ),
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP"}
+    ).json()
+    trace = core.ask_service.get_trace(body["run_id"])
+
+    assert body["status"] == "insufficient"
+    assert body["execution_outcome"] == "generation_failed"
+    assert body["termination_reason"] == "provider_error"
+    assert body["answer_blocks"] == body["citations"] == []
+    assert primary.answer_calls == recovery.answer_calls == 1
+    assert trace["answer_provider_call_count"] == 2
+    assert [item["call_kind"] for item in trace["answer_usage"]] == [
+        "initial",
+        "generation_recovery",
+    ]
+
+
+def test_empty_model_output_uses_one_role_specific_recovery(app_paths) -> None:
+    class EmptyOutputProvider(_Provider):
+        def generate_structured(self, **kwargs):
+            if kwargs["role"] != "grounded_answer":
+                return super().generate_structured(**kwargs)
+            self.answer_calls += 1
+            error = PipelineError(
+                "empty model output",
+                code="empty_model_output",
+                retryable=True,
+            )
+            error.completion_metadata = {
+                "finish_reason": "stop",
+                "usage": {"prompt_tokens": 100, "completion_tokens": 0},
+                "latency_ms": 10,
+                "retry_count": 0,
+                "content_received": False,
+            }
+            raise error
+
+    primary = EmptyOutputProvider()
+    recovery = _Provider()
+    core, _ = _application(app_paths, primary)
+    core._ask_service = AskService(
+        db=core.db,
+        product_search=core.product_search,
+        provider_factory=lambda role: (
+            recovery if role == "grounded_answer_recovery" else primary
+        ),
+        runtime_corpus_identity=core.runtime_config.corpus_identity,
+    )
+
+    body = TestClient(create_web_app(core)).post(
+        "/api/ask", json={"query": "MCP"}
+    ).json()
+    trace = core.ask_service.get_trace(body["run_id"])
+
+    assert body["status"] == "complete"
+    assert body["execution_outcome"] == "answer_generated"
+    assert primary.answer_calls == recovery.answer_calls == 1
+    assert trace["initial_provider_error_code"] == "empty_model_output"
+    assert trace["answer_provider_call_count"] == 2
+    assert [item["call_kind"] for item in trace["answer_usage"]] == [
+        "initial",
+        "generation_recovery",
+    ]
 
 
 def test_non_retryable_provider_error_does_not_enter_repair(app_paths) -> None:

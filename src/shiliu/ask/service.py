@@ -205,6 +205,7 @@ class AskService:
             run_id=run_id,
             mode="fast",
             status=final.status,
+            execution_outcome=final.execution_outcome,
             answer_blocks=list(final.answer_blocks),
             citations=list(final.citations),
             limitations=list(final.limitations),
@@ -214,6 +215,7 @@ class AskService:
         trace.update(
             {
                 "status": response.status,
+                "execution_outcome": response.execution_outcome,
                 "termination_reason": response.termination_reason,
                 "latency_ms": latency_ms,
                 "citation_ids": [

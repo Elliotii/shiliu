@@ -371,7 +371,11 @@ class Application:
             "taxonomy_content_type_purity",
             "taxonomy_assignment", "taxonomy_profile", "taxonomy_repair",
         }
-        is_ask_light = role in {"query_analysis", "agent_action"}
+        is_ask_light = role in {
+            "query_analysis",
+            "agent_action",
+            "grounded_answer_recovery",
+        }
         return OpenAICompatibleProvider(
             base_url=self.config.llm_base_url,
             api_key=api_key,

@@ -67,7 +67,10 @@ def test_ask_static_resources_expose_safe_state_and_shared_evidence_contract(
     assert "innerHTML" not in source
     assert "mode: state.mode" in source
     assert "filters: filterPayload(state)" in source
-    assert "data.mode === 'fast' && ['partial', 'insufficient']" in source
+    assert "data.execution_outcome !== 'generation_failed'" in source
+    assert "['partial', 'insufficient'].includes(data.status)" in source
+    assert "回答生成失败" in source
+    assert "字幕检索可能已经完成" in source
     assert "response.status === 404" in source
     assert "fetch(`/api/ask/traces/" in source
     assert "window.__shiliuAsk" in source

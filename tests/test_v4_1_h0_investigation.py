@@ -413,7 +413,9 @@ def test_provider_error_is_retained_without_resampling_or_repair() -> None:
     assert result.provider_call_count == 1
     assert result.transport_retry_count == 1
     assert result.provider_error_code == "provider_network"
-    assert result.usage == ({"latency_ms": 7, "retry_count": 1},)
+    assert result.usage == (
+        {"latency_ms": 7, "retry_count": 1, "call_kind": "initial"},
+    )
 
 
 def test_current_decision_messages_are_audited_without_rewrite() -> None:

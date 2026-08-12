@@ -240,6 +240,11 @@ def test_application_provider_uses_static_role_families(app_paths) -> None:
         assert application.provider("query_analysis").model == "interactive-pro"
         assert application.provider("agent_action").model == "interactive-pro"
         assert application.provider("grounded_answer").model == "interactive-pro"
+        recovery = application.provider("grounded_answer_recovery")
+        assert recovery.model == "interactive-pro"
+        assert recovery.thinking_enabled is False
+        assert recovery.reasoning_effort is None
+        assert application.provider("grounded_answer").thinking_enabled is True
 
 
 def test_schema_migration_keeps_pre_v3_database_backup(app_paths) -> None:

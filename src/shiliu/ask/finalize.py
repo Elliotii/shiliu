@@ -8,6 +8,7 @@ from shiliu.ask.answer import GroundedAnswerService
 from shiliu.ask.context import TranscriptContextBuilder, fuse_evidence
 from shiliu.ask.contracts import (
     AnswerBlock,
+    AnswerExecutionOutcome,
     AnswerStatus,
     Citation,
     TerminationReason,
@@ -19,6 +20,7 @@ from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 @dataclass(frozen=True)
 class FinalizedAnswer:
     status: AnswerStatus
+    execution_outcome: AnswerExecutionOutcome
     answer_blocks: tuple[AnswerBlock, ...]
     citations: tuple[Citation, ...]
     limitations: tuple[str, ...]
@@ -66,6 +68,7 @@ class AnswerFinalizer:
                 limitations.append("部分或全部检索执行失败")
             return self._insufficient(
                 limitations=limitations,
+                execution_outcome="evidence_unavailable",
                 termination_reason=(
                     "evidence_unavailable"
                     if termination_reason == "answer_ready"
@@ -90,6 +93,7 @@ class AnswerFinalizer:
         if not context.spans:
             return self._insufficient(
                 limitations=["有效字幕证据超过上下文预算，无法安全生成回答"],
+                execution_outcome="evidence_unavailable",
                 termination_reason=(
                     "evidence_unavailable"
                     if termination_reason == "answer_ready"
@@ -102,6 +106,7 @@ class AnswerFinalizer:
         if deadline is not None and clock() >= deadline:
             return self._insufficient(
                 limitations=["深入搜索总运行时间已耗尽，未启动最终回答"],
+                execution_outcome="generation_failed",
                 termination_reason="budget_exhausted",
                 stale_count=len(stale_reasons),
                 trace=trace,
@@ -131,6 +136,7 @@ class AnswerFinalizer:
             )
             return self._insufficient(
                 limitations=["模型服务未能生成可验证的结构化回答"],
+                execution_outcome="generation_failed",
                 termination_reason=(
                     "budget_exhausted"
                     if isinstance(exc, TimeoutError)
@@ -170,6 +176,7 @@ class AnswerFinalizer:
                         else "模型服务故障，未形成可修复的结构化输出"
                     )
                 ],
+                execution_outcome="generation_failed",
                 termination_reason=(
                     "budget_exhausted"
                     if answer.provider_error_code == "deadline_exhausted"
@@ -193,6 +200,7 @@ class AnswerFinalizer:
                 )
             return self._insufficient(
                 limitations=limitations,
+                execution_outcome="evidence_insufficient",
                 termination_reason=termination_reason,
                 stale_count=len(stale_reasons),
                 trace=trace,
@@ -217,6 +225,7 @@ class AnswerFinalizer:
             )
             return self._insufficient(
                 limitations=["回答所用字幕版本在返回前已发生变化"],
+                execution_outcome="evidence_unavailable",
                 termination_reason="evidence_unavailable",
                 stale_count=len(stale_reasons) + 1,
                 trace=trace,
@@ -239,6 +248,7 @@ class AnswerFinalizer:
             limitations.append("深入搜索在确定性停止边界触发后使用已有证据回答")
         return FinalizedAnswer(
             status=status,
+            execution_outcome="answer_generated",
             answer_blocks=tuple(answer.draft.answer_blocks),
             citations=tuple(value.as_citation() for value in used_spans),
             limitations=tuple(dict.fromkeys(limitations)),
@@ -255,6 +265,7 @@ class AnswerFinalizer:
     def _insufficient(
         *,
         limitations: list[str],
+        execution_outcome: AnswerExecutionOutcome,
         termination_reason: TerminationReason,
         stale_count: int,
         trace: dict[str, Any],
@@ -264,6 +275,7 @@ class AnswerFinalizer:
     ) -> FinalizedAnswer:
         return FinalizedAnswer(
             status="insufficient",
+            execution_outcome=execution_outcome,
             answer_blocks=(),
             citations=(),
             limitations=tuple(limitations),

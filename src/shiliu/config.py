@@ -91,7 +91,12 @@ class AppConfig:
             return self.ingestion_model or self.formal_summary_model or self.llm_model
         if role.startswith("taxonomy_"):
             return self.taxonomy_model or self.llm_model
-        if role in {"query_analysis", "agent_action", "grounded_answer"}:
+        if role in {
+            "query_analysis",
+            "agent_action",
+            "grounded_answer",
+            "grounded_answer_recovery",
+        }:
             return self.interactive_model or self.llm_model
         return self.llm_model
 

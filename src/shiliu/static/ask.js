@@ -26,6 +26,11 @@
     partial: '部分回答',
     insufficient: '证据不足',
   };
+  const outcomeLabels = {
+    generation_failed: '回答生成失败',
+    evidence_unavailable: '证据不可用',
+    evidence_insufficient: '证据不足',
+  };
   const modeLabels = {fast: '快速回答', deep: '深入搜索'};
   let activeController = null;
   let requestSequence = 0;
@@ -186,7 +191,12 @@
     const numbering = citationNumberMap(data.citations);
     container.replaceChildren();
     if (data.status === 'insufficient') {
-      container.append(element('p', 'insufficient-copy', '当前没有足够的权威字幕证据，因此没有生成事实答案。'));
+      const copy = data.execution_outcome === 'generation_failed'
+        ? '字幕检索可能已经完成，但回答服务未能生成可验证的事实答案。'
+        : data.execution_outcome === 'evidence_unavailable'
+          ? '相关权威字幕证据不可用，因此没有生成事实答案。'
+          : '当前没有足够的权威字幕证据，因此没有生成事实答案。';
+      container.append(element('p', 'insufficient-copy', copy));
       return;
     }
     (data.answer_blocks || []).forEach(block => {
@@ -309,15 +319,20 @@
     lastResponse = data;
     root.querySelector('[data-result-title]').textContent = `${modeLabels[data.mode] || '回答'}结果`;
     const badge = root.querySelector('[data-status-badge]');
-    badge.className = `status-badge status-${data.status}`;
-    badge.textContent = statusLabels[data.status] || data.status;
+    const badgeState = data.execution_outcome === 'generation_failed'
+      ? 'generation-failed'
+      : data.status;
+    badge.className = `status-badge status-${badgeState}`;
+    badge.textContent = outcomeLabels[data.execution_outcome] || statusLabels[data.status] || data.status;
     root.querySelector('[data-termination-copy]').textContent = terminationLabels[data.termination_reason] || data.termination_reason;
     renderAnswerBlocks(data);
     renderLimitations(data);
     renderEvidence(data);
     renderUserTrace(data);
     root.querySelector('[data-continue-deep]').hidden = !(
-      data.mode === 'fast' && ['partial', 'insufficient'].includes(data.status)
+      data.mode === 'fast'
+      && data.execution_outcome !== 'generation_failed'
+      && ['partial', 'insufficient'].includes(data.status)
     );
     resetDeveloperTrace(data.run_id);
     showState('result');
@@ -325,6 +340,7 @@
       runId: data.run_id,
       mode: data.mode,
       status: data.status,
+      executionOutcome: data.execution_outcome,
       terminationReason: data.termination_reason,
       citations: (data.citations || []).length,
     };
