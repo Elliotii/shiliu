@@ -4,10 +4,12 @@ import json
 import sqlite3
 
 from scripts.run_post_v5_onboarding import (
+    ONBOARDING_LAUNCHD_LABEL,
     OnboardingRunner,
     PHASES,
     ProductApiError,
     RunnerSettings,
+    _remove_submitted_onboarding_job,
 )
 
 
@@ -112,3 +114,27 @@ def test_runner_retries_temporary_local_api_unavailability(tmp_path, monkeypatch
     assert calls == 3
     assert wait_states[0]["status"] == "retry_wait"
     assert wait_states[0]["error_code"] == "local_api_unavailable"
+
+
+def test_runner_only_unloads_its_exact_one_shot_launchd_job(monkeypatch) -> None:
+    calls = []
+    monkeypatch.setattr(
+        "scripts.run_post_v5_onboarding.subprocess.run",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+
+    monkeypatch.delenv("XPC_SERVICE_NAME", raising=False)
+    _remove_submitted_onboarding_job()
+    monkeypatch.setenv("XPC_SERVICE_NAME", "app.shiliu.sync")
+    _remove_submitted_onboarding_job()
+    assert calls == []
+
+    monkeypatch.setenv("XPC_SERVICE_NAME", ONBOARDING_LAUNCHD_LABEL)
+    _remove_submitted_onboarding_job()
+
+    assert calls[0][0][0] == [
+        "/bin/launchctl",
+        "remove",
+        ONBOARDING_LAUNCHD_LABEL,
+    ]
+    assert calls[0][1]["check"] is False

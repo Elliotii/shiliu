@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
+import subprocess
 import time
 import urllib.error
 import urllib.parse
@@ -28,6 +30,7 @@ PHASES = (
     ("latest_300", "latest_n", 300),
     ("all_history", "all", None),
 )
+ONBOARDING_LAUNCHD_LABEL = "app.shiliu.onboarding"
 
 
 class ProductApiError(RuntimeError):
@@ -416,26 +419,41 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    paths = AppPaths.defaults()
-    source_url = (
-        args.source_url
-        if args.source_url is not None
-        else args.source_url_file.read_text(encoding="utf-8").strip()
+    try:
+        paths = AppPaths.defaults()
+        source_url = (
+            args.source_url
+            if args.source_url is not None
+            else args.source_url_file.read_text(encoding="utf-8").strip()
+        )
+        if args.source_url_file is not None:
+            args.source_url_file.unlink(missing_ok=True)
+        settings = RunnerSettings(
+            base_url=args.base_url,
+            database=paths.database,
+            state_file=paths.state_dir / "post-v5-onboarding-state.json",
+            poll_seconds=max(1, args.poll_seconds),
+            retry_seconds=max(60, args.retry_seconds),
+            max_discovery_attempts=max(1, args.max_discovery_attempts),
+        )
+        OnboardingRunner(settings, source_url).run(
+            initial_delay_seconds=max(0, args.initial_delay_seconds)
+        )
+        return 0
+    finally:
+        _remove_submitted_onboarding_job()
+
+
+def _remove_submitted_onboarding_job() -> None:
+    """Unload the one-shot submitted job after any terminal runner exit."""
+    if os.environ.get("XPC_SERVICE_NAME") != ONBOARDING_LAUNCHD_LABEL:
+        return
+    subprocess.run(
+        ["/bin/launchctl", "remove", ONBOARDING_LAUNCHD_LABEL],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
-    if args.source_url_file is not None:
-        args.source_url_file.unlink(missing_ok=True)
-    settings = RunnerSettings(
-        base_url=args.base_url,
-        database=paths.database,
-        state_file=paths.state_dir / "post-v5-onboarding-state.json",
-        poll_seconds=max(1, args.poll_seconds),
-        retry_seconds=max(60, args.retry_seconds),
-        max_discovery_attempts=max(1, args.max_discovery_attempts),
-    )
-    OnboardingRunner(settings, source_url).run(
-        initial_delay_seconds=max(0, args.initial_delay_seconds)
-    )
-    return 0
 
 
 if __name__ == "__main__":
