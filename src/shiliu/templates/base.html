@@ -7,12 +7,14 @@
   <link rel="stylesheet" href="/static/app.css?v=6">
   <link rel="stylesheet" href="/static/library.css?v=4">
   <link rel="stylesheet" href="/static/taxonomy.css?v=1">
+  <link rel="stylesheet" href="/static/product.css?v=1">
+  <link rel="stylesheet" href="/static/goal3.css?v=1">
   {% block head %}{% endblock %}
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/"><span>拾流</span><small>SHILIU</small></a>
-    <nav><a href="/">内容流</a><a href="/ask">问答</a><a href="/research">受限研究 · 实验</a><a href="/search">搜索证据</a><a href="/?view=marked">Mark</a><a href="/?view=noted">我的笔记</a><a href="/?view=archived">归档</a><a href="/taxonomy">分类实验</a><a href="/setup">设置</a></nav>
+    <nav><a href="/">内容流</a><a href="/search">搜索</a><a href="/ask">问答</a><a href="/research">长程研究</a><a href="/knowledge">知识</a><a href="/?view=marked">稍后回看</a><a href="/?view=noted">我的笔记</a><a href="/?view=archived">归档</a><details class="advanced-nav"><summary>更多</summary><div><a href="/taxonomy">语料实验</a><a href="/setup">设置</a></div></details></nav>
   </header>
   {% block content %}{% endblock %}
   <script src="/static/app.js?v=7"></script>

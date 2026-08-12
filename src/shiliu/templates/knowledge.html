@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}拾流 · 知识{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/knowledge.css?v=1">{% endblock %}
+{% block content %}
+<main class="knowledge-shell">
+  <header class="knowledge-hero">
+    <p class="eyebrow">YOUR PUBLISHED KNOWLEDGE</p>
+    <h1>已保存的知识</h1>
+    <p class="muted">这里汇集你明确发布的主题。结论仍然链接到当前原字幕；需要新答案时，再由你决定直接使用、补充或重新研究。</p>
+  </header>
+
+  {% if knowledge_assets %}
+  <section class="knowledge-list" aria-label="已发布主题">
+    {% for asset in knowledge_assets %}
+    <article class="knowledge-topic" id="knowledge-{{ asset.page_id }}">
+      <header>
+        <span class="knowledge-currentness {% if asset.currentness_status != 'current' %}is-stale{% endif %}">
+          {% if asset.currentness_status == 'current' %}来源仍有效{% else %}建议检查更新{% endif %}
+        </span>
+        <h2>{{ asset.title }}</h2>
+        <p>最后更新 {{ asset.updated_at[:16]|replace('T', ' ') }} · 已发布版本 {{ asset.published_version }}</p>
+      </header>
+      <section>
+        <h3>核心结论</h3>
+        {% if asset.facts %}
+        <ul>{% for fact in asset.facts %}<li>{{ fact.claim }}</li>{% endfor %}</ul>
+        {% else %}<p class="muted">这个主题当前没有可展示的核心结论。</p>{% endif %}
+      </section>
+      <section class="knowledge-sources">
+        <h3>来源</h3>
+        {% for citation in asset.citations %}
+        <div class="knowledge-source">
+          <strong>{{ citation.title }}</strong>
+          <p>{{ citation.quote[:280] }}{% if citation.quote|length > 280 %}…{% endif %}</p>
+          <div>
+            {% if citation.jump_url %}<a href="{{ citation.jump_url }}" target="_blank" rel="noreferrer">从对应时间播放</a>{% endif %}
+            <a href="{{ citation.transcript_href }}" target="_blank" rel="noreferrer">查看原始字幕</a>
+          </div>
+        </div>
+        {% else %}<p class="muted">当前没有可展示的来源链接。</p>{% endfor %}
+      </section>
+      <footer class="knowledge-actions">
+        <a class="primary" href="/research/{{ asset.task_id }}?route_query={{ asset.title|urlencode }}#knowledge-related-query">基于这个主题提出新问题</a>
+        <a class="ghost" href="/research/{{ asset.task_id }}#research-knowledge">查看完整知识与维护信息</a>
+      </footer>
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="knowledge-empty">
+    <h2>还没有已发布知识</h2>
+    <p>完成一项长程研究后，先查看结论与来源，再明确选择“保存到知识”。这里不会展示草稿或自动推断内容。</p>
+    <a class="primary" href="/research">开始一项研究</a>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

@@ -63,14 +63,14 @@
           </select>
           <small data-mode-help>适合明确工具、项目或术语</small>
         </label>
-        <label for="search-corpus-task">Research Task context
-          <input id="search-corpus-task" name="corpus_task_id" type="text" maxlength="160" placeholder="可选：task_id">
-          <small>只读取该 Task 的 current、snapshot-bound Corpus soft prior</small>
+        <label for="search-corpus-task">延续某项研究的收藏上下文
+          <input id="search-corpus-task" name="corpus_task_id" type="text" maxlength="160" placeholder="从研究页进入时自动填写">
+          <small>只影响结果排序，不会自动提交研究或改变证据</small>
         </label>
         <div class="boolean-filters">
           <label><input name="archived" type="checkbox"> 包含归档</label>
           <label><input name="ignored" type="checkbox"> 包含忽略</label>
-          <label><input name="corpus_aware" type="checkbox" checked> Corpus-aware</label>
+          <label><input name="corpus_aware" type="checkbox" checked> 结合已确认的收藏上下文</label>
           <label><input name="sufficiency" type="checkbox"> 判断证据充分性（约 1–3 分钟）</label>
         </div>
       </div>
@@ -90,7 +90,7 @@
   </section>
   <section class="search-state loading-state" data-loading-state hidden aria-live="polite">
     <span class="loading-mark" aria-hidden="true"></span>
-    <div><p data-loading-title>正在搜索……</p><small data-loading-stage>Current Stage: retrieval</small></div>
+    <div><p data-loading-title>正在搜索……</p><small data-loading-stage>正在查找相关内容</small></div>
   </section>
   <section class="search-state empty-state search-empty" data-empty-state hidden>
     <h2>没有找到相关内容</h2><p>可以清除筛选、切换到全部内容，或尝试关键词搜索。</p>
@@ -104,11 +104,16 @@
   <section class="search-results" data-success-state hidden>
     <div class="results-heading"><h2 data-result-summary aria-live="polite"></h2><span data-mode-summary></span></div>
     <aside class="corpus-search-context" data-corpus-search-context hidden>
-      <strong>Corpus-aware Search</strong>
+      <strong>已结合这项研究的收藏上下文</strong>
       <p data-corpus-search-status></p>
-      <details><summary>查看 soft-prior / open-lane explanation</summary><pre data-corpus-search-explanation></pre></details>
+      <details><summary>Advanced：查看排序说明</summary><pre data-corpus-search-explanation></pre></details>
     </aside>
     <section class="pipeline-summary" data-pipeline-summary hidden></section>
+    <nav class="search-continuation" data-search-continuation aria-label="继续使用当前结果">
+      <div><strong>接下来想做什么？</strong><span>问题明确时直接提问；需要多步骤、可持续的工作时再进入长程研究。</span></div>
+      <a class="ghost" data-search-ask>基于这些结果提问</a>
+      <a class="primary" data-search-research>继续做长程研究</a>
+    </nav>
     <div class="result-list" data-result-list></div>
     <aside class="integration-limitations" data-integration-limitations hidden>
       <strong>能力边界</strong>

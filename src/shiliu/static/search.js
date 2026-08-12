@@ -172,11 +172,11 @@
     if (result.marked) appendMeta(meta, '已 Mark', 'marked-tag');
     if (result.duration) appendMeta(meta, `时长 ${formatTime(result.duration)}`);
     if (contribution?.lane === 'corpus_soft_prior') {
-      appendMeta(meta, `Corpus soft prior · baseline #${contribution.baseline_rank} → #${contribution.displayed_rank}`, 'corpus-lane-tag');
+      appendMeta(meta, '结合当前研究上下文排序', 'corpus-lane-tag');
     } else if (contribution?.lane === 'open_counterexample') {
-      appendMeta(meta, `Open counterexample · baseline #${contribution.baseline_rank}`, 'counterexample-tag');
+      appendMeta(meta, '保留了不同观点', 'counterexample-tag');
     } else if (contribution) {
-      appendMeta(meta, `Open lane · baseline #${contribution.baseline_rank}`);
+      appendMeta(meta, '来自开放结果');
     }
     body.append(meta);
     const summary = result.windows?.length
@@ -211,7 +211,11 @@
     const actions = element('div', 'result-actions');
     const detail = element('a', 'detail-link', '查看拾流详情');
     detail.href = result.detail_url;
-    actions.append(detail);
+    const ask = element('a', 'detail-link', '基于这个结果提问');
+    const askParams = new URLSearchParams({q: queryInput.value.trim()});
+    if (form.elements.folder_id.value) askParams.set('folder_id', form.elements.folder_id.value);
+    ask.href = `/ask?${askParams}`;
+    actions.append(detail, ask);
     body.append(actions);
     card.append(body);
     return card;
@@ -230,12 +234,25 @@
       return counts;
     }, {});
     root.querySelector('[data-corpus-search-status]').textContent = context.applied
-      ? `已应用 bounded composition · open ${Number(contributionCounts.open_baseline || 0) + Number(contributionCounts.open_counterexample || 0)} · corpus ${Number(contributionCounts.corpus_soft_prior || 0)}`
-      : `保持 baseline · ${(context.reason_codes || []).join(', ')}`;
+      ? `已用确认过的研究上下文帮助排序，同时保留普通搜索结果。`
+      : '当前没有可用的已确认上下文，结果按普通搜索排序。';
     root.querySelector('[data-corpus-search-explanation]').textContent = JSON.stringify({
       ...context,
       result_contributions: data.result_contributions || [],
     }, null, 2);
+  };
+
+  const updateContinuation = () => {
+    const state = formState();
+    const askParams = new URLSearchParams({q: state.q});
+    for (const name of ['folder_id', 'reading_state', 'marked', 'uploader_contains', 'favorite_time_from', 'favorite_time_to']) {
+      if (state[name]) askParams.set(name, state[name]);
+    }
+    if (state.archived) askParams.set('archived', 'true');
+    if (state.ignored) askParams.set('ignored', 'true');
+    root.querySelector('[data-search-ask]').href = `/ask?${askParams}`;
+    const researchParams = new URLSearchParams({objective: state.q});
+    root.querySelector('[data-search-research]').href = `/research?${researchParams}`;
   };
 
   const renderSuccess = data => {
@@ -250,6 +267,7 @@
     const count = Number(data.returned_group_count ?? data.results?.length ?? 0);
     root.querySelector('[data-result-summary]').textContent = `找到 ${count} 个相关视频`;
     root.querySelector('[data-mode-summary]').textContent = modeLabels[data.executed_mode] || '搜索结果';
+    updateContinuation();
     const warningVideoIds = new Set((data.warnings || []).map(item => Number(item.video_id)).filter(Number.isFinite));
     const contributions = new Map((data.result_contributions || []).map(value => [Number(value.video_id), value]));
     resultList.replaceChildren(...(data.results || []).map((result, index) => renderResult(
@@ -278,12 +296,7 @@
       endTime: evidence.end_time,
       quote: evidence.quote_text,
       sourceType: evidence.source_type,
-      metadata: [
-        ['Evidence ID', evidence.evidence_id],
-        ['Segment IDs', (evidence.segment_ids || []).join(', ')],
-        ['Source', `${evidence.source_language || 'und'} · ${evidence.source_type || 'unknown'}`],
-        ['Selector', evidence.selector_method],
-      ],
+      metadata: [],
     });
   };
 
@@ -293,6 +306,25 @@
     const summary = root.querySelector('[data-pipeline-summary]');
     summary.hidden = false;
     summary.replaceChildren();
+    updateContinuation();
+    const semantic = data.sufficiency_decision;
+    const evidence = data.evidence_bundle?.evidence || [];
+    const sufficient = semantic?.status === 'sufficient' || semantic?.status === 'complete';
+    const userCard = element('section', 'decision-card semantic-card');
+    userCard.append(
+      element('p', 'decision-kicker', 'EVIDENCE CHECK'),
+      element('h3', `decision-status status-${semantic?.status || 'unknown'}`, sufficient ? '现有证据足以继续回答' : '现有证据还不够完整'),
+      element('p', 'decision-meta', sufficient
+        ? '下面的每条证据都可回到原字幕；你可以基于这些结果提问。'
+        : '可以先调整查询，或在确实需要多步骤工作时进入长程研究。'),
+    );
+    if (semantic?.missing_aspects?.length) userCard.append(listBlock('仍缺少', semantic.missing_aspects));
+    if (semantic?.conflicts?.length) userCard.append(listBlock('需要留意的冲突', semantic.conflicts));
+    summary.append(userCard);
+
+    const diagnostics = element('details', 'trace-details');
+    diagnostics.append(element('summary', '', 'Advanced：查看判断流程与 Trace'));
+    const diagnosticBody = element('div');
     const status = element('div', 'pipeline-status-grid');
     const stages = data.trace?.stages || [];
     const currentStage = data.pipeline_status === 'completed'
@@ -309,16 +341,15 @@
       item.append(element('span', '', term), element('strong', '', value));
       status.append(item);
     });
-    summary.append(status);
+    diagnosticBody.append(status);
 
     const gate = data.mechanical_gate_result || {};
     const gateCard = element('section', 'decision-card mechanical-card');
     gateCard.append(element('p', 'decision-kicker', 'MECHANICAL GATE'));
     gateCard.append(element('h3', `decision-status status-${gate.status || 'unknown'}`, gate.status || '未执行'));
     gateCard.append(listBlock('Reason Codes', gate.reason_codes || []));
-    summary.append(gateCard);
+    diagnosticBody.append(gateCard);
 
-    const semantic = data.sufficiency_decision;
     const semanticCard = element('section', 'decision-card semantic-card');
     semanticCard.append(element('p', 'decision-kicker', 'SEMANTIC SUFFICIENCY'));
     if (semantic) {
@@ -335,7 +366,7 @@
       semanticCard.append(element('h3', 'decision-status status-bypassed', 'bypassed'));
       semanticCard.append(element('p', 'decision-meta', `Bypass Reason: ${data.semantic_sufficiency?.bypass_reason || 'mechanical terminal status'}`));
     }
-    summary.append(semanticCard);
+    diagnosticBody.append(semanticCard);
 
     if (data.errors?.length) {
       const errorCard = element('section', 'decision-card integration-error-card');
@@ -344,7 +375,7 @@
         errorCard.append(element('h3', 'decision-status status-invalid', error.type || 'internal_integration_error'));
         errorCard.append(element('p', 'decision-meta', `${error.stage || 'integration'} · ${error.message || '未知错误'}`));
       });
-      summary.append(errorCard);
+      diagnosticBody.append(errorCard);
     }
 
     const traceDetails = element('details', 'trace-details');
@@ -354,11 +385,12 @@
       traceList.append(element('li', '', `${stage.stage_name} · ${stage.component_version} · ${stage.status} · ${stage.latency_ms} ms · retry ${stage.retry_count}`));
     });
     traceDetails.append(traceList);
-    summary.append(traceDetails);
+    diagnosticBody.append(traceDetails);
+    diagnostics.append(diagnosticBody);
+    summary.append(diagnostics);
 
-    const evidence = data.evidence_bundle?.evidence || [];
-    root.querySelector('[data-result-summary]').textContent = `正式 EvidenceBundle · ${evidence.length} 条证据`;
-    root.querySelector('[data-mode-summary]').textContent = '证据充分性链路';
+    root.querySelector('[data-result-summary]').textContent = `找到 ${evidence.length} 条可查看的字幕证据`;
+    root.querySelector('[data-mode-summary]').textContent = '证据充分性检查';
     resultList.replaceChildren(...evidence.map(renderFormalEvidence));
     root.querySelector('[data-integration-limitations]').hidden = false;
     showState('success');
@@ -403,8 +435,8 @@
     fallbackNotice.hidden = true;
     root.querySelector('[data-loading-title]').textContent = state.sufficiency ? '正在判断现有证据是否充分……' : '正在搜索……';
     root.querySelector('[data-loading-stage]').textContent = state.sufficiency
-      ? 'Current Stage: retrieval → candidate builder → fine selector → gate → semantic judge'
-      : 'Current Stage: retrieval';
+      ? '正在查找、核对并判断字幕证据是否覆盖问题'
+      : '正在查找相关内容';
     showState('loading');
     try {
       const response = await fetch(state.sufficiency ? '/api/evidence-sufficiency' : '/api/search', {

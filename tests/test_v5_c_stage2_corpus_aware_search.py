@@ -523,7 +523,7 @@ def test_stage2_api_ui_legacy_shape_and_explanation(app_paths) -> None:
     assert 'name="corpus_task_id"' in html
     assert 'name="corpus_aware"' in html
     assert "result_contributions" in script
-    assert "Corpus soft prior" in script
+    assert "结合当前研究上下文排序" in script
 
 
 def test_stage2_search_ask_research_route_and_stage1_noninterference(app_paths) -> None:

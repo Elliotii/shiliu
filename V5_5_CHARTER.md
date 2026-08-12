@@ -1,9 +1,11 @@
 # Shiliu V5.5 Charter — 产品化与真实使用升级
 
-> Date: 2026-08-13  
-> Status: READY_FOR_GOAL_1  
-> Version role: bounded productization release  
-> Baseline: `f0c704db88f79794c52b3f4f6e6ac77c320470f2`
+> Date: 2026-08-13
+> Status: GOAL_2_COMPLETE_READY_FOR_GOAL_3
+> Version role: bounded productization release
+> Initial baseline: `f0c704db88f79794c52b3f4f6e6ac77c320470f2`
+> Goal 1 frozen HEAD: `cc707a62f32698d8fc5cbeb36995e0b05736d066`
+> Current V5.5 checkpoint / Goal 3 baseline: `09e50bd0f3b4c4a7d86ad90306d766369b4b2572`
 
 ---
 
@@ -26,30 +28,44 @@ V5.5 不重新设计拾流，也不继续扩张 V5 的技术版图。
 
 ---
 
-## 2. 权威基线
+## 2. 权威基线与当前检查点
 
-V5.5 从以下冻结基线开始：
+V5.5 初始冻结基线：
 
 ```text
 baseline branch: codex/post-v5-bounded-repair
-baseline HEAD:   f0c704db88f79794c52b3f4f6e6ac77c320470f2
+initial baseline HEAD: f0c704db88f79794c52b3f4f6e6ac77c320470f2
 ```
 
-建议 V5.5 主开发分支：
+V5.5 当前主开发分支：
 
 ```text
 codex/v5-5-productization
 ```
 
-V5.5 不回写或重定义已经验收的 V5-A / B / C 历史结论，也不修改 Post-V5 Repair 已修复的真实性与安全语义。
+已冻结检查点：
+
+```text
+Goal 1:
+cc707a62f32698d8fc5cbeb36995e0b05736d066
+
+Goal 2:
+09e50bd0f3b4c4a7d86ad90306d766369b4b2572
+```
+
+Goal 3 必须以 Goal 2 frozen HEAD 为执行基线。
 
 主要参考资料：
 
 - `SHILIU_V5_PROGRAM_FINAL_CLOSEOUT.md`
 - `POST_V5_BOUNDED_REPAIR_CLOSEOUT.md`
-- `V5_5_GOAL_1_READ_ONLY_SOURCE_AUDIT.md`
+- `V5_5_GOAL_1_CLOSEOUT.md`
+- `V5_5_GOAL_2_CLOSEOUT.md`
+- `V5_5_GOAL_3_PRODUCT_SURFACE_AUDIT.md`
 
-后续 Goal 仅在确有需要时按需读取更早的 Stage 文档，不预加载整个 V5 历史。
+Goal 3 启动时，当前提供的本 Charter 作为 V5.5 最新权威 Charter。若仓库中存在旧版同名 Charter，应以当前提供版本为准并同步替换；不得因为旧版状态仍停留在 Goal 2 而阻塞。
+
+后续 Goal 仅按需读取更早文档，不重新加载整个 V5 历史。
 
 ---
 
@@ -57,224 +73,367 @@ V5.5 不回写或重定义已经验收的 V5-A / B / C 历史结论，也不修�
 
 ### Goal 1 — 可用的长程 Research
 
-目标：
+**Status: COMPLETE / ACCEPTED / FROZEN**
 
-> 将 V5-A 已存在的 receipt-bound Provider Research 能力，以最小、服务器控制的产品接入方式接入普通 Web Research，使用户能够真正完成一次有证据的研究任务。
+普通 Web `/research` 已支持服务器授权的 Provider Research，并复用既有 receipt / SideEffect / budget / Deep Search / grounded answer / EvidenceUse / Citation / durable Research / deterministic Outer Audit。
 
-核心成功体验：
-
-```text
-用户提出研究问题
-→ 系统进行与问题复杂度相称的搜索与取证
-→ 产生 grounded research result
-→ 展示来源 / Citation
-→ 明确说明当前结果、停止原因和下一步
-```
-
-本 Goal 是 **product integration（产品接入）**，不是 Research 架构重写。
-
-必须优先复用现有：
-
-- Durable Research Task / Attempt / Checkpoint；
-- receipt-bound Provider dispatch；
-- Deep Search；
-- grounded answer / EvidenceUse / Citation；
-- Provider budget / deadline / cost / SideEffect 语义；
-- deterministic Outer Audit；
-- 当前 product projection 与 durable control。
-
-不得把“运行更久”“循环更多”本身作为 Research 成功标准。
+Goal 1 不再继续优化。
 
 ---
 
 ### Goal 2 — Research → Knowledge → Reuse 知识闭环
 
-目标：
+**Status: COMPLETE / ACCEPTED / FROZEN**
 
-> 让 V5-B 已实现的 Fact / Artifact / Topic Page、修正、过期、冲突、复用和增量刷新能力，在真实用户流程中形成至少一个自然、可理解、可重复使用的完整闭环。
-
-目标闭环：
+已完成真实闭环：
 
 ```text
-完成一次有证据的 Research
-→ 形成可理解的 Knowledge Candidate
+Provider Research Result
+→ Knowledge Candidate
 → 用户 Review / Publish
-→ 形成长期知识资产
-→ 后续相似问题命中已有资产
-→ Direct Reuse / Refresh / Conflict / Research Seed
-→ 可以下钻到原始字幕 / ASR 证据
+→ Fact / Artifact / Topic Page
+→ 后续相关但不同 Query
+→ ArtifactRoute
+→ Direct Reuse
+→ current Evidence / raw transcript drilldown
 ```
 
-本 Goal 不新建 Memory 系统；重点是让已经存在的长期知识机制真正产生并服务于真实资产。
+Goal 2 未新增模型调用、schema、Knowledge extraction Agent、Router 或后台任务。
+
+Goal 2 不再继续优化。
 
 ---
 
-### Goal 3 — 个性化产品表面与产品语言收口（条件性）
+### Goal 3 — 个性化体验与全产品使用流程收口
 
-目标：
+**Status: AUTHORIZED / NEXT**
 
-> 把 V5-C 已实现的关注状态、知识进度、收藏库辅助搜索、过期/新增内容提示和下一步建议，以普通用户能够理解的方式组织出来，并统一清理主要页面的工程化 / AI 味文案。
+正式目标：
 
-重点回答：
+> **让用户能够在 Library → Search / Ask → Research → Knowledge → Reuse 的过程中，始终理解自己在哪里、当前结果是什么、下一步可以做什么；同时让 V5-C 已有个性化能力只以真正有用户价值的形式出现。**
+
+Goal 3 是 Product Experience Consolidation（产品体验收口），不是新的底层能力版本。
+
+#### MUST 1 — Research 主视图重新建立用户层级
+
+普通用户默认视图优先：
 
 ```text
-系统目前知道什么？
-我最近关注什么？
-哪些结果已经存在？
-哪些可能过期或冲突？
-新增收藏与当前关注有什么关系？
-下一步适合 Search / Deep / Research / Reuse 哪一条？
+问题
+→ 当前状态 / 最终结果
+→ 证据
+→ 保存知识
+→ 下一步
 ```
 
-主界面优先使用用户任务语言；内部术语、Trace、Receipt、Route、Audit 等仅在确有需要的 Advanced / Diagnostics 区域出现。
+Policy、Workspace authoring、Route internals、Trace、Authority、Receipt、hash、维护操作等不得与主任务竞争，必要内容放入明确的 Advanced / Diagnostics disclosure。
 
-Goal 3 为条件性 Goal：若 Goal 1 / Goal 2 已自然解决大部分产品表达问题，可进一步缩小；不得为了“完成版本规划”强行扩大实现。
+#### MUST 2 — V5-C 产品化
+
+不为每个 V5-C capability 新建独立产品模块。
+
+现有 Focus、Progress、Staleness、Collection Delta、Radar / Assistance、Route Recommendation、Integrated Journey 只在有真实用户价值时出现，并使用用户语言说明：
+
+```text
+它是什么
+为什么现在有用
+用户下一步可以做什么
+```
+
+Cold start 不显示大面积 reason code / baseline / hash / empty internal panels；应隐藏无价值区域或给出简洁、可操作的空状态说明。
+
+Goal 3 的成功不要求 Focus / Progress / Delta / Radar 全部同时显示。**隐藏当前没有用户价值的 capability，本身就是合法的产品化结果。**
+
+若现有 V5-C 已有合法的 explicit Current Focus 写入合同，可将通用 WorkspaceRecord authoring 收敛成一个薄的用户动作，例如：
+
+```text
+设置当前关注
+更新当前关注
+```
+
+但不得新增 record type、自动推断 Focus、调用 LLM 生成 Focus、后台修改 Focus 或直接写 DB 制造演示数据。
+
+#### MUST 3 — Knowledge 全局可发现
+
+用户不应记住 originating Research Task 才能找到长期知识。
+
+应复用现有 V5-B Knowledge assets，以轻量产品入口让用户能够重新发现：
+
+```text
+已发布 Topic Pages / Knowledge
+主题
+核心结论
+currentness
+来源
+更新时间
+related query / reuse
+```
+
+可以新增轻量 `/knowledge` 或当前架构中的等价产品入口。
+
+该入口优先作为既有 Topic Page / Artifact 的**薄 read projection（只读产品投影）**和导航组织，不得为此新建：
+
+- 第二套 aggregate model；
+- 新 Knowledge search/index；
+- 新 Truth Store；
+- 新 Knowledge lifecycle；
+- 第二套持久化结构。
+
+#### MUST 4 — 有界 contextual handoff
+
+打通现有能力之间最关键的产品入口：
+
+```text
+Library → Search / Ask
+Search / Ask → Research（需要进一步研究时）
+Knowledge → related query / reuse
+```
+
+这些是产品 handoff，不是新 Router 或新的自动执行系统。
+
+Fast → Deep 已解决，不重新实现。
+
+#### SHOULD — 仅在 bounded 范围内完成
+
+- 澄清 Mark 与 Notes 的产品语义和命名，不改变独立数据语义；
+- 将 Home raw status 转为用户语言；
+- 将 Search 的 corpus-aware / sufficiency 主结果转为用户语言，把 pipeline / trace 放到 Advanced；
+- 将 Taxonomy / Corpus Snapshot 实验从普通主导航降级；
+- 避免 cold V5-C empty panels 默认占据大面积主视图。
 
 ---
 
-## 4. 全版本必须保持的产品真实性边界
+## 4. 全版本必须保持的真实性边界
 
-以下原则在 V5.5 中继续有效：
-
-1. **原字幕 / Raw ASR 仍是事实 Citation Authority。** Metadata、Corpus Model、个性化状态和历史 Artifact 不能替代原始证据。
-2. **Provider 生成结果不等于用户目标已验证完成。** `objective_verified` 只能由已注册、具有权威的目标验证逻辑授予。
-3. kernel success、Provider answer、Citation 数量与用户级任务完成必须继续区分。
-4. `failure / waiting_user / blocked` 等真实执行状态优先于漂亮的成功展示。
-5. Branch / Replay 等会创建 durable state 的操作继续要求明确确认。
-6. 已有 raw lineage、历史 Artifact 和 durable records 不因产品展示优化而被改写。
-7. Provider 权限必须由服务器控制，客户端不能自行授予底层执行 authority。
+1. 原字幕 / Raw ASR 仍是事实 Citation Authority。
+2. Provider answer、Citation、kernel success 不自动授予 `objective_verified=true`。
+3. `failure / waiting_user / blocked` 优先于漂亮的成功展示。
+4. Branch / Replay 等 durable 创建继续要求明确确认。
+5. raw lineage、历史 Artifact、durable records 不因 UX 优化被改写。
+6. Provider authority 继续由服务器控制。
+7. Knowledge Asset 不能替代 current Evidence / Citation。
+8. Research success 不等于自动发布长期知识。
+9. V5-C inferred / candidate state 在用户确认前不得升级为事实或自动执行 authority。
+10. Goal 3 的产品 handoff 不得变成自动 Router 或后台 Agent。
 
 ---
 
-## 5. 统一执行纪律
+## 5. Goal 3 执行纪律
 
-V5.5 明确采用轻量执行治理，不沿用重型版本审查流程。
-
-每个 Goal 默认：
+Goal 3 允许比 G1/G2 更完整地检查真实连续使用体验，但仍采用轻量治理：
 
 ```yaml
-source_audit: bounded_and_goal_specific
+source_confirmation: bounded
 primary_implementation_passes: 1
 bounded_correction_passes: 1
 independent_reviewer_default: false
-natural_real_use_cases: 2_to_3
+real_user_journeys: 3_to_5
 new_eval_dataset: false
 large_benchmark: false
 new_stage_framework: false
 ```
 
-### 修正循环上限
+`primary_implementation_passes: 1` 表示一个连贯的主实现周期，不表示只能修改一次代码、只能创建一个 commit，或不能在同一实现周期内完成必要的小型局部调整。禁止的是多轮重新设计 → reviewer → 重构 → 再实现。
 
-同一个问题默认只允许：
+同一问题：
 
 ```text
-第一次实现
-→ focused validation / real use
+实现
+→ 真实 Journey / focused validation
 → 最多一次 bounded correction
-→ 仍存在问题则记录 limitation 并 STOP
+→ 仍存在则记录 limitation 并 STOP
 ```
 
-不得因为“还可以更严谨”不断进行 retry → review → refactor → rerun。
+默认不开 independent reviewer。
 
-### Reviewer 触发条件
-
-默认不开 independent reviewer。仅在出现以下实质风险时考虑一次只读或窄范围审阅：
-
-- Citation Authority 可能被改变；
-- durable data / lineage 可能被破坏；
-- Provider side effect / receipt / authority 出现安全风险；
-- 必须引入 migration 或明显跨架构修改。
-
-UI、文案、普通回答质量和轻量产品摩擦本身不是独立 Reviewer 的触发条件。
-
-### 测试策略
-
-每个 Goal 优先：
-
-```text
-focused tests
-+ nearby affected regressions
-+ 2–3 个自然真实 Case
-```
-
-完整 deterministic suite 默认只在 V5.5 最终 Gate 运行一次；若某 Goal 实际修改了公共核心代码，可在 Closeout 中说明为什么提前运行一次。
+仅在 Citation Authority、durable lineage、Provider authority/SideEffect、migration/架构风险出现时才考虑窄审阅。
 
 ---
 
-## 6. 明确 Non-goals
+## 6. Goal 3 明确 Non-goals
 
-除非出现无法继续的真实阻塞并由用户重新授权，V5.5 不做：
+不得引入：
 
-- 新 Research 架构 / 新 Planner；
-- Provider Outer Audit；
-- 第二套 final synthesis；
-- 新 Worker / Queue / Redis / Celery 等后台平台；
+- Provider latency / availability / quota 优化；
+- Multi-source Research quality 扩张；
+- 新 semantic completion Judge；
+- 自动 required-aspect inference；
+- 新 Research architecture / Planner；
+- Provider Outer Audit 或第二套 final synthesis；
+- 新 Worker / Queue / Scheduler / notification；
+- proactive background Research / Radar；
+- 新 Memory / Knowledge Graph；
+- 新 Router / Agent；
+- 新 Eval / Frozen Dataset；
 - Retrieval / Embedding / Chunking 大改；
-- 新 Memory 架构或 Knowledge Graph；
-- 新 Router 平台；
-- 新大型 Eval / Frozen Dataset；
+- Fast → Deep runtime reuse；
+- Research persistence redesign；
+- 新 schema / Knowledge lifecycle redesign；
 - Multimodal / Multi-Agent / GraphRAG；
-- 新 Self-evolution / Skill Promotion 系统；
-- 主动后台 Agent / 通知系统；
-- V6 范围扩张。
+- Self-evolution；
+- V6 范围；
+- 与已确认问题无关的 broad visual redesign。
 
-若某 Goal 需要依赖以上任一项才能继续，应停止并返回用户决策，而不是自行扩大 Scope。
+若 Goal 3 需要上述任一项才能继续，应停止并返回用户决策。
 
 ---
 
-## 7. Goal Session 模型
+## 7. Goal 3 真实 Journey 验证
 
-每个核心 Goal 使用独立的新 Codex Session 执行，优先使用 Goal mode。
+优先使用真实现有数据，不为演示制造 synthetic personalization。
 
-Goal Session：
+建议覆盖 3–5 条连续 Journey：
 
-- 以本 Charter 为版本边界；
-- 以该 Goal 的启动 Prompt 为执行合同；
-- 读取与本 Goal 直接相关的源码和证据；
-- 不重新规划整个 V5.5；
-- 不自动开始下一个 Goal。
-
-每个 Goal 完成后仅输出简洁 Closeout，至少包含：
+### Journey A — 从收藏进入查询
 
 ```text
-实现了什么
-真实 Case 发生了什么
-测试结果
-仍有哪些 limitation
-checkpoint / HEAD
-是否建议进入下一个 Goal
+Library
+→ contextual Search / Ask
+→ 必要时 Research
 ```
 
-后续 Goal 是否启动，由用户在验收后决定。
+验证入口与上下文延续是否自然。
 
----
-
-## 8. V5.5 Final Gate
-
-当计划执行的 Goals 完成后，V5.5 只做一次最终收口：
-
-1. 运行一次完整 deterministic suite；
-2. 确认主要真实用户闭环仍可工作；
-3. 确认 Post-V5 Repair 已修复的真实性语义没有回归；
-4. 确认 scheduled sync / Web 基础运行未被破坏；
-5. 形成一个 `V5_5_FINAL_CLOSEOUT.md`；
-6. 记录最终 branch / HEAD / rollback point。
-
-V5.5 成功不要求实现所有长期愿景。它的成功标准是：
-
-> **V5 已经完成的核心工程能力，至少在 Research、长期知识复用和主要产品表面上，能够被真实用户自然理解并完成任务。**
-
----
-
-## 9. 当前下一步
+### Journey B — 已有长期知识
 
 ```text
-V5.5 baseline frozen
-→ create / enter codex/v5-5-productization
-→ start a fresh Goal-mode Session
-→ execute Goal 1 — 可用的长程 Research
-→ user acceptance
-→ decide Goal 2
+Knowledge
+→ Topic Page
+→ Evidence drilldown
+→ related query
+→ Reuse / Refresh decision
 ```
 
-当前只授权准备并启动 Goal 1；本 Charter 本身不构成后续 Goal 的自动实施授权。
+验证 Goal 2 资产是否真正可重新发现和使用。
+
+### Journey C — Personalization cold start
+
+```text
+无 Focus / Progress / Delta
+→ Research / personalization surface
+```
+
+验证页面是否简洁、有意义、没有 reason-code console。
+
+### Journey D — 有一个真实明确 Focus（仅在现有合法 UI 可自然创建时）
+
+```text
+Current Focus
+→ Assistance / Recommendation / Delta
+```
+
+观察是否产生真实用户价值。
+
+不得为了此 Journey 人工灌入虚假记录。
+
+### Journey E — Query escalation
+
+```text
+Search / Ask
+→ 需要深入
+→ Research
+```
+
+验证 handoff，不重新验收 G1 Research Runtime。
+
+### 运行环境约束
+
+真实 Journey 使用当前 Goal 3 worktree 的临时服务。
+
+不得：
+
+- 修改常驻 `18520` LaunchAgent；
+- 提前把正式服务切到 Goal 3 worktree；
+- 修改 scheduled sync 配置。
+
+正式常驻服务切换留给 V5.5 Final Gate。
+
+---
+
+## 8. 测试策略
+
+Goal 3 优先：
+
+```text
+focused UI / route tests
++ nearby affected regressions
++ necessary G1/G2 regression subset
++ 3–5 real journeys
+```
+
+不默认运行完整 deterministic suite。
+
+完整 suite 留到 V5.5 Final Gate。
+
+---
+
+## 9. Goal Session 模型与文档交付
+
+Goal 3 使用独立新的 Codex Goal-mode Session。
+
+以本 Charter 为版本边界，以 Goal 3 Startup Prompt 为执行合同，并以：
+
+```text
+09e50bd0f3b4c4a7d86ad90306d766369b4b2572
+```
+
+作为 frozen baseline。
+
+Goal 3 不得回写或重新验收 G1/G2。
+
+完成后创建：
+
+```text
+V5_5_GOAL_3_CLOSEOUT.md
+```
+
+Goal 3 最终交付 commit 应包含：
+
+- 当前权威 `V5_5_CHARTER.md`；
+- `V5_5_GOAL_3_PRODUCT_SURFACE_AUDIT.md`；
+- Goal 3 implementation；
+- `V5_5_GOAL_3_CLOSEOUT.md`。
+
+前置 Audit 作为事实记录保留，不得为了配合最终结果而回写、美化或重定义其结论。
+
+然后停止，等待用户验收。
+
+---
+
+## 10. V5.5 Final Gate
+
+当 Goal 3 验收完成后，再由用户决定是否直接进入 Final Gate。
+
+Final Gate 默认：
+
+1. 一次完整 deterministic suite；
+2. 主要真实产品 Journey smoke；
+3. Repair / G1 / G2 / G3 真实性语义回归确认；
+4. scheduled sync / Web 基础运行确认；
+5. 将常驻服务切到最终 V5.5 accepted HEAD，并验证；
+6. `V5_5_FINAL_CLOSEOUT.md`；
+7. final branch / immutable HEAD / rollback point。
+
+---
+
+## 11. 当前下一步
+
+```text
+V5.5 initial baseline
+f0c704db88f79794c52b3f4f6e6ac77c320470f2
+
+↓ Goal 1 COMPLETE / FROZEN
+cc707a62f32698d8fc5cbeb36995e0b05736d066
+
+↓ Goal 2 COMPLETE / FROZEN
+09e50bd0f3b4c4a7d86ad90306d766369b4b2572
+
+↓ NEXT
+
+Goal 3 — Personalized Product Experience
+         & Whole-product Journey Consolidation
+```
+
+当前仅授权 Goal 3。
+
+Final Gate 尚未授权。

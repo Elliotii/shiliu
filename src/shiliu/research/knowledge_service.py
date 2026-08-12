@@ -1766,6 +1766,59 @@ class ResearchKnowledgeService:
             },
         }
 
+    def list_published_knowledge(self, *, limit: int = 50) -> list[dict[str, Any]]:
+        """Thin read projection over existing published Topic Pages and lineage."""
+        bounded = max(1, min(limit, 100))
+        with self.db.connect() as connection:
+            task_rows = connection.execute(
+                """
+                SELECT task_id, MAX(updated_at) AS latest_update
+                FROM research_topic_pages
+                WHERE published_version IS NOT NULL
+                GROUP BY task_id
+                ORDER BY latest_update DESC, task_id
+                LIMIT ?
+                """,
+                (bounded,),
+            ).fetchall()
+
+        assets: list[dict[str, Any]] = []
+        for task_row in task_rows:
+            task_id = str(task_row["task_id"])
+            workspace = self.get_workspace(task_id)
+            facts_by_revision = {
+                str(fact["fact_revision_id"]): fact for fact in workspace["facts"]
+            }
+            for page in workspace["pages"]:
+                if page["published_version"] is None:
+                    continue
+                page_facts: list[dict[str, Any]] = []
+                citations: dict[str, dict[str, Any]] = {}
+                for fact_ref in page.get("body", {}).get("facts", []):
+                    revision_id = str(fact_ref.get("fact_revision_id") or "")
+                    fact = facts_by_revision.get(revision_id)
+                    claim = str(fact_ref.get("claim") or (fact or {}).get("claim") or "")
+                    if claim:
+                        page_facts.append({"claim": claim, "fact_revision_id": revision_id})
+                    for citation in (fact or {}).get("citations", []):
+                        citations[str(citation["evidence_id"])] = citation
+                assets.append(
+                    {
+                        "task_id": task_id,
+                        "page_id": page["page_id"],
+                        "title": page["title"],
+                        "facts": page_facts,
+                        "citations": list(citations.values()),
+                        "currentness_status": page["currentness_status"],
+                        "update_available": page["update_available"],
+                        "updated_at": page["updated_at"],
+                        "version": page["version"],
+                        "published_version": page["published_version"],
+                    }
+                )
+        assets.sort(key=lambda value: (value["updated_at"], value["page_id"]), reverse=True)
+        return assets[:bounded]
+
     def submit_feedback(
         self,
         task_id: str,

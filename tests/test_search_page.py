@@ -36,7 +36,7 @@ def test_navigation_links_to_separate_search_page(app_paths) -> None:
     client = TestClient(create_web_app(Application(app_paths)))
     home = client.get("/")
     assert home.status_code == 200
-    assert '<a href="/search">搜索证据</a>' in home.text
+    assert '<a href="/search">搜索</a>' in home.text
     assert "data-search-page" not in home.text
 
 

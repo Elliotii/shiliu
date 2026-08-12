@@ -37,12 +37,12 @@ def test_ask_page_is_primary_shared_fast_deep_entry(app_paths) -> None:
     assert search.status_code == 200
     assert "/static/evidence-ui.js" in search.text
     assert "/static/search.js" in search.text
-    assert '<a href="/search">搜索证据</a>' in page.text
-    assert '<a href="/search">搜索证据</a>' in search.text
+    assert '<a href="/search">搜索</a>' in page.text
+    assert '<a href="/search">搜索</a>' in search.text
 
     home = client.get("/")
     assert '<a href="/ask">问答</a>' in home.text
-    assert '<a href="/search">搜索证据</a>' in home.text
+    assert '<a href="/search">搜索</a>' in home.text
 
 
 def test_ask_keyboard_submission_decision_executes_in_javascript() -> None:

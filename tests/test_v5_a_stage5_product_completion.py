@@ -163,7 +163,8 @@ def test_research_page_and_public_product_api_fail_honestly_without_provider(
     assert 'data-research-page' in page.text
     assert 'href="/research"' in page.text
     assert "候选 Delta" in page.text
-    assert "LONG-TERM RESEARCH · EXPERIMENTAL" in page.text
+    assert "LONG-TERM RESEARCH" in page.text
+    assert "EXPERIMENTAL" not in page.text
     assert "模型驱动 · 来源可追溯" in page.text
     assert "结果存在不等于目标已经被验证完成" in page.text
     assert "data-summary-doing" in page.text

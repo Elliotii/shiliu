@@ -17,6 +17,7 @@
   let knowledge = null;
   const knowledgePublishCommands = new Map();
   let personalWorkspace = null;
+  let currentFocusRecord = null;
   let personalizationEnabled = true;
   let routingEnabled = true;
   let assistanceEnabled = true;
@@ -30,6 +31,11 @@
   };
   const lines = value => value.split('\n').map(item => item.trim()).filter(Boolean);
   const errorMessage = data => data?.error?.message || data?.detail || '请求失败，请刷新持久状态后重试。';
+  const productCopy = value => String(value || '')
+    .replaceAll('Outer Audit', '来源一致性')
+    .replaceAll('EvidenceUse', '当前字幕证据')
+    .replaceAll('Citation', '来源标注')
+    .replaceAll('citation', '来源标注');
 
   const requestJson = async (url, options = {}) => {
     const response = await fetch(url, {
@@ -46,6 +52,30 @@
     taskError.hidden = name !== 'error';
     taskContent.hidden = name !== 'content';
   };
+
+  const organizeProductHierarchy = () => {
+    const content = root.querySelector('[data-task-content]');
+    const advanced = root.querySelector('[data-advanced-content]');
+    [
+      '.research-policy', '.research-journey', '.research-routing',
+      '.research-deltas', '.research-assistance', '[data-personal-workspace]',
+      '[data-durable-trace]',
+    ].forEach(selector => {
+      const node = content.querySelector(selector);
+      if (node) advanced.append(node);
+    });
+    [
+      '.research-task-header', '.research-status-grid', '.research-reason',
+      '.research-plain-summary', '[data-answer-section]', '[data-evidence-section]',
+      '#research-knowledge', '.research-controls', '[data-effect-panel]',
+      '[data-input-panel]', '[data-focus-product]', '[data-advanced-disclosure]',
+    ].forEach(selector => {
+      const node = content.querySelector(selector);
+      if (node) content.append(node);
+    });
+  };
+
+  organizeProductHierarchy();
 
   const setActiveTask = taskId => {
     activeTaskId = taskId;
@@ -70,7 +100,7 @@
         button.append(
           element('span', 'task-card-state', task.user_completion?.label || task.status_label),
           element('strong', '', task.objective),
-          element('span', '', `${task.task_id} · ${task.updated_at}`),
+          element('span', '', `更新于 ${task.updated_at}`),
         );
         button.addEventListener('click', () => setActiveTask(task.task_id));
         taskList.append(button);
@@ -125,13 +155,9 @@
     const preference = context.preference;
     const focus = context.current_focus;
     if ((context.applied && preference) || context.detail_applied) {
-      const effects = [
-        ...(context.applied && preference ? [`limitations ${preference.value}`] : []),
-        ...(context.detail_applied ? [`detail ${detail.detailLevel}`] : []),
-      ];
-      status.textContent = `已应用 ${effects.join(' · ')}${focus ? ` · Current Focus: ${focus.topic} (${focus.state})` : ''}`;
+      status.textContent = `已按你确认的偏好组织回答${focus ? `；当前关注：${focus.topic}` : ''}`;
     } else {
-      status.textContent = `保持 baseline (${position}, ${detail.detailLevel}) · ${(context.reason_codes || []).join(', ')}`;
+      status.textContent = `使用默认展示方式${focus ? `；当前关注：${focus.topic}` : ''}`;
     }
     root.querySelector('[data-personalization-explanation]').textContent = JSON.stringify({
       policy_version: context.policy_version,
@@ -157,7 +183,7 @@
     product.citations.forEach((citation, index) => {
       const current = citation.currentness === 'current';
       const wrapper = element('div', `research-evidence-card${current ? '' : ' is-stale'}`);
-      wrapper.append(element('span', `research-currentness${current ? '' : ' is-stale'}`, citation.currentness));
+      wrapper.append(element('span', `research-currentness${current ? '' : ' is-stale'}`, current ? '来源有效' : '来源状态需要检查'));
       wrapper.append(renderEvidenceCard({
         id: `research-citation-${index + 1}`,
         evidenceId: citation.citation_id,
@@ -169,12 +195,7 @@
         quote: citation.quote_text,
         sourceType: citation.source_type,
         jumpUrl: citation.jump_url,
-        metadata: [
-          ['Evidence ID', citation.citation_id],
-          ['Evidence Use', citation.evidence_use_id],
-          ['Source Version', citation.source_version],
-          ['Attempt', citation.attempt_id],
-        ],
+        metadata: [],
       }));
       list.append(wrapper);
     });
@@ -525,7 +546,9 @@
           const button = element('button', kind === 'retire' ? 'ghost is-destructive' : 'ghost', label);
           button.type = 'button'; button.addEventListener('click', () => proposeFactUpdate(fact, kind)); actions.append(button);
         });
-        card.append(actions);
+        const maintenance = element('details', 'research-advanced-trace');
+        maintenance.append(element('summary', '', '维护这条结论'), actions);
+        card.append(maintenance);
       }
       factList.append(card);
     });
@@ -785,8 +808,39 @@
     } catch (error) { status.textContent = error.message; }
   };
 
+  const renderFocusProduct = value => {
+    const records = value.records || [];
+    currentFocusRecord = records.find(record => (
+      record.record_kind === 'focus_state'
+      && ['current', 'confirmed'].includes(record.effective_status)
+      && record.user_state_authority === true
+    )) || null;
+    const summary = root.querySelector('[data-focus-summary]');
+    const input = root.querySelector('[data-focus-form] input[name="focus_topic"]');
+    if (currentFocusRecord) {
+      const topic = String(currentFocusRecord.payload?.topic || currentFocusRecord.semantic_key);
+      summary.textContent = `当前关注：${topic}。系统只会在已有知识或收藏变化与它真实相关时显示帮助。`;
+      if (document.activeElement !== input) input.value = topic;
+    } else {
+      summary.textContent = '还没有设置当前关注。设置后，系统只在有真实相关内容时显示帮助；无价值的空面板会保持隐藏。';
+      if (document.activeElement !== input) input.value = '';
+    }
+    const assistance = root.querySelector('[data-focus-assistance]');
+    const valuableCards = Object.values(value.knowledge_assistance?.lanes || {})
+      .flatMap(lane => lane.cards || [])
+      .filter(card => !sessionDismissedAssistance.has(card.candidate_id));
+    assistance.replaceChildren();
+    assistance.hidden = !valuableCards.length;
+    valuableCards.slice(0, 3).forEach(card => {
+      const item = element('article', 'research-focus-card');
+      item.append(element('strong', '', card.title), element('p', 'muted', card.explanation));
+      assistance.append(item);
+    });
+  };
+
   const renderPersonalWorkspace = value => {
     personalWorkspace = value;
+    renderFocusProduct(value);
     renderPersonalization(value.personalization_context);
     renderRouteRecommendation(value.route_recommendation);
     renderKnowledgeAssistance(value.knowledge_assistance);
@@ -1165,16 +1219,17 @@
     current = product;
     root.querySelector('[data-task-objective]').textContent = product.goal.objective;
     root.querySelector('[data-task-id]').textContent = `${product.task.task_id} · Goal revision ${product.goal.revision}`;
+    root.querySelector('[data-advanced-task-id]').textContent = product.task.task_id;
     root.querySelector('[data-task-status]').textContent = product.task.status_label;
-    root.querySelector('[data-task-phase]').textContent = product.state.phase || 'pending';
+    root.querySelector('[data-task-phase]').textContent = product.task.status_label;
     root.querySelector('[data-answer-status]').textContent = product.user_completion.label;
     root.querySelector('[data-termination-reason]').textContent = product.state.termination_label;
-    root.querySelector('[data-failure-class]').textContent = product.state.failure_class;
-    root.querySelector('[data-task-reason]').textContent = product.user_completion.detail;
-    root.querySelector('[data-summary-doing]').textContent = product.plain_summary.doing;
-    root.querySelector('[data-summary-found]').textContent = product.plain_summary.found;
-    root.querySelector('[data-summary-why]').textContent = product.plain_summary.why_stopped;
-    root.querySelector('[data-summary-next]').textContent = product.plain_summary.next_action;
+    root.querySelector('[data-task-next]').textContent = productCopy(product.plain_summary.next_action);
+    root.querySelector('[data-task-reason]').textContent = productCopy(product.user_completion.detail);
+    root.querySelector('[data-summary-doing]').textContent = productCopy(product.plain_summary.doing);
+    root.querySelector('[data-summary-found]').textContent = productCopy(product.plain_summary.found);
+    root.querySelector('[data-summary-why]').textContent = productCopy(product.plain_summary.why_stopped);
+    root.querySelector('[data-summary-next]').textContent = productCopy(product.plain_summary.next_action);
     renderConstraintPolicy(product);
     renderControls(product);
     renderEffects(product);
@@ -1281,6 +1336,39 @@
       });
       status.textContent = '判断已完成。请查看系统为什么建议直接使用、补充研究或重新研究。';
       await loadKnowledge();
+    } catch (error) { status.textContent = error.message; }
+  });
+  root.querySelector('[data-focus-form]').addEventListener('submit', async event => {
+    event.preventDefault();
+    const topic = event.currentTarget.elements.focus_topic.value.trim();
+    const status = root.querySelector('[data-focus-status]');
+    if (!topic) { status.textContent = '请填写一个你真实关注的主题。'; return; }
+    if (currentFocusRecord && String(currentFocusRecord.payload?.topic || '').trim() === topic) {
+      status.textContent = '当前关注已经是这个主题。';
+      return;
+    }
+    status.textContent = '正在保存你明确设置的当前关注…';
+    try {
+      if (currentFocusRecord) {
+        await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records/${encodeURIComponent(currentFocusRecord.record_id)}/decisions`, {
+          method: 'POST', body: JSON.stringify({
+            command_id: commandId('focus-correct'), action: 'correct',
+            expected_version: currentFocusRecord.version,
+            replacement_payload: {topic, state: 'focused'},
+            reason: 'user explicitly updated current focus in thin product UI',
+          }),
+        });
+      } else {
+        await requestJson(`/api/research/product/tasks/${encodeURIComponent(activeTaskId)}/workspace/records`, {
+          method: 'POST', body: JSON.stringify({
+            command_id: commandId('focus-create'), record_kind: 'focus_state',
+            semantic_key: 'current focus', payload: {topic, state: 'focused'},
+            source_refs: [], reason: 'user explicitly set current focus in thin product UI',
+          }),
+        });
+      }
+      status.textContent = '当前关注已保存。它只用于已有的个性化只读帮助，不会自动发起搜索或研究。';
+      await loadPersonalWorkspace();
     } catch (error) { status.textContent = error.message; }
   });
   root.querySelector('[data-workspace-record-form]').addEventListener('submit', async event => {

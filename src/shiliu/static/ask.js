@@ -376,6 +376,8 @@
 
   const renderResult = data => {
     lastResponse = data;
+    const researchParams = new URLSearchParams({objective: lastRequest?.q || queryInput.value.trim()});
+    root.querySelector('[data-ask-research]').href = `/research?${researchParams}`;
     root.querySelector('[data-result-title]').textContent = `${modeLabels[data.mode] || '回答'}结果`;
     const badge = root.querySelector('[data-status-badge]');
     const badgeState = data.execution_outcome === 'generation_failed'

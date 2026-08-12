@@ -279,6 +279,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             {
                 "videos": cards,
                 "latest_sync": core.db.latest_sync_run(),
+                "latest_sync_status_label": _product_status_label(
+                    str((core.db.latest_sync_run() or {}).get("status") or "")
+                ),
                 "config": public_config(core.config),
                 "sources": _source_views(core),
                 "selected_source": source_db_id,
@@ -334,12 +337,28 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             {"sources": _core(request).db.list_sources(active_only=True)},
         )
 
+    @web.get("/knowledge", response_class=HTMLResponse)
+    async def knowledge_page(request: Request) -> HTMLResponse:
+        assets = await asyncio.to_thread(
+            _core(request).research_knowledge.list_published_knowledge,
+            limit=50,
+        )
+        return templates.TemplateResponse(
+            request,
+            "knowledge.html",
+            {"knowledge_assets": assets},
+        )
+
     @web.get("/research", response_class=HTMLResponse)
     async def research_page(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "research.html",
-            {"initial_task_id": ""},
+            {
+                "initial_task_id": "",
+                "initial_objective": request.query_params.get("objective", ""),
+                "initial_route_query": request.query_params.get("route_query", ""),
+            },
         )
 
     @web.get("/research/{task_id}", response_class=HTMLResponse)
@@ -347,7 +366,11 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         return templates.TemplateResponse(
             request,
             "research.html",
-            {"initial_task_id": task_id},
+            {
+                "initial_task_id": task_id,
+                "initial_objective": request.query_params.get("objective", ""),
+                "initial_route_query": request.query_params.get("route_query", ""),
+            },
         )
 
     @web.get("/taxonomy", response_class=HTMLResponse)
@@ -2314,6 +2337,7 @@ def _source_views(core: Application) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     for source in core.db.list_sources():
         value = dict(source)
+        value["status_label"] = _product_status_label(str(source.get("status") or ""))
         value.update(core.db.source_sync_metrics(int(source["id"])))
         policy = str(source.get("history_policy") or "future_only")
         if policy == "all":
@@ -2346,6 +2370,12 @@ def _video_view(
     value["summary"] = None
     value.setdefault("sources", core.db.video_sources(int(video["id"])))
     value["asr_job"] = core.db.get_asr_job(int(video["id"]))
+    value["status_label"] = _product_status_label(str(video.get("status") or ""))
+    if value["asr_job"]:
+        value["asr_job"] = dict(value["asr_job"])
+        value["asr_job"]["status_label"] = _product_status_label(
+            str(value["asr_job"].get("status") or "")
+        )
     value["notes"] = [_note_view(item) for item in (notes or [])]
     duration_seconds = int(video.get("duration_seconds") or 0)
     value["duration_label"] = _format_duration(duration_seconds)
@@ -2390,6 +2420,25 @@ def _display_minute(value: str) -> str:
         return datetime.fromisoformat(value).astimezone().strftime("%Y-%m-%d %H:%M")
     except ValueError:
         return value[:16].replace("T", " ")
+
+
+def _product_status_label(value: str) -> str:
+    return {
+        "active": "同步中",
+        "paused": "已暂停",
+        "completed": "内容已就绪",
+        "completed_with_errors": "同步完成，部分内容待处理",
+        "skipped_no_subtitle": "等待生成字幕",
+        "cooldown": "稍后自动重试",
+        "running": "正在处理",
+        "processing": "正在处理",
+        "pending": "等待处理",
+        "queued": "等待处理",
+        "retry_wait": "等待重试",
+        "needs_review": "需要检查",
+        "failed": "处理失败",
+        "cancelled": "已取消",
+    }.get(value, value.replace("_", " ") if value else "未知状态")
 
 
 def _format_duration(duration_seconds: int) -> str:

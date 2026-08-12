@@ -5,13 +5,13 @@
   <section class="hero-row">
     <div>
       <p class="eyebrow">BILIBILI FAVORITES · LOCAL READING</p>
-      <h1>{% if selected_view == 'marked' %}Mark{% elif selected_view == 'noted' %}我的笔记{% elif selected_view == 'archived' %}归档{% else %}最近流入{% endif %}</h1>
-      <p class="muted">{% if selected_view == 'marked' %}仍值得回看、思考或继续处理的内容。{% elif selected_view == 'noted' %}所有留下过人工笔记的视频。{% elif selected_view == 'archived' %}已经退出日常内容流的内容，可随时恢复。{% else %}最新收藏优先。立即同步先给出快速版，定时任务生成正式版。{% endif %}</p>
+      <h1>{% if selected_view == 'marked' %}稍后回看{% elif selected_view == 'noted' %}我的笔记{% elif selected_view == 'archived' %}归档{% else %}最近流入{% endif %}</h1>
+      <p class="muted">{% if selected_view == 'marked' %}你主动标记、准备以后回看或继续处理的内容。{% elif selected_view == 'noted' %}你写过笔记的内容；笔记用于记录自己的想法，不等同于稍后回看。{% elif selected_view == 'archived' %}已经退出日常内容流的内容，可随时恢复。{% else %}最新收藏优先。立即同步先给出快速版，定时任务生成正式版。{% endif %}</p>
     </div>
     <div class="sync-block">
       <button class="primary" data-sync data-sync-url="{% if selected_source %}/api/sources/{{ selected_source }}/sync{% else %}/api/sync{% endif %}">立即同步{% if selected_source %}当前来源{% endif %}</button>
       <span class="sync-status" data-sync-status>
-        {% if latest_sync %}上次：{{ latest_sync.status }}{% else %}尚未同步{% endif %}
+        {% if latest_sync %}上次：{{ latest_sync_status_label }}{% else %}尚未同步{% endif %}
       </span>
     </div>
   </section>
@@ -19,7 +19,7 @@
   <section class="source-strip">
     <a class="source-chip {% if not selected_source %}is-selected{% endif %}" href="/?view={{ selected_view }}">全部来源</a>
     {% for source in sources %}
-    <a class="source-chip {% if selected_source == source.id %}is-selected{% endif %}" href="/?view={{ selected_view }}&source={{ source.id }}">{{ source.account_name or '当前账号' }} · {{ source.folder_title }}{% if source.status != 'active' %} · {{ source.status }}{% endif %}</a>
+    <a class="source-chip {% if selected_source == source.id %}is-selected{% endif %}" href="/?view={{ selected_view }}&source={{ source.id }}">{{ source.account_name or '当前账号' }} · {{ source.folder_title }}{% if source.status != 'active' %} · {{ source.status_label }}{% endif %}</a>
     {% endfor %}
     {% if history_pending_count %}<span class="history-count">历史待处理 {{ history_pending_count }}</span>{% endif %}
   </section>
@@ -35,10 +35,10 @@
       <div class="cover-wrap">
         {% if video.cover_path %}<img src="/media/{{ video.id }}/cover" alt="{{ video.title }} 的封面" loading="lazy">
         {% else %}<div class="cover-fallback">NO COVER</div>{% endif %}
-        <span class="state state-{{ video.status }}">{{ video.status }}</span>
+        <span class="state state-{{ video.status }}">{{ video.status_label }}</span>
         {% if video.duration_label %}<span class="duration-badge">{{ video.duration_label }}</span>{% endif %}
         {% if video.active_revision == 'fast' %}<span class="revision-badge">快速版{% if video.refinement_status == 'processing' %} · 精修中{% elif video.refinement_status == 'failed' %} · 精修失败{% endif %}</span>{% endif %}
-        <span class="mark-badge" {% if not video.is_marked %}hidden{% endif %} aria-label="已 Mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10v14.5l-5-3.1-5 3.1z"/></svg> Mark</span>
+        <span class="mark-badge" {% if not video.is_marked %}hidden{% endif %} aria-label="已加入稍后回看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10v14.5l-5-3.1-5 3.1z"/></svg> 稍后回看</span>
       </div>
       <div class="card-body">
         <h2>{{ video.title }}</h2>
@@ -47,11 +47,11 @@
           <div class="reading-switch" data-reading-state="{{ video.reading_state }}" role="group" aria-label="阅读状态">
             <button data-reading-value="unread">未阅</button><button data-reading-value="in_progress">正在阅读</button><button data-reading-value="read">已阅</button>
           </div>
-          <button class="library-icon mark-toggle" data-library-action="mark" aria-label="{{ '取消 Mark' if video.is_marked else 'Mark' }}" aria-pressed="{{ 'true' if video.is_marked else 'false' }}" title="Mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10v14.5l-5-3.1-5 3.1z"/></svg></button>
+          <button class="library-icon mark-toggle" data-library-action="mark" aria-label="{{ '移出稍后回看' if video.is_marked else '加入稍后回看' }}" aria-pressed="{{ 'true' if video.is_marked else 'false' }}" title="稍后回看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10v14.5l-5-3.1-5 3.1z"/></svg></button>
           <button class="library-icon archive-toggle" data-library-action="archive" aria-label="{{ '恢复' if selected_view == 'archived' else '归档' }}" title="{{ '恢复' if selected_view == 'archived' else '归档' }}">{% if selected_view == 'archived' %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7H5v-3.5M5.4 7a7.5 7.5 0 1 1-1 7.7"/></svg>{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16v12H4zM3 4.5h18v3H3zM9 12h6"/></svg>{% endif %}</button>
         </div>
         {% if selected_view == 'archived' %}
-          <p class="archive-meta">{{ video.note_count }} 条笔记 · {{ '已 Mark' if video.is_marked else '未 Mark' }}</p>
+          <p class="archive-meta">{{ video.note_count }} 条笔记 · {{ '已加入稍后回看' if video.is_marked else '未加入稍后回看' }}</p>
         {% elif video.is_ignored %}
           <div class="compact-meta"><span>{{ video.note_count }} 条笔记</span><button class="ghost" data-action="restore">恢复</button></div>
         {% else %}
@@ -71,11 +71,13 @@
             <button class="collapse-summary" type="button" data-collapse-summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>收起完整总结</span></button>
           </details>
           {% else %}
-          <p class="pending-copy">{% if video.content_message %}{{ video.content_message }}{% elif video.asr_job %}语音识别：{{ video.asr_job.status }}{% if video.asr_job.next_retry_at %} · 冷却至 {{ video.asr_job.next_retry_at }}{% endif %}{% elif video.error_message %}{{ video.error_message }}{% else %}正在等待可用内容。{% endif %}</p>
+          <p class="pending-copy">{% if video.content_message %}{{ video.content_message }}{% elif video.asr_job %}语音识别：{{ video.asr_job.status_label }}{% if video.asr_job.next_retry_at %} · 可重试时间 {{ video.asr_job.next_retry_at }}{% endif %}{% elif video.error_message %}{{ video.error_message }}{% else %}正在等待可用内容。{% endif %}</p>
           {% endif %}
           <div class="card-actions">
             {% if video.transcript_path %}<a class="text-button" href="/videos/{{ video.id }}/transcript">完整原文</a>{% endif %}
             {% if video.raw_subtitle_path and not video.transcript_path %}<a class="text-button" href="/media/{{ video.id }}/raw-subtitle" target="_blank">原字幕</a>{% endif %}
+            <a class="text-button" href="/search?q={{ video.title|urlencode }}&folder_id={{ video.card_folder_id }}">围绕这个内容搜索</a>
+            <a class="text-button" href="/ask?q={{ ('基于“' ~ video.title ~ '”，')|urlencode }}&folder_id={{ video.card_folder_id }}">基于这个内容提问</a>
             {% if video.status in ['needs_review', 'retry_wait'] %}<button class="text-button" data-action="retry">立即重试</button>{% endif %}
             {% if not video.raw_subtitle_path and (video.status == 'skipped_no_subtitle' or video.asr_job) %}<button class="text-button" data-action="asr">立即生成字幕</button>{% endif %}
             {% if video.active_revision == 'fast' %}<button class="text-button" data-action="refine">立即精修</button>{% endif %}
@@ -98,7 +100,7 @@
     {% endfor %}
   </section>
   {% else %}
-  <section class="empty-state"><p>{% if selected_view == 'marked' %}还没有 Mark 内容。{% elif selected_view == 'noted' %}还没有笔记。{% elif selected_view == 'archived' %}归档是空的。{% else %}还没有新增内容。{% endif %}</p><span>{% if selected_view == 'feed' %}完成设置后，新收藏的视频会从这里开始出现。{% else %}你可以从内容流中逐条设置。{% endif %}</span></section>
+  <section class="empty-state"><p>{% if selected_view == 'marked' %}还没有加入稍后回看的内容。{% elif selected_view == 'noted' %}还没有笔记。{% elif selected_view == 'archived' %}归档是空的。{% else %}还没有新增内容。{% endif %}</p><span>{% if selected_view == 'feed' %}完成设置后，新收藏的视频会从这里开始出现。{% else %}你可以从内容流中逐条设置。{% endif %}</span></section>
   {% endif %}
   {% if previous_page_url or next_page_url %}
   <nav class="library-pagination" aria-label="内容流分页">
