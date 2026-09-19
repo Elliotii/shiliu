@@ -62,7 +62,9 @@ V3.0 是固定输入输出 Schema、固定阶段和有限模型调用驱动的�
 - Stored Card 保存收藏夹上下文，Discovery View 默认排除收藏夹名称。
 - 快照默认只包含所选收藏夹当前仍存在的收藏关系。
 - 用户行为字段不影响快照范围，也不得进入 Classification Card。
-- 隐藏人工参考必须在第一次完整真实 Discovery 前由人工冻结。
+- 人工 Reference Taxonomy 和 Gold Set 不再阻塞 V3.0。
+- 第一次完整真实 Discovery 前必须冻结与生产 Discovery 隔离生成的 Silver Reference v1。
+- V3.0 Eval 由 Silver Agreement、reference-free Judge 和 cross-run consistency 共同组成；Silver 不得称为 Gold、Ground Truth 或真实准确率。
 - Concept Search 属于 V3.0，但不阻塞最初的无搜索 Baseline。
 - 长任务必须提供独立、可恢复的 Runner，不能只依赖 Web daemon thread。
 - Token 或成本无法从 Provider 获取时允许保存为 `NULL/unknown`。
@@ -76,7 +78,7 @@ V3.0 是固定输入输出 Schema、固定阶段和有限模型调用驱动的�
 V3.0 包含：
 
 1. Anti-Contamination Contract；
-2. 隐藏 Reference Taxonomy 和 Gold Set 冻结机制；
+2. 隔离生成的 Silver Reference 和追加式冻结机制；
 3. 不可变 Corpus Snapshot；
 4. Classification Card；
 5. Stored Card 和 Discovery View；
@@ -93,7 +95,7 @@ V3.0 包含：
 16. 一轮结构修正；
 17. Draft B；
 18. 人工审核和发布 Taxonomy v1；
-19. 基础 Eval；
+19. Silver Agreement、reference-free Taxonomy Judge 和 cross-run consistency Eval；
 20. 可恢复的 CLI Runner。
 
 ### 第一批实现范围
@@ -104,13 +106,13 @@ V3.0 包含：
 
 - 防污染契约；
 - Runtime/Eval 代码边界；
-- Reference Taxonomy Schema；
-- Gold Set Schema；
+- Silver Reference Schema；
+- Silver Eval Set Schema；
 - 空模板；
 - 候选视频清单格式；
 - Reference Version 和 Hash 规则；
 - 防污染审计测试；
-- 正式 Discovery 的 Reference 冻结门禁设计。
+- 正式 Discovery 的 Silver Reference 冻结门禁设计。
 
 #### 阶段 1
 
@@ -152,8 +154,9 @@ V3.0 明确不包含：
 - 长期 Taxonomy 自动演化；
 - 默认读取收藏夹名称参与 Discovery；
 - 将完整字幕批量送入 Discovery；
-- 自动生成隐藏人工 Reference；
-- 根据 Discovery 结果反向构造 Gold Set；
+- 把 Silver Reference 称为 Gold Set、Ground Truth 或真实准确率；
+- Silver Evaluator 读取生产 Discovery A/B/C、Consolidation 或 Draft 输出；
+- 根据生产 Discovery 结果反向构造 Silver Reference；
 - 第一批实现中的 LLM、Search、分类、试分类、发布和 Eval；
 - 第一批实现中修改现有视频页面及视频业务数据。
 
@@ -176,12 +179,13 @@ V3.0 明确不包含：
 
 ```text
 Snapshot 已冻结
-→ Eval 侧生成 Reference 空模板和候选视频清单
-→ 用户人工完成 Reference Taxonomy 和 Gold Set
-→ 用户确认冻结
-→ 保存 Reference Version 和 Hash
+→ Eval 侧按 Silver Eval Protocol 运行独立 Evaluator A/B/C
+→ 初标、独立复核和分歧仲裁
+→ 冻结 Silver Reference Version 和 Hash
 → Workflow 才允许开始完整真实 Discovery
 ```
+
+Facet Schema、Runner 和 10～20 条小样本 Spike 可以在 Silver 冻结前实施；Spike 输出不得成为 Silver Evaluator 的输入。
 
 ### 后续长任务
 
@@ -282,16 +286,18 @@ Stored Card 可以包含：
 
 ### Discovery View
 
-默认 Discovery View 只包含：
+Snapshot 继续冻结完整 `card_json`。正式模型输入使用从冻结 Card 派生、带版本号的
+Compact Discovery View；不得为压缩输入而覆盖 Snapshot #2 的既有 Card 或 Hash。
 
-- content_id
-- 标题
-- UP 主
-- 简介
-- 一句话结论
-- 核心观点
-- 模型、工具和项目实体
-- evidence_level
+默认紧凑视图按证据等级生成：
+
+- A/B：短 ID、标题、一句话结论、最多 3 条去重核心观点、最多 5 个实体、证据等级；
+- A 级不再发送简介；
+- C：短 ID、标题、最多 300 字符简介、证据等级；
+- D：短 ID、标题、证据等级，只参加 Trial Assignment；
+- 默认不发送 UP 主；
+- 长 content_key 在调用前映射为 `C001` 一类短 ID，落盘时可逆映射；
+- 使用单次声明列结构的紧凑数组/行式协议，不为每张卡重复长 JSON 字段名。
 
 不得包含：
 
@@ -299,10 +305,43 @@ Stored Card 可以包含：
 - folder_names
 - membership metadata
 - 用户行为字段
-- 人工 Reference
-- Gold 标签
+- Silver Reference
+- Silver 标签
 
 Stored Card 和 Discovery View 必须分别生成规范化 JSON 和 SHA-256。
+
+### 分批 Discovery 与恢复
+
+巨型单次 Discovery 只作为对比 Baseline，不作为正式方案扩展。正式候选流程为：
+
+```text
+Compact Discovery View
+→ 每批 20～32 条局部候选发现
+→ 全局候选归并
+→ 最多两级 Taxonomy Draft
+→ 每批 20～32 条 Trial Assignment
+→ Novelty Pool
+```
+
+局部批次只发现候选 Content Type、Domain、Dynamic Topic 和 Entity，并输出简短定义与
+supporting IDs；不得在局部批次生成最终完整 Taxonomy。全局 Consolidation 只读取局部候选、
+定义、支持量与代表短 ID，不重新读取全部原始卡片。
+
+Schema 首次失败后不得重放完整语料。调用必须：
+
+1. 请求前保存 running 审计；
+2. 收到模型原始内容后立即落盘；
+3. 再执行 JSON 解析、Pydantic 和业务约束校验；
+4. 失败时只向独立 JSON Repair 提供 raw response、validation errors 和精简 Schema；
+5. 保存 Provider 返回的 usage；Provider 未返回时明确记录为 unknown。
+
+`high thinking` 默认用于全局归并、层级检查和单轮结构修正。局部发现、Facet、Assignment
+和 JSON Repair 不默认使用 high reasoning effort。
+
+低确定度、`insufficient_evidence` 和疑似 `taxonomy_gap` 进入 Novelty Pool，仅对该小集合
+执行补充诊断。V3.0 发布后，新视频只按 Published Taxonomy 增量分类；无法匹配的内容进入
+Novelty Pool，达到显式阈值后才允许在后续版本触发局部 Taxonomy Evolution，不自动重跑全量
+Discovery。
 
 ### 不可变性
 
@@ -311,25 +350,99 @@ Stored Card 和 Discovery View 必须分别生成规范化 JSON 和 SHA-256。
 - 内容发生变化时必须创建新 Snapshot。
 - Card 必须保存冻结的 JSON 内容，不能只引用当前 `videos` 或可能被覆盖的摘要文件。
 
-### 隐藏 Reference
+### 隐藏 Silver Reference
 
 目标文件：
 
 ```text
-eval/private_reference/reference_taxonomy_v1.yaml
-eval/private_reference/gold_eval_set_40.jsonl
+eval/private_reference/silver_reference_taxonomy_v1.yaml
+eval/private_reference/silver_eval_set_40.jsonl
+eval/private_reference/silver_disagreements_v1.jsonl
+eval/private_reference/silver_reference_manifest_v1.json
 ```
 
 要求：
 
-- 内容来自人工判断；
+- 内容由与生产 Discovery 隔离的 Silver Evaluator 生成；
+- Silver Evaluator 不得读取 Discovery A/B/C、Consolidation、Draft、Assignment 或历史分类讨论；
+- 至少执行 Evaluator A 初标、Evaluator B 独立复核和 Evaluator C 分歧仲裁三个独立调用角色；
+- 同一 Provider 时仍须使用独立上下文、不同输入排列和不同 Prompt 角色；
+- 每次评测调用保存模型、Prompt 版本、参数、输入 Hash、输出和错误；
 - 第一次完整真实 Discovery 前必须冻结；
 - 冻结时保存 Hash；
 - 冻结文件不得静默覆盖；
-- 修改必须产生新 Reference Version；
+- 修改必须产生新的 Silver Reference Version；
 - Runtime 不得读取该目录；
-- Reference 未冻结时，正式 Discovery 必须拒绝启动；
+- Silver Reference 未冻结时，正式完整语料 Discovery 必须拒绝启动；
 - 单元测试和少量非真实 Fixture 测试不受该门禁限制。
+
+Silver Eval Set 目标为约 40 条，优先覆盖 16 条高证据清晰样本、10 条高证据跨领域样本、6 条 C 级样本、5 条边界或易混淆样本和 3 条 D 级/信息不足/失效/离题样本；真实语料不足时允许微调，但必须保存选择理由。
+
+Silver 指标只能命名为 Silver Agreement 或 Silver Acceptance，不得解释为真实准确率。人工满意率和 Human Modification Rate 在 V3.0 自动评测中固定报告为 `not_evaluated`。
+
+### Reference-free Taxonomy Judge
+
+Judge 独立读取冻结 Taxonomy、节点定义、局部子树和代表视频，按节点或局部子树检查：父子关系、兄弟重叠、粒度一致性、类型混用、定义清晰度、代表视频支持度、过宽、过细和空节点。Judge 只生成评测报告，不得修改生产 Draft。
+
+基础指标包括：
+
+- Silver Content-Type Agreement；
+- Silver Primary-Domain Agreement；
+- Silver Subdomain Acceptance；
+- Cross-run Taxonomy Stability；
+- Assignment Consistency；
+- Parent-Child Adequacy；
+- Sibling Coherence；
+- Granularity Balance；
+- Entity Leakage；
+- Coverage；
+- Rejection Distribution。
+
+### Stage 2A：Facet Extraction Spike
+
+- 定义只提取事实的 Facet Schema；
+- Facet 包含 main_subject、content_goal、technical_aspects、usage_context、candidate_topics 和 candidate_entities；
+- Facet Extractor 不得创建正式分类名称或稳定 Taxonomy 节点；
+- 在 Snapshot #2 的 Discovery Eligible 卡片中选取 10～20 条运行 Spike；
+- 保存模型、Prompt 版本、参数、输入顺序、输入/输出 Hash、原始结构化输出和失败；
+- Spike 用于验证 Schema、Prompt 和上下文体积，不视为完整生产 Facet 阶段。
+
+### Stage 2B：Batched Discovery Spike
+
+- 在 Snapshot #2 上派生 versioned Compact Discovery View，不修改冻结数据；
+- 先用 48 条、每批 24 条验证两批局部候选与一次全局归并；
+- D 级即使不参与候选发现，仍加入 Trial Assignment；
+- 保存短 ID 映射、每批 Prompt、请求前审计、原始响应、解析结果、Repair 和 usage；
+- 比较巨型 Baseline 与分批方案的输入规模、耗时、失败恢复粒度和结果结构；
+- Spike 产物不得写入生产 Taxonomy 表或读取 `eval/private_reference/`；
+- 参数确认后才进入完整 Discovery A/B/C 和正式可恢复 Runner。
+
+### Checkpoint 2：Quality Gate 与最小 Run/Resume
+
+在重新运行 48 条回归前，先落实：
+
+- Content Type 使用独立候选结构，明确表达形式与知识领域的区别；
+- 稳定节点包含临时 ID、name、definition、includes、excludes、supporting IDs、
+  representative IDs、parent ID 和 node type；
+- 局部 Domain 候选明确 primary/subdomain、parent hint 和长期稳定性依据；
+- Consolidation 不再把“跨批出现”作为二级领域的硬性必要条件；
+- 独立 Hierarchy Validator 只生成问题，不修改 Draft；
+- 确定性 Quality Gate 保存 passed、blocking issues、warnings、retry stage 和指标；
+- 缺失 Content Type 时只运行 Content Type Recovery，不重跑其他局部候选维度；
+- Quality Gate 失败只重置指定阶段及其下游，已完成局部 Batch 保持 completed；
+- `taxonomy_runs` 和 `taxonomy_stage_runs` 成为状态来源，Web/CLI 不是唯一状态；
+- 已落盘原始响应在恢复时先解析；结构失败只恢复 JSON Repair，不重放语料调用。
+
+最小 CLI：
+
+```text
+shiliu taxonomy create-run --snapshot-id 2 --limit 48 --batch-size 24
+shiliu taxonomy run <run_id>
+shiliu taxonomy resume <run_id>
+shiliu taxonomy status <run_id>
+```
+
+正式 A/B/C 必须使用 discovery-only Run；A/B/C 内不运行全量 Trial Assignment。
 
 ### 后续 Concept Search
 
@@ -467,7 +580,7 @@ shiliu taxonomy status <run_id>
 
 ### 隐藏 Eval 文件
 
-实际 Reference 和 Gold 文件默认不进入源码发布包。可提交 Schema、模板和说明，但不得提交未经用户确认的人工私有数据。
+实际 Silver Reference、Silver Eval Set、分歧和调用审计默认不进入源码发布包。可提交 Protocol、Schema、模板和生成器；实际冻结产物保留在本地私有目录。
 
 ## Technical Constraints
 
@@ -483,7 +596,7 @@ shiliu taxonomy status <run_id>
 - 所有 JSON Hash 使用稳定字段排序和固定编码；
 - Snapshot/Card 创建不得调用网络；
 - Snapshot/Card 创建不得调用 LLM；
-- Runtime 不得读取隐藏 Eval 目录；
+- Runtime 不得读取隐藏 Eval 目录；Eval 可以读取冻结 Snapshot，但不得读取生产 Discovery 输出；
 - 新数据库迁移必须兼容现有 Schema Version 5 数据；
 - 现有字幕、ASR、同步、阅读、Mark、归档、忽略和笔记行为必须保持不变。
 
@@ -577,11 +690,11 @@ shiliu taxonomy status <run_id>
 ### 阶段 0
 
 - 存在明确的 Anti-Contamination Contract。
-- 存在 Reference Taxonomy 和 Gold Set Schema/模板。
+- 存在 Silver Reference Taxonomy、Silver Eval Set、分歧和 Manifest Schema/模板。
 - Runtime 代码不导入 Eval 路径。
-- 未冻结 Reference 时，正式完整语料 Discovery 不能启动。
-- 冻结 Reference 保存 Version 和 Hash，且不可静默覆盖。
-- 防污染测试能够检查 Discovery 输入不含 Reference 数据。
+- 未冻结 Silver Reference 时，正式完整语料 Discovery 不能启动。
+- 冻结 Silver Reference 保存 Version 和 Hash，且不可静默覆盖。
+- 防污染测试能够检查 Discovery 输入不含 Silver 数据，Silver 输入不含生产 Discovery 数据。
 
 ### 阶段 1
 
@@ -607,6 +720,7 @@ shiliu taxonomy status <run_id>
 ### V3.0 后续总体标准
 
 - Discovery 模型未看到人工分类名称。
+- Discovery 模型未看到 Silver 分类名称或 Silver 标签。
 - Discovery 输入基于不可变 Snapshot。
 - Content Type、Domain、Topic、Entity 分离。
 - 稳定 Domain 最多两级。
@@ -620,6 +734,7 @@ shiliu taxonomy status <run_id>
 - 用户确认前不发布。
 - 发布后产生稳定 Taxonomy ID。
 - 长任务可从阶段或批次恢复。
+- Silver Agreement 不被表述为真实准确率，人工满意率和 Human Modification Rate 标记为 `not_evaluated`。
 
 ## Verification Plan
 
@@ -674,7 +789,7 @@ sqlite3 <database> '.schema taxonomy_stage_runs'
 - 相同 Card 的 Discovery View；
 - 字段差异说明；
 - Snapshot Hash；
-- Reference 模板和防污染契约；
+- Silver Eval Protocol、冻结 Manifest 和防污染契约；
 - 全部测试结果。
 
 ## Risks
@@ -694,7 +809,7 @@ sqlite3 <database> '.schema taxonomy_stage_runs'
 - Snapshot 中的内容顺序只用于复现和 Hash，不代表正式分类顺序。
 - 未物化视频可以使用 membership 中已有标题和 UP 主形成 D 级 Card。
 - 现有摘要 JSON 通过 `SummaryResult` 校验后可作为有效摘要。
-- 实际隐藏 Reference 文件默认不提交到 Git；Schema 和空模板可以提交。
+- 实际隐藏 Silver 文件默认不提交到 Git；Protocol、Schema 和空模板可以提交。
 - 第一阶段不要求实现真正的 `taxonomy run/resume`，但数据库结构不得妨碍后续增加 Runner。
 
 ## Open Questions
@@ -718,7 +833,7 @@ sqlite3 <database> '.schema taxonomy_stage_runs'
 - 第一阶段需要调用 LLM 或网络才能完成；
 - 发现当前 membership 数据不足以生成稳定 `content_key`；
 - 无法在不读取用户行为字段的情况下生成 Card；
-- Reference 隔离无法通过测试；
+- Silver/Runtime/Discovery 隔离无法通过测试；
 - 数据库迁移存在丢失或覆盖现有数据的风险；
 - Snapshot 无法做到事务性冻结；
 - 需要建设通用任务队列或 Workflow Framework；

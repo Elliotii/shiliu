@@ -1,0 +1,15 @@
+{
+  "vocabulary": "focus_object_type",
+  "version": "focus_object_type_v1",
+  "terms": [
+    {"id":"OT01","canonical_name":"tool_or_framework","definition":"工具、框架、库、插件或平台。","includes":["tool","framework","library","plugin","platform"],"excludes":["具体名称","抽象技术领域"],"aliases":["工具","框架","库","插件","平台"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT02","canonical_name":"model","definition":"基础模型、语言模型或专用模型。","includes":["model","llm","foundation model"],"excludes":["模型所属领域","具体模型名称"],"aliases":["模型","LLM"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT03","canonical_name":"project_or_product","definition":"项目、应用、产品、开源仓库或系统。","includes":["project","product","repository","application","system"],"excludes":["抽象工程方法","具体项目名称"],"aliases":["项目","产品","应用","系统","仓库"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT04","canonical_name":"paper_or_research_artifact","definition":"论文、研究报告或研究成果。","includes":["paper","research report","research artifact"],"excludes":["泛化研究领域","具体论文标题"],"aliases":["论文","研究报告"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT05","canonical_name":"course_or_learning_resource","definition":"课程、教材、学习资源或题库。","includes":["course","textbook","learning resource","question bank"],"excludes":["学习目标","具体课程名称"],"aliases":["课程","教材","学习资源","题库"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT06","canonical_name":"job_or_role","definition":"岗位、职业角色或职位要求。","includes":["job","role","position","job requirement"],"excludes":["求职行为","具体雇主"],"aliases":["岗位","职业角色","职位"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT07","canonical_name":"company_or_organization","definition":"公司、团队、机构或社区。","includes":["company","organization","team","community"],"excludes":["行业领域","具体组织名称"],"aliases":["公司","组织","团队","机构","社区"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT08","canonical_name":"dataset_or_benchmark","definition":"数据集、评测集或基准。","includes":["dataset","eval set","benchmark"],"excludes":["抽象评测方法","具体数据集名称"],"aliases":["数据集","评测集","基准"],"status":"active","version":"focus_object_type_v1"},
+    {"id":"OT09","canonical_name":"event_or_release","definition":"发布事件、版本事件、会议或行业事件。","includes":["release","conference","event"],"excludes":["一般资讯形式","具体事件名称"],"aliases":["发布","会议","事件"],"status":"active","version":"focus_object_type_v1"}
+  ]
+}

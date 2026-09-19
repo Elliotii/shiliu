@@ -1,23 +1,33 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import html
 import json
 import re
 import threading
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 import markdown
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    StreamingResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from shiliu.app import Application
+from shiliu.ask import AskModeNotImplemented, AskRequest
 from shiliu.asr import ParaformerProvider
 from shiliu.config import (
     ASR_KEYCHAIN_ACCOUNT,
@@ -27,16 +37,137 @@ from shiliu.config import (
     save_config,
     store_api_key,
 )
-from shiliu.db import Database
-from shiliu.domain import PipelineError, SyncMode
+from shiliu.db import Database, LibraryCardCursor, library_card_cursor
+from shiliu.domain import FavoriteScan, PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
+from shiliu.knowledge_draft import (
+    ConfirmDraftPromotionRequest,
+    DraftCommandRequest,
+    KnowledgeDraftError,
+    SaveKnowledgeDraftRequest,
+)
 from shiliu.library import LibraryNotFound, LibraryValidationError
+from shiliu.retrieval import (
+    ProductSearchError,
+    ProductSearchRequest,
+    SearchExecutionError,
+    SearchRequest,
+)
+from shiliu.research.contracts import (
+    CreateResearchTaskRequest,
+    ResearchCommandRequest,
+)
+from shiliu.research.control_contracts import (
+    ControlCommandRequest,
+    CreateInputRequest,
+    DeriveTaskRequest,
+    HumanDecisionRequest,
+    ResolveSideEffectRequest,
+)
+from shiliu.research.errors import ResearchConflict, ResearchError
+from shiliu.research.inner_contracts import (
+    ContinueInnerResearchRequest,
+    RevalidateInnerEvidenceRequest,
+)
+from shiliu.research.outer_contracts import AdvanceOuterResearchRequest
+from shiliu.research.product_contracts import (
+    CreateProductResearchRequest,
+    RunProductResearchRequest,
+)
+from shiliu.research.knowledge_contracts import (
+    AssessArtifactRouteRequest,
+    BuildKnowledgeArtifactRequest,
+    BuildTopicPageRequest,
+    CreateWorkspaceRecordRequest,
+    DecideWorkspaceRecordRequest,
+    IntakeKnowledgeCandidatesRequest,
+    PublishResearchKnowledgeRequest,
+    ReviewKnowledgeCandidateRequest,
+    ReviewTopicPageRequest,
+    EditTopicPageRequest,
+    ExportTopicPageRequest,
+    ProposeFactUpdateRequest,
+    RecoverKnowledgeOperationsRequest,
+    ResolveKnowledgeOperationRequest,
+    RevalidateKnowledgeRequest,
+    ReviewFactUpdateRequest,
+    RevertTopicPageRequest,
+    RunKnowledgeOperationRequest,
+    SubmitKnowledgeFeedbackRequest,
+    ProceedArtifactRouteRequest,
+)
 from shiliu.sync import ProcessLock, SyncAlreadyRunning
+from shiliu.stage5 import Stage5PipelineRequest
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
+LIBRARY_PAGE_SIZE = 40
+_LIBRARY_CURSOR_VERSION = 2
+
+
+def _provider_product_run_command(task_id: str) -> str:
+    return f"web:provider-research:{task_id}:run"
+
+
+def _encode_library_cursor(cursor: LibraryCardCursor) -> str:
+    payload = json.dumps(
+        [_LIBRARY_CURSOR_VERSION, *cursor],
+        ensure_ascii=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_library_cursor(value: str | None) -> LibraryCardCursor | None:
+    if value is None:
+        return None
+    try:
+        padding = "=" * (-len(value) % 4)
+        payload = json.loads(
+            base64.b64decode(
+                value + padding,
+                altchars=b"-_",
+                validate=True,
+            ).decode("utf-8")
+        )
+    except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Invalid library cursor") from exc
+    if (
+        not isinstance(payload, list)
+        or len(payload) != 7
+        or payload[0] != _LIBRARY_CURSOR_VERSION
+        or not all(isinstance(payload[index], int) for index in (1, 2, 4, 5, 6))
+        or not isinstance(payload[3], str)
+        or not payload[3]
+    ):
+        raise ValueError("Invalid library cursor")
+    return (
+        payload[1],
+        payload[2],
+        payload[3],
+        payload[4],
+        payload[5],
+        payload[6],
+    )
+
+
+def _library_page_url(
+    *,
+    view: str,
+    source_db_id: int | None,
+    after: LibraryCardCursor | None = None,
+    before: LibraryCardCursor | None = None,
+) -> str:
+    params: list[tuple[str, str]] = [("view", view)]
+    if source_db_id is not None:
+        params.append(("source", str(source_db_id)))
+    if after is not None:
+        params.append(("after", _encode_library_cursor(after)))
+    if before is not None:
+        params.append(("before", _encode_library_cursor(before)))
+    return f"/?{urlencode(params)}"
 
 
 class ProviderRequest(BaseModel):
@@ -44,13 +175,16 @@ class ProviderRequest(BaseModel):
     api_key: str = ""
     model: str = ""
     thinking_enabled: bool = True
-    reasoning_effort: str = "max"
+    reasoning_effort: str = "high"
 
 
 class SetupDraftRequest(ProviderRequest):
     content_dir: str
     favorite_id: int | None = Field(default=None, gt=0)
     favorite_title: str = ""
+    ingestion_model: str = ""
+    interactive_model: str = ""
+    taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
     formal_summary_model: str = ""
@@ -63,6 +197,9 @@ class SetupRequest(BaseModel):
     base_url: str
     api_key: str
     model: str
+    ingestion_model: str = ""
+    interactive_model: str = ""
+    taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
     formal_summary_model: str = ""
@@ -83,6 +220,11 @@ class MoveFavoriteSourceRequest(BaseModel):
     direction: str
 
 
+class HistoryCoverageRequest(BaseModel):
+    history_policy: str
+    history_limit: int | None = Field(default=None, ge=1)
+
+
 class ASRSettingsRequest(BaseModel):
     base_url: str = "https://dashscope.aliyuncs.com/api/v1"
     api_key: str = ""
@@ -97,6 +239,10 @@ class NoteRequest(BaseModel):
     content: str
 
 
+class AskAbortRequest(BaseModel):
+    command_id: str = Field(min_length=1, max_length=160)
+
+
 class TaxonomySourcesRequest(BaseModel):
     source_ids: list[int] = Field(min_length=1)
 
@@ -105,6 +251,9 @@ def create_web_app(application: Application | None = None) -> FastAPI:
     web = FastAPI(title="拾流 Shiliu", docs_url=None, redoc_url=None)
     web.mount("/static", StaticFiles(directory=str(PACKAGE_DIR / "static")), name="static")
     web.state.core = application or Application()
+    # The local product boundary supplies this principal. Request payloads cannot
+    # choose actor identity, role, or capability.
+    web.state.research_control_principal = "local_operator"
     web.state.login_process = None
     web.state.background_lock = threading.Lock()
     web.state.background_thread = None
@@ -122,7 +271,19 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             selected_view = "feed"
         selected_source = request.query_params.get("source")
         source_db_id = int(selected_source) if selected_source and selected_source.isdigit() else None
-        rows = core.db.list_video_cards(view=selected_view, source_db_id=source_db_id)
+        try:
+            after = _decode_library_cursor(request.query_params.get("after"))
+            before = _decode_library_cursor(request.query_params.get("before"))
+            page = core.db.page_video_cards(
+                view=selected_view,
+                source_db_id=source_db_id,
+                page_size=LIBRARY_PAGE_SIZE,
+                after=after,
+                before=before,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        rows = page.items
         notes_by_video = core.db.list_notes_for_videos([int(item["id"]) for item in rows])
         cards = [
             _video_view(core, item, notes=notes_by_video.get(int(item["id"]), []))
@@ -134,11 +295,34 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             {
                 "videos": cards,
                 "latest_sync": core.db.latest_sync_run(),
+                "latest_sync_status_label": _product_status_label(
+                    str((core.db.latest_sync_run() or {}).get("status") or "")
+                ),
                 "config": public_config(core.config),
-                "sources": core.db.list_sources(),
+                "sources": _source_views(core),
                 "selected_source": source_db_id,
                 "selected_view": selected_view,
                 "history_pending_count": core.db.history_pending_count(),
+                "page_size": LIBRARY_PAGE_SIZE,
+                "page_item_count": len(rows),
+                "previous_page_url": (
+                    _library_page_url(
+                        view=selected_view,
+                        source_db_id=source_db_id,
+                        before=library_card_cursor(rows[0]),
+                    )
+                    if page.has_previous and rows
+                    else None
+                ),
+                "next_page_url": (
+                    _library_page_url(
+                        view=selected_view,
+                        source_db_id=source_db_id,
+                        after=library_card_cursor(rows[-1]),
+                    )
+                    if page.has_next and rows
+                    else None
+                ),
             },
         )
 
@@ -149,7 +333,59 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             "setup.html",
             {
                 "config": public_config(_core(request).config),
-                "sources": _core(request).db.list_sources(),
+                "sources": _source_views(_core(request)),
+            },
+        )
+
+    @web.get("/search", response_class=HTMLResponse)
+    async def search_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "search.html",
+            {"sources": _core(request).db.list_sources(active_only=True)},
+        )
+
+    @web.get("/ask", response_class=HTMLResponse)
+    async def ask_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "ask.html",
+            {"sources": _core(request).db.list_sources(active_only=True)},
+        )
+
+    @web.get("/knowledge", response_class=HTMLResponse)
+    async def knowledge_page(request: Request) -> HTMLResponse:
+        assets = await asyncio.to_thread(
+            _core(request).research_knowledge.list_published_knowledge,
+            limit=50,
+        )
+        return templates.TemplateResponse(
+            request,
+            "knowledge.html",
+            {"knowledge_assets": assets},
+        )
+
+    @web.get("/research", response_class=HTMLResponse)
+    async def research_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "research.html",
+            {
+                "initial_task_id": "",
+                "initial_objective": request.query_params.get("objective", ""),
+                "initial_route_query": request.query_params.get("route_query", ""),
+            },
+        )
+
+    @web.get("/research/{task_id}", response_class=HTMLResponse)
+    async def research_task_page(task_id: str, request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "research.html",
+            {
+                "initial_task_id": task_id,
+                "initial_objective": request.query_params.get("objective", ""),
+                "initial_route_query": request.query_params.get("route_query", ""),
             },
         )
 
@@ -273,6 +509,16 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             status_code=202,
         )
 
+    @web.post("/api/sources/{source_db_id}/history-drain")
+    async def drain_source_history(source_db_id: int, request: Request) -> JSONResponse:
+        core = _core(request)
+        if core.db.get_source(source_db_id) is None:
+            raise HTTPException(404, "来源不存在")
+        return JSONResponse(
+            _start_background_history_drain(request.app, core, source_db_id),
+            status_code=202,
+        )
+
     @web.get("/api/sync-runs/{run_id}")
     async def sync_run_status(run_id: int, request: Request) -> JSONResponse:
         run = _core(request).db.get_sync_run(run_id)
@@ -280,12 +526,1488 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             raise HTTPException(404, "同步任务不存在")
         return JSONResponse({"ok": True, "run": run})
 
+    @web.post("/api/search/raw")
+    async def raw_search(payload: SearchRequest, request: Request) -> JSONResponse:
+        try:
+            response = await asyncio.to_thread(
+                _core(request).search_orchestrator.search, payload
+            )
+        except SearchExecutionError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, **response.as_dict()})
+
+    @web.post("/api/search")
+    async def product_search(payload: ProductSearchRequest, request: Request) -> JSONResponse:
+        try:
+            service = _core(request).product_search
+            response = (
+                await asyncio.to_thread(
+                    service.search,
+                    payload,
+                    principal_id=request.app.state.research_control_principal,
+                )
+                if payload.corpus_task_id is not None
+                else await asyncio.to_thread(service.search, payload)
+            )
+        except SearchExecutionError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        except ProductSearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, **response.as_dict()})
+
+    @web.post("/api/ask")
+    async def ask(payload: AskRequest, request: Request) -> JSONResponse:
+        try:
+            response = await asyncio.to_thread(
+                _core(request).ask_service.ask, payload
+            )
+        except AskModeNotImplemented as exc:
+            return JSONResponse(
+                {
+                    "error": {
+                        "code": exc.code,
+                        "message": str(exc),
+                        "mode": payload.mode,
+                    }
+                },
+                status_code=exc.http_status,
+            )
+        return JSONResponse(response.model_dump(mode="json"))
+
+    @web.post("/api/ask/stream")
+    async def ask_stream(payload: AskRequest, request: Request) -> StreamingResponse:
+        if payload.mode != "fast":
+            raise HTTPException(400, "Fast NDJSON endpoint only accepts mode=fast")
+        service = _core(request).ask_service
+        run_id, created_at = await asyncio.to_thread(service.start_run, payload)
+
+        async def generate():
+            execution = asyncio.create_task(
+                asyncio.to_thread(
+                    service.execute_started,
+                    payload,
+                    run_id=run_id,
+                    created_at=created_at,
+                )
+            )
+            cursor = 0
+            try:
+                while True:
+                    events = await asyncio.to_thread(
+                        service.run_store.get_events,
+                        run_id,
+                        after_sequence=cursor,
+                    )
+                    for event in events:
+                        cursor = int(event["sequence"])
+                        yield json.dumps(
+                            event, ensure_ascii=False, separators=(",", ":")
+                        ).encode("utf-8") + b"\n"
+                    if execution.done():
+                        remaining = await asyncio.to_thread(
+                            service.run_store.get_events,
+                            run_id,
+                            after_sequence=cursor,
+                        )
+                        if not remaining:
+                            try:
+                                await execution
+                            except Exception:
+                                # The durable run_failed/run_interrupted event is wire truth.
+                                pass
+                            break
+                        continue
+                    await asyncio.sleep(0.02)
+            except (asyncio.CancelledError, GeneratorExit):
+                await asyncio.to_thread(
+                    service.run_store.interrupt_owner_loss,
+                    run_id,
+                    reason="fast_stream_disconnected",
+                )
+                raise
+
+        return StreamingResponse(
+            generate(),
+            media_type="application/x-ndjson",
+            headers={
+                "X-Shiliu-Run-ID": run_id,
+                "Cache-Control": "no-store, no-transform",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+    @web.post("/api/ask/runs")
+    async def create_ask_run(
+        payload: AskRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        if payload.mode != "deep":
+            raise HTTPException(400, "Durable 202 Ask creation requires mode=deep")
+        service = _core(request).ask_service
+        run_id, created_at = await asyncio.to_thread(service.start_run, payload)
+        background_tasks.add_task(
+            service.execute_started,
+            payload,
+            run_id=run_id,
+            created_at=created_at,
+        )
+        return JSONResponse(
+            {
+                "ok": True,
+                "run_id": run_id,
+                "events_href": f"/api/ask/runs/{run_id}",
+                "execution_semantics": "best_effort_in_process_dispatch",
+                "durable_worker_claimed": False,
+            },
+            status_code=202,
+        )
+
+    @web.get("/api/ask/runs/{run_id}")
+    async def get_ask_run(
+        run_id: str, request: Request, after_sequence: int = 0
+    ) -> JSONResponse:
+        service = _core(request).ask_service
+        run = await asyncio.to_thread(service.run_store.get_run, run_id)
+        if run is None:
+            raise HTTPException(404, "AskRun 不存在")
+        if run["lifecycle_status"] == "running" and not service.is_owned(run_id):
+            await asyncio.to_thread(
+                service.run_store.interrupt_owner_loss,
+                run_id,
+                reason="process_owner_lost",
+            )
+            run = await asyncio.to_thread(service.run_store.get_run, run_id)
+        events = await asyncio.to_thread(
+            service.run_store.get_events,
+            run_id,
+            after_sequence=max(0, after_sequence),
+        )
+        result = await asyncio.to_thread(service.get_result, run_id)
+        return JSONResponse(
+            {
+                "ok": True,
+                "run": run,
+                "events": events,
+                "result": result.model_dump(mode="json") if result is not None else None,
+            }
+        )
+
+    @web.post("/api/ask/runs/{run_id}/abort")
+    async def abort_ask_run(
+        run_id: str, payload: AskAbortRequest, request: Request
+    ) -> JSONResponse:
+        service = _core(request).ask_service
+        if await asyncio.to_thread(service.run_store.get_run, run_id) is None:
+            raise HTTPException(404, "AskRun 不存在")
+        outcome = await asyncio.to_thread(
+            service.run_store.request_abort,
+            run_id,
+            command_id=payload.command_id,
+        )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=202)
+
+    @web.get("/api/ask/traces/{run_id}")
+    async def ask_trace(run_id: str, request: Request) -> JSONResponse:
+        trace = _core(request).ask_service.get_trace(run_id)
+        if trace is None:
+            raise HTTPException(404, "Ask Trace 不存在")
+        return JSONResponse({"ok": True, "trace": trace})
+
+    @web.get("/api/research/product/tasks/{task_id}/lifecycle")
+    async def get_research_lifecycle(
+        task_id: str, request: Request, after_sequence: int = 0
+    ) -> JSONResponse:
+        try:
+            raw = await asyncio.to_thread(_core(request).research.get_task, task_id)
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        mapping = {
+            "task_created": "run_created",
+            "attempt_started": "search_started",
+            "checkpoint_committed": "evidence_batch_ready",
+            "task_terminal_result_committed": "run_completed",
+            "side_effect_marked_unknown": "run_interrupted",
+        }
+        lifecycle = []
+        for event in raw["events"]:
+            sequence = int(event["sequence"])
+            if sequence <= max(0, after_sequence):
+                continue
+            original = str(event["event_type"])
+            projected = mapping.get(original, "deep_round_completed")
+            lifecycle.append(
+                {
+                    "schema_version": "v5.6-lifecycle-event-v1",
+                    "event_id": f"research:{event['event_id']}",
+                    "source_kind": "research_task",
+                    "source_id": task_id,
+                    "sequence": sequence,
+                    "event_type": projected,
+                    "occurred_at": event["created_at"],
+                    "payload": {
+                        "original_event_type": original,
+                        "attempt_id": event.get("attempt_id"),
+                        "checkpoint_id": event.get("checkpoint_id"),
+                        "facts": event.get("payload") or {},
+                    },
+                    "provenance": {
+                        "search_execution_ids": [],
+                        "evidence_reference_ids": [],
+                        "decision_ids": [],
+                        "research_event_ids": [str(event["event_id"])],
+                        "usage_record_ids": [],
+                    },
+                }
+            )
+        return JSONResponse({"ok": True, "task_id": task_id, "events": lifecycle})
+
+    @web.post("/api/knowledge/drafts")
+    async def save_knowledge_draft(
+        payload: SaveKnowledgeDraftRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            draft = await asyncio.to_thread(_core(request).knowledge_drafts.save, payload)
+        except KnowledgeDraftError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "draft": draft}, status_code=201)
+
+    @web.get("/api/knowledge/drafts/{draft_id}")
+    async def get_knowledge_draft(draft_id: str, request: Request) -> JSONResponse:
+        try:
+            draft = await asyncio.to_thread(_core(request).knowledge_drafts.get, draft_id)
+        except KnowledgeDraftError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, **draft})
+
+    @web.post("/api/knowledge/drafts/{draft_id}/prepare-promotion")
+    async def prepare_draft_promotion(
+        draft_id: str, payload: DraftCommandRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            draft = await asyncio.to_thread(
+                _core(request).knowledge_drafts.prepare_promotion, draft_id, payload
+            )
+        except (KnowledgeDraftError, ResearchError) as exc:
+            status = getattr(exc, "http_status", 409)
+            error = exc.as_dict() if hasattr(exc, "as_dict") else {"message": str(exc)}
+            return JSONResponse({"ok": False, "error": error}, status_code=status)
+        return JSONResponse({"ok": True, "draft": draft}, status_code=201)
+
+    @web.post("/api/knowledge/drafts/{draft_id}/confirm-promotion")
+    async def confirm_draft_promotion(
+        draft_id: str, payload: ConfirmDraftPromotionRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            draft = await asyncio.to_thread(
+                _core(request).knowledge_drafts.confirm_promotion,
+                draft_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except (KnowledgeDraftError, ResearchError) as exc:
+            status = getattr(exc, "http_status", 409)
+            error = exc.as_dict() if hasattr(exc, "as_dict") else {"message": str(exc)}
+            return JSONResponse({"ok": False, "error": error}, status_code=status)
+        return JSONResponse({"ok": True, "draft": draft}, status_code=201)
+
+    @web.post("/api/knowledge/drafts/{draft_id}/cancel")
+    async def cancel_knowledge_draft(
+        draft_id: str, payload: DraftCommandRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            draft = await asyncio.to_thread(
+                _core(request).knowledge_drafts.cancel, draft_id, payload
+            )
+        except KnowledgeDraftError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "draft": draft})
+
+    def run_product_background(
+        core: Application, task_id: str, command_id: str, max_steps: int = 24
+    ) -> None:
+        try:
+            raw = core.research.get_task(task_id)
+            goal = next(
+                value for value in raw["goals"]
+                if value["goal_id"] == raw["task"]["active_goal_id"]
+            )
+            execution = str(
+                goal.get("evidence_policy", {}).get("product_execution") or ""
+            )
+            if execution == core.research_product.PROVIDER_EXECUTION:
+                budget = core.research_provider_product.provider_run_budget(task_id)
+                deadline = datetime.fromisoformat(budget.started_at) + timedelta(
+                    seconds=360
+                )
+                core.research_provider_orchestrator.run_to_boundary(
+                    task_id,
+                    command_id=command_id,
+                    max_continuation_cycles=1,
+                    max_logical_calls=17,
+                    max_http_attempts=34,
+                    max_input_tokens=140_000,
+                    max_output_tokens=31_984,
+                    max_wall_time_seconds=360,
+                    case_deadline_at=deadline.isoformat(timespec="microseconds"),
+                    run_budget=budget,
+                )
+            else:
+                core.research_product.run_to_boundary(
+                    task_id,
+                    RunProductResearchRequest(
+                        command_id=command_id,
+                        max_steps=max_steps,
+                    ),
+                )
+        except ResearchConflict as exc:
+            if type(exc) is ResearchConflict:
+                # A concurrent/stale trigger must not terminate the active run.
+                return
+            try:
+                core.research_provider_product.close_provider_failure(
+                    task_id,
+                    command_id=f"{command_id}:provider-failure",
+                    cause=exc,
+                )
+            except ResearchError:
+                pass
+            return
+        except Exception as exc:
+            # Durable services have already committed any controlled stop/failure.
+            # A concurrent/stale trigger is fail-closed and the product projection
+            # remains the source of truth.
+            try:
+                core.research_provider_product.close_provider_failure(
+                    task_id,
+                    command_id=f"{command_id}:provider-failure",
+                    cause=exc,
+                )
+            except ResearchError:
+                pass
+            return
+
+    @web.get("/api/research/product/tasks")
+    async def list_product_research_tasks(
+        request: Request, limit: int = 20
+    ) -> JSONResponse:
+        bounded = max(1, min(limit, 50))
+        tasks = await asyncio.to_thread(
+            _core(request).research_product.list_tasks, limit=bounded
+        )
+        return JSONResponse({"ok": True, "tasks": tasks})
+
+    @web.post("/api/research/product/tasks")
+    async def create_product_research_task(
+        payload: CreateProductResearchRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        core = _core(request)
+        availability = await asyncio.to_thread(core.provider_research_availability)
+        if not bool(availability["available"]):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "provider_research_unavailable",
+                        "message": str(availability["reason"]),
+                    },
+                },
+                status_code=503,
+            )
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_provider_product.create_provider_task, payload
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        run_command_id = _provider_product_run_command(str(outcome["task_id"]))
+        if payload.run_immediately:
+            background_tasks.add_task(
+                run_product_background,
+                core,
+                str(outcome["task_id"]),
+                run_command_id,
+                24,
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "outcome": outcome,
+                "href": f"/research/{outcome['task_id']}",
+                "run_command_id": run_command_id if payload.run_immediately else None,
+            },
+            status_code=202 if payload.run_immediately else 201,
+        )
+
+    @web.get("/api/research/product/tasks/{task_id}")
+    async def get_product_research_task(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            product = await asyncio.to_thread(
+                _core(request).research_product.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "product": product})
+
+    @web.get("/api/research/product/tasks/{task_id}/knowledge")
+    async def get_research_knowledge_workspace(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            workspace = await asyncio.to_thread(
+                _core(request).research_knowledge.get_workspace, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "workspace": workspace})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/intake")
+    async def intake_research_knowledge_candidates(
+        task_id: str,
+        payload: IntakeKnowledgeCandidatesRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.intake_candidates,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/candidates/{candidate_id}/review"
+    )
+    async def review_research_knowledge_candidate(
+        task_id: str,
+        candidate_id: str,
+        payload: ReviewKnowledgeCandidateRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.review_candidate,
+                task_id,
+                candidate_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/publish")
+    async def publish_research_knowledge(
+        task_id: str,
+        payload: PublishResearchKnowledgeRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.publish_selected_candidates,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/artifacts")
+    async def build_research_knowledge_artifact(
+        task_id: str,
+        payload: BuildKnowledgeArtifactRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.build_artifact,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/pages")
+    async def build_research_topic_page(
+        task_id: str,
+        payload: BuildTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.build_topic_page,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/pages/{page_id}/review"
+    )
+    async def review_research_topic_page(
+        task_id: str,
+        page_id: str,
+        payload: ReviewTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.review_page,
+                task_id,
+                page_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/revalidate")
+    async def revalidate_research_knowledge(
+        task_id: str,
+        payload: RevalidateKnowledgeRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.revalidate_knowledge,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/facts/{fact_id}/updates"
+    )
+    async def propose_research_fact_update(
+        task_id: str,
+        fact_id: str,
+        payload: ProposeFactUpdateRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.propose_fact_update,
+                task_id,
+                fact_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/updates/{update_candidate_id}/review"
+    )
+    async def review_research_fact_update(
+        task_id: str,
+        update_candidate_id: str,
+        payload: ReviewFactUpdateRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.review_fact_update,
+                task_id,
+                update_candidate_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/operations/{operation_id}/run"
+    )
+    async def run_research_knowledge_operation(
+        task_id: str,
+        operation_id: str,
+        payload: RunKnowledgeOperationRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.run_update_operation,
+                task_id,
+                operation_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/operations/{operation_id}/resolve"
+    )
+    async def resolve_research_knowledge_operation(
+        task_id: str,
+        operation_id: str,
+        payload: ResolveKnowledgeOperationRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.resolve_update_operation,
+                task_id,
+                operation_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/operations/recover"
+    )
+    async def recover_research_knowledge_operations(
+        task_id: str,
+        payload: RecoverKnowledgeOperationsRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.recover_update_operations,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/pages/{page_id}/edit"
+    )
+    async def edit_research_topic_page(
+        task_id: str,
+        page_id: str,
+        payload: EditTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.edit_topic_page,
+                task_id,
+                page_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/pages/{page_id}/revert"
+    )
+    async def revert_research_topic_page(
+        task_id: str,
+        page_id: str,
+        payload: RevertTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.revert_topic_page,
+                task_id,
+                page_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.get(
+        "/api/research/product/tasks/{task_id}/knowledge/pages/{page_id}/history"
+    )
+    async def get_research_topic_page_history(
+        task_id: str, page_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            history = await asyncio.to_thread(
+                _core(request).research_knowledge.get_topic_page_history,
+                task_id,
+                page_id,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "history": history})
+
+    @web.get(
+        "/api/research/product/tasks/{task_id}/knowledge/pages/{page_id}/diff"
+    )
+    async def get_research_topic_page_diff(
+        task_id: str,
+        page_id: str,
+        request: Request,
+        from_version: int,
+        to_version: int,
+    ) -> JSONResponse:
+        try:
+            diff = await asyncio.to_thread(
+                _core(request).research_knowledge.get_topic_page_diff,
+                task_id,
+                page_id,
+                from_version,
+                to_version,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "diff": diff})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/exports")
+    async def export_research_topic_page(
+        task_id: str,
+        payload: ExportTopicPageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.export_topic_page,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/routes/assess")
+    async def assess_research_artifact_route(
+        task_id: str,
+        payload: AssessArtifactRouteRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.assess_artifact_route,
+                task_id,
+                payload,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/knowledge/routes/{route_id}/proceed"
+    )
+    async def proceed_research_artifact_route(
+        task_id: str,
+        route_id: str,
+        payload: ProceedArtifactRouteRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.proceed_artifact_route,
+                task_id,
+                route_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.get(
+        "/api/research/product/tasks/{task_id}/knowledge/routes/{route_id}"
+    )
+    async def get_research_artifact_route(
+        task_id: str, route_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            route = await asyncio.to_thread(
+                _core(request).research_knowledge.get_artifact_route,
+                task_id,
+                route_id,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "route": route})
+
+    @web.post("/api/research/product/tasks/{task_id}/knowledge/feedback")
+    async def submit_research_knowledge_feedback(
+        task_id: str,
+        payload: SubmitKnowledgeFeedbackRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.submit_feedback,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.get("/api/research/product/tasks/{task_id}/workspace")
+    async def get_research_personal_workspace(
+        task_id: str,
+        request: Request,
+        record_kind: str | None = None,
+        status: str | None = None,
+        personalization_enabled: bool = True,
+        routing_enabled: bool = True,
+        current_explicit_path: str | None = None,
+        allow_provider_answer: bool = False,
+        allow_high_cost_or_durable: bool = False,
+        allow_manual_asr: bool = False,
+        asr_video_id: int | None = None,
+        assistance_enabled: bool = True,
+        baseline_snapshot_id: int | None = None,
+        current_snapshot_id: int | None = None,
+        journey_enabled: bool = True,
+    ) -> JSONResponse:
+        try:
+            workspace_value = await asyncio.to_thread(
+                _core(request).research_knowledge.get_personal_workspace,
+                task_id,
+                record_kind=record_kind,
+                status=status,
+                personalization_enabled=personalization_enabled,
+                principal_id=request.app.state.research_control_principal,
+                routing_enabled=routing_enabled,
+                current_explicit_path=current_explicit_path,
+                allow_provider_answer=allow_provider_answer,
+                allow_high_cost_or_durable=allow_high_cost_or_durable,
+                allow_manual_asr=allow_manual_asr,
+                asr_video_id=asr_video_id,
+                assistance_enabled=assistance_enabled,
+                baseline_snapshot_id=baseline_snapshot_id,
+                current_snapshot_id=current_snapshot_id,
+                journey_enabled=journey_enabled,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "workspace": workspace_value})
+
+    @web.post("/api/research/product/tasks/{task_id}/workspace/records")
+    async def create_research_personal_workspace_record(
+        task_id: str,
+        payload: CreateWorkspaceRecordRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.create_personal_workspace_record,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome}, status_code=201)
+
+    @web.post(
+        "/api/research/product/tasks/{task_id}/workspace/records/{record_id}/decisions"
+    )
+    async def decide_research_personal_workspace_record(
+        task_id: str,
+        record_id: str,
+        payload: DecideWorkspaceRecordRequest,
+        request: Request,
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_knowledge.decide_personal_workspace_record,
+                task_id,
+                record_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/product/tasks/{task_id}/run")
+    async def run_product_research_task(
+        task_id: str,
+        payload: RunProductResearchRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            raw = await asyncio.to_thread(core.research.get_task, task_id)
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        goal = next(
+            value for value in raw["goals"]
+            if value["goal_id"] == raw["task"]["active_goal_id"]
+        )
+        if (
+            goal.get("evidence_policy", {}).get("product_execution")
+            == core.research_product.PROVIDER_EXECUTION
+        ):
+            availability = await asyncio.to_thread(core.provider_research_availability)
+            if not bool(availability["available"]):
+                return JSONResponse(
+                    {
+                        "ok": False,
+                        "error": {
+                            "code": "provider_research_unavailable",
+                            "message": str(availability["reason"]),
+                        },
+                    },
+                    status_code=503,
+                )
+            effective_command_id = _provider_product_run_command(task_id)
+        else:
+            effective_command_id = payload.command_id
+        background_tasks.add_task(
+            run_product_background,
+            core,
+            task_id,
+            effective_command_id,
+            payload.max_steps,
+        )
+        return JSONResponse(
+            {
+                "ok": True,
+                "accepted": True,
+                "task_id": task_id,
+                "max_steps": payload.max_steps,
+                "run_command_id": effective_command_id,
+            },
+            status_code=202,
+        )
+
+    @web.post("/api/research/product/tasks/{task_id}/retry")
+    async def retry_product_research_task(
+        task_id: str,
+        payload: RunProductResearchRequest,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            raw = await asyncio.to_thread(core.research.get_task, task_id)
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        if str(raw["task"]["status"]) != "terminal":
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "research_conflict",
+                        "message": "只有已结束的 Research 才能创建重试。",
+                    },
+                },
+                status_code=409,
+            )
+        goal = next(
+            value for value in raw["goals"]
+            if value["goal_id"] == raw["task"]["active_goal_id"]
+        )
+        if (
+            goal.get("evidence_policy", {}).get("product_execution")
+            != core.research_product.PROVIDER_EXECUTION
+        ):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "research_conflict",
+                        "message": "该 Task 不是 Provider Research。",
+                    },
+                },
+                status_code=409,
+            )
+        availability = await asyncio.to_thread(core.provider_research_availability)
+        if not bool(availability["available"]):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "provider_research_unavailable",
+                        "message": str(availability["reason"]),
+                    },
+                },
+                status_code=503,
+            )
+        create_request = CreateProductResearchRequest(
+            command_id=payload.command_id,
+            objective=str(goal["objective"]),
+            success_constraints=list(goal["success_constraints"]),
+            constraint_profile="grounded_current_evidence",
+            run_immediately=True,
+        )
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_provider_product.create_provider_task,
+                create_request,
+                parent_task_id=task_id,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        child_id = str(outcome["task_id"])
+        run_command_id = _provider_product_run_command(child_id)
+        background_tasks.add_task(
+            run_product_background,
+            core,
+            child_id,
+            run_command_id,
+            payload.max_steps,
+        )
+        return JSONResponse(
+            {
+                "ok": True,
+                "outcome": outcome,
+                "href": f"/research/{child_id}",
+                "run_command_id": run_command_id,
+            },
+            status_code=202,
+        )
+
+    @web.post("/api/research/tasks")
+    async def create_research_task(
+        payload: CreateResearchTaskRequest, request: Request
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research.create_task,
+                command_id=payload.command_id,
+                task_id=payload.task_id,
+                objective=payload.objective,
+                success_constraints=payload.success_constraints,
+                evidence_policy=payload.evidence_policy,
+                parent_task_id=payload.parent_task_id,
+            )
+            research = await asyncio.to_thread(
+                core.research.get_task, str(outcome["task_id"])
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "research": research})
+
+    @web.get("/api/research/tasks/{task_id}")
+    async def get_research_task(task_id: str, request: Request) -> JSONResponse:
+        try:
+            research = await asyncio.to_thread(
+                _core(request).research.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "research": research})
+
+    @web.get("/api/research/tasks/{task_id}/status")
+    async def get_research_task_status(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            research = await asyncio.to_thread(
+                _core(request).research.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "task": research["task"],
+                "active_goal_id": research["task"]["active_goal_id"],
+                "attempts": research["attempts"],
+                "side_effects": research["side_effects"],
+            }
+        )
+
+    @web.get("/api/research/tasks/{task_id}/traces")
+    async def get_research_task_traces(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            research = await asyncio.to_thread(
+                _core(request).research.get_task, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "traces": research["traces"],
+                "events": research["events"],
+            }
+        )
+
+    @web.post("/api/research/tasks/{task_id}/commands")
+    async def execute_research_command(
+        task_id: str, payload: ResearchCommandRequest, request: Request
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research.execute_command, task_id, payload
+            )
+            research = await asyncio.to_thread(core.research.get_task, task_id)
+            if outcome.get("task_id") != task_id:
+                research = await asyncio.to_thread(
+                    core.research.get_task, str(outcome["task_id"])
+                )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "research": research})
+
+    @web.get("/api/research/tasks/{task_id}/control")
+    async def get_research_control_status(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            control = await asyncio.to_thread(
+                _core(request).research_control.get_status, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "control": control})
+
+    @web.post("/api/research/tasks/{task_id}/control")
+    async def apply_research_control(
+        task_id: str, payload: ControlCommandRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.apply_control,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+            control = await asyncio.to_thread(
+                _core(request).research_control.get_status, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "control": control})
+
+    @web.post("/api/research/tasks/{task_id}/inputs")
+    async def create_research_input(
+        task_id: str, payload: CreateInputRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.create_input,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/tasks/{task_id}/inputs/decisions")
+    async def decide_research_input(
+        task_id: str, payload: HumanDecisionRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.decide_input,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/tasks/{task_id}/side-effects/resolve")
+    async def resolve_research_side_effect(
+        task_id: str, payload: ResolveSideEffectRequest, request: Request
+    ) -> JSONResponse:
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.resolve_side_effect,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome})
+
+    @web.post("/api/research/tasks/{task_id}/derivations")
+    async def derive_research_task(
+        task_id: str, payload: DeriveTaskRequest, request: Request
+    ) -> JSONResponse:
+        if not payload.durable_effect_confirmed:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": {
+                        "code": "durable_derivation_confirmation_required",
+                        "message": "Branch / Replay 会永久创建派生 Task；请先明确确认。",
+                    },
+                },
+                status_code=400,
+            )
+        try:
+            outcome = await asyncio.to_thread(
+                _core(request).research_control.derive_task,
+                task_id,
+                payload,
+                principal_id=request.app.state.research_control_principal,
+            )
+            child = await asyncio.to_thread(
+                _core(request).research.get_task, str(outcome["task_id"])
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "research": child})
+
+    @web.post("/api/research/tasks/{task_id}/inner/continue")
+    async def continue_inner_research(
+        task_id: str,
+        payload: ContinueInnerResearchRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_inner.continue_run, task_id, payload
+            )
+            inner = await asyncio.to_thread(
+                core.research_inner.get_inner_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "inner": inner})
+
+    @web.get("/api/research/tasks/{task_id}/inner")
+    async def get_inner_research(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            inner = await asyncio.to_thread(
+                _core(request).research_inner.get_inner_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "inner": inner})
+
+    @web.post("/api/research/tasks/{task_id}/inner/revalidate")
+    async def revalidate_inner_evidence(
+        task_id: str,
+        payload: RevalidateInnerEvidenceRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_inner.revalidate_evidence, task_id, payload
+            )
+            inner = await asyncio.to_thread(
+                core.research_inner.get_inner_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "inner": inner})
+
+    @web.post("/api/research/tasks/{task_id}/outer/advance")
+    async def advance_outer_research(
+        task_id: str,
+        payload: AdvanceOuterResearchRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        try:
+            outcome = await asyncio.to_thread(
+                core.research_outer.advance, task_id, payload
+            )
+            outer = await asyncio.to_thread(
+                core.research_outer.get_outer_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outcome": outcome, "outer": outer})
+
+    @web.get("/api/research/tasks/{task_id}/outer")
+    async def get_outer_research(
+        task_id: str, request: Request
+    ) -> JSONResponse:
+        try:
+            outer = await asyncio.to_thread(
+                _core(request).research_outer.get_outer_state, task_id
+            )
+        except ResearchError as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.as_dict()},
+                status_code=exc.http_status,
+            )
+        return JSONResponse({"ok": True, "outer": outer})
+
+    @web.post("/api/evidence-sufficiency")
+    async def evidence_sufficiency(
+        payload: Stage5PipelineRequest, request: Request
+    ) -> JSONResponse:
+        response = await asyncio.to_thread(_core(request).stage5_pipeline.run, payload)
+        status_code = 200
+        if response["pipeline_status"] == "failed":
+            error_types = {
+                str(value.get("type"))
+                for value in response["errors"]
+                if isinstance(value, dict)
+            }
+            status_code = (
+                504
+                if "judge_timeout_or_provider_error" in error_types
+                else 502
+            )
+        return JSONResponse({"ok": status_code == 200, **response}, status_code=status_code)
+
+    @web.get("/api/evidence-sufficiency/traces/{trace_id}")
+    async def evidence_sufficiency_trace(
+        trace_id: str, request: Request
+    ) -> JSONResponse:
+        trace = _core(request).stage5_pipeline.get_trace(trace_id)
+        if trace is None:
+            raise HTTPException(404, "Stage 5 Trace 不存在")
+        return JSONResponse({"ok": True, "trace": trace})
+
+    @web.get("/api/search/traces/{trace_id}")
+    async def search_trace(trace_id: str, request: Request) -> JSONResponse:
+        core = _core(request)
+        raw_trace = core.search_orchestrator.get_trace(trace_id)
+        if raw_trace is None:
+            raise HTTPException(404, "Search Trace 不存在")
+        presentation = core.product_search.get_presentation(trace_id)
+        return JSONResponse(
+            {
+                "ok": True,
+                "trace": raw_trace,
+                "raw_trace": raw_trace,
+                "presentation": presentation,
+            }
+        )
+
     @web.post("/api/videos/{video_id}/ignore")
     async def ignore(video_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
-        core.db.set_ignored(video_id, True)
+        core.library.set_ignored(video_id, True)
         return JSONResponse({"ok": True})
 
     @web.post("/api/videos/{video_id}/restore")
@@ -293,7 +2015,7 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core = _core(request)
         if core.db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
-        core.db.set_ignored(video_id, False)
+        core.library.set_ignored(video_id, False)
         return JSONResponse({"ok": True})
 
     @web.patch("/api/videos/{video_id}/reading-state")
@@ -490,27 +2212,48 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             preview = await asyncio.to_thread(core.adapter.preview_favorite_url, payload.url)
             if core.db.get_source_by_folder(preview.folder_id):
                 return JSONResponse({"ok": False, "error": "该收藏夹已经添加"}, status_code=409)
-            items = await asyncio.to_thread(core.adapter.list_favorite_items, preview.folder_id)
-            source_db_id = core.db.create_favorite_source(
-                folder_id=preview.folder_id,
-                folder_title=preview.folder_title,
-                account_id=preview.account_id,
-                account_name=preview.account_name,
-                original_url=payload.url,
-                media_count=preview.media_count,
-                history_policy=payload.history_policy,
-                history_limit=payload.history_limit,
-            )
-            queued = core.db.initialize_source_memberships(source_db_id, items)
+            scan = await asyncio.to_thread(_favorite_scan, core.adapter, preview.folder_id)
+            if not scan.is_complete:
+                raise PipelineError(
+                    "收藏夹发现结果不完整，未创建来源",
+                    code="incomplete_snapshot",
+                    retryable=True,
+                )
+            with ProcessLock(core.paths.sync_lock):
+                source_db_id = core.db.create_favorite_source(
+                    folder_id=preview.folder_id,
+                    folder_title=preview.folder_title,
+                    account_id=preview.account_id,
+                    account_name=preview.account_name,
+                    original_url=payload.url,
+                    media_count=int(
+                        scan.remote_total
+                        if scan.remote_total is not None
+                        else preview.media_count
+                    ),
+                    history_policy=payload.history_policy,
+                    history_limit=payload.history_limit,
+                )
+                queued = core.db.initialize_source_memberships(
+                    source_db_id,
+                    scan.items,
+                    authoritative=True,
+                    remote_total=scan.remote_total,
+                )
+                _sync_source_video_ids(core, source_db_id, "source_added")
         except PipelineError as exc:
             return JSONResponse(
                 {"ok": False, "error": str(exc), "code": exc.code}, status_code=400
+            )
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后重试"}, status_code=409
             )
         return JSONResponse(
             {
                 "ok": True,
                 "source_id": source_db_id,
-                "baseline_count": len(items),
+                "baseline_count": len(scan.items),
                 "history_queued": queued,
             }
         )
@@ -520,7 +2263,14 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
-        core.db.set_source_status(source_db_id, "paused")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                core.db.set_source_status(source_db_id, "paused")
+                _sync_source_video_ids(core, source_db_id, "source_paused")
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后暂停"}, status_code=409
+            )
         return JSONResponse({"ok": True})
 
     @web.post("/api/sources/{source_db_id}/resume")
@@ -528,8 +2278,45 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
-        core.db.set_source_status(source_db_id, "active")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                core.db.set_source_status(source_db_id, "active")
+                _sync_source_video_ids(core, source_db_id, "source_resumed")
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后启用"}, status_code=409
+            )
         return JSONResponse({"ok": True})
+
+    @web.post("/api/sources/{source_db_id}/history-coverage")
+    async def update_history_coverage(
+        source_db_id: int,
+        payload: HistoryCoverageRequest,
+        request: Request,
+    ) -> JSONResponse:
+        core = _core(request)
+        if core.db.get_source(source_db_id) is None:
+            raise HTTPException(404, "来源不存在")
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                pending = core.db.update_source_history_coverage(
+                    source_db_id,
+                    history_policy=payload.history_policy,
+                    history_limit=payload.history_limit,
+                )
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后调整历史范围"}, status_code=409
+            )
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+        return JSONResponse(
+            {
+                "ok": True,
+                "history_pending": pending,
+                "metrics": core.db.source_sync_metrics(source_db_id),
+            }
+        )
 
     @web.post("/api/sources/{source_db_id}/move")
     async def move_source(
@@ -551,12 +2338,31 @@ def create_web_app(application: Application | None = None) -> FastAPI:
         source = core.db.get_source(source_db_id)
         if source is None:
             raise HTTPException(404, "来源不存在")
-        if core.config.favorite_id == int(source["folder_id"]):
-            config = replace(core.config, favorite_id=None, favorite_title="")
-            save_config(config, core.paths)
-            core.config = config
-            core.sync_service.favorite_id = None
-        core.db.remove_source(source_db_id)
+        try:
+            with ProcessLock(core.paths.sync_lock):
+                if core.config.favorite_id == int(source["folder_id"]):
+                    config = replace(core.config, favorite_id=None, favorite_title="")
+                    save_config(config, core.paths)
+                    core.config = config
+                    core.sync_service.favorite_id = None
+                with core.db.connect() as connection:
+                    affected_video_ids = [
+                        int(row[0])
+                        for row in connection.execute(
+                            "SELECT DISTINCT video_id FROM video_source_memberships "
+                            "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                            (source_db_id,),
+                        )
+                    ]
+                core.db.remove_source(source_db_id)
+                for video_id in affected_video_ids:
+                    core.retrieval_coordinator.safe_sync_video(
+                        video_id, trigger="source_removed"
+                    )
+        except SyncAlreadyRunning:
+            return JSONResponse(
+                {"ok": False, "error": "同步运行中，请稍后移除"}, status_code=409
+            )
         return JSONResponse({"ok": True})
 
     @web.post("/api/setup/models")
@@ -645,11 +2451,44 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 favorite_id=payload.favorite_id,
                 favorite_title=payload.favorite_title,
                 llm_base_url=payload.base_url.rstrip("/"),
-                llm_model=payload.model,
-                fast_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_transcript_model=payload.formal_transcript_model or payload.model,
-                formal_summary_model=payload.formal_summary_model or payload.model,
-                formal_reasoning_effort="max",
+                llm_model=(
+                    payload.interactive_model
+                    or payload.model
+                    or core.config.model_for("grounded_answer")
+                ),
+                ingestion_model=(
+                    payload.ingestion_model
+                    or payload.formal_summary_model
+                    or payload.fast_transcript_model
+                    or core.config.model_for("formal_summary")
+                    or payload.model
+                ),
+                interactive_model=(
+                    payload.interactive_model
+                    or payload.model
+                    or core.config.model_for("grounded_answer")
+                ),
+                taxonomy_model=(
+                    payload.taxonomy_model
+                    or core.config.model_for("taxonomy_global")
+                    or payload.model
+                ),
+                fast_transcript_model=(
+                    payload.fast_transcript_model
+                    or core.config.fast_transcript_model
+                    or payload.ingestion_model
+                ),
+                formal_transcript_model=(
+                    payload.fast_transcript_model
+                    or core.config.formal_transcript_model
+                    or payload.ingestion_model
+                ),
+                formal_summary_model=(
+                    payload.formal_summary_model
+                    or core.config.formal_summary_model
+                    or payload.ingestion_model
+                ),
+                formal_reasoning_effort="high",
             )
             save_config(config, core.paths)
             core.config = config
@@ -667,10 +2506,15 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             provider = OpenAICompatibleProvider(
                 base_url=payload.base_url,
                 api_key=api_key,
-                model=payload.formal_summary_model or payload.model,
+                model=(
+                    payload.ingestion_model
+                    or payload.formal_summary_model
+                    or payload.fast_transcript_model
+                    or payload.model
+                ),
                 timeout_seconds=600,
                 thinking_enabled=True,
-                reasoning_effort="max",
+                reasoning_effort="high",
             )
             test_result = await asyncio.to_thread(provider.test_connection)
             folders = await asyncio.to_thread(core.adapter.list_favorite_folders)
@@ -686,11 +2530,31 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 favorite_id=payload.favorite_id,
                 favorite_title=payload.favorite_title or str(selected.get("title", "")),
                 llm_base_url=payload.base_url.rstrip("/"),
-                llm_model=payload.model,
-                fast_transcript_model=payload.fast_transcript_model or payload.model,
-                formal_transcript_model=payload.formal_transcript_model or payload.model,
-                formal_summary_model=payload.formal_summary_model or payload.model,
-                formal_reasoning_effort="max",
+                llm_model=payload.interactive_model or payload.model,
+                ingestion_model=(
+                    payload.ingestion_model
+                    or payload.formal_summary_model
+                    or payload.fast_transcript_model
+                    or payload.model
+                ),
+                interactive_model=payload.interactive_model or payload.model,
+                taxonomy_model=payload.taxonomy_model or payload.model,
+                fast_transcript_model=(
+                    payload.fast_transcript_model
+                    or payload.ingestion_model
+                    or payload.model
+                ),
+                formal_transcript_model=(
+                    payload.fast_transcript_model
+                    or payload.ingestion_model
+                    or payload.model
+                ),
+                formal_summary_model=(
+                    payload.formal_summary_model
+                    or payload.ingestion_model
+                    or payload.model
+                ),
+                formal_reasoning_effort="high",
                 baseline_confirmed=True,
                 auto_sync_enabled=payload.install_scheduler,
             )
@@ -720,6 +2584,45 @@ def _core(request: Request) -> Application:
     return request.app.state.core
 
 
+def _favorite_scan(adapter: object, folder_id: int) -> FavoriteScan:
+    method = getattr(adapter, "list_favorite_scan", None)
+    if method is not None:
+        scan = method(folder_id)
+        return scan if isinstance(scan, FavoriteScan) else FavoriteScan.model_validate(scan)
+    items = adapter.list_favorite_items(folder_id)  # type: ignore[attr-defined]
+    return FavoriteScan(
+        items=items,
+        remote_total=len(items),
+        is_complete=True,
+        pages_fetched=1,
+        raw_item_count=len(items),
+    )
+
+
+def _source_views(core: Application) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for source in core.db.list_sources():
+        value = dict(source)
+        value["status_label"] = _product_status_label(str(source.get("status") or ""))
+        value.update(core.db.source_sync_metrics(int(source["id"])))
+        policy = str(source.get("history_policy") or "future_only")
+        if policy == "all":
+            value["history_coverage_label"] = "All history"
+        elif policy == "latest_n":
+            value["history_coverage_label"] = f"Latest {int(source.get('history_limit') or 0)}"
+        else:
+            value["history_coverage_label"] = "From now only"
+        cutoff = source.get("history_cutoff_time")
+        value["history_cutoff_label"] = (
+            datetime.fromtimestamp(int(cutoff)).date().isoformat() if cutoff else "unknown"
+        )
+        value["continuous_sync"] = bool(
+            core.config.auto_sync_enabled and source.get("status") != "paused"
+        )
+        result.append(value)
+    return result
+
+
 def _resolve_api_key(submitted: str, core: Application) -> str:
     if submitted.strip():
         return submitted.strip()
@@ -733,7 +2636,23 @@ def _video_view(
     value["summary"] = None
     value.setdefault("sources", core.db.video_sources(int(video["id"])))
     value["asr_job"] = core.db.get_asr_job(int(video["id"]))
+    value["status_label"] = _product_status_label(str(video.get("status") or ""))
+    if value["asr_job"]:
+        value["asr_job"] = dict(value["asr_job"])
+        value["asr_job"]["status_label"] = _product_status_label(
+            str(value["asr_job"].get("status") or "")
+        )
     value["notes"] = [_note_view(item) for item in (notes or [])]
+    duration_seconds = int(video.get("duration_seconds") or 0)
+    value["duration_label"] = _format_duration(duration_seconds)
+    value["content_message"] = None
+    if (
+        video.get("status") == "completed"
+        and video.get("raw_subtitle_path")
+        and not video.get("summary_path")
+        and duration_seconds > 16 * 60
+    ):
+        value["content_message"] = "仅保存原字幕（时长策略）"
     if video.get("summary_path"):
         revision = str(video.get("active_revision") or "refined")
         json_path = core.artifacts.video_dir(str(video["source_id"])) / f"summary.{revision}.json"
@@ -767,6 +2686,35 @@ def _display_minute(value: str) -> str:
         return datetime.fromisoformat(value).astimezone().strftime("%Y-%m-%d %H:%M")
     except ValueError:
         return value[:16].replace("T", " ")
+
+
+def _product_status_label(value: str) -> str:
+    return {
+        "active": "同步中",
+        "paused": "已暂停",
+        "completed": "内容已就绪",
+        "completed_with_errors": "同步完成，部分内容待处理",
+        "skipped_no_subtitle": "等待生成字幕",
+        "cooldown": "稍后自动重试",
+        "running": "正在处理",
+        "processing": "正在处理",
+        "pending": "等待处理",
+        "queued": "等待处理",
+        "retry_wait": "等待重试",
+        "needs_review": "需要检查",
+        "failed": "处理失败",
+        "cancelled": "已取消",
+    }.get(value, value.replace("_", " ") if value else "未知状态")
+
+
+def _format_duration(duration_seconds: int) -> str:
+    if duration_seconds <= 0:
+        return ""
+    hours, remainder = divmod(duration_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes:02d}:{seconds:02d}"
 
 
 def _library_state(video: dict[str, Any]) -> dict[str, Any]:
@@ -821,6 +2769,36 @@ def _start_background_sync(app: FastAPI, core: Application, source_db_id: int | 
     return {"ok": True, "run_id": run_id, "reused": False}
 
 
+def _start_background_history_drain(
+    app: FastAPI, core: Application, source_db_id: int
+) -> dict[str, Any]:
+    with app.state.background_lock:
+        active = core.db.active_sync_run()
+        if active is not None:
+            return {"ok": True, "run_id": int(active["id"]), "reused": True}
+        run_id = core.db.start_sync_run("manual", scope_source_id=source_db_id)
+
+        def target() -> None:
+            try:
+                core.sync_service.drain_history(source_db_id, run_id=run_id)
+            except Exception as exc:
+                run = core.db.get_sync_run(run_id)
+                if run and run.get("status") == "running":
+                    core.db.finish_sync_run(
+                        run_id,
+                        status="failed",
+                        current_phase="failed",
+                        error_summary=f"{type(exc).__name__}: {exc}",
+                    )
+
+        thread = threading.Thread(
+            target=target, name=f"shiliu-history-{run_id}", daemon=True
+        )
+        app.state.background_thread = thread
+        thread.start()
+    return {"ok": True, "run_id": run_id, "reused": False}
+
+
 def _start_background_refinement(
     app: FastAPI, core: Application, video_id: int
 ) -> dict[str, Any]:
@@ -859,6 +2837,20 @@ def _start_background_refinement(
         app.state.background_thread = thread
         thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}
+
+
+def _sync_source_video_ids(core: Application, source_db_id: int, trigger: str) -> None:
+    with core.db.connect() as connection:
+        video_ids = [
+            int(row[0])
+            for row in connection.execute(
+                "SELECT DISTINCT video_id FROM video_source_memberships "
+                "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                (source_db_id,),
+            )
+        ]
+    for video_id in video_ids:
+        core.retrieval_coordinator.safe_sync_video(video_id, trigger=trigger)
 
 
 def _start_background_asr(

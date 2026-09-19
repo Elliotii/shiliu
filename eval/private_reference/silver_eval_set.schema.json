@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shiliu Silver Eval row",
+  "type": "object",
+  "required": [
+    "content_key", "evidence_level", "selection_bucket", "selection_reason",
+    "content_type_ids", "primary_domain_path", "secondary_domain_ids",
+    "rejection_reason", "silver_agreement"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "content_key": {"type": "string", "pattern": "^bilibili:BV[0-9A-Za-z]{10}:p1$"},
+    "evidence_level": {"enum": ["A", "B", "C", "D"]},
+    "selection_bucket": {"enum": ["high_evidence_clear", "high_evidence_cross_domain", "evidence_c", "boundary_or_confusing", "evidence_d_or_unavailable"]},
+    "selection_reason": {"type": "string", "minLength": 1},
+    "content_type_ids": {"type": "array", "items": {"type": "string"}},
+    "primary_domain_path": {"type": "array", "maxItems": 2, "items": {"type": "string"}},
+    "secondary_domain_ids": {"type": "array", "items": {"type": "string"}},
+    "rejection_reason": {"type": ["string", "null"], "enum": [null, "insufficient_evidence", "out_of_scope", "cross_domain", "taxonomy_gap"]},
+    "silver_agreement": {"enum": ["agreed", "adjudicated"]},
+    "final_reason": {"type": "string"}
+  }
+}

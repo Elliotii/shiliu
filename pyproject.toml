@@ -4,22 +4,30 @@ build-backend = "hatchling.build"
 
 [project]
 name = "shiliu"
-version = "0.3.0"
-description = "A local Bilibili favorites reading pipeline."
+version = "0.5.6"
+description = "A local, evidence-grounded research assistant for Bilibili favorites."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+  "fastembed>=0.7,<1",
   "fastapi>=0.115,<1",
   "httpx>=0.27,<1",
   "jinja2>=3.1,<4",
   "keyring>=25,<26",
+  "langgraph>=1.2.10,<1.3",
   "markdown>=3.7,<4",
+  "openai>=2,<3",
   "pydantic>=2.9,<3",
   "tomli>=2,<3; python_version < '3.11'",
   "uvicorn>=0.30,<1",
 ]
 
 [project.optional-dependencies]
+qwen = [
+  "sentence-transformers>=2.7,<6",
+  "torch>=2.6,<3",
+  "transformers>=4.51,<6",
+]
 test = [
   "pytest>=8.3,<9",
 ]
@@ -32,4 +40,10 @@ packages = ["src/shiliu"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+pythonpath = [".", "tests"]
+addopts = "-q -m 'not external_artifact and not live_provider'"
+markers = [
+  "external_artifact: requires an intentionally external historical artifact or workspace",
+  "live_provider: requires live credentials and a networked model provider",
+  "historical_contract: preserved historical assertion excluded from the current deterministic baseline",
+]

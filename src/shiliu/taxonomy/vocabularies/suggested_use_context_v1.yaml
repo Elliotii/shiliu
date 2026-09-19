@@ -1,0 +1,14 @@
+{
+  "vocabulary": "suggested_use_context",
+  "version": "suggested_use_context_v1",
+  "terms": [
+    {"id":"UC01","canonical_name":"学习理解","definition":"用于理解知识、概念、机制或体系。","includes":["学习","理解","知识梳理"],"excludes":["只进行实际操作"],"aliases":["学习理解"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC02","canonical_name":"动手实践","definition":"用于跟随操作、实现、配置或练习。","includes":["实操","配置","实现","练习"],"excludes":["只阅读资讯"],"aliases":["动手实践","实操"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC03","canonical_name":"技术选型","definition":"用于比较方案并作出工具、模型或架构选择。","includes":["选型","比较","决策"],"excludes":["无选择目标的介绍"],"aliases":["技术选型","方案选择"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC04","canonical_name":"项目开发","definition":"用于开发、维护或改进具体项目与系统。","includes":["项目实现","系统开发","工程改进"],"excludes":["只进行职业规划"],"aliases":["项目开发","工程开发"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC05","canonical_name":"求职规划","definition":"用于职业方向、学习路线或求职项目规划。","includes":["职业规划","学习路线","求职准备"],"excludes":["具体面试环节准备"],"aliases":["求职规划","职业规划"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC06","canonical_name":"面试准备","definition":"用于理解岗位要求、准备面试或复盘面试表现。","includes":["面试准备","岗位要求","面试复盘"],"excludes":["长期职业规划"],"aliases":["面试准备"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC07","canonical_name":"研究阅读","definition":"用于阅读论文、研究报告或跟进研究成果。","includes":["论文阅读","研究理解","文献跟进"],"excludes":["一般行业资讯"],"aliases":["研究阅读","论文阅读"],"status":"active","version":"suggested_use_context_v1"},
+    {"id":"UC08","canonical_name":"信息追踪","definition":"用于跟踪近期发布、变化、事件或行业动态。","includes":["资讯追踪","版本更新","行业动态"],"excludes":["系统课程学习"],"aliases":["信息追踪","动态跟踪"],"status":"active","version":"suggested_use_context_v1"}
+  ]
+}

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, TypeVar
+from dataclasses import dataclass
+import time
+from typing import Any, Generic, TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
@@ -11,6 +13,29 @@ from shiliu.domain import PipelineError
 
 
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
+
+
+@dataclass(frozen=True)
+class CompletionResponse:
+    """Raw provider response metadata used by recoverable long workflows."""
+
+    content: str
+    finish_reason: str | None
+    usage: dict[str, Any] | None
+    response_id: str | None
+    reasoning_content: str | None = None
+    latency_ms: float = 0
+    retry_count: int = 0
+
+
+@dataclass(frozen=True)
+class StructuredCompletionResponse(Generic[SchemaT]):
+    output: SchemaT
+    finish_reason: str | None
+    usage: dict[str, Any] | None
+    response_id: str | None
+    latency_ms: float
+    retry_count: int
 
 
 class OpenAICompatibleProvider:
@@ -74,24 +99,106 @@ class OpenAICompatibleProvider:
         )
         return payload.strip()
 
-    def complete_json(self, prompt: str, schema: type[SchemaT]) -> SchemaT:
+    def complete_json(
+        self,
+        prompt: str,
+        schema: type[SchemaT],
+        *,
+        max_tokens: int | None = None,
+    ) -> SchemaT:
         content = self._generate(
             [
                 {"role": "system", "content": "Follow the user's transformation rules and return valid JSON only."},
                 {"role": "user", "content": prompt},
-            ]
+            ],
+            max_tokens=max_tokens,
+        )
+        return parse_json_content(content, schema)
+
+    def complete_raw(
+        self,
+        prompt: str,
+        *,
+        max_tokens: int | None = None,
+    ) -> CompletionResponse:
+        """Return raw content and usage before application-level parsing."""
+
+        return self._generate_response(
+            [
+                {
+                    "role": "system",
+                    "content": "Follow the user's transformation rules and return valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=max_tokens,
+            allow_incomplete=True,
+        )
+
+    def generate_structured(
+        self,
+        *,
+        role: str,
+        messages: list[dict[str, str]],
+        response_schema: type[SchemaT],
+        max_tokens: int | None = None,
+        timeout_seconds: float | None = None,
+    ) -> StructuredCompletionResponse[SchemaT]:
+        if role not in {"query_analysis", "agent_action", "grounded_answer"}:
+            raise PipelineError(
+                f"不支持的结构化运行时角色：{role}",
+                code="bad_provider_config",
+                retryable=False,
+            )
+        response = self._generate_response(
+            messages,
+            max_tokens=max_tokens or (1200 if role == "query_analysis" else 4096),
+            response_format={"type": "json_object"},
+            transport_retries=1,
+            timeout_seconds=timeout_seconds,
         )
         try:
-            parsed = json.loads(_extract_json(content))
-            return schema.model_validate(parsed)
-        except (json.JSONDecodeError, ValidationError, ValueError) as exc:
-            raise PipelineError(
-                f"模型返回未通过结构校验：{exc}",
-                code="invalid_model_output",
-                retryable=True,
-            ) from exc
+            output = parse_json_content(response.content, response_schema)
+        except PipelineError as exc:
+            exc.completion_metadata = {
+                "finish_reason": response.finish_reason,
+                "usage": response.usage,
+                "response_id": response.response_id,
+                "latency_ms": response.latency_ms,
+                "retry_count": response.retry_count,
+                "content_received": True,
+            }
+            raise
+        return StructuredCompletionResponse(
+            output=output,
+            finish_reason=response.finish_reason,
+            usage=response.usage,
+            response_id=response.response_id,
+            latency_ms=response.latency_ms,
+            retry_count=response.retry_count,
+        )
 
     def _generate(self, messages: list[dict[str, str]], *, max_tokens: int | None = None) -> str:
+        return self._generate_response(messages, max_tokens=max_tokens).content
+
+    def _generate_response(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int | None = None,
+        allow_incomplete: bool = False,
+        response_format: dict[str, str] | None = None,
+        transport_retries: int = 0,
+        timeout_seconds: float | None = None,
+    ) -> CompletionResponse:
+        if transport_retries < 0:
+            raise ValueError("transport_retries must not be negative")
+        started = time.monotonic()
+        invocation_deadline = (
+            started + timeout_seconds
+            if timeout_seconds is not None
+            else None
+        )
         body: dict[str, Any] = {"model": self.model, "messages": messages}
         if self.thinking_enabled is not None:
             body["thinking"] = {"type": "enabled" if self.thinking_enabled else "disabled"}
@@ -101,36 +208,147 @@ class OpenAICompatibleProvider:
             body["temperature"] = 0
         if max_tokens is not None:
             body["max_tokens"] = max_tokens
-        try:
-            with httpx.Client(timeout=self.timeout_seconds) as client:
-                response = client.post(
-                    f"{self.base_url}/chat/completions", headers=self.headers, json=body
+        if response_format is not None:
+            body["response_format"] = response_format
+        retry_count = 0
+        for attempt in range(transport_retries + 1):
+            try:
+                invocation_remaining = (
+                    timeout_seconds - (time.monotonic() - started)
+                    if timeout_seconds is not None
+                    else None
                 )
-                self._raise_for_status(response)
-        except PipelineError:
-            raise
-        except (httpx.TimeoutException, httpx.NetworkError) as exc:
-            raise PipelineError("模型服务网络错误或超时", code="provider_network", retryable=True) from exc
-        except httpx.HTTPError as exc:
-            raise PipelineError("模型服务请求失败", code="provider_network", retryable=True) from exc
+                effective_timeout = (
+                    min(self.timeout_seconds, invocation_remaining)
+                    if invocation_remaining is not None
+                    else self.timeout_seconds
+                )
+                if effective_timeout <= 0:
+                    raise PipelineError(
+                        "模型调用已超过运行截止时间",
+                        code="deadline_exhausted",
+                        retryable=False,
+                    )
+                with httpx.Client(timeout=effective_timeout) as client:
+                    response = client.post(
+                        f"{self.base_url}/chat/completions",
+                        headers=self.headers,
+                        json=body,
+                    )
+                    self._raise_for_status(response)
+                break
+            except PipelineError as exc:
+                if exc.retryable and _deadline_reached(invocation_deadline):
+                    error = _deadline_error()
+                    _attach_failure_metadata(
+                        error, started=started, retry_count=retry_count
+                    )
+                    raise error from exc
+                if exc.retryable and attempt < transport_retries:
+                    retry_count += 1
+                    continue
+                _attach_failure_metadata(
+                    exc, started=started, retry_count=retry_count
+                )
+                raise
+            except (httpx.TimeoutException, httpx.NetworkError) as exc:
+                if _deadline_reached(invocation_deadline):
+                    error = _deadline_error()
+                    _attach_failure_metadata(
+                        error, started=started, retry_count=retry_count
+                    )
+                    raise error from exc
+                if attempt < transport_retries:
+                    retry_count += 1
+                    continue
+                error = PipelineError(
+                    "模型服务网络错误或超时",
+                    code="provider_network",
+                    retryable=True,
+                )
+                _attach_failure_metadata(
+                    error, started=started, retry_count=retry_count
+                )
+                raise error from exc
+            except httpx.HTTPError as exc:
+                if _deadline_reached(invocation_deadline):
+                    error = _deadline_error()
+                    _attach_failure_metadata(
+                        error, started=started, retry_count=retry_count
+                    )
+                    raise error from exc
+                if attempt < transport_retries:
+                    retry_count += 1
+                    continue
+                error = PipelineError(
+                    "模型服务请求失败",
+                    code="provider_network",
+                    retryable=True,
+                )
+                _attach_failure_metadata(
+                    error, started=started, retry_count=retry_count
+                )
+                raise error from exc
         try:
             payload = response.json()
             choice = payload["choices"][0]
             message = choice["message"]
             content = message.get("content")
         except (ValueError, KeyError, IndexError, TypeError) as exc:
-            raise PipelineError("模型服务返回格式无效", code="provider_schema", retryable=True) from exc
-        if not isinstance(content, str) or not content.strip():
-            finish_reason = choice.get("finish_reason") if isinstance(choice, dict) else None
-            reasoning = message.get("reasoning_content") if isinstance(message, dict) else None
-            if finish_reason == "length" and reasoning:
-                raise PipelineError(
-                    "推理模型已连接，但输出预算被推理内容耗尽，没有生成最终答案",
-                    code="reasoning_output_truncated",
-                    retryable=True,
-                )
-            raise PipelineError("模型返回为空", code="empty_model_output", retryable=True)
-        return content
+            error = PipelineError(
+                "模型服务返回格式无效",
+                code="provider_schema",
+                retryable=True,
+            )
+            _attach_failure_metadata(
+                error, started=started, retry_count=retry_count
+            )
+            raise error from exc
+        finish_reason = choice.get("finish_reason") if isinstance(choice, dict) else None
+        usage = payload.get("usage") if isinstance(payload, dict) else None
+        response_id = (
+            str(payload["id"])
+            if isinstance(payload, dict) and payload.get("id") is not None
+            else None
+        )
+        if finish_reason == "length" and not allow_incomplete:
+            error = PipelineError(
+                "模型输出达到保险上限，请人工确认后重试",
+                code="output_budget_exhausted",
+                retryable=False,
+            )
+            _attach_failure_metadata(
+                error,
+                started=started,
+                retry_count=retry_count,
+                finish_reason=finish_reason,
+                usage=usage,
+                response_id=response_id,
+            )
+            raise error
+        reasoning = message.get("reasoning_content") if isinstance(message, dict) else None
+        if (not isinstance(content, str) or not content.strip()) and not allow_incomplete:
+            error = PipelineError(
+                "模型返回为空", code="empty_model_output", retryable=True
+            )
+            _attach_failure_metadata(
+                error,
+                started=started,
+                retry_count=retry_count,
+                finish_reason=finish_reason,
+                usage=usage,
+                response_id=response_id,
+            )
+            raise error
+        return CompletionResponse(
+            content=content if isinstance(content, str) else "",
+            finish_reason=str(finish_reason) if finish_reason is not None else None,
+            usage=usage if isinstance(usage, dict) else None,
+            response_id=response_id,
+            reasoning_content=reasoning if isinstance(reasoning, str) else None,
+            latency_ms=(time.monotonic() - started) * 1000,
+            retry_count=retry_count,
+        )
 
     @staticmethod
     def _raise_for_status(response: httpx.Response) -> None:
@@ -140,6 +358,8 @@ class OpenAICompatibleProvider:
         body = response.text[:500].lower()
         if status in {401}:
             raise PipelineError("API Key 无效", code="provider_authentication", retryable=False)
+        if status == 402:
+            raise PipelineError("模型账户余额不足", code="provider_insufficient_balance", retryable=False)
         if status == 403:
             raise PipelineError("模型服务拒绝访问", code="provider_forbidden", retryable=False)
         if status == 404:
@@ -149,6 +369,41 @@ class OpenAICompatibleProvider:
         if status == 400 and any(token in body for token in ("context", "token", "too long", "maximum")):
             raise PipelineError("字幕超过模型上下文限制，未做静默截断", code="context_too_large", retryable=False)
         raise PipelineError(f"模型服务配置或请求无效（HTTP {status}）", code="bad_provider_config", retryable=False)
+
+
+def _deadline_reached(deadline: float | None) -> bool:
+    return deadline is not None and time.monotonic() >= deadline
+
+
+def _deadline_error() -> PipelineError:
+    return PipelineError(
+        "模型调用已超过运行截止时间",
+        code="deadline_exhausted",
+        retryable=False,
+    )
+
+
+def _attach_failure_metadata(
+    error: PipelineError,
+    *,
+    started: float,
+    retry_count: int,
+    finish_reason: object = None,
+    usage: object = None,
+    response_id: object = None,
+) -> None:
+    error.completion_metadata = {
+        "finish_reason": (
+            str(finish_reason) if finish_reason is not None else None
+        ),
+        "usage": usage if isinstance(usage, dict) else None,
+        "response_id": (
+            str(response_id) if response_id is not None else None
+        ),
+        "latency_ms": (time.monotonic() - started) * 1000,
+        "retry_count": retry_count,
+        "content_received": False,
+    }
 
 
 def _extract_json(content: str) -> str:
@@ -161,3 +416,17 @@ def _extract_json(content: str) -> str:
     if start < 0 or end < start:
         raise ValueError("response has no JSON object")
     return text[start : end + 1]
+
+
+def parse_json_content(content: str, schema: type[SchemaT]) -> SchemaT:
+    """Validate raw content after callers have durably persisted it."""
+
+    try:
+        parsed = json.loads(_extract_json(content))
+        return schema.model_validate(parsed)
+    except (json.JSONDecodeError, ValidationError, ValueError) as exc:
+        raise PipelineError(
+            f"模型返回未通过结构校验：{exc}",
+            code="invalid_model_output",
+            retryable=True,
+        ) from exc
