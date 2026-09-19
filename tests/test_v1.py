@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sqlite3
+from dataclasses import replace
 from unittest.mock import patch
 
 import httpx
@@ -10,7 +11,7 @@ from fastapi.testclient import TestClient
 from shiliu.app import Application
 from shiliu.artifacts import ArtifactStore
 from shiliu.bilibili import BilibiliAdapter
-from shiliu.config import load_config
+from shiliu.config import AppConfig, load_config, save_config
 from shiliu.db import Database
 from shiliu.domain import (
     FavoriteItem,
@@ -23,6 +24,7 @@ from shiliu.llm import OpenAICompatibleProvider
 from shiliu.pipeline import PipelineService
 from shiliu.domain import SyncMode
 from shiliu.sync import SyncService
+from shiliu.stage5 import SEMANTIC_JUDGE_MODEL
 from shiliu.web import create_web_app
 
 
@@ -51,7 +53,7 @@ def test_multi_source_memberships_deduplicate_video_and_sort_by_favorite_time(ap
         favorite("BV2222222222", favorite_time=200, title="次新"),
         favorite("BV3333333333", favorite_time=100, title="旧视频"),
     ]
-    assert db.initialize_source_memberships(first, items) == 2
+    assert db.initialize_source_memberships(first, items, authoritative=True) == 2
     assert db.history_pending_count() == 2
 
     video_id = db.materialize_history_membership(first, "BV1111111111")
@@ -65,7 +67,9 @@ def test_multi_source_memberships_deduplicate_video_and_sort_by_favorite_time(ap
         history_policy="future_only",
     )
     db.initialize_source_memberships(
-        second, [favorite("BV1111111111", favorite_time=400, title="同一视频")]
+        second,
+        [favorite("BV1111111111", favorite_time=400, title="同一视频")],
+        authoritative=True,
     )
     assert len(db.video_sources(video_id)) == 2
 
@@ -111,7 +115,7 @@ def test_source_move_endpoint_updates_settings_and_home_order(app_paths) -> None
     assert client.get("/").text.index("新收藏夹") < client.get("/").text.index("LLM")
 
 
-def test_old_xhigh_config_is_normalized_to_max(app_paths) -> None:
+def test_old_xhigh_config_is_normalized_to_high(app_paths) -> None:
     app_paths.state_dir.mkdir(parents=True)
     app_paths.config.write_text(
         f'''[app]
@@ -126,8 +130,121 @@ formal_reasoning_effort = "xhigh"
         encoding="utf-8",
     )
     config = load_config(app_paths)
-    assert config.formal_reasoning_effort == "max"
+    assert config.formal_reasoning_effort == "high"
     assert config.model_for("fast_transcript") == "demo"
+
+
+def test_legacy_model_config_routes_all_role_families_without_rewrite(app_paths) -> None:
+    app_paths.state_dir.mkdir(parents=True)
+    app_paths.config.write_text(
+        f'''[app]
+content_dir = "{app_paths.content_dir}"
+[llm]
+base_url = "https://example.com/v1"
+model = "legacy-model"
+''',
+        encoding="utf-8",
+    )
+
+    config = load_config(app_paths)
+
+    assert config.model_for("fast_transcript") == "legacy-model"
+    assert config.model_for("formal_summary") == "legacy-model"
+    assert config.model_for("taxonomy_global") == "legacy-model"
+    assert config.model_for("query_analysis") == "legacy-model"
+    assert config.model_for("agent_action") == "legacy-model"
+    assert config.model_for("grounded_answer") == "legacy-model"
+
+
+def test_role_family_model_routing_round_trips_independently(app_paths) -> None:
+    config = replace(
+        AppConfig.default(app_paths),
+        llm_model="interactive-pro",
+        ingestion_model="ingestion-flash",
+        interactive_model="interactive-pro",
+        taxonomy_model="taxonomy-pro",
+    )
+
+    save_config(config, app_paths)
+    loaded = load_config(app_paths)
+
+    assert loaded.model_for("fast_transcript") == "ingestion-flash"
+    assert loaded.model_for("formal_transcript") == "ingestion-flash"
+    assert loaded.model_for("formal_summary") == "ingestion-flash"
+    assert loaded.model_for("taxonomy_local") == "taxonomy-pro"
+    assert loaded.model_for("taxonomy_global") == "taxonomy-pro"
+    assert loaded.model_for("query_analysis") == "interactive-pro"
+    assert loaded.model_for("agent_action") == "interactive-pro"
+    assert loaded.model_for("grounded_answer") == "interactive-pro"
+    assert SEMANTIC_JUDGE_MODEL == "gpt-5.6-terra"
+
+
+def test_web_setup_summary_and_interactive_edits_are_isolated(app_paths) -> None:
+    initial = replace(
+        AppConfig.default(app_paths),
+        llm_base_url="https://example.com/v1",
+        llm_model="interactive-pro",
+        ingestion_model="ingestion-flash-v1",
+        interactive_model="interactive-pro",
+        taxonomy_model="taxonomy-pro",
+    )
+    save_config(initial, app_paths)
+    application = Application(app_paths)
+    client = TestClient(create_web_app(application))
+    common = {
+        "content_dir": str(app_paths.content_dir),
+        "favorite_id": None,
+        "favorite_title": "",
+        "base_url": "https://example.com/v1",
+        "api_key": "",
+    }
+
+    with patch("shiliu.web._resolve_api_key", return_value="redacted"):
+        summary = client.post(
+            "/api/setup/draft",
+            json={**common, "formal_summary_model": "ingestion-flash-v2"},
+        )
+    assert summary.status_code == 200
+    after_summary = load_config(app_paths)
+    assert after_summary.model_for("formal_summary") == "ingestion-flash-v2"
+    assert after_summary.model_for("grounded_answer") == "interactive-pro"
+    assert after_summary.model_for("taxonomy_global") == "taxonomy-pro"
+
+    with patch("shiliu.web._resolve_api_key", return_value="redacted"):
+        interactive = client.post(
+            "/api/setup/draft",
+            json={**common, "interactive_model": "interactive-pro-v2"},
+        )
+    assert interactive.status_code == 200
+    after_interactive = load_config(app_paths)
+    assert after_interactive.model_for("grounded_answer") == "interactive-pro-v2"
+    assert after_interactive.model_for("formal_summary") == "ingestion-flash-v2"
+    assert after_interactive.model_for("taxonomy_global") == "taxonomy-pro"
+
+
+def test_application_provider_uses_static_role_families(app_paths) -> None:
+    application = Application(app_paths)
+    application.config = replace(
+        application.config,
+        llm_model="interactive-pro",
+        ingestion_model="ingestion-flash",
+        interactive_model="interactive-pro",
+        taxonomy_model="taxonomy-pro",
+    )
+
+    with patch("shiliu.app.load_api_key", return_value="redacted"):
+        assert application.provider("fast_transcript").model == "ingestion-flash"
+        assert application.provider("formal_summary").model == "ingestion-flash"
+        assert application.provider("taxonomy_local").model == "taxonomy-pro"
+        assert application.provider("taxonomy_global").model == "taxonomy-pro"
+        assert application.provider("query_analysis").model == "interactive-pro"
+        assert application.provider("agent_action").model == "interactive-pro"
+        assert application.provider("grounded_answer").model == "interactive-pro"
+        recovery = application.provider("grounded_answer_recovery")
+        assert recovery.model == "interactive-pro"
+        assert recovery.thinking_enabled is False
+        assert recovery.reasoning_effort is None
+        assert application.provider("grounded_answer").thinking_enabled is True
 
 
 def test_schema_migration_keeps_pre_v3_database_backup(app_paths) -> None:
@@ -197,24 +314,24 @@ def test_public_favorite_url_preview_parses_fid_without_importing(tmp_path: Path
         adapter,
         "_run_bridge",
         return_value={
-            "account_id": 32958899,
-            "account_name": "零分姐姐",
-            "folder_id": 3876418799,
-            "folder_title": "2026找工作学习",
-            "media_count": 128,
+            "account_id": 42424242,
+            "account_name": "示例账号",
+            "folder_id": 9001001,
+            "folder_title": "示例收藏夹",
+            "media_count": 42,
         },
     ) as bridge:
         preview = adapter.preview_favorite_url(
-            "https://space.bilibili.com/32958899/favlist?fid=3876418799&ftype=create"
+            "https://space.bilibili.com/42424242/favlist?fid=9001001&ftype=create"
         )
-    assert preview.folder_title == "2026找工作学习"
-    assert preview.media_count == 128
-    bridge.assert_called_once_with(["favorite-preview", "3876418799"])
+    assert preview.folder_title == "示例收藏夹"
+    assert preview.media_count == 42
+    bridge.assert_called_once_with(["favorite-preview", "9001001"])
 
 
 class BundleAdapter:
     def fetch_video_bundle(self, bvid: str):
-        from tests.test_pipeline import bundle
+        from test_pipeline import bundle
 
         return bundle()
 
@@ -226,7 +343,7 @@ class RefinementProvider:
     def __init__(self) -> None:
         self.calls: list[type] = []
 
-    def complete_json(self, prompt: str, schema):
+    def complete_json(self, prompt: str, schema, *, max_tokens: int | None = None):
         self.calls.append(schema)
         if schema is TranscriptResult:
             text = "快速整理原文。" if self.calls.count(TranscriptResult) == 1 else "精修后的原文。"
@@ -249,7 +366,7 @@ class RefinementProvider:
 
 
 def test_fast_result_is_refined_atomically_and_keep_preserves_summary(app_paths) -> None:
-    from tests.test_pipeline import bundle
+    from test_pipeline import bundle
 
     db = Database(app_paths.database)
     db.initialize()
@@ -288,20 +405,20 @@ def test_fast_result_is_refined_atomically_and_keep_preserves_summary(app_paths)
 def test_source_preview_endpoint_has_no_database_side_effect(app_paths) -> None:
     application = Application(app_paths)
     application.adapter.preview_favorite_url = lambda url: FavoriteSourcePreview(
-        account_id=32958899,
-        account_name="零分姐姐",
-        folder_id=3876418799,
-        folder_title="2026找工作学习",
-        media_count=128,
+        account_id=42424242,
+        account_name="示例账号",
+        folder_id=9001001,
+        folder_title="示例收藏夹",
+        media_count=42,
         original_url=url,
     )
     client = TestClient(create_web_app(application))
     response = client.post(
         "/api/sources/preview",
-        json={"url": "https://space.bilibili.com/32958899/favlist?fid=3876418799"},
+        json={"url": "https://space.bilibili.com/42424242/favlist?fid=9001001"},
     )
     assert response.status_code == 200
-    assert response.json()["preview"]["media_count"] == 128
+    assert response.json()["preview"]["media_count"] == 42
     assert application.db.list_sources() == []
     assert application.db.list_videos() == []
 
@@ -320,7 +437,7 @@ def test_scheduled_history_backlog_uses_formal_profile_and_caps_batch_at_eight(a
         favorite(f"BV{i:010d}", favorite_time=1000 - i, title=f"历史 {i}")
         for i in range(10)
     ]
-    assert db.initialize_source_memberships(source_id, items) == 10
+    assert db.initialize_source_memberships(source_id, items, authoritative=True) == 10
 
     class Adapter:
         def list_favorite_items(self, folder_id: int):
@@ -368,7 +485,7 @@ def test_scheduled_sync_runs_normally_during_former_quiet_hours(app_paths) -> No
         history_policy="all",
     )
     items = [favorite("BV0000000001", favorite_time=1000, title="历史 1")]
-    assert db.initialize_source_memberships(source_id, items) == 1
+    assert db.initialize_source_memberships(source_id, items, authoritative=True) == 1
 
     class Adapter:
         calls = 0

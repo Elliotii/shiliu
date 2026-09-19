@@ -6,11 +6,11 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import TracebackType
-from typing import Callable
+from typing import Callable, Protocol
 
 from shiliu.bilibili import BilibiliAdapter
 from shiliu.db import Database, utc_now
-from shiliu.domain import PipelineError, SyncMode, SyncResult
+from shiliu.domain import FavoriteScan, PipelineError, SyncMode, SyncResult
 from shiliu.pipeline import PipelineService
 
 
@@ -22,6 +22,10 @@ QUIET_HOURS_ENABLED = False
 
 class SyncAlreadyRunning(RuntimeError):
     pass
+
+
+class _IndexCoordinator(Protocol):
+    def safe_sync_video(self, video_id: int, *, trigger: str) -> object: ...
 
 
 class ProcessLock:
@@ -64,6 +68,7 @@ class SyncService:
         now_factory: Callable[[], datetime] = datetime.now,
         sleep: Callable[[float], None] = time.sleep,
         randint: Callable[[int, int], int] = random.randint,
+        index_coordinator: _IndexCoordinator | None = None,
     ) -> None:
         self.db = db
         self.adapter = adapter
@@ -73,6 +78,7 @@ class SyncService:
         self.now_factory = now_factory
         self.sleep = sleep
         self.randint = randint
+        self.index_coordinator = index_coordinator
 
     def sync(
         self,
@@ -91,7 +97,12 @@ class SyncService:
             and is_quiet_hour(self.now_factory())
         )
 
-        sources = self.db.list_sources(active_only=True)
+        all_sources = self.db.list_sources()
+        sources = [
+            source
+            for source in all_sources
+            if source.get("status") in {"active", "cooldown"}
+        ]
         if source_db_id is not None:
             sources = [source for source in sources if int(source["id"]) == source_db_id]
             if not sources:
@@ -124,18 +135,98 @@ class SyncService:
             self.sleep(delay)
 
         if not sources:
+            if all_sources:
+                raise PipelineError(
+                    "收藏夹来源当前均已暂停、需要登录或暂时不可用；请先恢复来源",
+                    code="source_not_active",
+                    retryable=False,
+                )
             if self.favorite_id is None:
                 raise PipelineError("尚未添加收藏夹来源", code="setup_required", retryable=False)
             with ProcessLock(self.lock_path):
+                self.db.recover_stale_sync_runs(exclude_run_id=run_id)
                 return self._sync_legacy(result, run_id=run_id)
 
         with ProcessLock(self.lock_path):
+            self.db.recover_stale_sync_runs(exclude_run_id=run_id)
             return self._sync_sources(
                 result,
                 sources,
                 run_id=run_id,
                 quiet_hours=quiet_hours,
             )
+
+    def drain_history(
+        self,
+        source_db_id: int,
+        *,
+        run_id: int | None = None,
+        batch_limit: int = 8,
+    ) -> SyncResult:
+        """Materialize one bounded history batch without rescanning the source.
+
+        Discovery and forward sync remain owned by :meth:`sync`.  This entry
+        point only advances memberships that were selected from an already
+        authoritative baseline, while reusing the global sync lock and normal
+        pipeline/index stages.
+        """
+        if batch_limit < 1:
+            raise ValueError("batch_limit must be positive")
+        result = SyncResult(mode=SyncMode.MANUAL, run_id=run_id)
+        begin_cycle = getattr(self.pipeline, "begin_sync_cycle", None)
+        if begin_cycle is not None:
+            begin_cycle()
+
+        with ProcessLock(self.lock_path):
+            self.db.recover_stale_sync_runs(exclude_run_id=run_id)
+            source = self.db.get_source(source_db_id)
+            if source is None or source.get("status") != "active":
+                raise PipelineError(
+                    "该来源未启用或正在等待人工处理",
+                    code="source_not_active",
+                    retryable=False,
+                )
+            active_run_id = run_id or self.db.start_sync_run(
+                SyncMode.MANUAL.value, scope_source_id=source_db_id
+            )
+            result.run_id = active_run_id
+            try:
+                self.db.update_sync_run(
+                    active_run_id,
+                    current_phase="history",
+                    message="正在继续导入已发现的历史内容",
+                )
+                self._process_history_backlog(
+                    active_run_id,
+                    result,
+                    source_ids={source_db_id},
+                    limit=batch_limit,
+                )
+                result.history_pending_count = self.db.history_pending_count()
+                status = (
+                    "completed" if result.failed_count == 0 else "completed_with_errors"
+                )
+                self.db.finish_sync_run(
+                    active_run_id,
+                    status=status,
+                    processed_count=result.processed_count,
+                    failed_count=result.failed_count,
+                    history_pending_count=result.history_pending_count,
+                    current_phase="completed",
+                    message="历史导入批次完成",
+                )
+                return result
+            except Exception as exc:
+                self.db.finish_sync_run(
+                    active_run_id,
+                    status="failed",
+                    processed_count=result.processed_count,
+                    failed_count=result.failed_count,
+                    history_pending_count=self.db.history_pending_count(),
+                    current_phase="failed",
+                    error_summary=f"{type(exc).__name__}: {exc}",
+                )
+                raise
 
     def _sync_sources(
         self,
@@ -151,6 +242,7 @@ class SyncService:
         )
         result.run_id = active_run_id
         discovered_ids: list[int] = []
+        successful_source_ids: set[int] = set()
         try:
             if quiet_hours:
                 result.skipped_quiet_hours = True
@@ -163,6 +255,16 @@ class SyncService:
             else:
                 for source in sources:
                     source_id = int(source["id"])
+                    current_source = self.db.get_source(source_id)
+                    if current_source is None or current_source.get("status") not in {
+                        "active",
+                        "cooldown",
+                    }:
+                        result.messages.append(
+                            f"{source['folder_title']} 状态已变化，本轮已安全跳过"
+                        )
+                        continue
+                    source = current_source
                     if self._source_is_cooling_down(source):
                         result.messages.append(f"{source['folder_title']} 正在冷却，已跳过")
                         continue
@@ -172,7 +274,8 @@ class SyncService:
                         message=f"正在读取 {source['account_name']} / {source['folder_title']}",
                     )
                     try:
-                        items = self.adapter.list_favorite_items(int(source["folder_id"]))
+                        scan = self._favorite_scan(int(source["folder_id"]))
+                        items = scan.items
                     except PipelineError as exc:
                         self._record_source_failure(source_id, exc, history=False)
                         if exc.code == "authentication_required":
@@ -186,35 +289,75 @@ class SyncService:
                             raise
                         result.failed_count += 1
                         continue
-                    result.current_count += len(items)
+                    self.db.update_video_durations(items)
+                    result.current_count += int(
+                        scan.remote_total
+                        if scan.remote_total is not None
+                        else len(items)
+                    )
                     if not bool(source.get("baseline_initialized")):
-                        queued = self.db.initialize_source_memberships(source_id, items)
-                        result.baseline_created = True
-                        result.messages.append(
-                            f"{source['folder_title']} 已建立基线，历史待处理 {queued} 条"
+                        queued = self.db.initialize_source_memberships(
+                            source_id,
+                            items,
+                            authoritative=scan.is_complete,
+                            remote_total=scan.remote_total,
                         )
+                        self._sync_source_videos(source_id, "source_baseline_initialized")
+                        if scan.is_complete:
+                            successful_source_ids.add(source_id)
+                            result.baseline_created = True
+                            result.messages.append(
+                                f"{source['folder_title']} 已建立完整基线，历史待处理 {queued} 条"
+                            )
                     else:
                         profile = "fast" if result.mode == SyncMode.MANUAL else "formal"
                         new_ids = self.db.record_source_snapshot(
                             source_id,
                             items,
                             processing_profile=profile,
+                            authoritative=scan.is_complete,
+                            remote_total=scan.remote_total,
                         )
+                        self._sync_source_videos(source_id, "source_snapshot_recorded")
                         discovered_ids.extend(new_ids)
                         result.discovered_count += len(new_ids)
+                        if scan.is_complete:
+                            successful_source_ids.add(source_id)
+
+                    if not scan.is_complete:
+                        error = PipelineError(
+                            "收藏夹扫描未通过完整性校验；已保留观察结果且未执行删除对账",
+                            code="incomplete_snapshot",
+                            retryable=True,
+                        )
+                        self._record_source_failure(source_id, error, history=False)
+                        result.failed_count += 1
+                        result.messages.append(
+                            f"{source['folder_title']} 扫描不完整，未执行 removal reconciliation"
+                        )
 
                 self._process_new_and_due(
                     active_run_id,
                     result,
                     discovered_ids,
-                    allowed_source_ids={int(source["id"]) for source in sources},
+                    allowed_source_ids=successful_source_ids,
                 )
 
                 if result.mode == SyncMode.SCHEDULED:
                     self._process_pending_refinements(active_run_id, result)
 
-            if result.mode == SyncMode.SCHEDULED:
-                self._process_history_backlog(active_run_id, result)
+            history_source_ids = (
+                {
+                    int(source["id"])
+                    for source in sources
+                    if (self.db.get_source(int(source["id"])) or {}).get("status") == "active"
+                }
+                if quiet_hours
+                else successful_source_ids
+            )
+            self._process_history_backlog(
+                active_run_id, result, source_ids=history_source_ids
+            )
 
             result.history_pending_count = self.db.history_pending_count()
             status = "completed" if result.failed_count == 0 else "completed_with_errors"
@@ -244,6 +387,21 @@ class SyncService:
             )
             raise
 
+    def _sync_source_videos(self, source_id: int, trigger: str) -> None:
+        if self.index_coordinator is None:
+            return
+        with self.db.connect() as connection:
+            video_ids = [
+                int(row[0])
+                for row in connection.execute(
+                    "SELECT DISTINCT video_id FROM video_source_memberships "
+                    "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
+                    (source_id,),
+                )
+            ]
+        for video_id in video_ids:
+            self.index_coordinator.safe_sync_video(video_id, trigger=trigger)
+
     def _process_new_and_due(
         self,
         run_id: int,
@@ -257,9 +415,8 @@ class SyncService:
             due = [
                 video
                 for video in due
-                if any(
-                    int(source["id"]) in allowed_source_ids
-                    for source in self.db.video_sources(int(video["id"]))
+                if self.db.video_has_active_source(
+                    int(video["id"]), allowed_source_ids=allowed_source_ids
                 )
             ]
         new_set = set(discovered_ids)
@@ -301,12 +458,23 @@ class SyncService:
             if self.pipeline.process_refinement(video_id):
                 result.processed_count += 1
 
-    def _process_history_backlog(self, run_id: int, result: SyncResult) -> None:
-        backlog = self.db.list_history_backlog(limit=8)
+    def _process_history_backlog(
+        self,
+        run_id: int,
+        result: SyncResult,
+        *,
+        source_ids: set[int] | None = None,
+        limit: int = 8,
+    ) -> None:
+        backlog = self.db.list_history_backlog(limit=limit, source_ids=source_ids)
         for index, membership in enumerate(backlog):
             video_id = self.db.materialize_history_membership(
                 int(membership["source_id"]), str(membership["bvid"])
             )
+            if self.index_coordinator is not None:
+                self.index_coordinator.safe_sync_video(
+                    video_id, trigger="history_membership_materialized"
+                )
             self.db.update_sync_run(
                 run_id,
                 current_phase="history",
@@ -355,7 +523,7 @@ class SyncService:
         if error.code == "authentication_required":
             status = "needs_auth"
             cooldown = None
-        elif is_rate_limited:
+        elif is_rate_limited or error.retryable:
             status = "cooldown"
             minutes = 20 if history else 10
             cooldown = (
@@ -372,6 +540,20 @@ class SyncService:
             cooldown_until=cooldown,
         )
 
+    def _favorite_scan(self, folder_id: int) -> FavoriteScan:
+        scan_method = getattr(self.adapter, "list_favorite_scan", None)
+        if scan_method is not None:
+            scan = scan_method(folder_id)
+            return scan if isinstance(scan, FavoriteScan) else FavoriteScan.model_validate(scan)
+        items = self.adapter.list_favorite_items(folder_id)
+        return FavoriteScan(
+            items=items,
+            remote_total=len(items),
+            is_complete=True,
+            pages_fetched=1,
+            raw_item_count=len(items),
+        )
+
     @staticmethod
     def _source_is_cooling_down(source: dict[str, object]) -> bool:
         if source.get("status") != "cooldown" or not source.get("cooldown_until"):
@@ -386,6 +568,7 @@ class SyncService:
         result.run_id = active_run_id
         try:
             items = self.adapter.list_favorite_items(int(self.favorite_id))
+            self.db.update_video_durations(items)
             current_ids = {item.bvid for item in items}
             result.current_count = len(current_ids)
             if not self.db.has_baseline():
@@ -400,6 +583,16 @@ class SyncService:
             for item in items:
                 self.db.mark_seen(item.bvid)
             self.db.reconcile_current_items(current_ids)
+            if self.index_coordinator is not None:
+                with self.db.connect() as connection:
+                    legacy_video_ids = [
+                        int(row[0])
+                        for row in connection.execute("SELECT id FROM videos ORDER BY id")
+                    ]
+                for video_id in legacy_video_ids:
+                    self.index_coordinator.safe_sync_video(
+                        video_id, trigger="legacy_snapshot_recorded"
+                    )
             profile = "fast" if result.mode == SyncMode.MANUAL else "formal"
             for item in new_items:
                 self.db.create_video(
@@ -408,6 +601,7 @@ class SyncService:
                     item.uploader,
                     processing_profile=profile,
                     display_favorite_time=item.favorite_time,
+                    duration_seconds=item.duration_seconds,
                 )
             result.discovered_count = len(new_items)
             self._process_new_and_due(active_run_id, result, [])

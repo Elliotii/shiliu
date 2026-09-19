@@ -5,7 +5,7 @@
   <p class="eyebrow">LOCAL FIRST · ONE-TIME SETUP</p>
   <h1>首次设置</h1>
   <p class="muted">凭据留在本机：B 站凭据沿用 bilibili-cli 文件，模型 API Key 只写入 macOS Keychain。</p>
-  <p class="muted">快速、正式整理和正式摘要模型都提供独立测试连接。</p>
+  <p class="muted">开发者角色映射：入库使用 Flash；Ask / Deep 使用 Pro；Taxonomy 独立使用 Pro。</p>
 
   <section class="setup-step">
     <span class="step-number">01</span><div><h2>登录 B 站</h2><p>二维码只用于只读收藏夹和字幕读取。</p><button class="secondary" data-start-login>生成二维码</button><div class="qr-box" data-qr-box hidden><img data-qr alt="B 站登录二维码"><p data-login-status>等待扫码并在手机确认…</p></div></div>
@@ -15,7 +15,7 @@
       <span class="step-number">02</span><div class="form-area"><h2>选择收藏夹与目录</h2><button type="button" class="secondary" data-load-folders>刷新收藏夹</button><label>收藏夹<select name="favorite_id" data-saved-value="{{ config.favorite_id or '' }}" required>{% if config.favorite_id %}<option value="{{ config.favorite_id }}" selected>{{ config.favorite_title or config.favorite_id }}（已保存）</option>{% else %}<option value="">请先刷新</option>{% endif %}</select></label><label>本地内容目录<input name="content_dir" value="{{ config.content_dir }}" required></label></div>
     </section>
     <section class="setup-step">
-      <span class="step-number">03</span><div class="form-area"><h2>连接模型</h2><label>Base URL<input name="base_url" type="url" value="{{ config.llm_base_url }}" required></label><label>API Key<input name="api_key" type="password" autocomplete="off" placeholder="已保存过可留空；不会写入网页或配置文件"></label><input name="model" type="hidden" value="{{ config.llm_model }}"><label>快速字幕整理模型 · no thinking<input name="fast_transcript_model" value="{{ config.fast_transcript_model }}" required></label><label>正式字幕整理模型 · thinking<input name="formal_transcript_model" value="{{ config.formal_transcript_model }}" required></label><label>正式摘要模型 · thinking<input name="formal_summary_model" value="{{ config.formal_summary_model }}" required></label><label>正式推理强度<input value="max" readonly></label><div class="inline-actions"><button type="button" class="secondary" data-load-models>刷新模型列表</button><button type="button" class="secondary" data-test-role="fast_transcript_model">测试快速模型</button><button type="button" class="secondary" data-test-role="formal_transcript_model">测试正式整理</button><button type="button" class="secondary" data-test-role="formal_summary_model">测试正式摘要</button><button type="button" class="secondary" data-save-draft>保存设置草稿</button></div><select data-model-list><option>可选：从 /models 选择后填入对应角色</option></select><p class="connection-status" data-model-status></p></div>
+      <span class="step-number">03</span><div class="form-area"><h2>连接模型 · Developer Settings</h2><label>Base URL<input name="base_url" type="url" value="{{ config.llm_base_url }}" required></label><label>API Key<input name="api_key" type="password" autocomplete="off" placeholder="已保存过可留空；不会写入网页或配置文件"></label><input name="model" type="hidden" value="{{ config.interactive_model }}"><label>Ingestion · Transcript / Summary<input name="ingestion_model" value="{{ config.ingestion_model }}" required></label><label>Interactive · Ask / Deep / Grounded Answer<input name="interactive_model" value="{{ config.interactive_model }}" required></label><label>Taxonomy · independent<input name="taxonomy_model" value="{{ config.taxonomy_model }}" required></label><input name="fast_transcript_model" type="hidden" value="{{ config.ingestion_model }}"><input name="formal_transcript_model" type="hidden" value="{{ config.ingestion_model }}"><input name="formal_summary_model" type="hidden" value="{{ config.ingestion_model }}"><div class="inline-actions"><button type="button" class="secondary" data-load-models>刷新模型列表</button><button type="button" class="secondary" data-test-role="ingestion_model">测试连接 · Ingestion</button><button type="button" class="secondary" data-test-role="interactive_model">测试连接 · Interactive</button><button type="button" class="secondary" data-test-role="taxonomy_model">测试连接 · Taxonomy</button><button type="button" class="secondary" data-save-draft>保存设置草稿</button></div><select data-model-list><option>可选：从 /models 选择后填入对应角色</option></select><p class="connection-status" data-model-status></p></div>
     </section>
     <section class="setup-step warning-step">
       <span class="step-number">04</span><div class="form-area"><h2>确认首次基线</h2><p>当前收藏夹中的历史视频只会记入基线：不拉字幕、不调用模型、也不生成卡片。只有确认之后新增的视频会进入拾流。</p><label class="check"><input name="confirm_baseline" type="checkbox" required> 我已理解并确认</label><label class="check"><input name="install_scheduler" type="checkbox" checked> 每小时运行一次；历史积压 24 小时可处理</label><button class="primary" type="submit">完成设置并建立基线</button><p data-setup-status></p></div>
@@ -46,14 +46,12 @@
       <label>历史内容
         <select data-history-policy>
           <option value="future_only">只处理之后新增的</option>
-          <option value="latest_n:10">导入最新 10 条</option>
-          <option value="latest_n:30">导入最新 30 条</option>
           <option value="latest_n:100">导入最新 100 条</option>
-          <option value="latest_n:custom">导入自定义数量</option>
+          <option value="latest_n:300">导入最新 300 条</option>
+          <option value="latest_n:500">导入最新 500 条</option>
           <option value="all">导入全部历史内容</option>
         </select>
       </label>
-      <label data-history-custom hidden>自定义数量<input data-history-limit type="number" min="1" value="10"></label>
       <button type="button" class="primary" data-add-source disabled>确认添加来源</button>
       <p data-source-status></p>
       {% if sources %}
@@ -62,13 +60,24 @@
         <article>
           <div class="source-order">
             <span class="order-number">{{ loop.index }}</span>
-            <div><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>{{ source.media_count }} 条 · {{ source.status }}</small></div>
+            <div><strong>{{ source.account_name or '当前账号' }} · {{ source.folder_title }}</strong><small>Source status: {{ source.status }} · Continuous sync: {{ 'ON' if source.continuous_sync else 'OFF' }}</small><small>Remote detected {{ source.remote_detected }} · Visible memberships {{ source.discovered_memberships }} · Remote unavailable {{ source.remote_unavailable }} · Imported {{ source.imported }} · Completed {{ source.completed }} · Pending {{ source.pending }} · Failed {{ source.failed }} · Not backfilled {{ source.not_backfilled }}</small><small>History coverage: {{ source.history_coverage_label }} · {{ source.history_cutoff_label }} → now · Oldest covered favorite_time: {{ source.oldest_covered_favorite_time or 'unknown' }}</small></div>
+          </div>
+          <div class="inline-actions">
+            <select data-source-coverage="{{ source.id }}">
+              <option value="future_only" {% if source.history_policy == 'future_only' %}selected{% endif %}>From now only</option>
+              <option value="latest_n:100" {% if source.history_policy == 'latest_n' and source.history_limit == 100 %}selected{% endif %}>Latest 100</option>
+              <option value="latest_n:300" {% if source.history_policy == 'latest_n' and source.history_limit == 300 %}selected{% endif %}>Latest 300</option>
+              <option value="latest_n:500" {% if source.history_policy == 'latest_n' and source.history_limit == 500 %}selected{% endif %}>Latest 500</option>
+              <option value="all" {% if source.history_policy == 'all' %}selected{% endif %}>All</option>
+            </select>
+            <button type="button" class="secondary" data-update-source-coverage="{{ source.id }}">Expand / adjust history</button>
           </div>
           <div class="inline-actions">
             <button type="button" class="secondary order-button" data-source-move="up" data-source-id="{{ source.id }}" aria-label="上移 {{ source.folder_title }}" {% if loop.first %}disabled{% endif %}>↑ 上移</button>
             <button type="button" class="secondary order-button" data-source-move="down" data-source-id="{{ source.id }}" aria-label="下移 {{ source.folder_title }}" {% if loop.last %}disabled{% endif %}>↓ 下移</button>
             <button type="button" class="secondary" data-source-action="{% if source.status == 'paused' %}resume{% else %}pause{% endif %}" data-source-id="{{ source.id }}">{% if source.status == 'paused' %}启用{% else %}暂停{% endif %}</button>
             <button type="button" class="secondary" data-source-sync="{{ source.id }}">立即同步</button>
+            <button type="button" class="secondary" data-source-history="{{ source.id }}" {% if source.pending == 0 %}disabled{% endif %}>继续历史导入</button>
             <button type="button" class="secondary" data-source-action="remove" data-source-id="{{ source.id }}">移除</button>
           </div>
         </article>

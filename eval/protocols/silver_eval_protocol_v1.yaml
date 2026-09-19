@@ -1,0 +1,73 @@
+version: silver-eval-protocol-v1
+reference_kind: silver
+ground_truth: false
+snapshot:
+  required_id: configured_at_runtime
+  required_hash: configured_at_runtime
+isolation:
+  silver_inputs:
+    - frozen_snapshot_discovery_views
+  forbidden_silver_inputs:
+    - discovery_a_output
+    - discovery_b_output
+    - discovery_c_output
+    - consolidation_output
+    - taxonomy_draft
+    - trial_assignments
+    - taxonomy_diagnostics
+    - historical_human_category_names
+  forbidden_discovery_inputs:
+    - silver_reference_taxonomy
+    - silver_eval_labels
+    - silver_disagreements
+    - silver_reports
+review_flow:
+  evaluator_a:
+    role: initial_labeler
+    duties: [create_taxonomy, select_eval_items, initial_label]
+  evaluator_b:
+    role: independent_reviewer
+    duties: [review_taxonomy, independently_label_every_item]
+  evaluator_c:
+    role: disagreement_adjudicator
+    duties: [read_only_a_b_disagreements, produce_final_silver_decision]
+  independence:
+    require_independent_contexts: true
+    require_independent_calls: true
+    require_different_input_orders: true
+    require_distinct_prompt_roles: true
+selection_targets:
+  high_evidence_clear: 16
+  high_evidence_cross_domain: 10
+  evidence_c: 6
+  boundary_or_confusing: 5
+  evidence_d_or_unavailable: 3
+  total: 40
+audit:
+  required_per_call_fields:
+    - evaluator_role
+    - model
+    - prompt_version
+    - parameters
+    - input_hash
+    - output_hash
+    - output_path
+    - status
+  append_only_versions: true
+  freeze_hashes: true
+metrics:
+  allowed:
+    - Silver Content-Type Agreement
+    - Silver Primary-Domain Agreement
+    - Silver Subdomain Acceptance
+    - Cross-run Taxonomy Stability
+    - Assignment Consistency
+    - Parent-Child Adequacy
+    - Sibling Coherence
+    - Granularity Balance
+    - Entity Leakage
+    - Coverage
+    - Rejection Distribution
+  forbidden_interpretations: [Gold Set, Ground Truth, true_accuracy]
+  human_satisfaction: not_evaluated
+  human_modification_rate: not_evaluated
