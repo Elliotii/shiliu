@@ -83,6 +83,37 @@ class ArtifactStore:
         self.write_text(markdown_path, render_summary_markdown(summary))
         return json_path, markdown_path
 
+    def save_generation_provenance(
+        self,
+        bvid: str,
+        artifact_kind: str,
+        metadata: dict[str, Any],
+        *,
+        revision: str | None = None,
+    ) -> Path:
+        if artifact_kind not in {"transcript", "summary"}:
+            raise ValueError("不支持的生成 Artifact 类型")
+        suffix = f".{revision}" if revision else ""
+        path = self.video_dir(bvid) / f"{artifact_kind}{suffix}.provenance.json"
+        self.write_json(path, metadata)
+        return path
+
+    def load_generation_provenance(
+        self, bvid: str, artifact_kind: str, *, revision: str | None = None
+    ) -> dict[str, Any]:
+        suffix = f".{revision}" if revision else ""
+        path = self.video_dir(bvid) / f"{artifact_kind}{suffix}.provenance.json"
+        if not path.exists():
+            return {
+                "provenance_status": "legacy_unknown",
+                "provider": "unknown",
+                "model": "unknown",
+                "prompt_version": "unknown",
+                "schema": "unknown",
+                "generated_at": None,
+            }
+        return json.loads(path.read_text(encoding="utf-8"))
+
     def load_transcript(self, bvid: str, *, revision: str | None = None) -> TranscriptResult:
         suffix = f".{revision}" if revision else ""
         path = self.video_dir(bvid) / f"transcript{suffix}.json"

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shiliu Silver disagreement row",
+  "type": "object",
+  "required": ["content_key", "dimensions", "evaluator_a", "evaluator_b", "evaluator_c", "adjudication_reason"],
+  "additionalProperties": false,
+  "properties": {
+    "content_key": {"type": "string"},
+    "dimensions": {"type": "array", "items": {"type": "string"}},
+    "evaluator_a": {"type": "object"},
+    "evaluator_b": {"type": "object"},
+    "evaluator_c": {"type": "object"},
+    "adjudication_reason": {"type": "string", "minLength": 1}
+  }
+}

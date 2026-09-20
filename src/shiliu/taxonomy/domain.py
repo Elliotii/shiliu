@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -102,6 +103,39 @@ class FrozenSnapshot(BaseModel):
     trial_assignment_only_count: int
     evidence_counts: dict[str, int]
     created_at: str
+
+
+class FacetEntityCandidate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1)
+    entity_type: Literal[
+        "model", "tool", "project", "framework", "paper", "person",
+        "organization", "concept", "unknown",
+    ]
+    evidence: str = Field(min_length=1)
+
+
+class FacetOutput(BaseModel):
+    """Fact-oriented semantic facets; never a published taxonomy assignment."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    content_id: str = Field(min_length=1)
+    main_subject: str = Field(min_length=1)
+    content_goal: str = Field(min_length=1)
+    technical_aspects: list[str] = Field(default_factory=list, max_length=10)
+    usage_context: list[str] = Field(default_factory=list, max_length=8)
+    candidate_topics: list[str] = Field(default_factory=list, max_length=8)
+    candidate_entities: list[FacetEntityCandidate] = Field(default_factory=list, max_length=12)
+    evidence_notes: list[str] = Field(default_factory=list, max_length=5)
+    ambiguity_notes: list[str] = Field(default_factory=list, max_length=5)
+
+
+class FacetBatchOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    facets: list[FacetOutput] = Field(min_length=1)
 
 
 def build_discovery_view(card: StoredClassificationCard) -> DiscoveryCardView:

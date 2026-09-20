@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 
 import httpx
@@ -141,6 +142,52 @@ def test_setup_has_independent_provider_connection_tool(app_paths) -> None:
         )
     assert response.status_code == 200
     assert response.json() == {"ok": True, "result": "OK"}
+
+
+def test_setup_separates_onboarding_and_localizes_source_management(
+    app_paths,
+) -> None:
+    application = Application(app_paths)
+    application.db.create_favorite_source(
+        folder_id=42,
+        folder_title="工程学习",
+        history_policy="latest_n",
+        history_limit=100,
+    )
+    client = TestClient(create_web_app(application))
+
+    first = client.get("/setup")
+    assert first.status_code == 200
+    assert "<title>拾流 · 设置</title>" in first.text
+    assert "<h1>设置</h1>" in first.text
+    assert '<details class="setup-onboarding" open>' in first.text
+    assert "<h2>字幕识别</h2>" in first.text
+    assert "<h2>收藏来源</h2>" in first.text
+    assert "公开收藏夹来源" not in first.text
+    for removed in (
+        "Source status",
+        "Continuous sync",
+        "Remote detected",
+        "History coverage",
+        "From now only",
+        "Expand / adjust history",
+        "favorite_time",
+    ):
+        assert removed not in first.text
+    for preserved in (
+        "data-source-sync",
+        "data-source-action",
+        "data-source-history",
+        "data-source-move",
+        "data-source-coverage",
+        "data-update-source-coverage",
+    ):
+        assert preserved in first.text
+
+    application.config = replace(application.config, baseline_confirmed=True)
+    configured = client.get("/setup")
+    assert '<details class="setup-onboarding" >' in configured.text
+    assert "已完成，可展开修改" in configured.text
 
 
 def test_setup_draft_saves_provider_fields_without_plaintext_key(app_paths) -> None:

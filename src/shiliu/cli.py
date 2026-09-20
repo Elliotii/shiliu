@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import sys
+import time
 from dataclasses import replace
 from pathlib import Path
 
@@ -13,6 +15,16 @@ from shiliu.db import Database
 from shiliu.domain import SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
+from shiliu.retrieval import (
+    ProductSearchError,
+    ProductSearchRequest,
+    SearchExecutionError,
+    SearchFilterRequest,
+    SearchRequest,
+)
+from shiliu.retrieval.dense import (
+    provider_identity,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,6 +39,180 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1", choices=["127.0.0.1"], help="V0 只允许本机监听")
     serve.add_argument("--port", type=int, default=18520)
     subcommands.add_parser("install-launchd", help="安装每小时同步任务")
+    retrieval = subcommands.add_parser("retrieval", help="管理 V3 本地词法检索索引")
+    retrieval_commands = retrieval.add_subparsers(
+        dest="retrieval_command", required=True
+    )
+    retrieval_commands.add_parser("rebuild", help="完整重建 FTS5 词法索引")
+    retrieval_commands.add_parser("stats", help="显示词法索引统计与一致性")
+    retrieval_commands.add_parser("dense-rebuild", help="构建或增量刷新 Dense 索引")
+    retrieval_commands.add_parser("dense-stats", help="显示 Dense 索引统计")
+    retrieval_sync_video = retrieval_commands.add_parser(
+        "sync-video", help="同步一个 Video 的词法和 Dense 索引"
+    )
+    retrieval_sync_video.add_argument("video_id", type=int)
+    retrieval_commands.add_parser("sync-status", help="显示 Retrieval 同步状态")
+    retrieval_commands.add_parser("retry-failed", help="重试失败或 stale 的 Video")
+    retrieval_commands.add_parser("reconcile", help="按当前 Product 状态协调全部 Video")
+    retrieval_search = retrieval_commands.add_parser("search", help="执行本地词法检索")
+    retrieval_search.add_argument("query")
+    retrieval_search.add_argument(
+        "--scope", "--level", dest="scope",
+        choices=("video", "transcript_chunk", "all"), default="all"
+    )
+    retrieval_search.add_argument("--top-k", type=int, default=20)
+    retrieval_search.add_argument(
+        "--mode", choices=("lexical", "dense", "hybrid", "auto"), default="lexical"
+    )
+    retrieval_search.add_argument("--trace", action="store_true")
+    retrieval_search.add_argument("--grouped", action="store_true")
+    retrieval_search.add_argument("--result-limit", type=int, default=10)
+    retrieval_search.add_argument("--max-windows", type=int, default=2)
+    retrieval_search.add_argument("--source-db-id", type=int)
+    retrieval_search.add_argument("--folder-id", type=int)
+    retrieval_search.add_argument("--favorite-time-from", type=int)
+    retrieval_search.add_argument("--favorite-time-to", type=int)
+    retrieval_search.add_argument(
+        "--reading-state", choices=("unread", "in_progress", "read")
+    )
+    retrieval_search.add_argument("--marked", choices=("true", "false"))
+    retrieval_search.add_argument("--uploader")
+    retrieval_search.add_argument("--archived", choices=("true", "false"))
+    retrieval_search.add_argument("--include-ignored", action="store_true")
+    taxonomy = subcommands.add_parser("taxonomy", help="运行可恢复的 V3 Taxonomy 工作流")
+    taxonomy_commands = taxonomy.add_subparsers(dest="taxonomy_command", required=True)
+    facet_spike = taxonomy_commands.add_parser("facet-spike", help="运行 10～20 条 Facet 小样本 Spike")
+    facet_spike.add_argument("--snapshot-id", type=int, required=True)
+    facet_spike.add_argument("--limit", type=int, default=12, choices=range(10, 21))
+    facet_spike.add_argument("--seed", type=int, default=42)
+    facet_spike.add_argument("--batch-size", type=int, default=4, choices=range(1, 6))
+    profile_spike = taxonomy_commands.add_parser(
+        "profile-spike", help="运行 Checkpoint 3.7A Classification Profile Spike"
+    )
+    profile_spike.add_argument("--snapshot-id", type=int, required=True)
+    profile_spike.add_argument("--limit", type=int, default=48, choices=range(1, 49))
+    profile_spike.add_argument("--seed", type=int, default=73)
+    profile_spike.add_argument("--batch-size", type=int, default=12, choices=range(1, 13))
+    profile_resume = taxonomy_commands.add_parser(
+        "profile-resume", help="恢复指定 Classification Profile Spike"
+    )
+    profile_resume.add_argument("run_id")
+    profile_materialize = taxonomy_commands.add_parser(
+        "profile-materialize", help="复用已验收 Profile 并补齐 Snapshot 全量语义表示"
+    )
+    profile_materialize.add_argument("--snapshot-id", type=int, required=True)
+    profile_materialize.add_argument("--reuse-run-id", required=True)
+    profile_materialize.add_argument("--seed", type=int, default=73)
+    profile_materialize.add_argument(
+        "--batch-size", type=int, default=12, choices=range(1, 13)
+    )
+    profile_compare_resume = taxonomy_commands.add_parser(
+        "profile-compare-resume", help="只读恢复或重算已冻结的 Checkpoint 3.7B 审计"
+    )
+    profile_compare_resume.add_argument("comparison_id")
+    discovery_spike = taxonomy_commands.add_parser(
+        "discovery-spike", help="运行紧凑视图、分批候选发现和试分类 Spike"
+    )
+    discovery_spike.add_argument("--snapshot-id", type=int, required=True)
+    discovery_spike.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    discovery_spike.add_argument("--seed", type=int, default=73)
+    discovery_spike.add_argument("--limit", type=int)
+    discovery_spike.add_argument("--skip-assignment", action="store_true")
+    create_taxonomy_run = taxonomy_commands.add_parser(
+        "create-run", help="创建数据库持久化的 Taxonomy Run"
+    )
+    create_taxonomy_run.add_argument("--snapshot-id", type=int, required=True)
+    create_taxonomy_run.add_argument("--kind", default="regression")
+    create_taxonomy_run.add_argument("--seed", type=int, default=73)
+    create_taxonomy_run.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    create_taxonomy_run.add_argument("--limit", type=int, default=48)
+    create_taxonomy_run.add_argument(
+        "--discovery-only", action="store_true", help=argparse.SUPPRESS
+    )
+    dual_view_regression = taxonomy_commands.add_parser(
+        "create-dual-view-regression",
+        help="创建冻结 48 条输入的双视图集成回归 Run",
+    )
+    dual_view_regression.add_argument("--snapshot-id", type=int, required=True)
+    dual_view_regression.add_argument("--profile-run-id", required=True)
+    dual_view_regression.add_argument("--seed", type=int, default=73)
+    dual_view_regression.add_argument(
+        "--batch-size", type=int, default=24, choices=range(20, 33)
+    )
+    full_run_a = taxonomy_commands.add_parser(
+        "create-full-run-a", help="冻结并创建 Snapshot #2 Full Discovery Run A"
+    )
+    full_run_a.add_argument("--snapshot-id", type=int, default=2)
+    full_run_a.add_argument("--profile-run-id", required=True)
+    full_run_a.add_argument("--seed", type=int, default=101)
+    full_run_a.add_argument("--batch-size", type=int, default=24, choices=range(20, 33))
+    full_run_a.add_argument("--reuse-from-run-id", type=int)
+    full_run_a.add_argument("--reuse-content-type-consolidation-from-run-id", type=int)
+    content_type_purity = taxonomy_commands.add_parser(
+        "create-content-type-purity-run",
+        help="创建 Checkpoint 3.9 Content Type 语义净化派生 Run",
+    )
+    content_type_purity.add_argument("--source-run-id", type=int, default=12)
+    content_type_second_layer = taxonomy_commands.add_parser(
+        "create-content-type-second-layer-run",
+        help="创建 Checkpoint 3.9 唯一一次 Local Content Type 第二层修复 Run",
+    )
+    content_type_second_layer.add_argument("--source-run-id", type=int, default=12)
+    content_type_second_layer.add_argument(
+        "--first-layer-run-id", type=int, default=13
+    )
+    faceted_spike = taxonomy_commands.add_parser(
+        "create-faceted-spike",
+        help="创建 Checkpoint 3.10 四分面元数据小样本 Run",
+    )
+    faceted_spike.add_argument("--snapshot-id", type=int, default=2)
+    faceted_spike.add_argument("--domain-run-id", type=int, default=12)
+    faceted_spike.add_argument("--candidate-run-id", type=int, default=14)
+    faceted_spike.add_argument("--sample-profile-run-id", required=True)
+    faceted_spike.add_argument("--recovery-source-run-id", type=int)
+    hybrid_facets = taxonomy_commands.add_parser(
+        "create-hybrid-facets-spike",
+        help="创建 Checkpoint 3.11 混合受控分面 48 条验证 Run",
+    )
+    hybrid_facets.add_argument("--snapshot-id", type=int, default=2)
+    hybrid_facets.add_argument("--domain-run-id", type=int, default=12)
+    hybrid_facets.add_argument("--sample-profile-run-id", required=True)
+    completion = taxonomy_commands.add_parser(
+        "create-controlled-facets-completion",
+        help="创建 Checkpoint 3.11B 受控分面补全派生 Run",
+    )
+    completion.add_argument("--source-run-id", type=int, default=20)
+    domain_stability = taxonomy_commands.add_parser(
+        "create-domain-stability-run",
+        help="创建 Checkpoint 3.12 可比较的 Domain Run B/C",
+    )
+    domain_stability.add_argument("--source-run-id", type=int, default=12)
+    domain_stability.add_argument("--label", choices=("B", "C"), required=True)
+    domain_stability.add_argument("--seed", type=int, required=True)
+    domain_merge = taxonomy_commands.add_parser(
+        "create-domain-cross-run-merge",
+        help="创建 Checkpoint 3.12 Cross-run Merge 与 Draft A Run",
+    )
+    domain_merge.add_argument("--run-a-id", type=int, default=12)
+    domain_merge.add_argument("--run-b-id", type=int, required=True)
+    domain_merge.add_argument("--run-c-id", type=int, required=True)
+    domain_c1 = taxonomy_commands.add_parser(
+        "create-domain-c1", help="创建 Checkpoint 3.12D 两阶段 Domain Run C1",
+    )
+    domain_c1.add_argument("--source-run-id", type=int, default=12)
+    domain_c1.add_argument("--seed", type=int, default=303, choices=(303,))
+    domain_completion = taxonomy_commands.add_parser(
+        "create-domain-completion", help="创建 V3 Domain Completion Mission Run",
+    )
+    domain_completion.add_argument("--run-a-id", type=int, default=12)
+    domain_completion.add_argument("--run-b-id", type=int, default=22)
+    domain_completion.add_argument("--run-c1-id", type=int, default=23)
+    taxonomy_run = taxonomy_commands.add_parser("run", help="执行指定 Taxonomy Run")
+    taxonomy_run.add_argument("run_id", type=int)
+    taxonomy_resume = taxonomy_commands.add_parser("resume", help="恢复指定 Taxonomy Run")
+    taxonomy_resume.add_argument("run_id", type=int)
+    taxonomy_status = taxonomy_commands.add_parser("status", help="查看 Taxonomy Run 状态")
+    taxonomy_status.add_argument("run_id", type=int)
     return parser
 
 
@@ -51,6 +237,357 @@ def main(argv: list[str] | None = None) -> int:
         app = Application()
         destination = install_launch_agent(app.paths)
         print(destination)
+        return 0
+    if arguments.command == "retrieval":
+        app = Application()
+        if arguments.retrieval_command == "rebuild":
+            print(json.dumps(app.retrieval.rebuild().as_dict(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "stats":
+            print(json.dumps(app.retrieval.statistics(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "dense-rebuild":
+            payload = app.dense_retrieval.rebuild().as_dict()
+            reconciliation = app.retrieval_coordinator.reconcile_all(
+                trigger="cli_dense_rebuild"
+            )
+            payload["reconciliation"] = reconciliation.as_dict()
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0 if reconciliation.failed == 0 else 1
+        if arguments.retrieval_command == "dense-stats":
+            print(json.dumps(app.dense_retrieval.statistics(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "sync-video":
+            started = time.monotonic()
+            result = app.retrieval_coordinator.sync_video(
+                arguments.video_id, trigger="cli_sync_video"
+            )
+            payload = result.as_dict()
+            payload.update(
+                lexical_index_version="v3-stage1-lexical-v1",
+                dense_index_version=provider_identity(
+                    app.dense_retrieval.provider
+                ).dense_index_version,
+                duration_seconds=round(time.monotonic() - started, 6),
+            )
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0 if result.success else 1
+        if arguments.retrieval_command == "sync-status":
+            print(json.dumps(app.retrieval_coordinator.status(), ensure_ascii=False, indent=2))
+            return 0
+        if arguments.retrieval_command == "retry-failed":
+            result = app.retrieval_coordinator.retry_failed()
+            print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2))
+            return 0 if result.failed == 0 else 1
+        if arguments.retrieval_command == "reconcile":
+            started = time.monotonic()
+            result = app.retrieval_coordinator.reconcile_all(trigger="cli_reconcile")
+            payload = result.as_dict()
+            payload["duration_seconds"] = round(time.monotonic() - started, 6)
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0 if result.failed == 0 else 1
+        try:
+            filters = SearchFilterRequest(
+                source_db_id=arguments.source_db_id,
+                folder_id=arguments.folder_id,
+                favorite_time_from=arguments.favorite_time_from,
+                favorite_time_to=arguments.favorite_time_to,
+                reading_state=arguments.reading_state,
+                marked=_cli_bool(arguments.marked),
+                uploader=arguments.uploader,
+                archived=_cli_bool(arguments.archived),
+                ignored=arguments.include_ignored,
+            )
+            if arguments.grouped:
+                request = ProductSearchRequest(
+                    query=arguments.query,
+                    mode=arguments.mode,
+                    scope=arguments.scope,
+                    result_limit=arguments.result_limit,
+                    max_windows_per_video=arguments.max_windows,
+                    filters=filters,
+                )
+                response = app.product_search.search(request)
+            else:
+                request = SearchRequest(
+                    query=arguments.query, mode=arguments.mode, scope=arguments.scope,
+                    raw_top_k=arguments.top_k, filters=filters,
+                )
+                response = app.search_orchestrator.search(request)
+        except ValueError as exc:
+            print(
+                json.dumps(
+                    {"ok": False, "error": {"code": "invalid_search_request", "message": str(exc)}},
+                    ensure_ascii=False,
+                ),
+                file=sys.stderr,
+            )
+            return 2
+        except SearchExecutionError as exc:
+            print(
+                json.dumps({"ok": False, "error": exc.as_dict()}, ensure_ascii=False),
+                file=sys.stderr,
+            )
+            return 2
+        except ProductSearchError as exc:
+            print(
+                json.dumps({"ok": False, "error": exc.as_dict()}, ensure_ascii=False),
+                file=sys.stderr,
+            )
+            return 2
+        payload = response.as_dict()
+        if arguments.trace:
+            raw_trace = app.search_orchestrator.get_trace(response.trace_id)
+            payload["trace"] = raw_trace
+            if arguments.grouped:
+                payload["presentation"] = app.product_search.get_presentation(
+                    response.trace_id
+                )
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "facet-spike":
+        app = Application()
+        result = app.taxonomy_facets.run_spike(
+            arguments.snapshot_id,
+            limit=arguments.limit,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-spike":
+        app = Application()
+        result = app.taxonomy_profiles.run_spike(
+            arguments.snapshot_id,
+            limit=arguments.limit,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-resume":
+        app = Application()
+        result = app.taxonomy_profiles.resume_spike(arguments.run_id)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-materialize":
+        app = Application()
+        result = app.taxonomy_profiles.materialize_snapshot(
+            arguments.snapshot_id,
+            reuse_run_id=arguments.reuse_run_id,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "profile-compare-resume"
+    ):
+        app = Application()
+        result = app.taxonomy_profile_comparison.resume(arguments.comparison_id)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-domain-stability-run"
+    ):
+        app = Application()
+        run_id = app.taxonomy_domain_stability.create_domain_run(
+            source_run_id=arguments.source_run_id,
+            run_label=arguments.label,
+            seed=arguments.seed,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-domain-cross-run-merge"
+    ):
+        app = Application()
+        run_id = app.taxonomy_domain_stability.create_merge_run(
+            run_a_id=arguments.run_a_id,
+            run_b_id=arguments.run_b_id,
+            run_c_id=arguments.run_c_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-domain-c1":
+        app = Application()
+        run_id = app.taxonomy_domain_consolidation_v2.create_run_c1(
+            source_run_id=arguments.source_run_id, seed=arguments.seed,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-domain-completion"
+    ):
+        app = Application()
+        run_id = app.taxonomy_domain_completion.create(
+            run_a_id=arguments.run_a_id,
+            run_b_id=arguments.run_b_id,
+            run_c1_id=arguments.run_c1_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "discovery-spike":
+        app = Application()
+        result = app.taxonomy_discovery_spikes.run_spike(
+            arguments.snapshot_id,
+            batch_size=arguments.batch_size,
+            seed=arguments.seed,
+            limit=arguments.limit,
+            include_assignment=not arguments.skip_assignment,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-run":
+        app = Application()
+        run_id = app.taxonomy_workflow.create_run(
+            snapshot_id=arguments.snapshot_id,
+            run_kind=arguments.kind,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+            limit=arguments.limit,
+            include_assignment=False,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-dual-view-regression"
+    ):
+        app = Application()
+        run_id = app.taxonomy_workflow.create_dual_view_regression(
+            snapshot_id=arguments.snapshot_id,
+            profile_run_id=arguments.profile_run_id,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-full-run-a":
+        app = Application()
+        run_id = app.taxonomy_workflow.create_full_discovery_run_a(
+            snapshot_id=arguments.snapshot_id,
+            profile_run_id=arguments.profile_run_id,
+            seed=arguments.seed,
+            batch_size=arguments.batch_size,
+            reuse_from_run_id=arguments.reuse_from_run_id,
+            reuse_content_type_consolidation_from_run_id=(
+                arguments.reuse_content_type_consolidation_from_run_id
+            ),
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-content-type-purity-run"
+    ):
+        app = Application()
+        run_id = app.taxonomy_workflow.create_content_type_purity_run(
+            source_run_id=arguments.source_run_id
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-content-type-second-layer-run"
+    ):
+        app = Application()
+        run_id = app.taxonomy_workflow.create_content_type_second_layer_run(
+            source_run_id=arguments.source_run_id,
+            first_layer_run_id=arguments.first_layer_run_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-faceted-spike"
+    ):
+        app = Application()
+        run_id = app.taxonomy_faceted_metadata.create_spike(
+            snapshot_id=arguments.snapshot_id,
+            domain_run_id=arguments.domain_run_id,
+            candidate_run_id=arguments.candidate_run_id,
+            sample_profile_run_id=arguments.sample_profile_run_id,
+            recovery_source_run_id=arguments.recovery_source_run_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-hybrid-facets-spike"
+    ):
+        app = Application()
+        run_id = app.taxonomy_controlled_facets.create_spike(
+            snapshot_id=arguments.snapshot_id,
+            domain_run_id=arguments.domain_run_id,
+            sample_profile_run_id=arguments.sample_profile_run_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if (
+        arguments.command == "taxonomy"
+        and arguments.taxonomy_command == "create-controlled-facets-completion"
+    ):
+        app = Application()
+        run_id = app.taxonomy_controlled_facet_completion.create_completion(
+            source_run_id=arguments.source_run_id,
+        )
+        print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
+        return 0
+    if arguments.command == "taxonomy" and arguments.taxonomy_command in {
+        "run", "resume", "status"
+    }:
+        app = Application()
+        run = app.taxonomy_run_repository.get_run(arguments.run_id)
+        is_faceted = bool(run and run.get("run_kind") == "faceted_metadata_spike")
+        is_controlled = bool(
+            run and run.get("run_kind") == "hybrid_controlled_facets_spike"
+        )
+        is_completion = bool(
+            run and run.get("run_kind") == "hybrid_controlled_facets_completion"
+        )
+        is_domain_stability = bool(
+            run
+            and run.get("run_kind") in {
+                "domain_stability_discovery",
+                "domain_cross_run_merge",
+            }
+        )
+        is_domain_c1 = bool(run and run.get("run_kind") == "domain_consolidation_v2")
+        is_domain_completion = bool(run and run.get("run_kind") == "domain_completion")
+        service = (
+            app.taxonomy_domain_completion
+            if is_domain_completion
+            else app.taxonomy_domain_consolidation_v2
+            if is_domain_c1
+            else app.taxonomy_domain_stability
+            if is_domain_stability
+            else app.taxonomy_controlled_facet_completion
+            if is_completion
+            else app.taxonomy_controlled_facets
+            if is_controlled
+            else app.taxonomy_faceted_metadata
+            if is_faceted
+            else app.taxonomy_workflow
+        )
+        if arguments.taxonomy_command == "status":
+            result = service.status(arguments.run_id)
+        else:
+            if run and run.get("run_kind") == "domain_cross_run_merge":
+                result = app.taxonomy_domain_stability.execute_merge(
+                    arguments.run_id,
+                    resume=arguments.taxonomy_command == "resume",
+                )
+            else:
+                result = service.execute(
+                    arguments.run_id,
+                    resume=arguments.taxonomy_command == "resume",
+                )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     return 2
 
@@ -92,6 +629,9 @@ def run_setup() -> int:
         favorite_title=str(selected.get("title", "")),
         llm_base_url=base_url.rstrip("/"),
         llm_model=model,
+        ingestion_model=model,
+        interactive_model=model,
+        taxonomy_model=model,
         baseline_confirmed=True,
     )
     resolved = save_config(config, paths)
@@ -105,6 +645,12 @@ def run_setup() -> int:
         save_config(config, paths)
         print("launchd 已安装；当前已临时取消静默时段，历史积压和自动处理均可全天运行。")
     return 0
+
+
+def _cli_bool(value: str | None) -> bool | None:
+    if value is None:
+        return None
+    return value == "true"
 
 
 if __name__ == "__main__":
