@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from eval import freeze_reference
+from eval import freeze_silver_reference
 from shiliu.app import Application
 from shiliu.db import Database, SCHEMA_VERSION
 from shiliu.domain import EntityItem, FavoriteItem, SummaryResult
@@ -50,7 +50,9 @@ def build_evidence_fixture(application: Application) -> tuple[int, dict[str, int
         account_name="测试账号",
         history_policy="all",
     )
-    application.db.initialize_source_memberships(source_id, [item(1), item(2), item(3), item(4)])
+    application.db.initialize_source_memberships(
+        source_id, [item(1), item(2), item(3), item(4)], authoritative=True
+    )
     video_ids: dict[str, int] = {}
     for index, level in ((1, "A"), (2, "B"), (3, "C")):
         video_ids[level] = application.db.materialize_history_membership(
@@ -73,7 +75,7 @@ def test_schema_v6_adds_only_four_taxonomy_tables(app_paths) -> None:
                 "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'taxonomy_%'"
             ).fetchall()
         }
-    assert SCHEMA_VERSION == 6
+    assert SCHEMA_VERSION == 17
     assert tables == {
         "taxonomy_corpus_snapshots",
         "taxonomy_classification_cards",
@@ -117,7 +119,7 @@ def test_duplicate_memberships_merge_and_removed_content_is_excluded(app_paths) 
     first = application.db.create_favorite_source(folder_id=1, folder_title="第一夹")
     second = application.db.create_favorite_source(folder_id=2, folder_title="第二夹")
     application.db.record_source_snapshot(first, [item(1), item(2)], processing_profile="formal")
-    application.db.initialize_source_memberships(second, [item(1)])
+    application.db.initialize_source_memberships(second, [item(1)], authoritative=True)
 
     preview = application.taxonomy_corpus.preview([first, second])
     assert preview.membership_count == 3
@@ -126,7 +128,9 @@ def test_duplicate_memberships_merge_and_removed_content_is_excluded(app_paths) 
     duplicate = next(card for card in preview.cards if card.content_key.endswith(f"{item(1).bvid}:p1"))
     assert duplicate.stored_card.folder_names == ["第一夹", "第二夹"]
 
-    application.db.record_source_snapshot(first, [item(1)], processing_profile="formal")
+    application.db.record_source_snapshot(
+        first, [item(1)], processing_profile="formal", authoritative=True
+    )
     after_removal = application.taxonomy_corpus.preview([first])
     assert after_removal.total_cards == 1
     assert all(item(2).bvid not in card.content_key for card in after_removal.cards)
@@ -188,7 +192,7 @@ def test_empty_snapshot_is_rejected(app_paths) -> None:
 def test_paused_source_can_freeze_without_resuming_sync(app_paths) -> None:
     application = Application(app_paths)
     source_id = application.db.create_favorite_source(folder_id=1, folder_title="暂停来源")
-    application.db.initialize_source_memberships(source_id, [item(1)])
+    application.db.initialize_source_memberships(source_id, [item(1)], authoritative=True)
     application.db.set_source_status(source_id, "paused")
 
     assert [source["id"] for source in application.taxonomy_corpus.repository.selectable_sources()] == [source_id]
@@ -236,25 +240,69 @@ def test_runtime_package_has_no_eval_dependency() -> None:
         assert "private_reference" not in source
 
 
-def test_reference_freeze_is_human_confirmed_hashed_and_append_only(tmp_path, monkeypatch) -> None:
+def test_silver_reference_freeze_is_hashed_and_append_only(tmp_path, monkeypatch) -> None:
     private = tmp_path / "private"
-    monkeypatch.setattr(freeze_reference, "PRIVATE_DIR", private)
+    monkeypatch.setattr(freeze_silver_reference, "PRIVATE_DIR", private)
     taxonomy = tmp_path / "taxonomy.yaml"
     taxonomy.write_text(
-        json.dumps({"version": "v1", "content_types": [{"name": "人工类型"}], "domains": []}),
+        json.dumps(
+            {
+                "version": "v1",
+                "reference_kind": "silver",
+                "content_types": [{"name": "独立评测类型"}],
+                "domains": [],
+            }
+        ),
         encoding="utf-8",
     )
-    gold = tmp_path / "gold.jsonl"
-    gold.write_text(
+    eval_set = tmp_path / "silver.jsonl"
+    eval_set.write_text(
         "\n".join(
-            json.dumps({"content_key": f"bilibili:BV{index:010d}:p1", "review_status": "human_confirmed"})
+            json.dumps(
+                {
+                    "content_key": f"bilibili:BV{index:010d}:p1",
+                    "selection_bucket": "high_evidence_clear",
+                    "selection_reason": "独立评测选择",
+                    "silver_agreement": "agreed",
+                }
+            )
             for index in range(40)
         ) + "\n",
         encoding="utf-8",
     )
-    manifest = freeze_reference.freeze(taxonomy, gold, "v1")
-    assert manifest["human_confirmed"] is True
-    assert len(manifest["reference_taxonomy"]["sha256"]) == 64
-    assert len(manifest["gold_eval_set"]["sha256"]) == 64
+    disagreements = tmp_path / "disagreements.jsonl"
+    disagreements.write_text("", encoding="utf-8")
+    calls = tmp_path / "calls.jsonl"
+    calls.write_text(
+        "\n".join(
+            json.dumps(
+                {
+                    "evaluator_role": role,
+                    "status": "completed",
+                    "model": "model",
+                    "prompt_version": "v1",
+                    "parameters": {},
+                    "input_hash": "a" * 64,
+                    "output_hash": "b" * 64,
+                    "output_path": f"{role}.json",
+                }
+            )
+            for role in ("evaluator_a", "evaluator_b", "evaluator_c")
+        ) + "\n",
+        encoding="utf-8",
+    )
+    arguments = {
+        "taxonomy": taxonomy,
+        "eval_set": eval_set,
+        "disagreements": disagreements,
+        "calls": calls,
+        "version": "v1",
+        "snapshot_id": 2,
+        "snapshot_hash": "1" * 64,
+    }
+    manifest = freeze_silver_reference.freeze(**arguments)
+    assert manifest["reference_kind"] == "silver"
+    assert manifest["evaluation_semantics"]["true_accuracy"] == "not_claimed"
+    assert len(manifest["artifacts"]["silver_reference_taxonomy"]["sha256"]) == 64
     with pytest.raises(FileExistsError):
-        freeze_reference.freeze(taxonomy, gold, "v1")
+        freeze_silver_reference.freeze(**arguments)

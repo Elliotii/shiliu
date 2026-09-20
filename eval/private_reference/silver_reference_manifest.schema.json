@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shiliu Frozen Silver Reference Manifest",
+  "type": "object",
+  "required": ["version", "reference_kind", "snapshot_id", "snapshot_hash", "frozen_at", "artifacts", "counts", "evaluation_semantics"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"type": "string"},
+    "reference_kind": {"const": "silver"},
+    "snapshot_id": {"type": "integer"},
+    "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "frozen_at": {"type": "string"},
+    "artifacts": {"type": "object"},
+    "counts": {"type": "object"},
+    "evaluation_semantics": {
+      "type": "object",
+      "required": ["true_accuracy", "human_satisfaction", "human_modification_rate"]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shiliu Silver Reference Taxonomy",
+  "type": "object",
+  "required": ["version", "reference_kind", "content_types", "domains"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"type": "string", "pattern": "^v[0-9]+$"},
+    "reference_kind": {"const": "silver"},
+    "content_types": {"type": "array", "items": {"$ref": "#/$defs/node"}},
+    "domains": {"type": "array", "items": {"$ref": "#/$defs/domain"}}
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["id", "name", "definition", "includes", "excludes", "example_content_ids"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "definition": {"type": "string", "minLength": 1},
+        "includes": {"type": "array", "items": {"type": "string"}},
+        "excludes": {"type": "array", "items": {"type": "string"}},
+        "example_content_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "domain": {
+      "allOf": [
+        {"$ref": "#/$defs/node"},
+        {
+          "type": "object",
+          "required": ["children"],
+          "properties": {
+            "children": {"type": "array", "items": {"$ref": "#/$defs/node"}}
+          }
+        }
+      ]
+    }
+  }
+}

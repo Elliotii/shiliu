@@ -37,6 +37,10 @@ class ASRProvider(Protocol):
     def fetch_result(self, result_url: str) -> dict[str, Any]: ...
 
 
+class _IndexCoordinator(Protocol):
+    def safe_sync_video(self, video_id: int, *, trigger: str) -> object: ...
+
+
 class ParaformerProvider:
     name = "dashscope"
 
@@ -183,11 +187,13 @@ class ASRService:
         adapter: BilibiliAdapter,
         artifacts: ArtifactStore,
         provider: ASRProvider,
+        index_coordinator: _IndexCoordinator | None = None,
     ) -> None:
         self.db = db
         self.adapter = adapter
         self.artifacts = artifacts
         self.provider = provider
+        self.index_coordinator = index_coordinator
 
     def acquire(
         self,
@@ -320,6 +326,10 @@ class ASRService:
             error_code=None,
             error_message=None,
         )
+        if self.index_coordinator is not None:
+            self.index_coordinator.safe_sync_video(
+                video_id, trigger="asr_subtitle_completed"
+            )
 
     def _record_failure(
         self,

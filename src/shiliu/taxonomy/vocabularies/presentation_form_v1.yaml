@@ -1,0 +1,17 @@
+{
+  "vocabulary": "presentation_form",
+  "version": "presentation_form_v1",
+  "terms": [
+    {"id":"PF01","canonical_name":"教程操作","definition":"按步骤指导用户完成操作、配置、实现或练习。","includes":["操作教程","使用教程","实操步骤","配置指南","跟随式实现"],"excludes":["只展示结果而没有完整步骤","只介绍工具能力","只解释原理"],"aliases":["步骤教程","操作教程","使用指南","实操教程","教程与指南"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF02","canonical_name":"演示展示","definition":"以展示项目、产品、功能、效果或运行结果为主。","includes":["Demo","功能展示","项目展示","效果展示"],"excludes":["以逐步教学为主","以系统评测为主"],"aliases":["演示","Demo 展示","效果演示"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF03","canonical_name":"介绍概览","definition":"帮助用户快速了解某对象是什么、能做什么及其主要范围。","includes":["工具介绍","项目介绍","快速概览","功能概览"],"excludes":["深入机制分析","系统比较","完整操作教程"],"aliases":["介绍","概览","快速介绍"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF04","canonical_name":"原理解析","definition":"解释机制、架构、实现原理、源码逻辑或因果关系。","includes":["原理解析","深度解读","机制分析","源码解析","架构分析"],"excludes":["只介绍对象","只给操作步骤","主要表达个人观点"],"aliases":["深度解读","机制解析","源码分析"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF05","canonical_name":"评测对比","definition":"依据一定标准评价一个或多个选项，或比较其差异和适用条件。","includes":["测评","横向对比","工具对比","方案比较","使用体验评估"],"excludes":["没有评价标准的简单介绍","单纯推荐清单"],"aliases":["测评","对比评测","横向比较"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF06","canonical_name":"案例复盘","definition":"围绕真实项目、案例、过程或结果进行回顾和总结。","includes":["项目复盘","案例分析","实战复盘","失败复盘","开发过程回顾"],"excludes":["没有具体案例的通用建议","纯操作教程"],"aliases":["项目复盘","实战复盘","案例回顾"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF07","canonical_name":"经验建议","definition":"基于经历、实践或观察提供经验、心得、建议或避坑信息。","includes":["经验分享","心得","建议","避坑","学习或求职经验"],"excludes":["主要围绕一个具体项目过程的复盘","主要进行观点论证"],"aliases":["经验分享","心得建议","避坑指南"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF08","canonical_name":"观点评论","definition":"以提出、论证、评价或反驳观点为主要表达方式。","includes":["观点评论","趋势判断","批评","立场分析","讨论"],"excludes":["事实更新","基于标准的产品评测","单纯经验分享"],"aliases":["评论","观点分析","趋势判断"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF09","canonical_name":"资讯更新","definition":"以传递近期事件、发布、变化或行业动态为主。","includes":["新闻","快讯","版本发布","行业更新","事件回顾"],"excludes":["以深入观点或原理分析为主"],"aliases":["快讯","新闻更新","行业动态"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF10","canonical_name":"访谈对话","definition":"通过访谈、对话、问答、圆桌或多人讨论组织内容。","includes":["访谈","对谈","圆桌","问答","播客式交流"],"excludes":["单人连续讲授","无对话结构的观点评论"],"aliases":["访谈","对谈","圆桌讨论"],"status":"active","version":"presentation_form_v1"},
+    {"id":"PF11","canonical_name":"系统讲授","definition":"按照课程、章节或知识体系进行结构化、连续性的讲授。","includes":["课程讲解","讲座","系列课程","知识体系梳理","课程大纲解读"],"excludes":["单点原理解析","单项操作教程","简单资源介绍"],"aliases":["课程讲授","系列讲解","体系化讲授"],"status":"active","version":"presentation_form_v1"}
+  ]
+}

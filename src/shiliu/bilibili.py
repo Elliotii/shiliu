@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from shiliu.domain import FavoriteItem, FavoriteSourcePreview, PipelineError, VideoBundle
+from shiliu.domain import FavoriteItem, FavoriteScan, FavoriteSourcePreview, PipelineError, VideoBundle
 
 
 class BilibiliAdapter:
@@ -35,34 +35,75 @@ class BilibiliAdapter:
         return [item for item in data if isinstance(item, dict)]
 
     def list_favorite_items(self, favorite_id: int) -> list[FavoriteItem]:
+        scan = self.list_favorite_scan(favorite_id)
+        if not scan.is_complete:
+            raise PipelineError(
+                "收藏夹分页结果不完整，已拒绝作为权威快照",
+                code="incomplete_snapshot",
+                retryable=True,
+            )
+        return scan.items
+
+    def list_favorite_scan(self, favorite_id: int) -> FavoriteScan:
+        data = self._run_bridge(
+            ["favorites-scan", str(favorite_id)],
+            timeout_seconds=max(self.timeout_seconds, 900),
+        )
+        if not isinstance(data, dict):
+            raise PipelineError("收藏夹分页返回格式无效", code="upstream_schema", retryable=True)
         items: list[FavoriteItem] = []
-        page = 1
-        while True:
-            data = self._run_bridge(["favorites-page", str(favorite_id), str(page)])
-            if not isinstance(data, dict):
-                raise PipelineError("收藏夹页面返回格式无效", code="upstream_schema", retryable=True)
-            for raw in data.get("items", []) or []:
-                if not isinstance(raw, dict) or not raw.get("bvid"):
-                    continue
-                upper = raw.get("upper") or {}
-                uploader = upper.get("name", "") if isinstance(upper, dict) else str(upper)
-                items.append(
-                    FavoriteItem(
-                        bvid=str(raw["bvid"]),
-                        title=str(raw.get("title", "")),
-                        uploader=str(uploader),
-                        duration_seconds=_duration_seconds(
-                            raw.get("duration_seconds", raw.get("duration", 0))
-                        ),
-                        favorite_time=_int_or_none(raw.get("fav_time") or raw.get("favorite_time")),
-                    )
+        remote_total = _int_or_none(data.get("remote_total"))
+        raw_item_count = 0
+        invalid_item_count = 0
+        duplicate_item_count = 0
+        seen_bvids: set[str] = set()
+        for raw in data.get("items", []) or []:
+            raw_item_count += 1
+            if not isinstance(raw, dict) or not raw.get("bvid"):
+                invalid_item_count += 1
+                continue
+            bvid = str(raw["bvid"])
+            if bvid in seen_bvids:
+                duplicate_item_count += 1
+                continue
+            seen_bvids.add(bvid)
+            upper = raw.get("upper") or {}
+            uploader = upper.get("name", "") if isinstance(upper, dict) else str(upper)
+            items.append(
+                FavoriteItem(
+                    bvid=bvid,
+                    title=str(raw.get("title", "")),
+                    uploader=str(uploader),
+                    duration_seconds=_duration_seconds(
+                        raw.get("duration_seconds", raw.get("duration", 0))
+                    ),
+                    favorite_time=_int_or_none(
+                        raw.get("fav_time") or raw.get("favorite_time")
+                    ),
                 )
-            if not bool(data.get("has_more")):
-                break
-            page += 1
-            if page > 500:
-                raise PipelineError("收藏夹分页超过安全上限", code="pagination_limit", retryable=False)
-        return items
+            )
+        pages_fetched = max(1, int(data.get("pages_fetched") or 1))
+        pagination_complete = bool(data.get("pagination_complete"))
+        count_not_overrun = remote_total is None or raw_item_count <= remote_total
+        unavailable_remote_count = (
+            max(0, remote_total - raw_item_count) if remote_total is not None else 0
+        )
+        return FavoriteScan(
+            items=items,
+            remote_total=remote_total,
+            is_complete=(
+                pagination_complete
+                and invalid_item_count == 0
+                and duplicate_item_count == 0
+                and count_not_overrun
+            ),
+            pagination_complete=pagination_complete,
+            pages_fetched=pages_fetched,
+            raw_item_count=raw_item_count,
+            invalid_item_count=invalid_item_count,
+            duplicate_item_count=duplicate_item_count,
+            unavailable_remote_count=unavailable_remote_count,
+        )
 
     def preview_favorite_url(self, url: str) -> FavoriteSourcePreview:
         parsed = urlparse(url.strip())
@@ -130,7 +171,9 @@ class BilibiliAdapter:
         if result.returncode != 0 or not payload.get("ok"):
             error = payload.get("error", {}) if isinstance(payload, dict) else {}
             code = str(error.get("code", "upstream_error"))
-            message = str(error.get("message", result.stderr.strip() or "B 站读取失败"))
+            message = _bounded_error_message(
+                str(error.get("message", result.stderr.strip() or "B 站读取失败"))
+            )
             raise PipelineError(
                 message,
                 code=code,
@@ -207,6 +250,11 @@ def _parse_json_output(output: str) -> dict[str, Any]:
     except json.JSONDecodeError as exc:
         raise PipelineError("上游命令没有返回合法 JSON", code="upstream_schema", retryable=True) from exc
     return value if isinstance(value, dict) else {"data": value}
+
+
+def _bounded_error_message(value: str, limit: int = 600) -> str:
+    compact = " ".join(value.split())
+    return compact if len(compact) <= limit else compact[: limit - 1] + "…"
 
 
 def _int_or_none(value: object) -> int | None:

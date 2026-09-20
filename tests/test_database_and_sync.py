@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
+import pytest
+
 from shiliu.db import Database
-from shiliu.domain import FavoriteItem, SyncMode
+from shiliu.domain import FavoriteItem, PipelineError, SyncMode
 from shiliu.sync import QUIET_HOURS_ENABLED, SyncService, is_quiet_hour
 
 
@@ -113,6 +115,57 @@ def test_quiet_hour_boundaries() -> None:
     assert is_quiet_hour(datetime(2026, 1, 1, 5, 0)) is True
     assert is_quiet_hour(datetime(2026, 1, 1, 11, 59)) is True
     assert is_quiet_hour(datetime(2026, 1, 1, 12, 0)) is False
+
+
+def test_existing_unavailable_source_does_not_fall_back_to_legacy_sync(app_paths) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    source_id = db.create_favorite_source(folder_id=42, folder_title="暂不可用")
+    db.set_source_status(source_id, "unavailable")
+    adapter = FakeAdapter([favorite("BV1234567890")])
+    service = SyncService(
+        db=db,
+        adapter=adapter,
+        pipeline=CompletingPipeline(db),
+        favorite_id=42,
+        lock_path=app_paths.sync_lock,
+    )
+
+    with pytest.raises(PipelineError) as error:
+        service.sync(SyncMode.MANUAL)
+
+    assert error.value.code == "source_not_active"
+    assert adapter.pages_read == 0
+
+
+def test_retryable_source_failure_enters_recoverable_cooldown(app_paths) -> None:
+    db = Database(app_paths.database)
+    db.initialize()
+    source_id = db.create_favorite_source(folder_id=42, folder_title="网络抖动")
+
+    class RetryableAdapter:
+        def list_favorite_items(self, favorite_id: int) -> list[FavoriteItem]:
+            raise PipelineError(
+                "temporary network failure",
+                code="upstream_retryable",
+                retryable=True,
+            )
+
+    service = SyncService(
+        db=db,
+        adapter=RetryableAdapter(),
+        pipeline=CompletingPipeline(db),
+        favorite_id=None,
+        lock_path=app_paths.sync_lock,
+    )
+
+    result = service.sync(SyncMode.MANUAL)
+
+    source = db.get_source(source_id)
+    assert result.failed_count == 1
+    assert source is not None
+    assert source["status"] == "cooldown"
+    assert source["cooldown_until"] is not None
 
 
 def test_ignore_is_display_state_only(app_paths) -> None:

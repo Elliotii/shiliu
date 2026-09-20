@@ -36,7 +36,7 @@ class FakeProvider:
         self.transcript_calls = 0
         self.summary_calls = 0
 
-    def complete_json(self, prompt: str, schema):
+    def complete_json(self, prompt: str, schema, *, max_tokens: int | None = None):
         if schema is TranscriptResult:
             self.transcript_calls += 1
             return TranscriptResult.model_validate(
@@ -65,6 +65,7 @@ def bundle(*, subtitle: bool = True) -> VideoBundle:
         "description": "项目 https://github.com/example/demo ，文档 https://example.com/docs",
         "video_url": "https://www.bilibili.com/video/BV1234567890",
         "cover_url": None,
+        "duration_seconds": 300,
         "page_count": 2,
         "subtitle_track": None,
         "subtitle_segments": [],
@@ -115,6 +116,44 @@ def test_normal_video_uses_exactly_two_model_calls_and_saves_artifacts(app_paths
     assert (directory / "transcript.json").is_file()
     summary = SummaryResult.model_validate_json((directory / "summary.json").read_text(encoding="utf-8"))
     assert summary.related_links == ["https://github.com/example/demo", "https://example.com/docs"]
+    transcript_provenance = artifacts.load_generation_provenance(
+        "BV1234567890", "transcript", revision="refined"
+    )
+    summary_provenance = artifacts.load_generation_provenance(
+        "BV1234567890", "summary", revision="refined"
+    )
+    assert transcript_provenance["provider"] == provider.name
+    assert transcript_provenance["model"] == provider.model
+    assert transcript_provenance["prompt_version"]
+    assert transcript_provenance["schema"] == "TranscriptResult"
+    assert transcript_provenance["generated_at"]
+    assert transcript_provenance["source_hash"].startswith("sha256:")
+    assert summary_provenance["schema"] == "SummaryResult"
+
+
+def test_missing_generation_provenance_is_explicitly_legacy_unknown(app_paths) -> None:
+    store = ArtifactStore(app_paths.videos_dir)
+    store.save_summary(
+        "BV1234567890",
+        SummaryResult.model_validate(
+            {
+                "conclusion": "旧摘要",
+                "key_points": ["一", "二", "三"],
+                "detailed_notes": ["旧数据"],
+            }
+        ),
+    )
+
+    provenance = store.load_generation_provenance("BV1234567890", "summary")
+
+    assert provenance == {
+        "provenance_status": "legacy_unknown",
+        "provider": "unknown",
+        "model": "unknown",
+        "prompt_version": "unknown",
+        "schema": "unknown",
+        "generated_at": None,
+    }
 
 
 def test_summary_failure_does_not_repeat_successful_transcript_stage(app_paths) -> None:
