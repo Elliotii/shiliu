@@ -27,6 +27,7 @@ class CompletionResponse:
     reasoning_content: str | None = None
     latency_ms: float = 0
     retry_count: int = 0
+    response_model: str | None = None
 
 
 @dataclass(frozen=True)
@@ -38,6 +39,7 @@ class StructuredCompletionResponse(Generic[SchemaT]):
     latency_ms: float
     retry_count: int
     output_diagnostics: dict[str, Any] | None = None
+    response_model: str | None = None
 
 
 class OpenAICompatibleProvider:
@@ -146,19 +148,25 @@ class OpenAICompatibleProvider:
         max_tokens: int | None = None,
         timeout_seconds: float | None = None,
     ) -> StructuredCompletionResponse[SchemaT]:
-        if role not in {"query_analysis", "agent_action", "grounded_answer"}:
+        if role not in {"query_analysis", "agent_action", "query_reduce", "grounded_answer"}:
             raise PipelineError(
                 f"不支持的结构化运行时角色：{role}",
                 code="bad_provider_config",
                 retryable=False,
             )
-        response = self._generate_response(
-            messages,
-            max_tokens=max_tokens or (1200 if role == "query_analysis" else 4096),
-            response_format={"type": "json_object"},
-            transport_retries=1,
-            timeout_seconds=timeout_seconds,
-        )
+        try:
+            response = self._generate_response(
+                messages,
+                max_tokens=max_tokens or (1200 if role == "query_analysis" else 4096),
+                response_format={"type": "json_object"},
+                transport_retries=1,
+                timeout_seconds=timeout_seconds,
+            )
+        except PipelineError as exc:
+            metadata = dict(getattr(exc, "completion_metadata", {}))
+            metadata.update(request_role=role, model_requested=self.model)
+            exc.completion_metadata = metadata
+            raise
         normalization: dict[str, Any] | None = None
         try:
             output, normalization = _parse_structured_provider_content(
@@ -194,6 +202,7 @@ class OpenAICompatibleProvider:
             latency_ms=response.latency_ms,
             retry_count=response.retry_count,
             output_diagnostics=output_diagnostics,
+            response_model=response.response_model,
         )
 
     def _generate(self, messages: list[dict[str, str]], *, max_tokens: int | None = None) -> str:
@@ -253,11 +262,16 @@ class OpenAICompatibleProvider:
                         headers=self.headers,
                         json=body,
                     )
-                    self._raise_for_status(response)
+                    try:
+                        self._raise_for_status(response)
+                    except PipelineError as exc:
+                        exc.completion_metadata = _http_failure_metadata(response, self.api_key)
+                        raise
                 break
             except PipelineError as exc:
                 if exc.retryable and _deadline_reached(invocation_deadline):
                     error = _deadline_error()
+                    error.completion_metadata = dict(getattr(exc, "completion_metadata", {}))
                     _attach_failure_metadata(
                         error, started=started, retry_count=retry_count
                     )
@@ -324,6 +338,7 @@ class OpenAICompatibleProvider:
             raise error from exc
         finish_reason = choice.get("finish_reason") if isinstance(choice, dict) else None
         usage = payload.get("usage") if isinstance(payload, dict) else None
+        response_model = str(payload.get("model")) if isinstance(payload, dict) and payload.get("model") else None
         response_id = (
             str(payload["id"])
             if isinstance(payload, dict) and payload.get("id") is not None
@@ -343,6 +358,18 @@ class OpenAICompatibleProvider:
                 usage=usage,
                 response_id=response_id,
             )
+            # Diagnostic only: never parse or return truncated structured output.
+            # The exception metadata follows the existing private run Trace path,
+            # rather than emitting model content to ordinary application logs.
+            error.completion_metadata.update(
+                error_code=error.code,
+                max_tokens=max_tokens,
+                model_requested=self.model,
+                model_response=response_model,
+                content_received=isinstance(content, str) and bool(content),
+            )
+            if isinstance(content, str):
+                error.completion_metadata.update(_bounded_length_diagnostics(content, self.api_key))
             raise error
         reasoning = message.get("reasoning_content") if isinstance(message, dict) else None
         if (not isinstance(content, str) or not content.strip()) and not allow_incomplete:
@@ -366,6 +393,7 @@ class OpenAICompatibleProvider:
             reasoning_content=reasoning if isinstance(reasoning, str) else None,
             latency_ms=(time.monotonic() - started) * 1000,
             retry_count=retry_count,
+            response_model=response_model,
         )
 
     @staticmethod
@@ -387,6 +415,32 @@ class OpenAICompatibleProvider:
         if status == 400 and any(token in body for token in ("context", "token", "too long", "maximum")):
             raise PipelineError("字幕超过模型上下文限制，未做静默截断", code="context_too_large", retryable=False)
         raise PipelineError(f"模型服务配置或请求无效（HTTP {status}）", code="bad_provider_config", retryable=False)
+
+
+def _http_failure_metadata(response: httpx.Response, api_key: str) -> dict[str, Any]:
+    """Keep bounded server diagnostics, never request headers or credentials."""
+    def redact(value: object, limit: int) -> str:
+        text = str(value)
+        if api_key:
+            text = text.replace(api_key, "[REDACTED]")
+        return re.sub(r"(?i)bearer\s+[^\s\"']+", "Bearer [REDACTED]", text)[:limit]
+
+    body = response.text
+    metadata: dict[str, Any] = {
+        "http_status": response.status_code,
+        "provider_response_body": redact(body, 8192),
+        "provider_response_body_truncated": len(body) > 8192,
+    }
+    try:
+        payload = response.json()
+    except ValueError:
+        return metadata
+    error = payload.get("error", payload) if isinstance(payload, dict) else {}
+    if isinstance(error, dict):
+        for key in ("message", "code"):
+            if error.get(key) is not None:
+                metadata[f"provider_error_{key}"] = redact(error[key], 2048)
+    return metadata
 
 
 def _deadline_reached(deadline: float | None) -> bool:
@@ -411,6 +465,7 @@ def _attach_failure_metadata(
     response_id: object = None,
 ) -> None:
     error.completion_metadata = {
+        **getattr(error, "completion_metadata", {}),
         "finish_reason": (
             str(finish_reason) if finish_reason is not None else None
         ),
@@ -498,4 +553,26 @@ def _raw_content_diagnostics(content: str) -> dict[str, Any]:
         "raw_content": content,
         "raw_content_length": len(content),
         "raw_content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+    }
+
+
+def _bounded_length_diagnostics(content: str, api_key: str) -> dict[str, Any]:
+    """Bound private failure diagnostics to 8192 chars, preserving both JSON ends."""
+    def redact(text: str) -> str:
+        if api_key:
+            text = text.replace(api_key, "[REDACTED]")
+        return re.sub(r"(?i)bearer\s+[^\s\"']+", "Bearer [REDACTED]", text)
+
+    # Redact before slicing so credentials crossing an excerpt boundary cannot leak.
+    safe = redact(content)
+    # Hash/length describe original content; excerpt lengths describe redacted text.
+    return {
+        "raw_content_length": len(content),
+        "raw_content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        "raw_content_prefix": safe[:4096],
+        "raw_content_suffix": safe[max(4096, len(safe) - 4096):],
+        "raw_content_redacted_length": len(safe),
+        "raw_content_omitted_chars": max(0, len(safe) - 8192),
+        "raw_content_truncated": len(safe) > 8192,
+        "raw_content_diagnostic_only": True,
     }

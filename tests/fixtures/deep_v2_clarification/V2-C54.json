@@ -1,0 +1,44 @@
+{
+  "provenance": {
+    "case": "V2-C54",
+    "source": "Minimal clarification contract fixture; original run identity omitted for public release"
+  },
+  "query": "我这台电脑能流畅跑本地DeepSeek吗？",
+  "decisions": [
+    {
+      "type": "needs_clarification",
+      "outcome": "needs_clarification",
+      "finish_reason": "用户询问自己的电脑能否流畅运行本地DeepSeek，但未提供任何硬件信息（CPU、GPU、显存、内存），也未说明想运行的具体模型规模（如DeepSeek-R1 7B/32B/671B）和量化精度。缺少这些关键信息无法给出判断，需要用户补充。"
+    },
+    {
+      "type": "finish",
+      "need_updates": [],
+      "actions": [],
+      "outcome": "needs_clarification",
+      "answer_evidence_refs": [],
+      "answer_source_ids": [],
+      "unresolved_items": [
+        "电脑硬件配置（CPU型号、GPU型号及显存、内存容量、存储类型）",
+        "希望运行的DeepSeek具体模型版本与参数量",
+        "期望的量化精度与运行方式（如llama.cpp、Ollama、vLLM等）",
+        "对“流畅”的定义（如生成速度tokens/s、上下文长度）"
+      ],
+      "finish_reason": "用户询问“我这台电脑能流畅跑本地DeepSeek吗”，但未提供任何硬件信息（CPU、GPU、显存、内存等），也未说明想运行的具体DeepSeek模型版本（如DeepSeek-R1、V3、蒸馏版等）及量化精度。缺少这些关键信息，无法判断能否流畅运行。需要用户补充电脑配置和目标模型规格。"
+    }
+  ],
+  "accepted_finish": {
+    "type": "finish",
+    "need_updates": [],
+    "actions": [],
+    "outcome": "needs_clarification",
+    "answer_evidence_refs": [],
+    "answer_source_ids": [],
+    "unresolved_items": [
+      "电脑硬件配置（CPU型号、GPU型号及显存、内存容量、存储类型）",
+      "希望运行的DeepSeek具体模型版本与参数量",
+      "期望的量化精度与运行方式（如llama.cpp、Ollama、vLLM等）",
+      "对“流畅”的定义（如生成速度tokens/s、上下文长度）"
+    ],
+    "finish_reason": "用户询问“我这台电脑能流畅跑本地DeepSeek吗”，但未提供任何硬件信息（CPU、GPU、显存、内存等），也未说明想运行的具体DeepSeek模型版本（如DeepSeek-R1、V3、蒸馏版等）及量化精度。缺少这些关键信息，无法判断能否流畅运行。需要用户补充电脑配置和目标模型规格。"
+  }
+}

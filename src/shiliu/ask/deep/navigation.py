@@ -43,7 +43,7 @@ class NavigationService:
                 query=query,
                 mode="auto",
                 scope="video",
-                result_limit=min(8, max(1, limit)),
+                result_limit=min(20, max(1, limit)),
                 max_windows_per_video=1,
                 filters=filters,
             )
@@ -123,6 +123,8 @@ class NavigationService:
             user_notes=notes,
             cleaned_transcript=transcript,
             metadata={
+                "video_url": str(video.get("video_url") or ""),
+                "subtitle_available": bool(video.get("raw_subtitle_path")),
                 "duration_seconds": int(video.get("duration_seconds") or 0),
                 "reading_state": str(video.get("reading_state") or "unread"),
                 "marked": bool(video.get("is_marked")),

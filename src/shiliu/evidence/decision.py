@@ -25,10 +25,6 @@ MAX_REQUIREMENTS = 24
 MAX_INFERRED_REQUIREMENTS = 8
 MAX_CONFLICTS = 16
 MAX_SEMANTIC_ADVICE = 16
-CANONICAL_SEGMENT_ID_LIMIT = 256
-EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON = (
-    "evidence_segment_cardinality_exceeded"
-)
 
 
 class EvidenceDecisionContractError(ValueError):
@@ -233,9 +229,7 @@ class EvidenceAuthorityReference(_StrictFrozenModel):
     source_artifact_id: str = Field(min_length=1, max_length=240)
     source_version: str = Field(min_length=1, max_length=240)
     timeline_run_id: str = Field(min_length=1, max_length=240)
-    segment_ids: tuple[str, ...] = Field(
-        min_length=1, max_length=CANONICAL_SEGMENT_ID_LIMIT
-    )
+    segment_ids: tuple[str, ...] = Field(min_length=1)
     source_version_status: SourceVersionStatus
     scope_status: ReferenceScopeStatus
     authorization_status: AuthorizationStatus
@@ -369,7 +363,7 @@ class EvidenceDecisionInput(_StrictFrozenModel):
     )
     library_freshness: LibraryFreshness
     conflicts: tuple[ConflictObservation, ...] = Field(default=(), max_length=MAX_CONFLICTS)
-    contributions: tuple[EvidenceContribution, ...] = Field(default=(), max_length=96)
+    contributions: tuple[EvidenceContribution, ...] = ()
     semantic_advice: tuple[SemanticAdvice, ...] = Field(
         default=(), max_length=MAX_SEMANTIC_ADVICE
     )

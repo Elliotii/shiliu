@@ -29,6 +29,7 @@
     insufficient: '证据不足',
   };
   const outcomeLabels = {
+    source_lookup_complete: '已找到相关视频',
     generation_failed: '回答生成失败',
     evidence_unavailable: '证据不可用',
     evidence_insufficient: '证据不足',
@@ -144,6 +145,7 @@
   const requestPayload = state => ({
     query: state.q,
     mode: state.mode,
+    ...(state.mode === 'deep' ? {implementation_version: 'deep-v2'} : {}),
     filters: filterPayload(state),
   });
 
@@ -369,17 +371,33 @@
   const renderCandidateDisclosure = data => {
     const section = root.querySelector('[data-candidate-disclosure]');
     const disclosure = data.candidate_disclosure;
-    section.hidden = !disclosure;
-    if (!disclosure) return;
-    section.open = false;
-    const candidates = disclosure.candidates || [];
-    const countCopy = disclosure.truncated
+    const sources = data.source_matches || [];
+    section.hidden = !disclosure && !sources.length;
+    if (!disclosure && !sources.length) return;
+    section.open = data.execution_outcome === 'source_lookup_complete';
+    const candidates = disclosure?.candidates || [];
+    const countCopy = disclosure?.truncated
       ? `· 显示 ${candidates.length} 条，另有候选未展开`
-      : `· ${candidates.length} 条`;
+      : `· ${sources.length + candidates.length} 条`;
     root.querySelector('[data-candidate-count]').textContent = countCopy;
     const list = root.querySelector('[data-candidate-list]');
     const empty = root.querySelector('[data-candidate-empty]');
     list.replaceChildren();
+    sources.forEach(source => {
+      const article = element('article', 'candidate-card');
+      article.append(element('p', 'candidate-kind', '相关视频来源 · 导航资料'));
+      article.append(element('h3', '', source.title || `Video ${source.video_id}`));
+      if (source.uploader) article.append(element('p', 'candidate-identity', `作者：${source.uploader}`));
+      if (source.matched_excerpt) article.append(element('blockquote', '', source.matched_excerpt));
+      if (source.url) {
+        const link = element('a', '', '打开视频');
+        link.href = source.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        article.append(link);
+      }
+      list.append(article);
+    });
     candidates.forEach(candidate => {
       const article = element('article', 'candidate-card');
       const kind = candidate.candidate_kind === 'metadata_lead'
@@ -419,8 +437,8 @@
       no_unadopted_candidates: '没有未被回答采用的可重建候选。',
       candidate_reconstruction_failed: '候选重建暂时不可用；这不影响回答与引用。',
     };
-    empty.textContent = emptyMessages[disclosure.empty_reason] || '本次检索没有可展示的候选。';
-    empty.hidden = candidates.length !== 0;
+    empty.textContent = emptyMessages[disclosure?.empty_reason] || '本次检索没有可展示的候选。';
+    empty.hidden = candidates.length + sources.length !== 0;
   };
 
   const renderResult = data => {

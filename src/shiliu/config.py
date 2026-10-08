@@ -70,6 +70,8 @@ class AppConfig:
     llm_model: str = ""
     ingestion_model: str = ""
     interactive_model: str = ""
+    deep_controller_model: str = "deepseek-v4-flash"
+    deep_answer_model: str = "deepseek-v4-flash"
     taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
@@ -97,6 +99,10 @@ class AppConfig:
             "grounded_answer_fast_recovery",
         }:
             return FAST_FINAL_ANSWER_MODEL
+        if role in {"agent_action", "query_reduce"}:
+            return self.deep_controller_model
+        if role in {"grounded_answer_deep", "grounded_answer_deep_recovery"}:
+            return self.deep_answer_model
         if role in {
             "query_analysis",
             "agent_action",
@@ -138,6 +144,8 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
         ingestion_model=str(llm.get("ingestion_model", "")),
         interactive_model=str(llm.get("interactive_model", "")),
         taxonomy_model=str(llm.get("taxonomy_model", "")),
+        deep_controller_model=str(llm.get("deep_controller_model", "deepseek-v4-flash")),
+        deep_answer_model=str(llm.get("deep_answer_model", "deepseek-v4-flash")),
         fast_transcript_model=str(
             llm.get(
                 "fast_transcript_model",
@@ -181,6 +189,8 @@ def save_config(config: AppConfig, paths: AppPaths | None = None) -> AppPaths:
         f"ingestion_model = {_toml_string(config.ingestion_model)}",
         f"interactive_model = {_toml_string(config.interactive_model)}",
         f"taxonomy_model = {_toml_string(config.taxonomy_model)}",
+        f"deep_controller_model = {_toml_string(config.deep_controller_model)}",
+        f"deep_answer_model = {_toml_string(config.deep_answer_model)}",
         f"fast_transcript_model = {_toml_string(config.model_for('fast_transcript'))}",
         f"formal_transcript_model = {_toml_string(config.model_for('formal_transcript'))}",
         f"formal_summary_model = {_toml_string(config.model_for('formal_summary'))}",

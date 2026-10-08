@@ -1,0 +1,29 @@
+{
+  "provenance": {
+    "case": "V2-C08",
+    "source": "Minimal clarification contract fixture; original run identity omitted for public release"
+  },
+  "query": "我下个月搬家，应该买多少个纸箱？",
+  "decisions": [
+    {
+      "type": "finish",
+      "need_updates": [],
+      "actions": [],
+      "outcome": "needs_clarification",
+      "answer_evidence_refs": [],
+      "answer_source_ids": [],
+      "unresolved_items": [],
+      "finish_reason": "问题缺少关键信息,无法给出纸箱数量建议。需要知道:房屋面积/房间数、居住人数、是否有大件家具家电、是否含厨房用品和书籍、搬家距离、是否保留原包装等。不同情况所需纸箱数量差异很大(单身小公寓约10-20个,三居室家庭可能50-100个以上)。请补充这些信息后再计算。"
+    }
+  ],
+  "accepted_finish": {
+    "type": "finish",
+    "need_updates": [],
+    "actions": [],
+    "outcome": "needs_clarification",
+    "answer_evidence_refs": [],
+    "answer_source_ids": [],
+    "unresolved_items": [],
+    "finish_reason": "问题缺少关键信息,无法给出纸箱数量建议。需要知道:房屋面积/房间数、居住人数、是否有大件家具家电、是否含厨房用品和书籍、搬家距离、是否保留原包装等。不同情况所需纸箱数量差异很大(单身小公寓约10-20个,三居室家庭可能50-100个以上)。请补充这些信息后再计算。"
+  }
+}

@@ -67,10 +67,12 @@ class RetrievalIndexCoordinator:
         db: Database,
         lexical: RetrievalService,
         dense_factory: Callable[[], SQLiteExactDenseIndex],
+        transcript_lexical_sync: Callable[[int], None] | None = None,
     ) -> None:
         self.db = db
         self.lexical = lexical
         self._dense_factory = dense_factory
+        self._transcript_lexical_sync = transcript_lexical_sync
 
     def initialize_schema(self) -> None:
         with self.db.connect() as connection:
@@ -109,6 +111,8 @@ class RetrievalIndexCoordinator:
             return self._remove_video(video_id, trigger=trigger)
         try:
             lexical_result = self.lexical.replace_video(video_id)
+            if self._transcript_lexical_sync is not None:
+                self._transcript_lexical_sync(video_id)
         except Exception as exc:  # product mutation has already committed
             return self._failed(
                 video_id, trigger, desired, "error", "stale", "lexical", exc,
@@ -248,6 +252,8 @@ class RetrievalIndexCoordinator:
         started = time.monotonic()
         try:
             removed_units = self.lexical.delete_video(video_id)
+            if self._transcript_lexical_sync is not None:
+                self._transcript_lexical_sync(video_id)
         except Exception as exc:
             return self._failed(
                 video_id, trigger, "absent", "error", "stale", "lexical", exc,
