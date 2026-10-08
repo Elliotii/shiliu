@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 import threading
 from typing import Callable
+from pathlib import Path
 from uuid import uuid4
 
 from shiliu.artifacts import ArtifactStore
@@ -25,6 +26,7 @@ from shiliu.ask.contracts import (
     TraceSummary,
 )
 from shiliu.ask.deep.service import DeepSearchService
+from shiliu.ask.deep.f1_tools import F1Materializer
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
 from shiliu.ask.trust import ClaimVerifier
@@ -63,6 +65,8 @@ class AskService:
         context_builder: TranscriptContextBuilder | None = None,
         artifacts: ArtifactStore | None = None,
         claim_verifier: ClaimVerifier | None = None,
+        deep_embedding_provider: object | None = None,
+        deep_lexical_index_path: Path | None = None,
     ) -> None:
         self.db = db
         self._owned_runs: set[str] = set()
@@ -102,10 +106,12 @@ class AskService:
                 ),
                 runtime_corpus_identity=runtime_corpus_identity,
                 evidence_search=self.evidence_search,
-                materializer=self.materializer,
+                materializer=F1Materializer(db) if deep_embedding_provider is not None else self.materializer,
                 context_builder=self.context_builder,
                 finalizer=self.finalizer,
                 claim_verifier=claim_verifier,
+                embedding_provider=deep_embedding_provider,
+                lexical_index_path=deep_lexical_index_path,
             )
             if isinstance(resolved_artifacts, ArtifactStore)
             else None
@@ -660,6 +666,7 @@ class AskService:
             execution_outcome=execution_outcome,
             answer_blocks=run["answer_blocks"],
             citations=run["citations"],
+            source_matches=trace.get("source_matches") or [],
             limitations=run["limitations"],
             termination_reason=run["termination_reason"],
             trace_summary=TraceSummary(

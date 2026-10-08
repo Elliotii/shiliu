@@ -103,6 +103,8 @@ class TranscriptSearchResult(MaterializationResult):
 @dataclass(frozen=True)
 class WindowReadResult:
     span: TranscriptEvidenceSpan
+    before_boundary: bool = False
+    after_boundary: bool = False
 
 
 class TranscriptWindowReader:
@@ -219,6 +221,52 @@ class TranscriptWindowReader:
         )
         self.materializer.validate_current(span)
         return WindowReadResult(span)
+
+    def read_context(
+        self,
+        anchor: TranscriptEvidenceSpan,
+        *,
+        before_seconds: float = 30,
+        after_seconds: float = 30,
+    ) -> WindowReadResult:
+        if not 0 <= before_seconds <= 120 or not 0 <= after_seconds <= 120:
+            raise ValueError("read_context seconds must be within 0..120")
+        self.materializer.validate_current(anchor)
+        row = self._video_row(anchor.video_id)
+        if row is None:
+            raise EvidenceContractError("source unavailable", code="citation_source_unavailable")
+        artifact = load_source_artifact(_reference(row), expected_source_version=anchor.source_version)
+        run = sorted((segment for segment in artifact.segments if segment.timeline_run_id == anchor.timeline_run_id),
+                     key=lambda segment: segment.original_ordinal)
+        selected = tuple(segment for segment in run
+                         if segment.end_time >= anchor.start_time - before_seconds
+                         and segment.start_time <= anchor.end_time + after_seconds)
+        if not selected:
+            raise EvidenceContractError("read context empty", code="citation_segment_missing")
+        citation_id = stable_citation_id(source_artifact_id=anchor.source_artifact_id,
+                                        source_version=anchor.source_version,
+                                        timeline_run_id=anchor.timeline_run_id, segments=selected)
+        jump_url = build_bilibili_jump_url(str(row["video_url"] or ""), anchor.bvid, selected[0].start_time)
+        if jump_url is None:
+            raise EvidenceContractError("window jump URL unavailable", code="citation_jump_url_invalid")
+        span = anchor.model_copy(update={
+            "citation_id": citation_id,
+            "segment_ids": tuple(segment.segment_id for segment in selected),
+            "segment_ordinals": tuple(segment.original_ordinal for segment in selected),
+            "start_time": selected[0].start_time,
+            "end_time": selected[-1].end_time,
+            "quote_text": "\n".join(segment.source_text.strip() for segment in selected if segment.source_text.strip()),
+            "jump_url": jump_url,
+            "parent_chunk_ids": anchor.parent_chunk_ids,
+            "retrieval_provenance": (*anchor.retrieval_provenance, {"action": "read_context", "anchor_ref": anchor.citation_id,
+                                                     "before_seconds": before_seconds, "after_seconds": after_seconds}),
+            "segments": tuple(EvidenceSegment(segment_id=segment.segment_id, original_ordinal=segment.original_ordinal,
+                run_local_ordinal=segment.run_local_ordinal, start_time=segment.start_time,
+                end_time=segment.end_time, source_text=segment.source_text) for segment in selected),
+        })
+        self.materializer.validate_current(span)
+        return WindowReadResult(span, before_boundary=selected[0].segment_id == run[0].segment_id,
+                                after_boundary=selected[-1].segment_id == run[-1].segment_id)
 
     def _video_row(self, video_id: int) -> sqlite3.Row | None:
         with self.db.connect() as connection:

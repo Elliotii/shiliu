@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 import time
+import os
+from pathlib import Path
+import json
+import re
+from dataclasses import replace
 from typing import Callable
 from uuid import uuid4
 
@@ -27,8 +32,10 @@ from shiliu.ask.deep.transcript import (
     TranscriptSearchService,
     TranscriptWindowReader,
 )
+from shiliu.ask.deep.f1_tools import F1Materializer, F1TranscriptTool
+from shiliu.ask.deep.v2 import DeepV2ContextBuilder, DeepV2Graph, V2Budget
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
-from shiliu.ask.finalize import AnswerFinalizer
+from shiliu.ask.finalize import AnswerFinalizer, FinalizedAnswer
 from shiliu.ask.persistence import AskRunStore, final_evidence_identities
 from shiliu.ask.trust import ClaimVerifier
 from shiliu.db import Database
@@ -51,6 +58,10 @@ _SAFE_ZERO_EVIDENCE_CONTINUATION_STOPS = frozenset(
         "repeated_search",
         "evidence_unavailable",
         "budget_exhausted",
+        "tool_budget_exhausted",
+        "controller_budget_exhausted",
+        "invalid_structured_output",
+        "timeout",
     }
 )
 
@@ -71,6 +82,9 @@ class DeepSearchService:
         finalizer: AnswerFinalizer | None = None,
         claim_verifier: ClaimVerifier | None = None,
         budget: DeepSearchBudget | None = None,
+        embedding_provider: object | None = None,
+        lexical_index_path: Path | None = None,
+        v2_budget: V2Budget | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.db = db
@@ -80,20 +94,22 @@ class DeepSearchService:
         self.provider_factory = provider_factory
         self.clock = clock
         self.budget = budget or DeepSearchBudget()
+        self.v2_budget = v2_budget or V2Budget()
+        self.is_v2 = embedding_provider is not None
         self.evidence_search = evidence_search or EvidenceSearchService(
             db=db,
             product_search=product_search,
             authority_mode="live_current_exact_replay",
             runtime_corpus_identity=runtime_corpus_identity,
         )
-        self.materializer = materializer or TranscriptEvidenceMaterializer(db)
-        self.context_builder = context_builder or TranscriptContextBuilder(
-            total_character_budget=self.budget.final_evidence_context_chars
-        )
+        self.materializer = materializer or (F1Materializer(db) if self.is_v2 else TranscriptEvidenceMaterializer(db))
+        self.context_builder = (DeepV2ContextBuilder(self.v2_budget.final_context_chars) if self.is_v2
+            else context_builder or TranscriptContextBuilder(total_character_budget=self.budget.final_evidence_context_chars))
         self.answer_service = GroundedAnswerService(
             answer_provider_factory or provider_factory, self.materializer
         )
-        self.finalizer = finalizer or AnswerFinalizer(
+        self.answer_provider_factory = answer_provider_factory or provider_factory
+        self.finalizer = (None if self.is_v2 else finalizer) or AnswerFinalizer(
             context_builder=self.context_builder,
             answer_service=self.answer_service,
             materializer=self.materializer,
@@ -120,6 +136,22 @@ class DeepSearchService:
             budget=self.budget,
             clock=clock,
         )
+        if self.is_v2:
+            lexical = lexical_index_path or Path(os.environ.get("SHILIU_DEEP_V2_LEXICAL_INDEX",
+                str(db.path.parent / "deep-v2-lexical.sqlite")))
+            self.graph = DeepV2Graph(
+                provider_factory=provider_factory,
+                transcripts=F1TranscriptTool(self.evidence_search, embedding_provider, lexical, self.materializer),
+                navigation=NavigationService(db=db, artifacts=artifacts, product_search=product_search),
+                windows=TranscriptWindowReader(db, self.materializer),
+                budget=self.v2_budget, clock=clock,
+                cancelled=lambda run_id: self._v2_cancelled(run_id),
+            )
+
+    def _v2_cancelled(self, run_id: str) -> bool:
+        with self.db.connect() as connection:
+            row = connection.execute("SELECT lifecycle_status FROM ask_runs WHERE run_id=?", (run_id,)).fetchone()
+        return row is not None and row["lifecycle_status"] != "running"
 
     def ask(
         self,
@@ -377,11 +409,57 @@ class DeepSearchService:
             provenance={"decision_ids": [active_decision.decision_id]},
         )
         finalization_started = self.clock()
+        context_builder = (DeepV2ContextBuilder(self.v2_budget.final_context_chars)
+            if self.is_v2 else self.context_builder)
+        finalizer = (AnswerFinalizer(context_builder=context_builder,
+            answer_service=self.answer_service, materializer=self.materializer,
+            claim_verifier=self.finalizer.claim_verifier) if self.is_v2 else self.finalizer)
+        if self.is_v2:
+            context_builder.preferred_refs = list(dict.fromkeys([
+                *state.get("v2_final_refs", []),
+                *(ref for need in state.get("v2_needs", {}).values() for ref in need.get("evidence_refs", [])),
+            ]))
+            # The Query selector has already determined which original chunks
+            # are useful. Keep those refs; never fall back to raw Top50 ranks.
+            context_builder.candidate_refs = list(dict.fromkeys(
+                ref for result in state.get("v2_query_results", [])
+                for ref in result.get("retained_evidence_refs", [])))
+            context_builder.task_notes = {"outcome": state.get("v2_outcome"),
+                "termination_reason": termination_reason,
+                "resolved_needs": [need for need in state.get("v2_needs", {}).values()
+                    if need["status"] == "supported"],
+                "unresolved_needs": [need for need in state.get("v2_needs", {}).values()
+                    if need["status"] != "supported"],
+                "unresolved_items": state.get("v2_unresolved", []),
+                "instruction": "These are investigation notes, not facts. Use transcript quotes for content and source labels or adopted metadata for identity; preserve actual gaps."}
+            context_builder.subject_bindings = list({
+                json.dumps(finding, sort_keys=True, ensure_ascii=False): finding
+                for result in state.get("v2_query_results", [])
+                for finding in result.get("findings", []) if finding.get("subject")}.values())
+            context_builder.adopted_sources = [{"source_record_id": source_id,
+                **{key: source.get(key) for key in
+                ("video_id", "title", "uploader", "bvid", "url")}
+                } for source_id in dict.fromkeys(state.get("v2_final_source_ids", []))
+                if (source := state.get("v2_sources", {}).get(int(source_id.removeprefix("nav:")))) is not None]
+            for video_id in {span.video_id for span in state["evidence_spans"]}:
+                video = self.db.get_video(video_id)
+                if video is not None and any(span.video_id == video_id and span.bvid == video["source_id"]
+                                             for span in state["evidence_spans"]):
+                    context_builder.source_metadata[video_id] = {"uploader": video.get("uploader")}
+        answer_calls = []
+        local_answer_service = self.answer_service
+        if self.is_v2:
+            from shiliu.ask.deep.v2 import AuditedProvider
+            local_answer_service = GroundedAnswerService(
+                lambda role: AuditedProvider(self.answer_provider_factory(role), answer_calls, self.v2_budget.answer_output_tokens), self.materializer)
+        prepared_context = (context_builder.build(query=request.query, normalized_intent=request.query,
+            spans=tuple(state["evidence_spans"])) if self.is_v2 else None)
+        clarification_requests = _v2_clarification_requests(state) if self.is_v2 else ()
         answer_deadline = min(
             state["total_deadline"],
             finalization_started + self.budget.final_answer_reserve_seconds,
         )
-        final = self.finalizer.finalize(
+        final = finalizer.finalize(
             query=request.query,
             normalized_intent=request.query,
             spans=state["evidence_spans"],
@@ -396,8 +474,24 @@ class DeepSearchService:
             event_sink=lambda event_type, payload: self.run_store.append_event(
                 run_id, event_type, payload
             ),
-            answer_service=self.answer_service,
+            answer_service=local_answer_service,
+            prepared_context=prepared_context,
+            clarification_requests=clarification_requests,
         )
+        if self.is_v2 and state.get("v2_outcome") == "sources_found" and state.get("v2_sources") and not state["evidence_spans"]:
+            final = FinalizedAnswer(status="complete", execution_outcome="source_lookup_complete",
+                answer_blocks=(), citations=(), limitations=(), termination_reason="answer_ready",
+                valid_evidence_count=0, context_span_count=0, context_truncated=False,
+                stale_evidence_count=0, repair_used=False,
+                trace={"source_lookup": list(state["v2_sources"].values()), "answer_usage": []})
+        elif self.is_v2 and final.answer_blocks and state.get("v2_outcome") == "partial":
+            final = replace(final, status="partial", limitations=tuple(dict.fromkeys([
+                *final.limitations, *(str(item) for item in state.get("v2_unresolved", []) if str(item).strip())])))
+        if clarification_requests and final.execution_outcome in {"answer_generated", "evidence_insufficient"}:
+            final = replace(final,
+                status="partial" if final.answer_blocks else final.status,
+                limitations=tuple(dict.fromkeys([
+                    *final.limitations, "需要你补充以下信息后才能回答：", *clarification_requests])))
         dropped_evidence_count = sum(
             int(value.get("dropped_evidence_count", 0))
             for value in state["events"]
@@ -409,7 +503,7 @@ class DeepSearchService:
             retrieval_count=sum(
                 1
                 for value in state["events"]
-                if value.get("observation_kind") == "transcript_search"
+                if value.get("observation_kind") == "transcript_search" or value.get("kind") == "search_transcripts"
             ),
             valid_evidence_count=final.valid_evidence_count,
             stale_evidence_count=final.stale_evidence_count,
@@ -440,6 +534,7 @@ class DeepSearchService:
                 if final.trace.get("trust_summary") is not None
                 else None
             ),
+            source_matches=list(state.get("v2_sources", {}).values()) if self.is_v2 else [],
         )
         if response.answer_blocks:
             for index, block in enumerate(response.answer_blocks):
@@ -494,6 +589,26 @@ class DeepSearchService:
             "query": request.query,
             "mode": "deep",
             "policy_version": DEEP_POLICY_VERSION,
+            "implementation_version": "deep-v2" if self.is_v2 else "deep-v1",
+            "v2_budget": self.v2_budget.__dict__ if self.is_v2 else None,
+            "v2_outcome": state.get("v2_outcome"),
+            "v2_search_termination_reason": state.get("termination_reason"),
+            "v2_unresolved": state.get("v2_unresolved", []),
+            "v2_clarification_requests": list(clarification_requests),
+            "v2_answer_calls": answer_calls,
+            "v2_controller_calls": state.get("v2_controller_calls", 0),
+            "v2_query_results": state.get("v2_query_results", []),
+            "v2_round_timings": state.get("v2_round_timings", []),
+            "provider_cost": {"actual_cost": None, "reason": "Provider usage has no monetary cost field; no price estimate applied."},
+            "source_matches": list(state.get("v2_sources", {}).values()) if self.is_v2 else [],
+            "v2_final_refs": state.get("v2_final_refs", []),
+            "v2_final_source_ids": state.get("v2_final_source_ids", []),
+            "v2_context_omitted": getattr(context_builder, "omitted", []),
+            "v2_final_context": (context_builder.last_context.model_context
+                if self.is_v2 and context_builder.last_context is not None else None),
+            "v2_evidence_store": ({ref: {**span.model_dump(mode="json"),
+                "segments": [segment.model_dump(mode="json") for segment in span.segments]}
+                for ref, span in state.get("v2_store", {}).items()} if self.is_v2 else None),
             "started_at": started,
             "budget": self.budget.__dict__,
             "finalization_started_at": finalization_started,
@@ -592,6 +707,12 @@ class DeepSearchService:
                 "answer_version": response.answer_version,
             },
         )
+        if self.is_v2:
+            trace_dir = Path(os.environ.get("SHILIU_DEEP_V2_TRACE_DIR",
+                Path.home() / "Library" / "Application Support" / "Shiliu" / "logs" / "deep-v2"))
+            trace_dir.mkdir(parents=True, exist_ok=True)
+            (trace_dir / f"{run_id}.json").write_text(
+                json.dumps(trace, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
         return response, trace
 
     def _initial_state(
@@ -614,8 +735,8 @@ class DeepSearchService:
             "consecutive_no_new_evidence": 0,
             "navigation_result_count": 0,
             "started_at": started,
-            "search_deadline": started + self.budget.search_phase_cutoff_seconds,
-            "total_deadline": started + self.budget.total_runtime_seconds,
+            "search_deadline": started + (self.v2_budget.search_seconds if self.is_v2 else self.budget.search_phase_cutoff_seconds),
+            "total_deadline": started + (self.v2_budget.total_seconds if self.is_v2 else self.budget.total_runtime_seconds),
             "last_action": None,
             "last_observation_summary": "",
             "pending_observation": None,
@@ -666,3 +787,31 @@ def _continuation_failure(outcome: str | None) -> ContinuationFailureState:
         "evidence_unavailable": ContinuationFailureState.EVIDENCE_UNAVAILABLE,
         "generation_failed": ContinuationFailureState.GENERATION_FAILURE,
     }.get(str(outcome), ContinuationFailureState.NONE)
+
+
+def _v2_clarification_requests(state: dict) -> tuple[str, ...]:
+    """Project only an accepted Controller finish requesting user input.
+
+    Query-local gaps and error messages are not clarification requests. Older
+    decisions sometimes put the request only in finish_reason; extract its
+    explicit request clause rather than exposing the entire reasoning as facts.
+    """
+    if (state.get("v2_outcome") != "needs_clarification"
+            or state.get("termination_reason") != "evidence_unavailable"):
+        return ()
+    decision = next((event.get("decision", {}) for event in reversed(state.get("events", []))
+        if event.get("event_type") == "v2_decision"), {})
+    if decision.get("type") != "finish" or decision.get("outcome") != "needs_clarification":
+        return ()
+    requests = [item.strip() for item in decision.get("unresolved_items", [])
+        if isinstance(item, str) and item.strip()]
+    if not requests:
+        reason = decision.get("finish_reason") or ""
+        request = re.search(
+            r"(?:需要(?:用户)?(?:知道|补充|提供|说明|确认)|请(?:补充|提供|说明|确认))"
+            r"[^。！？\n]*",
+            reason,
+        )
+        if request:
+            requests = [request.group().strip()]
+    return tuple(dict.fromkeys(requests))

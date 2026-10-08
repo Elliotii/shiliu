@@ -104,12 +104,14 @@ class ReceiptBoundDeepResearchExecutor:
         product_search: ProductSearchService,
         runtime_corpus_identity: str | None,
         budget: DeepSearchBudget,
+        embedding_provider: object | None = None,
     ) -> None:
         self.db = db
         self.artifacts = artifacts
         self.product_search = product_search
         self.runtime_corpus_identity = runtime_corpus_identity
         self.budget = budget
+        self.embedding_provider = embedding_provider
 
     def execute(
         self,
@@ -126,9 +128,10 @@ class ReceiptBoundDeepResearchExecutor:
             provider_factory=provider_factory,
             runtime_corpus_identity=self.runtime_corpus_identity,
             budget=self.budget,
+            embedding_provider=self.embedding_provider,
         )
         response, trace = deep.ask(
-            AskRequest(query=objective, mode="deep"),
+            AskRequest(query=objective, mode="deep", implementation_version="deep-v2"),
             evidence_decision=evidence_decision,
             continuation_envelope=continuation_envelope,
         )

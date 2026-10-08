@@ -57,3 +57,13 @@ research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/
 # Keep one small, non-sensitive Stage 3A trace fixture; exclude the remaining bulk.
 research/v3_5/stage3a/trace_samples/*
 !research/v3_5/stage3a/trace_samples/CASE_001.track_a.json
+
+# Public release boundary: local research and private runtime data stay outside Git.
+/research/
+/optimization/
+/reports/data/
+/docs/retrospectives/
+/private-deep-traces/
+**/provider-calls.jsonl
+**/subtitle-raw.json
+**/subtitle-raw.txt

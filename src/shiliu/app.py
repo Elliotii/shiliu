@@ -114,15 +114,17 @@ class Application:
         self.qwen_model_path = Path(
             os.environ.get(
                 "SHILIU_QWEN_MODEL_PATH",
-                Path.home() / ".cache" / "shiliu" / "models" / "Qwen3-Embedding-0.6B",
+                Path.home() / "Library" / "Caches" / "Shiliu" / "model-selection" / "Qwen3-Embedding-0.6B",
             )
         ).expanduser()
         os.environ.setdefault("HF_HUB_OFFLINE", "1")
         os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        self._f1_lexical = None
         self.retrieval_coordinator = RetrievalIndexCoordinator(
             db=self.db,
             lexical=self.retrieval,
             dense_factory=lambda: self.dense_retrieval,
+            transcript_lexical_sync=self._sync_f1_lexical,
         )
         self.retrieval_coordinator.initialize_schema()
         self.library = LibraryService(self.db, self.retrieval_coordinator)
@@ -231,6 +233,16 @@ class Application:
             index_coordinator=self.retrieval_coordinator,
         )
 
+    def _sync_f1_lexical(self, video_id: int) -> None:
+        path = Path(os.environ.get("SHILIU_DEEP_V2_LEXICAL_INDEX",
+                                   self.paths.state_dir / "deep-v2-lexical.sqlite"))
+        if not path.exists():
+            return
+        if self._f1_lexical is None:
+            from shiliu.retrieval.f1 import F1LexicalIndex
+            self._f1_lexical = F1LexicalIndex(path, self.db.path)
+        self._f1_lexical.sync_video(video_id)
+
     @property
     def dense_retrieval(self) -> SQLiteExactDenseIndex:
         if self._dense_retrieval is None:
@@ -281,6 +293,7 @@ class Application:
                 deep_answer_provider_factory=self.deep_answer_provider,
                 runtime_corpus_identity=self.runtime_config.corpus_identity,
                 artifacts=self.artifacts,
+                deep_embedding_provider=self.dense_retrieval.provider,
             )
         return self._ask_service
 
@@ -449,6 +462,7 @@ class Application:
                         product_search=self.product_search,
                         runtime_corpus_identity=self.runtime_config.corpus_identity,
                         budget=DeepSearchBudget(),
+                        embedding_provider=self.dense_retrieval.provider,
                     ),
                     provider_product_authorized=True,
                 )
