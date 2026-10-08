@@ -43,9 +43,11 @@ Raw Subtitle / Raw ASR 始终是 Citation Authority。整理稿、结构化 Summ
 Transcript cleanup / refinement  → deepseek-v4-flash
 Structured summary / refinement  → deepseek-v4-flash
 Taxonomy                          → deepseek-v4-pro
-Query analysis / agent action     → deepseek-v4-pro, thinking off
+Query analysis                    → configured interactive/global model, thinking off
+Deep controller / Query Reduce    → deepseek-v4-flash (deep_controller_model default)
 Fast grounded answer              → deepseek-v4-flash, thinking off
-Deep / authorized Research answer → deepseek-v4-pro, thinking off
+Deep answer                       → deepseek-v4-flash (deep_answer_model default)
+Authorized Research answer        → configured provider/role routing
 Search embedding                  → local Qwen, offline
 ```
 
@@ -128,3 +130,22 @@ API Key、私人收藏夹 URL、个人 transcript、Provider 原始 payload 或�
 测试不等价于完整内部 Eval 或真实 Provider 质量评测的复现。Knowledge Draft 的持久化和 lineage 已保留，
 但 Candidate prose 的语义来源仍有已知缺陷，因此本版本不宣称高质量长期 Knowledge
 内容物化或 durable Knowledge 原生复用。
+
+## RAG / Deep V2 阶段版本（2026-10-08）
+
+此公开版本保留最终候选产品代码，并补充动态多 Query、并发检索、逐 Query
+Reduce、原文与来源身份分域、澄清交付和有界 length 诊断。
+
+- [阶段验收与已知局限](docs/releases/DEEP_V2_ACCEPTANCE_20261008.md)
+- [代码快照与开发候选映射](docs/releases/DEEP_V2_SOURCE_SNAPSHOT.json)
+
+公开分支不包含私人收藏字幕、真实题集/Gold、逐题原文审计或 Provider 请求响应。
+产品已保留开发环境默认路径；其他电脑运行前请显式设置本地目录：
+
+```sh
+export SHILIU_QWEN_MODEL_PATH="$HOME/.cache/shiliu/models/Qwen3-Embedding-0.6B"
+export SHILIU_DEEP_V2_TRACE_DIR="$HOME/Library/Application Support/Shiliu/private-deep-traces"
+```
+
+Qwen 模型需预先安装到指定目录；Trace 含私人证据，应保存在本地并排除版本管理。
+此发布只整理 Git 与文档，没有重新运行模型评测或改变产品行为。
