@@ -15,6 +15,7 @@ AskMode = Literal["fast", "deep"]
 AnswerStatus = Literal["complete", "partial", "insufficient"]
 AnswerExecutionOutcome = Literal[
     "answer_generated",
+    "source_lookup_complete",
     "evidence_insufficient",
     "generation_failed",
     "evidence_unavailable",
@@ -25,6 +26,11 @@ AnswerExecutionOutcome = Literal[
 TerminationReason = Literal[
     "answer_ready",
     "budget_exhausted",
+    "tool_budget_exhausted",
+    "controller_budget_exhausted",
+    "invalid_structured_output",
+    "timeout",
+    "cancelled",
     "no_new_evidence",
     "repeated_search",
     "provider_error",
@@ -54,6 +60,7 @@ def normalize_ask_query(value: str) -> str:
 class AskRequest(_StrictModel):
     query: str
     mode: AskMode = "fast"
+    implementation_version: Literal["deep-v2"] | None = None
     filters: ProductSearchFilterRequest = Field(
         default_factory=ProductSearchFilterRequest
     )
@@ -62,6 +69,12 @@ class AskRequest(_StrictModel):
     @classmethod
     def validate_query(cls, value: str) -> str:
         return normalize_ask_query(value)
+
+    @model_validator(mode="after")
+    def bind_deep_version(self) -> "AskRequest":
+        if self.mode == "deep" and self.implementation_version is None:
+            self.implementation_version = "deep-v2"
+        return self
 
 
 class AnswerBlock(_StrictModel):
@@ -249,6 +262,7 @@ class AskResponse(_StrictModel):
     execution_outcome: AnswerExecutionOutcome | None = None
     answer_blocks: list[AnswerBlock]
     citations: list[Citation]
+    source_matches: list[dict[str, Any]] = Field(default_factory=list)
     limitations: list[str]
     termination_reason: TerminationReason
     trace_summary: TraceSummary
@@ -269,8 +283,11 @@ class AskResponse(_StrictModel):
                 self.execution_outcome = "evidence_insufficient"
         if self.status == "insufficient" and self.answer_blocks:
             raise ValueError("insufficient responses must not contain answer blocks")
-        if self.status != "insufficient" and not self.answer_blocks:
+        source_lookup = self.execution_outcome == "source_lookup_complete" and bool(self.source_matches)
+        if self.status != "insufficient" and not self.answer_blocks and not source_lookup:
             raise ValueError("answering responses must contain answer blocks")
+        if source_lookup and (self.status != "complete" or self.answer_blocks or self.citations):
+            raise ValueError("source lookup must be complete without transcript claims")
         if self.execution_outcome == "answer_generated" and self.status == "insufficient":
             raise ValueError("answer_generated requires an answering status")
         if self.execution_outcome != "answer_generated" and self.answer_blocks:

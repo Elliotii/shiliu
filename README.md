@@ -43,9 +43,11 @@ Raw Subtitle / Raw ASR 始终是 Citation Authority。整理稿、结构化 Summ
 Transcript cleanup / refinement  → deepseek-v4-flash
 Structured summary / refinement  → deepseek-v4-flash
 Taxonomy                          → deepseek-v4-pro
-Query analysis / agent action     → deepseek-v4-pro, thinking off
+Query analysis                    → configured interactive/global model, thinking off
+Deep controller / Query Reduce    → deepseek-v4-flash (deep_controller_model default)
 Fast grounded answer              → deepseek-v4-flash, thinking off
-Deep / authorized Research answer → deepseek-v4-pro, thinking off
+Deep answer                       → deepseek-v4-flash (deep_answer_model default)
+Authorized Research answer        → configured provider/role routing
 Search embedding                  → local Qwen, offline
 ```
 
@@ -123,8 +125,18 @@ Backfill、Sync、Multi-folder 与模型路由定向回归：
 GraphRAG、自动自我进化或普适 Research Agent。仓库不提交个人数据库、Cookie、
 API Key、私人收藏夹 URL、个人 transcript、Provider 原始 payload 或模型缓存。
 
-本稳定快照经产品验收但保留明确限制：Provider 联机路径、真实收藏夹全量同步、
+运行环境与能力限制：Provider 联机路径、真实收藏夹全量同步、
 本地 Qwen 模型和 LaunchAgent 需要使用者自己的凭据、数据与 macOS 环境验证；公开
 测试不等价于完整内部 Eval 或真实 Provider 质量评测的复现。Knowledge Draft 的持久化和 lineage 已保留，
 但 Candidate prose 的语义来源仍有已知缺陷，因此本版本不宣称高质量长期 Knowledge
 内容物化或 durable Knowledge 原生复用。
+
+## Deep 搜索更新
+
+- 支持多路并行检索，并根据已找到的线索继续补充搜索。
+- 按问题筛选证据，区分原文内容与视频来源信息。
+- 条件不足时向用户交付澄清问题，回答保留可回看的原文引用。
+- 改善长响应的处理和故障诊断。
+
+本地模型和诊断目录可通过 `SHILIU_QWEN_MODEL_PATH`、
+`SHILIU_DEEP_V2_TRACE_DIR` 配置。

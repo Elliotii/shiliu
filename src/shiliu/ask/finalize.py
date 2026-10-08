@@ -10,7 +10,7 @@ from shiliu.ask.answer import (
     GenerationPolicy,
     GroundedAnswerService,
 )
-from shiliu.ask.context import TranscriptContextBuilder, fuse_evidence
+from shiliu.ask.context import ContextBuildResult, TranscriptContextBuilder, fuse_evidence
 from shiliu.ask.contracts import (
     AnswerBlock,
     AnswerExecutionOutcome,
@@ -75,15 +75,34 @@ class AnswerFinalizer:
         run_id: str = "unpersisted_answer",
         event_sink: EventSink | None = None,
         answer_service: GroundedAnswerService | None = None,
+        prepared_context: ContextBuildResult | None = None,
+        clarification_requests: tuple[str, ...] = (),
     ) -> FinalizedAnswer:
         resolved_answer_service = answer_service or self.answer_service
-        fused = list(fuse_evidence(spans))
+        fused = list(prepared_context.spans) if prepared_context is not None else list(fuse_evidence(spans))
         generation_policy = _generation_policy(self.claim_verifier.enabled)
         trace: dict[str, Any] = {
             "valid_evidence_count": len(fused),
             "generation_policy": generation_policy,
         }
         if not fused:
+            if clarification_requests and termination_reason in {"answer_ready", "evidence_unavailable"}:
+                # Requests for user input are limitations, not uncited factual
+                # answer blocks. No generation or citation bypass is needed.
+                trace["clarification_requests"] = list(clarification_requests)
+                limitations = ["需要你补充以下信息后才能回答：", *clarification_requests]
+                if stale_reasons:
+                    limitations.append("已有字幕引用失效，未用于事实回答")
+                if retrieval_errors:
+                    limitations.append("部分或全部检索执行失败")
+                return self._insufficient(
+                    limitations=limitations,
+                    execution_outcome=("evidence_unavailable" if stale_reasons or retrieval_errors
+                        else "evidence_insufficient"),
+                    termination_reason=termination_reason,
+                    stale_count=len(stale_reasons),
+                    trace=trace,
+                )
             limitations = ["没有找到可绑定当前字幕版本的有效证据"]
             if retrieval_errors:
                 limitations.append("部分或全部检索执行失败")
@@ -98,7 +117,7 @@ class AnswerFinalizer:
                 stale_count=len(stale_reasons),
                 trace=trace,
             )
-        context = self.context_builder.build(
+        context = prepared_context or self.context_builder.build(
             query=query,
             normalized_intent=normalized_intent,
             spans=fused,
@@ -385,6 +404,11 @@ def _insufficient_stop_limitation(
 ) -> str:
     return {
         "budget_exhausted": "本次搜索已达到确定性预算或时间边界",
+        "tool_budget_exhausted": "本次搜索已达到工具执行预算",
+        "controller_budget_exhausted": "本次搜索已达到决策调用预算",
+        "invalid_structured_output": "决策输出未通过结构校验，已保留现有证据",
+        "timeout": "本次搜索已达到时间边界",
+        "cancelled": "本次搜索已取消",
         "no_new_evidence": "继续搜索没有发现新的有效字幕证据",
         "repeated_search": "后续搜索开始重复已有结果",
         "provider_error": "模型服务未能生成可验证的结构化回答",
