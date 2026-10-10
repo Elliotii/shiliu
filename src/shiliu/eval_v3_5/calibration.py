@@ -31,7 +31,7 @@ def validate_calibration_assets(
     *,
     root: str | Path = "research/v3_5",
     protocol_path: str | Path = "V3_5_EVAL_PROTOCOL_DRAFT.md",
-    snapshot_db: str | Path = "local-data/eval/shiliu_eval.db",
+    snapshot_db: str | Path = "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
     gold_path: str | Path = "research/v3_eval/eval_gold.locked.jsonl",
     artifact_manifest_path: str | Path = "research/v3_eval/artifact_manifest.jsonl",
 ) -> dict[str, int]:

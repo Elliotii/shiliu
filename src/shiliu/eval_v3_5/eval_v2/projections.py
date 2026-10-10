@@ -27,3 +27,4 @@ def project_v3_5_sufficiency(case: MasterCaseV2) -> dict[str, object]:
             "query": case.case_identity.query,
             "required_aspects": [x.model_dump(mode="json") for x in case.evidence_gold.required_aspects],
             **case.sufficiency_gold.model_dump(mode="json")}
+

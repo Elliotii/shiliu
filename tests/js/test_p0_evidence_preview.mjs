@@ -15,8 +15,18 @@ class Node {
   }
 
   get childNodes() { return this.children; }
-  append(...nodes) { this.children.push(...nodes); }
-  replaceChildren(...nodes) { this.children = [...nodes]; }
+  append(...nodes) { nodes.forEach(node => this.insertBefore(node, null)); }
+  insertBefore(node, next) {
+    node.remove();
+    const index = next ? this.children.indexOf(next) : this.children.length;
+    this.children.splice(index, 0, node);
+    node.parent = this;
+  }
+  remove() {
+    if (this.parent) this.parent.children = this.parent.children.filter(n => n !== this);
+    this.parent = null;
+  }
+  replaceChildren(...nodes) { this.children.forEach(n => { n.parent = null; }); this.children = []; this.append(...nodes); }
   addEventListener() {}
   setAttribute(name, value) { this[name] = String(value); }
   getAttribute(name) { return this[name] || null; }
@@ -62,8 +72,10 @@ globalThis.window = {
   clearTimeout,
   ShiliuAskKeyboard: {shouldSubmitOnEnter: () => false},
   ShiliuEvidenceUI: {
-    element: (_tag, _className, text) => {
+    element: (tag, className, text) => {
       const result = new Node();
+      result.tagName = tag;
+      result.className = className;
       result.textContent = text === undefined ? '' : String(text);
       return result;
     },
@@ -206,4 +218,175 @@ test('capacity note stays quiet while real limitations retain warning panel', ()
   api.renderResult(result('evidence_insufficient', {limitations: ['没有足够证据']}));
   assert.equal(node('[data-context-scope-note]').hidden, true);
   assert.equal(node('[data-limitations-panel]').hidden, false);
+});
+
+test('optional framing surrounds cited blocks as plain text and never replaces insufficient', () => {
+  const intro = '<script>intro</script>';
+  api.renderResult(result('answer_generated', {
+    intro, outro: '口味因人而异。', citations: [item],
+    answer_blocks: [{text: '有引用的正文', citation_ids: [item.citation_id]}],
+  }));
+  const body = node('[data-answer-blocks]');
+  assert.equal(body.children.length, 3);
+  assert.equal(body.children[0].textContent, intro);
+  assert.equal(body.children[1].children[0].textContent, '有引用的正文');
+  assert.equal(body.children[1].children[0].children[0].children[0].textContent, '[1]');
+  assert.equal(body.children[2].textContent, '口味因人而异。');
+  api.renderResult(result('evidence_insufficient', {intro, outro: '不应展示'}));
+  assert.equal(body.children.length, 1);
+  assert.notEqual(body.children[0].textContent, intro);
+  api.renderResult(result('answer_generated'));
+  assert.equal(body.children.length, 1);
+});
+
+const visibleText = node => node.textContent + node.children.map(visibleText).join('');
+
+test('display emphasis preserves raw answer, citation mapping and text-only content in Fast and Deep', () => {
+  for (const mode of ['fast', 'deep']) {
+    const text = '**经典小吃**：生煎。也有**面馆**。<img src=x onerror=alert(1)> [伪引用](javascript:alert(1))';
+    const data = result('answer_generated', {
+      mode, intro: '**概述**：按分类介绍。', outro: '请**核实营业情况**。',
+      answer_blocks: [{text, citation_ids: [item.citation_id, 'unknown']}], citations: [item],
+    });
+    const before = JSON.stringify(data);
+    api.renderResult(data);
+    const body = node('[data-answer-blocks]');
+    assert.equal(body.children[0].className, 'answer-intro');
+    assert.equal(body.children[2].className, 'answer-outro');
+    assert.equal(visibleText(body.children[0]), '概述：按分类介绍。');
+    assert.equal(visibleText(body.children[2]), '请核实营业情况。');
+    const paragraph = body.children[1].children[0];
+    assert.deepEqual(paragraph.children.filter(n => n.tagName === 'strong').map(n => n.textContent), ['经典小吃', '面馆']);
+    assert.equal(visibleText(paragraph), text.replaceAll('**', '') + '[1]');
+    const markers = paragraph.children.at(-1);
+    assert.equal(markers.children.length, 1);
+    assert.equal(markers.children[0].dataset.citationId, item.citation_id);
+    assert.equal(markers.children[0]['aria-label'], '定位到回答依据 1');
+    assert.equal(paragraph.children.some(n => ['img', 'script', 'a'].includes(n.tagName)), false);
+    assert.equal(JSON.stringify(data), before);
+  }
+});
+
+test('unsupported, escaped and incomplete formatting stays literal', () => {
+  for (const text of [
+    '普通正文', '**没有结尾', '没有开头**', '***三重星号***', '**结尾三颗***',
+    '** 两边空格 **', '**跨\n行**', String.raw`\**转义**`, '`**代码内容**`',
+    '# 标题\n- 列表\n[链接](https://example.com) ![图](x) *斜体*',
+  ]) {
+    api.renderResult(result('answer_generated', {answer_blocks: [{text, citation_ids: []}]}));
+    const paragraph = node('[data-answer-blocks]').children[0].children[0];
+    assert.equal(visibleText(paragraph), text);
+    assert.equal(paragraph.children.some(n => n.tagName === 'strong'), false);
+  }
+  const text = String.raw`\**转义**，**有效粗体**，末尾**未闭合`;
+  api.renderResult(result('answer_generated', {answer_blocks: [{text, citation_ids: []}]}));
+  const paragraph = node('[data-answer-blocks]').children[0].children[0];
+  assert.equal(visibleText(paragraph), String.raw`\**转义**，有效粗体，末尾**未闭合`);
+});
+
+const stream = (sequence, event_type, payload, source_id = 'stream-run') => ({sequence, event_type, payload, source_id});
+
+test('real block events append before terminal result, deduplicate and reconcile locally', () => {
+  api.showLifecycle(stream(1, 'answer_generation_started', {started_at_ms: Date.now()}));
+  const first = {text: '**先到的正文**', citation_ids: [item.citation_id]};
+  api.showLifecycle(stream(2, 'answer_part', {generation: 0, index: 0, block: first,
+    intro: '开头', outro: null, citations: [item]}));
+  const body = node('[data-answer-blocks]');
+  const firstNode = body.children[1];
+  const firstCard = node('[data-citation-groups]').children[0].children[1];
+  assert.equal(node('[data-result-state]').hidden, false);
+  assert.equal(node('[data-status-badge]').hidden, true);
+  assert.equal(body.children.length, 2);
+  const second = {text: '后到的正文', citation_ids: [item.citation_id]};
+  const secondEvent = stream(3, 'answer_part', {generation: 0, index: 2, block: second,
+    intro: '开头', outro: null, citations: [item]});
+  api.showLifecycle(secondEvent);
+  api.showLifecycle(secondEvent);
+  assert.equal(body.children.length, 3);
+  assert.equal(body.children[1], firstNode);
+  assert.equal(node('[data-citation-groups]').children[0].children[1], firstCard);
+  api.showLifecycle(stream(4, 'answer_generation_finished', {generation: 0, generation_ms: 50, completed_at_ms: Date.now()}));
+  assert.equal(window.__shiliuAnswerStream.generationMs, 50);
+  const fixed = {text: '中间修复的正文', citation_ids: [item.citation_id]};
+  api.renderResult(result('answer_generated', {run_id:'stream-run', intro: '开头', outro: '结尾',
+    citations:[item], answer_blocks:[first, fixed, second], limitations:['真实缺口'],status:'partial'}));
+  assert.equal(body.children.length, 5);
+  assert.equal(body.children[1], firstNode);
+  assert.equal(node('[data-citation-groups]').children[0].children[1], firstCard);
+  assert.equal(node('[data-status-badge]').hidden, false);
+  assert.equal(node('[data-limitations-panel]').hidden, false);
+});
+
+test('retry generations and final insufficient retract provisional answers', () => {
+  api.showLifecycle(stream(1, 'answer_generation_started', {started_at_ms:Date.now()},'retry-run'));
+  const part = {generation:0,index:0,block:{text:'临时正文',citation_ids:[item.citation_id]},citations:[item]};
+  api.showLifecycle(stream(2,'answer_part',part,'retry-run'));
+  api.showLifecycle(stream(3,'answer_stream_reset',{generation:1},'retry-run'));
+  assert.equal(node('[data-answer-blocks]').children.length,0);
+  assert.equal(node('[data-loading-state]').hidden,false);
+  api.showLifecycle(stream(4,'answer_part',part,'retry-run'));
+  assert.equal(node('[data-answer-blocks]').children.length,0);
+  api.showLifecycle(stream(5,'answer_part',{...part,generation:1},'other-run'));
+  assert.equal(node('[data-answer-blocks]').children.length,0);
+  api.showLifecycle(stream(6,'answer_part',{...part,generation:1},'retry-run'));
+  assert.equal(node('[data-answer-blocks]').children.length,1);
+  api.renderResult(result('generation_failed',{run_id:'retry-run'}));
+  assert.equal(node('[data-answer-blocks]').children.length,1);
+  assert.match(visibleText(node('[data-answer-blocks]')), /未能生成/);
+  assert.equal(node('[data-evidence-section]').hidden,true);
+});
+
+test('terminal authority ignores late parts and connection errors clear temporary content', () => {
+  api.showLifecycle(stream(1,'answer_generation_started',{started_at_ms:Date.now()},'late-run'));
+  const payload={generation:0,index:0,block:{text:'提前正文',citation_ids:[item.citation_id]},citations:[item]};
+  api.showLifecycle(stream(2,'answer_part',payload,'late-run'));
+  api.renderResult(result('answer_generated',{run_id:'late-run',answer_blocks:[{text:'最终正文',citation_ids:[item.citation_id]}],citations:[item]}));
+  const body=node('[data-answer-blocks]');const official=body.children[0];
+  api.showLifecycle(stream(3,'answer_part',{...payload,index:1},'late-run'));
+  assert.equal(body.children.length,1);
+  assert.equal(body.children[0],official);
+  assert.equal(visibleText(official),'最终正文[1]');
+  api.showLifecycle(stream(1,'answer_generation_started',{started_at_ms:Date.now()},'broken-run'));
+  api.showLifecycle(stream(2,'answer_part',payload,'broken-run'));
+  api.showError(500,{});
+  assert.equal(body.children.length,0);
+  assert.equal(node('[data-error-state]').hidden,false);
+  assert.equal(window.__shiliuAnswerStream,null);
+});
+
+
+test('a retracted block before the next frame is not recorded as visible', () => {
+  const frames = [];
+  window.requestAnimationFrame = callback => frames.push(callback);
+  api.showLifecycle(stream(1, 'answer_generation_started', {started_at_ms:Date.now()}, 'paint-run'));
+  const part = {generation:0,index:0,block:{text:'待显示正文',citation_ids:[item.citation_id]},citations:[item]};
+  api.showLifecycle(stream(2, 'answer_part', part, 'paint-run'));
+  api.showLifecycle(stream(3, 'answer_stream_reset', {generation:1}, 'paint-run'));
+  frames.shift()();
+  assert.equal(window.__shiliuAnswerStream.firstVisibleAtMs, undefined);
+  api.showLifecycle(stream(4, 'answer_part', {...part,generation:1}, 'paint-run'));
+  frames.shift()();
+  assert.equal(typeof window.__shiliuAnswerStream.firstVisibleAtMs, 'number');
+  delete window.requestAnimationFrame;
+});
+
+
+test('actual Jev dispatch changes lifecycle text; batch audit events leave it alone', () => {
+  const lifecycle=node('[data-lifecycle-status]');
+  api.showLifecycle({event_type:'deep_research',sequence:1,payload:{phase:'reduce_started'}});
+  assert.equal(lifecycle.textContent,'正在筛选并整理检索证据');
+  api.showLifecycle({event_type:'deep_research',sequence:2,payload:{phase:'jev_started'}});
+  assert.equal(lifecycle.textContent,'正在使用 Jev 筛选并整理检索证据');
+  api.showLifecycle({event_type:'deep_research',sequence:3,payload:{phase:'controller_started'}});
+  assert.equal(lifecycle.textContent,'正在规划后续研究');
+  api.showLifecycle({event_type:'b0_batch',payload:{accepted:true}});
+  assert.equal(lifecycle.textContent,'正在规划后续研究');
+});
+
+test('source navigation survives progressive display adapter', () => {
+  api.renderResult(result('source_lookup_complete',{status:'complete',mode:'deep',
+    source_matches:[{video_id:7,title:'Located source'}]}));
+  const card=node('[data-candidate-list]').children[0];
+  assert.equal(card.children.at(-1).href,'/videos/7');
+  assert.equal(node('[data-status-badge]').textContent,'已找到相关视频');
 });

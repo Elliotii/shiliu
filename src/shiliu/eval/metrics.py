@@ -59,3 +59,4 @@ def oracle_mode(scores: dict[str, tuple[float, float]]) -> str:
     if set(scores) != set(order):
         raise ValueError("oracle requires lexical, dense, and hybrid")
     return max(order, key=lambda mode: (scores[mode][0], scores[mode][1], -order.index(mode)))
+

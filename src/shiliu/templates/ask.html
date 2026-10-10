@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}拾流 · 问答{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/ask.css?v=2">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/evidence-ui.css?v=1"><link rel="stylesheet" href="/static/ask.css?v=6">{% endblock %}
 {% block content %}
 <main class="ask-shell" data-ask-page>
   <header class="ask-hero">
@@ -88,6 +88,19 @@
     </div>
   </section>
 
+  <details class="deep-research" data-deep-research hidden open>
+    <summary>
+      <span class="research-kicker">研究过程</span>
+      <strong data-research-current role="status" aria-live="polite" aria-atomic="true">正在开始深入搜索</strong>
+      <span class="research-meta" data-research-meta></span>
+      <span class="research-toggle" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </summary>
+    <div class="research-body">
+      <ol class="research-steps" data-research-tasks aria-label="已执行的研究步骤"></ol>
+      <p class="research-note" data-research-note></p>
+    </div>
+  </details>
+
   <section class="ask-state ask-error" data-error-state hidden role="alert">
     <p class="result-kicker">REQUEST ERROR</p>
     <h2 data-error-title>回答请求失败</h2>
@@ -120,7 +133,7 @@
     </header>
     <p class="termination-copy" data-termination-copy></p>
     <div class="answer-blocks" data-answer-blocks></div>
-    <div class="state-actions draft-actions">
+    <div class="state-actions draft-actions" data-terminal-only>
       <button class="secondary" type="button" data-save-knowledge-draft>保存为草稿</button>
       <span data-draft-status aria-live="polite">保存到知识草稿，稍后可继续整理。</span>
     </div>
@@ -150,12 +163,12 @@
       <div><strong>需要继续查找？</strong><span>保留当前问题和限定范围，明确切换到深入搜索。</span></div>
       <button class="primary" type="button" data-use-deep>使用深入搜索继续</button>
     </div>
-    <section class="ask-research-handoff">
+    <section class="ask-research-handoff" data-terminal-only>
       <div><strong>这还需要多步骤、可持续的研究吗？</strong><span>长程研究会保存进展并继续核对证据；只有你点击后才会进入，仍需明确开始。</span></div>
       <a class="primary" data-ask-research>继续做长程研究</a>
     </section>
 
-    <section class="user-trace" data-user-trace>
+    <section class="user-trace" data-user-trace data-terminal-only>
       <div class="section-heading">
         <div><p class="result-kicker">RUN SUMMARY</p><h2>本次回答如何完成</h2></div>
       </div>
@@ -163,7 +176,7 @@
       <ol class="action-timeline" data-action-timeline hidden></ol>
     </section>
 
-    <details class="developer-trace" data-developer-trace>
+    <details class="developer-trace" data-developer-trace data-terminal-only>
       <summary>开发者 Trace <span>按需读取，不影响已经返回的回答</span></summary>
       <div class="developer-trace-body" data-developer-trace-body>
         <p>展开后读取本次内存 Trace。</p>
@@ -172,4 +185,4 @@
   </section>
 </main>
 {% endblock %}
-{% block scripts %}<script src="/static/evidence-ui.js?v=1"></script><script src="/static/ask-keyboard.js?v=1"></script><script src="/static/ask.js?v=6"></script>{% endblock %}
+{% block scripts %}<script src="/static/evidence-ui.js?v=2"></script><script src="/static/ask-keyboard.js?v=1"></script><script src="/static/ask-research.js?v=4"></script><script src="/static/ask.js?v=10"></script>{% endblock %}

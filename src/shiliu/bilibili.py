@@ -143,6 +143,18 @@ class BilibiliAdapter:
             raise PipelineError("视频详情返回格式无效", code="upstream_schema", retryable=True)
         return VideoBundle.model_validate(data)
 
+    def fetch_video_metadata(self, bvid: str) -> VideoBundle:
+        data = self._run_bridge(["fetch-video-metadata", bvid])
+        if not isinstance(data, dict):
+            raise PipelineError("视频元数据返回格式无效", code="upstream_schema", retryable=True)
+        return VideoBundle.model_validate(data)
+
+    def fetch_video_pubdate(self, bvid: str) -> dict[str, Any]:
+        data = self._run_bridge(["fetch-video-pubdate", bvid])
+        if not isinstance(data, dict) or data.get("bvid") != bvid:
+            raise PipelineError("视频发布日期返回身份无效", code="upstream_schema", retryable=False)
+        return data
+
     def download_audio(self, bvid: str, output_path: Path) -> Path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         data = self._run_bridge(
@@ -174,11 +186,18 @@ class BilibiliAdapter:
             message = _bounded_error_message(
                 str(error.get("message", result.stderr.strip() or "B 站读取失败"))
             )
-            raise PipelineError(
+            failure = PipelineError(
                 message,
                 code=code,
                 retryable=code in {"upstream_retryable", "upstream_timeout", "upstream_error"},
             )
+            status = error.get("http_status")
+            if isinstance(status, int):
+                failure.http_status = status
+            retry_after = error.get("retry_after_seconds")
+            if isinstance(retry_after, (int, float)) and retry_after >= 0:
+                failure.retry_after_seconds = float(retry_after)
+            raise failure
         return payload.get("data")
 
     def login(self) -> int:

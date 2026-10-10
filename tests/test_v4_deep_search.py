@@ -1420,7 +1420,7 @@ def test_fake_clock_enforces_search_cutoff_and_answer_deadline(app_paths) -> Non
         for role, value in repair_provider.timeouts
         if role == "grounded_answer"
     ]
-    assert answer_timeouts == [pytest.approx(210), pytest.approx(110)]
+    assert answer_timeouts == [pytest.approx(210), pytest.approx(30)]
     assert repair_trace["finalization"]["repair_calls"] == 1
 
 
@@ -1530,6 +1530,10 @@ def test_httpx_grounded_answer_deadline_maps_to_budget_exhausted(
                 "answer deadline elapsed",
                 request=httpx.Request("POST", url),
             )
+
+        def stream(self, method, url, *, headers, json):
+            assert method == "POST" and json["stream"] is True
+            return self.post(url, headers=headers, json=json)
 
     service = core.ask_service.deep_service.__class__(
         db=core.db,

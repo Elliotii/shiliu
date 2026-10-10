@@ -50,3 +50,4 @@ def assert_leakage_safe(records: Iterable[LeakageRecord]) -> None:
     conflicts = validate_split(records)
     if conflicts:
         raise ValueError(f"cross-split leakage detected: {conflicts}")
+

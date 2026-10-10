@@ -1169,6 +1169,30 @@
     primaryStatus.dataset.category = product.user_completion.category;
     root.querySelector('[data-completion-label]').textContent = product.user_completion.label;
     root.querySelector('[data-completion-detail]').textContent = product.user_completion.detail;
+    const executionStatus = root.querySelector('[data-execution-status]');
+    const executionBudget = root.querySelector('[data-execution-budget]');
+    const execution = product.execution;
+    executionStatus.hidden = !execution;
+    executionBudget.hidden = !execution || execution.active_budget_ms === undefined;
+    if (execution) {
+      const statusLabels = {
+        idle: '等待安全调度', queued: '等待服务接管', running: '正在持续计时并研究',
+        backoff: '等待有限自动重试', manual_required: '需要手动处理',
+        blocked: '已安全停止', complete: '执行已完成',
+      };
+      const reasonLabels = {
+        legacy_time_unaccounted: '旧任务缺少可信活动时间预算，已停止自动恢复',
+        execution_time_uncertain: '运行间隔无法可靠分类，已停止自动继续',
+        active_time_exhausted: '研究活动时间预算已耗尽',
+        provider_outcome_unknown: 'Provider 调用结果未知，禁止自动重发',
+      };
+      executionStatus.textContent = `${statusLabels[execution.scheduling_status] || execution.scheduling_status}${execution.resume_reason ? ` · ${reasonLabels[execution.resume_reason] || execution.resume_reason}` : ''}`;
+      if (execution.active_budget_ms !== undefined) {
+        const used = Math.round(execution.consumed_active_ms / 1000);
+        const remaining = Math.max(0, Math.round(execution.remaining_active_ms / 1000));
+        executionBudget.textContent = `近似活动时间 ${used} 秒，剩余 ${remaining} 秒；停机、排队、退避与已确认休眠不计入。`;
+      }
+    }
     root.querySelector('[data-task-updated]').textContent = formatLocalDateTime(product.task.updated_at);
     root.querySelector('[data-summary-doing]').textContent = productCopy(product.plain_summary.doing);
     root.querySelector('[data-summary-found]').textContent = productCopy(product.plain_summary.found);
@@ -1192,10 +1216,12 @@
     // the first projection arrives. Keep observing both transitory states so
     // the page reaches the next durable boundary without a manual refresh.
     if (['ready', 'running'].includes(product.task.status)) {
-      pollTimer = window.setTimeout(
-        () => loadTask({refreshAuxiliary: false, showLoading: false}),
-        1800,
-      );
+      if (!['manual_required', 'blocked'].includes(product.execution?.scheduling_status)) {
+        pollTimer = window.setTimeout(
+          () => loadTask({refreshAuxiliary: false, showLoading: false}),
+          1800,
+        );
+      }
     } else if (['ready', 'running'].includes(previousStatus)) {
       loadList();
     }

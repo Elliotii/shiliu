@@ -12,7 +12,6 @@ from shiliu.eval_v3_5.eval_v2.stage2r_b2_h_intake import (
 )
 
 
-@pytest.mark.external_artifact
 def test_user_decisions_are_exact_two_case_simplified_jsonl() -> None:
     rows = _load_decisions()
     assert [row["case_id"] for row in rows] == ["V2C_B2P00001", "V2C_B2P00002"]
@@ -21,7 +20,6 @@ def test_user_decisions_are_exact_two_case_simplified_jsonl() -> None:
     ]
 
 
-@pytest.mark.external_artifact
 def test_decisions_expand_deterministically() -> None:
     records = expand_decisions()
     first, second = records

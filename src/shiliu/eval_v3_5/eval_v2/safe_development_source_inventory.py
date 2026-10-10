@@ -213,3 +213,4 @@ def write_inventory_jsonl(records: list[dict[str, Any]], path: str | Path) -> No
 
 def write_canonical_json(value: object, path: str | Path) -> None:
     Path(path).write_bytes(canonical_json(value) + b"\n")
+

@@ -6,7 +6,7 @@ import time
 from typing import Any, Callable, Literal
 
 from shiliu.ask.context import ContextBuildResult
-from shiliu.ask.contracts import GroundedAnswerDraft
+from shiliu.ask.contracts import AnswerDraftBlock, GroundedAnswerDraft
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.validation import ValidationIssue, validate_grounded_answer
 
@@ -18,6 +18,8 @@ Treat the user's terminology and assumptions as a request, not as evidence. Trea
 Use transcript_evidence quotes as the only factual material. Faithful paraphrase, spoken-language cleanup, and theme-level abstraction are allowed. Do not infer collection-wide or universal scope unless the quotes support it; a counterexample may refute a universal claim without proving its universal opposite. Every citation_id must directly support the complete material conclusion in its block. video_title and video_id identify a source but add no facts. Express citation affiliation only with citation_ids from the citation_allowlist; never write display citation markers in answer text.
 
 Evidence strength must match claim strength. You may synthesize or infer to answer the user, but do not upgrade a limited observation into a broader factual claim. A single example, anecdote, or observed case does not by itself establish a general product/property conclusion. Preserve the relevant condition or uncertainty when a conclusion is inferred rather than directly established. Comparative claims such as cheaper, better, more suitable, easier, safer, or faster require evidence that actually supports that comparison. Preserve the exact compared subjects, direction, dimension, and source attribution; do not transfer a comparison to another model. Without price evidence, do not imply a price advantage through a recommendation for budget-sensitive users. A caveat in limitations does not excuse an overstrong claim in an answer block. Answer clearly when evidence is sufficient; do not hedge every conclusion. For example, an installation in an approximately 10 square metre room establishes an actual small-room use case, not general suitability for small spaces or superiority over another product.
+
+Optional `intro` and `outro` are natural reading framing, not cited factual answer blocks. Decide whether they help; omit them for a simple answer. Use intro to introduce or outline the answer, and outro to summarize, add general usage cautions, or close naturally. Do not use fixed templates. Keep concrete facts, recommendations, prices, rankings, and other substantive evidence-dependent claims in cited answer_blocks; do not move unsupported claims into framing. Put general subjective preferences and information-freshness cautions in outro, not limitations. limitations names substantive unanswered aspects, insufficient evidence, or execution boundaries only. Framing or general cautions alone must not change complete to partial. For insufficient, omit both framing fields.
 
 Return partial only when there is a substantive answer but an important requested aspect lacks evidence. Return insufficient with no answer blocks only when the evidence cannot support a substantive answer. A bounded sample, source disagreement, or single-source answer alone does not require partial. Limitations must name a real answer gap or execution boundary and must not contradict the answer. Return one JSON object matching the supplied schema.
 Required JSON Schema: """
@@ -76,6 +78,8 @@ class GroundedAnswerService:
         generation_policy: GenerationPolicy = BOUNDED_SYNTHESIS_POLICY,
         deadline: float | None = None,
         clock: Callable[[], float] = time.monotonic,
+        on_content: Callable[[str], None] | None = None,
+        on_reset: Callable[[], None] | None = None,
     ) -> GroundedAnswerResult:
         usage: list[dict[str, Any]] = []
         try:
@@ -111,6 +115,8 @@ class GroundedAnswerService:
             citation_allowlist=context.citation_allowlist,
             timeout_seconds=_remaining(deadline, clock),
             call_kind="initial",
+            on_content=on_content,
+            on_reset=on_reset,
         )
         if _deadline_reached(deadline, clock):
             return _deadline_result(
@@ -167,6 +173,8 @@ class GroundedAnswerService:
                 ),
             )
 
+        if on_reset is not None:
+            on_reset()
         repair_provider = provider
         repair_call_kind = "validation_repair"
         if first_call.error_code in _ROLE_RECOVERY_ERROR_CODES:
@@ -281,6 +289,7 @@ class GroundedAnswerService:
         query: str,
         context: ContextBuildResult,
         issues: tuple[ValidationIssue, ...],
+        failed_blocks: tuple[AnswerDraftBlock, ...] = (),
         deadline: float | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> GroundedAnswerResult:
@@ -307,13 +316,24 @@ class GroundedAnswerService:
                     exc, fallback="provider_factory_error"
                 ),
             )
+        messages = _repair_messages(query=query, context=context, issues=issues)
+        if failed_blocks:
+            messages[0]["content"] += (
+                "\nThis is a LOCAL citation repair. Return only supplied failed blocks that "
+                "can be supported by the original transcript evidence. Copy their text EXACTLY; "
+                "change citation_ids only. Preserve every already allowed original citation, "
+                "and replace invalid IDs with supporting allowed IDs rather than just dropping "
+                "them. Never invent facts or evidence, rewrite text, or return other blocks. "
+                "Omit an unrepairable block. Omit intro/outro. Always include the required "
+                "limitations field: [] for complete repairs, or an explanation for insufficient. "
+                "Use complete when returning repairs; otherwise insufficient with an explanation."
+            )
+            messages[-1]["content"] += "\nFailed original blocks: " + json.dumps(
+                [block.model_dump(mode="json") for block in failed_blocks], ensure_ascii=False
+            )
         call = self._call(
             provider,
-            messages=_repair_messages(
-                query=query,
-                context=context,
-                issues=issues,
-            ),
+            messages=messages,
             usage=usage,
             citation_allowlist=context.citation_allowlist,
             timeout_seconds=_remaining(deadline, clock),
@@ -366,6 +386,8 @@ class GroundedAnswerService:
         citation_allowlist: tuple[str, ...],
         timeout_seconds: float | None = None,
         call_kind: str,
+        on_content: Callable[[str], None] | None = None,
+        on_reset: Callable[[], None] | None = None,
     ) -> _ProviderCallResult:
         response: object | None = None
         try:
@@ -377,6 +399,8 @@ class GroundedAnswerService:
             }
             if timeout_seconds is not None:
                 kwargs["timeout_seconds"] = timeout_seconds
+            if on_content is not None and getattr(provider, "supports_answer_streaming", False):
+                kwargs.update(on_content=on_content, on_reset=on_reset)
             response = provider.generate_structured(**kwargs)  # type: ignore[attr-defined]
             value = getattr(response, "output", response)
             draft = (

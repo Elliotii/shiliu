@@ -15,13 +15,10 @@
 - 同一视频可以属于多个收藏夹。来源暂停或 Membership 移除只影响该来源，最后
   一个活跃 Membership 消失后才会退出可检索范围。
 - Search 使用 FTS5 词法检索与本地 Qwen Dense/Hybrid 检索，不调用远程 LLM。
-- Ask Fast 和 Ask Deep 只用当前原字幕/ASR Segment 形成事实 Evidence；等待
-  最终回答时可先显示 Evidence Preview，最终结果按用户问题组织为主题或结论
-  Block，并支持多 Citation 回查到 Bilibili 对应时间点。
-- Durable Research、prior-Evidence continuation 与 Personalization 在明确权限、
-  版本和 Receipt 边界内复用已经落地的证据。Knowledge Draft 支持不可变版本、
-  Citation/Evidence lineage 和显式确认门，但高质量 Candidate 内容物化及
-  durable-Knowledge-native reuse 不属于当前已验收能力。
+- Ask Fast 和 Ask Deep 只用当前原字幕/ASR Segment 形成事实 Evidence；回答中的
+  Citation 可跳转到 Bilibili 对应时间点。
+- Durable Research、Persistent Knowledge 与 Personalization 在明确权限、版本、
+  Receipt 和人工确认边界内复用已经落地的证据，不自动把推断写成用户事实。
 
 ## Evidence 与模型边界
 
@@ -43,11 +40,8 @@ Raw Subtitle / Raw ASR 始终是 Citation Authority。整理稿、结构化 Summ
 Transcript cleanup / refinement  → deepseek-v4-flash
 Structured summary / refinement  → deepseek-v4-flash
 Taxonomy                          → deepseek-v4-pro
-Query analysis                    → configured interactive/global model, thinking off
-Deep controller / Query Reduce    → deepseek-v4-flash (deep_controller_model default)
-Fast grounded answer              → deepseek-v4-flash, thinking off
-Deep answer                       → deepseek-v4-flash (deep_answer_model default)
-Authorized Research answer        → configured provider/role routing
+Query analysis / agent action     → deepseek-v4-pro
+Grounded answer                   → deepseek-v4-pro
 Search embedding                  → local Qwen, offline
 ```
 
@@ -56,33 +50,13 @@ Ingestion、Interactive 与 Taxonomy 配置互相独立。新 transcript/summary
 轻量 provenance sidecar；旧 artifact 不重生成，缺失信息明确标为
 `legacy_unknown`。历史 Frozen Eval 的模型身份不受这些产品设置影响。
 
-## 安装与本地运行
-
-当前公开版本面向 macOS 和 Python 3.10+。仓库使用公开的 `bilibili-cli` 子模块；
-克隆时请一并初始化：
+## 本地运行
 
 ```bash
-git clone --recurse-submodules <your-fork-or-repository-url>
-cd Shiliu
 python -m venv .venv
 .venv/bin/pip install -e '.[test]'
 .venv/bin/shiliu serve
 ```
-
-如果已经普通克隆，可补执行 `git submodule update --init --recursive`。首次启动会在
-用户目录创建本地配置、数据库和内容目录；仓库本身不附带任何个人收藏语料。
-需要远程模型的 Ingestion、Ask、Taxonomy 或 Research 功能时，通过环境变量或系统
-Keychain 提供 Provider API key。只查看界面、运行本地测试和词法检索不需要凭据。
-
-Qwen Dense/Hybrid 检索是可选能力：
-
-```bash
-.venv/bin/pip install -e '.[qwen]'
-export SHILIU_QWEN_MODEL_PATH=/absolute/path/to/Qwen3-Embedding-0.6B
-```
-
-模型文件不会随仓库分发；默认查找
-`~/.cache/shiliu/models/Qwen3-Embedding-0.6B`，不可用时应明确视为本地模型尚未就绪。
 
 默认页面：
 
@@ -115,9 +89,8 @@ Backfill、Sync、Multi-folder 与模型路由定向回归：
   tests/test_pipeline.py
 ```
 
-演示路径见 `DEMO_GUIDE.md`，实现与测试证据映射见
-`PORTFOLIO_EVIDENCE_INDEX.md`。公开仓库不分发真实语料运行报告；相关能力以代码、
-合成测试和用户在自有数据上的本地验证为准。
+演示路径见 `DEMO_GUIDE.md`，能力证据映射见 `PORTFOLIO_EVIDENCE_INDEX.md`，真实
+语料上线状态见 `POST_V5_REAL_CORPUS_ONBOARDING_REPORT.md`。
 
 ## 明确边界
 
@@ -125,18 +98,14 @@ Backfill、Sync、Multi-folder 与模型路由定向回归：
 GraphRAG、自动自我进化或普适 Research Agent。仓库不提交个人数据库、Cookie、
 API Key、私人收藏夹 URL、个人 transcript、Provider 原始 payload 或模型缓存。
 
-运行环境与能力限制：Provider 联机路径、真实收藏夹全量同步、
-本地 Qwen 模型和 LaunchAgent 需要使用者自己的凭据、数据与 macOS 环境验证；公开
-测试不等价于完整内部 Eval 或真实 Provider 质量评测的复现。Knowledge Draft 的持久化和 lineage 已保留，
-但 Candidate prose 的语义来源仍有已知缺陷，因此本版本不宣称高质量长期 Knowledge
-内容物化或 durable Knowledge 原生复用。
+### Ask Deep V2 / Jev B0
 
-## Deep 搜索更新
+Ask 的 Deep 使用已有 V2/F1 批次研究内核；Fast、Assistant、Memory、Wiki 与其他研究入口沿用现有路由，数据库仍为 Schema 25。新增依赖 `jieba==0.42.1` 已加入 `uv.lock`。
 
-- 支持多路并行检索，并根据已找到的线索继续补充搜索。
-- 按问题筛选证据，区分原文内容与视频来源信息。
-- 条件不足时向用户交付澄清问题，回答保留可回看的原文引用。
-- 改善长响应的处理和故障诊断。
+`[llm] deep_reduce_strategy = "s"` 为缺省独立 Query Reduce；设为 `"b0"` 后，同批至少两个有效、无独立摘要缓存的字幕查询可执行冻结的 Jev 筛选与一次共享 Reduce。环境变量 `SHILIU_DEEP_REDUCE_STRATEGY=s|b0` 优先于文件配置，切换需有序重启服务。Jev 使用 `TYPESAFE_API_KEY` 或 Keychain `app.shiliu.jev:default`，产品不读取研究 `.env`。缺凭据、结构/引用校验失败、预算或 deadline 不足时使用 S；沉没 usage 仍保留。
 
-本地模型和诊断目录可通过 `SHILIU_QWEN_MODEL_PATH`、
-`SHILIU_DEEP_V2_TRACE_DIR` 配置。
+F1 词法 companion 默认位于 state 目录 `deep-v2-lexical.sqlite`，首次按本地源库建立，随后复用已有同步边界更新；不是数据库 Schema 迁移。损坏/过期索引拒绝作为 Deep 证据，更新失败不阻断原检索同步。运行 Trace 默认保存在 `state/logs/deep-v2`，也可由 `SHILIU_DEEP_V2_TRACE_DIR` 指定；包含私有原文，应留在本地。检查同 run 的 `reduce_strategy`、`b0_batch.accepted/fallback`、Jev usage 和共享 `query_reduce`，不能仅凭配置或页面答案判断 B0 是否执行。
+
+回退只需设置 S 并有序重启，随后以新请求 Trace 核实；不需要回滚数据库。集成与隔离网页验收记录见 [验收概要](docs/reports/DEEP_V2_JEV_B0_INTEGRATION_ACCEPTANCE.md)。
+
+Ask 同时复用已验收的首尾结构、校验后 `answer_part` 渐进交付和 Deep 分步研究展示；HTTP SSE 用于 Provider 输出，网页沿用已有 Fast NDJSON / Deep 持久事件轮询。重试、无效结构或不足结果会撤回临时块，最终持久结果为权威；开启语义 ClaimVerifier 时仍等待最终可信检查。Jev 仅在原资料整理步骤中显示，不增加独立 UI。

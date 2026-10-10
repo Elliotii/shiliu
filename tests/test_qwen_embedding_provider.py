@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import os
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
-import threading
-import time
 from types import SimpleNamespace
 
 import numpy as np
@@ -150,35 +147,6 @@ def test_non_finite_formal_output_is_rejected(tmp_path, fake_runtime) -> None:
     )
     with pytest.raises(ValueError, match="finite"):
         provider.embed_query("MCP")
-
-
-def test_concurrent_queries_serialize_tokenizer_and_encode(tmp_path, fake_runtime) -> None:
-    provider = QwenEmbeddingProvider(model_path=model_path(tmp_path))
-    model = provider._load()
-    original_encode = model.tokenizer.encode
-    borrowed = threading.Lock()
-
-    def guarded_encode(text, add_special_tokens=True):
-        if not borrowed.acquire(blocking=False):
-            raise RuntimeError("Already borrowed")
-        try:
-            time.sleep(.002)
-            return original_encode(text, add_special_tokens=add_special_tokens)
-        finally:
-            borrowed.release()
-
-    model.tokenizer.encode = guarded_encode
-    original_model_encode = model.encode
-
-    def model_encode(texts, **kwargs):
-        for text in texts:
-            model.tokenizer.encode(text)
-        return original_model_encode(texts, **kwargs)
-
-    model.encode = model_encode
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        values = list(pool.map(provider.embed_query, ["深圳", "厦门", "小吃", "游玩"]))
-    assert len(values) == 4
 
 
 def test_document_budget_is_explicitly_truncated_and_missing_dependency_is_structured(

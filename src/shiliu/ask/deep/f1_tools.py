@@ -72,6 +72,7 @@ class F1TranscriptTool:
         else:
             ids = video_ids or base.video_ids
         scoped = replace(base, video_ids=ids)
+        self.lexical.ensure_ready()
         dense = dense_50(self.dense, query, scoped)
         lexical = self.lexical.search(query, filters=scoped)
         lexical_identity = self.lexical.validate_source()
@@ -93,7 +94,9 @@ class F1TranscriptTool:
                 (trace_id, "deep-v2-f1", datetime.now(timezone.utc).isoformat(), query,
                  "hybrid", "hybrid", "transcript_chunk", json.dumps(asdict(scoped)),
                  50, len(lexical), len(dense), len(hits), "complete",
-                 json.dumps([hit.trace_dict() for hit in hits], ensure_ascii=False)))
+                 json.dumps([{**hit.trace_dict(), "video_id": hit.video_id,
+                     "start_time": hit.start_time, "end_time": hit.end_time}
+                     for hit in hits], ensure_ascii=False)))
         raw.trace_persisted = True
         candidates = self.search_service.materialize_execution(execution)
         materialized = self.materializer.materialize(execution, candidates, query_index=0)

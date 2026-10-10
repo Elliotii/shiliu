@@ -59,7 +59,9 @@ from shiliu.research.provider_wiring import (
 from shiliu.research.schema import (
     INNER_RESEARCH_STATE_SCHEMA_VERSION,
     OUTER_STATE_SCHEMA_VERSION,
+    RESEARCH_ACTIVE_TIME_POLICY_VERSION,
 )
+from shiliu.research.execution import DEFAULT_ACTIVE_BUDGET_MS, ResearchExecutionLedger
 from shiliu.research.service import ResearchTaskService
 from shiliu.retrieval.product_search import build_bilibili_jump_url
 
@@ -225,6 +227,8 @@ class ResearchProductService:
         principal_id: str = "local_operator",
         runner_id: str | None = None,
         fault_injector: FaultInjector | None = None,
+        lease_seconds: int | None = None,
+        lease_renew_every: int | None = LEASE_RENEW_EVERY,
     ) -> None:
         self.db = db
         self.kernel = kernel
@@ -233,7 +237,10 @@ class ResearchProductService:
         self.control = control
         self.principal_id = principal_id
         self.runner_id = runner_id or f"stage5-local-{uuid.uuid4().hex}"
+        self.lease_seconds = int(lease_seconds or self.LEASE_SECONDS)
+        self.lease_renew_every = lease_renew_every
         self.fault_injector = fault_injector or (lambda _point: None)
+        self.execution = ResearchExecutionLedger(db, kernel)
         self._locks_guard = threading.Lock()
         self._run_locks: dict[str, threading.Lock] = {}
 
@@ -295,7 +302,7 @@ class ResearchProductService:
                     command_id=_derived_command(command_id, "draft-intake-claim"),
                     owner_id=self.runner_id,
                     expected_state_version=int(task["state_version"]),
-                    lease_seconds=self.LEASE_SECONDS,
+                    lease_seconds=self.lease_seconds,
                 )
                 raw = self.kernel.get_task(task_id)
                 task = raw["task"]
@@ -358,6 +365,7 @@ class ResearchProductService:
         )
         task_id = f"rtask_{hashlib.sha256(request.command_id.encode()).hexdigest()[:32]}"
         evidence_policy: dict[str, Any] | None = None
+        creates_v2_metadata = False
         try:
             existing = self.kernel.get_task(task_id)
         except ResearchError as exc:
@@ -376,11 +384,17 @@ class ResearchProductService:
                         "existing Provider Research continuation binding changed"
                     )
             evidence_policy = observed
+            creates_v2_metadata = (
+                observed.get("provider_run_budget", {}).get("time_policy_version")
+                == RESEARCH_ACTIVE_TIME_POLICY_VERSION
+            )
         if evidence_policy is None:
+            creates_v2_metadata = True
             policy = ProviderRunBudgetPolicy(
                 run_id=f"web-research:{task_id}",
                 task_ids=(task_id,),
                 started_at=_now(),
+                time_policy_version=RESEARCH_ACTIVE_TIME_POLICY_VERSION,
             )
             evidence_policy = {
                 "authority": "live_current_exact_replay",
@@ -392,6 +406,7 @@ class ResearchProductService:
                 ),
                 **continuation_policy,
             }
+        run_command_id = f"web:provider-research:{task_id}:run"
         return self.kernel.create_task(
             command_id=request.command_id,
             task_id=task_id,
@@ -400,6 +415,24 @@ class ResearchProductService:
             evidence_policy=evidence_policy,
             parent_task_id=parent_task_id,
             _server_constraint_profile=grounded_current_evidence_profile(),
+            _execution_metadata=(
+                {
+                    "time_policy_version": RESEARCH_ACTIVE_TIME_POLICY_VERSION,
+                    "active_budget_ms": DEFAULT_ACTIVE_BUDGET_MS,
+                    "scheduling_intent": (
+                        "queued" if request.run_immediately else "none"
+                    ),
+                    "scheduling_status": (
+                        "queued" if request.run_immediately else "idle"
+                    ),
+                    "run_command_id": run_command_id,
+                    "resume_reason": (
+                        "initial_run_requested" if request.run_immediately else None
+                    ),
+                }
+                if creates_v2_metadata
+                else None
+            ),
         )
 
     @staticmethod
@@ -457,6 +490,9 @@ class ResearchProductService:
             max_wall_seconds=int(binding["max_wall_seconds"]),
             reserve_stop_usd=Decimal(str(binding["reserve_stop_usd"])),
             absolute_max_cost_usd=Decimal(str(binding["absolute_max_cost_usd"])),
+            time_policy_version=str(
+                binding.get("time_policy_version") or "provider_wall_time_v1"
+            ),
         )
         if str(binding.get("policy_hash")) != policy.policy_hash:
             raise ResearchUnsafeState("Provider Research budget binding is invalid")
@@ -625,7 +661,7 @@ class ResearchProductService:
                     command_id=_derived_command(command_id, "retry-claim"),
                     owner_id=self.runner_id,
                     expected_state_version=int(task["state_version"]),
-                    lease_seconds=self.LEASE_SECONDS,
+                    lease_seconds=self.lease_seconds,
                 )
                 task = self.kernel.get_task(task_id)["task"]
             return self.kernel.retry_attempt(
@@ -635,6 +671,10 @@ class ResearchProductService:
                 owner_id=self.runner_id,
                 owner_epoch=int(task["owner_epoch"]),
                 expected_state_version=int(task["state_version"]),
+                _execution_enqueue={
+                    "run_command_id": f"web:provider-research:{task_id}:run",
+                    "reason": "manual_retry_requested",
+                },
             )
         finally:
             lock.release()
@@ -826,6 +866,22 @@ class ResearchProductService:
             == self.PROVIDER_EXECUTION
         ):
             allowed.intersection_update({"run", "retry"})
+            execution_snapshot = self.execution.snapshot(task_id, required=False)
+            if execution_snapshot is None:
+                execution_projection = {
+                    "time_policy_version": "legacy_unaccounted",
+                    "timing_status": "uncertain",
+                    "scheduling_status": "manual_required",
+                    "resume_reason": "legacy_time_unaccounted",
+                    "active_time_is_approximate": True,
+                }
+                allowed.difference_update({"run", "retry"})
+            else:
+                execution_projection = execution_snapshot.projection()
+                if execution_snapshot.timing_status in {"uncertain", "exhausted"}:
+                    allowed.difference_update({"run", "retry"})
+        else:
+            execution_projection = None
         citations = self._citations(
             task_id,
             str(active_attempt["attempt_id"]) if active_attempt is not None else None,
@@ -860,6 +916,37 @@ class ResearchProductService:
             events=raw["events"],
             unresolved_side_effects=unresolved_side_effects,
         )
+        if (
+            execution_projection is not None
+            and execution_projection.get("scheduling_status") == "manual_required"
+            and str(task["status"]) in {TaskStatus.READY.value, TaskStatus.RUNNING.value}
+        ):
+            reason = str(execution_projection.get("resume_reason") or "")
+            user_completion = {
+                **user_completion,
+                "status": "manual_required",
+                "category": (
+                    "unknown"
+                    if reason in {
+                        "provider_outcome_unknown",
+                        "execution_time_uncertain",
+                    }
+                    else "failed"
+                ),
+                "label": "需要处理",
+                "detail": {
+                    "legacy_time_unaccounted": (
+                        "旧任务缺少可信活动时间预算，不能自动或普通手动继续。"
+                    ),
+                    "execution_time_uncertain": (
+                        "活动时间无法可靠分类，已停止自动继续。"
+                    ),
+                    "active_time_exhausted": "研究活动时间预算已耗尽。",
+                    "provider_outcome_unknown": (
+                        "Provider 调用结果未知，禁止自动或普通手动重发。"
+                    ),
+                }.get(reason, "有限自动尝试已停止；请查看可用的安全操作。"),
+            }
         limitations = self._reconciled_limitations(
             list(artifact.get("limitations", [])) if artifact else [],
             outer_audit_ran=bool(raw["outer_audits"]),
@@ -984,6 +1071,7 @@ class ResearchProductService:
                 )
                 else "not_exercised"
             ),
+            "execution": execution_projection,
         }
 
     @staticmethod
@@ -1076,7 +1164,6 @@ class ResearchProductService:
         elif failure_class != "none" or termination_reason in {
             "provider_error",
             "implementation_error",
-            "evidence_unavailable",
         }:
             status = "failed_execution"
             category = "failed"
@@ -1884,7 +1971,7 @@ class ResearchProductService:
                     ),
                     owner_id=self.runner_id,
                     expected_state_version=int(task["state_version"]),
-                    lease_seconds=self.LEASE_SECONDS,
+                    lease_seconds=self.lease_seconds,
                 )
                 task = self.kernel.get_task(task_id)["task"]
                 assert int(task["owner_epoch"]) == int(claimed["owner_epoch"])
@@ -1899,7 +1986,7 @@ class ResearchProductService:
                     ),
                     owner_id=self.runner_id,
                     expected_state_version=int(task["state_version"]),
-                    lease_seconds=self.LEASE_SECONDS,
+                    lease_seconds=self.lease_seconds,
                 )
                 task = self.kernel.get_task(task_id)["task"]
             active = next(
@@ -1998,7 +2085,7 @@ class ResearchProductService:
             )
             inner_actions += 1
             steps += 1
-            if steps % self.LEASE_RENEW_EVERY == 0:
+            if self.lease_renew_every and steps % self.lease_renew_every == 0:
                 current = self.kernel.get_task(task_id)["task"]
                 if str(current["status"]) != "terminal":
                     self.kernel.renew_owner(
@@ -2009,7 +2096,7 @@ class ResearchProductService:
                         owner_id=self.runner_id,
                         owner_epoch=int(current["owner_epoch"]),
                         expected_state_version=int(current["state_version"]),
-                        lease_seconds=self.LEASE_SECONDS,
+                        lease_seconds=self.lease_seconds,
                     )
             if outcome["phase"] == "stopped":
                 self.ensure_candidate_deltas(task_id)

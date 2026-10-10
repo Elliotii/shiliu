@@ -77,6 +77,8 @@ class RetrievalService:
     def __init__(self, *, db: Database, artifacts: ArtifactStore) -> None:
         self.db = db
         self.artifacts = artifacts
+        self.on_video_updated = None
+        self.on_index_rebuilt = None
 
     def initialize_schema(self) -> None:
         with self.db.connect() as connection:
@@ -208,6 +210,8 @@ class RetrievalService:
                     stats.chunk_unit_count,
                 ),
             )
+        if self.on_index_rebuilt is not None:
+            self.on_index_rebuilt()
         stats.duration_seconds = time.monotonic() - started
         return stats
 
@@ -242,6 +246,8 @@ class RetrievalService:
                 )
             self._upsert_units(connection, units)
             self._refresh_index_meta_counts(connection)
+        if self.on_video_updated is not None:
+            self.on_video_updated(video_id)
         return {
             "video_id": video_id,
             "video_units": sum(unit.unit_type == "video" for unit in units),
@@ -257,6 +263,8 @@ class RetrievalService:
             count = int(row[0] if row else 0)
             self._delete_video_units(connection, video_id)
             self._refresh_index_meta_counts(connection)
+        if self.on_video_updated is not None:
+            self.on_video_updated(video_id)
         return count
 
     def statistics(self) -> dict[str, object]:

@@ -13,7 +13,7 @@ from shiliu.retrieval.dense import DenseModelIdentity, _validate_vector
 QWEN_MODEL_ID = "Qwen/Qwen3-Embedding-0.6B"
 QWEN_MODEL_REVISION = "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3"
 QWEN_MODEL_PATH = Path(
-    Path.home() / "Library" / "Caches" / "Shiliu" / "model-selection" / "Qwen3-Embedding-0.6B"
+    "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B"
 )
 QWEN_DIMENSION = 512
 QWEN_MAX_TOKENS = 512
@@ -176,18 +176,16 @@ class QwenEmbeddingProvider:
         return _validate_vector(value, self.dimension)
 
     def count_tokens(self, text: str, *, add_special_tokens: bool = True) -> int:
-        with self._encode_lock:
-            return len(
-                self._load().tokenizer.encode(text, add_special_tokens=add_special_tokens)
-            )
+        return len(
+            self._load().tokenizer.encode(text, add_special_tokens=add_special_tokens)
+        )
 
     def truncate_text(self, text: str, max_content_tokens: int) -> str:
         if max_content_tokens < 1:
             return ""
-        with self._encode_lock:
-            tokenizer = self._load().tokenizer
-            token_ids = tokenizer.encode(text, add_special_tokens=False)[:max_content_tokens]
-            return tokenizer.decode(token_ids, skip_special_tokens=True).rstrip()
+        tokenizer = self._load().tokenizer
+        token_ids = tokenizer.encode(text, add_special_tokens=False)[:max_content_tokens]
+        return tokenizer.decode(token_ids, skip_special_tokens=True).rstrip()
 
     def _truncate_query_body(self, body: str) -> str:
         if self.count_tokens(format_qwen_query(body)) <= QWEN_MAX_TOKENS:

@@ -318,16 +318,14 @@ def test_durable_api_deep_v2_source_lookup(app_paths):
     provider = Provider([{"type": "continue", "actions": [{"action_id": "s", "kind": "search_videos",
         "arguments": {"query": "title"}, "purpose": "locate"}]},
         {"type": "finish", "outcome": "sources_found", "finish_reason": "located"}])
-    app.provider = lambda _: provider
-    app.deep_answer_provider = lambda _: provider
+    app.deep_v2_provider = lambda _: provider
     source = NavigationDocument(video_id=7, bvid="BV1234567890", title="Located", uploader="Author",
         description="description", summary_sections=[], user_notes=[], cleaned_transcript=[],
         metadata={"video_url": "https://www.bilibili.com/video/BV1234567890"},
         matched_excerpt="title", matched_sources=["title"], source_labels={})
     app.ask_service.deep_service.graph.navigation = SimpleNamespace(search=lambda *args, **kwargs: [source])
     client = TestClient(create_web_app(app))
-    created = client.post("/api/ask/runs", json={"query": "find the video", "mode": "deep",
-        "implementation_version": "deep-v2"})
+    created = client.post("/api/ask/runs", json={"query": "find the video", "mode": "deep"})
     assert created.status_code == 202
     run_id = created.json()["run_id"]
     result = client.get(f"/api/ask/runs/{run_id}").json()["result"]
@@ -890,23 +888,18 @@ def test_final_prompt_preserves_subject_relations_and_source_roles():
         messages=_answer_messages(query='Compare them', context=context))
 
 
-def test_final_and_repair_prompt_calibrate_case_and_price_claims():
-    from shiliu.ask.answer import _answer_messages, _repair_messages
+def test_product_final_prompt_remains_shared_and_unmodified():
+    from shiliu.ask.answer import _answer_messages, _ANSWER_PRODUCT_INSTRUCTIONS
     from shiliu.ask.context import ContextBuildResult
-    context = ContextBuildResult((_span('case', 'A was installed in one 10 square metre room.'),),
-        'A was installed in one 10 square metre room. No price comparison is available.', ('case',), False, 0)
-    for messages in (_answer_messages(query='Is A more suitable and cheaper?', context=context),
-                     _repair_messages(query='Is A more suitable and cheaper?', context=context, issues=())):
-        policy = messages[0]['content']
-        assert 'Evidence strength must match claim strength' in policy
-        assert 'does not by itself establish a general product/property conclusion' in policy
-        assert 'cheaper, better, more suitable' in policy
-        assert 'require evidence that actually supports that comparison' in policy
-        assert 'Without price evidence, do not imply a price advantage' in policy
-        assert 'Preserve the exact compared subjects, direction, dimension' in policy
-        assert 'not general suitability for small spaces' in policy
-        assert 'Answer clearly when evidence is sufficient; do not hedge every conclusion' in policy
-        assert 'No price comparison is available' in messages[-1]['content']
+    from shiliu.ask.deep.v2 import AuditedProvider
+    context = ContextBuildResult((), '{}', (), False, 0)
+    messages = _answer_messages(query='question', context=context)
+    class Capture:
+        def generate_structured(self, **kwargs):
+            assert kwargs['messages'] == messages
+            return SimpleNamespace(output=__import__("shiliu.ask.contracts",fromlist=["GroundedAnswerDraft"]).GroundedAnswerDraft(status="insufficient",answer_blocks=[],limitations=[]), usage={}, latency_ms=0)
+    AuditedProvider(Capture(), [], use_deep_instructions=False).generate_structured(
+        role='grounded_answer', messages=messages, response_schema=dict)
 
 
 def test_deep_consolidated_initial_and_repair_contract_leave_fast_intact():

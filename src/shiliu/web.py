@@ -8,8 +8,9 @@ import json
 import logging
 import re
 import threading
+from contextlib import asynccontextmanager
 from dataclasses import replace
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -28,6 +29,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from shiliu.app import Application
+from shiliu.assistant.api import router as assistant_router
 from shiliu.ask import AskModeNotImplemented, AskRequest
 from shiliu.asr import ParaformerProvider
 from shiliu.config import (
@@ -283,15 +285,33 @@ class TaxonomySourcesRequest(BaseModel):
 
 
 def create_web_app(application: Application | None = None) -> FastAPI:
-    web = FastAPI(title="拾流 Shiliu", docs_url=None, redoc_url=None)
+    core = application or Application()
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        if core.config.assistant_enabled:
+            core.assistant_runtime.start()
+        core.research_recovery.start()
+        try:
+            yield
+        finally:
+            if core.config.assistant_enabled:
+                core.assistant_runtime.stop()
+            core.research_recovery.stop()
+
+    web = FastAPI(
+        title="拾流 Shiliu", docs_url=None, redoc_url=None, lifespan=lifespan
+    )
     web.mount("/static", StaticFiles(directory=str(PACKAGE_DIR / "static")), name="static")
-    web.state.core = application or Application()
+    web.include_router(assistant_router)
+    web.state.core = core
     # The local product boundary supplies this principal. Request payloads cannot
     # choose actor identity, role, or capability.
     web.state.research_control_principal = "local_operator"
     web.state.login_process = None
     web.state.background_lock = threading.Lock()
     web.state.background_thread = None
+
     try:
         with ProcessLock(web.state.core.paths.sync_lock):
             web.state.core.db.recover_stale_sync_runs()
@@ -387,6 +407,19 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             request,
             "ask.html",
             {"sources": _core(request).db.list_sources(active_only=True)},
+        )
+
+    @web.get("/assistant", response_class=HTMLResponse)
+    async def assistant_page(request: Request) -> HTMLResponse:
+        core = _core(request)
+        return templates.TemplateResponse(
+            request,
+            "assistant.html",
+            {
+                "assistant_enabled": core.config.assistant_enabled,
+                "sources": core.db.list_sources(active_only=True),
+                "model": core.config.model_for("assistant"),
+            },
         )
 
     @web.get("/knowledge", response_class=HTMLResponse)
@@ -873,6 +906,15 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             )
         return JSONResponse({"ok": True, "draft": draft})
 
+    def has_local_provider_completion(raw: dict[str, Any]) -> bool:
+        return any(
+            receipt.get("command_type") == "provider_deep_finalized"
+            for receipt in raw.get("command_receipts", [])
+        ) or any(
+            checkpoint.get("state_payload", {}).get("phase") == "complete"
+            for checkpoint in raw.get("checkpoints", [])
+        )
+
     def run_product_background(
         core: Application, task_id: str, command_id: str, max_steps: int = 24
     ) -> None:
@@ -886,22 +928,50 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                 goal.get("evidence_policy", {}).get("product_execution") or ""
             )
             if execution == core.research_product.PROVIDER_EXECUTION:
-                budget = core.research_provider_product.provider_run_budget(task_id)
-                deadline = datetime.fromisoformat(budget.started_at) + timedelta(
-                    seconds=360
+                if str(raw["task"]["status"]) == "terminal":
+                    budget = core.research_provider_product.provider_run_budget(task_id)
+                    core.research_provider_orchestrator.run_to_boundary(
+                        task_id,
+                        command_id=command_id,
+                        max_continuation_cycles=1,
+                        max_logical_calls=17,
+                        max_http_attempts=34,
+                        max_input_tokens=140_000,
+                        max_output_tokens=31_984,
+                        max_wall_time_seconds=360,
+                        case_deadline_at=None,
+                        run_budget=budget,
+                    )
+                    return
+                snapshot = core.research_provider_product.execution.snapshot(
+                    task_id, required=False
                 )
-                core.research_provider_orchestrator.run_to_boundary(
-                    task_id,
-                    command_id=command_id,
-                    max_continuation_cycles=1,
-                    max_logical_calls=17,
-                    max_http_attempts=34,
-                    max_input_tokens=140_000,
-                    max_output_tokens=31_984,
-                    max_wall_time_seconds=360,
-                    case_deadline_at=deadline.isoformat(timespec="microseconds"),
-                    run_budget=budget,
-                )
+                if snapshot is None:
+                    if has_local_provider_completion(raw):
+                        budget = (
+                            core.research_provider_product.provider_run_budget(task_id)
+                        )
+                        core.research_provider_orchestrator.run_to_boundary(
+                            task_id,
+                            command_id=command_id,
+                            max_continuation_cycles=1,
+                            max_logical_calls=17,
+                            max_http_attempts=34,
+                            max_input_tokens=140_000,
+                            max_output_tokens=31_984,
+                            max_wall_time_seconds=360,
+                            case_deadline_at=None,
+                            run_budget=budget,
+                        )
+                    return
+                if snapshot.scheduling_intent == "none":
+                    core.research_provider_product.execution.enqueue(
+                        task_id,
+                        command_id=command_id,
+                        manual=False,
+                        reason="background_run_requested",
+                    )
+                core.research_recovery.run_once()
             else:
                 core.research_product.run_to_boundary(
                     task_id,
@@ -1569,12 +1639,13 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             value for value in raw["goals"]
             if value["goal_id"] == raw["task"]["active_goal_id"]
         )
+        local_completion = has_local_provider_completion(raw)
         if (
             goal.get("evidence_policy", {}).get("product_execution")
             == core.research_product.PROVIDER_EXECUTION
         ):
             availability = await asyncio.to_thread(core.provider_research_availability)
-            if not bool(availability["available"]):
+            if not local_completion and not bool(availability["available"]):
                 return JSONResponse(
                     {
                         "ok": False,
@@ -1586,15 +1657,53 @@ def create_web_app(application: Application | None = None) -> FastAPI:
                     status_code=503,
                 )
             effective_command_id = _provider_product_run_command(task_id)
+            if str(raw["task"]["status"]) != "terminal":
+                execution = core.research_provider_product.execution.snapshot(
+                    task_id, required=False
+                )
+                if execution is None and not has_local_provider_completion(raw):
+                    return JSONResponse(
+                        {
+                            "ok": False,
+                            "error": {
+                                "code": "legacy_time_unaccounted",
+                                "message": (
+                                    "旧任务缺少可信活动时间预算，不能继续研究。"
+                                ),
+                            },
+                        },
+                        status_code=409,
+                    )
+                try:
+                    if execution is not None:
+                        await asyncio.to_thread(
+                            core.research_provider_product.execution.enqueue,
+                            task_id,
+                            command_id=effective_command_id,
+                            manual=True,
+                            reason="manual_run_requested",
+                        )
+                except ResearchError as exc:
+                    return JSONResponse(
+                        {"ok": False, "error": exc.as_dict()},
+                        status_code=exc.http_status,
+                    )
+            background_tasks.add_task(
+                run_product_background,
+                core,
+                task_id,
+                effective_command_id,
+                payload.max_steps,
+            )
         else:
             effective_command_id = payload.command_id
-        background_tasks.add_task(
-            run_product_background,
-            core,
-            task_id,
-            effective_command_id,
-            payload.max_steps,
-        )
+            background_tasks.add_task(
+                run_product_background,
+                core,
+                task_id,
+                effective_command_id,
+                payload.max_steps,
+            )
         return JSONResponse(
             {
                 "ok": True,
@@ -1804,6 +1913,8 @@ def create_web_app(application: Application | None = None) -> FastAPI:
             control = await asyncio.to_thread(
                 _core(request).research_control.get_status, task_id
             )
+            if payload.kind == "resume":
+                _core(request).research_recovery.wake()
         except ResearchError as exc:
             return JSONResponse(
                 {"ok": False, "error": exc.as_dict()}, status_code=exc.http_status

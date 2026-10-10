@@ -4,6 +4,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 import json
+import logging
 import time
 from typing import Annotated, Any, Callable, Literal
 
@@ -138,6 +139,8 @@ Match claim strength to evidence strength. A limited example supports that obser
 Treat the user's terminology and assumptions as the question to investigate, not as evidence. When sources use different terminology or disagree, describe what the evidence supports and preserve the relevant attribution or disagreement.
 
 Use only `citation_id` values present in `transcript_evidence` for transcript-derived claims. Each material transcript-derived claim in an answer block must be supported by the citations attached to that block. Source-identity facts may come from `adopted_video_sources`; do not imply that a transcript citation proves those metadata facts. In this output contract, include source-identity details within blocks that also contain supported transcript-derived content. Do not attach unrelated transcript citations to support metadata-only claims or use navigation IDs or BVIDs as transcript citations.
+
+Optional `intro` and `outro` are natural reading framing, not cited factual answer blocks. Decide whether they help; omit them for a simple answer. Use intro to introduce or outline the answer, and outro to summarize, add general usage cautions, or close naturally. Do not use fixed templates. Keep concrete facts, recommendations, prices, rankings, and other substantive evidence-dependent claims in cited answer_blocks; do not move unsupported claims into framing. Put general subjective preferences and information-freshness cautions in outro, not limitations. limitations names substantive unanswered aspects, insufficient evidence, or execution boundaries only. Framing or general cautions alone must not change complete to partial. For insufficient, omit both framing fields.
 
 Return:
 - `complete` when the important requested aspects are supported;
@@ -356,18 +359,40 @@ class DeepV2Graph:
     def __init__(self, *, provider_factory: Callable[[str], object], transcripts: F1TranscriptTool,
                  navigation: NavigationService, windows: TranscriptWindowReader,
                  budget: V2Budget | None = None, clock: Callable[[], float] = time.monotonic,
-                 cancelled: Callable[[str], bool] | None = None):
+                 cancelled: Callable[[str], bool] | None = None,
+                 reduce_strategy: str = "s", jev=None):
         self.provider_factory, self.transcripts, self.navigation, self.windows = provider_factory, transcripts, navigation, windows
         self.budget, self.clock = budget or V2Budget(), clock
         self.cancelled = cancelled or (lambda _run_id: False)
+        if reduce_strategy not in {"s", "b0"}:
+            raise ValueError("Deep Reduce strategy must be s or b0")
+        self.reduce_strategy = reduce_strategy
+        if jev is None and reduce_strategy == "b0":
+            from shiliu.ask.deep.jev import JevClient
+            jev = JevClient()
+        self.jev = jev
         graph = StateGraph(dict)
         graph.add_node("research", self._run_loop)
         graph.add_edge(START, "research")
         graph.add_edge("research", END)
         self.compiled = graph.compile()
 
-    def run(self, state: dict[str, Any]) -> dict[str, Any]:
-        return self.compiled.invoke(state)
+    def run(self, state: dict[str, Any], *, event_sink=None) -> dict[str, Any]:
+        # Per-run callback: concurrent runs never share a mutable graph callback.
+        result = self.compiled.invoke({**state, "_research_event_sink": event_sink})
+        result.pop("_research_event_sink", None)
+        return result
+
+    @staticmethod
+    def _publish(state, phase, **payload):
+        sink = state.get("_research_event_sink")
+        if sink is not None:
+            try:
+                sink("deep_research", {"phase": phase, "round": state["decision_rounds"] or 1,
+                    "occurred_at_ms": time.time() * 1000, **payload})
+            except Exception:
+                # Observation must not consume model budget or change research.
+                logging.getLogger(__name__).exception("Deep research event delivery failed")
 
     def _run_loop(self, state: dict[str, Any]) -> dict[str, Any]:
         state.setdefault("v2_needs", {})
@@ -393,6 +418,8 @@ class DeepV2Graph:
                 if self.clock() >= state["search_deadline"] or state["v2_controller_calls"] >= self.budget.max_controller_calls:
                     break
                 state["v2_controller_calls"] += 1
+                self._publish(state, "controller_started", round=state["decision_rounds"] + 1,
+                    attempt=attempt + 1)
                 try:
                     candidate, metadata, messages = self._decide(state, repair_error=error)
                     error = self._validate(candidate, state)
@@ -421,6 +448,7 @@ class DeepV2Graph:
                     else:
                         state["termination_reason"] = "provider_error" if error else "controller_budget_exhausted"
                 break
+            self._publish(state, "controller_completed", decision=decision.type)
             changed = self._update_needs(decision, state)
             if decision.type == "finish":
                 state["v2_outcome"] = decision.outcome
@@ -442,17 +470,7 @@ class DeepV2Graph:
             for result in results:
                 if result["ended_at"] > deadline:
                     result.update(status="timeout", spans=(), sources=(), error="tool result arrived after deadline")
-            before = self._effective_progress(state)
-            for action, result in zip(decision.actions, results):
-                self._reduce(action, result, state)
-            after = self._effective_progress(state)
-            repeated = [event for event in state["events"][-len(results):]
-                if event.get("event_type") == "v2_tool_result" and event.get("no_new_result")]
-            state["v2_repeated_query_advice"] = (
-                "The same normalized query and scope already ran with no new result; choose a genuinely different direction or consider ending this need."
-                if repeated else None)
-            no_progress = 0 if changed or after != before else no_progress + 1
-            state["v2_no_progress"] = no_progress
+            no_progress = self._apply_batch_results(decision.actions, results, state, changed=changed)
             if no_progress >= self.budget.no_progress_limit:
                 state["termination_reason"] = "no_new_evidence"
                 state["v2_outcome"] = "partial" if state["v2_store"] else "insufficient"
@@ -471,7 +489,30 @@ class DeepV2Graph:
         state["navigation_result_count"] = len(state["v2_sources"])
         state["visited_video_ids"] = list(dict.fromkeys(span.video_id for span in state["evidence_spans"]))
         state["visited_segment_ids"] = list(dict.fromkeys(segment for span in state["evidence_spans"] for segment in span.segment_ids))
+        self._publish(state, "research_finished", reason=state["termination_reason"],
+            outcome=state["v2_outcome"], completed_rounds=len(state["v2_round_timings"]))
         return state
+
+    def _apply_batch_results(self, actions, results, state, *, changed=False):
+        before = self._effective_progress(state)
+        if any(r.get("_b0_uncacheable") for r in results):
+            before_refs = set(state["v2_store"])
+            for result in results:
+                if result.get("status") == "ok":
+                    result["_b0_new_refs"] = {span.citation_id for span in result.get("spans", ())} - before_refs
+                    for span in result.get("spans", ()):
+                        self._register_span(span, state)
+        for action, result in zip(actions, results):
+            self._reduce(action, result, state)
+        after = self._effective_progress(state)
+        repeated = [event for event in state["events"][-len(results):]
+            if event.get("event_type") == "v2_tool_result" and event.get("no_new_result")]
+        state["v2_repeated_query_advice"] = (
+            "The same normalized query and scope already ran with no new result; choose a genuinely different direction or consider ending this need."
+            if repeated else None)
+        no_progress = 0 if changed or after != before else state.get("v2_no_progress", 0) + 1
+        state["v2_no_progress"] = no_progress
+        return no_progress
 
     @staticmethod
     def _effective_progress(state: dict) -> tuple:
@@ -481,7 +522,7 @@ class DeepV2Graph:
                 for result in state.get("v2_query_results", []) for finding in result.get("findings", [])),
             frozenset(state.get("v2_sources", {})))
 
-    def _decide(self, state, repair_error: str | None = None):
+    def _controller_messages(self, state, repair_error: str | None = None):
         now = self.clock()
         recent_actions = [{"action_id": event.get("action_id"), "kind": event.get("kind"),
             "query": event.get("arguments", {}).get("query"), "status": event.get("status"),
@@ -524,6 +565,11 @@ class DeepV2Graph:
             {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
         if sum(len(message["content"]) for message in messages) > self.budget.controller_context_chars:
             raise ValueError("Controller query summaries exceed character budget")
+        return messages
+
+    def _decide(self, state, repair_error: str | None = None):
+        messages = self._controller_messages(state, repair_error)
+        now = self.clock()
         provider = self.provider_factory("agent_action")
         try:
             response = provider.generate_structured(role="agent_action", messages=messages,
@@ -531,7 +577,7 @@ class DeepV2Graph:
                 timeout_seconds=max(0.001, min(state["search_deadline"], state["total_deadline"]) - now))
         except Exception as exc:
             metadata = getattr(exc, "completion_metadata", {})
-            state["usage"].append(metadata)
+            state["usage"].append({"role": "agent_action", "usage": None, **metadata})
             state["events"].append({"event_type": "v2_controller_call", "messages": messages,
                 "call": state["v2_controller_calls"], "repair_error": repair_error,
                 "error": str(exc), "provider": metadata})
@@ -541,7 +587,7 @@ class DeepV2Graph:
             "model_response": getattr(response, "response_model", None),
             "usage": getattr(response, "usage", None), "latency_ms": getattr(response, "latency_ms", None),
             "retry_count": getattr(response, "retry_count", 0), "response_id": getattr(response, "response_id", None)}
-        state["usage"].append(metadata)
+        state["usage"].append({"role": "agent_action", **metadata})
         state["events"].append({"event_type": "v2_decision", "round": state["decision_rounds"] + 1,
             "call": state["v2_controller_calls"], "messages": messages,
             "decision": decision.model_dump(mode="json"), "repair_error": repair_error,
@@ -635,9 +681,33 @@ class DeepV2Graph:
         # Only the state reducer below writes shared state, in action order.
         state["v2_last_batch_size"] = len(actions)
         snapshot = {"filters": state["filters"], "store": dict(state["v2_store"]), "cache": dict(state["v2_cache"])}
+        self._publish(state, "batch_started", tasks=[{"task_id": f"{state['decision_rounds']}:{i}",
+            "kind": action.kind, "label": str(action.arguments.get("query") or
+                action.arguments.get("uploader") or action.arguments.get("uploader_contains") or "")[:180]}
+            for i, action in enumerate(actions)])
+        def search_one(index, action):
+            task_id = f"{state['decision_rounds']}:{index}"
+            self._publish(state, "tool_started", task_id=task_id)
+            result = self._execute_one(action, snapshot)
+            status = ("timeout" if result["ended_at"] > min(state["search_deadline"], state["total_deadline"])
+                else result.get("status", "error"))
+            self._publish(state, "tool_completed", task_id=task_id, status=status,
+                count=len(result.get("spans", ())) + len(result.get("sources", ())),
+                cached=bool(result.get("cache_hit")))
+            return result
+        def reduce_one(index, action, result):
+            task_id = f"{state['decision_rounds']}:{index}"
+            self._publish(state, "reduce_started", task_id=task_id)
+            reduction = self._query_reduce_one(action, result, state["query"],
+                min(state["search_deadline"], state["total_deadline"]),
+                cancelled=lambda: self.cancelled(state.get("run_id", "")))
+            self._publish(state, "reduce_completed", task_id=task_id,
+                status="error" if reduction.get("error") else "empty" if not reduction.get("findings") else "ok",
+                count=len(reduction.get("findings", ())))
+            return reduction
         search_started = self.clock()
         with ThreadPoolExecutor(max_workers=self.budget.max_actions_per_decision) as pool:
-            futures = [pool.submit(self._execute_one, action, snapshot) for action in actions]
+            futures = [pool.submit(search_one, i, action) for i, action in enumerate(actions)]
             results = [future.result() for future in futures]
         for result in results:
             if result.get("cache_hit") and result.get("query_reduction"):
@@ -645,15 +715,19 @@ class DeepV2Graph:
                     "called": False, "cache_reused": True, "latency_ms": 0, "provider": None}
         search_wall_ms = (self.clock() - search_started) * 1000
         reduce_started = self.clock()
-        with ThreadPoolExecutor(max_workers=self.budget.max_actions_per_decision) as pool:
-            futures = [pool.submit(self._query_reduce_one, action, result, state["query"],
-                min(state["search_deadline"], state["total_deadline"]))
-                if action.kind in {"search_transcripts", "read_context"}
-                and result.get("status") == "ok" and not result.get("query_reduction") else None
-                for action, result in zip(actions, results)]
-            for result, future in zip(results, futures):
-                if future is not None:
-                    result["query_reduction"] = future.result()
+        if self.reduce_strategy == "b0":
+            from shiliu.ask.deep.batch_reduce import reduce_results
+            results = reduce_results(self, actions, results, state, min(state["search_deadline"], state["total_deadline"]))
+        else:
+            with ThreadPoolExecutor(max_workers=self.budget.max_actions_per_decision) as pool:
+                futures = [pool.submit(reduce_one, i, action, result)
+                    if action.kind in {"search_transcripts", "read_context"}
+                    and result.get("status") == "ok" and not result.get("query_reduction") else None
+                    for i, (action, result) in enumerate(zip(actions, results))]
+                for result, future in zip(results, futures):
+                    if future is not None:
+                        result["query_reduction"] = future.result()
+        self._publish(state, "batch_completed")
         reduce_wall_ms = (self.clock() - reduce_started) * 1000
         state["v2_round_timings"].append({"round": state["decision_rounds"],
             "query_count": sum(action.kind in {"search_transcripts", "read_context"} for action in actions),
@@ -661,7 +735,7 @@ class DeepV2Graph:
         return results
 
     def _query_reduce_one(self, action: V2Action, result: dict, user_query: str,
-                          deadline: float) -> dict:
+                          deadline: float, *, cancelled=lambda: False) -> dict:
         spans = result.get("spans", ())
         candidate_chars = sum(len(span.quote_text) for span in spans)
         if not spans:
@@ -696,12 +770,19 @@ class DeepV2Graph:
         if input_chars > self.budget.controller_context_chars:
             return {**base, "error": "query candidate context exceeds safety budget",
                 "unresolved": ["Query candidates need a narrower search scope."]}
+        if self.clock() >= deadline or cancelled():
+            return {**base, "error": "query Reduce deadline exhausted", "unresolved": ["Query processing timed out."]}
         provider = self.provider_factory("query_reduce")
         started = self.clock()
+        response = None
         try:
             response = provider.generate_structured(role="query_reduce", messages=messages,
                 response_schema=QueryReduction, max_tokens=self.budget.reduce_output_tokens,
                 timeout_seconds=max(0.001, deadline - started))
+            if self.clock() >= deadline or cancelled():
+                error = TimeoutError("query Reduce arrived after deadline")
+                error.completion_metadata = {"usage": getattr(response, "usage", None), "model_requested": getattr(provider, "model", None)}
+                raise error
             reduced = response.output if isinstance(response.output, QueryReduction) else QueryReduction.model_validate(response.output)
             known = short_refs
             if any(not finding.subject.strip() or not finding.text.strip() or not finding.evidence_refs
@@ -728,7 +809,9 @@ class DeepV2Graph:
             return {**base, "called": True, "error": f"{type(exc).__name__}: {exc}"[:500],
                 "unresolved": ["Query result selection failed; necessary evidence remains in the audit Store."],
                 "latency_ms": (self.clock() - started) * 1000,
-                "provider": getattr(exc, "completion_metadata", {})}
+                "provider": {"model_requested": getattr(provider, "model", None),
+                    "usage": getattr(response, "usage", None),
+                    **getattr(exc, "completion_metadata", {})}}
 
     def _execute_one(self, action, snapshot):
         started = self.clock()
@@ -837,23 +920,31 @@ class DeepV2Graph:
                 [*params, min(20, max(1, limit))]).fetchall()
         return [self.navigation._project(row["id"], "field match") for row in rows]
 
+    @staticmethod
+    def _register_span(span, state):
+        existing = state["v2_store"].get(span.citation_id)
+        if existing is None:
+            state["v2_store"][span.citation_id] = span
+        else:
+            if (existing.source_artifact_id, existing.source_version, existing.timeline_run_id, existing.segment_ids, existing.quote_text) != (span.source_artifact_id, span.source_version, span.timeline_run_id, span.segment_ids, span.quote_text):
+                raise ValueError("Conflicting citation identity")
+            provenance = tuple(dict.fromkeys(json.dumps(value, sort_keys=True, ensure_ascii=False)
+                for value in (*existing.retrieval_provenance, *span.retrieval_provenance)))
+            state["v2_store"][span.citation_id] = existing.model_copy(update={
+                "retrieval_provenance": tuple(json.loads(value) for value in provenance),
+                "parent_chunk_ids": tuple(dict.fromkeys((*existing.parent_chunk_ids, *span.parent_chunk_ids))),
+            })
+
     def _reduce(self, action, result, state):
         before_refs = set(state["v2_store"])
         before_sources = set(state["v2_sources"])
         state["v2_cache"][result["cache_key"]] = {key: value for key, value in result.items()
-            if key not in {"started_at", "ended_at", "cache_hit"}}
+            if key not in {"started_at", "ended_at", "cache_hit"}
+            and not key.startswith("_b0_")
+            and not (result.get("_b0_uncacheable") and key == "query_reduction")}
         refs = []
         for span in result.get("spans", []):
-            existing = state["v2_store"].get(span.citation_id)
-            if existing is None:
-                state["v2_store"][span.citation_id] = span
-            else:
-                provenance = tuple(dict.fromkeys(json.dumps(value, sort_keys=True, ensure_ascii=False)
-                    for value in (*existing.retrieval_provenance, *span.retrieval_provenance)))
-                state["v2_store"][span.citation_id] = existing.model_copy(update={
-                    "retrieval_provenance": tuple(json.loads(value) for value in provenance),
-                    "parent_chunk_ids": tuple(dict.fromkeys((*existing.parent_chunk_ids, *span.parent_chunk_ids))),
-                })
+            self._register_span(span, state)
             refs.append(span.citation_id)
         reduction = result.get("query_reduction") or {"called": False, "findings": [],
             "unresolved": ["No transcript evidence found for this query."] if action.kind == "search_transcripts" else [],
@@ -904,7 +995,7 @@ class DeepV2Graph:
         state["events"].append({"event_type": "v2_tool_result", "action_id": action.action_id,
             "kind": action.kind, "arguments": action.arguments, "purpose": action.purpose,
             "status": result["status"], "error": result.get("error"), "cache_hit": result.get("cache_hit", False),
-            "no_new_result": bool(result.get("cache_hit") and not (set(refs) - before_refs)
+            "no_new_result": bool(result.get("cache_hit") and not result.get("_b0_new_refs", set(refs) - before_refs)
                 and not ({source.video_id for source in result.get("sources", [])} - before_sources)),
             "scope": result.get("scope"), "index_identity": result.get("index_identity"),
             "anchor_ref": result.get("anchor_ref"), "before_boundary": result.get("before_boundary"),
@@ -923,15 +1014,21 @@ class DeepV2Graph:
 
 class AuditedProvider:
     """Request-local records of actual Answer inputs, outputs, and provider identity."""
-    def __init__(self, provider, calls: list[dict], output_limit: int | None = None):
+    def __init__(self, provider, calls: list[dict], output_limit: int | None = None, use_deep_instructions: bool = True):
         self.output_limit = output_limit
+        self.use_deep_instructions = use_deep_instructions
         self.provider = provider
         self.calls = calls
+
+    @property
+    def supports_answer_streaming(self):
+        return getattr(self.provider, "supports_answer_streaming", False)
 
     def generate_structured(self, **kwargs):
         if self.output_limit is not None:
             kwargs["max_tokens"] = self.output_limit
-        kwargs["messages"] = deep_answer_messages(kwargs["messages"])
+        if self.use_deep_instructions:
+            kwargs["messages"] = deep_answer_messages(kwargs["messages"])
         record = {"messages": kwargs["messages"], "role": kwargs["role"],
             "model_requested": getattr(self.provider, "model", None),
             "max_tokens": kwargs.get("max_tokens"), "thinking_enabled": getattr(self.provider, "thinking_enabled", None),

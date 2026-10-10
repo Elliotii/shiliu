@@ -28,7 +28,9 @@ from shiliu.evidence.continuation import (
 )
 from shiliu.evidence.decision import (
     AuthorizationStatus,
+    CANONICAL_SEGMENT_ID_LIMIT,
     ContributionKind,
+    EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON,
     EvidenceDecisionAction,
     EvidenceAuthorityReference,
     ReferenceScopeStatus,
@@ -106,43 +108,114 @@ def _inherited(name: str, count: int) -> InheritedEvidenceReference:
     )
 
 
-@pytest.mark.parametrize("count", [128, 256, 257, 500])
-def test_long_reference_has_no_fixed_segment_cardinality_limit(count: int) -> None:
+@pytest.mark.parametrize("count", [128, 129, 163, 167, 256])
+def test_canonical_models_preserve_every_accepted_segment_id_in_order(count: int) -> None:
+    assert CANONICAL_SEGMENT_ID_LIMIT == 256
     expected = _segment_ids(count)
+
     authority = _authority(str(count), count)
     inherited = _inherited(str(count), count)
-    assert authority.segment_ids == inherited.segment_ids == expected
+
+    assert authority.segment_ids == expected
+    assert inherited.segment_ids == expected
     assert authority.model_dump(mode="json")["segment_ids"] == list(expected)
+    assert inherited.model_dump(mode="json")["segment_ids"] == list(expected)
 
 
-def test_long_reference_survives_decision_continuation_and_trust() -> None:
-    long = _span("long", 500)
+def test_257_is_rejected_by_strict_models_but_product_adapters_degrade_safely() -> None:
+    oversized = _span("oversized", 257)
+    with pytest.raises(ValidationError):
+        _authority("oversized", 257)
+    with pytest.raises(ValidationError):
+        _inherited("oversized", 257)
+
     decision = create_current_evidence_decision(
-        question="question", filters=ProductSearchFilterRequest(),
-        spans=(long,), recorded_at=NOW,
+        question="question",
+        filters=ProductSearchFilterRequest(),
+        spans=(oversized,),
+        recorded_at=NOW,
     )
-    assert decision.covered_aspects == ("question",)
-    assert decision.coverage[0].authority_references[0].segment_ids == long.segment_ids
+    assert decision.covered_aspects == ()
+    assert decision.open_aspects == ("question",)
+    assert [(value.kind, value.reference_id) for value in decision.contributions] == [
+        (ContributionKind.DROPPED, oversized.citation_id)
+    ]
+
     envelope = envelope_for_completed_run(
-        run_id="run-long", decision=decision, target=ContinuationTarget.DEEP,
-        question="question", filters={},
-        citations=(long.as_citation().model_dump(mode="json"),), search_executions=(),
+        run_id="run-oversized",
+        decision=decision,
+        target=ContinuationTarget.DEEP,
+        question="question",
+        filters={},
+        citations=(oversized.as_citation().model_dump(mode="json"),),
+        search_executions=(),
     )
-    assert envelope.inherited_evidence[0].segment_ids == long.segment_ids
-    assert parse_continuation_envelope(serialize_continuation_envelope(envelope)) == envelope
-    trusted = apply_answer_trust(
-        run_id="run-long",
-        answer_blocks=(AnswerBlock(text=long.quote_text, citation_ids=[long.citation_id]),),
-        citations=(long.as_citation(),), spans=(long,), status="complete",
-        limitations=(), termination_reason="answer_ready",
+    assert envelope.inherited_evidence == ()
+    assert envelope.failure_state == ContinuationFailureState.EVIDENCE_UNAVAILABLE
+    assert any(
+        value.kind == ContributionKind.DROPPED
+        and value.reference_id == oversized.citation_id
+        for value in envelope.contributions
+    )
+
+
+def test_mixed_eligible_and_oversized_blocks_keep_only_complete_canonical_support() -> None:
+    eligible = _span("eligible", 256)
+    oversized = _span("oversized", 257)
+    result = apply_answer_trust(
+        run_id="run-mixed",
+        answer_blocks=(
+            AnswerBlock(text=eligible.quote_text, citation_ids=[eligible.citation_id]),
+            AnswerBlock(text=oversized.quote_text, citation_ids=[oversized.citation_id]),
+        ),
+        citations=(eligible.as_citation(), oversized.as_citation()),
+        spans=(eligible, oversized),
+        status="complete",
+        limitations=(),
+        termination_reason="answer_ready",
         validate_current=lambda _span: None,
     )
-    assert trusted.status == "complete"
-    assert tuple(trusted.citations[0].segment_ids) == long.segment_ids
+
+    assert result.status == "partial"
+    assert result.execution_outcome == "answer_generated"
+    assert result.answer_blocks == (
+        AnswerBlock(text=eligible.quote_text, citation_ids=[eligible.citation_id]),
+    )
+    assert tuple(value.citation_id for value in result.citations) == (
+        eligible.citation_id,
+    )
+    assert EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON in result.summary.reason_codes
+    assert result.summary.verifier_logical_calls == 0
+    assert result.summary.verifier_http_attempts == 0
+    assert any("256" in value for value in result.limitations)
 
 
-def test_current_evidence_decision_preserves_all_distinct_references(tmp_path: Path) -> None:
-    spans = tuple(_span(f"reference-{index:03d}", 1) for index in range(120))
+def test_all_oversized_blocks_return_truthful_evidence_unavailable() -> None:
+    oversized = _span("oversized", 257)
+    result = apply_answer_trust(
+        run_id="run-all-oversized",
+        answer_blocks=(
+            AnswerBlock(text=oversized.quote_text, citation_ids=[oversized.citation_id]),
+        ),
+        citations=(oversized.as_citation(),),
+        spans=(oversized,),
+        status="complete",
+        limitations=(),
+        termination_reason="answer_ready",
+        validate_current=lambda _span: None,
+    )
+
+    assert result.status == "insufficient"
+    assert result.execution_outcome == "evidence_unavailable"
+    assert result.termination_reason == "evidence_unavailable"
+    assert result.answer_blocks == result.citations == ()
+    assert result.summary.verifier_logical_calls == 0
+    assert result.summary.verifier_http_attempts == 0
+    assert EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON in result.summary.reason_codes
+
+
+def test_current_evidence_decision_preserves_all_distinct_references() -> None:
+    spans = tuple(_span(f"reference-{index:02d}", 1) for index in range(40))
 
     decision = create_current_evidence_decision(
         question="question",
@@ -173,34 +246,12 @@ def test_current_evidence_decision_preserves_all_distinct_references(tmp_path: P
     assert decision.covered_aspects == ("question",)
     assert decision.open_aspects == ()
     assert decision.action == EvidenceDecisionAction.ANSWER_FRESH
-    assert len(decision.contributions) == 120
-    envelope = envelope_for_completed_run(
-        run_id="run-many", decision=decision, target=ContinuationTarget.DEEP,
-        question="question", filters={}, citations=(), search_executions=(),
-    )
-    assert len(envelope.contributions) == 120
-    assert parse_continuation_envelope(serialize_continuation_envelope(envelope)) == envelope
-    db = Database(tmp_path / "many-contributions.sqlite3")
-    with db.connect() as connection:
-        initialize_ask_schema(connection)
-    store = AskRunStore(db)
-    store.start(run_id="run-many", query="question", mode="fast", filters={})
-    store.complete(
-        run_id="run-many", trace={"evidence_decision": decision_to_persistence_projection(decision),
-            "continuation_envelope": envelope.model_dump(mode="json")},
-        answer_status="insufficient", termination_reason="no_new_evidence",
-        query_analysis={}, rewrites=(), search_executions=(), final_evidence=(),
-        citations=(), answer_blocks=(), limitations=("round trip",), usage_summary={},
-    )
-    saved = store.get_run("run-many")
-    assert len(decision_from_persistence_projection(saved["trace"]["evidence_decision"]).contributions) == 120
-    assert len(parse_continuation_envelope(saved["trace"]["continuation_envelope"]).contributions) == 120
 
 
-def test_long_decision_canonical_hash_and_existing_trace_persistence_round_trip(
+def test_256_decision_canonical_hash_and_existing_trace_persistence_round_trip(
     tmp_path: Path,
 ) -> None:
-    span = _span("max", 500)
+    span = _span("max", 256)
     decision = create_current_evidence_decision(
         question="question",
         filters=ProductSearchFilterRequest(),
@@ -246,8 +297,8 @@ def test_long_decision_canonical_hash_and_existing_trace_persistence_round_trip(
     ) == decision
 
 
-def test_long_continuation_round_trip_revalidation_and_lineage_tamper_fail_closed() -> None:
-    span = _span("max", 500)
+def test_256_continuation_round_trip_revalidation_and_lineage_tamper_fail_closed() -> None:
+    span = _span("max", 256)
     filters = ProductSearchFilterRequest()
     scope = filters.model_dump(mode="json", exclude_none=True)
     decision = create_current_evidence_decision(

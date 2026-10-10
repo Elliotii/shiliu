@@ -24,6 +24,8 @@ from shiliu.ask.contracts import (
 )
 from shiliu.evidence.claim_support import SemanticSupportVerdict
 from shiliu.evidence.decision import (
+    CANONICAL_SEGMENT_ID_LIMIT,
+    EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON,
     SourceVersionStatus,
     sha256_identity,
 )
@@ -127,6 +129,8 @@ def apply_answer_trust(
     validate_current: Callable[[TranscriptEvidenceSpan], None],
     verifier: ClaimVerifier | None = None,
     event_sink: EventSink | None = None,
+    intro: str | None = None,
+    outro: str | None = None,
 ) -> TrustedAnswer:
     """Apply one deterministic Citation Integrity pass before publication."""
 
@@ -136,6 +140,8 @@ def apply_answer_trust(
         "status": status,
         "limitations": list(limitations),
     }
+    if intro is not None or outro is not None:
+        snapshot.update(intro=intro, outro=outro)
     answer_snapshot_hash = sha256_identity(snapshot)
     _emit(
         event_sink,
@@ -149,6 +155,11 @@ def apply_answer_trust(
     span_by_id = {value.citation_id: value for value in spans}
     citation_by_id = {value.citation_id: value for value in citations}
     authority_status: dict[str, SourceVersionStatus] = {}
+    oversized_reference_ids = {
+        value.citation_id
+        for value in spans
+        if len(value.segment_ids) > CANONICAL_SEGMENT_ID_LIMIT
+    }
 
     for citation_id, span in span_by_id.items():
         current_status = SourceVersionStatus.CURRENT
@@ -176,6 +187,9 @@ def apply_answer_trust(
                 rejected.append(reference_id)
             elif reference_id not in citation_by_id:
                 block_reasons.append("citation_unmapped")
+                rejected.append(reference_id)
+            elif reference_id in oversized_reference_ids:
+                block_reasons.append(EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON)
                 rejected.append(reference_id)
             elif authority_status.get(reference_id) != SourceVersionStatus.CURRENT:
                 block_reasons.append("citation_not_current")
@@ -225,6 +239,9 @@ def apply_answer_trust(
             reason_codes=reason_codes or ("claim_authority_missing",),
             dispositions=dispositions,
             input_hash=input_hash,
+            evidence_unavailable=bool(
+                EVIDENCE_SEGMENT_CARDINALITY_EXCEEDED_REASON in reason_codes
+            ),
             event_sink=event_sink,
         )
 
@@ -238,6 +255,11 @@ def apply_answer_trust(
     )
     hidden_count = len(answer_blocks) - len(surviving)
     final_limitations = list(limitations)
+    if oversized_reference_ids:
+        final_limitations.append(
+            "证据引用超过 canonical segment-ID 上限 "
+            f"{CANONICAL_SEGMENT_ID_LIMIT}，相关回答块已隐藏"
+        )
     if hidden_count:
         final_limitations.append(
             f"回答可信门隐藏了 {hidden_count} 个引用完整性未通过的回答块"
@@ -403,6 +425,7 @@ def _trust_insufficient(
     semantic_passes: int = 0,
     verifier_calls: int = 0,
     verifier_attempts: int = 0,
+    evidence_unavailable: bool = False,
     event_sink: EventSink | None,
 ) -> TrustedAnswer:
     reasons = list(dict.fromkeys([*reason_codes, *([reason] if reason else [])]))
@@ -425,6 +448,9 @@ def _trust_insufficient(
     elif verifier_state == "failed":
         outcome = "claim_verifier_failed"
         termination = "claim_verifier_failed"
+    elif evidence_unavailable:
+        outcome = "evidence_unavailable"
+        termination = "evidence_unavailable"
     _emit(
         event_sink,
         "minimum_trust_failed",
@@ -444,6 +470,14 @@ def _trust_insufficient(
             dict.fromkeys(
                 [
                     *limitations,
+                    *(
+                        [
+                            "证据引用超过 canonical segment-ID 上限 "
+                            f"{CANONICAL_SEGMENT_ID_LIMIT}，无法作为回答权威"
+                        ]
+                        if evidence_unavailable
+                        else []
+                    ),
                     "回答中的实质性陈述未通过展示前可信门，已全部隐藏",
                 ]
             )

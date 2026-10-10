@@ -19,6 +19,7 @@ from shiliu.evidence.decision import (
     CorpusNewMaterialCheck,
     CorpusNewMaterialStatus,
     CoverageStatus,
+    CANONICAL_SEGMENT_ID_LIMIT,
     DecisionReasonCode,
     EvidenceContribution,
     EvidenceDecision,
@@ -121,7 +122,9 @@ class InheritedEvidenceReference(_StrictFrozenModel):
     source_artifact_id: str = Field(min_length=1, max_length=240)
     source_version: str = Field(min_length=1, max_length=240)
     timeline_run_id: str = Field(min_length=1, max_length=240)
-    segment_ids: tuple[str, ...] = Field(min_length=1)
+    segment_ids: tuple[str, ...] = Field(
+        min_length=1, max_length=CANONICAL_SEGMENT_ID_LIMIT
+    )
     citation_lineage_hash: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     search_execution_ids: tuple[str, ...] = Field(default=(), max_length=32)
 
@@ -163,7 +166,7 @@ class ContinuationEnvelope(_StrictFrozenModel):
     search_executions: tuple[SearchExecutionReference, ...] = Field(default=(), max_length=64)
     current_action: EvidenceDecisionAction
     reason_codes: tuple[DecisionReasonCode, ...] = Field(default=(), max_length=64)
-    contributions: tuple[EvidenceContribution, ...] = ()
+    contributions: tuple[EvidenceContribution, ...] = Field(default=(), max_length=96)
     budget: ContinuationBudgetState = Field(default_factory=ContinuationBudgetState)
     failure_state: ContinuationFailureState = ContinuationFailureState.NONE
     receipt_state: ReceiptState = ReceiptState.NOT_APPLICABLE

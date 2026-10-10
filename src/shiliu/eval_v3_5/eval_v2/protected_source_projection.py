@@ -134,3 +134,4 @@ def build_protected_source_projection(protected_root: str | Path) -> ProtectedSo
         protected_input_file_count=len(paths),
         protected_record_count=sum(len(records) for records in loaded),
     )
+

@@ -96,7 +96,7 @@ class _Provider:
             draft = GroundedAnswerDraft(
                 status="complete",
                 answer_blocks=[
-                    AnswerBlock(text="非法引用回答", citation_ids=[citation_id])
+                    AnswerBlock(text="MCP 通过协议连接模型与外部工具。", citation_ids=[citation_id])
                 ],
                 limitations=[],
             )

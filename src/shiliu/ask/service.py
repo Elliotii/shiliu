@@ -3,7 +3,6 @@ from __future__ import annotations
 import time
 import threading
 from typing import Callable
-from pathlib import Path
 from uuid import uuid4
 
 from shiliu.artifacts import ArtifactStore
@@ -26,7 +25,6 @@ from shiliu.ask.contracts import (
     TraceSummary,
 )
 from shiliu.ask.deep.service import DeepSearchService
-from shiliu.ask.deep.f1_tools import F1Materializer
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
 from shiliu.ask.trust import ClaimVerifier
@@ -60,13 +58,15 @@ class AskService:
         provider_factory: Callable[[str], object],
         answer_provider_factory: Callable[[str], object] | None = None,
         deep_answer_provider_factory: Callable[[str], object] | None = None,
+        deep_provider_factory: Callable[[str], object] | None = None,
+        deep_embedding_provider=None,
+        deep_reduce_strategy: str = "s",
+        jev_client=None,
         runtime_corpus_identity: str | None = None,
         evidence_search: EvidenceSearchService | None = None,
         context_builder: TranscriptContextBuilder | None = None,
         artifacts: ArtifactStore | None = None,
         claim_verifier: ClaimVerifier | None = None,
-        deep_embedding_provider: object | None = None,
-        deep_lexical_index_path: Path | None = None,
     ) -> None:
         self.db = db
         self._owned_runs: set[str] = set()
@@ -100,18 +100,19 @@ class AskService:
                 db=db,
                 artifacts=resolved_artifacts,
                 product_search=product_search,
-                provider_factory=provider_factory,
+                provider_factory=deep_provider_factory or provider_factory,
                 answer_provider_factory=(
                     deep_answer_provider_factory or provider_factory
                 ),
                 runtime_corpus_identity=runtime_corpus_identity,
                 evidence_search=self.evidence_search,
-                materializer=F1Materializer(db) if deep_embedding_provider is not None else self.materializer,
+                materializer=self.materializer,
                 context_builder=self.context_builder,
                 finalizer=self.finalizer,
                 claim_verifier=claim_verifier,
                 embedding_provider=deep_embedding_provider,
-                lexical_index_path=deep_lexical_index_path,
+                require_v2=deep_embedding_provider is not None,
+                reduce_strategy=deep_reduce_strategy, jev_client=jev_client,
             )
             if isinstance(resolved_artifacts, ArtifactStore)
             else None
@@ -521,6 +522,7 @@ class AskService:
             mode="fast",
             status=final.status,
             execution_outcome=final.execution_outcome,
+            intro=final.intro, outro=final.outro,
             answer_blocks=list(final.answer_blocks),
             citations=list(final.citations),
             limitations=list(final.limitations),
@@ -567,6 +569,7 @@ class AskService:
                     all_spans,
                     {value.citation_id for value in response.citations},
                 ),
+                "intro": response.intro, "outro": response.outro,
                 "answer_blocks": [
                     value.model_dump(mode="json") for value in response.answer_blocks
                 ],
@@ -664,9 +667,9 @@ class AskService:
             mode=run["mode"],
             status=run["answer_status"],
             execution_outcome=execution_outcome,
+            intro=run.get("intro"), outro=run.get("outro"),
             answer_blocks=run["answer_blocks"],
             citations=run["citations"],
-            source_matches=trace.get("source_matches") or [],
             limitations=run["limitations"],
             termination_reason=run["termination_reason"],
             trace_summary=TraceSummary(
@@ -693,6 +696,7 @@ class AskService:
             candidate_disclosure=self._candidate_disclosure(run_id),
             trust_summary=trust,
             answer_version=answer_version,
+            source_matches=trace.get("source_matches", []),
         )
 
     def get_trace(self, run_id: str) -> dict[str, object] | None:
@@ -734,6 +738,7 @@ def _answer_event_payload(response: AskResponse) -> dict[str, object]:
         "answer_version": response.answer_version,
         "status": response.status,
         "execution_outcome": response.execution_outcome,
+        "intro": response.intro, "outro": response.outro,
         "answer_blocks": [
             value.model_dump(mode="json") for value in response.answer_blocks
         ],

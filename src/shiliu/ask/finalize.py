@@ -13,6 +13,7 @@ from shiliu.ask.answer import (
 from shiliu.ask.context import ContextBuildResult, TranscriptContextBuilder, fuse_evidence
 from shiliu.ask.contracts import (
     AnswerBlock,
+    AnswerDraftBlock,
     AnswerExecutionOutcome,
     AnswerStatus,
     Citation,
@@ -22,6 +23,7 @@ from shiliu.ask.contracts import (
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.trust import ClaimVerifier, DisabledClaimVerifier, EventSink, apply_answer_trust
 from shiliu.ask.validation import ValidationIssue
+from shiliu.ask.streaming import AnswerStreamDelivery
 
 
 logger = logging.getLogger(__name__)
@@ -41,6 +43,8 @@ class FinalizedAnswer:
     stale_evidence_count: int
     repair_used: bool
     trace: dict[str, Any]
+    intro: str | None = None
+    outro: str | None = None
 
 
 class AnswerFinalizer:
@@ -84,6 +88,7 @@ class AnswerFinalizer:
         trace: dict[str, Any] = {
             "valid_evidence_count": len(fused),
             "generation_policy": generation_policy,
+            "answer_structure_version": "framed-answer-v1",
         }
         if not fused:
             if clarification_requests and termination_reason in {"answer_ready", "evidence_unavailable"}:
@@ -170,6 +175,11 @@ class AnswerFinalizer:
                 context_span_count=len(context.spans),
                 context_truncated=context.truncated,
             )
+        delivery = (AnswerStreamDelivery(context=context, run_id=run_id,
+            validate_current=self.materializer.validate_current, event_sink=event_sink, clock=clock)
+            if event_sink is not None and not self.claim_verifier.enabled else None)
+        stream_kwargs = ({"on_content": delivery.feed, "on_reset": delivery.reset}
+            if delivery is not None else {})
         try:
             answer = resolved_answer_service.answer(
                 query=query,
@@ -177,8 +187,11 @@ class AnswerFinalizer:
                 generation_policy=generation_policy,
                 deadline=deadline,
                 clock=clock,
+                **stream_kwargs,
             )
         except Exception as exc:
+            if delivery is not None:
+                delivery.retract()
             trace.update(
                 {
                     "answer_calls": 1,
@@ -205,6 +218,10 @@ class AnswerFinalizer:
                 context_span_count=len(context.spans),
                 context_truncated=context.truncated,
             )
+        finally:
+            if delivery is not None:
+                delivery.finish()
+                trace["answer_stream"] = delivery.metrics
         trace.update(
             {
                 "answer_usage": list(answer.usage),
@@ -226,6 +243,8 @@ class AnswerFinalizer:
             }
         )
         if answer.draft is None:
+            if delivery is not None:
+                delivery.retract()
             return self._insufficient(
                 limitations=[
                     (
@@ -247,6 +266,8 @@ class AnswerFinalizer:
                 repair_used=answer.repair_used,
             )
         if answer.draft.status == "insufficient":
+            if delivery is not None:
+                delivery.retract()
             limitations = [
                 "本次检索未找到足以回答该问题的可靠字幕证据"
             ]
@@ -275,88 +296,90 @@ class AnswerFinalizer:
         )
         if context.truncated:
             limitations.append("上下文预算已截断部分候选证据")
-        trusted = apply_answer_trust(
+        blocks = list(answer.draft.answer_blocks)
+        trust_kwargs = dict(
             run_id=run_id,
-            answer_blocks=answer.draft.answer_blocks,
             citations=tuple(value.as_citation() for value in context.spans),
-            spans=context.spans,
-            status=status,
-            limitations=limitations,
+            spans=context.spans, status=status, limitations=limitations,
             termination_reason=termination_reason,
             validate_current=self.materializer.validate_current,
             verifier=self.claim_verifier,
-            event_sink=event_sink,
+            intro=answer.draft.intro, outro=answer.draft.outro,
         )
+        may_repair = (
+            not answer.repair_used
+            and any(not b.citation_ids or not set(b.citation_ids).issubset(context.citation_allowlist)
+                for b in blocks)
+            and (deadline is None or deadline - clock() >= 1)
+        )
+        preflight = apply_answer_trust(answer_blocks=blocks,
+            event_sink=None if may_repair else event_sink, **trust_kwargs)
+        repairable = {"citation_missing", "citation_not_allowed", "citation_unmapped"}
+        failed_indices = [i for i, d in enumerate(preflight.summary.dispositions)
+            if d.outcome == "remove" and d.reason_codes
+            and set(d.reason_codes).issubset(repairable)]
         repair_used = answer.repair_used
-        if (
-            trusted.status == "insufficient"
-            and not answer.repair_used
-            and _repairable_citation_failure(trusted.summary)
-        ):
-            issues = tuple(
-                ValidationIssue(
-                    code=reason,
-                    path=disposition.answer_block_id,
-                    message=(
-                        "Use only citation IDs from the current citation_allowlist "
-                        "and include at least one ID per answer block"
-                    ),
-                )
-                for disposition in trusted.summary.dispositions
-                for reason in disposition.reason_codes
-            )
-            repair = resolved_answer_service.repair(
-                query=query,
-                context=context,
-                issues=issues,
-                deadline=deadline,
-                clock=clock,
-            )
+        trace["local_citation_repair"] = {
+            "failed_block_indices": failed_indices, "recovered_block_indices": [],
+            "attempted": False, "timeout_cap_seconds": 30,
+        }
+        if failed_indices and not repair_used and (deadline is None or deadline - clock() >= 1):
             repair_used = True
-            trace["answer_usage"] = [
-                *trace.get("answer_usage", []),
-                *repair.usage,
-            ]
-            trace["repair_calls"] = int(trace.get("repair_calls", 0)) + 1
-            trace["answer_provider_call_count"] = int(
-                trace.get("answer_provider_call_count", 0)
-            ) + repair.provider_call_count
-            trace["transport_retry_count"] = int(
-                trace.get("transport_retry_count", 0)
-            ) + repair.transport_retry_count
+            repair_started = clock()
+            local_trace = trace["local_citation_repair"]
+            local_trace["attempted"] = True
+            issues = tuple(ValidationIssue(reason, f"answer_blocks.{i}",
+                "Correct the citation IDs for this original block only")
+                for i in failed_indices for reason in preflight.summary.dispositions[i].reason_codes)
+            try:
+                repair = resolved_answer_service.repair(
+                    query=query, context=context, issues=issues,
+                    failed_blocks=tuple(blocks[i] for i in failed_indices),
+                    deadline=min(deadline, repair_started + 30) if deadline is not None else repair_started + 30,
+                    clock=clock,
+                )
+                trace["answer_usage"] = [*trace.get("answer_usage", []), *repair.usage]
+                trace["repair_calls"] = int(trace.get("repair_calls", 0)) + repair.repair_calls
+                trace["answer_provider_call_count"] += repair.provider_call_count
+                trace["transport_retry_count"] += repair.transport_retry_count
+                local_trace["provider_error"] = repair.provider_error
+                local_trace["provider_error_code"] = repair.provider_error_code
+                local_trace["validation_errors"] = [v.as_dict() for v in repair.validation_errors]
+                if repair.draft is not None and clock() <= repair_started + 30 and (deadline is None or clock() <= deadline):
+                    originals = {blocks[i].text: i for i in failed_indices}
+                    patches = repair.draft.answer_blocks
+                    allowed = set(context.citation_allowlist)
+                    # Reject the whole patch response if it rewrites or duplicates text.
+                    if len({b.text for b in patches}) != len(patches) or any(b.text not in originals for b in patches):
+                        local_trace["rejected_reason"] = "changed_or_extra_block_text"
+                    else:
+                        for patch in patches:
+                            i = originals[patch.text]
+                            before = set(blocks[i].citation_ids)
+                            after = set(patch.citation_ids)
+                            if not after or not after.issubset(allowed) or not (before & allowed).issubset(after):
+                                continue
+                            if before - allowed and not after - (before & allowed):
+                                continue  # Do not simply strip an invalid placeholder.
+                            blocks[i] = patch
+            except Exception as exc:
+                local_trace["provider_error"] = f"{type(exc).__name__}: {exc}"[:500]
+                local_trace["provider_error_code"] = str(getattr(exc, "code", type(exc).__name__))
+            local_trace["latency_ms"] = (clock() - repair_started) * 1000
             trace["repair_used"] = True
-            trace["answer_validation_errors"] = [
-                value.as_dict() for value in repair.validation_errors
-            ]
-            trace["answer_provider_error"] = repair.provider_error
-            trace["provider_error_code"] = repair.provider_error_code
-            if repair.draft is not None and repair.draft.status != "insufficient":
-                repaired_limitations = list(repair.draft.limitations)
-                repaired_status, repaired_limitations = _merge_explicit_answer_gaps(
-                    status=repair.draft.status,
-                    limitations=repaired_limitations,
-                    decision_projection=decision_projection,
-                )
-                if context.truncated:
-                    repaired_limitations.append(
-                        "上下文预算已截断部分候选证据"
-                    )
-                trusted = apply_answer_trust(
-                    run_id=run_id,
-                    answer_blocks=repair.draft.answer_blocks,
-                    citations=tuple(
-                        value.as_citation() for value in context.spans
-                    ),
-                    spans=context.spans,
-                    status=repaired_status,
-                    limitations=repaired_limitations,
-                    termination_reason=termination_reason,
-                    validate_current=self.materializer.validate_current,
-                    verifier=self.claim_verifier,
-                    event_sink=event_sink,
-                )
+        elif failed_indices:
+            trace["local_citation_repair"]["skipped_reason"] = (
+                "repair_budget_used" if repair_used else "deadline_exhausted")
+        # Only final, rechecked content emits publication events.
+        trusted = (apply_answer_trust(answer_blocks=blocks, event_sink=event_sink, **trust_kwargs)
+            if may_repair else preflight)
+        trace["local_citation_repair"]["recovered_block_indices"] = [
+            i for i in failed_indices if trusted.summary.dispositions[i].outcome == "allow"
+        ]
         trace["trust_summary"] = trusted.summary.model_dump(mode="json")
         return FinalizedAnswer(
+            intro=answer.draft.intro if trusted.answer_blocks else None,
+            outro=answer.draft.outro if trusted.answer_blocks else None,
             status=trusted.status,
             execution_outcome=trusted.execution_outcome,
             answer_blocks=trusted.answer_blocks,
@@ -419,19 +442,6 @@ def _insufficient_stop_limitation(
 
 def _generation_policy(verifier_enabled: bool) -> GenerationPolicy:
     return BOUNDED_SYNTHESIS_POLICY
-
-
-def _repairable_citation_failure(summary: object) -> bool:
-    dispositions = getattr(summary, "dispositions", ())
-    if not dispositions:
-        return False
-    repairable = {"citation_missing", "citation_not_allowed", "citation_unmapped"}
-    reasons = {
-        reason
-        for disposition in dispositions
-        for reason in disposition.reason_codes
-    }
-    return bool(reasons) and reasons.issubset(repairable)
 
 
 def _merge_explicit_answer_gaps(

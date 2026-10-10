@@ -55,6 +55,14 @@ class AppPaths:
         content_dir = content_dir.expanduser().resolve()
         return replace(self, content_dir=content_dir, videos_dir=content_dir / "videos")
 
+    @property
+    def assistant_state_dir(self) -> Path:
+        return self.state_dir / "assistant"
+
+    @property
+    def assistant_content_dir(self) -> Path:
+        return self.content_dir / "assistant"
+
     def ensure(self) -> None:
         self.state_dir.mkdir(parents=True, exist_ok=True)
         self.logs_dir.mkdir(parents=True, exist_ok=True)
@@ -70,8 +78,6 @@ class AppConfig:
     llm_model: str = ""
     ingestion_model: str = ""
     interactive_model: str = ""
-    deep_controller_model: str = "deepseek-v4-flash"
-    deep_answer_model: str = "deepseek-v4-flash"
     taxonomy_model: str = ""
     fast_transcript_model: str = ""
     formal_transcript_model: str = ""
@@ -85,8 +91,17 @@ class AppConfig:
     baseline_confirmed: bool = False
     auto_sync_enabled: bool = False
     bili_cli_root: str = ""
+    deep_reduce_strategy: str = "s"
+    assistant_enabled: bool = False
+    assistant_model: str = "deepseek-v4-flash"
+
+    def __post_init__(self) -> None:
+        if self.deep_reduce_strategy not in {"s", "b0"}:
+            raise ValueError("deep_reduce_strategy must be s or b0")
 
     def model_for(self, role: str) -> str:
+        if role == "assistant":
+            return self.assistant_model or "deepseek-v4-flash"
         if role in {"fast_transcript", "formal_transcript"}:
             legacy = self.fast_transcript_model or self.formal_transcript_model
             return self.ingestion_model or legacy or self.llm_model
@@ -99,10 +114,6 @@ class AppConfig:
             "grounded_answer_fast_recovery",
         }:
             return FAST_FINAL_ANSWER_MODEL
-        if role in {"agent_action", "query_reduce"}:
-            return self.deep_controller_model
-        if role in {"grounded_answer_deep", "grounded_answer_deep_recovery"}:
-            return self.deep_answer_model
         if role in {
             "query_analysis",
             "agent_action",
@@ -118,7 +129,8 @@ class AppConfig:
     def default(cls, paths: AppPaths | None = None) -> "AppConfig":
         resolved = paths or AppPaths.defaults()
         cli_root = Path(__file__).resolve().parents[2] / "references" / "upstreams" / "bilibili-cli"
-        return cls(content_dir=str(resolved.content_dir), bili_cli_root=str(cli_root))
+        return cls(content_dir=str(resolved.content_dir), bili_cli_root=str(cli_root),
+            deep_reduce_strategy=os.environ.get("SHILIU_DEEP_REDUCE_STRATEGY", "s").lower())
 
 
 def load_config(paths: AppPaths | None = None) -> AppConfig:
@@ -130,6 +142,7 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
     llm = data.get("llm", {})
     asr = data.get("asr", {})
     bili = data.get("bilibili", {})
+    assistant = data.get("assistant", {})
     legacy_model = str(llm.get("model", ""))
     # V2.1 deliberately routes every thinking-enabled video stage through
     # high. Legacy max/xhigh values remain readable but no longer control the
@@ -144,8 +157,6 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
         ingestion_model=str(llm.get("ingestion_model", "")),
         interactive_model=str(llm.get("interactive_model", "")),
         taxonomy_model=str(llm.get("taxonomy_model", "")),
-        deep_controller_model=str(llm.get("deep_controller_model", "deepseek-v4-flash")),
-        deep_answer_model=str(llm.get("deep_answer_model", "deepseek-v4-flash")),
         fast_transcript_model=str(
             llm.get(
                 "fast_transcript_model",
@@ -165,6 +176,9 @@ def load_config(paths: AppPaths | None = None) -> AppConfig:
         baseline_confirmed=bool(app.get("baseline_confirmed", False)),
         auto_sync_enabled=bool(app.get("auto_sync_enabled", False)),
         bili_cli_root=str(bili.get("cli_root", AppConfig.default(resolved).bili_cli_root)),
+        deep_reduce_strategy=os.environ.get("SHILIU_DEEP_REDUCE_STRATEGY", str(llm.get("deep_reduce_strategy", "s"))).lower(),
+        assistant_enabled=bool(assistant.get("enabled", False)),
+        assistant_model=str(assistant.get("model", "deepseek-v4-flash")),
     )
 
 
@@ -183,18 +197,21 @@ def save_config(config: AppConfig, paths: AppPaths | None = None) -> AppPaths:
         f"favorite_title = {_toml_string(config.favorite_title)}",
         f"cli_root = {_toml_string(config.bili_cli_root)}",
         "",
+        "[assistant]",
+        f"enabled = {_toml_bool(config.assistant_enabled)}",
+        f"model = {_toml_string(config.model_for('assistant'))}",
+        "",
         "[llm]",
         f"base_url = {_toml_string(config.llm_base_url.rstrip('/'))}",
         f"model = {_toml_string(config.model_for('grounded_answer'))}",
         f"ingestion_model = {_toml_string(config.ingestion_model)}",
         f"interactive_model = {_toml_string(config.interactive_model)}",
         f"taxonomy_model = {_toml_string(config.taxonomy_model)}",
-        f"deep_controller_model = {_toml_string(config.deep_controller_model)}",
-        f"deep_answer_model = {_toml_string(config.deep_answer_model)}",
         f"fast_transcript_model = {_toml_string(config.model_for('fast_transcript'))}",
         f"formal_transcript_model = {_toml_string(config.model_for('formal_transcript'))}",
         f"formal_summary_model = {_toml_string(config.model_for('formal_summary'))}",
         f"formal_reasoning_effort = {_toml_string('high')}",
+        f"deep_reduce_strategy = {_toml_string(config.deep_reduce_strategy)}",
         f"api_key_ref = {_toml_string(config.api_key_ref)}",
         "",
         "[asr]",
@@ -250,6 +267,7 @@ def public_config(config: AppConfig) -> dict[str, Any]:
         "process_all_parts": config.process_all_parts,
         "baseline_confirmed": config.baseline_confirmed,
         "auto_sync_enabled": config.auto_sync_enabled,
+        "assistant_enabled": config.assistant_enabled,
     }
 
 

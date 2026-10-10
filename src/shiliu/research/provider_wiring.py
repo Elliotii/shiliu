@@ -205,6 +205,7 @@ class ProviderRunBudgetPolicy:
     max_wall_seconds: int = 34 * 60
     reserve_stop_usd: Decimal = Decimal("0.40")
     absolute_max_cost_usd: Decimal = Decimal("0.50")
+    time_policy_version: str = "provider_wall_time_v1"
 
     def __post_init__(self) -> None:
         if not self.run_id.strip() or not self.task_ids:
@@ -238,7 +239,7 @@ class ProviderRunBudgetPolicy:
             )
 
     def manifest(self) -> dict[str, object]:
-        return {
+        manifest = {
             "run_id": self.run_id,
             "task_ids": sorted(self.task_ids),
             "started_at": _iso(datetime.fromisoformat(self.started_at)),
@@ -250,6 +251,9 @@ class ProviderRunBudgetPolicy:
             "reserve_stop_usd": str(self.reserve_stop_usd),
             "absolute_max_cost_usd": str(self.absolute_max_cost_usd),
         }
+        if self.time_policy_version != "provider_wall_time_v1":
+            manifest["time_policy_version"] = self.time_policy_version
+        return manifest
 
     @property
     def policy_hash(self) -> str:
@@ -492,6 +496,33 @@ class ReceiptBoundProviderService:
         structured_request_hash = hashlib.sha256(
             structured_request_json.encode("utf-8")
         ).hexdigest()
+        execution_timeout_seconds = timeout_seconds
+        if (
+            context.run_budget is not None
+            and context.run_budget.time_policy_version == "research_active_time_v2"
+        ):
+            with self.db.connect() as connection:
+                time_row = connection.execute(
+                    "SELECT active_budget_ms, consumed_active_ms, reserved_tail_ms "
+                    "FROM research_execution_metadata WHERE task_id=?",
+                    (context.task_id,),
+                ).fetchone()
+            if time_row is None:
+                raise ProviderBudgetExceeded("legacy_time_unaccounted")
+            remaining_seconds = max(
+                0.001,
+                (
+                    int(time_row["active_budget_ms"])
+                    - int(time_row["consumed_active_ms"])
+                    - int(time_row["reserved_tail_ms"])
+                )
+                / 1000,
+            )
+            execution_timeout_seconds = (
+                min(float(timeout_seconds), remaining_seconds)
+                if timeout_seconds is not None
+                else remaining_seconds
+            )
         input_upper, reservation = self.price_policy.reservation(
             request_bytes=len(structured_request_json.encode("utf-8")),
             max_output_tokens=requested_max,
@@ -596,7 +627,7 @@ class ReceiptBoundProviderService:
                 messages=messages,
                 response_schema=response_schema,
                 max_tokens=requested_max,
-                timeout_seconds=timeout_seconds,
+                timeout_seconds=execution_timeout_seconds,
             )
             self.fault_injector("after_provider_dispatch")
         except SimulatedCrash:
@@ -1210,9 +1241,20 @@ class ReceiptBoundProviderService:
             and context.max_input_tokens is None
             and context.max_output_tokens is None
             and context.deadline_at is None
+            and context.run_budget is None
         ):
             return
         snapshot = self.budget_snapshot(context.task_id)
+        if (
+            context.run_budget is not None
+            and context.run_budget.time_policy_version == "research_active_time_v2"
+        ):
+            with self.db.connect() as connection:
+                rejection = self._active_time_rejection(
+                    connection, context.task_id
+                )
+            if rejection is not None:
+                raise ProviderBudgetExceeded(rejection)
         if (
             context.max_logical_calls is not None
             and snapshot.logical_calls >= context.max_logical_calls
@@ -1313,10 +1355,18 @@ class ReceiptBoundProviderService:
         if context.task_id not in policy.task_ids:
             return "Provider Task is outside the frozen run-wide budget membership"
         run_snapshot = self._run_budget_snapshot(connection, policy.task_ids)
-        started = datetime.fromisoformat(policy.started_at).astimezone(timezone.utc)
-        elapsed = (now.astimezone(timezone.utc) - started).total_seconds()
-        if elapsed < 0:
-            return "Provider run budget started_at is in the future"
+        elapsed: float | None = None
+        if policy.time_policy_version == "research_active_time_v2":
+            active_rejection = self._active_time_rejection(
+                connection, context.task_id
+            )
+            if active_rejection is not None:
+                return active_rejection
+        else:
+            started = datetime.fromisoformat(policy.started_at).astimezone(timezone.utc)
+            elapsed = (now.astimezone(timezone.utc) - started).total_seconds()
+            if elapsed < 0:
+                return "Provider run budget started_at is in the future"
         run_checks = (
             (
                 policy.max_logical_calls,
@@ -1345,7 +1395,7 @@ class ReceiptBoundProviderService:
                     f"Provider run-wide {name} reservation exceeds its cap: "
                     f"{projected} > {limit}"
                 )
-        if elapsed >= policy.max_wall_seconds:
+        if elapsed is not None and elapsed >= policy.max_wall_seconds:
             return "Provider run-wide wall-time cap is exhausted"
         accounted = Decimal(run_snapshot.accounted_cost_usd)
         if accounted >= policy.reserve_stop_usd:
@@ -1360,6 +1410,25 @@ class ReceiptBoundProviderService:
                 f"{_decimal_text(projected_cost)} > "
                 f"{policy.absolute_max_cost_usd}"
             )
+        return None
+
+    @staticmethod
+    def _active_time_rejection(
+        connection: sqlite3.Connection, task_id: str
+    ) -> str | None:
+        row = connection.execute(
+            "SELECT * FROM research_execution_metadata WHERE task_id=?",
+            (task_id,),
+        ).fetchone()
+        if row is None:
+            return "legacy_time_unaccounted: Provider execution is disabled"
+        if str(row["time_policy_version"]) != "research_active_time_v2":
+            return "Provider active-time policy binding is invalid"
+        if str(row["timing_status"]) == "uncertain":
+            return "execution_time_uncertain: Provider execution is disabled"
+        accounted = int(row["consumed_active_ms"]) + int(row["reserved_tail_ms"])
+        if accounted >= int(row["active_budget_ms"]):
+            return "Provider product active-time cap is exhausted"
         return None
 
     def _finish_failed(

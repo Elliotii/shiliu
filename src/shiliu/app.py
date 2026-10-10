@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import logging
 from pathlib import Path
 
 from shiliu.artifacts import ArtifactStore
@@ -28,6 +29,10 @@ from shiliu.retrieval import (
 from shiliu.sync import SyncService
 from shiliu.evidence import EvidenceSearchService
 from shiliu.runtime_modes import PRODUCT_RUNTIME_CONFIG
+from shiliu.assistant.foundation import AssistantFoundation
+from shiliu.assistant.dependencies import Context7MCPClient, Mem0SemanticIndex
+from shiliu.assistant.provider import OpenAICompatibleAssistantProvider
+from shiliu.assistant.runtime import AssistantRuntime
 from shiliu.ask.deep.navigation import NavigationService
 from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.deep.transcript import TranscriptSearchService, TranscriptWindowReader
@@ -47,6 +52,7 @@ from shiliu.research.provider_wiring import (
     ReceiptBoundProviderService,
 )
 from shiliu.research.knowledge_service import ResearchKnowledgeService
+from shiliu.research.recovery import ResearchRecoveryCoordinator
 from shiliu.knowledge_draft import KnowledgeDraftService
 from shiliu.stage5 import Stage5PipelineService
 from shiliu.taxonomy import TaxonomyCorpusService
@@ -86,8 +92,12 @@ class Application:
         self._research_provider_orchestrator: (
             ReceiptBoundResearchProductOrchestrator | None
         ) = None
+        self._research_recovery: ResearchRecoveryCoordinator | None = None
+        self._provider_research_readiness: dict[str, str | bool] | None = None
         self._research_knowledge: ResearchKnowledgeService | None = None
         self._knowledge_drafts: KnowledgeDraftService | None = None
+        self._assistant_foundation: AssistantFoundation | None = None
+        self._assistant_runtime: AssistantRuntime | None = None
         if self.config.favorite_id is not None:
             self.db.migrate_legacy_source(
                 self.config.favorite_id,
@@ -96,6 +106,8 @@ class Application:
         self.adapter = BilibiliAdapter(Path(self.config.bili_cli_root))
         self.artifacts = ArtifactStore(self.paths.videos_dir)
         self.retrieval = RetrievalService(db=self.db, artifacts=self.artifacts)
+        self.retrieval.on_video_updated = self._sync_deep_lexical
+        self.retrieval.on_index_rebuilt = self._invalidate_deep_lexical
         self._dense_retrieval: SQLiteExactDenseIndex | None = None
         self._hybrid_retrieval: HybridRetrievalService | None = None
         self._search_orchestrator: SearchOrchestrator | None = None
@@ -114,17 +126,15 @@ class Application:
         self.qwen_model_path = Path(
             os.environ.get(
                 "SHILIU_QWEN_MODEL_PATH",
-                Path.home() / "Library" / "Caches" / "Shiliu" / "model-selection" / "Qwen3-Embedding-0.6B",
+                "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B",
             )
         ).expanduser()
         os.environ.setdefault("HF_HUB_OFFLINE", "1")
         os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-        self._f1_lexical = None
         self.retrieval_coordinator = RetrievalIndexCoordinator(
             db=self.db,
             lexical=self.retrieval,
             dense_factory=lambda: self.dense_retrieval,
-            transcript_lexical_sync=self._sync_f1_lexical,
         )
         self.retrieval_coordinator.initialize_schema()
         self.library = LibraryService(self.db, self.retrieval_coordinator)
@@ -233,15 +243,25 @@ class Application:
             index_coordinator=self.retrieval_coordinator,
         )
 
-    def _sync_f1_lexical(self, video_id: int) -> None:
-        path = Path(os.environ.get("SHILIU_DEEP_V2_LEXICAL_INDEX",
-                                   self.paths.state_dir / "deep-v2-lexical.sqlite"))
-        if not path.exists():
-            return
-        if self._f1_lexical is None:
+    def _deep_lexical_path(self) -> Path:
+        return Path(os.environ.get("SHILIU_DEEP_V2_LEXICAL_INDEX", self.db.path.parent / "deep-v2-lexical.sqlite"))
+
+    def _sync_deep_lexical(self, video_id: int) -> None:
+        path = self._deep_lexical_path()
+        if path.exists():
             from shiliu.retrieval.f1 import F1LexicalIndex
-            self._f1_lexical = F1LexicalIndex(path, self.db.path)
-        self._f1_lexical.sync_video(video_id)
+            try:
+                F1LexicalIndex(path, self.db.path).sync_video(video_id)
+            except Exception:
+                # Companion errors stay in Deep; existing lexical/dense sync proceeds.
+                # The next F1 search validates the stale companion and rejects it.
+                logging.getLogger(__name__).exception("Deep lexical companion update failed")
+
+    def _invalidate_deep_lexical(self) -> None:
+        try:
+            self._deep_lexical_path().unlink(missing_ok=True)
+        except OSError:
+            logging.getLogger(__name__).exception("Deep lexical companion invalidation failed")
 
     @property
     def dense_retrieval(self) -> SQLiteExactDenseIndex:
@@ -290,10 +310,12 @@ class Application:
                 product_search=self.product_search,
                 provider_factory=self.provider,
                 answer_provider_factory=self.fast_answer_provider,
-                deep_answer_provider_factory=self.deep_answer_provider,
+                deep_answer_provider_factory=self.deep_v2_answer_provider,
+                deep_provider_factory=self.deep_v2_provider,
+                deep_embedding_provider=self.dense_retrieval.provider,
+                deep_reduce_strategy=self.config.deep_reduce_strategy,
                 runtime_corpus_identity=self.runtime_config.corpus_identity,
                 artifacts=self.artifacts,
-                deep_embedding_provider=self.dense_retrieval.provider,
             )
         return self._ask_service
 
@@ -313,6 +335,60 @@ class Application:
                 trace_dir=self.paths.logs_dir / "stage5_traces",
             )
         return self._stage5_pipeline
+
+    @property
+    def assistant_foundation(self) -> AssistantFoundation:
+        if not self.config.assistant_enabled:
+            raise RuntimeError("assistant_disabled")
+        if self._assistant_foundation is None:
+            self._assistant_foundation = AssistantFoundation(
+                db=self.db,
+                paths=self.paths,
+                artifacts=self.artifacts,
+                adapter=self.adapter,
+                product_search=self.product_search,
+            )
+        return self._assistant_foundation
+
+    @property
+    def assistant_runtime(self) -> AssistantRuntime:
+        if not self.config.assistant_enabled:
+            raise RuntimeError("assistant_disabled")
+        if self._assistant_runtime is None:
+            foundation = self.assistant_foundation
+            self._assistant_runtime = AssistantRuntime(
+                store=foundation.store,
+                sources=foundation.sources,
+                memory_backend=Mem0SemanticIndex(self.paths.assistant_state_dir / "mem0"),
+                context7=Context7MCPClient(),
+                provider_factory=self.assistant_provider,
+                extraction_provider_factory=self.assistant_extraction_provider,
+            )
+        return self._assistant_runtime
+
+    def assistant_provider(self) -> OpenAICompatibleAssistantProvider:
+        try:
+            api_key = load_api_key(self.config.api_key_ref)
+        except RuntimeError as exc:
+            raise PipelineError(str(exc), code="api_key_missing", retryable=False) from exc
+        return OpenAICompatibleAssistantProvider(
+            base_url=self.config.llm_base_url,
+            api_key=api_key,
+            model=self.config.model_for("assistant"),
+            timeout_seconds=120,
+        )
+
+    def assistant_extraction_provider(self) -> OpenAICompatibleAssistantProvider:
+        try:
+            api_key = load_api_key(self.config.api_key_ref)
+        except RuntimeError as exc:
+            raise PipelineError(str(exc), code="api_key_missing", retryable=False) from exc
+        return OpenAICompatibleAssistantProvider(
+            base_url=self.config.llm_base_url,
+            api_key=api_key,
+            model=self.config.model_for("formal_summary"),
+            timeout_seconds=120,
+        )
 
     @property
     def research_control(self) -> ResearchControlService:
@@ -398,7 +474,29 @@ class Application:
                 "available": False,
                 "reason": "尚未配置可用的模型凭据，请先在设置中完成连接。",
             }
-        return {"available": True, "reason": "Provider Research 已由服务器配置。"}
+        if self._provider_research_readiness is None:
+            try:
+                # Exercise the actual offline query path, including the pinned
+                # Qwen runtime and dense-index identity, before any paid call.
+                self.dense_retrieval.search(
+                    "Research 本地语义检索就绪检查",
+                    level="video",
+                    top_k=1,
+                )
+            except Exception:
+                self._provider_research_readiness = {
+                    "available": False,
+                    "reason": (
+                        "本地语义检索模型或索引尚未就绪；"
+                        "Research 已在 Provider 调用前停止。"
+                    ),
+                }
+            else:
+                self._provider_research_readiness = {
+                    "available": True,
+                    "reason": "Provider Research 与本地语义检索均已就绪。",
+                }
+        return dict(self._provider_research_readiness)
 
     @property
     def research_provider_inner(self) -> InnerResearchService:
@@ -422,7 +520,8 @@ class Application:
                 inner=self.research_provider_inner,
                 outer=self.research_outer,
                 control=self.research_control,
-                runner_id="web-provider-research",
+                lease_seconds=60,
+                lease_renew_every=None,
             )
         return self._research_provider_product
 
@@ -462,12 +561,17 @@ class Application:
                         product_search=self.product_search,
                         runtime_corpus_identity=self.runtime_config.corpus_identity,
                         budget=DeepSearchBudget(),
-                        embedding_provider=self.dense_retrieval.provider,
                     ),
                     provider_product_authorized=True,
                 )
             )
         return self._research_provider_orchestrator
+
+    @property
+    def research_recovery(self) -> ResearchRecoveryCoordinator:
+        if self._research_recovery is None:
+            self._research_recovery = ResearchRecoveryCoordinator(self)
+        return self._research_recovery
 
     def research_provider(self, role: str) -> OpenAICompatibleProvider:
         if role not in {"query_analysis", "agent_action", "grounded_answer"}:
@@ -489,6 +593,7 @@ class Application:
             timeout_seconds=180,
             thinking_enabled=False,
             reasoning_effort=None,
+            structured_transport_retries=0,
         )
 
     @property
@@ -569,6 +674,18 @@ class Application:
             "grounded_answer_recovery": "grounded_answer_fast_recovery",
         }
         return self.provider(mapped[role])
+
+    def deep_v2_provider(self, role: str) -> OpenAICompatibleProvider:
+        provider = self.provider(role)
+        provider.model = "deepseek-v4-flash"
+        provider.thinking_enabled = False
+        provider.reasoning_effort = None
+        provider.timeout_seconds = 180
+        return provider
+
+    def deep_v2_answer_provider(self, role: str) -> OpenAICompatibleProvider:
+        return self.deep_v2_provider({"grounded_answer": "grounded_answer_deep",
+            "grounded_answer_recovery": "grounded_answer_deep_recovery"}[role])
 
     def deep_answer_provider(self, role: str) -> OpenAICompatibleProvider:
         mapped = {

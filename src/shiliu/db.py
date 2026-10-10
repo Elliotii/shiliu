@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -9,6 +10,10 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from shiliu.domain import FavoriteItem, StageName, StageStatus, VideoStatus
+from shiliu.assistant.schema import (
+    initialize_assistant_foundation_schema,
+    initialize_assistant_runtime_schema,
+)
 from shiliu.research.schema import (
     initialize_research_schema,
     prepare_research_schema_v9,
@@ -16,11 +21,12 @@ from shiliu.research.schema import (
     prepare_research_schema_v12,
     prepare_research_schema_v13,
     prepare_research_schema_v14,
+    prepare_research_auto_resume_schema,
     prepare_knowledge_draft_schema_v17,
 )
 
 
-SCHEMA_VERSION = 17
+SCHEMA_VERSION = 25
 
 LibraryCardCursor = tuple[int, int, str, int, int, int]
 
@@ -325,12 +331,24 @@ class Database:
             self._ensure_columns(connection)
             self._ensure_source_order(connection)
             initialize_research_schema(connection)
+            prepare_research_auto_resume_schema(connection)
             prepare_research_schema_v13(connection)
             prepare_research_schema_v14(connection)
             from shiliu.ask.persistence import initialize_ask_schema
 
             initialize_ask_schema(connection)
             prepare_knowledge_draft_schema_v17(connection)
+            initialize_assistant_foundation_schema(connection)
+            initialize_assistant_runtime_schema(connection)
+            if existing_version < 25:
+                connection.execute(
+                    """INSERT OR IGNORE INTO assistant_wiki_materials(
+                        page_id, video_id, source_revision, relation, status, created_at, updated_at
+                    ) SELECT DISTINCT d.page_id, d.video_id, d.source_revision,
+                        'supports_block', 'integrated', ?, ?
+                      FROM assistant_wiki_dependencies d""",
+                    (utc_now(), utc_now()),
+                )
             connection.execute(
                 "INSERT INTO schema_meta(key, value) VALUES('schema_version', ?) "
                 "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
@@ -397,6 +415,11 @@ class Database:
                 "is_marked": "INTEGER NOT NULL DEFAULT 0",
                 "marked_at": "TEXT",
                 "archived_at": "TEXT",
+                "published_at": "INTEGER",
+                "metadata_observed_at": "TEXT",
+                "cid": "INTEGER",
+                "part_title": "TEXT NOT NULL DEFAULT ''",
+                "uploader_id": "INTEGER",
             },
             "pipeline_stages": {
                 "profile": "TEXT NOT NULL DEFAULT 'formal'",
@@ -783,10 +806,21 @@ class Database:
                         display_favorite_time=item.favorite_time or _epoch_seconds(now),
                         now=now,
                     )
-                if existing_video and item.duration_seconds > 0:
+                if existing_video:
                     connection.execute(
-                        "UPDATE videos SET duration_seconds=?, updated_at=? WHERE id=?",
-                        (item.duration_seconds, now, int(existing_video["id"])),
+                        """
+                        UPDATE videos
+                        SET title=CASE WHEN ?<>'' THEN ? ELSE title END,
+                            uploader=CASE WHEN ?<>'' THEN ? ELSE uploader END,
+                            duration_seconds=CASE WHEN ?>0 THEN ? ELSE duration_seconds END,
+                            updated_at=?
+                        WHERE id=?
+                        """,
+                        (
+                            item.title, item.title, item.uploader, item.uploader,
+                            item.duration_seconds, item.duration_seconds,
+                            now, int(existing_video["id"]),
+                        ),
                     )
             if authoritative:
                 connection.execute(
@@ -1031,11 +1065,20 @@ class Database:
                             """,
                             (effective_time, now, video_id),
                         )
-                    if item.duration_seconds > 0:
-                        connection.execute(
-                            "UPDATE videos SET duration_seconds=?, updated_at=? WHERE id=?",
-                            (item.duration_seconds, now, video_id),
-                        )
+                    connection.execute(
+                        """
+                        UPDATE videos
+                        SET title=CASE WHEN ?<>'' THEN ? ELSE title END,
+                            uploader=CASE WHEN ?<>'' THEN ? ELSE uploader END,
+                            duration_seconds=CASE WHEN ?>0 THEN ? ELSE duration_seconds END,
+                            updated_at=?
+                        WHERE id=?
+                        """,
+                        (
+                            item.title, item.title, item.uploader, item.uploader,
+                            item.duration_seconds, item.duration_seconds, now, video_id,
+                        ),
+                    )
         with self.connect() as connection:
             if authoritative and current:
                 placeholders = ",".join("?" for _ in current)
@@ -1090,6 +1133,20 @@ class Database:
                 )
                 """,
                     (now, now, source_db_id),
+                )
+            changed_video_ids = [
+                int(row["video_id"])
+                for row in connection.execute(
+                    """
+                    SELECT DISTINCT video_id FROM video_source_memberships
+                    WHERE source_id=? AND video_id IS NOT NULL
+                    """,
+                    (source_db_id,),
+                ).fetchall()
+            ]
+            for changed_video_id in changed_video_ids:
+                self._notify_assistant_source_change(
+                    connection, changed_video_id, reason="membership_snapshot"
                 )
         return created
 
@@ -1409,17 +1466,23 @@ class Database:
             "completed_at", "removed_at", "processing_profile", "active_revision",
             "refinement_status", "display_favorite_time",
             "duration_seconds", "page_count", "asr_provider", "asr_model",
+            "published_at", "metadata_observed_at", "cid", "part_title", "uploader_id",
         }
         unknown = set(fields) - allowed
         if unknown:
             raise ValueError(f"Unsupported video fields: {sorted(unknown)}")
         fields["updated_at"] = utc_now()
-        assignments = ", ".join(f"{name}=?" for name in fields)
+        assignments = ", ".join(
+            "published_at=COALESCE(?, published_at)" if name == "published_at"
+            else f"{name}=?"
+            for name in fields
+        )
         with self.connect() as connection:
             connection.execute(
                 f"UPDATE videos SET {assignments} WHERE id=?",
                 [*fields.values(), video_id],
             )
+            self._notify_assistant_source_change(connection, video_id, reason="video_updated")
 
     def get_video(self, video_id: int) -> dict[str, Any] | None:
         with self.connect() as connection:
@@ -1724,6 +1787,7 @@ class Database:
                 "UPDATE videos SET archived_at=?, updated_at=? WHERE id=?",
                 (now if archived else None, now, video_id),
             )
+            self._notify_assistant_source_change(connection, video_id, reason="visibility_changed")
 
     def create_note(self, video_id: int, content: str) -> dict[str, Any]:
         now = utc_now()
@@ -1739,6 +1803,7 @@ class Database:
             row = connection.execute(
                 "SELECT * FROM video_notes WHERE id=?", (note_id,)
             ).fetchone()
+            self._notify_assistant_source_change(connection, video_id, reason="note_created")
         if row is None:
             raise RuntimeError("无法创建笔记")
         return dict(row)
@@ -1753,6 +1818,9 @@ class Database:
     def update_note(self, note_id: int, content: str) -> dict[str, Any] | None:
         now = utc_now()
         with self.connect() as connection:
+            original = connection.execute(
+                "SELECT video_id FROM video_notes WHERE id=?", (note_id,)
+            ).fetchone()
             cursor = connection.execute(
                 "UPDATE video_notes SET content=?, updated_at=? WHERE id=?",
                 (content, now, note_id),
@@ -1762,11 +1830,22 @@ class Database:
             row = connection.execute(
                 "SELECT * FROM video_notes WHERE id=?", (note_id,)
             ).fetchone()
+            if original is not None:
+                self._notify_assistant_source_change(
+                    connection, int(original["video_id"]), reason="note_updated"
+                )
         return dict(row) if row else None
 
     def delete_note(self, note_id: int) -> None:
         with self.connect() as connection:
+            row = connection.execute(
+                "SELECT video_id FROM video_notes WHERE id=?", (note_id,)
+            ).fetchone()
             connection.execute("DELETE FROM video_notes WHERE id=?", (note_id,))
+            if row is not None:
+                self._notify_assistant_source_change(
+                    connection, int(row["video_id"]), reason="note_deleted"
+                )
 
     def list_notes(self, video_id: int) -> list[dict[str, Any]]:
         return self.list_notes_for_videos([video_id]).get(video_id, [])
@@ -1935,6 +2014,7 @@ class Database:
                 "UPDATE videos SET is_ignored=?, ignored_at=?, updated_at=? WHERE id=?",
                 (int(ignored), now if ignored else None, now, video_id),
             )
+            self._notify_assistant_source_change(connection, video_id, reason="visibility_changed")
 
     def add_event(self, event_type: str, video_id: int | None, payload: dict[str, Any]) -> None:
         with self.connect() as connection:
@@ -2015,6 +2095,143 @@ class Database:
                 """,
                 params,
             )
+
+    def _notify_assistant_source_change(
+        self, connection: sqlite3.Connection, video_id: int, *, reason: str
+    ) -> None:
+        """Durably notify Stage-C only when an enabled Space can see this source."""
+        tables = {
+            str(row["name"])
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name IN "
+                "('assistant_spaces','assistant_source_dirty','assistant_jobs')"
+            ).fetchall()
+        }
+        if len(tables) != 3:
+            return
+        memberships = {
+            int(row["source_id"])
+            for row in connection.execute(
+                """
+                SELECT m.source_id FROM video_source_memberships m
+                JOIN favorite_sources s ON s.id=m.source_id AND s.status='active'
+                WHERE m.video_id=? AND m.removed_at IS NULL
+                """,
+                (video_id,),
+            ).fetchall()
+        }
+        video_row = connection.execute(
+            "SELECT is_ignored,archived_at FROM videos WHERE id=?", (video_id,)
+        ).fetchone()
+        if video_row is None or video_row["is_ignored"] or video_row["archived_at"]:
+            memberships = set()
+        visible = False
+        automatic = False
+        visible_space_ids: set[int] = set()
+        for row in connection.execute(
+            "SELECT id,source_ids_json, video_ids_json, all_active, maintenance_mode "
+            "FROM assistant_spaces WHERE enabled=1"
+        ).fetchall():
+            selected = {int(value) for value in json.loads(row["source_ids_json"] or "[]")}
+            selected_videos = {
+                int(value) for value in json.loads(row["video_ids_json"] or "[]")
+            }
+            if selected_videos and video_id not in selected_videos:
+                continue
+            if memberships and (bool(row["all_active"]) or bool(selected.intersection(memberships))):
+                visible = True
+                visible_space_ids.add(int(row["id"]))
+                automatic = automatic or row["maintenance_mode"] == "automatic"
+        linked_table = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='assistant_wiki_materials'"
+        ).fetchone()
+        lost_scope_pages = [dict(item) for item in connection.execute(
+                """SELECT p.id,p.title,p.space_id,s.scope_version,s.maintenance_mode,
+                          s.source_ids_json,s.video_ids_json,s.all_active
+                FROM assistant_wiki_materials m
+                JOIN assistant_wiki_pages p ON p.id=m.page_id
+                JOIN assistant_spaces s ON s.id=p.space_id
+                WHERE m.video_id=? AND p.status='active' AND s.enabled=1""",
+                (video_id,),
+            ).fetchall() if int(item["space_id"]) not in visible_space_ids] if linked_table else []
+        if not visible and not lost_scope_pages:
+            return
+        now = utc_now()
+        connection.execute(
+            """
+            INSERT INTO assistant_source_dirty(video_id, dirty_generation, updated_at)
+            VALUES(?, 1, ?)
+            ON CONFLICT(video_id) DO UPDATE SET
+                dirty_generation=assistant_source_dirty.dirty_generation+1,
+                updated_at=excluded.updated_at
+            """,
+            (video_id, now),
+        )
+        generation = int(connection.execute(
+            "SELECT dirty_generation FROM assistant_source_dirty WHERE video_id=?",
+            (video_id,),
+        ).fetchone()["dirty_generation"])
+        for page in lost_scope_pages:
+            if page["maintenance_mode"] != "automatic":
+                continue
+            selected_sources = {int(value) for value in json.loads(page["source_ids_json"] or "[]")}
+            selected_videos = {int(value) for value in json.loads(page["video_ids_json"] or "[]")}
+            candidates = connection.execute(
+                """SELECT m.video_id,h.current_revision
+                FROM assistant_wiki_materials m
+                JOIN assistant_source_heads h ON h.video_id=m.video_id
+                JOIN assistant_source_cards c ON c.revision=h.current_revision
+                JOIN videos v ON v.id=m.video_id AND v.is_ignored=0 AND v.archived_at IS NULL
+                WHERE m.page_id=? AND m.video_id<>? ORDER BY m.updated_at DESC""",
+                (page["id"], video_id),
+            ).fetchall()
+            for candidate in candidates:
+                candidate_id = int(candidate["video_id"])
+                if selected_videos and candidate_id not in selected_videos:
+                    continue
+                memberships = connection.execute(
+                    """SELECT m.source_id FROM video_source_memberships m
+                    JOIN favorite_sources s ON s.id=m.source_id AND s.status='active'
+                    WHERE m.video_id=? AND m.removed_at IS NULL""",
+                    (candidate_id,),
+                ).fetchall()
+                if not any(page["all_active"] or int(item["source_id"]) in selected_sources
+                           for item in memberships):
+                    continue
+                payload = {
+                    "space_id": int(page["space_id"]),
+                    "scope_version": int(page["scope_version"]),
+                    "video_id": candidate_id,
+                    "revision": str(candidate["current_revision"]),
+                    "topic": str(page["title"]),
+                    "repair_page_id": str(page["id"]),
+                    "lost_video_id": video_id,
+                }
+                connection.execute(
+                    """INSERT OR IGNORE INTO assistant_jobs(
+                        id,kind,dedupe_key,status,payload_json,not_before,created_at,updated_at
+                    ) VALUES(?,'wiki_integrate',?,'queued',?,?,?,?)""",
+                    (f"ajob_{uuid.uuid4().hex}",
+                     f"wiki_repair:{page['id']}:{video_id}:{generation}",
+                     json.dumps(payload, ensure_ascii=False), now, now, now),
+                )
+                break
+        if not automatic:
+            return
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO assistant_jobs(
+                id, kind, dedupe_key, status, payload_json, not_before, created_at, updated_at
+            ) VALUES(?, 'source_reconcile', ?, 'queued', ?, ?, ?, ?)
+            """,
+            (
+                f"ajob_{uuid.uuid4().hex}", f"source_reconcile:{video_id}:{generation}",
+                json.dumps({
+                    "video_id": video_id, "dirty_generation": generation, "reason": reason
+                }, ensure_ascii=False),
+                now, now, now,
+            ),
+        )
 
 
 def _epoch_seconds(value: str) -> int:
