@@ -159,3 +159,4 @@ def audit_workspace(workspace_path: str | Path) -> dict[str, int | bool]:
         "secret_violation_count": secret_violations,
         "workspace_path_valid": workspace == Path("/tmp/shiliu-v3-5-c0-construction-input-v2").resolve(),
     }
+

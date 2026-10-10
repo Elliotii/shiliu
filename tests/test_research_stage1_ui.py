@@ -80,6 +80,19 @@ def test_stage1_failure_unknown_and_partial_priorities_are_distinct() -> None:
     assert partial["category"] == "partial"
 
 
+def test_evidence_unavailable_is_insufficient_not_execution_failure() -> None:
+    completion = _completion(
+        task_status="terminal",
+        answer_status="valid_insufficient",
+        termination_reason="evidence_unavailable",
+        failure_class="none",
+    )
+
+    assert completion["status"] == "ended_without_verified_completion"
+    assert completion["category"] == "insufficient"
+    assert completion["label"] == "未找到足够证据"
+
+
 def test_stage1_list_projection_uses_the_same_product_labels() -> None:
     partial = ResearchProductService._list_completion_projection(
         {"status": "terminal", "answer_status": "valid_partial"}

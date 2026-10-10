@@ -764,6 +764,18 @@ class ResearchControlService:
                     raise ResearchUnsafeState(
                         "resume lacks unconsumed current pause lineage"
                     )
+                execution = connection.execute(
+                    "SELECT * FROM research_execution_metadata WHERE task_id=?",
+                    (task_id,),
+                ).fetchone()
+                if execution is not None and str(execution["timing_status"]) in {
+                    "uncertain",
+                    "exhausted",
+                }:
+                    raise ResearchUnsafeState(
+                        f"active-time state is {execution['timing_status']}; "
+                        "resolution is required before execution"
+                    )
 
             generation, owner_epoch = self._fence(
                 connection, task=task, now=now
@@ -892,6 +904,63 @@ class ResearchControlService:
                     (task_id,),
                 )
                 outcome = "resumed"
+
+            execution = connection.execute(
+                "SELECT * FROM research_execution_metadata WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+            if execution is not None:
+                if request.kind == "resume":
+                    connection.execute(
+                        """
+                        UPDATE research_execution_metadata
+                        SET scheduling_intent='manual', scheduling_status='queued',
+                            run_command_id=?, resume_reason='control_resume_applied',
+                            manual_generation=manual_generation+1,
+                            automatic_failure_count=0, next_retry_at=NULL,
+                            updated_at=?
+                        WHERE task_id=?
+                        """,
+                        (f"web:provider-research:{task_id}:run", now, task_id),
+                    )
+                elif request.kind == "interrupt":
+                    connection.execute(
+                        """
+                        UPDATE research_execution_metadata
+                        SET scheduling_intent='none', scheduling_status=?,
+                            resume_reason=?, next_retry_at=NULL, updated_at=?
+                        WHERE task_id=?
+                        """,
+                        (
+                            "blocked" if unknown_ids else "manual_required",
+                            (
+                                "provider_outcome_unknown"
+                                if unknown_ids
+                                else "control_interrupt_applied"
+                            ),
+                            now,
+                            task_id,
+                        ),
+                    )
+                elif request.kind == "cancel":
+                    connection.execute(
+                        """
+                        UPDATE research_execution_metadata
+                        SET scheduling_intent='none', scheduling_status=?,
+                            resume_reason=?, next_retry_at=NULL, updated_at=?
+                        WHERE task_id=?
+                        """,
+                        (
+                            "blocked" if unknown_ids else "complete",
+                            (
+                                "cancel_pending_unknown"
+                                if unknown_ids
+                                else "control_cancel_applied"
+                            ),
+                            now,
+                            task_id,
+                        ),
+                    )
 
             references = {
                 "checkpoint_id": checkpoint_id,

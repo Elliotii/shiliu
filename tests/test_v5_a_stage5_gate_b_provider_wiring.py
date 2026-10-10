@@ -232,6 +232,60 @@ def _direct_query(factory, content: str = "MCP"):
     )
 
 
+@pytest.mark.parametrize("bypass_outer_gate", [False, True])
+def test_v2_active_time_exhaustion_blocks_both_provider_gates(
+    app_paths, bypass_outer_gate: bool
+) -> None:
+    db, kernel, clock, context = _started(app_paths)
+    policy = ProviderRunBudgetPolicy(
+        run_id="v2-active-time",
+        task_ids=(context.task_id,),
+        started_at=clock().isoformat(timespec="microseconds"),
+        time_policy_version="research_active_time_v2",
+    )
+    now = clock().isoformat(timespec="microseconds")
+    with db.connect() as connection:
+        connection.execute(
+            "UPDATE research_goals SET evidence_policy_json=? WHERE task_id=?",
+            (
+                json.dumps(
+                    {"provider_run_budget": policy.evidence_policy_binding(case_id="v2")},
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+                context.task_id,
+            ),
+        )
+        connection.execute(
+            """
+            INSERT INTO research_execution_metadata(
+                task_id, time_policy_version, active_budget_ms,
+                consumed_active_ms, timing_status, scheduling_intent,
+                scheduling_status, created_at, updated_at
+            ) VALUES(?, 'research_active_time_v2', 360000, 360000,
+                     'exhausted', 'none', 'manual_required', ?, ?)
+            """,
+            (context.task_id, now, now),
+        )
+    context.run_budget = policy
+    provider = _NoNetworkProvider()
+    service = ReceiptBoundProviderService(
+        db=db, kernel=kernel, provider_dispatch_authorized=True
+    )
+    factory = service.factory(
+        context=context, provider_factory=lambda role: provider.for_role(role)
+    )
+
+    gate = (
+        patch.object(service, "_assert_call_caps", return_value=None)
+        if bypass_outer_gate
+        else patch.object(service, "_assert_call_caps", wraps=service._assert_call_caps)
+    )
+    with gate, pytest.raises(ProviderBudgetExceeded, match="active-time cap"):
+        _direct_query(factory)
+    assert provider.calls == []
+
+
 def _started_provider_run(app_paths, *, policy_overrides=None):
     db = Database(app_paths.database)
     db.initialize()

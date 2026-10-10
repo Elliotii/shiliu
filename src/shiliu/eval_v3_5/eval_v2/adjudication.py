@@ -19,3 +19,4 @@ def build_adjudication_packet(packet: AnnotationPacketV2, primary: AnnotationRev
             "suggested_decision_template": {"adjudication_status": "pending", "adjudicator": "",
                 "final_label": None, "final_required_aspects": [], "final_evidence_groups": [], "final_spans": [],
                 "changes_from_primary": "", "changes_from_secondary": "", "adjudication_reason": "", "approved_at": None}}
+

@@ -139,6 +139,7 @@ class VideoBundle(BaseModel):
     bvid: str
     title: str
     uploader: str = ""
+    uploader_id: int | None = None
     description: str = ""
     video_url: str
     cover_url: str | None = None
@@ -146,6 +147,8 @@ class VideoBundle(BaseModel):
     part_title: str = ""
     duration_seconds: int = 0
     page_count: int = 1
+    published_at: int | None = None
+    metadata_observed_at: str | None = None
     subtitle_track: SubtitleTrack | None = None
     subtitle_segments: list[SubtitleSegment] = Field(default_factory=list)
 

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import threading
 from typing import Any, Callable
 
 from shiliu.artifacts import ArtifactStore
@@ -104,14 +105,12 @@ class ReceiptBoundDeepResearchExecutor:
         product_search: ProductSearchService,
         runtime_corpus_identity: str | None,
         budget: DeepSearchBudget,
-        embedding_provider: object | None = None,
     ) -> None:
         self.db = db
         self.artifacts = artifacts
         self.product_search = product_search
         self.runtime_corpus_identity = runtime_corpus_identity
         self.budget = budget
-        self.embedding_provider = embedding_provider
 
     def execute(
         self,
@@ -128,10 +127,9 @@ class ReceiptBoundDeepResearchExecutor:
             provider_factory=provider_factory,
             runtime_corpus_identity=self.runtime_corpus_identity,
             budget=self.budget,
-            embedding_provider=self.embedding_provider,
         )
         response, trace = deep.ask(
-            AskRequest(query=objective, mode="deep", implementation_version="deep-v2"),
+            AskRequest(query=objective, mode="deep"),
             evidence_decision=evidence_decision,
             continuation_envelope=continuation_envelope,
         )
@@ -164,6 +162,7 @@ class ReceiptBoundResearchProductOrchestrator:
         deep_executor: ReceiptBoundDeepResearchExecutor,
         materializer: TranscriptEvidenceMaterializer | None = None,
         provider_product_authorized: bool = False,
+        fault_injector: Callable[[str], None] | None = None,
     ) -> None:
         self.db = db
         self.kernel = kernel
@@ -174,8 +173,48 @@ class ReceiptBoundResearchProductOrchestrator:
         self.deep_executor = deep_executor
         self.materializer = materializer or TranscriptEvidenceMaterializer(db)
         self.provider_product_authorized = provider_product_authorized
+        self.fault_injector = fault_injector or (lambda _point: None)
+        self._locks_guard = threading.Lock()
+        self._run_locks: dict[str, threading.Lock] = {}
+
+    def _run_lock(self, task_id: str) -> threading.Lock:
+        with self._locks_guard:
+            return self._run_locks.setdefault(task_id, threading.Lock())
 
     def run_to_boundary(
+        self,
+        task_id: str,
+        *,
+        command_id: str,
+        max_continuation_cycles: int = 1,
+        max_logical_calls: int = 17,
+        max_http_attempts: int = 34,
+        max_input_tokens: int | None = None,
+        max_output_tokens: int | None = None,
+        max_wall_time_seconds: int | None = None,
+        case_deadline_at: str | None = None,
+        run_budget: ProviderRunBudgetPolicy | None = None,
+    ) -> dict[str, Any]:
+        lock = self._run_lock(task_id)
+        if not lock.acquire(blocking=False):
+            raise ResearchConflict("Provider Task is already being orchestrated")
+        try:
+            return self._run_to_boundary_locked(
+                task_id,
+                command_id=command_id,
+                max_continuation_cycles=max_continuation_cycles,
+                max_logical_calls=max_logical_calls,
+                max_http_attempts=max_http_attempts,
+                max_input_tokens=max_input_tokens,
+                max_output_tokens=max_output_tokens,
+                max_wall_time_seconds=max_wall_time_seconds,
+                case_deadline_at=case_deadline_at,
+                run_budget=run_budget,
+            )
+        finally:
+            lock.release()
+
+    def _run_to_boundary_locked(
         self,
         task_id: str,
         *,
@@ -264,8 +303,17 @@ class ReceiptBoundResearchProductOrchestrator:
             if existing is not None:
                 return {**existing, "deduplicated": True}
 
+        self._ensure_current_owner(task_id, command_id)
+
         provider_cycles = 0
         while provider_cycles < max_continuation_cycles:
+            recovered = self._complete_ingested_provider(
+                task_id=task_id,
+                command_id=command_id,
+                payload_hash=payload_hash,
+            )
+            if recovered is not None:
+                return recovered
             boundary = self._prepare_inner(task_id, command_id, provider_cycles)
             if boundary is not None:
                 return self._finish(
@@ -300,7 +348,10 @@ class ReceiptBoundResearchProductOrchestrator:
                 max_input_tokens=max_input_tokens,
                 max_output_tokens=max_output_tokens,
                 deadline_at=(
-                    case_deadline_at
+                    None
+                    if run_budget is not None
+                    and run_budget.time_policy_version == "research_active_time_v2"
+                    else case_deadline_at
                     or (
                         (
                             datetime.fromisoformat(run_budget.started_at)
@@ -348,6 +399,9 @@ class ReceiptBoundResearchProductOrchestrator:
                     provider_operation_prefix=context.operation_key,
                     cycle=provider_cycles,
                     response=output.response,
+                    expected_owner_epoch=context.owner_epoch,
+                    expected_state_version=context.expected_state_version,
+                    expected_control_generation=context.expected_control_generation,
                 )
             response = AskResponse.model_validate(finalized["response"])
             receipt_bindings = self._provider_receipt_bindings(
@@ -390,6 +444,7 @@ class ReceiptBoundResearchProductOrchestrator:
                 trace={"run_id": response.run_id, "query": str(goal["objective"])},
                 provider_operation_prefix=context.operation_key,
             )
+            self.fault_injector("after_provider_ingest_commit")
             provider_cycles += 1
             if committed.get("phase") == "stopped":
                 return self._finish(
@@ -466,6 +521,48 @@ class ReceiptBoundResearchProductOrchestrator:
             boundary="bounded_provider_continuation_yield",
             provider_cycles=provider_cycles,
         )
+
+    def _ensure_current_owner(self, task_id: str, command_id: str) -> None:
+        raw = self.kernel.get_task(task_id)
+        task = raw["task"]
+        now = self.kernel._now()
+        lease = task.get("lease_until")
+        lease_time = datetime.fromisoformat(str(lease)) if lease else None
+        if lease_time is not None and lease_time.tzinfo is None:
+            lease_time = lease_time.replace(tzinfo=timezone.utc)
+        if (
+            str(task.get("owner_id") or "") != self.product.runner_id
+            or lease_time is None
+            or lease_time <= now
+        ):
+            if task.get("owner_id") and lease_time is not None and lease_time > now:
+                raise ResearchConflict("Task has another unexpired owner")
+            self.kernel.claim_owner(
+                task_id=task_id,
+                command_id=_command(
+                    command_id, "orchestration-claim", task["state_version"]
+                ),
+                owner_id=self.product.runner_id,
+                expected_state_version=int(task["state_version"]),
+                lease_seconds=self.product.lease_seconds,
+            )
+            task = self.kernel.get_task(task_id)["task"]
+        recovered = self.kernel.recover_in_flight(
+            task_id=task_id,
+            command_id=_command(
+                command_id,
+                "orchestration-recover",
+                task["owner_epoch"],
+                task["state_version"],
+            ),
+            owner_id=self.product.runner_id,
+            owner_epoch=int(task["owner_epoch"]),
+            expected_state_version=int(task["state_version"]),
+        )
+        if recovered["unknown_side_effect_ids"]:
+            raise ResearchUnsafeState(
+                "Provider outcome is unknown after owner takeover; replay is forbidden"
+            )
 
     def _prepare_inner(
         self, task_id: str, command_id: str, cycle: int
@@ -545,12 +642,14 @@ class ReceiptBoundResearchProductOrchestrator:
             }
         )
         with self.kernel._transaction() as connection:
+            task = self.kernel._task(connection, task_id)
             return self.kernel._existing_receipt(
                 connection,
                 task_id=task_id,
                 command_id=receipt_command,
                 payload_hash=payload_hash,
                 owner_id=self.product.runner_id,
+                owner_epoch=int(task["owner_epoch"]),
             )
 
     def _persist_finalized_response(
@@ -563,6 +662,9 @@ class ReceiptBoundResearchProductOrchestrator:
         provider_operation_prefix: str,
         cycle: int,
         response: AskResponse,
+        expected_owner_epoch: int,
+        expected_state_version: int,
+        expected_control_generation: int,
     ) -> dict[str, Any]:
         receipt_command = _command(
             command_id, "finalized-response", attempt_id, cycle
@@ -579,16 +681,44 @@ class ReceiptBoundResearchProductOrchestrator:
             "response": response.model_dump(mode="json"),
         }
         with self.kernel._transaction() as connection:
+            task = self.kernel._task(connection, task_id)
             existing = self.kernel._existing_receipt(
                 connection,
                 task_id=task_id,
                 command_id=receipt_command,
                 payload_hash=payload_hash,
                 owner_id=self.product.runner_id,
+                owner_epoch=int(task["owner_epoch"]),
             )
             if existing is not None:
                 return existing
-            task = self.kernel._task(connection, task_id)
+            self.kernel._assert_owner(
+                task,
+                owner_id=self.product.runner_id,
+                owner_epoch=expected_owner_epoch,
+                now=self.kernel._now(),
+            )
+            if (
+                int(task["state_version"]) != expected_state_version
+                or int(task["control_generation"])
+                != expected_control_generation
+            ):
+                raise ResearchConflict(
+                    "Task/control generation changed before finalized response commit"
+                )
+            latest_checkpoint = connection.execute(
+                "SELECT checkpoint_id FROM research_checkpoints "
+                "WHERE task_id=? AND attempt_id=? "
+                "ORDER BY sequence DESC LIMIT 1",
+                (task_id, attempt_id),
+            ).fetchone()
+            if (
+                latest_checkpoint is None
+                or str(latest_checkpoint["checkpoint_id"]) != checkpoint_id
+            ):
+                raise ResearchConflict(
+                    "checkpoint changed before finalized response commit"
+                )
             now = self.kernel._now().astimezone(timezone.utc).isoformat(
                 timespec="microseconds"
             )
@@ -604,6 +734,106 @@ class ReceiptBoundResearchProductOrchestrator:
                 now=now,
             )
         return durable_response
+
+    def _complete_ingested_provider(
+        self, *, task_id: str, command_id: str, payload_hash: str
+    ) -> dict[str, Any] | None:
+        """Close the durable artifact/checkpoint -> Result crash window locally."""
+
+        raw = self.kernel.get_task(task_id)
+        task = raw["task"]
+        attempt = self._active_attempt(raw, required=False)
+        if attempt is None:
+            return None
+        checkpoint = next(
+            (
+                value
+                for value in reversed(raw["checkpoints"])
+                if value["attempt_id"] == attempt["attempt_id"]
+            ),
+            None,
+        )
+        if checkpoint is None:
+            return None
+        if checkpoint.get("state_payload", {}).get("phase") != "complete":
+            return None
+        artifact = next(
+            (
+                value
+                for value in reversed(raw["provisional_artifacts"])
+                if value["attempt_id"] == attempt["attempt_id"]
+            ),
+            None,
+        )
+        if artifact is None:
+            raise ResearchUnsafeState(
+                "complete Provider checkpoint has no durable artifact"
+            )
+        response: AskResponse | None = None
+        for receipt in reversed(raw["command_receipts"]):
+            if receipt.get("command_type") != "provider_deep_finalized":
+                continue
+            receipt_payload = receipt.get("response") or {}
+            if str(receipt_payload.get("attempt_id") or "") != str(
+                attempt["attempt_id"]
+            ):
+                continue
+            response = AskResponse.model_validate(receipt_payload["response"])
+            break
+        if response is None:
+            raise ResearchUnsafeState(
+                "complete Provider checkpoint has no verified finalized response"
+            )
+        provider_failed = (
+            response.execution_outcome == "generation_failed"
+            and response.termination_reason == "provider_error"
+        )
+        self.kernel.complete_attempt(
+            task_id=task_id,
+            attempt_id=str(attempt["attempt_id"]),
+            command_id=_command(
+                "provider-local-completion",
+                "complete",
+                attempt["attempt_id"],
+                checkpoint["checkpoint_id"],
+            ),
+            owner_id=self.product.runner_id,
+            owner_epoch=int(task["owner_epoch"]),
+            expected_state_version=int(task["state_version"]),
+            answer_status=(
+                AnswerStatus.NOT_PRODUCED
+                if provider_failed
+                else AnswerStatus(str(artifact["answer_status"]))
+            ),
+            termination_reason=(
+                TerminationReason.PROVIDER_ERROR
+                if provider_failed
+                else (
+                    TerminationReason.EVIDENCE_UNAVAILABLE
+                    if response.status == "insufficient"
+                    else TerminationReason.ANSWER_READY
+                )
+            ),
+            failure_class=(
+                FailureClass.PROVIDER_FAILURE
+                if provider_failed
+                else FailureClass.NONE
+            ),
+            reason_detail="Recovered the durable Provider ingest completion window.",
+            task_terminal=not provider_failed,
+            next_task_status=(
+                TaskStatus.READY if provider_failed else TaskStatus.TERMINAL
+            ),
+            checkpoint_id=str(checkpoint["checkpoint_id"]),
+        )
+        return self._finish(
+            task_id=task_id,
+            command_id=command_id,
+            payload_hash=payload_hash,
+            boundary="durable_terminal_result",
+            provider_cycles=0,
+            provider_artifact_id=str(artifact["artifact_id"]),
+        )
 
     def _provider_receipt_bindings(
         self, *, task_id: str, attempt_id: str, operation_prefix: str
@@ -650,6 +880,13 @@ class ReceiptBoundResearchProductOrchestrator:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             task = self.kernel._task(connection, task_id)
+            if str(task["status"]) != TaskStatus.TERMINAL.value:
+                self.kernel._assert_owner(
+                    task,
+                    owner_id=self.product.runner_id,
+                    owner_epoch=int(task["owner_epoch"]),
+                    now=self.kernel._now(),
+                )
             latest = connection.execute(
                 "SELECT checkpoint_id, attempt_id FROM research_checkpoints "
                 "WHERE task_id=? ORDER BY created_at DESC, sequence DESC LIMIT 1",
@@ -680,17 +917,21 @@ class ReceiptBoundResearchProductOrchestrator:
                 now=now,
             )
             response["event_id"] = event_id
-            self.kernel._insert_receipt(
-                connection,
-                task_id=task_id,
-                command_id=command_id,
-                command_type="provider_product_orchestration",
-                payload_hash=payload_hash,
-                outcome_reference=event_id,
-                response=response,
-                owner_epoch=int(task["owner_epoch"]),
-                now=now,
-            )
+            # A bounded yield is a scheduling observation, not a completed
+            # logical Provider run. Do not cache it under the stable run command,
+            # or every later resume would replay the old yield forever.
+            if not boundary.startswith("bounded_"):
+                self.kernel._insert_receipt(
+                    connection,
+                    task_id=task_id,
+                    command_id=command_id,
+                    command_type="provider_product_orchestration",
+                    payload_hash=payload_hash,
+                    outcome_reference=event_id,
+                    response=response,
+                    owner_epoch=int(task["owner_epoch"]),
+                    now=now,
+                )
         return {**response, "deduplicated": False}
 
     @staticmethod

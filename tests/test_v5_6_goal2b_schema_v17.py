@@ -23,13 +23,13 @@ def test_v16_copy_migrates_additively_with_backup_and_preserves_data(app_paths) 
             """
         )
     db.initialize()
-    backup = app_paths.database.with_name("shiliu.pre-v17.backup.db")
-    assert SCHEMA_VERSION == 17
+    backup = app_paths.database.with_name("shiliu.pre-v19.backup.db")
+    assert SCHEMA_VERSION == 19
     assert backup.is_file()
     with db.connect() as connection:
         assert connection.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "17"
+        ).fetchone()[0] == "19"
         assert connection.execute(
             "SELECT COUNT(*) FROM seen_items WHERE source_id='v16-sentinel'"
         ).fetchone()[0] == 1
@@ -55,7 +55,7 @@ def test_v16_copy_migrates_additively_with_backup_and_preserves_data(app_paths) 
         connection.close()
 
 
-def test_fresh_v17_is_idempotent_constrained_and_refuses_future_schema(app_paths) -> None:
+def test_fresh_schema_is_idempotent_constrained_and_refuses_future_schema(app_paths) -> None:
     db = Database(app_paths.database)
     db.initialize()
     db.initialize()
@@ -91,7 +91,7 @@ def test_fresh_v17_is_idempotent_constrained_and_refuses_future_schema(app_paths
                 """
             )
         connection.execute(
-            "UPDATE schema_meta SET value='18' WHERE key='schema_version'"
+            "UPDATE schema_meta SET value='20' WHERE key='schema_version'"
         )
     with pytest.raises(RuntimeError, match="newer than supported"):
         db.initialize()

@@ -19,6 +19,52 @@ INPUT_SCHEMA_VERSION = "v5-a-stage4-input-v1"
 DERIVATION_SCHEMA_VERSION = "v5-a-stage4-derivation-v1"
 KNOWLEDGE_WORKSPACE_SCHEMA_VERSION = "v5-b-stage2-knowledge-workspace-v1"
 KNOWLEDGE_DRAFT_SCHEMA_VERSION = "v5.6-knowledge-draft-v1"
+RESEARCH_ACTIVE_TIME_POLICY_VERSION = "research_active_time_v2"
+
+
+def prepare_research_auto_resume_schema(connection: sqlite3.Connection) -> None:
+    """Add the narrow scheduler/active-time aggregate without rewriting history."""
+
+    connection.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS research_execution_metadata (
+            task_id TEXT PRIMARY KEY REFERENCES research_tasks(task_id) ON DELETE RESTRICT,
+            time_policy_version TEXT NOT NULL,
+            active_budget_ms INTEGER NOT NULL CHECK(active_budget_ms > 0),
+            consumed_active_ms INTEGER NOT NULL DEFAULT 0 CHECK(consumed_active_ms >= 0),
+            segment_id TEXT,
+            segment_owner_id TEXT,
+            segment_owner_epoch INTEGER,
+            segment_settled_ms INTEGER NOT NULL DEFAULT 0 CHECK(segment_settled_ms >= 0),
+            reserved_tail_ms INTEGER NOT NULL DEFAULT 0 CHECK(reserved_tail_ms >= 0),
+            tick_sequence INTEGER NOT NULL DEFAULT 0 CHECK(tick_sequence >= 0),
+            timing_status TEXT NOT NULL DEFAULT 'idle' CHECK(timing_status IN
+                ('idle','active','uncertain','exhausted')),
+            scheduling_intent TEXT NOT NULL DEFAULT 'none' CHECK(scheduling_intent IN
+                ('none','queued','manual')),
+            scheduling_status TEXT NOT NULL DEFAULT 'idle' CHECK(scheduling_status IN
+                ('idle','queued','running','backoff','manual_required','blocked','complete')),
+            run_command_id TEXT,
+            resume_reason TEXT,
+            automatic_failure_count INTEGER NOT NULL DEFAULT 0
+                CHECK(automatic_failure_count >= 0),
+            lifetime_automatic_failure_count INTEGER NOT NULL DEFAULT 0
+                CHECK(lifetime_automatic_failure_count >= 0),
+            manual_generation INTEGER NOT NULL DEFAULT 0 CHECK(manual_generation >= 0),
+            next_retry_at TEXT,
+            last_failure_code TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            CHECK((segment_id IS NULL AND segment_owner_id IS NULL
+                   AND segment_owner_epoch IS NULL)
+               OR (segment_id IS NOT NULL AND segment_owner_id IS NOT NULL
+                   AND segment_owner_epoch IS NOT NULL))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_research_execution_due
+        ON research_execution_metadata(scheduling_status, next_retry_at, updated_at);
+        """
+    )
 
 
 def prepare_knowledge_draft_schema_v17(connection: sqlite3.Connection) -> None:

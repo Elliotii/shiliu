@@ -11,9 +11,11 @@ import asyncio
 import json
 import sys
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shiliu.retry_after import parse_retry_after
 from bilibili_api import video
 from bilibili_api.login_v2 import QrCodeLogin, QrCodeLoginEvents
 
@@ -86,21 +88,104 @@ async def fetch_video(bvid: str) -> dict[str, Any]:
             "upstream_language_label": str(track.get("lan_doc", "")),
         }
 
+    result = _metadata_payload(bvid, info, pages)
+    result.update({
+        "bvid": bvid,
+        "subtitle_track": selected,
+        "subtitle_segments": segments,
+    })
+    return result
+
+
+async def fetch_video_metadata(bvid: str) -> dict[str, Any]:
+    """Fetch metadata and page information without player/subtitle work."""
+    credential = get_credential(mode="optional")
+    resource = video.Video(bvid=bvid, credential=credential)
+    info = await resource.get_info()
+    pages = await resource.get_pages()
+    if not pages:
+        raise RuntimeError("视频没有可用分P")
+    return _metadata_payload(bvid, info, pages)
+
+
+async def fetch_video_pubdate(bvid: str) -> dict[str, Any]:
+    """Fetch only the authoritative info.pubdate field for a video."""
+    credential = get_credential(mode="optional")
+    # The upstream client discards HTTP headers when it raises on non-200
+    # responses. Capture only status and Retry-After around this one get_info
+    # request so a bounded caller can honor the server's requested delay.
+    from bilibili_api.utils.network import Api
+
+    response_meta: dict[str, Any] = {}
+    original_process_response = Api._process_response
+
+    def capture_response_error(self: Any, resp: Any, raw: bool = False) -> Any:
+        try:
+            return original_process_response(self, resp=resp, raw=raw)
+        except Exception:
+            try:
+                response_meta["http_status"] = int(resp.code)
+            except (AttributeError, TypeError, ValueError):
+                pass
+            headers = getattr(resp, "headers", {}) or {}
+            retry_after = parse_retry_after(
+                headers.get("retry-after") or headers.get("Retry-After")
+            )
+            if retry_after is not None:
+                response_meta["retry_after_seconds"] = retry_after
+            raise
+
+    Api._process_response = capture_response_error
+    try:
+        try:
+            info = await video.Video(bvid=bvid, credential=credential).get_info()
+        except Exception as exc:
+            for key, value in response_meta.items():
+                setattr(exc, key, value)
+            raise
+    finally:
+        Api._process_response = original_process_response
+    returned_bvid = str(info.get("bvid") or "")
+    if returned_bvid and returned_bvid != bvid:
+        raise RuntimeError("视频身份与请求 BV 不一致")
+    raw = info.get("pubdate")
+    return {
+        "bvid": returned_bvid or bvid,
+        "source_field": "info.pubdate",
+        "raw_pubdate": raw,
+        "published_at": _positive_int_or_none(raw),
+        "metadata_observed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
+def _metadata_payload(
+    bvid: str, info: dict[str, Any], pages: list[dict[str, Any]]
+) -> dict[str, Any]:
+    page = pages[0]
     owner = info.get("owner", {}) or {}
     return {
         "bvid": bvid,
         "title": str(info.get("title", "")),
         "uploader": str(owner.get("name", "")),
+        "uploader_id": _positive_int_or_none(owner.get("mid")),
         "description": str(info.get("desc", "")),
         "video_url": f"https://www.bilibili.com/video/{bvid}",
         "cover_url": info.get("pic"),
-        "cid": cid,
+        "cid": _positive_int_or_none(page.get("cid")),
         "part_title": str(page.get("part", "")),
         "duration_seconds": int(page.get("duration", info.get("duration", 0)) or 0),
         "page_count": len(pages),
-        "subtitle_track": selected,
-        "subtitle_segments": segments,
+        "published_at": _positive_int_or_none(info.get("pubdate")),
+        "metadata_observed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
+
+
+def _positive_int_or_none(value: object) -> int | None:
+    try:
+        parsed = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
 
 
 async def fetch_favorite_folders() -> list[dict[str, Any]]:
@@ -217,6 +302,8 @@ async def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else ""
     valid = {
         "fetch-video": 3,
+        "fetch-video-metadata": 3,
+        "fetch-video-pubdate": 3,
         "qr-login-file": 3,
         "favorite-folders": 2,
         "favorites-page": 4,
@@ -241,6 +328,10 @@ async def main() -> int:
             data = await fetch_favorite_scan(int(sys.argv[2]))
         elif command == "favorite-preview":
             data = await fetch_favorite_preview(int(sys.argv[2]))
+        elif command == "fetch-video-metadata":
+            data = await fetch_video_metadata(sys.argv[2])
+        elif command == "fetch-video-pubdate":
+            data = await fetch_video_pubdate(sys.argv[2])
         elif command != "download-audio":
             data = await fetch_video(sys.argv[2])
     except Exception as exc:
@@ -252,9 +343,16 @@ async def main() -> int:
             code = "upstream_retryable"
         else:
             code = "upstream_error"
+        error: dict[str, Any] = {"code": code, "message": f"{name}: {exc}"}
+        http_status = getattr(exc, "http_status", None)
+        if isinstance(http_status, int):
+            error["http_status"] = http_status
+        retry_after = getattr(exc, "retry_after_seconds", None)
+        if isinstance(retry_after, (int, float)) and retry_after >= 0:
+            error["retry_after_seconds"] = float(retry_after)
         print(
             json.dumps(
-                {"ok": False, "error": {"code": code, "message": f"{name}: {exc}"}},
+                {"ok": False, "error": error},
                 ensure_ascii=False,
             )
         )

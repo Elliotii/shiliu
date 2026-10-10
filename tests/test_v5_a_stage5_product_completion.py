@@ -541,6 +541,12 @@ def test_failure_close_identity_is_attempt_scoped_and_duplicate_safe(
         task_id,
         command_id="attempt-scoped-failure:retry",
     )
+    retry_schedule = product.execution.snapshot(task_id)
+    assert retry_schedule is not None
+    assert retry_schedule.scheduling_intent == "manual"
+    assert retry_schedule.scheduling_status == "queued"
+    assert retry_schedule.manual_generation == 1
+    assert retry_schedule.resume_reason == "manual_retry_requested"
     record_failed_dispatch(second["attempt_id"], 2)
     product.close_provider_failure(
         task_id,

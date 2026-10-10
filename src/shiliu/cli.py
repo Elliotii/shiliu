@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import os
 import sys
 import time
 from dataclasses import replace
@@ -25,6 +26,7 @@ from shiliu.retrieval import (
 from shiliu.retrieval.dense import (
     provider_identity,
 )
+from shiliu.assistant.dependencies import MEM0_MODEL, Mem0SemanticIndex
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,6 +41,13 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1", choices=["127.0.0.1"], help="V0 只允许本机监听")
     serve.add_argument("--port", type=int, default=18520)
     subcommands.add_parser("install-launchd", help="安装每小时同步任务")
+    assistant = subcommands.add_parser("assistant", help="初始化或维护助手运行依赖")
+    assistant_commands = assistant.add_subparsers(
+        dest="assistant_command", required=True
+    )
+    assistant_commands.add_parser(
+        "init-memory", help="显式下载并初始化本地记忆索引模型"
+    )
     retrieval = subcommands.add_parser("retrieval", help="管理 V3 本地词法检索索引")
     retrieval_commands = retrieval.add_subparsers(
         dest="retrieval_command", required=True
@@ -238,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
         destination = install_launch_agent(app.paths)
         print(destination)
         return 0
+    if arguments.command == "assistant" and arguments.assistant_command == "init-memory":
+        return initialize_assistant_memory()
     if arguments.command == "retrieval":
         app = Application()
         if arguments.retrieval_command == "rebuild":
@@ -644,6 +655,39 @@ def run_setup() -> int:
         config = replace(config, auto_sync_enabled=True)
         save_config(config, paths)
         print("launchd 已安装；当前已临时取消静默时段，历史积压和自动处理均可全天运行。")
+    return 0
+
+
+def initialize_assistant_memory() -> int:
+    """Explicitly permit the one network download required by the local Mem0 index."""
+    paths = AppPaths.defaults()
+    backend = Mem0SemanticIndex(paths.assistant_state_dir / "mem0")
+    prior = {
+        name: os.environ.get(name)
+        for name in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE")
+    }
+    try:
+        os.environ["HF_HUB_OFFLINE"] = "0"
+        os.environ["TRANSFORMERS_OFFLINE"] = "0"
+        backend.start()
+        # Mem0's Qdrant adapter initializes its optional sparse encoder lazily on
+        # the first projection. Prime that cache here so normal serve remains
+        # strictly offline without emitting a misleading model error.
+        from fastembed import SparseTextEmbedding
+
+        SparseTextEmbedding(model_name="Qdrant/bm25")
+    finally:
+        backend.stop()
+        for name, value in prior.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+    print(json.dumps({
+        "status": "ready",
+        "model": MEM0_MODEL,
+        "state_dir": str(paths.assistant_state_dir / "mem0"),
+    }, ensure_ascii=False, indent=2))
     return 0
 
 

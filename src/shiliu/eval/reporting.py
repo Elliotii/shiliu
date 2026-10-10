@@ -20,3 +20,4 @@ def validate_formal_result_payload(payload: dict[str, Any]) -> None:
 def assert_no_closeout(output_paths: list[Path]) -> None:
     if any(path.name == "V3_CLOSEOUT.md" for path in output_paths):
         raise ValueError("Stage 6B must not generate V3_CLOSEOUT.md")
+

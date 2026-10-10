@@ -7,6 +7,8 @@ from pathlib import Path
 import sqlite3
 import threading
 import unicodedata
+import os
+from uuid import uuid4
 
 import jieba
 
@@ -48,6 +50,28 @@ class F1LexicalIndex:
         self.tokenizer = tokenizer or F1Tokenizer()
         self._validated = False
         self._validation_lock = threading.Lock()
+        if self.path == self.source_db:
+            raise ValueError("F1 companion must be separate from the source database")
+
+    def ensure_ready(self) -> dict[str, str | int]:
+        """Initialize a missing companion only; never rebuild a stale live index.
+
+        Publish a validated temporary file without overwriting a concurrent builder.
+        The source corpus is opened read only throughout.
+        """
+        if not self.path.exists():
+            temporary = self.path.with_name(self.path.name + "." + uuid4().hex + ".tmp")
+            try:
+                index = F1LexicalIndex(temporary, self.source_db, self.tokenizer)
+                index.build()
+                index.validate_source()
+                try:
+                    os.link(temporary, self.path)
+                except FileExistsError:
+                    pass
+            finally:
+                temporary.unlink(missing_ok=True)
+        return self.validate_source()
 
     def build(self) -> dict[str, str | int]:
         """Explicit offline build; the caller owns index lifecycle and atomic replacement."""

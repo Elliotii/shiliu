@@ -1,7 +1,7 @@
 {
   "provenance": {
-    "case": "V2-C08",
-    "source": "Minimal clarification contract fixture; original run identity omitted for public release"
+    "source": "synthetic-clarification-contract",
+    "case_id": "V2-C08"
   },
   "query": "我下个月搬家，应该买多少个纸箱？",
   "decisions": [

@@ -254,6 +254,11 @@ class PipelineService:
             artifact_dir=str(self.artifacts.video_dir(bvid)),
             duration_seconds=bundle.duration_seconds,
             page_count=bundle.page_count,
+            published_at=bundle.published_at,
+            metadata_observed_at=bundle.metadata_observed_at,
+            cid=bundle.cid,
+            part_title=bundle.part_title,
+            uploader_id=bundle.uploader_id,
             error_code=None,
             error_message=None,
         )

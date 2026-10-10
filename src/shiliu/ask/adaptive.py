@@ -29,6 +29,7 @@ from shiliu.evidence.decision import (
     CorpusNewMaterialCheck,
     CorpusNewMaterialStatus,
     CoverageStatus,
+    CANONICAL_SEGMENT_ID_LIMIT,
     EvidenceAuthorityReference,
     EvidenceContribution,
     EvidenceDecision,
@@ -111,8 +112,18 @@ def create_current_evidence_decision(
         ),
     )
     fused_spans = tuple(fuse_evidence(spans))
+    eligible_spans = tuple(
+        value
+        for value in fused_spans
+        if len(value.segment_ids) <= CANONICAL_SEGMENT_ID_LIMIT
+    )
+    oversized_spans = tuple(
+        value
+        for value in fused_spans
+        if len(value.segment_ids) > CANONICAL_SEGMENT_ID_LIMIT
+    )
     references_by_id: dict[str, EvidenceAuthorityReference] = {}
-    for span in fused_spans:
+    for span in eligible_spans:
         reference = evidence_reference(span)
         references_by_id.setdefault(reference.reference_id, reference)
     references = tuple(references_by_id.values())
@@ -141,6 +152,13 @@ def create_current_evidence_decision(
             aspect_ids=tuple(value.aspect_id for value in bounded_requirements),
         )
         for reference in references
+    ) + tuple(
+        EvidenceContribution(
+            kind=ContributionKind.DROPPED,
+            reference_id=span.citation_id,
+            aspect_ids=tuple(value.aspect_id for value in bounded_requirements),
+        )
+        for span in oversized_spans
     )
     request_scope = filters.model_dump(mode="json", exclude_none=True)
     decision_input = EvidenceDecisionInput(
@@ -171,6 +189,11 @@ def create_current_evidence_decision(
 
 
 def evidence_reference(span: TranscriptEvidenceSpan) -> EvidenceAuthorityReference:
+    if len(span.segment_ids) > CANONICAL_SEGMENT_ID_LIMIT:
+        raise ValueError(
+            "Evidence reference exceeds the canonical segment-ID limit "
+            f"of {CANONICAL_SEGMENT_ID_LIMIT}"
+        )
     return EvidenceAuthorityReference(
         reference_id=span.citation_id,
         source_artifact_id=span.source_artifact_id,
@@ -199,6 +222,16 @@ def envelope_for_completed_run(
         value.execution_id for value in search_values if value.execution_id is not None
     )
     citation_values = tuple(citations)
+    eligible_citations = tuple(
+        value
+        for value in citation_values
+        if len(tuple(value["segment_ids"])) <= CANONICAL_SEGMENT_ID_LIMIT
+    )
+    oversized_citations = tuple(
+        value
+        for value in citation_values
+        if len(tuple(value["segment_ids"])) > CANONICAL_SEGMENT_ID_LIMIT
+    )
     inherited = tuple(
         InheritedEvidenceReference(
             reference_id=str(value["citation_id"]),
@@ -210,8 +243,19 @@ def envelope_for_completed_run(
             citation_lineage_hash=evidence_lineage_hash(value),
             search_execution_ids=execution_ids,
         )
-        for value in citation_values
+        for value in eligible_citations
     )
+    contributions = tuple(decision.contributions) + tuple(
+        EvidenceContribution(
+            kind=ContributionKind.DROPPED,
+            reference_id=str(value["citation_id"]),
+            aspect_ids=decision.open_aspects or decision.covered_aspects,
+        )
+        for value in oversized_citations
+    )
+    inherited_failure_state = failure_state
+    if oversized_citations and not inherited and failure_state == ContinuationFailureState.NONE:
+        inherited_failure_state = ContinuationFailureState.EVIDENCE_UNAVAILABLE
     return create_continuation_envelope(
         parent_run_id=run_id,
         parent_decision=decision,
@@ -220,8 +264,8 @@ def envelope_for_completed_run(
         normalized_scope=filters,
         inherited_evidence=inherited,
         search_executions=search_values,
-        failure_state=failure_state,
-        contributions=tuple(dict.fromkeys(decision.contributions)),
+        failure_state=inherited_failure_state,
+        contributions=tuple(dict.fromkeys(contributions)),
     )
 
 
@@ -329,11 +373,24 @@ def execute_targeted_refresh(
                 aspect_complete=False,
                 failure_state=ContinuationFailureState.EVIDENCE_UNAVAILABLE,
             )
-        new_spans.extend(result.spans)
+        eligible_spans = tuple(
+            value
+            for value in result.spans
+            if len(value.segment_ids) <= CANONICAL_SEGMENT_ID_LIMIT
+        )
+        oversized_spans = tuple(
+            value
+            for value in result.spans
+            if len(value.segment_ids) > CANONICAL_SEGMENT_ID_LIMIT
+        )
+        new_spans.extend(eligible_spans)
         return RefreshObservation(
             aspect_id=aspect_id,
-            aspect_complete=bool(result.spans),
-            authority_references=tuple(evidence_reference(value) for value in result.spans),
+            aspect_complete=bool(eligible_spans),
+            authority_references=tuple(evidence_reference(value) for value in eligible_spans),
+            dropped_reference_ids=tuple(
+                value.citation_id for value in oversized_spans
+            ),
             search_executions=(
                 SearchExecutionReference(
                     execution_id=execution.execution_id,

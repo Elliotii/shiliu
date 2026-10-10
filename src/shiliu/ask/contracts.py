@@ -70,12 +70,6 @@ class AskRequest(_StrictModel):
     def validate_query(cls, value: str) -> str:
         return normalize_ask_query(value)
 
-    @model_validator(mode="after")
-    def bind_deep_version(self) -> "AskRequest":
-        if self.mode == "deep" and self.implementation_version is None:
-            self.implementation_version = "deep-v2"
-        return self
-
 
 class AnswerBlock(_StrictModel):
     text: str
@@ -256,6 +250,16 @@ class AnswerTrustSummary(_StrictModel):
 
 
 class AskResponse(_StrictModel):
+    intro: str | None = None
+    outro: str | None = None
+
+    @field_validator("intro", "outro")
+    @classmethod
+    def normalize_framing(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return value.strip() or None
+
     run_id: str
     mode: AskMode
     status: AnswerStatus
@@ -281,6 +285,8 @@ class AskResponse(_StrictModel):
                 self.execution_outcome = "evidence_unavailable"
             else:
                 self.execution_outcome = "evidence_insufficient"
+        if self.execution_outcome != "answer_generated":
+            self.intro = self.outro = None
         if self.status == "insufficient" and self.answer_blocks:
             raise ValueError("insufficient responses must not contain answer blocks")
         source_lookup = self.execution_outcome == "source_lookup_complete" and bool(self.source_matches)
@@ -307,6 +313,16 @@ class QueryAnalysis(_StrictModel):
 
 
 class GroundedAnswerDraft(_StrictModel):
+    intro: str | None = None
+    outro: str | None = None
+
+    @field_validator("intro", "outro")
+    @classmethod
+    def normalize_framing(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return value.strip() or None
+
     status: AnswerStatus
     answer_blocks: list[AnswerDraftBlock]
     limitations: list[str]

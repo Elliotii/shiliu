@@ -1,0 +1,299 @@
+{
+  "source_run_id": "synthetic-readability-fixture",
+  "original_draft": {
+    "status": "complete",
+    "answer_blocks": [
+      {
+        "text": "合成回答第1段。",
+        "citation_ids": []
+      },
+      {
+        "text": "合成回答第2段。",
+        "citation_ids": [
+          "citation_v1_e49a3b74ac63606bd53b4e68b03894c155ad6f524327c28d3c282bd9de1c7ef7",
+          "citation_v1_d22633e648f220f14c1209793690a7ead4f6de670e8f88fb745c87610293eede",
+          "citation_v1_02ef456b748947a91bf912d6972a398db8f3c60ddf2b479b7df9f48b586d9878"
+        ]
+      },
+      {
+        "text": "合成回答第3段。",
+        "citation_ids": [
+          "citation_v1_32c0f5be1f067e2349168ee9be459864b8262aa24b777ab99be68a7e8649fc7d",
+          "citation_v1_2847db7ac64a3e77309fff407282c15f91d93d8afbf56086ab2dd8d9e7984f3b",
+          "citation_v1_322289885c67609ebc07e4dc5690de805086481a0f7c53234f7e58e067b34ca0",
+          "citation_v1_e24e0c6312fe1c9aa7d58f09946c1ee8c1727d789d30cfbe4832b0900a419b65",
+          "citation_v1_4a230f7a9929c4cf980e40dad31cccd37f95d2c88eee136841d8b2000cfcaa3c"
+        ]
+      },
+      {
+        "text": "合成回答第4段。",
+        "citation_ids": [
+          "citation_v1_e49a3b74ac63606bd53b4e68b03894c155ad6f524327c28d3c282bd9de1c7ef7",
+          "citation_v1_7b73575e1c5b888d5035675e0403adc66d623f0d3f3906f2ee95944e00451b90"
+        ]
+      },
+      {
+        "text": "合成回答第5段。",
+        "citation_ids": [
+          "citation_v1_32c0f5be1f067e2349168ee9be459864b8262aa24b777ab99be68a7e8649fc7d",
+          "citation_v1_1555693b06ac897964daf30b50a0aa9f0e28b9bba960aba6a660c5694bfbeca7"
+        ]
+      },
+      {
+        "text": "合成回答第6段。",
+        "citation_ids": [
+          "citation_v1_d5c139ef1a9882e08accd00a46da6c0e0559883bc7a8c488bfe150cbbf079082",
+          "citation_ids_placeholder"
+        ]
+      },
+      {
+        "text": "合成回答第7段。",
+        "citation_ids": [
+          "citation_v1_1555693b06ac897964daf30b50a0aa9f0e28b9bba960aba6a660c5694bfbeca7",
+          "citation_v1_577d4cdef07ab4f2f7394256d482c2cfc2b9f4e93272361c51b72fa430b58c48"
+        ]
+      },
+      {
+        "text": "合成回答第8段。",
+        "citation_ids": [
+          "citation_v1_577d4cdef07ab4f2f7394256d482c2cfc2b9f4e93272361c51b72fa430b58c48",
+          "citation_v1_0286c6701942b52ba0bd94a5fb7be1386fd0a34e5bb8079ba66306728e9bf255"
+        ]
+      },
+      {
+        "text": "合成回答第9段。",
+        "citation_ids": [
+          "citation_v1_d7799239316ba490ed8673c06a2b0dd6db2e0391bdd6d4b1404b6de47714c04c",
+          "citation_v1_353919642256ddf87f29a839d0c7415105c7f5f6345d9727d983e2a8396d3193",
+          "citation_v1_9de11bf38ea99cde17295b3fac3a2daf0bdbb4a48a1b238ea2202acaafe44c78",
+          "citation_v1_580fb02bf52353c60bcd67461e3072937b866320f564152f39acb9fcb06d9a81",
+          "citation_v1_dc2c866ff42c61b0351e0b20cd8a49d41d110b17f8a472f14a03f283f1504833",
+          "citation_v1_a4134d380cfa05d6799fa82891fc9645cce56e45350e54b00a701ddfc7951215",
+          "citation_v1_abecfbc0be08706c24d978ca0a24b2c99052b1b838dfce6cef5786f0aae2a509"
+        ]
+      },
+      {
+        "text": "合成回答第10段。",
+        "citation_ids": []
+      }
+    ],
+    "limitations": [
+      "以上内容均为B站美食UP主的个人推荐与体验，并非官方或权威榜单，不同视频对同一品类的推荐存在差异。",
+      "部分店铺名称来自语音转写，可能存在同音字误差。",
+      "价格、营业状态等信息具有时效性，视频拍摄时间较早，实际情况可能已变化。"
+    ]
+  },
+  "evidence": [
+    {
+      "citation_id": "citation_v1_e49a3b74ac63606bd53b4e68b03894c155ad6f524327c28d3c282bd9de1c7ef7",
+      "video_id": 5000,
+      "video_title": "合成视频1",
+      "source_uploader": "我是豆角焖面",
+      "bvid": "BV1BLTR6KE5G",
+      "start_time": 0,
+      "end_time": 5,
+      "quote": "这是合成字幕证据第1段。"
+    },
+    {
+      "citation_id": "citation_v1_d22633e648f220f14c1209793690a7ead4f6de670e8f88fb745c87610293eede",
+      "video_id": 5001,
+      "video_title": "合成视频2",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV11g4y1D7G6",
+      "start_time": 10,
+      "end_time": 15,
+      "quote": "这是合成字幕证据第2段。"
+    },
+    {
+      "citation_id": "citation_v1_02ef456b748947a91bf912d6972a398db8f3c60ddf2b479b7df9f48b586d9878",
+      "video_id": 5002,
+      "video_title": "合成视频3",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV11g4y1D7G6",
+      "start_time": 20,
+      "end_time": 25,
+      "quote": "这是合成字幕证据第3段。"
+    },
+    {
+      "citation_id": "citation_v1_d5c139ef1a9882e08accd00a46da6c0e0559883bc7a8c488bfe150cbbf079082",
+      "video_id": 5003,
+      "video_title": "合成视频4",
+      "source_uploader": "登老师不是老登",
+      "bvid": "BV1PJu36aE5h",
+      "start_time": 30,
+      "end_time": 35,
+      "quote": "这是合成字幕证据第4段。"
+    },
+    {
+      "citation_id": "citation_v1_32c0f5be1f067e2349168ee9be459864b8262aa24b777ab99be68a7e8649fc7d",
+      "video_id": 5004,
+      "video_title": "合成视频5",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV11g4y1D7G6",
+      "start_time": 40,
+      "end_time": 45,
+      "quote": "这是合成字幕证据第5段。"
+    },
+    {
+      "citation_id": "citation_v1_1555693b06ac897964daf30b50a0aa9f0e28b9bba960aba6a660c5694bfbeca7",
+      "video_id": 5005,
+      "video_title": "合成视频6",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV11g4y1D7G6",
+      "start_time": 50,
+      "end_time": 55,
+      "quote": "这是合成字幕证据第6段。"
+    },
+    {
+      "citation_id": "citation_v1_577d4cdef07ab4f2f7394256d482c2cfc2b9f4e93272361c51b72fa430b58c48",
+      "video_id": 5006,
+      "video_title": "合成视频7",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV11g4y1D7G6",
+      "start_time": 60,
+      "end_time": 65,
+      "quote": "这是合成字幕证据第7段。"
+    },
+    {
+      "citation_id": "citation_v1_0286c6701942b52ba0bd94a5fb7be1386fd0a34e5bb8079ba66306728e9bf255",
+      "video_id": 5007,
+      "video_title": "合成视频8",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV11g4y1D7G6",
+      "start_time": 70,
+      "end_time": 75,
+      "quote": "这是合成字幕证据第8段。"
+    },
+    {
+      "citation_id": "citation_v1_2847db7ac64a3e77309fff407282c15f91d93d8afbf56086ab2dd8d9e7984f3b",
+      "video_id": 5008,
+      "video_title": "合成视频9",
+      "source_uploader": "丹牛食走起",
+      "bvid": "BV15cdgBZEgm",
+      "start_time": 80,
+      "end_time": 85,
+      "quote": "这是合成字幕证据第9段。"
+    },
+    {
+      "citation_id": "citation_v1_322289885c67609ebc07e4dc5690de805086481a0f7c53234f7e58e067b34ca0",
+      "video_id": 5009,
+      "video_title": "合成视频10",
+      "source_uploader": "丹牛食走起",
+      "bvid": "BV15cdgBZEgm",
+      "start_time": 90,
+      "end_time": 95,
+      "quote": "这是合成字幕证据第10段。"
+    },
+    {
+      "citation_id": "citation_v1_e24e0c6312fe1c9aa7d58f09946c1ee8c1727d789d30cfbe4832b0900a419b65",
+      "video_id": 5010,
+      "video_title": "合成视频11",
+      "source_uploader": "丹牛食走起",
+      "bvid": "BV15cdgBZEgm",
+      "start_time": 100,
+      "end_time": 105,
+      "quote": "这是合成字幕证据第11段。"
+    },
+    {
+      "citation_id": "citation_v1_4a230f7a9929c4cf980e40dad31cccd37f95d2c88eee136841d8b2000cfcaa3c",
+      "video_id": 5011,
+      "video_title": "合成视频12",
+      "source_uploader": "丹牛食走起",
+      "bvid": "BV15cdgBZEgm",
+      "start_time": 110,
+      "end_time": 115,
+      "quote": "这是合成字幕证据第12段。"
+    },
+    {
+      "citation_id": "citation_v1_7b73575e1c5b888d5035675e0403adc66d623f0d3f3906f2ee95944e00451b90",
+      "video_id": 5012,
+      "video_title": "合成视频13",
+      "source_uploader": "我是豆角焖面",
+      "bvid": "BV1BLTR6KE5G",
+      "start_time": 120,
+      "end_time": 125,
+      "quote": "这是合成字幕证据第13段。"
+    },
+    {
+      "citation_id": "citation_v1_580fb02bf52353c60bcd67461e3072937b866320f564152f39acb9fcb06d9a81",
+      "video_id": 5013,
+      "video_title": "合成视频14",
+      "source_uploader": "切尼好吃喝",
+      "bvid": "BV1TaLS6bEE8",
+      "start_time": 130,
+      "end_time": 135,
+      "quote": "这是合成字幕证据第14段。"
+    },
+    {
+      "citation_id": "citation_v1_dc2c866ff42c61b0351e0b20cd8a49d41d110b17f8a472f14a03f283f1504833",
+      "video_id": 5014,
+      "video_title": "合成视频15",
+      "source_uploader": "切尼好吃喝",
+      "bvid": "BV1bh2SBMEEv",
+      "start_time": 140,
+      "end_time": 145,
+      "quote": "这是合成字幕证据第15段。"
+    },
+    {
+      "citation_id": "citation_v1_a4134d380cfa05d6799fa82891fc9645cce56e45350e54b00a701ddfc7951215",
+      "video_id": 5015,
+      "video_title": "合成视频16",
+      "source_uploader": "切尼好吃喝",
+      "bvid": "BV1bh2SBMEEv",
+      "start_time": 150,
+      "end_time": 155,
+      "quote": "这是合成字幕证据第16段。"
+    },
+    {
+      "citation_id": "citation_v1_d7799239316ba490ed8673c06a2b0dd6db2e0391bdd6d4b1404b6de47714c04c",
+      "video_id": 5016,
+      "video_title": "合成视频17",
+      "source_uploader": "xi的觅食记",
+      "bvid": "BV17LLJ6ZEUg",
+      "start_time": 160,
+      "end_time": 165,
+      "quote": "这是合成字幕证据第17段。"
+    },
+    {
+      "citation_id": "citation_v1_353919642256ddf87f29a839d0c7415105c7f5f6345d9727d983e2a8396d3193",
+      "video_id": 5017,
+      "video_title": "合成视频18",
+      "source_uploader": "xi的觅食记",
+      "bvid": "BV17LLJ6ZEUg",
+      "start_time": 170,
+      "end_time": 175,
+      "quote": "这是合成字幕证据第18段。"
+    },
+    {
+      "citation_id": "citation_v1_9de11bf38ea99cde17295b3fac3a2daf0bdbb4a48a1b238ea2202acaafe44c78",
+      "video_id": 5018,
+      "video_title": "合成视频19",
+      "source_uploader": "xi的觅食记",
+      "bvid": "BV17LLJ6ZEUg",
+      "start_time": 180,
+      "end_time": 185,
+      "quote": "这是合成字幕证据第19段。"
+    },
+    {
+      "citation_id": "citation_v1_f3b287b7db9becf46d26cfc04041c33242671f0831e0febdb888be29fb41ae40",
+      "video_id": 5019,
+      "video_title": "合成视频20",
+      "source_uploader": "小胖爱生活-本人",
+      "bvid": "BV1YRDfB7Eyq",
+      "start_time": 190,
+      "end_time": 195,
+      "quote": "这是合成字幕证据第20段。"
+    },
+    {
+      "citation_id": "citation_v1_abecfbc0be08706c24d978ca0a24b2c99052b1b838dfce6cef5786f0aae2a509",
+      "video_id": 5020,
+      "video_title": "合成视频21",
+      "source_uploader": "小猪好吃喝",
+      "bvid": "BV1vYzwYiEzv",
+      "start_time": 200,
+      "end_time": 205,
+      "quote": "这是合成字幕证据第21段。"
+    }
+  ],
+  "no_credentials_or_prompts": true
+}
