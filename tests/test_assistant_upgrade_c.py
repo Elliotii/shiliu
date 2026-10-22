@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from test_assistant_context_c2 import c2
+from test_assistant_context_c3 import c3, history, state_for, notes
+from assistant_context_support import mixed_checkpoint
+
 from datetime import datetime, timedelta, timezone
 import json
 
-from shiliu.assistant.context import ContextComposer
+from assistant_context_support import ContextHarness
 from shiliu.assistant.memory import MemoryService
 from shiliu.assistant.memory_policy import anchored_validity, forbids_auto_save, plausible_personal_excerpt
 from shiliu.assistant.store import AssistantRunStore
@@ -11,66 +15,48 @@ from shiliu.assistant.task_notes import TaskNoteService
 from shiliu.db import Database
 
 
-def test_relative_time_is_anchored_and_old_note_expires_without_epoch_change(app_paths, monkeypatch):
+def test_excluded_topic_does_not_trigger_personal_recall(app_paths) -> None:
     db = Database(app_paths.database)
     db.initialize()
     store = AssistantRunStore(db)
-    space = store.create_space(name="面试材料", all_active=True)
+    space = store.create_space(name="影像与面试", all_active=True)
     memories = MemoryService(db)
-    notes = TaskNoteService(db, memories)
-    said_at = "2026-09-24T10:00:00+08:00"
-    validity = anchored_validity("下周有面试", said_at)
-    assert validity and validity["expires_at"] == "2026-10-04T16:00:00+00:00"
-    duration = anchored_validity("今天确定接下来三周补数据库基础", said_at)
-    assert duration and duration["expires_at"] == "2026-10-15T16:00:00+00:00"
-    monkeypatch.setattr("shiliu.assistant.memory.utc_now", lambda: "2026-09-24T02:00:00+00:00")
-    memory = memories.save_explicit(
-        text="下周有面试，优先准备后端项目说明", subject_key="interview_week",
-        kind="context", scope_kind="space", scope_id=space["id"],
-        operation_key="time-c", **validity,
+    memories.save_explicit(
+        text="面试技术选型先比较 SQLite 与 Redis，尚未决定",
+        subject_key="面试技术选型", kind="decision", scope_kind="space",
+        scope_id=space["id"], operation_key="c-excluded-topic",
     )
-    thread = store.create_thread(space["id"])
-    run = store.create_run(thread["id"], text="先看哪份准备材料？", request_id="time-c-run")
-    ref = memories.dependency_ref(memory)
-    assert memories.validate_dependency_refs([ref], space_id=space["id"])["valid"]
-    assert ref in [m["dependency_ref"] for m in memories.recall("面试准备后端", space_id=space["id"])]
-    candidate = notes.build_candidate(store.run_context(run["id"]),
-                                      messages=store.run_context(run["id"])["thread"]["messages"],
-                                      recalled_memories=[], covered_until_message_seq=1)
-    candidate["dependencies"].append(ref)
-    # A B-style material summary can contain a personal judgement. Its own
-    # dependency must expire even when the material locator remains valid.
-    store.save_assistant_tool_message(run["id"], content="", provider_payload={"tool_calls": [{
-        "id": "read-c", "type": "function", "function": {"name": "collection_read", "arguments": "{}"},
-    }]})
-    tool_id = store.save_tool_result_message(run["id"], content=json.dumps({
-        "status": "ok", "source_refs": ["video:1:rev"],
-        "result_ref": f"run-result:{run['id']}:read-c", "dependency_refs": [ref],
-        "items": [{"content": "独立的数据库材料"}],
-    }), provider_payload={"tool_call_id": "read-c", "name": "collection_read"})
-    tool_seq = next(m["seq"] for m in store.get_thread(thread["id"])["messages"] if m["id"] == tool_id)
-    candidate["findings"].append({"kind": "semantic_summary", "text": "因下周面试应先看该材料",
-                                  "message_seq": tool_seq, "source_ref": "video:1:rev",
-                                  "dependencies": [ref, "video:1:rev"]})
-    candidate["covered_until_message_seq"] = tool_seq
-    note = notes.commit(thread["id"], candidate)
-    assert notes.valid_for_context(thread["id"], space_id=space["id"], scope_version=space["scope_version"])
-    epoch = memories.current_epoch()
-    monkeypatch.setattr("shiliu.assistant.memory.utc_now", lambda: "2026-10-04T16:00:00+00:00")
-    assert memories.current_epoch() == epoch
-    assert memories.recall("面试准备后端", space_id=space["id"]) == []
-    assert not memories.validate_dependency_refs([ref], space_id=space["id"])["valid"]
-    assert notes.valid_for_context(thread["id"], space_id=space["id"], scope_version=space["scope_version"]) is None
-    rebuilt = notes.build_candidate(store.run_context(run["id"]),
-                                    messages=store.run_context(run["id"])["thread"]["messages"],
-                                    recalled_memories=[], covered_until_message_seq=tool_seq)
-    assert not any(f.get("text") == "因下周面试应先看该材料" for f in rebuilt["findings"])
-    with db.connect() as connection:
-        assert not AssistantRunStore._memory_refs_valid(connection, [ref],
-                                                         space_id=space["id"], now="2026-10-04T16:00:00+00:00")
-    messages, _, _ = ContextComposer(memories, task_notes=notes).compose_with_metadata(store.run_context(run["id"]))
-    assert "优先准备后端项目说明" not in str(messages)
-    assert note["note_version"] == 1
+    unrelated = store.create_thread(space["id"])
+    run = store.create_run(unrelated["id"],
+        text="找夏日湖泊胶片氛围，不要用之前的个人决定", request_id="c-unrelated")
+    messages, _ = ContextHarness(memories).request_messages(store.run_context(run["id"]))
+    assert "SQLite 与 Redis" not in str(messages)
+    related = store.create_thread(space["id"])
+    run = store.create_run(related["id"],
+        text="我的面试技术选型现在决定采用 Redis 了吗？", request_id="c-related")
+    messages, _ = ContextHarness(memories).request_messages(store.run_context(run["id"]))
+    assert "SQLite 与 Redis" in str(messages)
+
+
+def test_relative_time_is_anchored_and_old_note_expires_without_epoch_change(c3, monkeypatch):
+    from test_assistant_context_c2 import running
+    assert anchored_validity('下周有面试','2026-09-24T10:00:00+08:00') == {}
+    validity = anchored_validity('这条记忆下周适用','2026-09-24T10:00:00+08:00')
+    assert validity['expires_at']=='2026-10-04T16:00:00+00:00'
+    assert anchored_validity('这条约束接下来三周有效','2026-09-24T10:00:00+08:00')['expires_at']=='2026-10-14T16:00:00+00:00'
+    monkeypatch.setattr('shiliu.assistant.memory.utc_now',lambda:'2026-09-24T02:00:00+00:00')
+    memory, candidate = mixed_checkpoint(c3,personal='下周面试优先准备后端项目说明',kind='context')
+    with c3.db.connect() as connection:
+        connection.execute('UPDATE assistant_memories SET expires_at=? WHERE id=?',(validity['expires_at'],memory['id']))
+    assert c3.graph.task_notes.valid_for_context(c3.thread['id'],space_id=c3.space['id'],scope_version=1)
+    epoch = c3.memories.current_epoch()
+    monkeypatch.setattr('shiliu.assistant.memory.utc_now',lambda:'2026-10-04T16:00:00+00:00')
+    assert c3.memories.current_epoch()==epoch
+    assert not c3.memories.validate_dependency_refs([c3.memories.dependency_ref(memory)],space_id=c3.space['id'])['valid']
+    assert c3.graph.task_notes.valid_for_context(c3.thread['id'],space_id=c3.space['id'],scope_version=1) is None
+    run = running(c3,text='继续核对材料',key='expired')
+    fresh = c3.composer.prepare(run['id'],provider=c3.provider)
+    assert not fresh.checkpoint and '优先准备后端项目说明' not in str(fresh.request.body)
 
 
 def test_auto_switch_and_provenance_guards(app_paths):

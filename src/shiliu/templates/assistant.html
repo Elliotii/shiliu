@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}助手 · 拾流{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/assistant.css?v=4">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/assistant.css?v=13">{% endblock %}
 {% block content %}
 <main class="assistant-app" data-enabled="{{ 'true' if assistant_enabled else 'false' }}" data-model="{{ model or '' }}">
   <header class="assistant-top">
@@ -9,7 +9,7 @@
     <div class="assistant-actions" aria-label="助手操作">
       <button class="quiet-button" id="assistant-new-thread" type="button">＋ 新对话</button>
       <button class="quiet-button" id="assistant-open-history" type="button">历史对话</button>
-      <button class="quiet-button" id="assistant-open-knowledge" type="button">知识</button>
+      <button class="quiet-button" id="assistant-open-knowledge" type="button">Wiki</button>
       <button class="quiet-button" id="assistant-open-memory" type="button">记忆</button>
       <button class="quiet-button" id="assistant-open-settings" type="button">设置</button>
     </div>
@@ -22,13 +22,12 @@
   <section class="assistant-workspace">
     <div class="assistant-scroll" id="assistant-scroll">
       <div class="assistant-scope-row">
-        <label for="assistant-space">收藏范围</label>
+        <label for="assistant-space">当前资料范围</label>
         <select id="assistant-space" aria-label="选择收藏范围"></select>
-        <button class="link-button" id="assistant-manage-spaces" type="button">管理</button>
+        <button class="link-button" id="assistant-manage-spaces" type="button">高级管理</button>
       </div>
 
       <section class="assistant-welcome" id="assistant-welcome">
-        <div class="assistant-symbol" aria-hidden="true">✳</div>
         <h2>想从收藏里找什么？</h2>
         <p>找回收藏、梳理问题，也可以接着上次的话题聊。</p>
         <div class="assistant-suggestions">
@@ -46,13 +45,17 @@
     </div>
 
     <div class="assistant-bottom">
+      <div id="assistant-maintenance-status" class="assistant-run-status" role="status"></div>
       <div class="assistant-run-status" id="assistant-thread-state" role="status"></div>
+      <div class="assistant-toast" id="assistant-toast" role="status" hidden></div>
       <form class="assistant-composer" id="assistant-chat-form">
-        <textarea name="input" rows="2" maxlength="100000" required aria-label="向助手提问" placeholder="问问你的收藏…"></textarea>
+        <textarea name="input" rows="2" maxlength="100000" required aria-label="向助手提问" placeholder="有什么想问的？"></textarea>
         <div class="assistant-composebar">
           <span>Enter 发送 · Shift + Enter 换行</span>
+          <button class="quiet-button" type="button" id="assistant-save-discussion">保存讨论</button>
           <button class="assistant-send" type="submit" id="assistant-send">发送 ↑</button>
           <button class="assistant-stop" type="button" id="assistant-cancel" hidden>停止</button>
+          <button class="assistant-send" type="button" id="assistant-finish" hidden>先回答</button>
           <button class="assistant-send" type="button" id="assistant-resume" hidden>继续</button>
           <button class="assistant-stop" type="button" id="assistant-abandon" hidden>放弃本次回答</button>
         </div>
@@ -74,7 +77,7 @@
       <section id="assistant-memory-panel" hidden>
         <p class="drawer-intro">这里保存可跨对话使用的个人背景、决定和近期目标，不保存收藏全文。你可以直接说“下周要面试，帮我找准备材料”，也可以随时修改或忘记。</p>
         <label class="assistant-setting"><span>自动记住有用背景</span><input id="assistant-auto-memory" type="checkbox"></label>
-        <p class="drawer-intro">关闭后不再自动保存；你明确说“记住”仍可保存。已有记忆不会删除。</p>
+        <p class="drawer-intro">后台会在持续空闲后提炼并发布有效背景；候选尚未发布不等于已记住。关闭后不再自动保存；明确说“记住”仍可保存。Wiki 保存与个人记忆分开，已有记忆不会删除。</p>
         <div id="assistant-memories" class="assistant-memory-list"></div>
         <form id="assistant-memory-form" class="assistant-add-memory">
           <label for="assistant-memory-text">添加一条记忆</label>
@@ -101,13 +104,19 @@
 
       <section id="assistant-settings-panel" hidden>
         <p class="drawer-intro">这里只显示与当前对话有关的设置。</p>
+        <p id="assistant-background-state" class="drawer-intro"></p>
+        <button class="quiet-button" id="assistant-open-maintenance" type="button">维护动态</button>
         <div class="assistant-setting"><span>对话模型</span><strong id="assistant-model-name">DeepSeek V4 Flash</strong></div>
         <div class="assistant-setting"><span>思考模式</span><strong>关闭</strong></div>
         <div class="assistant-service-note" id="assistant-service-note" hidden></div>
+        <div class="assistant-service-note" id="assistant-job-problems" hidden></div>
       </section>
 
       <section id="assistant-spaces-panel" hidden>
         <p class="drawer-intro">每个收藏范围拥有独立的材料边界和项目记忆。</p>
+        <div id="assistant-space-list" class="assistant-space-list"></div>
+        <div id="assistant-space-editor"></div>
+        <details class="assistant-space-create"><summary>创建新的 Space</summary>
         <form id="assistant-space-form" class="assistant-space-form">
           <label>名称<input name="name" required maxlength="100" placeholder="例如：Agent 学习"></label>
           <label>目标<textarea name="goal" rows="2" maxlength="1000" placeholder="可选：你想用这些收藏完成什么"></textarea></label>
@@ -118,11 +127,17 @@
           </fieldset>
           <button type="submit">创建并切换</button>
         </form>
+        </details>
+      </section>
+
+      <section id="assistant-maintenance-panel" hidden>
+        <p class="drawer-intro" id="assistant-activity-scope"></p>
+        <button class="quiet-button" id="assistant-refresh-maintenance" type="button">刷新动态</button>
+        <div id="assistant-activity-list" class="assistant-activity-list"></div>
       </section>
     </aside>
   </div>
-  <div class="assistant-toast" id="assistant-toast" role="status" hidden></div>
   {% endif %}
 </main>
 {% endblock %}
-{% block scripts %}{% if assistant_enabled %}<script src="/static/assistant.js?v=8"></script>{% endif %}{% endblock %}
+{% block scripts %}{% if assistant_enabled %}<script src="/static/assistant.js?v=nc-15"></script>{% endif %}{% endblock %}

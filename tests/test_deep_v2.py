@@ -307,6 +307,24 @@ def test_pure_source_lookup_persists_and_reloads(tmp_path):
     reader._candidate_disclosure = lambda run_id: None
     durable = reader.get_result(response.run_id)
     assert durable is not None and durable.source_matches[0]["url"].endswith("BV1234567890")
+    assert durable.trace_summary.repair_used == response.trace_summary.repair_used
+    # Persisted Deep finalization wins, including explicit false; old Fast traces
+    # and records with no marker keep their compatibility behavior.
+    import json
+    for fields, expected in [
+        ({"finalization": {"repair_used": True}, "repair_used": False}, True),
+        ({"finalization": {"repair_used": False}, "repair_used": True}, False),
+        ({"finalization": {}, "repair_used": True}, True),
+        ({"repair_used": True}, True),
+        ({"finalization": None, "repair_used": True}, True),
+        ({}, False),
+    ]:
+        stored_trace = {k: v for k, v in trace.items() if k not in {"finalization", "repair_used"}}
+        stored_trace.update(fields)
+        with db.connect() as connection:
+            connection.execute("UPDATE ask_runs SET trace_json=? WHERE run_id=?",
+                               (json.dumps(stored_trace), response.run_id))
+        assert reader.get_result(response.run_id).trace_summary.repair_used is expected
     assert trace["implementation_version"] == "deep-v2"
     assert trace['v2_final_source_ids'] == ['nav:7']
     import json

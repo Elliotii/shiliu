@@ -92,6 +92,7 @@ class FavoriteItem(BaseModel):
     uploader: str = ""
     duration_seconds: int = 0
     favorite_time: int | None = None
+    cover_url: str | None = None
 
 
 class FavoriteScan(BaseModel):

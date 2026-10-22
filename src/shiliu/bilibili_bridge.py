@@ -252,6 +252,7 @@ async def fetch_favorite_scan(folder_id: int) -> dict[str, Any]:
 
 def _normalize_favorite_media(item: dict[str, Any]) -> dict[str, Any]:
     normalized = payloads.normalize_favorite_media(item)
+    normalized["cover_url"] = item.get("cover") or item.get("pic")
     normalized["fav_time"] = item.get("fav_time")
     normalized["ctime"] = item.get("ctime")
     normalized["pubtime"] = item.get("pubtime")

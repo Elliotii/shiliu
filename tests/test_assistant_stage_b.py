@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from assistant_offline_provider import offline_provider
+
+from test_assistant_context_c2 import c2
+from test_assistant_context_c3 import c3, history, state_for, notes
+from assistant_context_support import mixed_checkpoint
+
 import asyncio
 import json
 import time
@@ -9,7 +15,6 @@ from fastapi.testclient import TestClient
 
 from shiliu.app import Application
 from shiliu.artifacts import ArtifactStore
-from shiliu.assistant.context import ContextComposer
 from shiliu.assistant.dependencies import Mem0SemanticIndex
 from shiliu.assistant.memory import MemoryService
 from shiliu.assistant.provider import ModelTurn, NativeToolCall
@@ -462,7 +467,7 @@ def test_native_tool_graph_persists_pairs_answer_and_request_replay(app_paths) -
     registry = AssistantToolRegistry(sources=sources, memories=memories, store=store)
     graph = AssistantExecutionGraph(
         store=store, memories=memories, tools=registry,
-        provider_factory=lambda: provider,
+        provider_factory=lambda: offline_provider(provider),
     )
 
     asyncio.run(graph.run(claimed))
@@ -499,7 +504,7 @@ def test_narrow_collection_lookup_does_not_schedule_memory_extraction(app_paths)
     graph = AssistantExecutionGraph(
         store=store, memories=memories,
         tools=AssistantToolRegistry(sources=sources, memories=memories, store=store),
-        provider_factory=lambda: provider,
+        provider_factory=lambda: offline_provider(provider),
     )
     asyncio.run(graph.run(claimed))
     assert store.get_run(run["id"])["status"] == "completed"
@@ -612,40 +617,13 @@ def test_scope_change_cancels_active_run_and_fences_old_scope(app_paths) -> None
     assert store.complete_run(run["id"], epoch=1, answer="旧范围迟到结果", usage={}) is False
 
 
-def test_context_budget_keeps_current_request_and_tool_pairs(app_paths) -> None:
-    db, _sources = _source_service(app_paths)
-    memories = MemoryService(db)
-    composer = ContextComposer(memories, input_budget_tokens=1800)
-    messages = [
-        {"role": "user", "content": "旧问题" * 80, "provider_payload_json": "{}"},
-        {
-            "role": "assistant", "content": "", "provider_payload_json": json.dumps({
-                "tool_calls": [{"id": "old-call", "type": "function", "function": {
-                    "name": "collection_search", "arguments": "{}"
-                }}]
-            }),
-        },
-        {
-            "role": "tool", "content": "旧结果" * 80,
-            "provider_payload_json": json.dumps({
-                "tool_call_id": "old-call", "name": "collection_search"
-            }),
-        },
-        {"role": "user", "content": "这是当前必须保留的要求", "provider_payload_json": "{}"},
-    ]
-    output, estimated = composer.compose({
-        "space": {"id": 1, "name": "预算", "goal": "", "scope_version": 1},
-        "thread": {"messages": messages},
-    })
-
-    assert output[-1]["content"] == "这是当前必须保留的要求"
-    tool_results = [item for item in output if item["role"] == "tool"]
-    tool_call_ids = {
-        call["id"] for item in output if item["role"] == "assistant"
-        for call in item.get("tool_calls", [])
-    }
-    assert all(item["tool_call_id"] in tool_call_ids for item in tool_results)
-    assert estimated <= 1800
+def test_context_budget_keeps_current_request_and_tool_pairs(c3):
+    from shiliu.assistant.delivery import validate_model_sequence
+    run, state, before = history(c3)
+    candidate = asyncio.run(c3.graph._prepare_dispatch(state, provider=c3.provider))
+    validate_model_sequence(candidate.request.body['messages'])
+    assert candidate.budget.fits
+    assert candidate.projections[before.message_ids[0]]['message'] == before.projections[before.message_ids[0]]['message']
 
 
 def test_automatic_extraction_keeps_temporary_and_video_opinions_out(app_paths) -> None:
@@ -660,6 +638,10 @@ def test_automatic_extraction_keeps_temporary_and_video_opinions_out(app_paths) 
         context7=SimpleNamespace(),  # type: ignore[arg-type]
         provider_factory=lambda: provider,
     )
+    # This unit test dispatches a claimed background job directly; make its
+    # idle window explicit instead of depending on the wall-clock startup grace.
+    runtime._maintenance_idle = lambda: True
+    runtime._require_maintenance_idle = lambda connection: None
     thread = store.create_thread(space["id"])
     run = store.create_run(
         thread["id"],
@@ -813,8 +795,10 @@ def test_model_memory_writes_reject_another_space(app_paths) -> None:
     forgotten = asyncio.run(execute("memory_forget", {
         "memory_id": foreign["id"], "expected_version": 1,
     }))
-    assert corrected["status"] == "unavailable"
-    assert forgotten["status"] == "unavailable"
+    # The existing registry reports a scope argument error, not an unavailable service.
+    assert corrected['status'] == 'invalid_arguments'
+    assert forgotten['status'] == 'invalid_arguments'
+    assert corrected['summary'] == forgotten['summary'] == 'memory_outside_current_scope'
     assert memories.get(foreign["id"])["text"] == "B 的私有约束"
     assert memories.get(foreign["id"])["status"] == "active"
 
@@ -833,10 +817,13 @@ def test_scope_change_excludes_completed_old_tool_body(app_paths) -> None:
             "name": "collection_read", "arguments": "{}",
         }}],
     })
-    store.save_tool_result_message(
-        old["id"], content="OLD_SCOPE_SECRET_SENTINEL",
-        provider_payload={"tool_call_id": "old-call", "name": "collection_read"},
-    )
+    from shiliu.assistant.contracts import ToolResult
+    result = ToolResult(call_id='old-call',status='ok',summary='旧范围读取',
+        items=[{'content':'OLD_SCOPE_SECRET_SENTINEL'}]).model_dump(mode='json')
+    store.begin_tool_call(old['id'],ordinal=1,call_id='old-call',name='collection_read',arguments={})
+    store.finish_tool_call(old['id'],call_id='old-call',result=result)
+    store.save_tool_result_message(old['id'],content=json.dumps(result),
+        provider_payload={'tool_call_id':'old-call','name':'collection_read'})
     assert store.complete_run(old["id"], epoch=1, answer="旧回答", usage={})
     store.update_space(space["id"], expected_scope_version=1, source_ids=[], all_active=False)
     current = store.create_run(thread["id"], text="新范围", request_id="new-scope")
@@ -899,7 +886,7 @@ def test_tool_interruption_recovers_before_model_and_budget_resume_completes(app
 
     provider = FinalProvider()
     graph = AssistantExecutionGraph(
-        store=store, memories=memories, tools=registry, provider_factory=lambda: provider,
+        store=store, memories=memories, tools=registry, provider_factory=lambda: offline_provider(provider),
     )
     asyncio.run(graph.run(resumed))
     recovered_thread = store.get_thread(thread["id"])
@@ -915,7 +902,7 @@ def test_tool_interruption_recovers_before_model_and_budget_resume_completes(app
     assert budget_claim
     exhausted = AssistantExecutionGraph(
         store=store, memories=memories, tools=registry,
-        provider_factory=lambda: FinalProvider(), max_steps=0,
+        provider_factory=lambda: offline_provider(FinalProvider()), max_steps=0,
     )
     asyncio.run(exhausted.run(budget_claim))
     assert store.get_run(budget_run["id"])["status"] == "budget_exhausted"
@@ -940,6 +927,9 @@ def test_slow_background_extraction_does_not_block_foreground_or_heartbeat(app_p
     store = AssistantRunStore(db)
     space = store.create_space(name="并发", all_active=True)
 
+    import threading
+    entered, release = threading.Event(), threading.Event()
+
     class FastProvider:
         def turn(self, **kwargs):
             return ModelTurn(text="前台已响应", finish_reason="stop")
@@ -948,7 +938,8 @@ def test_slow_background_extraction_does_not_block_foreground_or_heartbeat(app_p
 
     class SlowExtractProvider(FastProvider):
         def extract_memories(self, *, prompt):
-            time.sleep(0.12)
+            entered.set()
+            assert release.wait(3)
             return []
 
     class ObservedRuntime(AssistantRuntime):
@@ -965,7 +956,7 @@ def test_slow_background_extraction_does_not_block_foreground_or_heartbeat(app_p
     )
     completed_thread = store.create_thread(space["id"])
     completed = store.create_run(
-        completed_thread["id"], text="请记住并发测试", request_id="background-source",
+        completed_thread["id"], text="我喜欢摄影，长期偏好自然光", request_id="background-source",
     )
     assert store.claim_next_run()
     assert store.complete_run(completed["id"], epoch=1, answer="收到", usage={})
@@ -973,23 +964,29 @@ def test_slow_background_extraction_does_not_block_foreground_or_heartbeat(app_p
     assert background_job and background_job["kind"] == "memory_extract"
 
     foreground_thread = store.create_thread(space["id"])
-    foreground = store.create_run(
-        foreground_thread["id"], text="现在回答", request_id="foreground-run",
-    )
+    from test_assistant_consolidation_na_review import old_idle
+    runtime._maintenance_startup_at = old_idle(store,db,run_id=completed['id'])
+    foreground = {}
     graph = AssistantExecutionGraph(
         store=store, memories=runtime.memories,
         tools=AssistantToolRegistry(sources=sources, memories=runtime.memories, store=store),
-        provider_factory=FastProvider,
+        provider_factory=lambda: offline_provider(FastProvider()),
     )
 
     async def scenario():
         background = asyncio.create_task(runtime._process_job(background_job))
+        assert await asyncio.to_thread(entered.wait,2)
+        foreground.update(store.create_run(foreground_thread['id'],text='现在回答',request_id='foreground-run'))
         foreground_loop = asyncio.create_task(runtime._foreground_loop(graph))
-        for _ in range(30):
-            if store.get_run(foreground["id"])["status"] == "completed":
-                break
-            await asyncio.sleep(0.01)
-        runtime._stop.set()
+        try:
+            for _ in range(200):
+                if store.get_run(foreground['id'])['status']=='completed': break
+                await asyncio.sleep(.01)
+            assert store.get_run(foreground['id'])['status']=='completed'
+            assert not background.done()
+        finally:
+            release.set()
+            runtime._stop.set()
         await background
         await foreground_loop
 

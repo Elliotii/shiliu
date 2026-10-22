@@ -163,9 +163,16 @@ class QwenEmbeddingProvider:
             raise ValueError("unable to enforce the 512-token document input policy")
         return prepared
 
-    def embed_query(self, text: str) -> np.ndarray:
-        body = self._truncate_query_body(normalize_embedding_text(text))
-        formatted = format_qwen_query(body)
+    def embed_query(self, text: str, *, instruction: str | None = None) -> np.ndarray:
+        if instruction is None:
+            body = self._truncate_query_body(normalize_embedding_text(text))
+            formatted = format_qwen_query(body)
+        else:
+            body = normalize_embedding_text(text)
+            formatted = f"Instruct: {instruction}\nQuery: {body}"
+            while self.count_tokens(formatted) > QWEN_MAX_TOKENS and body:
+                body = self.truncate_text(body, max(0, self.count_tokens(body, add_special_tokens=False) - 16))
+                formatted = f"Instruct: {instruction}\nQuery: {body}"
         if self.count_tokens(formatted) > QWEN_MAX_TOKENS:
             raise ValueError("formatted query exceeds the 512-token Qwen input policy")
         with self._encode_lock:
@@ -176,16 +183,19 @@ class QwenEmbeddingProvider:
         return _validate_vector(value, self.dimension)
 
     def count_tokens(self, text: str, *, add_special_tokens: bool = True) -> int:
-        return len(
-            self._load().tokenizer.encode(text, add_special_tokens=add_special_tokens)
-        )
+        # Preparation calls this outside the model-encode critical section.
+        with self._encode_lock:
+            return len(
+                self._load().tokenizer.encode(text, add_special_tokens=add_special_tokens)
+            )
 
     def truncate_text(self, text: str, max_content_tokens: int) -> str:
         if max_content_tokens < 1:
             return ""
-        tokenizer = self._load().tokenizer
-        token_ids = tokenizer.encode(text, add_special_tokens=False)[:max_content_tokens]
-        return tokenizer.decode(token_ids, skip_special_tokens=True).rstrip()
+        with self._encode_lock:
+            tokenizer = self._load().tokenizer
+            token_ids = tokenizer.encode(text, add_special_tokens=False)[:max_content_tokens]
+            return tokenizer.decode(token_ids, skip_special_tokens=True).rstrip()
 
     def _truncate_query_body(self, body: str) -> str:
         if self.count_tokens(format_qwen_query(body)) <= QWEN_MAX_TOKENS:

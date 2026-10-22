@@ -222,6 +222,7 @@ class V2Budget:
     tool_result_chars: int = 16000
     controller_context_chars: int = 80000
     final_context_chars: int = 80000
+    reduce_input_chars: int = 100000
     controller_output_tokens: int = 4096
     reduce_output_tokens: int = 6000
     answer_output_tokens: int = 8192
@@ -229,7 +230,8 @@ class V2Budget:
 
     def __post_init__(self):
         if min(self.max_controller_calls, self.max_tool_calls, self.max_actions_per_decision,
-               self.tool_result_chars, self.controller_context_chars, self.final_context_chars) <= 0:
+               self.tool_result_chars, self.controller_context_chars, self.final_context_chars,
+               self.reduce_input_chars) <= 0:
             raise ValueError("V2 limits must be positive")
         if not 0 < self.search_seconds < self.total_seconds:
             raise ValueError("invalid V2 time budget")
@@ -767,7 +769,7 @@ class DeepV2Graph:
         base = {"called": False, "candidate_count": len(spans), "candidate_chars": candidate_chars,
             "input_chars": input_chars, "findings": [], "retained_evidence_refs": [],
             "retained_evidence_chars": 0, "unresolved": []}
-        if input_chars > self.budget.controller_context_chars:
+        if input_chars > self.budget.reduce_input_chars:
             return {**base, "error": "query candidate context exceeds safety budget",
                 "unresolved": ["Query candidates need a narrower search scope."]}
         if self.clock() >= deadline or cancelled():

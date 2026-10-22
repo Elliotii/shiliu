@@ -157,6 +157,7 @@ def initialize_assistant_runtime_schema(connection: sqlite3.Connection) -> None:
             expires_at TEXT,
             validity_note TEXT NOT NULL DEFAULT '',
             validity_timezone TEXT,
+            time_context_json TEXT NOT NULL DEFAULT '{}',
             status TEXT NOT NULL CHECK(status IN ('active', 'needs_review', 'superseded', 'forgotten')),
             version INTEGER NOT NULL DEFAULT 1,
             pinned INTEGER NOT NULL DEFAULT 0,
@@ -307,6 +308,7 @@ def initialize_assistant_runtime_schema(connection: sqlite3.Connection) -> None:
         for row in connection.execute("PRAGMA table_info(assistant_memories)").fetchall()
     }
     for name, definition in {
+        "time_context_json": "TEXT NOT NULL DEFAULT '{}'",
         "validity_note": "TEXT NOT NULL DEFAULT ''",
         "validity_timezone": "TEXT",
         "change_epoch": "INTEGER NOT NULL DEFAULT 0",
@@ -340,6 +342,7 @@ def initialize_assistant_runtime_schema(connection: sqlite3.Connection) -> None:
             """
         )
     initialize_assistant_wiki_schema(connection)
+    initialize_assistant_context_schema(connection)
 
 
 def initialize_assistant_wiki_schema(connection: sqlite3.Connection) -> None:
@@ -515,3 +518,12 @@ def initialize_assistant_wiki_schema(connection: sqlite3.Connection) -> None:
             USING fts5(page_id UNINDEXED, title, aliases, summary, blocks)
             """
         )
+
+
+def initialize_assistant_context_schema(connection: sqlite3.Connection) -> None:
+    """v26: additive working-input storage; never rewrite historical content."""
+    for table, column in (('assistant_threads', 'context_state_json'),
+                          ('assistant_task_notes', 'checkpoint_json')):
+        columns = {row['name'] for row in connection.execute(f'PRAGMA table_info({table})')}
+        if column not in columns:
+            connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} TEXT NOT NULL DEFAULT '{{}}'")

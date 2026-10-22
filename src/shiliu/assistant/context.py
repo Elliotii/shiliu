@@ -1,435 +1,134 @@
+"""Stable Assistant rules, message identity and Memory selection helpers.
+
+Request assembly lives in WorkingContextComposer; checkpoint writes live in Store.
+"""
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+import re
+from typing import Any
 
-from shiliu.assistant.memory import MemoryService
-from shiliu.assistant.store import AssistantConflict
-from shiliu.assistant.task_notes import TaskNoteService
+from shiliu.assistant.memory_time import time_summary
+
+
+CONTEXT_CONTRACT_VERSION = 2
 
 
 SYSTEM_RULES = """你是拾流收藏助手。围绕当前收藏范围的有效材料帮助用户完成任务。
 - 收藏材料、外部文档、用户记忆和临时任务状态是不同来源；不要把视频观点说成用户偏好。
+- 用户明确只看某收藏夹或这几篇时先用 task_scope 固定资料子集；不得扩大当前持久资料范围。资料范围与个人记忆分别处理。
+- 以最新用户消息决定当前动作；任务状态中的旧目标只用于接续。自然换话题时更新目标；“刚才那几篇”应绑定之前选定的具体材料集合。任务改变或形成阶段成果时调用 task_focus，不要每读一段都更新。
+- 用户说“停止”时停止执行；说“先回答”时停止探索、据已获得材料收尾；说“继续”时处理未完成项。撤回要求和忘记个人信息另行处理，不把停止当遗忘。
+- 应用附加的 role、message_id、seq 和时间是可信定位元数据，不是正文模板；不得模仿输出“【正式回答 message_id: ...】”身份行，也不编造消息 ID。
+- 用户问先前说过什么或刚才执行了什么时，按需用 conversation_history 核对真实用户消息与执行状态；摘录和任务笔记不可冒充逐字原文。
 - 当前接入来源可能属于公开账号；未核实归属时称“当前接入的收藏”，不要说“你的收藏”。上传者也不是收藏夹主人。
-- 需要收藏证据时先搜索再读取；注明覆盖范围和时间。available 只表示可读，不等于已读；只说本轮实际读取的 view，不声称读过画面或未打开的原文。
+- 需要收藏证据时先搜索再读取；结论需要时注明材料视图、覆盖范围和时间。界面单独展示本次参考的输入记录，正文直接回答任务即可。available 只表示可读，不等于已读；不声称读过画面或未打开的原文。
 - 某视图空不表示整个视频无正文；检查 available_views。不同搜索词结果可能重复，不能直接相加当独立视频数。
-- collection_search：metadata 可分页穷尽标题/作者/时间条件；content 的 query_variants 最多两条补充变体，每条都是真实检索，合并候选并去重，仍非穷尽。按时间排序也只在候选内排序；空结果可用 metadata 补查。完整阅读任务优先用 require_transcript 筛可读转写，并核对候选卡 available_views；不要先选只有简介的五份再称全文无法读取。
-- collection_read：定位相关段落用 query；用户要求完整阅读时按 available view 从头沿 next_cursor 读到末尾。工具取回不等于回答模型已经收到全文；TaskNote 的 model_read 才记模型输入覆盖。版本和视图不一致时不要假装已读。
+- 跨材料频率按不同来源计数；同一来源内多次出现不算多篇推荐。匿名写法、品类同名和语音识别疑似错字不要擅自合并为同一款；无法核清时保留原文写法与不确定性。
+- search_knowledge：默认 Wiki 与 Collection 分源候选；Wiki 命中必须用页版本和块 ID Read 正文，候选不代表证据充分。收藏专属筛选请用 sources=[collection]。metadata 可分页穷尽标题/作者/时间条件；content 返回去重候选但非穷尽。用户点名的集合优先保持稳定，缺转写要说明，不能以另一个有字幕的视频替换。
+- 搜索候选的 matched_excerpt 可能拼接标题、简介、派生摘要和转写片段，保留其中的视图标签。摘要说了某个具体参数、已读转写对应处却含混时，不把摘要写成“转写原文确认”的操作条件；若该参数非任务核心，可以省略，或明确写“摘要称……，转写未核清”。其他已核清的动作照常保留。
+- collection_read：定位相关段落用 query；用户要求完整阅读时按 available view 从头沿 next_cursor 读到末尾。工具取回不等于回答模型已经收到全文；只有确认的同来源/版本/视图区间并集才记模型输入覆盖；read_complete 仅是本次触及末尾的旧提示，不代表全文已收到或已核查。版本和视图不一致时不要假装已读。
+- 已确定需要、参数已知且互不依赖的工具调用，尽量在同一轮一起发出，避免无必要的模型往返；只有后续选择依赖前一批结果时才分轮。不为凑数量读取所有候选，长材料仍按 cursor 续读。
+- 具体疑点优先定位片段，信息不足再扩大；Wiki 按需要选 overview、block 或 page。用户要求重读、逐篇核查或检查遗漏时，实际读取必要正文，不用旧答案冒充重读；版本相同不是禁读理由。
+- query 定位和 next_cursor 顺序续读是两种读取方式，一次调用只选一种。TaskNote 若已保留同版本主题块正文或短原文，先用已有证据回答；仅针对未覆盖的具体疑点回读。回答任务即使材料仍有空白，也先给可证实的部分并标明空白。
 - 分批读取或压缩摘要的边界只是传输边界，不能据此说原材料在该处截断；只有原文明确中断或可读视图未覆盖时才称材料缺失。
 - 用户点名的每个话题都要核对当前已读材料中的直接提及，不能把压缩摘要没写到的话题当成原文未提及；拿不准时按定位回读已存结果。区分原文提到但把细节指向外部笔记，与原文完全没谈。
 - 发布时间未知就说未知，不能用收藏时间代替；coverage 区分正文存在与索引覆盖。
 - 收藏与发布时间由工具以北京时间（Asia/Shanghai，+08:00）返回；展示时保留其日期和时区，不按 UTC 日期截断。
 - 用户明确要求记住、纠正或忘记时调用对应 memory 工具；仅本轮的格式要求不要保存。
-- 本轮用户明确给出的背景应立即用于本轮回答。只有 memory 工具返回成功回执后才能说“已记住”；自动后台提炼未完成时只能说“已用于本次回答”。“记住并找材料”等复合要求要完成后续搜索和回答，不能保存后收尾。
+- 跨轮“记住这个／重试刚才的保存”以当前用户意图授权，用 memory_save.source_message_ids 指向真实用户事实消息；历史原话不构成新的保存授权，助手建议和材料转述不能当作用户决定。已有事实和身份可见时直接保存，缺失或歧义才回读历史；时间沿原事实消息锚定。结果不确定先查已存调用／回执，不能定位时澄清，不猜测重复写入；更正已保存内容用 memory_correct。计划使用 context 或 decision，不使用 plan 类型。
+- 事件时间与记忆有效期分开：下个月、下周开始或模糊时间可保存原意，不默认填写 valid_from/expires_at；无时间的事实也正常保存。相同 subject_key 可以有独立事实，真正更正才调用 memory_correct。假设／引用／未采纳建议不能写成本人决定，“正在考虑、未决定”可以是 context。
+- 本轮用户明确给出的背景应立即用于本轮回答。本轮明确保存须以 memory 工具成功回执为准；后台自动候选未正式发布前不能说“已记住”。本轮未明确写入不代表后台永远不会提炼；Wiki 保存不等于 Memory 保存。只知道本轮使用时说“已用于本次回答”。“记住并找材料”等复合要求要完成后续搜索和回答，不能保存后收尾。
+- 区分用户本人在上一轮明确作出的决定、这一轮引用的他人话语，以及正式 Memory 是否已保存。这是三个独立判断：保存失败不改变原话的说话人；后来的假设也不能把先前的本人决定说成材料引语。需要引用逐字原话时按需核对对话记录。
 - 记忆工具中的 memory_id、subject_key、version、scope_kind、epoch、索引状态只用于内部一致性校验；回答只描述用户可理解的记忆内容、适用范围和是否仍有效。正常成功或空结果禁止提及 SQLite、Mem0、backend、索引 ready/unavailable、权威存储；只有工具真正不可用且影响回答时才用用户语言简短说明。
 - 用户只要求忘记一条记忆且工具已成功时，简短确认该条已失效及明确未动的内容，不续写以前的材料比较或实验建议。当前上下文未保留的旧工具结果不等于从未读取或主题不存在；需要谈旧材料时先按需回读。
 - 涉及软件 API 或版本时可以调用 Context7；只发送必要的公开技术问题，不发送私人字幕或用户记忆。
-- 普通问答不要建页。用户明确保存一项已有讨论成果时，用 knowledge_save_outcome 保存精选结论；材料说法、你的分析、用户个人笔记逐块标清角色，真正依赖正式记忆才引用其当前 ID/version。自动记忆开关不控制明确知识保存。
-- 多领域或复数主题整理先用 knowledge_propose 给出每页用途、材料、交叉参考和不纳入项，等待真实用户确认；确认时用 knowledge_confirm，逐页结果分别报告。提案先用少量 summary 视图定位各材料的核心条件；对用户点名的精确条件，若摘要未说清，再按需定位字幕，不能因一个转写片段未覆盖就断言整份材料没说。已有足够区分主题的材料时就提出有边界的草案，不要为了补齐所有细节反复搜索直到工具预算耗尽；确实未见的内容列入不纳入项。简单单主题材料整理可用 knowledge_organize，受理不等于页面完成。明确禁止知识保存时不调用任何知识写工具。
-- 比较不同材料时区分直接冲突、条件不同和信息不足。同一动作的默认开关、频率或门槛不同，而一方未交代关键前提时，应说明存在尚未解决的策略张力；“定期”不能自行补成默认开启或固定周期。加条件使两者兼容只能作为你的设计建议，不能断言材料已经兼容或达成共识。开头判断与后文未决条件保持一致。
+- 普通问答不要建页。用户明确保存已有讨论成果时，一页或多主题统一用 knowledge_save_discussion 直接逐页保存；只有用户要求先看提案或确认后保存才用 knowledge_propose。讨论、比较、提出方案或明确先别保存均不写正式知识页。材料说法、你的分析、用户个人笔记逐块标清角色，真正依赖正式记忆才引用其当前 ID/version。自动记忆开关不控制明确知识保存。
+- 知识页标题直接写具体对象、问题或用途，便于以后识别和找回；不默认附加“当前接入收藏方案”“当前接入收藏整理”等过程或范围尾注，范围与来源放在导读和来源说明中。用于区分具体作品、作者或版本的括号可以保留。标题须对应实际保存的内容，不把筛选方法或排除线索写成已经保存的推荐清单。
+- 知识正文先服务实际用途，来源、条件和未知就近说明；不默认将 Top-K、视图或内部审计作为首块，不强制把个人偏好拆成独立页面；用户明确要求保存时按可写权限执行，不把任务状态当授权。未读原文不可冒充已读。明确禁止知识保存时不调用任何知识写工具。
+- 搜索、已读视图和排除候选等执行审计留在工具记录，不默认生成“材料边界与缺口”等独立正文块；真正影响结论的未知与条件就近保留。不要仅改 role 或删来源来掩盖材料事实。
+- 保存讨论成果时先从当前可见的正式回答及其 message_id 确定对象；已交付的正文和来源足够时直接保存，不为取得身份再查一次历史。目标含糊、关键正文未保留或来源需要核实时，才按需用 conversation_history 或 run_read_result 回读；不得把最近失败解释当保存对象。正式回答的 message_id 仅用于定位，不是写入授权。无 plan 时更正参数重交 topics，可带原失败 resume_result_ref；pending/partial 计划用 plan_id/expected_version/replacements 重交原位置未成功主题；旧计划成功项不动。已保存页的新更正用新的 topics、同标题及 topic.expected_version（页面版本），提交完整有效内容，不能修复旧 completed 计划；同名块更正，未涉及内容与人工笔记保留。若用户要把偏好补到已成功页，这是新的 knowledge_save_personal 或保存编辑操作，不能修改旧计划成功项。同样错误没有新进展时简短交付，不重复尝试直到预算耗尽。
+- 同一保存目标、授权和范围未变时，可恢复参数错误在当前 Run 沿原计划直接修复，不再询问是否修复；确有目标/范围歧义、内容取舍、来源失效或人工版本冲突时才澄清。失败解释必须依据回执中的具体来源和视图，不沿用自己先前猜测的原因。
+- 保存正文应包含支撑用途的具体已读内容，保留来源视图、适用条件和未确认处。未研究某场景不等于不适用；建议与材料结论分别表达。比较时区分冲突、条件差异和信息不足，未知前提不自行补成共识。
 - 读取主题页只表示本轮读过主题，不等于亲自重读其每份原材料；若另查过收藏元数据，也如实区分搜索与正文阅读。主题已存在时不要建议再创建同一主题。主题内部版本号、assessment、来源 key 和队列状态不写进普通回答；时间只在确有必要且工具给出准确值时陈述，不用模糊日期填空。
+- 已找到用于当前比较的知识页时，可用 knowledge_read 的 page 视图一次读取有界小页正文；如果返回 next_cursor，按同页同版本续读需要的余块。overview 只有目录，不能代替正文。已读页正文足以回答时注明依据是知识页；回读原材料只针对尚未解决的具体疑点。
 - 工具失败要如实说明。不要伪造 source_ref、libraryId 或工具结果。
-- 只给用户中文最终答案，不输出英文过程旁白；正文和末尾追问都只用标题引用材料，绝不输出 video:ID、page_id、result_ref、cursor、scope_version 等内部字段。
+- content 只写面向用户的中文答案或必要简短进度，不写思考过程、自述计划或工具参数。调用工具的轮次 content 留空，只发工具调用；直接回答轮次才输出中文正文；正文和末尾追问都只用标题引用材料，绝不输出 video:ID、page_id、result_ref、cursor、scope_version 等内部字段。
 """
+
 
 
 class ContextBudgetExceeded(ValueError):
     code = "context_budget_exceeded"
 
 
-class ContextComposer:
-    def __init__(
-        self,
-        memories: MemoryService,
-        *,
-        task_notes: TaskNoteService | None = None,
-        input_budget_tokens: int = 24000,
-        compression_threshold: float = 0.8,
-        recent_groups: int = 4,
-        source_ref_validator: Callable[[list[str], int], bool] | None = None,
-        dependency_ref_validator: Callable[[list[str], int, str, int], bool] | None = None,
-    ) -> None:
-        self.memories = memories
-        self.task_notes = task_notes
-        self.input_budget_tokens = input_budget_tokens
-        self.compression_threshold = compression_threshold
-        self.recent_groups = recent_groups
-        self.source_ref_validator = source_ref_validator
-        self.dependency_ref_validator = dependency_ref_validator
 
-    def compose(
-        self, run_context: dict[str, Any], *, tool_schemas: list[dict[str, Any]] | None = None
-    ) -> tuple[list[dict[str, Any]], int]:
-        messages, estimated, _metadata = self.compose_with_metadata(
-            run_context, tool_schemas=tool_schemas
-        )
-        return messages, estimated
-
-    def compose_with_metadata(
-        self, run_context: dict[str, Any], *, tool_schemas: list[dict[str, Any]] | None = None,
-        force_compact: bool = False,
-    ) -> tuple[list[dict[str, Any]], int, dict[str, Any]]:
-        thread = run_context["thread"]
-        space = run_context["space"]
-        run_id = str(run_context.get("run", {}).get("id") or "")
-        all_messages = thread["messages"]
-        abandoned_run_ids = {
-            str(item["id"]) for item in thread.get("runs", [])
-            if item.get("status") == "cancelled"
-        }
-        current_user_index = next(
-            (index for index in range(len(all_messages) - 1, -1, -1)
-             if all_messages[index]["role"] == "user"
-             and (not run_id or all_messages[index].get("run_id") == run_id)),
-            None,
-        )
-        if current_user_index is None:
-            raise ContextBudgetExceeded("当前用户消息不可用，请重新提问")
-        current_user = all_messages[current_user_index]
-        query = str(current_user["content"])
-        note = None
-        if self.task_notes is not None:
-            note = self.task_notes.valid_for_context(
-                str(thread["id"]), space_id=int(space["id"]),
-                scope_version=int(space["scope_version"]),
-            )
-        recall_query = query + ("\n" + str(note.get("goal") or "")[:180] if note else "")
-        recall = self.memories.recall_with_status(recall_query, space_id=int(space["id"]), limit=8)
-        recalled = recall["items"]
-        observed_epoch = int(recall["memory_epoch"])
-        memory_block = "\n".join(
-            self._memory_line(item)
-            for item in recalled
-        ) or "（没有匹配的长期记忆）"
-        memory_status = (
-            "ready（已回查 SQLite）"
-            if recall["semantic_index"] == "ready"
-            else "unavailable（SQLite/有限词法降级）"
-        )
-        conflict_rule = (
-            "\n同一事项跨范围冲突：当前 Space 的明确决定优先；仍冲突时向用户说明。"
-            if any(item.get("scope_conflict") for item in recalled) else ""
-        )
-        suppressed_ids = self.memories.suppressed_source_message_ids(space_id=int(space["id"]))
-        # A legacy answer or tool result may predate dependency_refs. If the
-        # user message that started its run was later corrected or forgotten,
-        # exclude the whole historical run so its derived answer cannot restore
-        # the superseded constraint through ordinary conversation history.
-        suppressed_run_ids = {
-            str(item.get("run_id"))
-            for item in all_messages
-            if str(item.get("id") or "") in suppressed_ids and item.get("run_id")
-        }
-        current_forget_receipts = self._current_forget_receipts(
-            all_messages,
-            run_id=run_id,
-            space_id=int(space["id"]),
-            thread_id=str(thread.get("id") or ""),
-            scope_version=int(space["scope_version"]),
-        ) if run_id in suppressed_run_ids else {}
-        visible_messages: list[dict[str, Any]] = []
-        for item in all_messages:
-            if item is current_user:
-                visible_messages.append(item)
-                continue
-            if str(item.get("run_id") or "") in abandoned_run_ids:
-                continue
-            if str(item.get("run_id") or "") in suppressed_run_ids:
-                if str(item.get("run_id") or "") != run_id:
-                    continue
-                payload = json.loads(item.get("provider_payload_json") or "{}")
-                if item.get("role") == "tool":
-                    call_id = str(payload.get("tool_call_id") or "")
-                    if call_id in current_forget_receipts:
-                        visible_messages.append({
-                            **item,
-                            "content": json.dumps(
-                                current_forget_receipts[call_id], ensure_ascii=False
-                            ),
-                        })
-                elif item.get("role") == "assistant" and payload.get("tool_calls"):
-                    calls = [
-                        call for call in payload["tool_calls"]
-                        if str(call.get("id") or "") in current_forget_receipts
-                    ]
-                    if calls:
-                        visible_messages.append({
-                            **item,
-                            "content": "",
-                            "provider_payload_json": json.dumps(
-                                {**payload, "tool_calls": calls}, ensure_ascii=False
-                            ),
-                        })
-                continue
-            if (
-                str(item.get("id") or "") not in suppressed_ids
-                and self._message_dependencies_valid(
-                    item,
-                    space_id=int(space["id"]),
-                    thread_id=str(thread.get("id") or ""),
-                    scope_version=int(space["scope_version"]),
-                )
-            ):
-                visible_messages.append(item)
-        visible_current_index = visible_messages.index(current_user)
-        tool_schema_cost = self._estimate(json.dumps(tool_schemas or [], ensure_ascii=False))
-        history_groups = self._message_groups(visible_messages[:visible_current_index])
-        current_tail = self._message_groups(visible_messages[visible_current_index + 1:])
-        compressible_groups = [*history_groups, *current_tail]
-        full_history_cost = sum(
-            self._group_cost([self._provider_message(item) for item in group])
-            for group in compressible_groups
-        )
-        compressed = force_compact or note is not None or (
-            full_history_cost + tool_schema_cost >= int(self.input_budget_tokens * self.compression_threshold)
-        )
-        if compressed and self.task_notes is not None and compressible_groups:
-            keep_groups = (
-                0 if force_compact else
-                1 if full_history_cost + tool_schema_cost >= int(self.input_budget_tokens * self.compression_threshold)
-                else self.recent_groups
-            )
-            covered_groups = (
-                compressible_groups if force_compact
-                else compressible_groups[:-keep_groups]
-            )
-            covered_until = max(
-                (int(item.get("seq") or 0) for group in covered_groups for item in group),
-                default=int(note["covered_until_message_seq"]) if note else 0,
-            )
-            if covered_until > (int(note["covered_until_message_seq"]) if note else 0):
-                note_context = {
-                    **run_context,
-                    "run": {**run_context["run"], "observed_memory_epoch": observed_epoch},
-                }
-                candidate = self.task_notes.build_candidate(
-                    note_context,
-                    messages=visible_messages,
-                    recalled_memories=recalled,
-                    covered_until_message_seq=covered_until,
-                )
-                try:
-                    note = self.task_notes.commit(str(thread["id"]), candidate)
-                except AssistantConflict:
-                    note = self.task_notes.valid_for_context(
-                        str(thread["id"]), space_id=int(space["id"]),
-                        scope_version=int(space["scope_version"]),
-                    )
-        source_titles, search_evidence = self._material_identity(visible_messages)
-        delivered_spans = [
-            span for run in thread.get("runs", [])
-            for span in run.get("working_state", {}).get("model_delivered_read_spans", [])
-        ]
-        note_block = (
-            "\n当前任务笔记（用于继续任务，不是长期记忆）：\n"
-            + self.task_notes.render(note, delivered_spans=delivered_spans,
-                                     source_titles=source_titles, search_evidence=search_evidence)
-            if note is not None and self.task_notes is not None else ""
-        )
-        system = (
-            SYSTEM_RULES
-            + f"\n当前收藏范围：{space['name']}；目标：{space['goal'] or '未设置'}；"
-            + f"\n记忆索引：{memory_status}{conflict_rule}"
-            + f"\n当前有效记忆：\n{memory_block}"
-            + note_block
-        )
-        system_message = {"role": "system", "content": system}
-        current_message = self._provider_message(current_user)
-        required_cost = self._cost(system_message) + self._cost(current_message) + tool_schema_cost
-        if required_cost > self.input_budget_tokens and note is not None and self.task_notes is not None:
-            compact_note = self.task_notes.render(note, compact=True)
-            system_message = {"role": "system", "content": system.replace(note_block,
-                "\n当前任务笔记（精简；完整笔记及结果可回读）：\n" + compact_note)}
-            required_cost = self._cost(system_message) + self._cost(current_message) + tool_schema_cost
-        if required_cost > self.input_budget_tokens:
-            raise ContextBudgetExceeded("当前要求超出上下文容量，请分段提供；原文已保存，未被截断")
-
-        remaining = self.input_budget_tokens - required_cost
-        if note is not None:
-            covered_until = int(note["covered_until_message_seq"])
-            history_groups = [
-                group for group in history_groups
-                if max(int(item.get("seq") or 0) for item in group) > covered_until
-            ]
-            current_tail = [
-                group for group in current_tail
-                if max(int(item.get("seq") or 0) for item in group) > covered_until
-            ]
-        chosen_tail: list[list[dict[str, Any]]] = []
-        chosen_dependency_refs: list[str] = []
-        for group in reversed(current_tail):
-            projected = [self._provider_message(item) for item in group]
-            fitted = self._fit_group(projected, remaining)
-            if fitted is None:
-                if note is not None and max(int(item.get("seq") or 0) for item in group) <= int(note["covered_until_message_seq"]):
-                    continue
-                raise ContextBudgetExceeded("本轮工具结果超出上下文容量，请缩小读取范围后继续")
-            chosen_tail.append(fitted)
-            chosen_dependency_refs.extend(self._group_dependency_refs(group))
-            remaining -= self._group_cost(fitted)
-
-        chosen_history: list[list[dict[str, Any]]] = []
-        for group in reversed(history_groups):
-            projected = [self._provider_message(item) for item in group]
-            fitted = self._fit_group(projected, remaining)
-            if fitted is None:
-                continue
-            chosen_history.append(fitted)
-            chosen_dependency_refs.extend(self._group_dependency_refs(group))
-            remaining -= self._group_cost(fitted)
-
-        messages = [system_message]
-        for group in reversed(chosen_history):
-            messages.extend(group)
-        messages.append(current_message)
-        for group in reversed(chosen_tail):
-            messages.extend(group)
-        estimated = self.input_budget_tokens - remaining
-        dependencies = [
-            str(item["dependency_ref"]) for item in recalled if item.get("dependency_ref")
-        ]
-        if note is not None:
-            dependencies.extend(str(value) for value in note["dependencies"])
-        dependencies.extend(chosen_dependency_refs)
-        dependencies = list(dict.fromkeys(dependencies))
-        metadata = {
-            "observed_memory_epoch": observed_epoch,
-            "dependency_refs": dependencies,
-            "memory_dependency_refs": [
-                value for value in dependencies if value.startswith("memory:")
-            ],
-            "task_note_version": int(note["note_version"]) if note else None,
-            "task_note_id": str(note["id"]) if note else None,
-            "scope_version": int(space["scope_version"]),
-            "estimated_input_tokens": estimated,
-            "uncompressed_history_tokens": full_history_cost,
-            "retained_history_tokens": sum(
-                self._group_cost(group) for group in chosen_history
-            ) + sum(self._group_cost(group) for group in chosen_tail),
-            "tool_schema_tokens": tool_schema_cost,
-            "compressed": bool(note),
-            "force_compact": force_compact,
-            "covered_until_message_seq": int(note["covered_until_message_seq"]) if note else 0,
-            "delivered_read_spans": self._delivered_read_spans([*chosen_history[::-1], *chosen_tail[::-1]]),
-        }
-        return messages, estimated, metadata
+class ContextMessages:
+    """Pure helpers; never assemble, crop, summarize or persist working context."""
 
     @staticmethod
-    def _delivered_read_spans(groups: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
-        spans: list[dict[str, Any]] = []
-        for group in groups:
-            for item in group:
-                if item.get("role") != "tool":
-                    continue
-                try:
-                    payload = json.loads(str(item.get("content") or "{}"))
-                except (TypeError, ValueError, json.JSONDecodeError):
-                    continue
-                if not isinstance(payload, dict):
-                    continue
-                for value in payload.get("items") or []:
-                    if not isinstance(value, dict):
-                        continue
-                    position = value.get("provenance", {}).get("content_position") or {}
-                    if not position or not value.get("content"):
-                        continue
-                    spans.append({
-                        "source_ref": payload.get("source_refs", [None])[0],
-                        "view": payload.get("coverage", {}).get("requested_view"),
-                        "start": int(position.get("start") or 0),
-                        "end": int(position.get("end") or 0),
-                        "total": int(position.get("total") or 0),
-                        "message_seq": item.get("seq"),
-                    })
-        return spans
-
-    def _current_forget_receipts(
-        self,
-        messages: list[dict[str, Any]],
-        *,
-        run_id: str,
-        space_id: int,
-        thread_id: str,
-        scope_version: int,
-    ) -> dict[str, dict[str, Any]]:
-        """Project only verified success, with the forgotten record body removed."""
-        if not run_id or self.dependency_ref_validator is None:
-            return {}
-        receipts: dict[str, dict[str, Any]] = {}
-        for item in messages:
-            if item.get("run_id") != run_id or item.get("role") != "tool":
-                continue
-            payload = json.loads(item.get("provider_payload_json") or "{}")
-            if payload.get("name") != "memory_forget":
-                continue
-            call_id = str(payload.get("tool_call_id") or "")
-            if not call_id:
-                continue
-            try:
-                result = json.loads(str(item.get("content") or "{}"))
-            except (TypeError, ValueError, json.JSONDecodeError):
-                continue
-            if result.get("status") != "ok":
-                continue
-            result_ref = f"run-result:{run_id}:{call_id}"
-            if not self.dependency_ref_validator(
-                [result_ref], space_id, thread_id, scope_version
-            ):
-                continue
-            receipts[call_id] = {
-                "status": "ok",
-                "summary": "已忘记该记忆",
-                "items": [{"status": "forgotten"}],
-                "result_ref": result_ref,
-                "operation_receipt_verified": True,
-            }
-        return receipts
-
-    def _message_dependencies_valid(
-        self,
-        item: dict[str, Any],
-        *,
-        space_id: int,
-        thread_id: str,
-        scope_version: int,
-    ) -> bool:
-        refs: list[str] = []
-        payload = json.loads(item.get("provider_payload_json") or "{}")
-        refs.extend(str(value) for value in payload.get("dependency_refs") or [])
-        if item.get("role") == "tool":
-            try:
-                result = json.loads(str(item.get("content") or "{}"))
-                refs.extend(str(value) for value in result.get("dependency_refs") or [])
-                refs.extend(str(value) for value in result.get("source_refs") or [])
-                if result.get("result_ref"):
-                    refs.append(str(result["result_ref"]))
-                for value in result.get("items") or []:
-                    if isinstance(value, dict) and value.get("id") and value.get("version"):
-                        if str(payload.get("name") or "").startswith("memory_"):
-                            refs.append(f"memory:{value['id']}:{int(value['version'])}")
-            except (TypeError, ValueError, json.JSONDecodeError):
-                pass
-        memory_refs = [value for value in refs if value.startswith("memory:")]
-        if memory_refs and not self.memories.validate_dependency_refs(
-            memory_refs, space_id=space_id
-        )["valid"]:
-            return False
-        source_refs = [value for value in refs if value.startswith("video:")]
-        if source_refs and self.source_ref_validator is not None and not self.source_ref_validator(
-            source_refs, space_id
-        ):
-            return False
-        result_refs = [value for value in refs if value.startswith("run-result:")]
-        return (
-            not result_refs
-            or self.dependency_ref_validator is None
-            or self.dependency_ref_validator(
-                result_refs,
-                space_id,
-                thread_id,
-                scope_version,
-            )
+    def _excluded_memory_kinds(query: str) -> set[str]:
+        exclusion = re.search(
+            r"(?:不要用|别用|不用|不采用|不考虑|排除|忽略|不要参考|别参考)"
+            r"[^，。；,;\n]{0,24}"
+            r"(?:个人|我的|之前的?|原先的?|旧的?)?"
+            r"[^，。；,;\n]{0,8}(?:背景|记忆|决定)", query,
         )
+        if not exclusion:
+            return set()
+        phrase = exclusion.group()
+        if "背景" in phrase or "记忆" in phrase:
+            return {"preference", "constraint", "decision", "context"}
+        return {"decision"}
+
+    @staticmethod
+    def _current_task_memory_ids(messages: list[dict[str, Any]], current_index: int) -> list[str]:
+        """Use recent task dependencies as locators, never their stale content."""
+        current = str(messages[current_index].get("content") or "")
+        if not re.search(r"继续|接着|再看|再核对|这个问题|这件事|该主题", current):
+            return []
+        if ContextMessages._excluded_memory_kinds(current):
+            return []
+        previous_index = next(
+            (i for i in range(current_index - 1, -1, -1) if messages[i].get("role") == "user"),
+            None,
+        )
+        if previous_index is None:
+            return []
+        previous = str(messages[previous_index].get("content") or "")
+        # A short deictic continuation has no new topic. A substantive new
+        # topic must share a nontrivial phrase with the preceding task.
+        focus = re.sub(r"继续|接着|再看|再核对|这个问题|这件事|该主题|这个主题|主题|问题|一下|帮我|请|核对|看看|分析|关于|的|了|吧|。|，|？", "", current).strip()
+        if focus and len(focus) > 1 and focus not in previous:
+            return []
+        prior_run = str(messages[previous_index].get("run_id") or "")
+        if not prior_run:
+            return []
+        ids: list[str] = []
+        for item in reversed(messages[previous_index:current_index]):
+            if str(item.get("run_id") or "") != prior_run:
+                continue
+            try:
+                payload = json.loads(item.get("provider_payload_json") or "{}")
+                refs = list(payload.get("dependency_refs") or [])
+                if item.get("role") == "tool":
+                    result = json.loads(str(item.get("content") or "{}"))
+                    refs.extend(result.get("dependency_refs") or [])
+                    if str(payload.get("name") or "") in {"memory_save", "memory_correct"}:
+                        refs.extend(
+                            f"memory:{value['id']}:{value['version']}"
+                            for value in result.get("items") or []
+                            if isinstance(value, dict) and value.get("id") and value.get("version")
+                        )
+            except (TypeError, ValueError, json.JSONDecodeError):
+                continue
+            for ref in refs:
+                parts = str(ref).split(":")
+                if len(parts) == 3 and parts[0] == "memory" and parts[2].isdigit() and parts[1] not in ids:
+                    ids.append(parts[1])
+                    if len(ids) == 2:
+                        return ids
+        return ids
 
     @staticmethod
     def _memory_line(item: dict[str, Any]) -> str:
@@ -442,146 +141,11 @@ class ContextComposer:
             )
             if item.get("validity_note"):
                 validity += f"（用户原话：{item['validity_note']}）"
+        temporal = item.get('time_context') or {}
+        if temporal:
+            validity += f"；原陈述时间={temporal.get('stated_at')}；当时计划={time_summary(temporal) or '未指定事件时间'}（事件过去不代表已完成，也不重新解释相对时间）"
         conflict = "；同 subject 存在跨范围条件" if item.get("scope_conflict") else ""
         return f"- [memory_id={item['id']} version={item['version']}；{scope}{validity}{conflict}] {item['text']}"
-
-    def _fit_group(
-        self, group: list[dict[str, Any]], remaining: int
-    ) -> list[dict[str, Any]] | None:
-        if self._group_cost(group) <= remaining:
-            return group
-        if not group or not group[0].get("tool_calls"):
-            return None
-        # Keep the native call and every corresponding result. The full durable
-        # result stays in SQLite; the model receives a compact, explicit index.
-        compacted = [group[0]]
-        for result in group[1:]:
-            if result["role"] != "tool":
-                return None
-            raw = str(result.get("content") or "")
-            try:
-                payload = json.loads(raw)
-                refs = payload.get("source_refs") or []
-                dependency_refs = payload.get("dependency_refs") or []
-                summary = str(payload.get("summary") or "")[:180]
-                result_ref = str(payload.get("result_ref") or "") or f"tool_call_id:{result['tool_call_id']}"
-            except (TypeError, ValueError):
-                refs, dependency_refs, summary = [], [], raw[:180]
-                result_ref = f"tool_call_id:{result['tool_call_id']}"
-            compacted.append({
-                **result,
-                "content": json.dumps({
-                    "status": "partial", "summary": summary,
-                    "source_refs": refs,
-                    "dependency_refs": dependency_refs,
-                    "result_ref": result_ref,
-                    "detail_omitted_for_context_budget": True,
-                }, ensure_ascii=False),
-            })
-        return compacted if self._group_cost(compacted) <= remaining else None
-
-    @classmethod
-    def _group_dependency_refs(cls, group: list[dict[str, Any]]) -> list[str]:
-        refs: list[str] = []
-        for item in group:
-            payload = json.loads(item.get("provider_payload_json") or "{}")
-            refs.extend(str(value) for value in payload.get("dependency_refs") or [])
-            if item.get("role") != "tool":
-                continue
-            try:
-                result = json.loads(str(item.get("content") or "{}"))
-            except (TypeError, ValueError, json.JSONDecodeError):
-                continue
-            refs.extend(str(value) for value in result.get("dependency_refs") or [])
-            refs.extend(str(value) for value in result.get("source_refs") or [])
-            if result.get("result_ref"):
-                refs.append(str(result["result_ref"]))
-            tool_name = str(payload.get("name") or "")
-            if tool_name.startswith("memory_"):
-                for value in result.get("items") or []:
-                    if isinstance(value, dict) and value.get("id") and value.get("version"):
-                        refs.append(f"memory:{value['id']}:{int(value['version'])}")
-        return list(dict.fromkeys(refs))
-
-    @staticmethod
-    def _material_identity(messages: list[dict[str, Any]]) -> tuple[dict[str, str], list[dict[str, Any]]]:
-        titles: dict[str, str] = {}
-        calls: dict[str, dict[str, Any]] = {}
-        searches: list[dict[str, Any]] = []
-        for item in messages:
-            payload = json.loads(item.get("provider_payload_json") or "{}")
-            if item.get("role") == "assistant":
-                for call in payload.get("tool_calls") or []:
-                    try:
-                        args = json.loads(call["function"].get("arguments") or "{}")
-                    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
-                        args = {}
-                    calls[str(call.get("id") or "")] = args
-            if item.get("role") != "tool":
-                continue
-            try:
-                result = json.loads(item.get("content") or "{}")
-            except (TypeError, ValueError, json.JSONDecodeError):
-                continue
-            if result.get("status") != "ok":
-                continue
-            values = [value for value in result.get("items") or [] if isinstance(value, dict)]
-            for value in values:
-                ref = str(value.get("source_ref") or "")
-                video = value.get("video") or {}
-                title = str(value.get("title") or video.get("title") or "")[:160]
-                if ref.startswith("video:") and title:
-                    titles[ref.split(":", 2)[1]] = title
-            if payload.get("name") == "collection_search":
-                args = calls.get(str(payload.get("tool_call_id") or ""), {})
-                searches.append({
-                    "query": str(args.get("query") or "")[:160],
-                    "require_transcript": bool(args.get("require_transcript")),
-                    "returned_count": len(values),
-                    "candidates": [{"title": str(value.get("title") or "")[:120],
-                                    "source_ref": value.get("source_ref"),
-                                    "available_views": value.get("available_views") or []}
-                                   for value in values[:5]],
-                })
-        return titles, searches[-3:]
-
-    def _group_cost(self, group: list[dict[str, Any]]) -> int:
-        return sum(self._cost(item) for item in group)
-
-    def _cost(self, value: dict[str, Any]) -> int:
-        return self._estimate(json.dumps(value, ensure_ascii=False))
-
-    @staticmethod
-    def _message_groups(messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
-        """Keep each native tool-call message and all of its results together."""
-        groups: list[list[dict[str, Any]]] = []
-        index = 0
-        while index < len(messages):
-            item = messages[index]
-            payload = json.loads(item.get("provider_payload_json") or "{}")
-            if item["role"] == "assistant" and payload.get("tool_calls"):
-                call_ids = {
-                    str(call.get("id")) for call in payload["tool_calls"] if call.get("id")
-                }
-                group = [item]
-                index += 1
-                while index < len(messages) and messages[index]["role"] == "tool":
-                    result_payload = json.loads(
-                        messages[index].get("provider_payload_json") or "{}"
-                    )
-                    if str(result_payload.get("tool_call_id") or "") not in call_ids:
-                        break
-                    group.append(messages[index])
-                    index += 1
-                # A partial group is not safe to send to the provider. Recovery
-                # completes it from assistant_tool_calls before another model turn.
-                if len(group) == len(call_ids) + 1:
-                    groups.append(group)
-                continue
-            if item["role"] != "tool":
-                groups.append([item])
-            index += 1
-        return groups
 
     @staticmethod
     def _provider_message(item: dict[str, Any]) -> dict[str, Any]:
@@ -597,10 +161,8 @@ class ContextComposer:
                 "role": "tool", "tool_call_id": payload["tool_call_id"],
                 "name": payload.get("name"), "content": item.get("content") or "{}",
             }
+        if role == "assistant" and item.get("id") and item.get("content"):
+            return {"role": role, "content": f"【正式回答 message_id: {item['id']}】\n{item['content']}"}
+        if role == "user" and item.get("id"):
+            return {"role": role, "content": f"【用户消息 message_id: {item['id']}；时间: {item.get('created_at', '')}】\n{item.get('content') or ''}"}
         return {"role": role, "content": str(item.get("content") or "")}
-
-    @staticmethod
-    def _estimate(value: str) -> int:
-        ascii_count = sum(1 for character in value if ord(character) < 128)
-        non_ascii = len(value) - ascii_count
-        return max(1, ascii_count // 4 + non_ascii + 8)

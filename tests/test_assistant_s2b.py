@@ -228,7 +228,7 @@ def test_change_cursor_dependency_validation_and_late_extraction_fencing(app_pat
     assert late is None
 
 
-def test_unresolved_automatic_conflict_needs_review_and_is_not_recalled(app_paths) -> None:
+def test_uncertain_automatic_decision_does_not_replace_existing_fact(app_paths) -> None:
     _db, space, memories = _memory_service(app_paths)
     first = memories.apply_extracted(
         {
@@ -243,18 +243,17 @@ def test_unresolved_automatic_conflict_needs_review_and_is_not_recalled(app_path
         {
             "op": "add", "kind": "decision", "text": "项目采用方案乙",
             "subject_key": "chosen_plan", "scope_kind": "space", "scope_id": space["id"],
-            "source_excerpt": "也许项目采用方案乙",
+            "source_excerpt": "假设项目采用方案乙，只是举例",
         },
         source_message_ids=["message-b"],
         expected_epoch=memories.current_epoch(),
         operation_key="proposal-b",
     )
 
-    assert second is not None and second["status"] == "needs_review"
-    assert second["id"] not in {item["id"] for item in memories.recall("方案", space_id=space["id"])}
-    assert second["id"] in {
-        item["id"] for item in memories.list(space_id=space["id"], include_inactive=True)
-    }
+    # v2: subject equality is not a semantic conflict detector. An uncertain
+    # source cannot assert a new decision, independent of its subject key.
+    assert second is None
+    assert [item['id'] for item in memories.recall('方案', space_id=space['id'])] == [first['id']]
 
 
 def test_concurrent_memory_changes_get_distinct_epochs_and_paginate_without_loss(
@@ -414,9 +413,11 @@ def test_forget_and_old_extraction_cannot_cross_the_guarded_commit(
 
 
 def test_admission_gate_distinguishes_quote_rejection_adoption_and_temporary_request() -> None:
-    gate = AssistantRuntime._proposal_is_user_memory
+    from shiliu.assistant.memory_policy import plausible_personal_excerpt
+    from shiliu.assistant.memory_time import has_personal_candidate
+    gate = lambda text, proposal: has_personal_candidate([{'content': text}]) and plausible_personal_excerpt(text, proposal['kind'])
     assert not gate("视频说应该使用图数据库", {"kind": "decision"})
-    assert not gate("我不同意使用图数据库", {"kind": "decision"})
+    assert gate("我不同意使用图数据库", {"kind": "decision"})  # A true negative stance is not an adopted positive claim.
     assert gate("我决定本项目采用 SQLite", {"kind": "decision"})
     assert not gate("这次回答短一点", {"kind": "preference"})
     assert gate("以后默认先给结论", {"kind": "preference"})
@@ -441,7 +442,7 @@ def test_current_schema_and_semantic_unavailable_are_reported_truthfully(app_pat
             row["name"] for row in connection.execute("PRAGMA table_info(assistant_memory_changes)")
         }
 
-    assert SCHEMA_VERSION == 25 and int(version) == 25
+    assert SCHEMA_VERSION == 26 and int(version) == 26
     assert {"validity_note", "validity_timezone", "change_epoch"} <= memory_columns
     assert "memory_epoch" in change_columns
     assert result["semantic_index"] == "unavailable"

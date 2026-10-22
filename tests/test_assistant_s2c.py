@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from assistant_offline_provider import offline_provider
+
+from test_assistant_context_c2 import c2
+from test_assistant_context_c3 import c3, history, state_for, notes
+from assistant_context_support import mixed_checkpoint
+
 import asyncio
 import json
 from datetime import datetime, timedelta, timezone
@@ -7,7 +13,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from shiliu.assistant.context import ContextComposer
+from assistant_context_support import ContextHarness
 from shiliu.assistant.memory import MemoryService
 from shiliu.assistant.provider import ModelTurn, NativeToolCall
 from shiliu.assistant.runtime import AssistantExecutionGraph
@@ -32,152 +38,39 @@ def _services(app_paths):
     return db, store, space, memories, notes
 
 
-def test_task_note_compacts_material_coverage_and_forget_removes_old_constraint(app_paths) -> None:
-    _db, store, space, memories, notes = _services(app_paths)
-    thread = store.create_thread(space["id"], title="连续探索")
-    first = store.create_run(
-        thread["id"],
-        text="本项目必须优先比较可恢复性，" + "并保留原材料证据。" * 80,
-        request_id="note-first",
-    )
-    claimed = store.claim_next_run()
-    assert claimed and claimed["id"] == first["id"]
-    first_context = store.run_context(first["id"])
-    source_message = next(
-        item for item in first_context["thread"]["messages"]
-        if item["run_id"] == first["id"] and item["role"] == "user"
-    )
-    memory = memories.save_explicit(
-        text="本项目优先比较可恢复性",
-        subject_key="comparison_priority",
-        kind="constraint",
-        scope_kind="space",
-        scope_id=space["id"],
-        operation_key="note-memory-v1",
-        source_message_ids=[source_message["id"]],
-        source_excerpt="本项目必须优先比较可恢复性",
-    )
-    call_id = "read-real-material"
-    store.save_assistant_tool_message(
-        first["id"], content="", provider_payload={"tool_calls": [{
-            "id": call_id, "type": "function",
-            "function": {"name": "collection_read", "arguments": "{}"},
-        }]},
-    )
-    store.save_tool_result_message(
-        first["id"],
-        content=json.dumps({
-            "status": "ok", "summary": "已读取完整字幕并记录适用条件",
-            "source_refs": ["video:7:rev"],
-            "dependency_refs": [f"memory:{memory['id']}:1"],
-            "coverage": {"material": "full_available_transcript"},
-            "items": [{"view": "transcript", "coverage": "full_available_transcript"}],
-        }, ensure_ascii=False),
-        provider_payload={"tool_call_id": call_id, "name": "collection_read"},
-    )
-    outcome = store.try_complete_run(
-        first["id"], epoch=claimed["run_epoch"], answer="旧答案采用可恢复性约束",
-        usage={"total_tokens": 500}, expected_scope_version=space["scope_version"],
-        expected_observed_memory_epoch=memories.current_epoch(),
-        dependency_refs=[f"memory:{memory['id']}:1"], expected_task_note_version=None,
-    )
-    assert outcome == "completed"
-    current = store.create_run(
-        thread["id"], text="补充要求：继续查证第二份材料。", request_id="note-current"
-    )
-    composer = ContextComposer(
-        memories, task_notes=notes,
-    )
-    messages, _cost, metadata = composer.compose_with_metadata(
-        store.run_context(current["id"]),
-        tool_schemas=[{"type": "function", "function": {"name": "collection_read"}}],
-        force_compact=True,
-    )
-    note = notes.get(thread["id"])
-    assert note is not None and metadata["compressed"] is True
-    assert "优先比较可恢复性" in note["goal"]
-    assert any("优先比较可恢复性" in item["quote"] for item in note["explicit_constraints"])
-    assert note["searched_scope_and_material_refs"][0]["view"] == "transcript"
-    assert "full_available_transcript" in json.dumps(
-        note["searched_scope_and_material_refs"], ensure_ascii=False
-    )
-    assert metadata["tool_schema_tokens"] > 0
-    assert "当前任务笔记" in json.dumps(messages, ensure_ascii=False)
-
-    memories.forget(
-        memory["id"], expected_version=1, operation_key="forget-note-constraint"
-    )
-    refreshed, _cost, refreshed_meta = composer.compose_with_metadata(
-        store.run_context(current["id"]), tool_schemas=[]
-    )
-    encoded = json.dumps(refreshed, ensure_ascii=False)
-    assert "本项目必须优先比较可恢复性" not in encoded
-    assert "旧答案采用可恢复性约束" not in encoded
-    assert refreshed_meta["task_note_version"] is None
+def test_task_note_compacts_material_coverage_and_forget_removes_old_constraint(c3):
+    from test_assistant_context_c2 import running
+    memory, previous = mixed_checkpoint(c3, personal='本项目优先比较可恢复性', kind='constraint')
+    assert previous.checkpoint and previous.metadata['material_projection']
+    assert any(m['projection'] == '摘要接续' for m in previous.metadata['material_projection'])
+    c3.memories.forget(memory['id'], expected_version=memory['version'], operation_key='forget-context')
+    run = running(c3, text='继续查证第二份材料', key='after-forget')
+    candidate = c3.composer.prepare(run['id'], provider=c3.provider)
+    assert not candidate.checkpoint and '本项目优先比较可恢复性' not in str(candidate.request.body)
+    assert '甲乙丙丁条件' in str(candidate.request.body)
 
 
-def test_task_note_commit_rejects_memory_change_after_compression(app_paths) -> None:
-    _db, store, space, memories, notes = _services(app_paths)
-    thread = store.create_thread(space["id"])
-    run = store.create_run(thread["id"], text="必须保留准确引用", request_id="note-race")
-    context = store.run_context(run["id"])
-    message = next(item for item in context["thread"]["messages"] if item["role"] == "user")
-    memory = memories.save_explicit(
-        text="必须保留准确引用", subject_key="citation", kind="constraint",
-        scope_kind="space", scope_id=space["id"], operation_key="citation-v1",
-        source_message_ids=[message["id"]], source_excerpt=message["content"],
-    )
-    context = store.run_context(run["id"])
-    context["run"]["observed_memory_epoch"] = memories.current_epoch()
-    candidate = notes.build_candidate(
-        context, messages=context["thread"]["messages"], recalled_memories=[{
-            "dependency_ref": f"memory:{memory['id']}:1"
-        }], covered_until_message_seq=message["seq"],
-    )
-    memories.correct(
-        memory["id"], text="引用只保留原材料可核对部分", expected_version=1,
-        operation_key="citation-v2",
-    )
-    with pytest.raises(AssistantConflict, match="task_note_memory_changed"):
-        notes.commit(thread["id"], candidate)
+def test_task_note_commit_rejects_memory_change_after_compression(c3):
+    memory = c3.memories.save_explicit(text='保留真实用户原话', subject_key='citation', kind='constraint',
+        pinned=True, scope_kind='space', scope_id=c3.space['id'], operation_key='citation')
+    run, state, _ = history(c3)
+    def change(request):
+        c3.memories.correct(memory['id'], expected_version=memory['version'], text='只引用可核对部分', operation_key='change')
+        return ModelTurn('陈旧候选', [], 'stop')
+    c3.provider.summary = change
+    candidate = asyncio.run(c3.graph._prepare_dispatch(state, provider=c3.provider))
+    assert not notes(c3) and not candidate.checkpoint
+    assert '只引用可核对部分' in str(candidate.request.body)
 
 
-def test_task_note_can_compact_completed_tool_groups_inside_current_run(app_paths) -> None:
-    _db, store, _space, memories, notes = _services(app_paths)
-    thread = store.create_thread(_space["id"])
-    run = store.create_run(
-        thread["id"], text="继续当前任务并读取多份原材料", request_id="same-run-note"
-    )
-    assert store.claim_next_run()
-    for index in range(3):
-        call_id = f"same-run-read-{index}"
-        store.save_assistant_tool_message(
-            run["id"], content="", provider_payload={"tool_calls": [{
-                "id": call_id, "type": "function",
-                "function": {"name": "collection_read", "arguments": "{}"},
-            }]},
-        )
-        store.save_tool_result_message(
-            run["id"],
-            content=json.dumps({
-                "status": "ok", "summary": f"已读材料 {index} " + "证据" * 120,
-                "source_refs": [f"video:{index + 1}:{'a' * 64}"],
-                "items": [{"view": "transcript", "coverage": "partial_transcript"}],
-            }, ensure_ascii=False),
-            provider_payload={"tool_call_id": call_id, "name": "collection_read"},
-        )
-    composer = ContextComposer(
-        memories, task_notes=notes, input_budget_tokens=5000,
-        compression_threshold=0.05, recent_groups=1,
-    )
-    messages, _cost, metadata = composer.compose_with_metadata(store.run_context(run["id"]))
-    note = notes.get(thread["id"])
-    assert note is not None
-    assert run["id"] in note["source_run_ids"]
-    assert len(note["searched_scope_and_material_refs"]) == 2
-    assert metadata["compressed"] is True
-    assert metadata["retained_history_tokens"] < metadata["uncompressed_history_tokens"]
-    assert sum(message["role"] == "tool" for message in messages) == 1
+def test_task_note_can_compact_completed_tool_groups_inside_current_run(c3):
+    run, state, before = history(c3)
+    candidate = asyncio.run(c3.graph._prepare_dispatch(state, provider=c3.provider))
+    assert candidate.checkpoint and run['id'] in candidate.checkpoint['source_run_ids']
+    assert len(candidate.message_ids) < len(before.message_ids)
+    assert candidate.request.input_tokens < before.request.input_tokens
+    assert len([r for r in c3.provider.sent if r.purpose == 'compact']) == 1
+    assert candidate.message_ids[0] == before.message_ids[0]
 
 
 def test_identical_read_only_tool_call_reuses_durable_result_in_same_run(app_paths) -> None:
@@ -326,27 +219,14 @@ def test_invalid_or_failed_results_do_not_bypass_historical_dependency_checks(ap
         dependency_validator=registry.dependency_refs_valid,
     ) == "completed"
 
-    second_context = store.run_context(second["id"])
-    guarded_notes.commit(
-        thread["id"],
-        guarded_notes.build_candidate(
-            second_context,
-            messages=second_context["thread"]["messages"],
-            recalled_memories=[],
-            covered_until_message_seq=max(
-                int(item["seq"]) for item in second_context["thread"]["messages"]
-            ),
-        ),
-    )
-
     current = store.create_run(thread["id"], text="继续，但只用仍有效信息", request_id="dep-current")
     claimed_current = store.claim_next_run()
     assert claimed_current and claimed_current["id"] == current["id"]
-    composer = ContextComposer(
+    composer = ContextHarness(
         memories, task_notes=guarded_notes, input_budget_tokens=12000,
-        dependency_ref_validator=registry.dependency_refs_valid,
+
     )
-    before, _cost, metadata = composer.compose_with_metadata(store.run_context(current["id"]))
+    before, _cost, metadata = composer.request_input(store.run_context(current["id"]))
     assert "旧的 UI 直接保存约束" in json.dumps(before, ensure_ascii=False)
     assert first_ref in metadata["dependency_refs"]
 
@@ -354,7 +234,7 @@ def test_invalid_or_failed_results_do_not_bypass_historical_dependency_checks(ap
         memory["id"], text="新的 UI 约束", expected_version=1,
         operation_key="ui-only-v2",
     )
-    after, _cost, _after_metadata = composer.compose_with_metadata(store.run_context(current["id"]))
+    after, _cost, _after_metadata = composer.request_input(store.run_context(current["id"]))
     assert "旧的 UI 直接保存约束" not in json.dumps(after, ensure_ascii=False)
     assert guarded_notes.valid_for_context(
         thread["id"], space_id=space["id"], scope_version=space["scope_version"]
@@ -398,121 +278,23 @@ def test_invalid_or_failed_results_do_not_bypass_historical_dependency_checks(ap
     ) is None
 
 
-def test_task_note_keeps_all_effective_constraints_and_completed_progress(app_paths) -> None:
-    _db, store, space, memories, notes = _services(app_paths)
-    thread = store.create_thread(space["id"])
-    requirements = ["必须使用蓝色表格，只比较材料甲和乙"] + [
-        f"必须保留独立条件 {index}" for index in range(2, 15)
-    ]
-    for index, requirement in enumerate(requirements, start=1):
-        run = store.create_run(
-            thread["id"], text=requirement, request_id=f"constraint-{index}"
-        )
-        claimed = store.claim_next_run()
-        assert claimed and claimed["id"] == run["id"]
-        assert store.try_complete_run(
-            run["id"], epoch=claimed["run_epoch"], answer=f"已完成条件 {index}",
-            usage={}, expected_scope_version=space["scope_version"],
-            expected_observed_memory_epoch=memories.current_epoch(), dependency_refs=[],
-            expected_task_note_version=None,
-        ) == "completed"
-
-    continuation = store.create_run(
-        thread["id"], text="继续刚才已经完成的任务，只概括当前状态。",
-        request_id="short-continuation",
-    )
-    context = store.run_context(continuation["id"])
-    covered_until = max(
-        int(item["seq"]) for item in context["thread"]["messages"]
-        if item["run_id"] != continuation["id"]
-    )
-    candidate = notes.build_candidate(
-        context, messages=context["thread"]["messages"], recalled_memories=[],
-        covered_until_message_seq=covered_until,
-    )
-    note = notes.commit(thread["id"], candidate)
-    rendered = notes.render(note)
-    assert len(note["explicit_constraints"]) == len(requirements) + 1
-    assert all(
-        clause in rendered
-        for requirement in requirements
-        for clause in requirement.split("，")
-    )
-    assert "必须使用蓝色表格" in note["goal"]
-    assert "只比较材料甲和乙" in note["goal"]
-    assert note["open_questions"] == []
-    assert note["next_actions"] == []
-    assert any(
-        item["kind"] == "task_progress" and "14 条用户要求" in item["text"]
-        for item in note["findings"]
-    )
-
-    composer = ContextComposer(
-        memories, task_notes=notes, input_budget_tokens=24000,
-        compression_threshold=0.01, recent_groups=1,
-    )
-    messages, _cost, _metadata = composer.compose_with_metadata(context)
-    encoded = json.dumps(messages, ensure_ascii=False)
-    assert "必须使用蓝色表格" in encoded
-    assert "只比较材料甲和乙" in encoded
-    assert requirements[-1] in encoded
-    assert "继续从原始材料或可回读结果查证尚未解决的问题" not in encoded
-
-    store.cancel_run(continuation["id"])
-    withdrawn = store.create_run(
-        thread["id"], text="取消之前关于使用蓝色表格的要求。",
-        request_id="withdraw-constraint",
-    )
-    claimed = store.claim_next_run()
-    assert claimed and claimed["id"] == withdrawn["id"]
-    assert store.try_complete_run(
-        withdrawn["id"], epoch=claimed["run_epoch"], answer="已撤回该要求",
-        usage={}, expected_scope_version=space["scope_version"],
-        expected_observed_memory_epoch=memories.current_epoch(), dependency_refs=[],
-        expected_task_note_version=None,
-    ) == "completed"
-    later = store.create_run(thread["id"], text="继续", request_id="after-withdraw")
-    later_context = store.run_context(later["id"])
-    later_candidate = notes.build_candidate(
-        later_context, messages=later_context["thread"]["messages"],
-        recalled_memories=[],
-        covered_until_message_seq=max(
-            int(item["seq"]) for item in later_context["thread"]["messages"]
-            if item["run_id"] != later["id"]
-        ),
-    )
-    assert all(
-        "使用蓝色表格" not in item["quote"]
-        for item in later_candidate["explicit_constraints"]
-    )
-    assert any(
-        item["quote"] == "只比较材料甲和乙"
-        for item in later_candidate["explicit_constraints"]
-    )
-    assert "使用蓝色表格" not in later_candidate["goal"]
-    assert "只比较材料甲和乙" in later_candidate["goal"]
-    later_note = notes.commit(thread["id"], later_candidate)
-    assert "使用蓝色表格" not in notes.render(later_note)
-    projected, _cost, projected_metadata = composer.compose_with_metadata(later_context)
-    provider_input = json.dumps(projected, ensure_ascii=False)
-    assert "必须使用蓝色表格" not in provider_input
-    assert "只比较材料甲和乙" in provider_input
-    claimed = store.claim_next_run()
-    assert claimed and claimed["id"] == later["id"]
-    assert store.try_complete_run(
-        later["id"], epoch=claimed["run_epoch"],
-        answer="继续按材料甲和乙的范围处理。", usage={},
-        expected_scope_version=space["scope_version"],
-        expected_observed_memory_epoch=projected_metadata["observed_memory_epoch"],
-        dependency_refs=projected_metadata["dependency_refs"],
-        expected_task_note_version=projected_metadata["task_note_version"],
-    ) == "completed"
-    final = [
-        item for item in store.get_thread(thread["id"])["messages"]
-        if item["run_id"] == later["id"] and item["role"] == "assistant"
-    ]
-    assert len(final) == 1
-    assert "蓝色表格" not in final[0]["content"]
+def test_task_note_keeps_all_effective_constraints_and_completed_progress(c3):
+    run, state, _ = history(c3)
+    clauses = ['必须使用蓝色表格，只比较材料甲和乙'] + [f'必须保留独立条件 {i}' for i in range(2,15)]
+    full = '；'.join(clauses) + '；14条要求已经完成，后续无新待办。'
+    c3.provider.summary = full
+    candidate = asyncio.run(c3.graph._prepare_dispatch(state, provider=c3.provider))
+    assert candidate.checkpoint['checkpoint']['text'] == full
+    assert all(clause in str(candidate.request.body) for clause in clauses)
+    assert 'unknown_pending' not in str(candidate.request.body)
+    # A real subsequent correction is retained as a real user message, not deleted
+    # by a program that guesses the effective goal from old requirements.
+    assert c3.store.complete_run(run['id'], epoch=run['run_epoch'], answer='阶段完成', usage={})
+    from test_assistant_context_c2 import running
+    later = running(c3, text='取消之前关于蓝色表格的要求，只比较材料甲和乙。', key='withdraw')
+    fresh = c3.composer.prepare(later['id'], provider=c3.provider)
+    assert any(m['role']=='user' and '取消之前关于蓝色表格' in m['content'] for m in fresh.request.body['messages'])
+    assert '后续有效状态优先' in str(fresh.request.body) or '非新增授权' in str(fresh.request.body)
 
 
 def test_current_forget_receipt_is_visible_and_final_confirmation_commits(app_paths) -> None:
@@ -530,7 +312,7 @@ def test_current_forget_receipt_is_visible_and_final_confirmation_commits(app_pa
     claimed = store.claim_next_run()
     assert claimed and claimed["id"] == run["id"]
     registry = AssistantToolRegistry(
-        sources=SimpleNamespace(source_refs_visible=lambda _refs, _scope: True),
+        sources=SimpleNamespace(source_refs_visible=lambda _refs, _scope: True, visible_video_ids=lambda _scope: []),
         memories=memories, store=store, wiki=None, context7=None,
     )
 
@@ -552,24 +334,23 @@ def test_current_forget_receipt_is_visible_and_final_confirmation_commits(app_pa
                     ),
                 ], usage={"total_tokens": 10})
             self.second_input = messages
-            tool_calls = [
-                call for item in messages if item["role"] == "assistant"
-                for call in item.get("tool_calls", [])
-            ]
-            results = [json.loads(item["content"]) for item in messages if item["role"] == "tool"]
-            assert len(tool_calls) == len(results) == 1
-            assert tool_calls[0]["id"] == "forget-current"
-            assert results[0]["status"] == "ok"
-            assert results[0]["items"] == [{"status": "forgotten"}]
-            assert results[0]["operation_receipt_verified"] is True
+            assert not any(item['role'] == 'tool' for item in messages)
+            data = [json.loads(item['content'].split('\n', 1)[1]) for item in messages
+                    if item['role'] == 'system' and 'operation_receipts' in item['content']]
+            receipt = next(item for block in data for item in block['data'])
+            assert receipt['call']['id'] == 'forget-current'
+            assert receipt['result']['status'] == 'ok'
+            assert receipt['result']['items'][0]['status'] == 'forgotten'
+            assert not receipt['result']['items'][0]['text']
             assert "旧正文：技术比较优先速度" not in json.dumps(messages, ensure_ascii=False)
             assert not memories.recall("技术比较", space_id=space["id"])
             return ModelTurn(text="已忘记刚才保存的偏好。", usage={"total_tokens": 10})
 
+    from assistant_offline_provider import OfflineRequestProvider
     provider = ConfirmingProvider()
     graph = AssistantExecutionGraph(
         store=store, memories=memories, tools=registry,
-        provider_factory=lambda: provider, max_steps=3,
+        provider_factory=lambda: OfflineRequestProvider(provider), max_steps=3,
     )
     asyncio.run(graph.run(claimed))
     assert provider.calls == 2 and provider.second_input is not None
@@ -714,8 +495,8 @@ def test_continuous_context_change_pauses_instead_of_publishing_stale_answer(app
     provider = MovingProvider()
     graph = AssistantExecutionGraph(
         store=store, memories=memories,
-        tools=SimpleNamespace(schemas=lambda: [], execute=None),
-        provider_factory=lambda: provider, max_steps=4,
+        tools=ContextHarness(memories).composer.tools,
+        provider_factory=lambda: offline_provider(provider), max_steps=4,
     )
     asyncio.run(graph.run(claimed))
     final = store.get_run(run["id"])
@@ -821,4 +602,4 @@ def test_wait_age_promotion_is_recorded_without_extra_workers(app_paths) -> None
         ).fetchone()
     assert event["reason"] == "wait_age_promotion"
     assert event["queue_wait_seconds"] >= 30
-    assert SCHEMA_VERSION == 25
+    assert SCHEMA_VERSION == 26

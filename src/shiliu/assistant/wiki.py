@@ -7,7 +7,7 @@ import time
 import uuid
 from contextlib import nullcontext
 from datetime import datetime
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 from zoneinfo import ZoneInfo
 
 from shiliu.assistant.snapshots import CapturedSource
@@ -26,18 +26,33 @@ class MaintenanceBudgetExceeded(RuntimeError):
     code = "maintenance_budget_exhausted"
 
 
+class MaintenanceYield(RuntimeError):
+    code = "maintenance_user_returned"
+
+
+class _StoredResponseProvider:
+    def __init__(self, response: dict[str, Any]) -> None:
+        self.response = response
+
+    def generate_json(self, *, system: str, prompt: str, max_tokens: int = 2400) -> dict[str, Any]:
+        return self.response
+
+
 class BudgetedStructuredProvider:
     def __init__(
         self, store: AssistantRunStore | Database, batch_id: str | None, delegate: StructuredProvider,
-        *, daily_limit: int = 60,
+        *, daily_limit: int = 60, continue_allowed: Callable[[], None] | None = None,
     ) -> None:
         self.store = store if isinstance(store, AssistantRunStore) else AssistantRunStore(store)
         self.db = self.store.db
         self.batch_id = batch_id
         self.delegate = delegate
         self.daily_limit = daily_limit
+        self.continue_allowed = continue_allowed
 
     def generate_json(self, *, system: str, prompt: str, max_tokens: int = 2400) -> dict[str, Any]:
+        if self.continue_allowed:
+            self.continue_allowed()
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             today = datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat()
@@ -110,13 +125,111 @@ class WikiService:
         self.store = store
         self.sources = sources
         self.principal_id = principal_id
+        self.retrieval = None
+        self.publish_allowed: Callable[[], bool] | None = None
+        self.publish_transaction_guard: Callable[[Any], None] | None = None
 
-    def bootstrap_space(self, space_id: int, *, limit: int = 5, model_budget: int = 30) -> dict[str, Any]:
+    def _require_publish_allowed(self, *, connection: Any | None = None) -> None:
+        if connection is not None and self.publish_transaction_guard is not None:
+            self.publish_transaction_guard(connection)
+        elif self.publish_allowed is not None and not self.publish_allowed():
+            raise MaintenanceYield("maintenance_user_returned")
+
+    def _maintenance_authorized(self, payload: dict, *, connection: Any | None = None) -> bool:
+        """Recheck this Wiki request, or current demand for a shared source job."""
+        if connection is None:
+            with self.db.connect() as current:
+                return self._maintenance_authorized(payload, connection=current)
+        c = connection
+        video_id = int(payload['video_id'])
+        if payload.get('revision'):
+            head = c.execute('SELECT current_revision FROM assistant_source_heads WHERE video_id=? AND principal_id=?',
+                             (video_id, self.principal_id)).fetchone()
+            if not head or head[0] != payload['revision']:
+                return False
+        memberships = {int(row[0]) for row in c.execute(
+            "SELECT m.source_id FROM video_source_memberships m JOIN favorite_sources s ON s.id=m.source_id "
+            "JOIN videos v ON v.id=m.video_id WHERE m.video_id=? AND m.removed_at IS NULL "
+            "AND s.status='active' AND v.is_ignored=0 AND v.archived_at IS NULL", (video_id,))}
+        if not memberships or (payload.get('task_subset') and video_id not in payload['task_subset']):
+            return False
+        target = payload.get('space_id')
+        explicit = False
+        basis = payload
+        if payload.get('request_key'):
+            root = c.execute("SELECT payload_json FROM assistant_jobs WHERE kind='source_reconcile' "
+                "AND json_extract(payload_json,'$.request_key')=? AND json_extract(payload_json,'$.video_id')=? LIMIT 1",
+                (payload['request_key'], video_id)).fetchone()
+            if not root:
+                return False
+            basis = json.loads(root[0])
+            if target is not None and int(target) != int(basis['space_id']):
+                return False
+            target, explicit = basis['space_id'], True
+        elif payload.get('maintenance_batch_id'):
+            batch = c.execute('SELECT space_id FROM assistant_maintenance_batches WHERE id=?',
+                              (payload['maintenance_batch_id'],)).fetchone()
+            if not batch or (target is not None and int(target) != int(batch[0])):
+                return False
+            target, explicit = batch[0], True
+            root = c.execute("SELECT payload_json FROM assistant_jobs WHERE kind='source_reconcile' "
+                "AND json_extract(payload_json,'$.maintenance_batch_id')=? AND json_extract(payload_json,'$.video_id')=? LIMIT 1",
+                (payload['maintenance_batch_id'], video_id)).fetchone()
+            if not root:
+                return False
+            basis = json.loads(root[0])
+            if basis.get('scope_version') is None:
+                return False
+        rows = c.execute('SELECT * FROM assistant_spaces WHERE principal_id=? AND enabled=1' +
+                         (' AND id=?' if target is not None else ''),
+                         (self.principal_id, target) if target is not None else (self.principal_id,)).fetchall()
+        for row in rows:
+            sources, videos = set(json.loads(row['source_ids_json'])), set(json.loads(row['video_ids_json']))
+            if videos and video_id not in videos:
+                continue
+            if not (row['all_active'] or memberships.intersection(sources)):
+                continue
+            if explicit:
+                if any(value.get('scope_version') is not None and int(value['scope_version']) != row['scope_version']
+                       for value in (basis, payload)):
+                    return False
+                message_id = basis.get('source_message_id')
+                if message_id:
+                    user = c.execute("SELECT 1 FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id "
+                        "WHERE m.id=? AND m.role='user' AND t.space_id=? AND t.principal_id=?",
+                        (message_id, row['id'], self.principal_id)).fetchone()
+                    if not user:
+                        return False
+                    suppressed = c.execute("SELECT source_message_ids_json FROM assistant_memory_suppressions "
+                        "WHERE principal_id=? AND (scope_kind='user' OR (scope_kind='space' AND scope_id=?))",
+                        (self.principal_id, str(row['id']))).fetchall()
+                    if any(message_id in json.loads(item[0]) for item in suppressed):
+                        return False
+                return True
+            if row['maintenance_mode'] == 'automatic':
+                return True
+        if target is None and not explicit:
+            # Shared extraction may still be needed by a concurrent explicit request
+            # for this generation. No separate consumer registry is necessary.
+            roots = c.execute("SELECT payload_json FROM assistant_jobs WHERE kind IN ('source_reconcile','source_extract') "
+                "AND status IN ('queued','running','retry_wait','budget_wait') "
+                "AND json_extract(payload_json,'$.video_id')=? AND json_extract(payload_json,'$.dirty_generation')=? "
+                "AND (json_extract(payload_json,'$.request_key') IS NOT NULL OR "
+                "json_extract(payload_json,'$.maintenance_batch_id') IS NOT NULL)",
+                (video_id, payload.get('dirty_generation'))).fetchall()
+            return any(self._maintenance_authorized(json.loads(row[0]), connection=c) for row in roots)
+        return False
+
+    def _require_maintenance_authorized(self, payload: dict, *, connection: Any | None = None) -> None:
+        if not self._maintenance_authorized(payload, connection=connection):
+            raise AssistantConflict('wiki_maintenance_not_authorized')
+
+    def bootstrap_space(self, space_id: int, *, limit: int = 5, model_budget: int = 30, task_subset: list[int] | None = None) -> dict[str, Any]:
         if not 1 <= limit <= 10 or not 1 <= model_budget <= 30:
             raise ValueError("invalid_maintenance_budget")
         space = self.store.get_space(space_id)
         video_ids = self.sources.visible_video_ids(
-            self._scope(space), order="collected_desc"
+            self._scope({**space, "video_ids": task_subset}) if task_subset else self._scope(space), order="collected_desc"
         )[: max(1, min(limit, 10))]
         jobs: list[str] = []
         batch_id = f"amb_{uuid.uuid4().hex}"
@@ -128,22 +241,22 @@ class WikiService:
             )
             for video_id in video_ids:
                 generation = self._ensure_dirty(connection, video_id)
-                jobs.append(self._enqueue_reconcile(connection, video_id, generation, batch_id=batch_id))
+                jobs.append(self._enqueue_reconcile(connection, video_id, generation, batch_id=batch_id, task_subset=task_subset))
         return {"space_id": space_id, "queued": len(jobs), "video_ids": video_ids,
                 "job_ids": jobs, "batch_id": batch_id, "source_limit": limit,
                 "model_budget": model_budget}
 
     def request_topic(
         self, *, space_id: int, topic: str, source_refs: list[str],
-        request_key: str, source_message_id: str | None = None,
+        request_key: str, source_message_id: str | None = None, task_subset: list[int] | None = None,
     ) -> dict[str, Any]:
         """Queue an explicit, bounded request through the ordinary source pipeline."""
         topic = topic.strip()
         if not topic or len(topic) > 120 or not 1 <= len(source_refs) <= 5:
             raise ValueError("invalid_topic_request")
         space = self.store.get_space(space_id)
-        scope = self._scope(space)
-        if not self.sources.source_refs_visible(source_refs, scope):
+        scope = self._scope({**space, "video_ids": task_subset}) if task_subset else self._scope(space)
+        if not self.sources.source_refs_visible(source_refs, self._scope(space)) or not self.sources.source_refs_visible(source_refs, scope):
             raise ValueError("source_out_of_scope")
         video_ids = []
         for ref in source_refs:
@@ -165,6 +278,7 @@ class WikiService:
                         "video_id": video_id, "dirty_generation": generation,
                         "space_id": space_id, "scope_version": space["scope_version"],
                         "task_topic": topic, "request_key": stable_request,
+                        **({"task_subset": task_subset} if task_subset else {}),
                         **({"source_message_id": source_message_id} if source_message_id else {}),
                     },
                 ))
@@ -187,6 +301,8 @@ class WikiService:
 
     def reconcile(self, job: dict[str, Any]) -> dict[str, Any]:
         payload = job["payload"]
+        if not self._maintenance_authorized(payload):
+            return {'superseded': True, 'reason': 'wiki_maintenance_not_authorized'}
         video_id = int(payload["video_id"])
         generation = int(payload["dirty_generation"])
         with self.db.connect() as connection:
@@ -196,13 +312,22 @@ class WikiService:
             ).fetchone()
         if current is not None and int(current["dirty_generation"]) > generation:
             return {"superseded": True, "reason": "newer_source_generation"}
+        task_subset = payload.get("task_subset")
+        if not task_subset and payload.get("source_message_id"):
+            with self.db.connect() as connection:
+                requested = connection.execute("SELECT r.working_state_json FROM assistant_messages m "
+                    "JOIN assistant_runs r ON r.id=m.run_id WHERE m.id=?", (payload["source_message_id"],)).fetchone()
+            task_subset = ((json.loads(requested[0]).get("task_subset") or {}).get("video_ids") if requested else None)
+        if task_subset and video_id not in task_subset:
+            return {"superseded": True, "reason": "task_source_out_of_scope"}
         if payload.get("request_key"):
             space = self.store.get_space(int(payload["space_id"]))
             if int(space["scope_version"]) != int(payload["scope_version"]):
                 return {"superseded": True, "reason": "scope_version_changed"}
             if video_id not in self.sources.visible_video_ids(self._scope(space)):
                 return {"superseded": True, "reason": "source_out_of_scope"}
-        captured = self.sources.snapshots.capture(video_id)
+        captured = self.sources.snapshots.capture(
+            video_id, publish_guard=self.publish_transaction_guard)
         with self.db.connect() as connection:
             job_id = self.store.enqueue_job(
                 connection,
@@ -215,9 +340,13 @@ class WikiService:
                     "revision": captured.revision,
                     "dirty_generation": generation,
                     "extraction_version": self.EXTRACTION_VERSION,
+                    **({"task_subset": task_subset} if task_subset else {}),
                     **({"maintenance_batch_id": payload["maintenance_batch_id"]}
                        if payload.get("maintenance_batch_id") else {}),
+                    **({"space_id": payload['space_id'], "scope_version": payload['scope_version']}
+                       if payload.get('space_id') is not None else {}),
                     **({"task_topic": payload["task_topic"], "request_key": payload["request_key"],
+                        "space_id": payload['space_id'], "scope_version": payload['scope_version'],
                         **({"source_message_id": payload["source_message_id"]}
                            if payload.get("source_message_id") else {})}
                        if payload.get("request_key") else {}),
@@ -229,7 +358,10 @@ class WikiService:
         self, job: dict[str, Any], *, provider: StructuredProvider
     ) -> dict[str, Any]:
         payload = job["payload"]
+        if not self._maintenance_authorized(payload):
+            return {'superseded': True, 'reason': 'wiki_maintenance_not_authorized'}
         provider = self._budgeted_provider(payload, provider)
+        staged = job.get("proposal") or {}
         revision = str(payload["revision"])
         video_id = int(payload["video_id"])
         with self.db.connect() as connection:
@@ -239,9 +371,10 @@ class WikiService:
             ).fetchone()
         existing = self.get_source_card(revision) if card_row and card_row["extraction_version"] == self.EXTRACTION_VERSION else None
         if existing is not None:
+            self._require_publish_allowed()
             self._enqueue_integrations(video_id, revision, batch_id=payload.get("maintenance_batch_id"),
                                        task_topic=payload.get("task_topic"), request_key=payload.get("request_key"),
-                                       source_message_id=payload.get("source_message_id"))
+                                       source_message_id=payload.get("source_message_id"), task_subset=payload.get("task_subset"), expected_scope_version=payload.get("scope_version"))
             return {"reused": True, "revision": revision}
         captured = self.sources._capture_or_load(video_id, revision)
         snapshot = captured.snapshot
@@ -279,16 +412,20 @@ class WikiService:
                 card["published_at"] = snapshot["metadata"].get("published_at")
                 card["memberships"] = snapshot["memberships"]
                 card["metadata_observed_at"] = snapshot["metadata"].get("metadata_observed_at")
-                self._commit_source_card(captured, input_hash=input_hash, card=card)
+                self._require_publish_allowed()
+                self._commit_source_card(captured, input_hash=input_hash, card=card, payload=payload)
                 integration_jobs = self._enqueue_integrations(
                     video_id, revision, batch_id=payload.get("maintenance_batch_id"),
                     task_topic=payload.get("task_topic"), request_key=payload.get("request_key"),
-                    source_message_id=payload.get("source_message_id"),
+                    source_message_id=payload.get("source_message_id"), task_subset=payload.get("task_subset"),
+                    expected_scope_version=payload.get("scope_version"),
                 )
                 return {"revision": revision, "reused_time_only": True,
                         "integration_job_ids": integration_jobs, "card": card}
             material, material_kind = self._card_material(snapshot)
-            if not material.strip():
+            if staged.get("kind") == "source_extract" and staged.get("input_hash") == input_hash:
+                response = staged["response"]
+            elif not material.strip():
                 response = {
                     "summary": "", "key_points": [], "topics": [],
                     "limitations": ["只有标题或空简介，未生成内容结论"],
@@ -298,6 +435,14 @@ class WikiService:
                 cursor = max(0, int(payload.get("batch_cursor", 0)))
                 stop = min(len(chunks), cursor + 4)
                 for batch_index in range(cursor, stop):
+                    batch_hash = hashlib.sha256(chunks[batch_index].encode("utf-8")).hexdigest()
+                    with self.db.connect() as connection:
+                        saved = connection.execute("SELECT 1 FROM assistant_source_card_batches "
+                            "WHERE revision=? AND batch_index=? AND input_hash=?",
+                            (revision, batch_index, batch_hash)).fetchone()
+                    if saved:
+                        continue
+                    self._require_publish_allowed()
                     response = self._extract_batch(
                         provider, snapshot=snapshot, material_kind=material_kind,
                         material=chunks[batch_index], batch_index=batch_index,
@@ -327,23 +472,41 @@ class WikiService:
                     }
                 response = self._merge_card_batches(revision)
             card = self._normalize_card(response, snapshot, material_kind)
-        self._commit_source_card(captured, input_hash=input_hash, card=card)
+        if not (staged.get("kind") == "source_extract" and staged.get("input_hash") == input_hash) and not self.store.save_job_proposal(
+            str(job["id"]), {"kind": "source_extract", "input_hash": input_hash,
+                             "response": response if reusable is None else card},
+            owner=str(job["lease_owner"]), lease_epoch=int(job["lease_epoch"]),
+        ):
+            raise MaintenanceYield("maintenance_lease_lost")
+        self._require_publish_allowed()
+        self._commit_source_card(captured, input_hash=input_hash, card=card, payload=payload)
         integration_jobs = self._enqueue_integrations(video_id, revision, batch_id=payload.get("maintenance_batch_id"),
                                                       task_topic=payload.get("task_topic"), request_key=payload.get("request_key"),
-                                                      source_message_id=payload.get("source_message_id"))
+                                                      source_message_id=payload.get("source_message_id"), task_subset=payload.get("task_subset"), expected_scope_version=payload.get("scope_version"))
         return {"revision": revision, "integration_job_ids": integration_jobs, "card": card}
 
     def integrate_source_card(
         self, job: dict[str, Any], *, provider: StructuredProvider
     ) -> dict[str, Any]:
         payload = job["payload"]
+        if not self._maintenance_authorized(payload):
+            return {'superseded': True, 'reason': 'wiki_maintenance_not_authorized'}
         provider = self._budgeted_provider(payload, provider)
+        staged = job.get("proposal") or {}
         space = self.store.get_space(int(payload["space_id"]))
         if int(space["scope_version"]) != int(payload["scope_version"]):
             return {"superseded": True, "reason": "scope_version_changed"}
         video_id = int(payload["video_id"])
         if video_id not in self.sources.visible_video_ids(self._scope(space)):
             return {"superseded": True, "reason": "source_out_of_scope"}
+        task_scope = None
+        if payload.get("task_subset"):
+            allowed = set(self.sources.visible_video_ids(self._scope(space)))
+            selected = sorted(allowed.intersection(int(v) for v in payload["task_subset"]))
+            if video_id not in selected:
+                return {"superseded": True, "reason": "task_source_out_of_scope"}
+            space = {**space, "video_ids": selected}
+            task_scope = self._scope(space)
         revision = str(payload["revision"])
         with self.db.connect() as connection:
             head = connection.execute(
@@ -361,6 +524,8 @@ class WikiService:
         topic = str(payload.get("task_topic") or payload.get("topic") or
                     (card.get("topics") or [card["title"]])[0]).strip() or card["title"]
         existing = self._find_page(int(space["id"]), topic)
+        if existing is not None and existing["status"] != "active":
+            return {"no_change": True, "reason": "wiki_page_inactive", "page_id": existing["id"]}
         if payload.get("repair_page_id") and (
             existing is None or str(existing["id"]) != str(payload["repair_page_id"])
         ):
@@ -368,7 +533,11 @@ class WikiService:
         fuzzy_candidate = existing is None
         if existing is None and not payload.get("task_topic"):
             existing = self._find_related_page(int(space["id"]), {**card, "topics": [topic]})
-        current_existing = self._visible_page(existing) if existing is not None else None
+        current_existing = self._task_projection(self._visible_page(existing), task_scope) if existing is not None else None
+        if task_scope is not None and current_existing is not None:
+            current_existing["blocks"] = [{**block, "source_refs": [
+                ref.split(":", 2)[2] if ref.startswith("video:") and len(ref.split(":", 2)) == 3 else ref
+                for ref in block.get("source_refs", [])]} for block in current_existing["blocks"]]
         visible_block_ids = {str(block["stable_id"]) for block in
                              (current_existing or {}).get("blocks", [])}
         if existing is not None:
@@ -412,6 +581,7 @@ class WikiService:
                 return {"no_change": True, "reason": "material_already_processed",
                         "page_id": existing["id"], "version": existing["version"]}
             if duplicate_content is not None:
+                self._require_publish_allowed()
                 return self._rebind_equivalent_source(
                     existing, space=space, video_id=video_id, revision=revision,
                     job=job,
@@ -434,7 +604,7 @@ class WikiService:
             "current_source_keys": [key for key, value in source_key_map.items()
                                     if value in block.get("source_refs", [])],
         } for block in (existing or {}).get("blocks", [])
-            if block["stable_id"] not in visible_block_ids and block.get("source_refs")]
+            if block["stable_id"] not in visible_block_ids and block.get("source_refs") and task_scope is None]
         source_catalog = [{
             "key": key,
             "card": {
@@ -443,6 +613,13 @@ class WikiService:
                              "summary", "key_points", "limitations"}
             },
         } for key, source_revision in source_key_map.items()]
+        basis = {"revision": revision, "scope_version": int(space["scope_version"]),
+                 "page_id": (existing or {}).get("id"), "page_version": (existing or {}).get("version"),
+                 "source_keys": source_key_map, "task_subset": payload.get("task_subset"), "topic": topic, "compiler": self.COMPILER_VERSION}
+        basis_hash = hashlib.sha256(json.dumps(basis, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        reuse_staged = staged.get("kind") == "wiki_integrate" and staged.get("basis_hash") == basis_hash
+        if reuse_staged:
+            provider = _StoredResponseProvider(staged["response"])
         response = provider.generate_json(
             system=(
                 "你是拾流 Wiki 局部编译器。按问题组织已有主题页与本次 SourceCard。"
@@ -485,6 +662,12 @@ class WikiService:
             ),
             max_tokens=2600,
         )
+        if not reuse_staged and not self.store.save_job_proposal(
+            str(job["id"]), {"kind": "wiki_integrate", "response": response, "basis_hash": basis_hash},
+            owner=str(job["lease_owner"]), lease_epoch=int(job["lease_epoch"]),
+        ):
+            return {"superseded": True, "reason": "wiki_job_lease_lost"}
+        self._require_publish_allowed()
         if fuzzy_candidate and existing is not None and response.get("same_topic") is not True:
             existing = None
             source_key_map = {"s1": revision}
@@ -497,6 +680,13 @@ class WikiService:
         local_operation = str(response.get("operation") or "") if existing is not None else ""
         if local_operation not in {"add_block", "revise_block", "associate", "no_change"}:
             local_operation = ""
+        if task_scope is not None and existing is not None:
+            # A subset may only patch a visible non-manual block or append one.
+            # Legacy whole-page regeneration would erase excluded history.
+            if local_operation not in {"add_block", "revise_block", "associate", "no_change"}:
+                raise ValueError("task_subset_requires_local_patch")
+            if local_operation == "revise_block" and str(response.get("target_block_id") or "") not in visible_block_ids:
+                raise ValueError("task_subset_target_out_of_scope")
         if payload.get("repair_page_id") and invalid_block_directory and (
             local_operation != "revise_block" or
             str(response.get("target_block_id") or "") not in
@@ -580,6 +770,7 @@ class WikiService:
         now = utc_now()
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            self._require_publish_allowed(connection=connection)
             self._validate_wiki_commit_fence(
                 connection, space_id=int(space["id"]), video_id=video_id,
                 revision=revision, scope_version=int(space["scope_version"]),
@@ -600,7 +791,8 @@ class WikiService:
                 FROM assistant_wiki_dependencies d
                 JOIN assistant_source_cards old_card ON old_card.revision=d.source_revision
                 JOIN assistant_source_cards new_card ON new_card.revision=?
-                WHERE d.page_id=? AND d.video_id=? AND d.source_revision<>?""",
+                WHERE d.page_id=? AND d.video_id=? AND d.source_revision<>?
+                  AND d.block_id NOT IN (SELECT json_extract(value,'$.stable_id') FROM assistant_wiki_pages p,json_each(p.blocks_json) WHERE p.id=d.page_id AND json_extract(value,'$.deleted')=1)""",
                 (revision, page["id"], video_id, revision),
             ).fetchall()
             new_snapshot = self.sources._capture_or_load(video_id, revision).snapshot
@@ -615,6 +807,9 @@ class WikiService:
             blocks = []
             for block in before["blocks"]:
                 item = dict(block)
+                if item.get("deleted"):
+                    blocks.append(item)
+                    continue
                 item["source_refs"] = list(dict.fromkeys(
                     revision if ref in old_revisions else ref
                     for ref in item.get("source_refs", [])
@@ -626,12 +821,14 @@ class WikiService:
                         page_id,block_id,source_revision,video_id,dependency_kind,created_at
                     ) SELECT page_id,block_id,?,video_id,dependency_kind,?
                       FROM assistant_wiki_dependencies
-                      WHERE page_id=? AND video_id=? AND source_revision=?""",
-                    (revision, now, page["id"], video_id, old_revision),
+                      WHERE page_id=? AND video_id=? AND source_revision=?
+                      AND block_id NOT IN (SELECT json_extract(value,'$.stable_id') FROM assistant_wiki_pages p,json_each(p.blocks_json) WHERE p.id=? AND json_extract(value,'$.deleted')=1)""",
+                    (revision, now, page["id"], video_id, old_revision, page["id"]),
                 )
                 connection.execute(
-                    "DELETE FROM assistant_wiki_dependencies WHERE page_id=? AND video_id=? AND source_revision=?",
-                    (page["id"], video_id, old_revision),
+                    """DELETE FROM assistant_wiki_dependencies WHERE page_id=? AND video_id=? AND source_revision=?
+                    AND block_id NOT IN (SELECT json_extract(value,'$.stable_id') FROM assistant_wiki_pages p,json_each(p.blocks_json) WHERE p.id=? AND json_extract(value,'$.deleted')=1)""",
+                    (page["id"], video_id, old_revision, page["id"]),
                 )
             version = int(before["version"]) + 1
             connection.execute(
@@ -653,7 +850,6 @@ class WikiService:
                 (page["id"], version, json.dumps(before, ensure_ascii=False),
                  json.dumps(after, ensure_ascii=False), "等价材料的来源版本已更新", now),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, str(page["id"]), version, before_state)
         return {"page_id": page["id"], "version": version,
                 "no_model_call": True, "reason": "equivalent_source_rebound"}
@@ -675,6 +871,7 @@ class WikiService:
         normalized = self._normalize_title(str(patch["title"]))
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            self._require_publish_allowed(connection=connection)
             self._validate_wiki_commit_fence(
                 connection,
                 space_id=space_id,
@@ -695,7 +892,7 @@ class WikiService:
             row = connection.execute(
                 """
                 SELECT * FROM assistant_wiki_pages
-                WHERE principal_id=? AND space_id=? AND normalized_title=? AND status='active'
+                WHERE principal_id=? AND space_id=? AND normalized_title=?
                 """,
                 (self.principal_id, space_id, normalized),
             ).fetchone()
@@ -726,6 +923,7 @@ class WikiService:
                 operation = "created"
             else:
                 current = self._decode_page(dict(row))
+                self._assert_lifecycle(current, patch["blocks"], target_id=str(patch.get("target_block_id") or ""))
                 if int(current["version"]) != expected_version:
                     raise AssistantConflict("wiki_version_conflict")
                 page_id = str(current["id"])
@@ -754,7 +952,7 @@ class WikiService:
                             JOIN video_source_memberships m ON m.video_id=d.video_id AND m.removed_at IS NULL
                             JOIN favorite_sources s ON s.id=m.source_id AND s.status='active'
                             JOIN videos v ON v.id=d.video_id AND v.is_ignored=0 AND v.archived_at IS NULL
-                            WHERE d.page_id=?""", (self.principal_id, page_id)
+                            WHERE d.page_id=? AND d.block_id NOT IN (SELECT json_extract(value,'$.stable_id') FROM assistant_wiki_pages p,json_each(p.blocks_json) WHERE p.id=d.page_id AND json_extract(value,'$.deleted')=1)""", (self.principal_id, page_id)
                         ).fetchall()
                         if (not selected_videos or int(item["video_id"]) in selected_videos)
                         and (bool(space_row["all_active"]) or int(item["source_id"]) in selected_sources)
@@ -773,7 +971,7 @@ class WikiService:
                 }
                 replace_ids = {
                     block["stable_id"] for block in blocks
-                    if not block.get("manual_lock") and (
+                    if not block.get("manual_lock") and not block.get("deleted") and (
                         (local_operation == "revise_block" and block["stable_id"] == target_id) or
                         (not local_operation and bool(patch.get("replace_derived"))) or
                         (not local_operation and block["stable_id"] in prior_ids) or
@@ -790,6 +988,14 @@ class WikiService:
                         (page_id, *sorted(replace_ids)),
                     )
                 incoming = self._blocks_with_identity(patch["blocks"], revision=revision, topic=patch["title"])
+                deleted_ids = {b["stable_id"] for b in self._deleted_blocks(current)}
+                for block in incoming:
+                    if block["stable_id"] in deleted_ids:
+                        # The ordinary generated ID uses position/revision, not text. Distinct new
+                        # content needs its own identity; the tombstone itself remains untouched.
+                        block["stable_id"] = "wblock_" + hashlib.sha256(
+                            f"{block['stable_id']}:{block['heading']}:{block['markdown']}".encode()).hexdigest()[:20]
+                self._assert_lifecycle(current, incoming, target_id=target_id)
                 incoming_ids = {block["stable_id"] for block in incoming}
                 blocks.extend(block for block in incoming if block["stable_id"] not in {b["stable_id"] for b in blocks})
                 if local_operation in {"add_block", "revise_block"}:
@@ -813,7 +1019,7 @@ class WikiService:
                     WHERE id=? AND version=?
                     """,
                     (
-                        str(patch.get("summary") or current["summary"]),
+                        self._pending_guide() if any(b.get("deleted") for b in blocks) else str(patch.get("summary") or current["summary"]),
                         json.dumps(blocks, ensure_ascii=False),
                         json.dumps(aliases, ensure_ascii=False), patch["page_type"], version,
                         scope_version, now, page_id, expected_version,
@@ -893,7 +1099,6 @@ class WikiService:
                     f"纳入来源：{patch.get('source_title') or revision[:8]}", now,
                 ),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, page_id, version, before_state)
         return self.get_page(page_id, space_id=space_id, include_hidden=True)
 
@@ -968,7 +1173,8 @@ class WikiService:
                 FROM assistant_wiki_dependencies d
                 JOIN assistant_source_heads h ON h.video_id=d.video_id
                   AND h.principal_id=? AND h.current_revision=d.source_revision
-                WHERE d.page_id=? ORDER BY d.video_id, d.source_revision""",
+                WHERE d.page_id=? AND d.block_id NOT IN
+                    (SELECT json_extract(value,'$.stable_id') FROM assistant_wiki_pages p,json_each(p.blocks_json) WHERE p.id=d.page_id AND json_extract(value,'$.deleted')=1) ORDER BY d.video_id, d.source_revision""",
                 (self.principal_id, page_id),
             ).fetchall()
         return [str(row["source_revision"]) for row in rows
@@ -1005,6 +1211,7 @@ class WikiService:
         ):
             raise AssistantConflict("wiki_job_lease_lost")
         job_payload = json.loads(job["payload_json"] or "{}")
+        self._require_maintenance_authorized(job_payload, connection=connection)
         if (
             int(job_payload.get("space_id") or 0) != space_id
             or int(job_payload.get("video_id") or 0) != video_id
@@ -1082,7 +1289,125 @@ class WikiService:
         if head is None or str(head["current_revision"] or "") != revision:
             raise AssistantConflict("source_revision_changed")
 
-    def list_pages(self, *, space_id: int, query: str = "") -> list[dict[str, Any]]:
+    def block_source_refs(self, blocks: list[dict[str, Any]]) -> list[str]:
+        refs = set()
+        with self.db.connect() as connection:
+            for block in blocks:
+                for value in block.get("source_refs") or []:
+                    ref = str(value)
+                    if ref.startswith("video:"):
+                        refs.add(ref)
+                        continue
+                    # Wiki stores revision hashes; resolve existing storage
+                    # relationships rather than treating them as scope-free.
+                    row = connection.execute("SELECT h.video_id FROM assistant_source_revisions r "
+                        "JOIN assistant_source_heads h ON h.id=r.head_id WHERE r.revision=? AND h.principal_id=?",
+                        (ref, self.principal_id)).fetchone()
+                    if row is None:
+                        return []
+                    refs.add(f"video:{int(row['video_id'])}:{ref}")
+        return sorted(refs)
+
+    def _task_projection(self, page: dict[str, Any], scope: SourceScope | None) -> dict[str, Any]:
+        if scope is None:
+            return page
+        blocks = []
+        for block in page["blocks"]:
+            refs = self.block_source_refs([block])
+            if refs and self.sources.source_refs_visible(refs, scope):
+                blocks.append({**block, "source_refs": refs})
+        # Mixed/unknown blocks cannot be split into independently justified facts.
+        allowed = set(self.sources.visible_video_ids(scope))
+        materials = [item for item in page.get("materials") or [] if int(item["video_id"]) in allowed]
+        complete = len(blocks) == len(page["blocks"]) and len(materials) == len(page.get("materials") or [])
+        return {**page, "blocks": blocks,
+                "summary": page.get("summary", "") if complete else "当前任务资料子集中的可用内容",
+                "materials": materials,
+                "availability": page.get("availability", "full") if complete else "partial",
+                "task_projection": True}
+
+    @staticmethod
+    def _deleted_blocks(page: dict) -> list[dict]:
+        return [block for block in page["blocks"] if block.get("deleted") and not block.get("deletion_released")]
+
+    @classmethod
+    def _assert_lifecycle(cls, page: dict, incoming: list[dict] = (), *, target_id: str = "") -> None:
+        if page["status"] != "active":
+            raise AssistantConflict("wiki_page_inactive")
+        tombstones = cls._deleted_blocks(page)
+        clean = lambda text: " ".join(str(text or "").split())
+        for tomb in tombstones:
+            ids = {value for value in (tomb["stable_id"], tomb.get("deleted_stable_id")) if value}
+            if target_id and target_id in ids:
+                raise AssistantConflict("wiki_block_deleted")
+            for block in incoming:
+                if (block.get("stable_id") in ids or
+                    (clean(block.get("heading")), clean(block.get("markdown"))) ==
+                    (clean(tomb.get("heading")), clean(tomb.get("markdown")))):
+                    raise AssistantConflict("wiki_deleted_content_conflict")
+
+    def manage_page(self, page_id: str, *, space_id: int, action: str, expected_version: int,
+                    operation_key: str, block_id: str | None = None) -> dict:
+        """Explicit user lifecycle operation; deletion is logical and reversible."""
+        if action not in {"delete_block", "restore_block", "archive", "restore"}:
+            raise ValueError("invalid_wiki_action")
+        self.store.get_space(space_id)
+        with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            self.store.guard_tool_operation(connection)
+            row = connection.execute("SELECT * FROM assistant_wiki_pages WHERE id=? AND principal_id=? AND space_id=?", (page_id, self.principal_id, space_id)).fetchone()
+            if row is None:
+                raise KeyError(page_id)
+            receipt = connection.execute("SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?", (operation_key, self.principal_id)).fetchone()
+            if receipt:
+                result = json.loads(receipt[0])
+                if result.get("page_id") != page_id or result.get("action") != action or result.get("block_id") != block_id:
+                    raise AssistantConflict("operation_key_conflict")
+                return result
+            before = self._decode_page(dict(row))
+            if int(before["version"]) != expected_version:
+                raise AssistantConflict("wiki_version_conflict")
+            if before["status"] == "merged" or (before["status"] != "active" and action != "restore"):
+                raise AssistantConflict("wiki_page_inactive")
+            if action == "restore" and before["status"] != "archived":
+                raise AssistantConflict("wiki_page_not_archived")
+            snapshot = self._operation_state(connection, page_id)
+            blocks = before["blocks"]
+            status = before["status"]
+            if action in {"delete_block", "restore_block"}:
+                block = next((block for block in blocks if block["stable_id"] == block_id), None)
+                if block is None:
+                    raise KeyError(block_id)
+                if bool(block.get("deleted")) != (action == "restore_block"):
+                    raise AssistantConflict("wiki_block_state_changed")
+                if action == "delete_block":
+                    block["lock_before_delete"] = bool(block.get("manual_lock"))
+                    block.update(deleted=True, manual_lock=True, deletion_released=False)
+                else:
+                    block.update(deleted=False, manual_lock=bool(block.get("lock_before_delete")), deletion_released=True)
+                block["lifecycle_version"] = expected_version + 1
+            else:
+                status = "archived" if action == "archive" else "active"
+            connection.execute("UPDATE assistant_wiki_pages SET blocks_json=?,status=?,summary=?,version=version+1,updated_at=? WHERE id=? AND version=?",
+                (json.dumps(blocks, ensure_ascii=False), status, self._pending_guide(), utc_now(), page_id, expected_version))
+            after = self._decode_page(dict(connection.execute("SELECT * FROM assistant_wiki_pages WHERE id=?", (page_id,)).fetchone()))
+            connection.execute("INSERT INTO assistant_wiki_changes(page_id,version,operation,before_json,after_json,summary,actor,created_at) VALUES(?,?,?,?,?,?,'user',?)",
+                (page_id, expected_version+1, action, json.dumps(snapshot["page"], ensure_ascii=False), json.dumps(after, ensure_ascii=False), "可撤销逻辑删除" if action == "delete_block" else action, utc_now()))
+            self._save_operation_state(connection, page_id, expected_version+1, snapshot)
+            self.store.guard_tool_operation(connection)
+            result = {"page_id": page_id, "version": expected_version+1, "action": action, "block_id": block_id, "status": status}
+            connection.execute("INSERT INTO assistant_mutation_receipts(operation_key,principal_id,operation,result_json,created_at) VALUES(?,?,'wiki_lifecycle',?,?)", (operation_key, self.principal_id, json.dumps(result), utc_now()))
+            return result
+
+    def management_page(self, page_id: str, *, space_id: int, task_scope: SourceScope | None = None) -> dict:
+        # Management retains deleted identities, never returns their body as normal evidence.
+        raw = self.get_page(page_id, space_id=space_id, include_hidden=True)
+        visible = self._task_projection(self._visible_page(raw), task_scope)
+        allowed_deleted = self._task_projection({**raw, "blocks": [b for b in raw["blocks"] if b.get("deleted")]}, task_scope)["blocks"]
+        return {**visible, "deleted_blocks": [{"stable_id": b["stable_id"], "heading": b["heading"]}
+                    for b in allowed_deleted]}
+
+    def list_pages(self, *, space_id: int, query: str = "", task_scope: SourceScope | None = None) -> list[dict[str, Any]]:
         self.store.get_space(space_id)
         with self.db.connect() as connection:
             rows = connection.execute(
@@ -1096,7 +1421,7 @@ class WikiService:
         query_tokens = self._topic_tokens(query) if query.strip() else set()
         values: list[tuple[int, dict[str, Any]]] = []
         for row in rows:
-            page = self._visible_page(self._decode_page(dict(row)))
+            page = self._task_projection(self._visible_page(self._decode_page(dict(row))), task_scope)
             if not page["blocks"]:
                 continue
             if query_tokens:
@@ -1114,7 +1439,8 @@ class WikiService:
         return [page for _score, page in values]
 
     def get_page(
-        self, page_id: str, *, space_id: int | None = None, include_hidden: bool = False
+        self, page_id: str, *, space_id: int | None = None, include_hidden: bool = False,
+        task_scope: SourceScope | None = None
     ) -> dict[str, Any]:
         with self.db.connect() as connection:
             row = connection.execute(
@@ -1133,11 +1459,11 @@ class WikiService:
         if page["status"] == "merged" and redirect is not None:
             if int(redirect["space_id"]) != int(page["space_id"]):
                 raise KeyError(page_id)
-            target = self.get_page(str(redirect["target_page_id"]), space_id=int(page["space_id"]))
+            target = self.get_page(str(redirect["target_page_id"]), space_id=int(page["space_id"]), task_scope=task_scope)
             return {**target, "redirected_from": page_id}
         if page["status"] != "active" and not include_hidden:
             raise KeyError(page_id)
-        return page if include_hidden else self._visible_page(page)
+        return page if include_hidden else self._task_projection(self._visible_page(page), task_scope)
 
     def edit_block(
         self,
@@ -1169,6 +1495,7 @@ class WikiService:
             before_state = self._operation_state(connection, page_id)
             if int(before["version"]) != expected_version:
                 raise AssistantConflict("wiki_version_conflict")
+            self._assert_lifecycle(before, target_id=block_id)
             blocks = list(before["blocks"])
             target = next((block for block in blocks if block["stable_id"] == block_id), None)
             if target is None:
@@ -1197,8 +1524,8 @@ class WikiService:
                 """,
                 (page_id, version, json.dumps(before, ensure_ascii=False), json.dumps(after, ensure_ascii=False), now),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, page_id, version, before_state)
+            self.store.guard_tool_operation(connection)
             connection.execute(
                 """
                 INSERT INTO assistant_mutation_receipts(
@@ -1240,6 +1567,7 @@ class WikiService:
             source_replacements: list[tuple[str, list[tuple[int, str]]]] = []
             for edit in edits:
                 block_id = edit.get("block_id")
+                self._assert_lifecycle(before, target_id=block_id)
                 if block_id in seen:
                     raise ValueError("duplicate_block_edit")
                 seen.add(block_id)
@@ -1316,8 +1644,8 @@ class WikiService:
                 (page_id, version, json.dumps(before, ensure_ascii=False), json.dumps(after, ensure_ascii=False),
                  "定点修正生成内容", now),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, page_id, version, before_state)
+            self.store.guard_tool_operation(connection)
             connection.execute(
                 """INSERT INTO assistant_mutation_receipts(operation_key,principal_id,operation,result_json,created_at)
                 VALUES(?,?,'wiki_derived_repair',?,?)""",
@@ -1339,6 +1667,7 @@ class WikiService:
             raise ValueError("memory_dependency_required")
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            self.store.guard_tool_operation(connection, operation_key)
             receipt = connection.execute(
                 "SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?",
                 (operation_key, self.principal_id),
@@ -1393,6 +1722,7 @@ class WikiService:
                 "user_input_source": "memory_derived" if memory_id else
                                      ("discussion" if source_message_id else "direct_ui"),
                 "created_at": now, "source_message_id": source_message_id,
+                **({"user_message_id": source_message_id} if source_message_id and not memory_id else {}),
                 **({"historical_statement": True,
                     "validity_note": "原话包含未能可靠解释的时间；仅作历史记录，当前安排需核对"}
                    if uncertain_time else ({"historical_statement": True} if historical else {})),
@@ -1422,8 +1752,8 @@ class WikiService:
                 (page_id, version, json.dumps(before, ensure_ascii=False),
                  json.dumps(after, ensure_ascii=False), now),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, page_id, version, before_state)
+            self.store.guard_tool_operation(connection, operation_key)
             connection.execute(
                 """INSERT INTO assistant_mutation_receipts(
                     operation_key,principal_id,operation,result_json,created_at
@@ -1448,6 +1778,7 @@ class WikiService:
         now = utc_now()
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            self.store.guard_tool_operation(connection, operation_key)
             receipt = connection.execute(
                 "SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?",
                 (operation_key, self.principal_id),
@@ -1462,6 +1793,9 @@ class WikiService:
             ).fetchone()
             if message is None:
                 raise ValueError("user_source_required")
+            latest = connection.execute("SELECT working_state_json FROM assistant_runs WHERE thread_id=? "
+                "ORDER BY rowid DESC LIMIT 1", (message["thread_id"],)).fetchone()
+            task_subset = (json.loads(latest[0]).get("task_subset") or {}).get("video_ids") if latest else None
             current_space = connection.execute(
                 "SELECT scope_version FROM assistant_spaces WHERE id=?", (space_id,)
             ).fetchone()
@@ -1478,6 +1812,13 @@ class WikiService:
                         int(authorization["scope_version"]) != int(current_space["scope_version"]) or
                         authorization["status"] != "partial"):
                     raise AssistantConflict("knowledge_plan_authorization_changed")
+            issues = self._plan_block_issues(connection=connection, space=space,
+                source_message_id=source_message_id, topics=[{"blocks": blocks}])
+            if issues:
+                raise ValueError("knowledge_topic_invalid:" + ";".join(issues))
+            inactive = connection.execute("SELECT status FROM assistant_wiki_pages WHERE principal_id=? AND space_id=? AND normalized_title=?", (self.principal_id, space_id, self._normalize_title(title))).fetchone()
+            if inactive and inactive[0] != "active":
+                raise AssistantConflict("wiki_page_inactive")
             normalized = self._normalize_title(title)
             row = connection.execute(
                 """SELECT * FROM assistant_wiki_pages WHERE principal_id=? AND space_id=?
@@ -1509,14 +1850,24 @@ class WikiService:
                     raise ValueError("personal_block_source_conflict")
                 if role == "personal":
                     quote = str(item.get("user_quote") or "").strip()
-                    if (len(quote) < 4 or quote not in str(message["content"])
-                            or " ".join(body.split()) != " ".join(quote.split())):
-                        raise ValueError("personal_quote_required")
+                    quote_message = self._user_quote(connection, space_id=space_id, request_message_id=source_message_id,
+                        user_message_id=item.get("user_message_id"), quote=quote, body=body)
                 memory_id, memory_version = item.get("memory_id"), item.get("memory_version")
                 if bool(memory_id) != (memory_version is not None) or (memory_id and role == "source"):
                     raise ValueError("invalid_memory_dependency")
                 block_id = f"wblock_{uuid.uuid4().hex[:20]}"
                 revisions = []
+                source_view = str(item.get("source_view") or "")
+                if source_view and source_view not in {"transcript", "summary", "description", "notes", "metadata", "time"}:
+                    raise ValueError("invalid_source_view")
+                # A mixed block cannot inherit a narrower dependency merely
+                # because one of its sources was a transcript. In particular,
+                # a corrected publication date must not leave an old date in
+                # an otherwise transcript-backed block.
+                if source_view and source_view != "time" and re.search(
+                    r"发布时间|收藏时间|\b20\d{2}[-/.年]\d{1,2}", body
+                ):
+                    source_view = ""
                 for ref in refs:
                     parts = str(ref).split(":")
                     if len(parts) != 3 or parts[0] != "video" or not parts[1].isdigit():
@@ -1528,10 +1879,17 @@ class WikiService:
                     ).fetchone()
                     if head is None or str(head["current_revision"]) != revision:
                         raise AssistantConflict("source_revision_changed")
-                    if video_id not in self.sources.visible_video_ids(self._scope(space)):
+                    if (video_id not in self.sources.visible_video_ids(self._scope(space)) or
+                            (task_subset and video_id not in task_subset)):
                         raise AssistantConflict("wiki_source_out_of_scope")
+                    if source_view and not self._read_view_observed(
+                        connection, thread_id=str(message["thread_id"]),
+                        source_ref=str(ref), view=source_view,
+                    ):
+                        raise ValueError("source_view_not_observed")
                     revisions.append(revision)
-                    source_links.append((block_id, video_id, revision))
+                    source_links.append((block_id, video_id, revision,
+                                         f"view:{source_view}" if source_view else "source"))
                 external_links = []
                 for source in external:
                     url = str(source.get("url") or "")
@@ -1568,12 +1926,14 @@ class WikiService:
                                  "personal": "personal_note"}[role],
                     "manual_lock": role == "personal", "user_input_source": "memory_derived" if memory_id else "discussion",
                     "source_message_id": source_message_id, "created_at": now,
+                    **({"source_view": source_view} if source_view else {}),
                     **({"external_sources": external_links} if external_links else {}),
-                    **({"user_quote": quote} if role == "personal" else {}),
+                    **({"user_quote": quote, "user_message_id": quote_message["id"]} if role == "personal" else {}),
+                    **({"evidence_ref": item["evidence_ref"]} if item.get("evidence_ref") else {}),
                 }
                 if role == "personal" and not memory_id:
                     historical = bool(re.search(r"当时|那时|曾经|之前|过去", body))
-                    validity = None if historical else anchored_validity(body, str(message["created_at"]))
+                    validity = None if historical else anchored_validity(body, str(quote_message["created_at"]))
                     if validity is None and has_time_reference(body):
                         value["historical_statement"] = True
                         value["validity_note"] = "原话包含未能可靠解释的时间；仅作历史记录，当前安排需核对"
@@ -1583,7 +1943,40 @@ class WikiService:
                         value.update(validity)
                 incoming.append(value)
             version = int(before["version"]) + 1 if before else 1
+            for tomb in old_blocks:
+                if tomb.get("deleted") and any((" ".join(tomb.get("heading", "").split()), " ".join(tomb.get("markdown", "").split())) ==
+                    (" ".join(block["heading"].split()), " ".join(block["markdown"].split())) for block in incoming):
+                    tomb.update(deletion_released=True, lifecycle_version=version)
             all_blocks = old_blocks + incoming
+            if before and authorized_plan_id is not None:
+                # A new discussion plan edits matching headings on the same page.
+                # Unmentioned blocks and human content keep their original identity.
+                headings = [' '.join(block['heading'].split()) for block in incoming]
+                if len(headings) != len(set(headings)):
+                    raise AssistantConflict('wiki_block_target_ambiguous')
+                for block in incoming:
+                    matches = [old for old in old_blocks if not old.get('deleted')
+                               and ' '.join(old['heading'].split()) == ' '.join(block['heading'].split())]
+                    if len(matches) > 1:
+                        raise AssistantConflict('wiki_block_target_ambiguous')
+                    if not matches:
+                        continue
+                    old = matches[0]
+                    if old.get('manual_lock'):
+                        if all(old.get(k) == block.get(k) for k in
+                               ('markdown', 'assessment', 'user_quote', 'user_message_id', 'applicability')):
+                            all_blocks.remove(block)
+                        # Distinct new content may be appended, as before; it must
+                        # never overwrite an independently edited or personal block.
+                    else:
+                        all_blocks.remove(block)  # remove the appended copy, keeping page order
+                        all_blocks[all_blocks.index(old)] = block
+                        for table in ('assistant_wiki_dependencies', 'assistant_wiki_personal_dependencies'):
+                            connection.execute(f'DELETE FROM {table} WHERE page_id=? AND block_id=?',
+                                               (page_id, old['stable_id']))
+                active_ids = {block['stable_id'] for block in all_blocks}
+                source_links = [link for link in source_links if link[0] in active_ids]
+                personal_links = [link for link in personal_links if link[0] in active_ids]
             if before:
                 changed = connection.execute(
                     """UPDATE assistant_wiki_pages SET blocks_json=?,version=?,updated_at=?
@@ -1600,11 +1993,11 @@ class WikiService:
                     (page_id, self.principal_id, space_id, normalized, title, purpose,
                      json.dumps(all_blocks, ensure_ascii=False), space["scope_version"], now, now),
                 )
-            for block_id, video_id, revision in source_links:
+            for block_id, video_id, revision, dependency_kind in source_links:
                 connection.execute(
                     """INSERT INTO assistant_wiki_dependencies(page_id,block_id,source_revision,video_id,
-                    dependency_kind,created_at) VALUES(?,?,?,?,'source',?)""",
-                    (page_id, block_id, revision, video_id, now),
+                    dependency_kind,created_at) VALUES(?,?,?,?,?,?)""",
+                    (page_id, block_id, revision, video_id, dependency_kind, now),
                 )
                 connection.execute(
                     """INSERT INTO assistant_wiki_materials(page_id,video_id,source_revision,relation,
@@ -1629,8 +2022,8 @@ class WikiService:
                 (page_id, version, json.dumps(before, ensure_ascii=False) if before else None,
                  json.dumps(after, ensure_ascii=False), "保存讨论成果", now),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, page_id, version, before_state)
+            self.store.guard_tool_operation(connection, operation_key)
             connection.execute(
                 """INSERT INTO assistant_mutation_receipts
                 (operation_key,principal_id,operation,result_json,created_at)
@@ -1639,21 +2032,322 @@ class WikiService:
             )
         return self._visible_page(after)
 
+    def save_feedback(self, plan: dict) -> dict:
+        """Receipt-backed UI hints. Actual undo still runs existing CAS operations."""
+        items = []
+        with self.db.connect() as connection:
+            for index, outcome in plan.get("results", {}).items():
+                if outcome.get("status") != "completed":
+                    continue
+                page_id, version = outcome["page_id"], int(outcome["version"])
+                page = connection.execute("SELECT title,version,status FROM assistant_wiki_pages WHERE id=? AND principal_id=? AND space_id=?",
+                    (page_id, self.principal_id, plan["space_id"])).fetchone()
+                change = connection.execute("SELECT before_json FROM assistant_wiki_changes WHERE page_id=? AND version=? AND operation='discussion_saved'", (page_id, version)).fetchone()
+                undo = None
+                if page and page["status"] == "active" and int(page["version"]) == version and change:
+                    if change[0] is None:
+                        undo = {"kind": "archive"}
+                    else:
+                        before = json.loads(change[0])
+                        undo = {"kind": "revert", "target_version": int(before["version"])}
+                items.append({"page_id": page_id, "version": version,
+                    "operation_key": f"wiki:{page_id}:{version}",
+                    "title": page["title"] if page else "知识页", "undo": undo})
+        return {"kind": "wiki", "operation_key": f"plan:{plan['id']}:{plan['version']}",
+                "space_id": plan["space_id"], "count": len(items), "items": items}
+
+    @staticmethod
+    def _read_view_observed(
+        connection: Any, *, thread_id: str, source_ref: str, view: str,
+    ) -> bool:
+        # Attached descriptions/metadata can be genuinely delivered even when
+        # the read's requested view was a transcript. Use confirmed input facts.
+        delivered = AssistantRunStore.confirmed_context_materials(connection, thread_id=thread_id)
+        for run in connection.execute("SELECT working_state_json FROM assistant_runs WHERE thread_id=?", (thread_id,)):
+            delivered.extend(json.loads(run[0] or "{}").get("model_delivered_materials") or [])
+        for material in delivered:
+            if ((material.get("kind") == "collection_read" or view in {"metadata", "time"})
+                    and material.get("source_ref") == source_ref
+                    and material.get("view") == view and material.get("projection") != "结果索引"):
+                return True
+        return False
+
+    def _source_dependency_current(
+        self, *, video_id: int, old_revision: str, current_revision: str,
+        dependency_kind: str, cache: dict[str, dict[str, Any]],
+    ) -> bool:
+        if old_revision == current_revision:
+            return True
+        if not dependency_kind.startswith("view:") or not current_revision:
+            return False
+        try:
+            if old_revision not in cache:
+                cache[old_revision] = self.sources._capture_or_load(video_id, old_revision).snapshot
+            if current_revision not in cache:
+                cache[current_revision] = self.sources._capture_or_load(video_id, current_revision).snapshot
+            old, new = cache[old_revision], cache[current_revision]
+        except (KeyError, OSError, ValueError):
+            return False
+        view = dependency_kind.removeprefix("view:")
+        if view == "transcript":
+            return all(old.get("material_hashes", {}).get(key) == new.get("material_hashes", {}).get(key)
+                       for key in ("raw_subtitle", "transcript"))
+        if view == "summary":
+            return old.get("material_hashes", {}).get("summary") == new.get("material_hashes", {}).get("summary")
+        if view == "description":
+            return old.get("metadata", {}).get("description") == new.get("metadata", {}).get("description")
+        if view == "notes":
+            return [item.get("content") for item in old.get("notes", [])] == [item.get("content") for item in new.get("notes", [])]
+        if view == "metadata":
+            excluded = {"published_at", "metadata_observed_at", "discovered_at", "active_revision"}
+            return ({key: value for key, value in old.get("metadata", {}).items() if key not in excluded}
+                    == {key: value for key, value in new.get("metadata", {}).items() if key not in excluded})
+        if view == "time":
+            return (old.get("metadata", {}).get("published_at") == new.get("metadata", {}).get("published_at")
+                    and old.get("membership_hash") == new.get("membership_hash"))
+        return False
+
+    def _user_quote(self, connection: Any, *, space_id: int, request_message_id: str,
+                    user_message_id: str | None, quote: str, body: str) -> dict:
+        repair = connection.execute("SELECT payload_json FROM assistant_knowledge_plans WHERE source_message_id=? AND principal_id=? AND space_id=? ORDER BY updated_at DESC LIMIT 1", (request_message_id, self.principal_id, space_id)).fetchone()
+        limit_message_id = (json.loads(repair[0]).get("save_request", {}).get("last_repair_message_id") if repair else None) or request_message_id
+        row = connection.execute(
+            """SELECT m.* FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id
+            WHERE m.id=? AND m.role='user' AND t.principal_id=? AND t.space_id=?
+            AND m.thread_id=(SELECT thread_id FROM assistant_messages WHERE id=?)
+            AND m.seq<=(SELECT seq FROM assistant_messages WHERE id=?)""",
+            (user_message_id or request_message_id, self.principal_id, space_id, request_message_id, limit_message_id),
+        ).fetchone()
+        suppressed = MemoryService(self.db).suppressed_source_message_ids(space_id=space_id)
+        if (row is None or str(row["id"]) in suppressed or not quote.strip()
+                or quote.strip() not in str(row["content"])):
+            raise ValueError("personal_quote_required")
+        return dict(row)
+
+    def _validate_save_answer(self, connection: Any, message_id: str, space: dict) -> None:
+        row = connection.execute("SELECT r.working_state_json,m.thread_id FROM assistant_runs r JOIN assistant_messages m ON m.run_id=r.id WHERE m.id=?",(message_id,)).fetchone()
+        if not row:
+            raise AssistantConflict('user_source_required')
+        plan = connection.execute('SELECT payload_json FROM assistant_knowledge_plans WHERE source_message_id=? AND principal_id=? AND space_id=? ORDER BY updated_at DESC LIMIT 1', (message_id,self.principal_id,int(space['id']))).fetchone()
+        binding = json.loads(plan[0]).get('save_request',{}) if plan else json.loads(row[0] or '{}').get('knowledge_save',{})
+        answer_ids = binding.get('answer_message_ids') or ([binding['answer_message_id']] if binding.get('answer_message_id') else [])
+        if not answer_ids:
+            return
+        from shiliu.assistant.tools import AssistantToolRegistry
+        registry = AssistantToolRegistry(sources=self.sources,memories=MemoryService(self.db),store=self.store,wiki=self)
+        for answer_id in answer_ids:
+            answer = self.store.knowledge_message(answer_id, thread_id=row['thread_id'])
+            refs = json.loads(answer.get('provider_payload_json') or '{}').get('dependency_refs') or []
+            if refs and not registry.dependency_refs_valid(refs,int(space['id']),row['thread_id'],int(space['scope_version'])):
+                raise AssistantConflict('save_answer_dependencies_changed')
+
+    def _source_delivered(self, connection: Any, *, message_id: str, ref: str,
+                          view: str, evidence_ref: str = "") -> bool:
+        message = connection.execute("SELECT thread_id FROM assistant_messages WHERE id=?", (message_id,)).fetchone()
+        if not message:
+            return False
+        suppressed = MemoryService(self.db).suppressed_source_message_ids(space_id=int(connection.execute(
+            "SELECT space_id FROM assistant_threads WHERE id=?", (message['thread_id'],)).fetchone()[0]))
+        states = []
+        for run in connection.execute("SELECT id,working_state_json FROM assistant_runs WHERE thread_id=?", (message['thread_id'],)):
+            user_ids = {r[0] for r in connection.execute("SELECT id FROM assistant_messages WHERE run_id=? AND role='user'", (run['id'],))}
+            if not user_ids.intersection(suppressed):
+                state = json.loads(run['working_state_json'] or '{}')
+                state['model_delivered_materials'] = [*(state.get('model_delivered_materials') or []),
+                    *self.store.confirmed_context_materials(connection, thread_id=message['thread_id'], run_id=run['id'])]
+                states.append(state)
+        for state in states:
+            for material in state.get("model_delivered_materials") or []:
+                if (view in {"metadata", "time"} and material.get("source_ref") == ref
+                        and material.get("view") == view and material.get("projection") != "结果索引"):
+                    return True
+                if material.get("projection") in {"结果索引", "搜索候选"} or material.get("kind") in {"search_knowledge", "collection_search", "knowledge_search"}:
+                    continue
+                if material.get("view") in {"result_index", "overview", "知识页目录／命中摘要"}:
+                    continue
+                if (not view and ref.startswith('run-result:') and material.get('source_ref') == ref
+                        and str(material.get('kind') or '').startswith('context7_')
+                        and material.get('view') == '公开文档'):
+                    return True
+                if material.get("source_ref") == ref and (material.get("view") == view if view else material.get("view") in {"transcript", "summary", "description", "notes"}):
+                    return True
+                if (evidence_ref and material.get("source_ref") == evidence_ref
+                        and ref in (material.get("lineage_refs") or []) and not view):
+                    parts = evidence_ref.split(":")
+                    if len(parts) == 3 and parts[0] == "wiki":
+                        page = connection.execute("SELECT version,status FROM assistant_wiki_pages WHERE id=? AND principal_id=?", (parts[1], self.principal_id)).fetchone()
+                        if page and page["status"] == "active" and str(page["version"]) == parts[2]:
+                            visible = self.get_page(parts[1], space_id=int(connection.execute("SELECT space_id FROM assistant_threads WHERE id=(SELECT thread_id FROM assistant_messages WHERE id=?)", (message_id,)).fetchone()[0]))
+                            delivered_ids = set(material.get("position", {}).get("block_ids") or [])
+                            if delivered_ids and delivered_ids.issubset({block["stable_id"] for block in visible["blocks"]}):
+                                return True
+        return False
+
+    @staticmethod
+    def _save_issues(issues: list[str], *, topic_offset: int = 0) -> list[dict]:
+        fields = {"personal_quote_required": "user_message_id", "personal_block_source_conflict": "source_refs",
+                  "source_block_requires_source": "source_refs", "versioned_video_source_required": "source_refs",
+                  "source_revision_changed": "source_refs", "wiki_source_out_of_scope": "source_refs",
+                  "source_view_not_observed": "source_view", "source_not_delivered": "source_refs",
+                  "invalid_memory_dependency": "memory_id", "personal_dependency_stale": "memory_id",
+                  "external_source_not_delivered": "external_sources", "external_source_not_in_result": "external_sources"}
+        result = []
+        for issue in dict.fromkeys(issues):
+            match = re.match(r"topic\[(\d+)\]\.block\[(\d+)\].*?:([^:]+)$", issue)
+            if match:
+                code = match[3]
+                path = f"topics[{int(match[1])-1+topic_offset}].blocks[{int(match[2])-1}].{fields.get(code, 'markdown')}"
+            else:
+                code = issue.split(":")[-1]
+                topic_match = re.match(r"topic\[(\d+)\]:", issue)
+                ti = int(topic_match[1])-1+topic_offset if topic_match else topic_offset
+                path = f"topics[{ti}].expected_version" if "version" in code or code == "wiki_page_missing" else f"topics[{ti}]"
+            detail = {}
+            if '|{"source_ref":' in issue:
+                try:
+                    detail = json.loads('{"source_ref":' + issue.split('|{"source_ref":', 1)[1].rsplit(":", 1)[0])
+                except ValueError:
+                    pass
+            message = (f"{path}：{detail['source_ref']} 请求视图 {detail['requested_view'] or '未声明'}；"
+                       f"已交付视图 {', '.join(detail['observed_views']) or '未找到可验证交付'}（{code}）") if detail else issue
+            result.append({"path": path, "code": code, "message": message, **detail,
+                           "action": ("personal 需要绑定真实用户消息及其中的原话；正文可忠实归纳，不能伪造引语或把助手分析当用户表达。" if code == "personal_quote_required" else
+                                      "沿原计划重交该未成功主题，成功项不动。source_refs 使用读取回执中的完整 video:ID:revision，不能只填裸版本哈希；依据已读 Wiki 正文时填写该页 evidence_ref（wiki:page_id:version），不冒充重读原材料。缺依据才定点读取；不要删除来源或改成 analysis 绕过校验，不需重复确认同一保存授权"
+                                      if code in {'versioned_video_source_required', 'source_not_delivered'} else
+                                      "沿原计划重交该未成功主题；成功项不动。按真实交付视图纠正，缺依据才定点读取；不需重复确认同一保存授权")})
+        return result
+
+    def _plan_block_issues(
+        self, *, connection: Any, space: dict[str, Any],
+        source_message_id: str, topics: list[dict[str, Any]],
+    ) -> list[str]:
+        """Check the save prerequisites before a plan is offered for confirmation."""
+        message = connection.execute(
+            """SELECT m.content,t.id AS thread_id FROM assistant_messages m
+            JOIN assistant_threads t ON t.id=m.thread_id
+            WHERE m.id=? AND m.role='user' AND t.principal_id=? AND t.space_id=?""",
+            (source_message_id, self.principal_id, int(space["id"])),
+        ).fetchone()
+        if message is None:
+            return ["user_source_required"]
+        if source_message_id in MemoryService(self.db).suppressed_source_message_ids(space_id=int(space["id"])):
+            return ["user_source_suppressed"]
+        self._validate_save_answer(connection, source_message_id, space)
+        issues: list[str] = []
+        scope = self._scope(self.store.task_space(str(message["thread_id"])))
+        for topic_index, topic in enumerate(topics, 1):
+            if topic.get("title") and "expected_version" in topic:
+                page = connection.execute("SELECT version FROM assistant_wiki_pages WHERE principal_id=? AND space_id=? AND normalized_title=? AND status='active'", (self.principal_id, int(space["id"]), self._normalize_title(topic["title"]))).fetchone()
+                if page and topic.get("expected_version") != int(page[0]):
+                    issues.append(f"topic[{topic_index}]:wiki_version_conflict")
+                elif not page and topic.get("expected_version") is not None:
+                    issues.append(f"topic[{topic_index}]:wiki_page_missing")
+            for block_index, block in enumerate(topic.get("blocks") or [], 1):
+                position = f"topic[{topic_index}].block[{block_index}]({str(block.get('heading') or '')[:40]})"
+                role = str(block.get("role") or "")
+                body = str(block.get("markdown") or "").strip()
+                refs = list(dict.fromkeys(block.get("source_refs") or []))
+                external = block.get("external_sources") or []
+                if role not in {"source", "analysis", "personal"} or not str(block.get("heading") or "").strip() or not body or len(body) > 12000:
+                    issues.append(f"{position}:invalid_knowledge_block")
+                    continue
+                if role == "source" and not refs and not external:
+                    issues.append(f"{position}:source_block_requires_source")
+                if role == "personal":
+                    if refs or external:
+                        issues.append(f"{position}:personal_block_source_conflict")
+                    quote = str(block.get("user_quote") or "").strip()
+                    try:
+                        self._user_quote(connection, space_id=int(space["id"]), request_message_id=source_message_id,
+                                         user_message_id=block.get("user_message_id"), quote=quote, body=body)
+                    except ValueError:
+                        issues.append(f"{position}:personal_quote_required")
+                memory_id, memory_version = block.get("memory_id"), block.get("memory_version")
+                if bool(memory_id) != (memory_version is not None) or (memory_id and role == "source"):
+                    issues.append(f"{position}:invalid_memory_dependency")
+                elif memory_id and not self._personal_dependency_current(
+                    connection, space_id=int(space["id"]), memory_id=str(memory_id),
+                    memory_version=int(memory_version), source_message_id=source_message_id,
+                ):
+                    issues.append(f"{position}:personal_dependency_stale")
+                for ref in refs:
+                    parts = str(ref).split(":")
+                    if len(parts) != 3 or parts[0] != "video" or not parts[1].isdigit():
+                        issues.append(f"{position}:versioned_video_source_required")
+                        continue
+                    head = connection.execute(
+                        "SELECT current_revision FROM assistant_source_heads WHERE principal_id=? AND video_id=?",
+                        (self.principal_id, int(parts[1])),
+                    ).fetchone()
+                    if head is None or str(head["current_revision"]) != parts[2]:
+                        issues.append(f"{position}:source_revision_changed")
+                    elif not self.sources.source_refs_visible([str(ref)], scope):
+                        issues.append(f"{position}:wiki_source_out_of_scope")
+                    source_view = str(block.get("source_view") or "")
+                    delivered = self._source_delivered(connection, message_id=source_message_id, ref=str(ref),
+                        view=source_view, evidence_ref=str(block.get("evidence_ref") or ""))
+                    view_observed = not source_view or self._read_view_observed(
+                        connection, thread_id=str(message["thread_id"]), source_ref=str(ref), view=source_view)
+                    if not delivered or not view_observed:
+                        # Diagnostics are assembled only on failure, never on the normal save path.
+                        suppressed = MemoryService(self.db).suppressed_source_message_ids(space_id=int(space["id"]))
+                        invalid_runs = {r[0] for r in connection.execute(
+                            "SELECT run_id,id FROM assistant_messages WHERE thread_id=? AND role='user'", (str(message["thread_id"]),)) if r[1] in suppressed}
+                        observed_views = sorted({str(material.get("view"))
+                            for row in connection.execute("SELECT id,working_state_json FROM assistant_runs WHERE thread_id=?", (str(message["thread_id"]),))
+                            if row[0] not in invalid_runs
+                            for material in json.loads(row[1] or "{}").get("model_delivered_materials", [])
+                            if material.get("source_ref") == str(ref)
+                            and material.get("kind") == "collection_read"
+                            and material.get("projection") not in {"结果索引", "搜索候选"}})
+                        source_position = position + "|" + json.dumps({"source_ref": str(ref),
+                            "requested_view": source_view, "observed_views": observed_views}, ensure_ascii=False)
+                        if not delivered:
+                            issues.append(f"{source_position}:source_not_delivered")
+                        if not view_observed:
+                            issues.append(f"{source_position}:source_view_not_observed")
+                for source in external:
+                    url = str(source.get("url") or "") if isinstance(source, dict) else ""
+                    result_ref = str(source.get("result_ref") or "") if isinstance(source, dict) else ""
+                    if not re.fullmatch(r"https://[^\s]+", url):
+                        issues.append(f"{position}:invalid_external_url")
+                        continue
+                    try:
+                        resolved = self.store.resolve_run_result(
+                            result_ref, current_thread_id=str(message["thread_id"]),
+                            current_scope_version=int(space["scope_version"]),
+                        )
+                    except (ValueError, KeyError, AssistantConflict):
+                        issues.append(f"{position}:external_source_not_in_result")
+                        continue
+                    if (not str(resolved["name"]).startswith("context7_") or
+                            url not in json.dumps(resolved["result"], ensure_ascii=False)):
+                        issues.append(f"{position}:external_source_not_in_result")
+                    elif not self._source_delivered(connection, message_id=source_message_id,
+                                                    ref=str(resolved["result_ref"]), view=""):
+                        issues.append(f"{position}:external_source_not_delivered")
+        return issues
+
     def propose_discussion(
         self, *, space_id: int, topics: list[dict[str, Any]], omitted: list[str],
-        source_message_id: str, request_key: str,
+        source_message_id: str, request_key: str, allow_direct_partial: bool = False,
+        save_request: dict | None = None,
     ) -> dict[str, Any]:
-        if not 2 <= len(topics) <= 6 or not all(isinstance(item, dict) for item in topics):
+        if not 1 <= len(topics) <= 6 or not all(isinstance(item, dict) for item in topics):
             raise ValueError("invalid_knowledge_plan")
         space = self.store.get_space(space_id)
         with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
             message = connection.execute(
-                """SELECT 1 FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id
+                """SELECT m.content FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id
                 WHERE m.id=? AND m.role='user' AND t.principal_id=? AND t.space_id=?""",
                 (source_message_id, self.principal_id, space_id),
             ).fetchone()
             if message is None:
                 raise ValueError("user_source_required")
+            if allow_direct_partial:
+                if not str(message["content"]).strip():
+                    raise AssistantConflict("user_source_required")
             plan_id = "akplan_" + hashlib.sha256(
                 f"{self.principal_id}:{space_id}:{source_message_id}:{request_key}".encode()
             ).hexdigest()[:28]
@@ -1661,16 +2355,21 @@ class WikiService:
                 "SELECT * FROM assistant_knowledge_plans WHERE id=?", (plan_id,)
             ).fetchone()
             if existing:
-                return self._decode_knowledge_plan(dict(existing))
+                previous = self._decode_knowledge_plan(dict(existing))
+                frozen = previous['payload'].get('save_request') or {}
+                if save_request and any(frozen.get(k,[]) != save_request.get(k,[]) for k in ('answer_message_ids','user_message_ids') if k in frozen):
+                    raise AssistantConflict('save_target_changed_use_new_request')
+                return self._present_knowledge_plan(previous)
+            self.store.guard_tool_operation(connection)
             prepared = []
             names = set()
-            for item in topics:
+            for topic_index, item in enumerate(topics):
                 title = str(item.get("title") or "").strip()
                 purpose = str(item.get("purpose") or "").strip()
                 blocks = item.get("blocks") or []
                 normalized = self._normalize_title(title)
                 if not normalized or normalized in names or not purpose or not 1 <= len(blocks) <= 8:
-                    raise ValueError("invalid_knowledge_plan_topic")
+                    raise ValueError(f"topics[{topic_index}].title:invalid_knowledge_plan_topic")
                 names.add(normalized)
                 page = connection.execute(
                     """SELECT id,version FROM assistant_wiki_pages WHERE principal_id=? AND space_id=?
@@ -1678,25 +2377,63 @@ class WikiService:
                     (self.principal_id, space_id, normalized),
                 ).fetchone()
                 refs = sorted({str(ref) for block in blocks for ref in block.get("source_refs", [])})
-                if refs and not self.sources.source_refs_visible(refs, self._scope(space)):
+                if refs and not allow_direct_partial and not self.sources.source_refs_visible(refs, self._scope(space)):
                     raise ValueError("source_out_of_scope")
                 prepared.append({
                     "title": title, "purpose": purpose, "blocks": blocks,
                     "source_refs": refs, "cross_references": item.get("cross_references") or [],
                     "omitted": item.get("omitted") or [],
                     "page_id": str(page["id"]) if page else None,
-                    "expected_version": int(page["version"]) if page else None,
+                    "expected_version": (item.get("expected_version") if item.get("expected_version") is not None else int(page["version"]) if page else item.get("expected_version")),
                 })
+            issues = self._plan_block_issues(
+                connection=connection, space=space, source_message_id=source_message_id,
+                topics=prepared,
+            )
+            if issues and not allow_direct_partial and save_request is None:
+                raise ValueError("knowledge_plan_not_confirmable:" + ";".join(issues[:12]))
+            self.store.guard_tool_operation(connection)
             now = utc_now()
             connection.execute(
                 """INSERT INTO assistant_knowledge_plans(id,principal_id,space_id,version,scope_version,
                 source_message_id,payload_json,results_json,status,created_at,updated_at)
                 VALUES(?,?,?,1,?,?,?,'{}','pending',?,?)""",
                 (plan_id, self.principal_id, space_id, space["scope_version"], source_message_id,
-                 json.dumps({"topics": prepared, "omitted": omitted[:20]}, ensure_ascii=False), now, now),
+                 json.dumps({"topics": prepared, "omitted": omitted[:20],
+                             "direct_authorized": bool(allow_direct_partial),
+                             **({"save_request": save_request, "stable_topic_receipts": True} if save_request else {})}, ensure_ascii=False), now, now),
             )
             row = connection.execute("SELECT * FROM assistant_knowledge_plans WHERE id=?", (plan_id,)).fetchone()
         return self._present_knowledge_plan(self._decode_knowledge_plan(dict(row)))
+
+    def save_discussion_topics(
+        self, *, space_id: int, topics: list[dict[str, Any]], omitted: list[str],
+        source_message_id: str, request_key: str, save_request: dict | None = None,
+    ) -> dict[str, Any]:
+        # The authorization is the current user's actual message, not a model
+        # supplied flag or an old pending plan. Keep the existing plan validator,
+        # per-page receipts, version checks and partial-result handling.
+        with self.db.connect() as connection:
+            row = connection.execute(
+                """SELECT m.content FROM assistant_messages m
+                JOIN assistant_threads t ON t.id=m.thread_id
+                WHERE m.id=? AND m.role='user' AND t.principal_id=? AND t.space_id=?""",
+                (source_message_id, self.principal_id, space_id),
+            ).fetchone()
+        if row is None:
+            raise AssistantConflict("explicit_knowledge_save_required")
+        plan = self.propose_discussion(
+            space_id=space_id, topics=topics, omitted=omitted,
+            source_message_id=source_message_id, request_key=request_key,
+            allow_direct_partial=True, save_request=save_request,
+        )
+        # Only the deterministic plan generated for this authorized request is
+        # executed. In particular, this never sweeps historical pending plans.
+        return self.decide_discussion_plan(
+            str(plan["id"]), space_id=space_id,
+            expected_version=int(plan["version"]), accept=True,
+            operation_key=f"direct:{request_key}",
+        )
 
     @staticmethod
     def _decode_knowledge_plan(row: dict[str, Any]) -> dict[str, Any]:
@@ -1705,7 +2442,10 @@ class WikiService:
         return row
 
     def _present_knowledge_plan(self, plan: dict[str, Any]) -> dict[str, Any]:
+        space = self.store.get_space(int(plan["space_id"]))
         with self.db.connect() as connection:
+            source = connection.execute("SELECT thread_id FROM assistant_messages WHERE id=?", (plan["source_message_id"],)).fetchone()
+            plan["thread_id"] = source["thread_id"] if source else None
             for topic in plan["payload"]["topics"]:
                 labels = []
                 for ref in topic.get("source_refs", []):
@@ -1717,22 +2457,295 @@ class WikiService:
                         if video:
                             labels.append(str(video["title"]))
                 topic["source_labels"] = labels
+            issues = []
+            for index, topic in enumerate(plan['payload']['topics']):
+                if plan['results'].get(str(index),{}).get('status') in {'completed','ignored'}:
+                    continue
+                local = self._plan_block_issues(connection=connection,space=space,
+                    source_message_id=str(plan['source_message_id']),topics=[topic])
+                issues.extend(issue.replace('topic[1]',f'topic[{index+1}]',1) for issue in local)
+        plan["confirmable"] = not issues
+        plan["validation_issues"] = issues
+        plan["issues"] = self._save_issues(issues)
         return plan
 
-    def list_discussion_plans(self, *, space_id: int) -> list[dict[str, Any]]:
+    def manage_plan_item(self, plan_id: str, *, space_id: int, item_index: int, action: str,
+                         expected_version: int, operation_key: str) -> dict:
+        if action not in {"ignore", "restore"}:
+            raise ValueError("invalid_plan_action")
+        self.store.get_space(space_id)
+        with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            self.store.guard_tool_operation(connection)
+            row = connection.execute("SELECT * FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?", (plan_id, self.principal_id, space_id)).fetchone()
+            if row is None:
+                raise KeyError(plan_id)
+            prior = connection.execute("SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?", (operation_key, self.principal_id)).fetchone()
+            if prior:
+                result = json.loads(prior[0])
+                if result.get("id") != plan_id or result.get("item_action") != {"index": item_index, "action": action}:
+                    raise AssistantConflict("operation_key_conflict")
+                return result
+            plan = self._decode_knowledge_plan(dict(row))
+            if plan["status"] not in {"pending", "partial"} or int(plan["version"]) != expected_version:
+                raise AssistantConflict("knowledge_plan_version_conflict")
+            if not 0 <= item_index < len(plan["payload"]["topics"]):
+                raise ValueError("item_out_of_range")
+            key = str(item_index)
+            results = plan["results"]
+            # A committed page is authoritative even if the results update was lost.
+            receipt_key = (f"knowledge-plan:{plan_id}:topic:{item_index}" if plan["payload"].get("stable_topic_receipts") else f"knowledge-plan:{plan_id}:{expected_version}:{item_index}")
+            receipt = connection.execute("SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?", (receipt_key, self.principal_id)).fetchone()
+            if results.get(key, {}).get("status") == "completed" or receipt:
+                raise AssistantConflict("knowledge_topic_already_completed")
+            old = results.get(key, {})
+            if action == "ignore":
+                results[key] = {**old, "status": "ignored", "reason": old.get("reason") or "用户主动忽略未完成项", "before_ignore": old}
+            else:
+                if old.get("status") != "ignored" or plan["payload"].get("superseded_by"):
+                    raise AssistantConflict("knowledge_item_not_restorable")
+                source = connection.execute("SELECT m.id FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id WHERE m.id=? AND m.role='user' AND t.principal_id=? AND t.space_id=?", (plan["source_message_id"], self.principal_id, space_id)).fetchone()
+                if not source or plan["source_message_id"] in MemoryService(self.db).suppressed_source_message_ids(space_id=space_id):
+                    raise AssistantConflict("knowledge_plan_authorization_changed")
+                space = self.store.get_space(space_id)
+                if int(space["scope_version"]) != int(plan["scope_version"]):
+                    raise AssistantConflict("knowledge_plan_scope_changed")
+                try:
+                    problems = self._plan_block_issues(connection=connection, space=space, source_message_id=str(plan["source_message_id"]), topics=[plan["payload"]["topics"][item_index]])
+                except (ValueError, AssistantConflict, KeyError) as exc:
+                    problems = [str(exc)]
+                results[key] = {**old.get("before_ignore", {}), "status": "failed", "reason": "已恢复；请沿原计划重交未成功主题",
+                                "issues": self._save_issues(problems, topic_offset=item_index), "restored_at": utc_now()}
+            connection.execute("UPDATE assistant_knowledge_plans SET version=version+1,results_json=?,updated_at=? WHERE id=? AND version=?", (json.dumps(results, ensure_ascii=False), utc_now(), plan_id, expected_version))
+            updated = self._present_knowledge_plan(self._decode_knowledge_plan(dict(connection.execute("SELECT * FROM assistant_knowledge_plans WHERE id=?", (plan_id,)).fetchone())))
+            updated["item_action"] = {"index": item_index, "action": action}
+            self.store.guard_tool_operation(connection)
+            connection.execute("INSERT INTO assistant_mutation_receipts(operation_key,principal_id,operation,result_json,created_at) VALUES(?,?,'knowledge_item_action',?,?)", (operation_key, self.principal_id, json.dumps(updated, ensure_ascii=False), utc_now()))
+            return updated
+
+    def list_discussion_plans(self, *, space_id: int, view: str = "all", lightweight: bool = False) -> list[dict[str, Any]]:
         self.store.get_space(space_id)
         with self.db.connect() as connection:
             rows = connection.execute(
                 """SELECT * FROM assistant_knowledge_plans WHERE principal_id=? AND space_id=?
-                ORDER BY created_at DESC LIMIT 30""", (self.principal_id, space_id),
+                ORDER BY created_at DESC""", (self.principal_id, space_id),
             ).fetchall()
-        return [self._present_knowledge_plan(self._decode_knowledge_plan(dict(row))) for row in rows]
+        plans = [self._decode_knowledge_plan(dict(row)) for row in rows]
+        if view == "pending":
+            plans = [plan for plan in plans if plan["status"] in {"pending", "partial"} and any(
+                plan["results"].get(str(i), {}).get("status") not in {"completed", "ignored"}
+                for i in range(len(plan["payload"]["topics"]))) and not plan["payload"].get("superseded_by")]
+        elif view == "ignored":
+            plans = [plan for plan in plans if any(item.get("status") == "ignored" for item in plan["results"].values())]
+        if not lightweight:
+            return [self._present_knowledge_plan(plan) for plan in plans[:30]]
+        for plan in plans[:30]:
+            payload = plan['payload']
+            plan['confirmable'] = None  # not checked by list; decide revalidates in its transaction
+            plan['payload'] = {'omitted': payload.get('omitted', []), 'topics': [{k: topic.get(k, [] if k in {'cross_references','omitted'} else '')
+                for k in ('title','purpose','cross_references','omitted')} for topic in payload['topics']]}
+            plan['issues'] = []
+        return plans[:30]
+
+    def plan_source_options(self, plan_id: str, *, space_id: int, query: str = "") -> list[dict[str, Any]]:
+        """Offer selected and task encountered sources; optional scoped title search."""
+        space = self.store.get_space(space_id)
+        scope = self._scope(space)
+        with self.db.connect() as connection:
+            row = connection.execute(
+                'SELECT source_message_id,payload_json FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?',
+                (plan_id, self.principal_id, space_id),
+            ).fetchone()
+            if row is None:
+                raise KeyError(plan_id)
+            payload = json.loads(row['payload_json'])
+            selected = {str(ref) for topic in payload['topics'] for block in topic.get('blocks') or []
+                        for ref in block.get('source_refs') or []}
+            source_message = connection.execute('SELECT run_id,thread_id FROM assistant_messages WHERE id=?', (row['source_message_id'],)).fetchone()
+            refs = set(selected)
+            if source_message and source_message['run_id']:
+                for call in connection.execute(
+                    "SELECT name,result_json FROM assistant_tool_calls WHERE run_id=? AND status='completed' ORDER BY ordinal",
+                    (source_message['run_id'],),
+                ):
+                    if call['name'] not in {'collection_search', 'collection_read', 'knowledge_read'}:
+                        continue
+                    try:
+                        result = json.loads(call['result_json'] or '{}')
+                    except ValueError:
+                        continue
+                    refs.update(str(ref) for ref in result.get('source_refs') or [] if str(ref).startswith('video:'))
+                    for item in result.get('items') or []:
+                        if isinstance(item, dict):
+                            refs.update(str(ref) for ref in item.get('source_refs') or [] if str(ref).startswith('video:'))
+        if source_message:
+            note = self.store.get_thread(str(source_message['thread_id'])).get('task_note') or {}
+            if note.get('status') == 'active' and note.get('usable') is not False:
+                for material in (note.get('searched_scope_and_material_refs') or [])[-12:]:
+                    refs.update(str(ref) for ref in material.get('source_refs') or []
+                                if str(ref).startswith('video:'))
+        if query.strip():
+            found = self.sources.search(call_id='plan-source-search', scope=scope,
+                                        query=query.strip()[:120], mode='metadata', limit=10,
+                                        scope_version=int(space['scope_version']))
+            with self.db.connect() as connection:
+                for raw_ref in found.source_refs:
+                    parts = str(raw_ref).split(':')
+                    if len(parts) < 2 or parts[0] != 'video' or not parts[1].isdigit():
+                        continue
+                    head = connection.execute(
+                        'SELECT current_revision FROM assistant_source_heads WHERE principal_id=? AND video_id=?',
+                        (self.principal_id, int(parts[1])),
+                    ).fetchone()
+                    if head:
+                        refs.add(f"video:{parts[1]}:{head['current_revision']}")
+        options = []
+        with self.db.connect() as connection:
+            for ref in sorted(refs):
+                parts = ref.split(':')
+                if len(parts) != 3 or not parts[1].isdigit() or not self.sources.source_refs_visible([ref], scope):
+                    continue
+                head = connection.execute(
+                    'SELECT current_revision FROM assistant_source_heads WHERE principal_id=? AND video_id=?',
+                    (self.principal_id, int(parts[1])),
+                ).fetchone()
+                if not head or head['current_revision'] != parts[2]:
+                    continue
+                video = connection.execute('SELECT title,uploader FROM videos WHERE id=?', (int(parts[1]),)).fetchone()
+                if video:
+                    options.append({'source_ref': ref, 'title': str(video['title']),
+                                    'uploader': str(video['uploader'] or ''), 'selected': ref in selected,
+                                    'view': '当前可用收藏'})
+        return sorted(options, key=lambda item: (not item['selected'], item['title']))[:16]
+
+    def plan_selected_source_statuses(self, plan_id: str, *, space_id: int) -> list[dict[str, str]]:
+        """Inspect only refs already bound to this plan, without replacing their revisions."""
+        space = self.store.get_space(space_id)
+        scope = self._scope(space)
+        with self.db.connect() as connection:
+            row = connection.execute(
+                'SELECT payload_json FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?',
+                (plan_id, self.principal_id, space_id),
+            ).fetchone()
+            if row is None:
+                raise KeyError(plan_id)
+            payload = json.loads(row['payload_json'])
+            selected = list(dict.fromkeys(str(ref) for topic in payload['topics']
+                for block in topic.get('blocks') or [] for ref in block.get('source_refs') or []))
+            statuses = []
+            for ref in selected[:64]:
+                parts = ref.split(':')
+                item = {'source_ref': ref, 'title': '已绑定来源', 'status': 'invalid'}
+                if len(parts) == 3 and parts[0] == 'video' and parts[1].isdigit():
+                    head = connection.execute(
+                        'SELECT current_revision FROM assistant_source_heads WHERE principal_id=? AND video_id=?',
+                        (self.principal_id, int(parts[1])),
+                    ).fetchone()
+                    if head:
+                        video = connection.execute('SELECT title FROM videos WHERE id=?', (int(parts[1]),)).fetchone()
+                        if video:
+                            item['title'] = str(video['title'])
+                        if str(head['current_revision']) != parts[2]:
+                            item['status'] = 'revision_changed'
+                        elif not self.sources.source_refs_visible([ref], scope):
+                            item['status'] = 'out_of_scope'
+                        else:
+                            item['status'] = 'available'
+                statuses.append(item)
+        return statuses
+
+    def legacy_repair_input(self, args: dict, *, space_id: int) -> dict:
+        """Decode persisted old calls/UI payloads, never a second write implementation."""
+        with self.db.connect() as c:
+            row = c.execute('SELECT * FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?',
+                            (args['plan_id'], self.principal_id, space_id)).fetchone()
+            if row is None:
+                raise ValueError('plan_not_found')
+            plan = self._decode_knowledge_plan(dict(row))
+        topics = json.loads(json.dumps(plan['payload']['topics']))
+        touched = set()
+        for correction in args.get('corrections') or []:
+            match = re.fullmatch(r'topics\[(\d+)\](?:\.blocks\[(\d+)\])?\.([a-z_]+)', correction['path'])
+            if not match:
+                raise ValueError('legacy_repair_requires_topic_resubmission')
+            ti = int(match[1]); bi = int(match[2]) if match[2] is not None else None
+            if ti >= len(topics) or bi is not None and bi >= len(topics[ti]['blocks']):
+                raise ValueError('invalid_repair_path')
+            target = topics[ti] if bi is None else topics[ti]['blocks'][bi]
+            target[match[3]] = correction['value']; touched.add(ti)
+        return {'plan_id': args['plan_id'], 'expected_version': args['expected_version'],
+                'replacements': [{'index': ti, 'topic': {k:v for k,v in topics[ti].items()
+                    if k not in {'page_id', 'source_refs', 'source_labels'}}} for ti in sorted(touched)]}
+
+    def repair_discussion_plan(self, plan_id: str, *, space_id: int, expected_version: int,
+                               corrections: list[dict], request: dict, repair_count: int = 0, operation_key: str) -> dict:
+        # Compatibility for old persisted/UI calls only; all validation is topic-level.
+        converted = self.legacy_repair_input({'plan_id': plan_id, 'expected_version': expected_version,
+                                            'corrections': corrections}, space_id=space_id)
+        return self.replace_discussion_topics(plan_id, space_id=space_id, expected_version=expected_version,
+            replacements=converted['replacements'], request=request, operation_key=operation_key)
+
+    def replace_discussion_topics(self, plan_id: str, *, space_id: int, expected_version: int,
+                                  replacements: list[dict], request: dict, operation_key: str) -> dict:
+        from shiliu.assistant.tools import KnowledgePlanTopic
+        with self.db.connect() as c:
+            c.execute('BEGIN IMMEDIATE')
+            self.store.guard_tool_operation(c)
+            receipt = c.execute('SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?', (operation_key, self.principal_id)).fetchone()
+            if receipt:
+                return json.loads(receipt[0])
+            row = c.execute('SELECT * FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?', (plan_id, self.principal_id, space_id)).fetchone()
+            if row is None:
+                raise ValueError('plan_not_found')
+            plan = self._decode_knowledge_plan(dict(row))
+            if plan['status'] not in {'pending','partial'}:
+                raise AssistantConflict('knowledge_plan_not_repairable')
+            if plan['version'] != expected_version:
+                raise AssistantConflict('knowledge_plan_version_conflict')
+            original = c.execute('SELECT thread_id FROM assistant_messages WHERE id=?', (plan['source_message_id'],)).fetchone()
+            current_id = request.get('last_repair_message_id') or request['source_message_id']
+            current = c.execute("SELECT m.thread_id FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id WHERE m.id=? AND m.role='user' AND t.principal_id=? AND t.space_id=?", (current_id, self.principal_id, space_id)).fetchone()
+            if not current or current[0] != original[0]:
+                raise AssistantConflict('knowledge_plan_request_mismatch')
+            if self.store.get_space(space_id)['scope_version'] != plan['scope_version']:
+                raise AssistantConflict('knowledge_plan_scope_changed')
+            payload = plan['payload']; payload.setdefault('original_topics', json.loads(json.dumps(payload['topics'])))
+            touched = set()
+            changed = False
+            for replacement in replacements:
+                ti = replacement['index']
+                if ti in touched or ti < 0 or ti >= len(payload['topics']):
+                    raise ValueError('invalid_topic_index')
+                touched.add(ti)
+                key = (f"knowledge-plan:{plan_id}:topic:{ti}" if payload.get('stable_topic_receipts') else f"knowledge-plan:{plan_id}:{expected_version}:{ti}")
+                if c.execute('SELECT 1 FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?', (key, self.principal_id)).fetchone() or plan['results'].get(str(ti),{}).get('status') in {'completed','ignored'}:
+                    raise AssistantConflict('knowledge_topic_already_completed')
+                topic = KnowledgePlanTopic.model_validate(replacement['topic']).model_dump(mode='json')
+                before = payload['topics'][ti]
+                if self._normalize_title(topic['title']) != self._normalize_title(before['title']):
+                    raise AssistantConflict('knowledge_topic_target_changed_use_new_edit')
+                normalized_before = KnowledgePlanTopic.model_validate({k:v for k,v in before.items()
+                    if k not in {'page_id','source_refs','source_labels'}}).model_dump(mode='json')
+                changed = changed or topic != normalized_before
+                topic['page_id'] = before.get('page_id')
+                topic['source_refs'] = sorted({r for b in topic['blocks'] for r in b.get('source_refs') or []})
+                payload['topics'][ti] = topic
+            if not changed and payload.get('save_request',{}).get('last_repair_message_id') == current_id:
+                return self._present_knowledge_plan(plan)
+            payload['save_request'] = {**payload.get('save_request',{}), 'last_repair_message_id': current_id}
+            c.execute('UPDATE assistant_knowledge_plans SET version=version+1,payload_json=?,updated_at=? WHERE id=? AND version=?',
+                (json.dumps(payload,ensure_ascii=False),utc_now(),plan_id,expected_version))
+            updated = self._present_knowledge_plan(self._decode_knowledge_plan(dict(c.execute('SELECT * FROM assistant_knowledge_plans WHERE id=?',(plan_id,)).fetchone())))
+            self.store.guard_tool_operation(c)
+            c.execute("INSERT INTO assistant_mutation_receipts(operation_key,principal_id,operation,result_json,created_at) VALUES(?,?,'knowledge_plan_replace',?,?)",
+                (operation_key,self.principal_id,json.dumps(updated,ensure_ascii=False),utc_now()))
+            return updated
 
     def revise_discussion_plan(
         self, plan_id: str, *, space_id: int, expected_version: int,
         topics: list[dict[str, Any]], omitted: list[str], operation_key: str,
     ) -> dict[str, Any]:
-        if not 2 <= len(topics) <= 6:
+        if not 1 <= len(topics) <= 6:
             raise ValueError("invalid_knowledge_plan")
         space = self.store.get_space(space_id)
         with self.db.connect() as connection:
@@ -1754,6 +2767,8 @@ class WikiService:
                 raise AssistantConflict("knowledge_plan_version_conflict")
             if int(plan["scope_version"]) != int(space["scope_version"]):
                 raise AssistantConflict("knowledge_plan_scope_changed")
+            if plan["payload"].get("stable_topic_receipts") and len(topics) != len(plan["payload"]["topics"]):
+                raise ValueError("knowledge_topic_positions_fixed")
             names = set()
             prepared = []
             for item in topics:
@@ -1776,15 +2791,22 @@ class WikiService:
                                  "omitted": item.get("omitted") or [],
                                  "page_id": str(page["id"]) if page else None,
                                  "expected_version": int(page["version"]) if page else None})
+            issues = self._plan_block_issues(
+                connection=connection, space=space,
+                source_message_id=str(plan["source_message_id"]), topics=prepared,
+            )
+            if issues:
+                raise ValueError("knowledge_plan_not_confirmable:" + ";".join(issues[:12]))
             connection.execute(
                 """UPDATE assistant_knowledge_plans SET version=version+1,payload_json=?,updated_at=?
                 WHERE id=? AND version=? AND status='pending'""",
-                (json.dumps({"topics": prepared, "omitted": omitted[:20]}, ensure_ascii=False),
+                (json.dumps({**plan["payload"], "topics": prepared, "omitted": omitted[:20]}, ensure_ascii=False),
                  utc_now(), plan_id, expected_version),
             )
             updated = self._present_knowledge_plan(self._decode_knowledge_plan(dict(connection.execute(
                 "SELECT * FROM assistant_knowledge_plans WHERE id=?", (plan_id,)
             ).fetchone())))
+            self.store.guard_tool_operation(connection)
             connection.execute(
                 """INSERT INTO assistant_mutation_receipts(operation_key,principal_id,operation,result_json,created_at)
                 VALUES(?,?,'knowledge_plan_revise',?,?)""",
@@ -1813,6 +2835,7 @@ class WikiService:
             raise AssistantConflict("knowledge_plan_scope_changed")
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            self.store.guard_tool_operation(connection)
             row = connection.execute(
                 "SELECT * FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?",
                 (plan_id, self.principal_id, space_id),
@@ -1846,6 +2869,14 @@ class WikiService:
             if plan["status"] == "completed":
                 return plan
             if plan["status"] == "pending":
+                issues = self._plan_block_issues(
+                    connection=connection, space=space,
+                    source_message_id=str(plan["source_message_id"]),
+                    topics=plan["payload"]["topics"],
+                )
+                blocking = [issue for issue in issues if not issue.endswith((":wiki_version_conflict", ":wiki_page_missing"))]
+                if blocking and not plan["payload"].get("direct_authorized"):
+                    raise AssistantConflict("knowledge_plan_not_confirmable:" + ";".join(blocking[:12]))
                 changed = connection.execute(
                     """UPDATE assistant_knowledge_plans SET status='partial',updated_at=?
                     WHERE id=? AND version=? AND status='pending'""",
@@ -1862,20 +2893,46 @@ class WikiService:
                 live = self._decode_knowledge_plan(dict(connection.execute(
                     "SELECT * FROM assistant_knowledge_plans WHERE id=?", (plan_id,),
                 ).fetchone()))
-            if live["results"].get(key, {}).get("status") == "completed":
+            if live["results"].get(key, {}).get("status") in {"completed", "ignored"}:
                 continue
+            page_key = (f"knowledge-plan:{plan_id}:topic:{index}" if plan["payload"].get("stable_topic_receipts")
+                        else f"knowledge-plan:{plan_id}:{expected_version}:{index}")
             try:
-                page = self.save_discussion(
-                    space_id=space_id, title=item["title"], purpose=item["purpose"],
-                    blocks=item["blocks"], expected_version=item["expected_version"],
-                    source_message_id=plan["source_message_id"],
-                    operation_key=f"knowledge-plan:{plan_id}:{expected_version}:{index}",
-                    authorized_plan_id=plan_id, authorized_plan_version=expected_version,
-                )
-                outcome = {"status": "completed", "page_id": page["id"],
-                           "version": page["version"]}
+                with self.db.connect() as connection:
+                    receipt = connection.execute("SELECT result_json FROM assistant_mutation_receipts WHERE operation_key=? AND principal_id=?", (page_key, self.principal_id)).fetchone()
+                if receipt:
+                    page = json.loads(receipt[0])
+                    outcome = {"status": "completed", "page_id": page["id"], "version": page["version"]}
+                else:
+                    outcome = None
+                if not receipt and plan["payload"].get("direct_authorized"):
+                    with self.db.connect() as connection:
+                        item_issues = self._plan_block_issues(
+                            connection=connection, space=space,
+                            source_message_id=str(plan["source_message_id"]),
+                            topics=[item],
+                        )
+                    if item_issues:
+                        raise ValueError("knowledge_topic_invalid:" + ";".join(item_issues[:8]))
+                if outcome is None:
+                    page = self.save_discussion(
+                        space_id=space_id, title=item["title"], purpose=item["purpose"],
+                        blocks=item["blocks"], expected_version=item["expected_version"],
+                        source_message_id=plan["source_message_id"], operation_key=page_key,
+                        authorized_plan_id=plan_id, authorized_plan_version=expected_version,
+                    )
+                    outcome = {"status": "completed", "page_id": page["id"], "version": page["version"]}
             except (ValueError, AssistantConflict, KeyError) as exc:
-                outcome = {"status": "failed", "reason": str(exc)}
+                failures = str(exc).removeprefix("knowledge_topic_invalid:").split(";")
+                try:
+                    with self.db.connect() as connection:
+                        current_issues = self._plan_block_issues(connection=connection, space=space,
+                            source_message_id=str(plan["source_message_id"]), topics=[item])
+                    failures = current_issues or failures
+                except (ValueError, AssistantConflict, KeyError):
+                    pass
+                outcome = {"status": "failed", "reason": str(exc),
+                           "issues": self._save_issues(failures, topic_offset=index)}
             with self.db.connect() as connection:
                 connection.execute("BEGIN IMMEDIATE")
                 current = self._decode_knowledge_plan(dict(connection.execute(
@@ -2021,7 +3078,15 @@ class WikiService:
                         "reason": "manual_content_conflict"}
             source_before = self._operation_state(connection, source_page_id)
             target_before = self._operation_state(connection, target_page_id)
+            self._assert_lifecycle(target, visible_source["blocks"])
             target_blocks = list(target["blocks"])
+            for tomb in source["blocks"]:
+                if tomb.get("deleted"):
+                    carried = {**tomb, "lifecycle_version": target_version + 1}
+                    if any(b["stable_id"] == tomb["stable_id"] for b in target_blocks):
+                        carried["deleted_stable_id"] = tomb["stable_id"]
+                        carried["stable_id"] = f"tomb_{source_page_id}_{tomb['stable_id']}"
+                    target_blocks.append(carried)
             target_ids = {str(block["stable_id"]) for block in target_blocks}
             mapped_ids: dict[str, str] = {}
             for block in visible_source["blocks"]:
@@ -2097,11 +3162,11 @@ class WikiService:
                      json.dumps(after_page, ensure_ascii=False),
                      f"合并主题 {source['title']} → {target['title']}", now),
                 )
-            self._fts_replace(connection, target_after)
             self._save_operation_state(connection, target_page_id, target_next, target_before)
             self._save_operation_state(connection, source_page_id, source_next, source_before)
             result = {"status": "merged", "page_id": target_page_id, "version": target_next,
                       "redirected_page_id": source_page_id}
+            self.store.guard_tool_operation(connection)
             connection.execute(
                 """INSERT INTO assistant_mutation_receipts(
                     operation_key,principal_id,operation,result_json,created_at
@@ -2247,6 +3312,7 @@ class WikiService:
             if row is None:
                 raise KeyError(page_id)
             before = self._decode_page(dict(row))
+            self._assert_lifecycle(before)
             before_state = self._operation_state(connection, page_id)
             if int(before["version"]) != expected_version:
                 raise AssistantConflict("wiki_version_conflict")
@@ -2271,7 +3337,7 @@ class WikiService:
                 WHERE page_id=? AND version>? ORDER BY version""",
                 (page_id, target_version + 1),
             ).fetchall()
-            if any(str(item["operation"]) not in {"block_edited", "personal_note_added"}
+            if any(str(item["operation"]) not in {"block_edited", "personal_note_added", "delete_block", "restore_block"}
                    for item in later_changes):
                 raise AssistantConflict("revert_later_source_change_conflict")
             independent_ids: set[str] = set()
@@ -2294,6 +3360,10 @@ class WikiService:
             for block_id in sorted(independent_ids - desired_blocks.keys()):
                 if block_id in current_blocks:
                     restored_blocks.append(current_blocks[block_id])
+            lifecycle_ids = {str(b["stable_id"]) for b in before["blocks"] if int(b.get("lifecycle_version", 0)) > target_version}
+            independent_ids.update(lifecycle_ids)
+            restored_blocks = [b for b in restored_blocks if str(b["stable_id"]) not in lifecycle_ids]
+            restored_blocks.extend(b for b in before["blocks"] if str(b["stable_id"]) in lifecycle_ids)
             space = self.store.get_space(int(before["space_id"]))
             visible_ids = set(self.sources.visible_video_ids(self._scope(space)))
             valid_source_revisions = {
@@ -2314,6 +3384,9 @@ class WikiService:
             kept_blocks = []
             for block in restored_blocks:
                 block_id = str(block["stable_id"])
+                if block.get("deleted"):
+                    kept_blocks.append(block)
+                    continue
                 refs = {str(item["source_revision"]) for item in source_rows
                         if str(item["block_id"]) == block_id}
                 if block.get("source_refs") and (not refs or not refs.issubset(valid_source_revisions)):
@@ -2392,10 +3465,21 @@ class WikiService:
                 ).fetchone()
                 if last_source_change is None or str(last_source_change["operation"]) != "merged":
                     raise AssistantConflict("revert_merge_source_changed")
+                # A later delete on the merged target also applies when restoring its source.
+                # Match identities or the exact pre-delete text, never semantic similarity.
+                source_blocks = self._decode_page(dict(source_row))["blocks"]
+                clean = lambda text: " ".join(str(text or "").split())
+                for block in source_blocks:
+                    for tomb in self._deleted_blocks(before):
+                        if (block["stable_id"] in {tomb["stable_id"], tomb.get("deleted_stable_id")} or
+                            (clean(block["heading"]), clean(block["markdown"])) ==
+                            (clean(tomb["heading"]), clean(tomb["markdown"]))):
+                            block.update(deleted=True, manual_lock=True, deletion_released=False,
+                                         lock_before_delete=bool(block.get("manual_lock")), lifecycle_version=source_version+1)
                 connection.execute("DELETE FROM assistant_wiki_redirects WHERE old_page_id=?", (old_page_id,))
                 connection.execute(
-                    "UPDATE assistant_wiki_pages SET status='active',version=?,updated_at=? WHERE id=?",
-                    (source_version + 1, now, old_page_id),
+                    "UPDATE assistant_wiki_pages SET status='active',blocks_json=?,summary=?,version=?,updated_at=? WHERE id=?",
+                    (json.dumps(source_blocks, ensure_ascii=False), self._pending_guide(), source_version + 1, now, old_page_id),
                 )
                 source_after = self._operation_state(connection, old_page_id)["page"]
                 connection.execute(
@@ -2408,7 +3492,6 @@ class WikiService:
                      "撤销合并，恢复原主题入口", now),
                 )
                 self._save_operation_state(connection, old_page_id, source_version + 1, source_before)
-                self._fts_replace(connection, self._visible_page(source_after))
             after = self._decode_page(dict(connection.execute(
                 "SELECT * FROM assistant_wiki_pages WHERE id=?", (page_id,)
             ).fetchone()))
@@ -2423,8 +3506,8 @@ class WikiService:
                     json.dumps(after, ensure_ascii=False), f"恢复到版本 {target_version}", now,
                 ),
             )
-            self._fts_replace(connection, after)
             self._save_operation_state(connection, page_id, version, before_state)
+            self.store.guard_tool_operation(connection)
             connection.execute(
                 """
                 INSERT INTO assistant_mutation_receipts(
@@ -2443,11 +3526,15 @@ class WikiService:
         return json.loads(row["card_json"]) if row else None
 
     def _commit_source_card(
-        self, captured: CapturedSource, *, input_hash: str, card: dict[str, Any]
+        self, captured: CapturedSource, *, input_hash: str, card: dict[str, Any], payload: dict | None = None,
     ) -> None:
         now = utc_now()
         video_id = int(captured.snapshot["metadata"]["id"])
         with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            self._require_publish_allowed(connection=connection)
+            if payload is not None:
+                self._require_maintenance_authorized(payload, connection=connection)
             head = connection.execute(
                 "SELECT current_revision FROM assistant_source_heads WHERE video_id=? AND principal_id=?",
                 (video_id, self.principal_id),
@@ -2477,7 +3564,8 @@ class WikiService:
                               *, batch_id: str | None = None,
                               task_topic: str | None = None,
                               request_key: str | None = None,
-                              source_message_id: str | None = None) -> list[str]:
+                              source_message_id: str | None = None, task_subset: list[int] | None = None,
+                              expected_scope_version: int | None = None) -> list[str]:
         jobs: list[str] = []
         if request_key:
             spaces = [self.store.get_space(int(str(request_key).split(":", 1)[0]))]
@@ -2491,6 +3579,8 @@ class WikiService:
             spaces = [space for space in self._spaces_for_video(video_id)
                       if space.get("maintenance_mode") == "automatic"]
         for space in spaces:
+            if expected_scope_version is not None and int(space["scope_version"]) != int(expected_scope_version):
+                continue
             if video_id not in self.sources.visible_video_ids(self._scope(space)):
                 continue
             card = self.get_source_card(revision)
@@ -2533,6 +3623,7 @@ class WikiService:
                         "space_id": space["id"], "scope_version": space["scope_version"],
                         "video_id": video_id, "revision": revision,
                         "compiler_version": self.COMPILER_VERSION, "topic": topic,
+                        **({"task_subset": task_subset} if task_subset else {}),
                         **({"task_topic": topic, "request_key": request_key} if request_key else {}),
                         **({"source_message_id": source_message_id} if source_message_id else {}),
                         **({"maintenance_batch_id": batch_id} if batch_id else {}),
@@ -2557,7 +3648,7 @@ class WikiService:
         with self.db.connect() as connection:
             rows = connection.execute(
                 """
-                SELECT d.block_id, d.video_id, d.source_revision, h.current_revision,
+                SELECT d.block_id, d.video_id, d.source_revision, d.dependency_kind, h.current_revision,
                        c.card_json, v.video_url
                 FROM assistant_wiki_dependencies d
                 LEFT JOIN assistant_source_cards c ON c.revision=d.source_revision
@@ -2594,14 +3685,30 @@ class WikiService:
         dependencies: dict[str, set[int]] = {}
         current_dependencies: dict[str, set[int]] = {}
         source_details: dict[str, list[dict[str, Any]]] = {}
+        snapshot_cache: dict[str, dict[str, Any]] = {}
         for row in rows:
             dependencies.setdefault(str(row["block_id"]), set()).add(int(row["video_id"]))
             if (int(row["video_id"]) in visible_video_ids and
-                    str(row["current_revision"] or "") == str(row["source_revision"])):
+                    self._source_dependency_current(
+                        video_id=int(row["video_id"]),
+                        old_revision=str(row["source_revision"]),
+                        current_revision=str(row["current_revision"] or ""),
+                        dependency_kind=str(row["dependency_kind"] or "source"),
+                        cache=snapshot_cache,
+                    )):
                 current_dependencies.setdefault(str(row["block_id"]), set()).add(int(row["video_id"]))
-            if int(row["video_id"]) in current_dependencies.get(str(row["block_id"]), set()) and row["card_json"]:
-                card = json.loads(row["card_json"])
+            if int(row["video_id"]) in current_dependencies.get(str(row["block_id"]), set()):
+                if row["card_json"]:
+                    card = json.loads(row["card_json"])
+                else:
+                    revision = str(row["source_revision"])
+                    if revision not in snapshot_cache:
+                        snapshot_cache[revision] = self.sources._capture_or_load(int(row["video_id"]), revision).snapshot
+                    snapshot = snapshot_cache[revision]
+                    card = {**snapshot.get("metadata", {}), "memberships": snapshot.get("memberships", []),
+                            "coverage": snapshot.get("coverage"), "material_kind": "未生成来源卡"}
                 source_details.setdefault(str(row["block_id"]), []).append({
+                    "source_ref": f"video:{int(row['video_id'])}:{row['source_revision']}",
                     "title": card.get("title") or "未命名材料",
                     "uploader": card.get("uploader") or "",
                     "published_at": card.get("published_at"),
@@ -2615,7 +3722,12 @@ class WikiService:
                     "material_view": card.get("material_kind") or "未知",
                 })
         blocks = []
+        suppressed_quotes = MemoryService(self.db).suppressed_source_message_ids(space_id=int(page["space_id"]))
         for block in page["blocks"]:
+            if block.get("user_message_id") in suppressed_quotes:
+                continue
+            if block.get("deleted"):
+                continue
             if block.get("expires_at"):
                 try:
                     if datetime.fromisoformat(str(block["expires_at"]).replace("Z", "+00:00")) <= datetime.fromisoformat(utc_now()):
@@ -2667,6 +3779,8 @@ class WikiService:
         } for item in material_rows if int(item["video_id"]) in visible_video_ids
            and str(item["source_revision"]) == str(item["current_revision"] or "")]
         value["summary"] = re.sub(r"coverage=[a-z_]+", "当前可用材料", str(value.get("summary") or ""))
+        if any(block.get("deleted") for block in page["blocks"]):
+            value["summary"] = self._pending_guide()
         value["availability"] = "full" if len(blocks) == len(page["blocks"]) else "partial"
         current_source_blocks = [block for block in blocks if block.get("source_refs") or block.get("external_sources")]
         visible_block_ids = {str(block["stable_id"]) for block in blocks}
@@ -2683,7 +3797,7 @@ class WikiService:
                 )
                 value["summary"] = f"{notice} {value['summary']}"
             elif blocks and any(block.get("assessment") == "system_synthesis" for block in blocks):
-                value["summary"] = str(page.get("summary") or "")
+                value["summary"] = self._pending_guide() if any(b.get("deleted") for b in page["blocks"]) else str(page.get("summary") or "")
             elif blocks:
                 value["summary"] = "主题正文暂不可用；以下仅保留独立个人笔记。"
             else:
@@ -2782,7 +3896,7 @@ class WikiService:
             row = connection.execute(
                 """
                 SELECT * FROM assistant_wiki_pages
-                WHERE principal_id=? AND space_id=? AND normalized_title=? AND status='active'
+                WHERE principal_id=? AND space_id=? AND normalized_title=?
                 """,
                 (self.principal_id, space_id, normalized),
             ).fetchone()
@@ -2885,19 +3999,30 @@ class WikiService:
         return int(row["dirty_generation"])
 
     def _enqueue_reconcile(self, connection: Any, video_id: int, generation: int,
-                           *, batch_id: str | None = None) -> str:
+                           *, batch_id: str | None = None, task_subset: list[int] | None = None) -> str:
+        batch_scope = {}
+        if batch_id:
+            row = connection.execute('SELECT b.space_id,s.scope_version FROM assistant_maintenance_batches b '
+                'JOIN assistant_spaces s ON s.id=b.space_id WHERE b.id=?', (batch_id,)).fetchone()
+            if row:
+                batch_scope = {'space_id':row['space_id'], 'scope_version':row['scope_version']}
         return self.store.enqueue_job(
             connection,
             kind="source_reconcile",
             dedupe_key=f"source_reconcile:{video_id}:{generation}" + (f":batch:{batch_id}" if batch_id else ""),
-            payload={"video_id": video_id, "dirty_generation": generation,
+            payload={"video_id": video_id, "dirty_generation": generation, **batch_scope,
+                     **({"task_subset": task_subset} if task_subset else {}),
                      **({"maintenance_batch_id": batch_id} if batch_id else {})},
         )
 
     def _budgeted_provider(self, payload: dict[str, Any], provider: StructuredProvider) -> StructuredProvider:
         batch_id = payload.get("maintenance_batch_id")
+        def allowed():
+            self._require_publish_allowed()
+            self._require_maintenance_authorized(payload)
         return BudgetedStructuredProvider(
-            self.store, str(batch_id) if batch_id else None, provider
+            self.store, str(batch_id) if batch_id else None, provider,
+            continue_allowed=allowed,
         )
 
     @staticmethod
@@ -3127,14 +4252,3 @@ class WikiService:
         value["aliases"] = json.loads(value.pop("aliases_json"))
         value["blocks"] = json.loads(value.pop("blocks_json"))
         return value
-
-    @staticmethod
-    def _fts_replace(connection: Any, page: dict[str, Any]) -> None:
-        connection.execute("DELETE FROM assistant_wiki_fts WHERE page_id=?", (page["id"],))
-        connection.execute(
-            "INSERT INTO assistant_wiki_fts(page_id,title,aliases,summary,blocks) VALUES(?,?,?,?,?)",
-            (
-                page["id"], page["title"], " ".join(page["aliases"]), page["summary"],
-                "\n".join(f"{block['heading']} {block['markdown']}" for block in page["blocks"]),
-            ),
-        )

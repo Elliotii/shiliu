@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from shiliu.artifacts import ArtifactStore
 from shiliu.ask.deep.contracts import NavigationDocument, NavigationSourceLabel
 from shiliu.db import Database
+from shiliu.ask.evidence import _reference
+from shiliu.evidence.authority import bind_live_current_version
+from shiliu.evidence.contracts import EvidenceContractError
+from shiliu.evidence.source import load_source_artifact
 from shiliu.retrieval.product_search import (
     ProductSearchFilterRequest,
     ProductSearchRequest,
@@ -123,6 +129,8 @@ class NavigationService:
             user_notes=notes,
             cleaned_transcript=transcript,
             metadata={
+                "video_url": _public_video_url(video),
+                "subtitle_available": self._subtitle_available(video),
                 "duration_seconds": int(video.get("duration_seconds") or 0),
                 "reading_state": str(video.get("reading_state") or "unread"),
                 "marked": bool(video.get("is_marked")),
@@ -165,6 +173,21 @@ class NavigationService:
                 ),
             },
         )
+
+    def _subtitle_available(self, video: dict[str, Any]) -> bool:
+        # A navigation hint for current exact window reads, not a citation verdict.
+        # Final materialization still replays identity, scope and quote at use time.
+        if not video.get("raw_subtitle_path") or video.get("is_ignored") or video.get("removed_at"):
+            return False
+        try:
+            reference = _reference(video)
+            binding = bind_live_current_version(reference, db=self.db, video_id=int(video["id"]))
+            artifact = load_source_artifact(reference, expected_source_version=binding.source_version)
+            return artifact.validation_status in {"valid_single_run", "valid_multiple_runs"} and any(
+                segment.timeline_run_id and segment.source_text.strip() for segment in artifact.segments
+            )
+        except (EvidenceContractError, OSError, ValueError):
+            return False
 
     def _summary(self, video: dict[str, Any]) -> list[str]:
         payload = self._artifact_payload(video, "summary")
@@ -222,6 +245,22 @@ class NavigationService:
             return json.loads(path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError):
             return None
+
+
+def _public_video_url(video: dict[str, Any]) -> str | None:
+    bvid = str(video.get("source_id") or "")
+    if video.get("platform") != "bilibili" or not re.fullmatch(r"BV[A-Za-z0-9]{10}", bvid):
+        return None
+    url = str(video.get("video_url") or "").strip()
+    if url:
+        try:
+            parsed = urlsplit("https:" + url if url.startswith("//") else url)
+        except ValueError:
+            return None
+        if (parsed.scheme not in {"http", "https"} or parsed.netloc.lower() not in {"www.bilibili.com", "bilibili.com"}
+                or parsed.path.rstrip("/") != f"/video/{bvid}"):
+            return None
+    return f"https://www.bilibili.com/video/{bvid}"
 
 
 def _bounded(value: str, limit: int) -> str:

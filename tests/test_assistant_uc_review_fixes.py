@@ -19,7 +19,7 @@ from shiliu.db import Database
 
 def _client(memories):
     core = SimpleNamespace(config=SimpleNamespace(assistant_enabled=True),
-                           assistant_runtime=SimpleNamespace(memories=memories))
+                           assistant_runtime=SimpleNamespace(memories=memories, store=AssistantRunStore(memories.db)))
     app = FastAPI()
     app.state.core = core
     app.include_router(router)
@@ -29,64 +29,26 @@ def _client(memories):
 def test_panel_create_and_patch_time_semantics(app_paths, monkeypatch):
     db = Database(app_paths.database)
     db.initialize()
-    space = AssistantRunStore(db).create_space(name="时间", all_active=True)
+    space = AssistantRunStore(db).create_space(name='时间', all_active=True)
     memories = MemoryService(db)
     client = _client(memories)
-    clock = ["2026-09-24T02:00:00+00:00"]
-    monkeypatch.setattr("shiliu.assistant.api.utc_now", lambda: clock[0])
-    monkeypatch.setattr("shiliu.assistant.memory.utc_now", lambda: clock[0])
-
-    def create(text, key):
-        response = client.post("/api/assistant/memories", json={
-            "text": text, "subject_key": key, "kind": "context", "scope_kind": "space",
-            "scope_id": space["id"], "operation_key": f"create-{key}"})
-        assert response.status_code == 201
-        return response.json()["memory"]
-
-    def edit_response(item, text, key, **fields):
-        return client.patch(f"/api/assistant/memories/{item['id']}", json={
-            "text": text, "expected_version": item["version"], "operation_key": key,
-            **fields})
-
-    def edit(item, text, key, **fields):
-        response = edit_response(item, text, key, **fields)
-        assert response.status_code == 200
-        return response.json()["memory"]
-
-    item = create("下周面试，准备系统设计", "interview")
-    first_end = item["expires_at"]
-    first_note = item["validity_note"]
-    assert first_end == "2026-10-04T16:00:00+00:00"
-    clock[0] = "2026-09-25T02:00:00+00:00"
-    item = edit(item, "下周面试，准备数据库设计", "edit-words")
-    assert (item["expires_at"], item["validity_note"]) == (first_end, first_note)
-    item = edit(item, "未来30天准备系统设计面试", "edit-time")
-    assert item["expires_at"] == "2026-10-25T16:00:00+00:00"
-    assert "未来30天" in item["validity_note"] and "2026-09-25" in item["validity_note"]
-    assert memories.recall("系统设计面试", space_id=space["id"])
-    clock[0] = "2026-10-05T16:00:00+00:00"
-    assert memories.recall("系统设计面试", space_id=space["id"])
-    clock[0] = "2026-10-25T16:00:00+00:00"
-    assert memories.recall("系统设计面试", space_id=space["id"]) == []
-    clock[0] = "2026-09-26T02:00:00+00:00"
-    item = edit(item, "长期准备系统设计面试", "edit-durable")
-    assert item["expires_at"] is None and item["validity_note"] == ""
-    item = edit(item, "长期准备系统设计面试", "edit-clear", expires_at=None)
-    assert item["expires_at"] is None
-
-    assert anchored_validity("未来30天准备面试", clock[0])["expires_at"] == "2026-10-26T16:00:00+00:00"
-    assert anchored_validity("未来十二周准备面试", clock[0]) is None
-    assert anchored_validity("改到下个月面试", clock[0]) is None
-    assert client.post("/api/assistant/memories", json={"text": "下个月面试",
-           "subject_key": "unsupported", "kind": "context", "scope_kind": "space",
-           "scope_id": space["id"], "operation_key": "unsupported-create"}).status_code == 400
-    assert edit_response(item, "改到下个月面试", "unsupported-edit").status_code == 400
-    assert memories.get(item["id"])["text"] == item["text"]
-    item = edit(item, "改到下个月面试", "explicit-date",
-                expires_at="2026-11-01T00:00:00+08:00")
-    assert item["expires_at"] == "2026-10-31T16:00:00+00:00"
-    assert item["validity_note"] == ""
-    assert item["validity_timezone"] == "explicit_offset"
+    clock = ['2026-10-17T02:00:00+00:00']
+    monkeypatch.setattr('shiliu.assistant.api.utc_now', lambda: clock[0])
+    monkeypatch.setattr('shiliu.assistant.memory.utc_now', lambda: clock[0])
+    response = client.post('/api/assistant/memories', json=dict(text='下个月准备面试',
+        kind='context', scope_kind='space', scope_id=space['id'], operation_key='panel-create'))
+    assert response.status_code == 201
+    item = response.json()['memory']
+    assert item['expires_at'] is None and item['time_context']['events'][0]['value'] == '2026-11'
+    clock[0] = '2026-12-17T02:00:00+00:00'
+    response = client.patch(f"/api/assistant/memories/{item['id']}", json=dict(text='下个月准备后端面试',
+        expected_version=1, operation_key='panel-polish', update_time_context=False))
+    assert response.status_code == 200
+    assert response.json()['memory']['time_context'] == item['time_context']
+    response = client.patch(f"/api/assistant/memories/{item['id']}", json=dict(text='下个月准备后端面试',
+        expected_version=2, operation_key='panel-reschedule', update_time_context=True))
+    assert response.status_code == 200
+    assert response.json()['memory']['time_context']['events'][0]['value'] == '2027-01'
 
 
 def test_auto_policy_fences_queued_and_inflight_jobs(app_paths):
@@ -162,94 +124,31 @@ def test_auto_policy_fences_queued_and_inflight_jobs(app_paths):
 
 
 def test_real_memory_tool_dispatch_respects_target_time_and_user_date(app_paths, monkeypatch):
+    # v2: actual applicability is distinct from an interview/event deadline.
     db = Database(app_paths.database)
     db.initialize()
     store = AssistantRunStore(db)
-    space = store.create_space(name="工具更正", all_active=True)
+    space = store.create_space(name="工具时间", all_active=True)
     memories = MemoryService(db)
-    registry = AssistantToolRegistry(sources=None, memories=memories, store=store)  # type: ignore[arg-type]
-    clock = ["2026-09-24T02:00:00+00:00"]
-    monkeypatch.setattr("shiliu.assistant.store.utc_now", lambda: clock[0])
-    monkeypatch.setattr("shiliu.assistant.memory.utc_now", lambda: clock[0])
-
-    def dispatch(message, name, arguments, call_id):
-        thread = store.create_thread(space["id"])
-        run = store.create_run(thread["id"], text=message, request_id=call_id)
-        return asyncio.run(registry.execute(name=name, arguments=arguments, call_id=call_id,
-                                            run_context=store.run_context(run["id"])))
-
-    saved = dispatch("请记住我原定下周面试，但明确截止到2026-11-01。", "memory_save", {
-        "text": "我准备后端面试", "subject_key": "backend_interview", "kind": "context",
-        "expires_at": "2026-11-02T00:00:00+08:00"}, "save-explicit-date")
-    assert saved["status"] == "ok"
-    first = saved["items"][0]
-    assert first["expires_at"] == "2026-11-01T16:00:00+00:00"
-    assert "明确日期" in first["validity_note"]
-
-    rejected = dispatch("请记住我下个月面试。", "memory_save", {
-        "text": "我下个月面试", "subject_key": "invented_deadline", "kind": "context",
-        "expires_at": "2026-11-02T00:00:00+08:00"}, "save-invented-date")
-    assert rejected["error_code"] == "invalid_arguments"
-    assert all(m["subject_key"] != "invented_deadline" for m in memories.list(space_id=space["id"]))
-
-    wrong_date = dispatch("请记住我的面试截止到2026-11-01。", "memory_save", {
-        "text": "我的面试截止到2026-11-01", "subject_key": "wrong_deadline", "kind": "context",
-        "expires_at": "2026-11-10T00:00:00+08:00"}, "save-wrong-date")
-    assert wrong_date["error_code"] == "invalid_arguments"
-
-    invented_relative = dispatch("请记住我正在准备面试。", "memory_save", {
-        "text": "我未来30天准备面试", "subject_key": "invented_relative", "kind": "context"},
-        "save-invented-relative")
-    assert invented_relative["error_code"] == "invalid_arguments"
-
-    missing_date = dispatch("请记住我下周面试，但明确截止到2026-11-01。", "memory_save", {
-        "text": "我下周面试", "subject_key": "missing_explicit_date", "kind": "context"},
-        "save-missing-date")
-    assert missing_date["error_code"] == "invalid_arguments"
-
-    scoped = dispatch("请记住我下周要面试，也请记住我未来30天补数据库。", "memory_save", {
-        "text": "我下周要面试", "subject_key": "scoped_interview", "kind": "context"},
-        "save-scoped-time")
-    assert scoped["status"] == "ok"
-    assert scoped["items"][0]["expires_at"] == "2026-10-04T16:00:00+00:00"
-
-    changed = dispatch("请把之前下周面试改到2026-11-03，明确以这一天为准。", "memory_correct", {
-        "memory_id": first["id"], "expected_version": first["version"],
-        "text": "2026-11-03准备数据库面试", "expires_at": "2026-11-04T00:00:00+08:00"},
-        "correct-explicit-date")
-    assert changed["status"] == "ok"
-    assert changed["items"][0]["expires_at"] == "2026-11-03T16:00:00+00:00"
-
-    next_month = dispatch("请把面试改到下个月，具体截止2026-11-20。", "memory_correct", {
-        "memory_id": first["id"], "expected_version": changed["items"][0]["version"],
-        "text": "下个月准备数据库面试", "expires_at": "2026-11-21T00:00:00+08:00"},
-        "correct-next-month-explicit-date")
-    assert next_month["status"] == "ok"
-    assert next_month["items"][0]["expires_at"] == "2026-11-20T16:00:00+00:00"
-
-    old = memories.save_explicit(text="下周后端面试", subject_key="week_interview", kind="context",
-           scope_kind="space", scope_id=space["id"], operation_key="week-old",
-           **anchored_validity("下周后端面试", clock[0]))
-    old_end, old_note = old["expires_at"], old["validity_note"]
-    clock[0] = "2026-10-05T02:00:00+00:00"
-    edited = dispatch("之前下周面试那条只把后端改成数据库，日期不变。", "memory_correct", {
-        "memory_id": old["id"], "expected_version": old["version"],
-        "text": "下周数据库面试"}, "correct-words-only")
-    assert edited["status"] == "ok"
-    assert (edited["items"][0]["expires_at"], edited["items"][0]["validity_note"]) == (old_end, old_note)
-
-    ambiguous = dispatch("把旧面试改到明天，但正文只写数据库面试。", "memory_correct", {
-        "memory_id": old["id"], "expected_version": edited["items"][0]["version"],
-        "text": "数据库面试"}, "correct-ambiguous-target")
-    assert ambiguous["error_code"] == "invalid_arguments"
-    assert memories.get(old["id"])["expires_at"] == old_end
-
-    cleared = dispatch("把原来下周面试的记忆改成长期学习数据库，取消期限。", "memory_correct", {
-        "memory_id": old["id"], "expected_version": edited["items"][0]["version"],
-        "text": "长期学习数据库", "expires_at": old_end}, "correct-clear-time")
-    assert cleared["status"] == "ok"
-    assert cleared["items"][0]["expires_at"] is None
-    assert cleared["items"][0]["validity_note"] == ""
+    registry = AssistantToolRegistry(sources=None, memories=memories, store=store)
+    clock = '2026-10-17T02:00:00+00:00'
+    monkeypatch.setattr('shiliu.assistant.store.utc_now', lambda: clock)
+    def dispatch(words, args, call):
+        thread = store.create_thread(space['id'])
+        run = store.create_run(thread['id'], text=words, request_id=call)
+        return asyncio.run(registry.execute(name='memory_save', arguments=args, call_id=call,
+            run_context=store.run_context(run['id'])))
+    args = dict(text='我下个月面试', subject_key='interview', kind='context')
+    event = dispatch('请记住我下个月面试', args, 'event')
+    assert event['status'] == 'ok'
+    assert event['items'][0]['expires_at'] is None
+    assert event['items'][0]['time_context']['events'][0]['value'] == '2026-11'
+    bad = dispatch('请记住我2026-11-01面试', {**args, 'text':'我2026-11-01面试', 'expires_at':'2026-11-02T00:00:00+08:00'}, 'bad')
+    assert bad['error_code'] == 'memory_validity_without_user_basis'
+    actual = dispatch('这个约束只在月底之前有效', {**args, 'text':'这个约束只在月底之前有效',
+        'expires_at':'2026-11-01T00:00:00+08:00'}, 'actual')
+    assert actual['status'] == 'ok'
+    assert actual['items'][0]['expires_at'] == '2026-10-31T16:00:00+00:00'
 
 
 def test_run_creation_admission_survives_toggle_before_completion(app_paths):

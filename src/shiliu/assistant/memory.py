@@ -6,16 +6,18 @@ import re
 import uuid
 from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from shiliu.assistant.dependencies import Mem0SemanticIndex
 from shiliu.assistant.memory_policy import (
-    anchored_validity, cancels_time, clears_time, keeps_time, requests_time_change, time_phrase,
+    anchored_validity, cancels_time, clears_time, keeps_time, requests_time_change, time_phrase, plausible_personal_excerpt,
 )
 from shiliu.assistant.store import AssistantConflict, AssistantRunStore
 from shiliu.db import Database, utc_now
 
+
+from shiliu.assistant.memory_time import time_context as make_time_context, event_signature, checked_validity, validity, time_summary, TOKEN
 
 MEMORY_KINDS = {"preference", "constraint", "decision", "context"}
 _UNSET = object()
@@ -67,6 +69,7 @@ class MemoryService:
         with self.db.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             yield connection
+            AssistantRunStore.guard_tool_operation(connection)
 
     def list(self, *, space_id: int | None = None, include_inactive: bool = False) -> list[dict[str, Any]]:
         conditions = ["principal_id=?"]
@@ -127,6 +130,7 @@ class MemoryService:
         validity_timezone: str | None = None,
         stated_text: str | None = None,
         stated_at: str | None = None,
+        time_context: dict | None = None,
         _initial_status: str = "active",
         _connection: Any | None = None,
     ) -> dict[str, Any]:
@@ -139,22 +143,14 @@ class MemoryService:
             raise ValueError("invalid_memory_origin")
         if _initial_status not in {"active", "needs_review"}:
             raise ValueError("invalid_memory_status")
-        if stated_text is not None and not expires_at:
-            stated_bounds = anchored_validity(stated_text, stated_at or utc_now())
-            if stated_bounds is None and not clears_time(stated_text):
-                raise ValueError("memory_time_needs_review")
-            resolved = anchored_validity(clean_text, stated_at or utc_now())
-            if resolved is None:
-                raise ValueError("memory_time_needs_review")
-            if resolved:
-                valid_from = None
-                expires_at = resolved["expires_at"]
-                validity_note = resolved["validity_note"]
-                validity_timezone = resolved["validity_timezone"]
-            elif not clears_time(clean_text) and stated_bounds != {}:
-                # The request names a time but the proposed fact does not.
-                # Do not apply another fact's date or save this as timeless.
-                raise ValueError("memory_time_needs_review")
+        if stated_text is not None:
+            derived = validity(stated_text, stated_at or utc_now())
+            valid_from = valid_from if valid_from is not None else derived.get('valid_from')
+            expires_at = expires_at if expires_at is not None else derived.get('expires_at')
+            validity_note = derived.get('validity_note', validity_note)
+            validity_timezone = derived.get('validity_timezone', validity_timezone)
+        temporal = time_context if time_context is not None else (make_time_context(
+            stated_text, stated_at or utc_now(), (source_message_ids or [None])[0]) if stated_text is not None else {})
         valid_from, expires_at, validity_note, validity_timezone = self._validate_validity(
             valid_from, expires_at, validity_note, validity_timezone
         )
@@ -169,21 +165,20 @@ class MemoryService:
             receipt = self._receipt(connection, operation_key)
             if receipt is not None:
                 return receipt
-            duplicate = connection.execute(
+            duplicates = connection.execute(
                 """
                 SELECT * FROM assistant_memories
                 WHERE principal_id=? AND scope_kind=? AND scope_id=?
                   AND text=? AND status IN ('active','needs_review')
                   AND COALESCE(valid_from, '')=? AND COALESCE(expires_at, '')=?
-                  AND validity_note=? AND COALESCE(validity_timezone, '')=?
-                ORDER BY version DESC LIMIT 1
+                ORDER BY version DESC
                 """,
                 (
                     self.principal_id, scope_kind, clean_scope_id, clean_text,
-                    valid_from or "", expires_at or "", validity_note,
-                    validity_timezone or "",
+                    valid_from or "", expires_at or "",
                 ),
-            ).fetchone()
+            ).fetchall()
+            duplicate = next((row for row in duplicates if event_signature(json.loads(row['time_context_json'] or '{}')) == event_signature(temporal)), None)
             if duplicate is not None:
                 merged_source_ids = sorted({
                     *json.loads(str(duplicate["source_message_ids_json"] or "[]")),
@@ -247,14 +242,15 @@ class MemoryService:
                     id, principal_id, scope_kind, scope_id, kind, text, subject_key,
                     origin, source_message_ids_json, source_excerpt, status, version,
                     pinned, user_edited, valid_from, expires_at, validity_note,
-                    validity_timezone, change_epoch, created_at, updated_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    validity_timezone, change_epoch, created_at, updated_at, time_context_json
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     memory_id, self.principal_id, scope_kind, clean_scope_id, kind,
                     clean_text, clean_subject, origin, json.dumps(source_message_ids or []),
                     source_excerpt[:1000], _initial_status, int(pinned), int(origin == "explicit"),
                     valid_from, expires_at, validity_note, validity_timezone, epoch, now, now,
+                    json.dumps(temporal, ensure_ascii=False),
                 ),
             )
             current = connection.execute(
@@ -288,6 +284,7 @@ class MemoryService:
         source_excerpt: str | object = _UNSET,
         stated_text: str | None = None,
         stated_at: str | None = None,
+        update_time_context: bool | None = None,
         _actor: str = "user",
         _user_edited: bool = True,
         _connection: Any | None = None,
@@ -319,39 +316,41 @@ class MemoryService:
             if next_kind not in MEMORY_KINDS:
                 raise ValueError("invalid_memory_kind")
             time_words = stated_text if stated_text is not None else clean_text
-            if expires_at is _UNSET and valid_from is _UNSET:
-                if cancels_time(time_words, clean_text):
-                    valid_from, expires_at = None, None
-                    validity_note, validity_timezone = "", None
-                elif not keeps_time(time_words):
-                    if stated_text is not None and anchored_validity(time_words, stated_at or now) is None:
-                        raise ValueError("memory_time_needs_review")
-                    resolved = anchored_validity(clean_text, stated_at or now)
-                    if resolved is None:
-                        raise ValueError("memory_time_needs_review")
-                    if not resolved and stated_text is not None and requests_time_change(time_words):
-                        raise ValueError("memory_time_needs_review")
-                    if resolved and (
-                        time_phrase(clean_text) != time_phrase(str(row["text"]))
-                        or not row["expires_at"]
-                        or (stated_text is not None and requests_time_change(time_words))
-                    ):
-                        valid_from = None
-                        expires_at = resolved["expires_at"]
-                        validity_note = resolved["validity_note"]
-                        validity_timezone = resolved["validity_timezone"]
-            elif expires_at is None:
-                if valid_from is _UNSET:
-                    valid_from = None
+            temporal = json.loads(row['time_context_json'] or '{}')
+            candidate = make_time_context(time_words, stated_at or now,
+                (list(source_message_ids) or [None])[0] if source_message_ids is not _UNSET else None)
+            old_expressions = [e.get('expression') for e in temporal.get('events', [])]
+            new_expressions = [e.get('expression') for e in candidate.get('events', [])]
+            change_time = update_time_context is True or (update_time_context is None and
+                bool(new_expressions) and (old_expressions != new_expressions or requests_time_change(time_words)))
+            if change_time:
+                if len(temporal.get('events', [])) > len(candidate['events']):
+                    retained = [{**event, 'stated_at':event.get('stated_at', temporal.get('stated_at')),
+                                 'source_message_id':event.get('source_message_id', temporal.get('source_message_id'))}
+                                for event in temporal['events'] if event['expression'] in clean_text
+                                and event['expression'] not in new_expressions]
+                    if len(retained) + len(candidate['events']) < len(temporal['events']):
+                        raise ValueError('memory_time_source_ambiguous')
+                    candidate['events'].extend(retained)
+                temporal = candidate
+            elif not temporal and stated_text is not None and not candidate['events']:
+                temporal = candidate
+            if cancels_time(time_words, clean_text):
+                valid_from, expires_at, validity_note, validity_timezone = None, None, '', None
+            elif expires_at is _UNSET and valid_from is _UNSET and update_time_context is not False:
+                changed_bounds = update_time_context is True or TOKEN.findall(time_words) != TOKEN.findall(str(row['text']))
+                if changed_bounds:
+                    derived = validity(time_words, stated_at or now)
+                    if derived:
+                        valid_from = derived.get('valid_from', valid_from)
+                        expires_at = derived.get('expires_at', expires_at)
+                        validity_note = derived.get('validity_note', validity_note)
+                        validity_timezone = derived.get('validity_timezone', validity_timezone)
+            if expires_at is None:
                 if validity_note is _UNSET:
-                    validity_note = ""
+                    validity_note = ''
                 if validity_timezone is _UNSET:
                     validity_timezone = None
-            elif expires_at is not _UNSET:
-                if validity_note is _UNSET:
-                    validity_note = ""
-                if validity_timezone is _UNSET:
-                    validity_timezone = "explicit_offset"
             next_valid_from, next_expires_at, next_validity_note, next_validity_timezone = (
                 self._validate_validity(
                     row["valid_from"] if valid_from is _UNSET else valid_from,
@@ -384,7 +383,7 @@ class MemoryService:
                 UPDATE assistant_memories SET text=?, subject_key=?, kind=?, version=?,
                     status='active', user_edited=?, backend_id=NULL,
                     valid_from=?, expires_at=?, validity_note=?, validity_timezone=?,
-                    source_message_ids_json=?, source_excerpt=?, change_epoch=?, updated_at=?
+                    source_message_ids_json=?, source_excerpt=?, change_epoch=?, updated_at=?, time_context_json=?
                 WHERE id=? AND version=?
                 """,
                 (
@@ -392,7 +391,7 @@ class MemoryService:
                     next_valid_from, next_expires_at, next_validity_note,
                     next_validity_timezone,
                     json.dumps(next_source_message_ids, ensure_ascii=False),
-                    next_source_excerpt, epoch, now, memory_id, expected_version,
+                    next_source_excerpt, epoch, now, json.dumps(temporal, ensure_ascii=False), memory_id, expected_version,
                 ),
             )
             current = connection.execute(
@@ -414,6 +413,59 @@ class MemoryService:
             )
             self._save_receipt(connection, operation_key, "memory_correct", result)
         return result
+
+    def _creation_for_undo(self, c: Any, memory_id: str, save_operation_key: str, expected_version: int):
+        saved = c.execute("SELECT result_json FROM assistant_mutation_receipts WHERE principal_id=? AND operation_key=? AND operation='memory_save'", (self.principal_id, save_operation_key)).fetchone()
+        row = c.execute('SELECT * FROM assistant_memories WHERE id=? AND principal_id=?', (memory_id,self.principal_id)).fetchone()
+        created = c.execute("SELECT after_json FROM assistant_memory_changes WHERE memory_id=? AND operation='created' AND version=1", (memory_id,)).fetchone()
+        if not saved or not row or not created or not created[0]:
+            raise AssistantConflict('memory_creation_receipt_required')
+        current = self._public(dict(row)); original = json.loads(created[0]); receipt = json.loads(saved[0])
+        # Detect adoption, no-op saves and source merges, including unversioned metadata.
+        business = lambda value: {k: v for k, v in value.items() if k not in {'backend_id', 'last_projected_version', 'updated_at'}}
+        if expected_version != 1 or current['version'] != 1 or current.get('origin') != 'explicit' or business(current) != business(original) or receipt != original:
+            raise AssistantConflict('memory_creation_changed_or_not_original')
+        if c.execute("SELECT 1 FROM assistant_mutation_receipts WHERE principal_id=? AND operation='memory_save' AND operation_key<>? AND json_extract(result_json,'$.id')=?", (self.principal_id,save_operation_key,memory_id)).fetchone():
+            raise AssistantConflict('memory_creation_has_later_save')
+        return row
+
+    def creation_feedback(self, memory: dict, *, save_operation_key: str, space_id: int | None) -> dict:
+        undo = None
+        with self.db.connect() as c:
+            try:
+                self._creation_for_undo(c, memory['id'], save_operation_key, int(memory['version']))
+                undo = {'kind': 'memory_created', 'save_operation_key': save_operation_key}
+            except AssistantConflict:
+                pass
+        return {'kind': 'memory', 'operation_key': save_operation_key, 'space_id': space_id,
+                'count': 1, 'items': [{'memory_id': memory['id'], 'version': memory['version'],
+                                     'title': memory['text'], 'undo': undo}]}
+
+    def undo_created(self, memory_id: str, *, save_operation_key: str,
+                     expected_version: int, operation_key: str) -> dict[str, Any]:
+        """Retract one unchanged explicit creation; never suppress its entire message."""
+        with self._memory_write_transaction() as c:
+            prior = self._receipt(c, operation_key)
+            if prior is not None:
+                return prior
+            row = self._creation_for_undo(c, memory_id, save_operation_key, expected_version)
+            epoch = self._increment_epoch(c)
+            content_hash = self._content_hash(str(row['text']))
+            # Retraction must not erase an earlier genuine forget's message-level
+            # protection when this fact was subsequently explicitly recreated.
+            existing = c.execute('SELECT 1 FROM assistant_memory_suppressions WHERE principal_id=? AND scope_kind=? AND scope_id=? AND subject_key=? AND content_hash=?',
+                (self.principal_id,row['scope_kind'],row['scope_id'],row['subject_key'],content_hash)).fetchone()
+            if not existing:
+                suppression = {**dict(row), 'source_message_ids_json':'[]'}
+                self._suppress(c, suppression, memory_epoch=epoch, content_hash=content_hash)
+            c.execute("UPDATE assistant_memories SET status='forgotten',version=version+1,text='',source_excerpt='',time_context_json='{}',backend_id=NULL,change_epoch=?,updated_at=? WHERE id=? AND version=1", (epoch,utc_now(),memory_id))
+            c.execute('DELETE FROM assistant_memories_fts WHERE memory_id=?',(memory_id,))
+            result = self._public(dict(c.execute('SELECT * FROM assistant_memories WHERE id=?',(memory_id,)).fetchone()))
+            self._write_change(c,result,operation='creation_retracted',before=None,actor='user',memory_epoch=epoch)
+            AssistantRunStore.enqueue_job(c, kind='memory_purge', dedupe_key=f'memory_purge:{memory_id}:2',
+                payload={'memory_id':memory_id,'version':2,'backend_id':row['backend_id'],'memory_epoch':epoch})
+            self._save_receipt(c,operation_key,'memory_creation_retract',result)
+            return result
 
     def forget(
         self,
@@ -462,7 +514,7 @@ class MemoryService:
             connection.execute(
                 """
                 UPDATE assistant_memories SET status='forgotten', version=?, text='',
-                    source_excerpt='', source_message_ids_json=?, backend_id=NULL,
+                    source_excerpt='', time_context_json='{}', source_message_ids_json=?, backend_id=NULL,
                     change_epoch=?, updated_at=?
                 WHERE id=? AND version=?
                 """,
@@ -502,9 +554,12 @@ class MemoryService:
         return self.recall_with_status(query, space_id=space_id, limit=limit)["items"]
 
     def recall_with_status(
-        self, query: str, *, space_id: int, limit: int = 8
+        self, query: str, *, space_id: int, limit: int = 8,
+        linked_ids: list[str] | None = None,
+        excluded_kinds: set[str] | None = None,
     ) -> dict[str, Any]:
         clean_query = " ".join(query.split())[:1000]
+        excluded_kinds = excluded_kinds or set()
         candidates: dict[str, dict[str, Any]] = {}
         semantic_versions: dict[str, int] = {}
         backend_ready = self.backend is not None
@@ -516,6 +571,10 @@ class MemoryService:
             value = candidates.setdefault(record_id, {"score": 0.0, "reasons": set()})
             value["score"] = max(float(value["score"]), score)
             value["reasons"].add(reason)
+
+        task_linked_ids = list(dict.fromkeys(linked_ids or []))[:2]
+        for record_id in task_linked_ids:
+            add_candidate(record_id, 0.74, "current_task_dependency")
 
         if backend_ready and clean_query:
             for scope_key in ("user", f"space:{space_id}"):
@@ -567,7 +626,7 @@ class MemoryService:
             query_grams = grams(clean_query)
             if query_grams:
                 rows = connection.execute(
-                    """SELECT id,text,subject_key FROM assistant_memories
+                    """SELECT id,text,subject_key,time_context_json FROM assistant_memories
                        WHERE principal_id=? AND status='active'
                          AND (scope_kind='user' OR (scope_kind='space' AND scope_id=?))
                          AND (valid_from IS NULL OR valid_from<=?)
@@ -576,7 +635,9 @@ class MemoryService:
                     (self.principal_id, str(space_id), now, now),
                 ).fetchall()
                 for row in rows:
-                    overlap = query_grams & grams(str(row["text"]) + str(row["subject_key"]))
+                    event_words = time_summary(json.loads(row['time_context_json'] or '{}'))
+                    event_words = re.sub(r'(\d{4})-(\d{2})(?![-\d])', lambda m: f'{m[1]}年{int(m[2])}月', event_words)
+                    overlap = query_grams & grams(str(row["text"]) + str(row["subject_key"]) + event_words)
                     if len(overlap) >= 2:
                         add_candidate(str(row["id"]), min(0.72, 0.43 + len(overlap) * 0.025), "chinese_lexical")
 
@@ -624,10 +685,32 @@ class MemoryService:
                 ).fetchall()
                 active.update({str(row["id"]): dict(row) for row in rows})
 
+        linked_diagnostics: list[dict[str, Any]] = []
+        if task_linked_ids:
+            with self.db.connect() as connection:
+                placeholders = ",".join("?" for _ in task_linked_ids)
+                linked_rows = {
+                    str(row["id"]): row for row in connection.execute(
+                        f"SELECT id,version,status,kind FROM assistant_memories "
+                        f"WHERE id IN ({placeholders}) AND principal_id=?",
+                        (*task_linked_ids, self.principal_id),
+                    )
+                }
+            for record_id in task_linked_ids:
+                row = linked_rows.get(record_id)
+                linked_diagnostics.append({
+                    "id": record_id,
+                    "version": int(row["version"]) if row else None,
+                    "decision": "excluded_by_current_request"
+                                if row and row["kind"] in excluded_kinds else
+                                "eligible" if record_id in active else
+                                "forgotten" if row and row["status"] == "forgotten" else
+                                "expired_or_out_of_scope",
+                })
         ranked: list[tuple[dict[str, Any], float, set[str]]] = []
         for record_id, candidate in candidates.items():
             row = active.get(record_id)
-            if row is None:
+            if row is None or row["kind"] in excluded_kinds:
                 continue
             reasons = set(candidate["reasons"])
             score = float(candidate["score"])
@@ -635,9 +718,10 @@ class MemoryService:
             if semantic_version is not None and semantic_version != int(row["version"]):
                 reasons.discard("semantic")
                 reasons.add("stale_semantic_rechecked")
-                if not reasons.intersection({"lexical", "chinese_lexical", "explicit_or_pending"}):
+                if not reasons.intersection({"lexical", "chinese_lexical", "explicit_or_pending", "current_task_dependency"}):
                     continue
-                score = min(score, 0.3)
+                if "current_task_dependency" not in reasons:
+                    score = min(score, 0.3)
             ranked.append((row, score, reasons))
         ranked.sort(
             key=lambda item: (
@@ -669,6 +753,7 @@ class MemoryService:
             items.append(public)
         return {
             "items": items,
+            "linked_diagnostics": linked_diagnostics,
             "semantic_index": "ready" if backend_ready else "unavailable",
             "semantic_error": backend_error,
             "authoritative_store": "sqlite",
@@ -849,7 +934,7 @@ class MemoryService:
                 break
         if backend_id is None:
             result = self.backend.add(
-                str(row["text"]),
+                str(row["text"]) + ('；当时计划：' + time_summary(json.loads(row['time_context_json'] or '{}')) if json.loads(row['time_context_json'] or '{}').get('events') else ''),
                 record_id=memory_id,
                 record_version=version,
                 scope_key=scope_key,
@@ -897,6 +982,7 @@ class MemoryService:
         expected_epoch: int,
         operation_key: str,
         expected_auto_generation: int | None = None,
+        publish_guard: Callable[[Any], None] | None = None,
     ) -> dict[str, Any] | None:
         proposal_scope = str(proposal.get("scope_kind") or "space")
         proposal_scope_id = "" if proposal_scope == "user" else str(
@@ -913,16 +999,25 @@ class MemoryService:
         scope_id = int(proposal_scope_id) if proposal_scope_id else None
         proposal_text = self._validate_text(str(proposal.get("text") or ""))
         proposal_subject = self._validate_subject(str(proposal.get("subject_key") or ""))
+        if proposal.get('kind') == 'decision' and proposal.get('source_excerpt') and not plausible_personal_excerpt(str(proposal['source_excerpt']), 'decision'):
+            return None
         with self._memory_write_transaction() as connection:
             receipt = self._receipt(connection, operation_key)
             if receipt is not None:
                 return receipt
+            if publish_guard is not None:
+                publish_guard(connection)
             states = connection.execute("SELECT key,value FROM assistant_runtime_state WHERE key IN ('auto_memory_enabled','auto_memory_generation')").fetchall()
             policy = {str(row["key"]): str(row["value"]) for row in states}
             if policy.get("auto_memory_enabled", "1") == "0" or (
                 expected_auto_generation is not None
                 and int(policy.get("auto_memory_generation", "0")) != expected_auto_generation
             ):
+                return None
+            # Exact content suppression also applies to newly queued extraction, not
+            # only jobs whose epoch predates a retract/forget. No semantic matching.
+            if connection.execute("SELECT 1 FROM assistant_memory_suppressions WHERE principal_id=? AND scope_kind=? AND COALESCE(scope_id,'')=? AND content_hash=?",
+                    (self.principal_id,proposal_scope,proposal_scope_id,self._content_hash(proposal_text))).fetchone():
                 return None
             if self._current_epoch(connection) != expected_epoch:
                 suppressed = connection.execute(
@@ -986,6 +1081,7 @@ class MemoryService:
                     validity_timezone=proposal.get("validity_timezone", _UNSET),
                     source_message_ids=source_message_ids,
                     source_excerpt=str(proposal.get("source_excerpt") or ""),
+                    stated_text=proposal.get('source_excerpt'), stated_at=proposal.get('stated_at'),
                     _actor="assistant",
                     _user_edited=False,
                     _connection=connection,
@@ -1006,30 +1102,17 @@ class MemoryService:
                 expires_at=proposal.get("expires_at"),
                 validity_note=str(proposal.get("validity_note") or ""),
                 validity_timezone=proposal.get("validity_timezone"),
+                stated_text=proposal.get('source_excerpt'), stated_at=proposal.get('stated_at'),
             )
 
     def _save_extracted(self, connection: Any, **values: Any) -> dict[str, Any]:
         # save_explicit performs duplicate lookup, formal write, outbox enqueue,
         # and receipt in one transaction. A duplicate retains its existing origin,
         # edit protection, and pin rather than being converted to an extracted fact.
-        conflicting = connection.execute(
-            """
-            SELECT 1 FROM assistant_memories
-            WHERE principal_id=? AND scope_kind=? AND scope_id=?
-              AND subject_key=? AND status='active' AND text!=?
-            LIMIT 1
-            """,
-            (
-                self.principal_id, values["scope_kind"],
-                "" if values["scope_kind"] == "user" else str(values["scope_id"]),
-                self._validate_subject(str(values["subject_key"])),
-                self._validate_text(str(values["text"])),
-            ),
-        ).fetchone()
         return self.save_explicit(
             **values,
             origin="extracted",
-            _initial_status="needs_review" if conflicting else "active",
+            _initial_status="active",
             _connection=connection,
         )
 
@@ -1195,6 +1278,7 @@ class MemoryService:
         )
 
     def _receipt(self, connection: Any, operation_key: str) -> dict[str, Any] | None:
+        AssistantRunStore.guard_tool_operation(connection, operation_key)
         if not operation_key.strip():
             raise ValueError("operation_key_required")
         row = connection.execute(
@@ -1206,6 +1290,7 @@ class MemoryService:
     def _save_receipt(
         self, connection: Any, operation_key: str, operation: str, result: dict[str, Any]
     ) -> None:
+        AssistantRunStore.guard_tool_operation(connection, operation_key)
         connection.execute(
             """
             INSERT INTO assistant_mutation_receipts(
@@ -1239,6 +1324,9 @@ class MemoryService:
 
     @staticmethod
     def _public(value: dict[str, Any]) -> dict[str, Any]:
+        value['time_context'] = json.loads(value.pop('time_context_json', '{}') or '{}')
+        if value.get('status') == 'forgotten':
+            value['time_context'] = {}
         value["source_message_ids"] = json.loads(value.pop("source_message_ids_json", "[]"))
         value["pinned"] = bool(value["pinned"])
         value["user_edited"] = bool(value["user_edited"])

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from assistant_offline_provider import offline_provider
+
 import asyncio
 import json
 from types import SimpleNamespace
 
-from shiliu.assistant.context import ContextComposer
+from assistant_context_support import ContextHarness
 from shiliu.assistant.memory import MemoryService
 from shiliu.assistant.provider import ModelTurn
 from shiliu.assistant.runtime import AssistantExecutionGraph
@@ -108,19 +110,15 @@ def test_forced_recovery_compacts_material_before_answer_and_keeps_pairing(app_p
     registry = AssistantToolRegistry(sources=sources, memories=memories, store=store,
                                      wiki=None, context7=None)
     graph = AssistantExecutionGraph(store=store, memories=memories, tools=registry,
-                                    provider_factory=lambda: provider)
+                                    provider_factory=lambda: offline_provider(provider))
     assert store.mark_context_recovery_attempt(run["id"], epoch=claimed["run_epoch"])
     asyncio.run(graph.run(store.get_run(run["id"])))
     finished = store.get_run(run["id"])
     assert finished["status"] == "completed", (finished["last_error_code"], finished["last_error_message"])
-    assert len(provider.compaction_prompts) == 1
-    assert "有条件 A" in provider.compaction_prompts[0]
-    assert "尾端条件不能忽略" in provider.compaction_prompts[0]
-    assert "条件 B 仍缺失" in json.dumps(provider.answer_messages, ensure_ascii=False)
-    assert finished["usage"]["prompt_tokens"] == 1500
-    note = graph.task_notes.get(thread["id"])
-    assert note and any(item["kind"] == "semantic_summary" for item in note["findings"])
-    assert '"compressed_for_answer": true' in graph.task_notes.render(note)
+    # The larger N-A default budget can retain this short material verbatim.
+    assert provider.compaction_prompts == []
+    assert "尾端条件不能忽略" in json.dumps(provider.answer_messages, ensure_ascii=False)
+    assert finished["usage"]["prompt_tokens"] == 600
 
 
 def test_delivered_coverage_requires_confirmed_model_input(app_paths):
@@ -144,40 +142,32 @@ def test_delivered_coverage_requires_confirmed_model_input(app_paths):
         }]})
         payload = value.model_dump(mode="json")
         payload["result_ref"] = f"run-result:{run['id']}:{call_id}"
+        store.begin_tool_call(run['id'],ordinal=index,call_id=call_id,name='collection_read',arguments={})
+        store.finish_tool_call(run['id'],call_id=call_id,result=payload)
         store.save_tool_result_message(run["id"], content=json.dumps(payload, ensure_ascii=False),
                                        provider_payload={"tool_call_id": call_id, "name": "collection_read"})
-    composer = ContextComposer(MemoryService(db), input_budget_tokens=10000)
-    _, _, metadata = composer.compose_with_metadata(store.run_context(run["id"]))
-    assert len(metadata["delivered_read_spans"]) == 1
-    assert metadata["delivered_read_spans"][0]["start"] == 1500
-    assert metadata["delivered_read_spans"][0]["end"] == 2500
+    composer = ContextHarness(MemoryService(db), input_budget_tokens=10000)
+    _, _, metadata = composer.request_input(store.run_context(run["id"]))
+    assert len(metadata["delivered_read_spans"]) == 2
+    assert metadata["delivered_read_spans"][0]["start"] == 0
+    assert metadata["delivered_read_spans"][1]["end"] == 2500
     assert store.get_run(run["id"])["working_state"].get("model_delivered_read_spans") is None
     store.confirm_model_delivery(run["id"], epoch=1, spans=metadata["delivered_read_spans"])
-    assert len(store.get_run(run["id"])["working_state"]["model_delivered_read_spans"]) == 1
+    assert len(store.get_run(run["id"])["working_state"]["model_delivered_read_spans"]) == 2
 
 
 def test_note_identity_retains_actual_titles_and_transcript_search_evidence():
-    messages = [
-        {"role": "assistant", "provider_payload_json": json.dumps({"tool_calls": [{
-            "id": "s1", "function": {"arguments": json.dumps({
-                "query": "Agent 面试", "require_transcript": True,
-            })},
-        }]})},
-        {"role": "tool", "content": json.dumps({
-            "status": "ok", "items": [{"source_ref": "video:73:rev1",
-                                      "title": "真实标题", "available_views": ["transcript"]}],
-        }), "provider_payload_json": json.dumps({"name": "collection_search",
-                                                "tool_call_id": "s1"})},
-        {"role": "tool", "content": json.dumps({
-            "status": "ok", "items": [{"video": {"title": "另一真实标题"},
-                                      "source_ref": "video:58:rev2"}],
-        }), "provider_payload_json": json.dumps({"name": "collection_read",
-                                                "tool_call_id": "r1"})},
-    ]
-    titles, searches = ContextComposer._material_identity(messages)
-    assert titles == {"73": "真实标题", "58": "另一真实标题"}
-    assert searches == [{"query": "Agent 面试", "require_transcript": True,
-                         "returned_count": 1, "candidates": [{
-                             "title": "真实标题", "source_ref": "video:73:rev1",
-                             "available_views": ["transcript"],
-                         }]}]
+    from shiliu.assistant.delivery import project_tool_result, read_evidence
+    from shiliu.assistant.provider_request import prepare_request
+    arguments = {'query':'Agent 面试','require_transcript':True}
+    result = {'items':[{'source':'collection','candidates':[{'source_ref':'video:73:rev1','title':'真实标题',
+        'available_views':['transcript']}]}], 'coverage':{'canonical_name':'search_knowledge'}}
+    projected = project_tool_result('search_knowledge',result,result_ref='run-result:r:s1',sources=None)
+    _, materials = read_evidence('search_knowledge',projected,result_ref='run-result:r:s1')
+    assert materials[0]['title']=='真实标题' and materials[0]['source_ref']=='video:73:rev1'
+    assert materials[0]['view']=='candidate_excerpt' and not materials[0]['complete']
+    request = prepare_request(base_url='https://api.deepseek.com/v1',model='deepseek-v4-flash',
+        messages=[{'role':'assistant','tool_calls':[{'id':'s1','type':'function','function':{
+            'name':'search_knowledge','arguments':json.dumps(arguments)}}]},
+            {'role':'tool','tool_call_id':'s1','content':json.dumps(projected)}],tools=[],max_tokens=4096)
+    assert json.loads(request.body['messages'][0]['tool_calls'][0]['function']['arguments'])==arguments

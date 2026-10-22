@@ -4,7 +4,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from shiliu.artifacts import ArtifactStore
 from shiliu.db import Database, utc_now
@@ -27,16 +27,23 @@ class SourceSnapshotStore:
         self.artifacts = artifacts
         self.root = root.resolve()
 
-    def capture(self, video_id: int, *, principal_id: str = "local_operator") -> CapturedSource:
+    def capture(self, video_id: int, *, principal_id: str = "local_operator",
+                publish_guard: Callable[[Any], None] | None = None) -> CapturedSource:
         for _attempt in range(2):
             before = self._state(video_id)
+            file_stamps = self._file_stamps(before["video"])
             snapshot = self._build_snapshot(before)
             after = self._state(video_id)
             if self._capture_token(before) != self._capture_token(after):
                 continue
-            if snapshot["material_hashes"] != self._material_hashes(after["video"]):
+            # The first read already computed exact hashes. Rehash only when a
+            # file changed during capture; normal captures no longer read all
+            # large subtitle files twice.
+            if (file_stamps != self._file_stamps(after["video"])
+                    and snapshot["material_hashes"] != self._material_hashes(after["video"])):
                 continue
-            return self._commit(snapshot, principal_id=principal_id)
+            return self._commit(snapshot, principal_id=principal_id,
+                                publish_guard=publish_guard)
         raise SourceChangedDuringCapture(f"video {video_id} changed during source capture")
 
     def _state(self, video_id: int) -> dict[str, Any]:
@@ -169,7 +176,36 @@ class SourceSnapshotStore:
                 continue
         return values
 
-    def _commit(self, snapshot: dict[str, Any], *, principal_id: str) -> CapturedSource:
+    def _file_stamps(self, video: dict[str, Any]) -> dict[str, tuple[int, int, int] | None]:
+        stamps: dict[str, tuple[int, int, int] | None] = {}
+        for kind, column in (("raw_subtitle", "raw_subtitle_path"),
+                             ("transcript", "transcript_path"),
+                             ("summary", "summary_path")):
+            candidate = video.get(column)
+            try:
+                stat = self.artifacts.managed_file(str(candidate)).stat() if candidate else None
+                stamps[kind] = (stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns) if stat else None
+            except (OSError, ValueError):
+                stamps[kind] = None
+        return stamps
+
+    def _commit(self, snapshot: dict[str, Any], *, principal_id: str,
+                publish_guard: Callable[[Any], None] | None = None) -> CapturedSource:
+        video_id = int(snapshot["metadata"]["id"])
+        with self.db.connect() as connection:
+            existing = connection.execute(
+                """SELECT r.snapshot_ref FROM assistant_source_heads h
+                JOIN assistant_source_revisions r ON r.head_id=h.id AND r.revision=h.current_revision
+                WHERE h.principal_id=? AND h.video_id=? AND h.current_revision=?""",
+                (principal_id, video_id, snapshot["revision"]),
+            ).fetchone()
+        if existing:
+            relative = str(existing["snapshot_ref"])
+            try:
+                previous = json.loads((self.root / relative).read_text(encoding="utf-8"))
+                return CapturedSource(str(snapshot["revision"]), relative, previous)
+            except (OSError, ValueError):
+                pass
         payload = _canonical_json(snapshot)
         object_hash = _sha256(payload)
         relative = Path("objects") / "sha256" / object_hash[:2] / f"{object_hash}.json"
@@ -180,8 +216,10 @@ class SourceSnapshotStore:
             temporary.write_bytes(payload)
             temporary.replace(path)
         now = utc_now()
-        video_id = int(snapshot["metadata"]["id"])
         with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if publish_guard is not None:
+                publish_guard(connection)
             connection.execute(
                 """
                 INSERT INTO assistant_source_heads(

@@ -100,7 +100,7 @@ API Key、私人收藏夹 URL、个人 transcript、Provider 原始 payload 或�
 
 ### Ask Deep V2 / Jev B0
 
-Ask 的 Deep 使用已有 V2/F1 批次研究内核；Fast、Assistant、Memory、Wiki 与其他研究入口沿用现有路由，数据库仍为 Schema 25。新增依赖 `jieba==0.42.1` 已加入 `uv.lock`。
+Ask 的 Deep 使用已有 V2/F1 批次研究内核；Fast、Assistant、Memory、Wiki 与其他研究入口沿用现有路由，当前统一基线数据库为 Schema 26。新增依赖 `jieba==0.42.1` 已加入 `uv.lock`。
 
 `[llm] deep_reduce_strategy = "s"` 为缺省独立 Query Reduce；设为 `"b0"` 后，同批至少两个有效、无独立摘要缓存的字幕查询可执行冻结的 Jev 筛选与一次共享 Reduce。环境变量 `SHILIU_DEEP_REDUCE_STRATEGY=s|b0` 优先于文件配置，切换需有序重启服务。Jev 使用 `TYPESAFE_API_KEY` 或 Keychain `app.shiliu.jev:default`，产品不读取研究 `.env`。缺凭据、结构/引用校验失败、预算或 deadline 不足时使用 S；沉没 usage 仍保留。
 
@@ -109,3 +109,9 @@ F1 词法 companion 默认位于 state 目录 `deep-v2-lexical.sqlite`，首次�
 回退只需设置 S 并有序重启，随后以新请求 Trace 核实；不需要回滚数据库。集成与隔离网页验收记录见 [验收概要](docs/reports/DEEP_V2_JEV_B0_INTEGRATION_ACCEPTANCE.md)。
 
 Ask 同时复用已验收的首尾结构、校验后 `answer_part` 渐进交付和 Deep 分步研究展示；HTTP SSE 用于 Provider 输出，网页沿用已有 Fast NDJSON / Deep 持久事件轮询。重试、无效结构或不足结果会撤回临时块，最终持久结果为权威；开启语义 ClaimVerifier 时仍等待最终可信检查。Jev 仅在原资料整理步骤中显示，不增加独立 UI。
+
+### Assistant 统一稳定基线（2026-10-22）
+
+已整合 Demo 通用修复、Assistant 上下文重构、Wiki 保存/同页编辑修补和工具交付改进，入口名称为 Wiki。压缩采用一次 low thinking 摘要及检查点接续；85% 为预防性触发线，32K 为压缩后整请求软目标，不设 TaskNote 独立业务长度硬上限。
+
+范围、验证与已知限制见[交付说明](docs/reports/UNIFIED_STABLE_BASELINE_20261022.md)。使用独立数据目录体验，不会自动迁移或切换现有日常实例。

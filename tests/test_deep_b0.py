@@ -6,8 +6,8 @@ from types import SimpleNamespace
 import httpx
 import pytest
 from test_deep_v2 import _span, _state, _continue, _finish, Provider
-from shiliu.ask.deep.v2 import DeepV2Graph, QueryReduction
-from shiliu.ask.deep.batch_reduce import BatchReduction, project, snapshots, union, choose
+from shiliu.ask.deep.v2 import DeepV2Graph, QueryReduction, V2Budget, V2Decision
+from shiliu.ask.deep.batch_reduce import BatchReduction, project, snapshots, union, choose, fit_shared_input, ident
 from shiliu.ask.deep.jev import JevClient, JevBatchError, MODEL
 from shiliu.config import AppConfig, load_config, save_config
 
@@ -216,7 +216,7 @@ def test_product_deep_provider_is_pinned_without_changing_other_routes(app_paths
     assert app.fast_answer_provider('grounded_answer').model=='existing-grounded_answer_fast'
     assert app.ask_service.deep_service.is_v2
     assert app.ask_service.deep_service.graph.reduce_strategy=='s'
-    with app.db.connect() as db:assert db.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0]=='25'
+    with app.db.connect() as db:assert db.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0]=='26'
 
 def test_optional_f1_companion_failure_does_not_block_original_sync(app_paths,monkeypatch):
     from shiliu.app import Application
@@ -228,3 +228,166 @@ def test_optional_f1_companion_failure_does_not_block_original_sync(app_paths,mo
     assert result['video_id']==999 and result['chunk_units']==0
     # The next Deep search fails closed against the invalid companion.
     with pytest.raises(Exception):F1LexicalIndex(app._deep_lexical_path(),app.db.path).validate_source()
+
+
+def test_shared_input_fit_keeps_query_anchors_whole_quotes_and_valid_mapping():
+    graph,_,_,state=setup()
+    actions=__import__('shiliu.ask.deep.v2',fromlist=['V2Decision']).V2Decision.model_validate(_continue(('a','b'))).actions
+    ss=snapshots(graph,[0,1],actions,[{'spans':(_span('a','only-a'),)},
+                                   {'spans':(_span('b','only-b'),)}],state)
+    for s in ss:
+        base=s['candidates'][0]
+        s['candidates']=[{**base,'evidence_ref':f'c{i}','rank':i+1,
+            'video_id':i+1 if s['id']==actions[0].action_id else i+100,
+            'citation_id':base['citation_id']+str(i),'segment_ids':[base['segment_ids'][0]+str(i)],
+            'quote':f'full-{i} '+('全文 '*300),'start_time':i*100,'end_time':i*100+10} for i in range(8)]
+        s['candidates'][-1].update(video_id=s['candidates'][-2]['video_id'],
+            start_time=s['candidates'][-2]['end_time']+1)
+    selected={s['id']:s['candidates'] for s in ss}
+    scores={s['id']:{c['evidence_ref']:i/10 for i,c in enumerate(s['candidates'])} for s in ss}
+    # Within budget, preserve the frozen selection and exact mapping unchanged.
+    original_candidates, original_mapping = union(ss, selected)
+    unchanged, unchanged_mapping, unchanged_fit = fit_shared_input(ss, selected, scores, 'question', 100000)
+    assert json.loads(unchanged[-1]['content'])['candidates'] == original_candidates
+    assert unchanged_mapping == original_mapping and unchanged_fit['input_fit_removed_count'] == 0
+    messages,mapping,fit=fit_shared_input(ss,selected,scores,'question',15000)
+    assert fit['input_fit_removed_count'] > 0 and fit['input_chars'] <= 15000
+    originals={ident(c):c for s in ss for c in s['candidates']}
+    payload=json.loads(messages[-1]['content'])
+    for c in payload['candidates']:
+        assert c['quote'] == originals[mapping[c['evidence_ref']]['identity']]['quote']
+    for s in ss:
+        identities={m['identity'] for m in mapping.values() if s['id'] in m['selected_for']}
+        assert ident(s['candidates'][0]) in identities and ident(s['candidates'][-1]) in identities
+        assert ident(s['candidates'][-2]) in identities  # preceding context of score anchor
+    raw={'findings':[{'subject':'source','text':'supported', 'evidence_refs':[next(iter(mapping))],
+                    'query_ids':[s['id'] for s in ss]}],
+         'query_assessments':[{'query_id':s['id'],'sufficient':True,'unresolved':[]} for s in ss]}
+    assert all(r['retained_evidence_refs'] for r in project(ss,raw,mapping))
+    raw['findings'][0]['evidence_refs']=['removed-or-unknown']
+    with pytest.raises(ValueError):project(ss,raw,mapping)
+
+
+@pytest.mark.parametrize('queries', [('a', 'b'), ('a', 'b', 'c', 'd')])
+def test_reduce_input_and_output_budgets_remain_independent(queries):
+    graph, provider, _, state = setup(queries)
+    graph.transcripts.search = lambda q, **kw: {'spans': (_span(q, 'only-' + q),), 'hits': (), 'scope': {}}
+    assert graph.budget.reduce_input_chars == 100000
+    assert graph.budget.controller_context_chars == graph.budget.final_context_chars == 80000
+    assert graph.budget.reduce_output_tokens == 6000
+    result = graph.run(state)
+    batch = next(e for e in result['events'] if e['event_type'] == 'b0_batch')
+    call = next(c for c in provider.calls if c['response_schema'] is BatchReduction)
+    assert call['max_tokens'] == 6000 * len(queries)
+    assert batch['input_chars'] == sum(len(m['content']) for m in call['messages'])
+    assert batch['input_fit_removed_count'] == 0
+    with pytest.raises(ValueError, match='positive'):
+        V2Budget(reduce_input_chars=0)
+
+
+def test_large_shared_request_fits_before_dispatch_and_maps_original_quotes():
+    graph, provider, _, state = setup()
+    originals = {q: tuple(_span(f'{q}-{i}', 'only-' + q + ' 字' * 5000) for i in range(12)) for q in ('a', 'b')}
+    graph.transcripts.search = lambda q, **kw: {'spans': originals[q], 'hits': (), 'scope': {}}
+    result = graph.run(state)
+    batch = next(e for e in result['events'] if e['event_type'] == 'b0_batch')
+    assert batch['accepted'] and not batch['fallback']
+    assert batch['input_chars_before_fit'] > 100000 >= batch['input_chars']
+    assert batch['input_fit_removed_count'] > 0
+    call = next(c for c in provider.calls if c['response_schema'] is BatchReduction)
+    assert batch['input_chars'] == sum(len(m['content']) for m in call['messages'])
+    assert len([c for c in provider.calls if c['response_schema'] is QueryReduction]) == 0
+    for c in json.loads(call['messages'][-1]['content'])['candidates']:
+        ref = batch['reference_map'][c['evidence_ref']]['citation_id']
+        assert c['quote'] == result['v2_store'][ref].quote_text
+    for q in ('a', 'b'):
+        assert any(m['citation_id'] == q + '-0' for m in batch['reference_map'].values())
+    assert all(ref in result['v2_store']
+               for r in result['v2_query_results'] for ref in r['retained_evidence_refs'])
+
+
+def test_unfit_anchors_skip_batch_and_fallback_uses_original_candidates():
+    graph, provider, _, state = setup()
+    originals = {q: (_span(q, 'only-' + q + '字' * 55000), _span(q + '-secondary', 'secondary' * 600))
+                 for q in ('a', 'b')}
+    graph.transcripts.search = lambda q, **kw: {'spans': originals[q], 'hits': (), 'scope': {}}
+    result = graph.run(state)
+    batch = next(e for e in result['events'] if e['event_type'] == 'b0_batch')
+    assert batch['fallback'] and 'anchors/bridges' in batch['reason']
+    assert batch['input_fit_removed_count'] == 2 and batch['input_chars'] > 100000
+    assert not any(c['response_schema'] is BatchReduction for c in provider.calls)
+    calls = [c for c in provider.calls if c['response_schema'] is QueryReduction]
+    assert len(calls) == 2 and len([u for u in result['usage'] if u.get('role') == 'jev_score']) == 1
+    for call in calls:
+        payload = json.loads(call['messages'][-1]['content'])
+        assert [c['quote'] for c in payload['candidates']] == [s.quote_text for s in originals[payload['current_query']]]
+        assert call['max_tokens'] == 6000
+    assert not result['errors']
+
+
+def test_single_reduce_uses_full_message_budget_and_reports_oversize_without_dispatch():
+    graph, provider, _, _ = setup(strategy='s')
+    action = V2Decision.model_validate(_continue(['a'])).actions[0]
+    # Larger than the Controller budget still fits the independent Reduce budget.
+    result = graph._query_reduce_one(action, {'spans': (_span('a', '字' * 85000),)}, 'question', time.monotonic() + 10)
+    assert result['called'] and 80000 < result['input_chars'] <= 100000
+    call = next(c for c in provider.calls if c['response_schema'] is QueryReduction)
+    assert result['input_chars'] == sum(len(m['content']) for m in call['messages'])
+    before = len(provider.calls)
+    result = graph._query_reduce_one(action, {'spans': (_span('a', '字' * 100000),)}, 'question', time.monotonic() + 10)
+    assert result['input_chars'] > 100000 and not result['called'] and result['error'] and result['unresolved']
+    assert len(provider.calls) == before
+
+
+@pytest.mark.parametrize('strategy', ['s', 'b0'])
+def test_reduce_http_transport_sends_exact_measured_messages(strategy, monkeypatch):
+    from shiliu.llm import OpenAICompatibleProvider
+    graph, controller, _, state = setup(strategy=strategy)
+    seen = []
+    def handler(request):
+        body = json.loads(request.content)
+        seen.append(body)
+        payload = json.loads(body['messages'][-1]['content'])
+        if 'queries' in payload:
+            output = {'findings': [], 'query_assessments': [
+                {'query_id': q['query_id'], 'sufficient': False, 'unresolved': ['missing detail']}
+                for q in payload['queries']]}
+        else:
+            output = {'findings': [], 'sufficient': False, 'unresolved': ['missing detail']}
+        return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps(output)}, 'finish_reason': 'stop'}], 'usage': {}})
+    client = httpx.Client
+    monkeypatch.setattr('shiliu.llm.httpx.Client', lambda **kw: client(transport=httpx.MockTransport(handler), **kw))
+    adapter = OpenAICompatibleProvider(base_url='https://example.test/v1', api_key='fake', model='fake')
+    dispatched = []
+    generate = adapter.generate_structured
+    def capture(**kwargs):
+        dispatched.append(kwargs['messages'])
+        return generate(**kwargs)
+    adapter.generate_structured = capture
+    graph.provider_factory = lambda role: adapter if role == 'query_reduce' else controller
+    result = graph.run(state)
+    assert seen and [b['messages'] for b in seen] == dispatched
+    assert all(b['response_format'] == {'type': 'json_object'} for b in seen)
+    chars = [sum(len(m['content']) for m in b['messages']) for b in seen]
+    if strategy == 'b0':
+        batch = next(e for e in result['events'] if e['event_type'] == 'b0_batch')
+        assert batch['accepted'] and chars == [batch['input_chars']]
+    else:
+        assert sorted(chars) == sorted(e['input_chars'] for e in result['events'] if e['event_type'] == 'v2_query_reduce')
+
+
+def test_shared_candidate_drop_priority_uses_its_strongest_query_role():
+    graph, _, _, state = setup()
+    actions = V2Decision.model_validate(_continue(('a', 'b'))).actions
+    shared = _span('shared', 'shared ' + '字' * 3000)
+    ss = snapshots(graph, [0, 1], actions, [
+        {'spans': (_span(q, 'anchor'), shared, _span(q + '-tail', 'tail ' + '字' * 3000))}
+        for q in ('a', 'b')], state)
+    selected = {s['id']: s['candidates'] for s in ss}
+    scores = {'a': {'c0': 1, 'c1': .1, 'c2': .3}, 'b': {'c0': 1, 'c1': .9, 'c2': .2}}
+    expected = {qid: cs[:2] for qid, cs in selected.items()}
+    _, _, expected_fit = fit_shared_input(ss, expected, scores, 'question', 100000)
+    _, mapping, metrics = fit_shared_input(ss, selected, scores, 'question', expected_fit['input_chars'])
+    assert metrics['input_fit_removed_count'] == 2
+    assert {m['citation_id'] for m in mapping.values()} == {'a', 'b', 'shared'}
+    assert next(m for m in mapping.values() if m['citation_id'] == 'shared')['selected_for'] == ['a', 'b']

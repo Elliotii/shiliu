@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 import base64
 import binascii
 import hashlib
@@ -240,11 +241,14 @@ class CollectionSourceService:
                 for rank, result in enumerate(results_for_query, start=1):
                     video_id = int(result.video_id)
                     entry = ranked.setdefault(video_id, {
-                        "result": result, "score": 0.0, "matches": [],
+                        "result": result, "score": 0.0, "matches": [], "windows": [],
                     })
                     # Rank fusion avoids comparing scores from different retrieval paths.
                     entry["score"] += 1.0 / (20 + rank)
                     entry["matches"].append({"query": variant, "rank": rank})
+                    for window in getattr(result, "windows", ()):
+                        if window not in entry["windows"]:
+                            entry["windows"].append(window)
             ranked_items = sorted(ranked.items(), key=lambda pair: (-pair[1]["score"], pair[0]))
             results = [entry["result"] for _, entry in ranked_items[:retrieval_limit]]
             if sort == "relevance":
@@ -279,6 +283,13 @@ class CollectionSourceService:
                 )
         else:
             return ToolResult(call_id=call_id, status="unavailable", summary="内容检索器不可用；可使用 mode=metadata 查找标题、作者和时间", error_code="content_search_unavailable", coverage=coverage)
+        for item in items:
+            entry = ranked[int(item["video_id"])]
+            result = entry["result"]
+            item["windows"] = entry["windows"]
+            item["retrieval_methods"] = list(getattr(result, "retrieval_methods", ()))
+            item["best_unit_id"] = getattr(result, "best_unit_id", None)
+            item["best_unit_type"] = getattr(result, "best_unit_type", None)
         coverage.update({"candidate_limit": retrieval_limit, "exhaustive": False,
                          "sort_basis": "rank_fusion" if sort == "relevance" else f"candidate_{sort}",
                          "retrieval_requests": len(variants),
@@ -414,7 +425,7 @@ class CollectionSourceService:
         revision: str | None = None,
         cursor: str | None = None,
         query: str | None = None,
-        max_characters: int = 8000,
+        max_characters: int = 24000,
     ) -> ToolResult:
         try:
             video_id, ref_revision = _parse_source_ref(source_ref)
@@ -431,12 +442,12 @@ class CollectionSourceService:
                 error_code="revision_conflict",
             )
         resolved_revision = ref_revision or revision
-        if max_characters < 1 or max_characters > 12000:
+        if max_characters < 1 or max_characters > 40000:
             return ToolResult(call_id=call_id, status="invalid_arguments",
-                              summary="单次读取限 1 至 12000 字符", error_code="read_budget_invalid")
+                              summary="单次读取限 1 至 40000 字符", error_code="read_budget_invalid")
         if query and cursor:
             return ToolResult(call_id=call_id, status="invalid_arguments",
-                              summary="相关段落定位与顺序续读不能同时使用", error_code="query_cursor_conflict")
+                              summary="query 定位与 cursor 续读只能选一个；续读请只传 source_ref、view、cursor", error_code="query_cursor_conflict")
         offset = 0
         if cursor is not None:
             try:
@@ -530,8 +541,39 @@ class CollectionSourceService:
                       "model_delivery": "pending_context_projection"},
         )
 
+    def clip_read_result(self, result: dict, *, max_characters: int) -> dict:
+        """Allocate only an unsent representation; preserve the immutable raw receipt."""
+        value = deepcopy(result)
+        remaining = max(0, max_characters)
+        for item in value.get('items') or []:
+            text = item.get('content')
+            if not isinstance(text, str):
+                continue
+            original = item.get('provenance', {}).get('content_position') or {}
+            start = int(original.get('start') or 0)
+            kept = text[:remaining]
+            remaining -= len(kept)
+            end = start + len(kept)
+            position = {**original, 'start': start, 'end': end}
+            item.setdefault('provenance', {})['content_position'] = position
+            item['content'] = kept
+            value.setdefault('coverage', {})['read_position'] = position
+            if len(kept) < len(text):
+                view = value['coverage']['requested_view']
+                ref = next(iter(value.get('source_refs') or []), item['source_ref'])
+                video_id, revision = _parse_source_ref(ref)
+                revision = revision or item['revision']
+                value['truncated'] = True
+                value['coverage']['read_complete'] = False
+                value['next_cursor'] = _encode_read_cursor(video_id=video_id, revision=revision,
+                                                           view=view, offset=end)
+                value['coverage']['next_read_args'] = {'source_ref': ref, 'view': view,
+                                                       'cursor': value['next_cursor']}
+        return value
+
     def refresh_metadata(
-        self, *, call_id: str, scope: SourceScope, source_ref: str
+        self, *, call_id: str, scope: SourceScope, source_ref: str,
+        publish_guard: Any = None,
     ) -> ToolResult:
         try:
             video_id, ref_revision = _parse_source_ref(source_ref)
@@ -565,6 +607,7 @@ class CollectionSourceService:
         self.artifacts.save_metadata(bundle)
         self.db.update_video(
             video_id,
+            publish_guard=publish_guard,
             title=bundle.title,
             uploader=bundle.uploader,
             uploader_id=bundle.uploader_id,
@@ -579,7 +622,7 @@ class CollectionSourceService:
             published_at=bundle.published_at,
             metadata_observed_at=bundle.metadata_observed_at,
         )
-        captured = self.snapshots.capture(video_id)
+        captured = self.snapshots.capture(video_id, publish_guard=publish_guard)
         return ToolResult(
             call_id=call_id, status="ok", summary="视频元数据已轻量刷新；未读取字幕、未触发 ASR 或摘要",
             result_ref=f"assistant-object:{captured.snapshot_ref}",

@@ -129,7 +129,7 @@ class AskCandidateProjector:
                 (search_trace_id,),
             ).fetchone()
         if row is None or str(row["status"]) != "success":
-            return None
+            return self._f1_groups(search_trace_id)
         try:
             value = json.loads(str(row["group_summary_json"]))
         except json.JSONDecodeError:
@@ -137,6 +137,37 @@ class AskCandidateProjector:
         if not isinstance(value, list):
             return None
         return [item for item in value if isinstance(item, dict)]
+
+    def _f1_groups(self, search_trace_id: str) -> list[dict[str, Any]] | None:
+        """Project persisted F1 hits for the existing optional candidate cards.
+
+        This display projection never feeds retrieval, Reduce, or Final Context.
+        Historical searches still require their original presentation record.
+        """
+        with self.db.connect() as connection:
+            row = connection.execute(
+                "SELECT trace_version,status,raw_hits_json FROM retrieval_search_traces WHERE trace_id=?",
+                (search_trace_id,),
+            ).fetchone()
+        if row is None or row["trace_version"] != "deep-v2-f1" or row["status"] != "complete":
+            return None
+        try:
+            hits = json.loads(row["raw_hits_json"])
+        except (TypeError, json.JSONDecodeError):
+            return None
+        if not isinstance(hits, list):
+            return None
+        groups: dict[int, dict[str, Any]] = {}
+        for hit in hits[:50]:
+            if not isinstance(hit, dict) or not isinstance(hit.get("video_id"), int):
+                continue
+            groups.setdefault(hit["video_id"], {
+                "video_id": hit["video_id"], "best_rank": hit.get("rank"),
+                "windows": [{"best_chunk_id": hit.get("unit_id"),
+                    "window_start": hit.get("start_time"), "window_end": hit.get("end_time"),
+                    "jump_time": hit.get("start_time")}],
+            })
+        return list(groups.values())
 
     @staticmethod
     def _candidate_identity(

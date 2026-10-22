@@ -26,7 +26,7 @@ from shiliu.research.schema import (
 )
 
 
-SCHEMA_VERSION = 25
+SCHEMA_VERSION = 26
 
 LibraryCardCursor = tuple[int, int, str, int, int, int]
 
@@ -1454,7 +1454,8 @@ class Database:
                 changed += int(cursor.rowcount)
         return changed
 
-    def update_video(self, video_id: int, **fields: Any) -> None:
+    def update_video(self, video_id: int, *, publish_guard: Any = None,
+                     **fields: Any) -> None:
         if not fields:
             return
         allowed = {
@@ -1478,6 +1479,9 @@ class Database:
             for name in fields
         )
         with self.connect() as connection:
+            if publish_guard is not None:
+                connection.execute("BEGIN IMMEDIATE")
+                publish_guard(connection)
             connection.execute(
                 f"UPDATE videos SET {assignments} WHERE id=?",
                 [*fields.values(), video_id],

@@ -313,6 +313,7 @@ class Application:
                 deep_answer_provider_factory=self.deep_v2_answer_provider,
                 deep_provider_factory=self.deep_v2_provider,
                 deep_embedding_provider=self.dense_retrieval.provider,
+                fast_f1=True,
                 deep_reduce_strategy=self.config.deep_reduce_strategy,
                 runtime_corpus_identity=self.runtime_config.corpus_identity,
                 artifacts=self.artifacts,
@@ -359,6 +360,7 @@ class Application:
             self._assistant_runtime = AssistantRuntime(
                 store=foundation.store,
                 sources=foundation.sources,
+                embedding_provider=self.dense_retrieval.provider,
                 memory_backend=Mem0SemanticIndex(self.paths.assistant_state_dir / "mem0"),
                 context7=Context7MCPClient(),
                 provider_factory=self.assistant_provider,

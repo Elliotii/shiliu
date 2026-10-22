@@ -1,7 +1,16 @@
 from __future__ import annotations
 
+from test_assistant_context_c2 import c2
+from test_assistant_context_c3 import c3, history, state_for, notes
+from assistant_context_support import mixed_checkpoint
+
+from assistant_offline_provider import offline_provider
+
 import pytest
 import asyncio
+import json
+import copy
+from pathlib import Path
 import threading
 from datetime import datetime, timedelta, timezone
 
@@ -9,8 +18,10 @@ from shiliu.assistant.memory import MemoryService
 from shiliu.assistant.runtime import AssistantExecutionGraph
 from shiliu.assistant.provider import ModelTurn
 from shiliu.assistant.tools import AssistantToolRegistry
+from shiliu.assistant.task_notes import TaskNoteService
 
 from shiliu.assistant.store import AssistantConflict
+from shiliu.domain import PipelineError
 from test_assistant_stage_c import _add_material, _services
 
 
@@ -106,8 +117,8 @@ def test_no_save_guard_and_independent_temporary_note(app_paths, monkeypatch) ->
     run = store.create_run(thread["id"], text="不要保存这段分析，只回答", request_id="d-forbid")
     registry = AssistantToolRegistry(sources=sources, memories=MemoryService(db), store=store, wiki=wiki)
     denied = asyncio.run(registry.execute(
-        name="knowledge_save_outcome", arguments={"title": "不应存在", "purpose": "测试",
-                                                  "blocks": [_block("不入页")]}, call_id="d-deny",
+        name="knowledge_save_discussion", arguments={"topics": [{"title": "不应存在", "purpose": "测试",
+                                                  "blocks": [_block("不入页")]}]}, call_id="d-deny",
         run_context=store.run_context(run["id"]),
     ))
     assert denied["error_code"] == "knowledge_save_forbidden"
@@ -117,6 +128,26 @@ def test_no_save_guard_and_independent_temporary_note(app_paths, monkeypatch) ->
     ))
     assert legacy_denied["error_code"] == "knowledge_save_forbidden"
     assert wiki.list_pages(space_id=space["id"]) == []
+
+    from shiliu.assistant.tools import _forbids_knowledge_save
+    assert not _forbids_knowledge_save("分成两个主题，先给提案，不要保存个人记忆")
+    assert not _forbids_knowledge_save("禁止保存个人 Memory，允许知识主题提案")
+    assert not _forbids_knowledge_save("允许知识提案。个人 Memory 仍不要保存。")
+    assert _forbids_knowledge_save("不要保存个人记忆，也不要保存这段分析")
+    assert _forbids_knowledge_save("不要保存知识和个人记忆")
+    assert _forbids_knowledge_save("不要保存个人记忆，也不要保存知识")
+
+    joint = store.create_run(store.create_thread(space["id"])["id"],
+                             text="不要保存知识和个人记忆，先只回答", request_id="d-joint-forbid")
+    denied_outcome = asyncio.run(registry.execute(
+        name="knowledge_save_discussion",
+        arguments={"topics": [{"title": "不能出现的知识页", "purpose": "验证联合禁止",
+                   "blocks": [_block("不得写入")]}]}, call_id="d-joint-outcome",
+        run_context=store.run_context(joint["id"]),
+    ))
+    assert denied_outcome["error_code"] == "knowledge_save_forbidden"
+    assert wiki.list_pages(space_id=space["id"]) == []
+    assert wiki.list_discussion_plans(space_id=space["id"]) == []
 
     other = store.create_thread(space["id"])
     later = store.create_run(other["id"], text="保存这条个人安排：未来1天先准备面试", request_id="d-note")
@@ -136,7 +167,7 @@ def test_no_save_guard_and_independent_temporary_note(app_paths, monkeypatch) ->
     assert wiki.get_page(saved["id"], space_id=space["id"])["blocks"] == []
 
 
-def test_model_cannot_invent_personal_note(app_paths) -> None:
+def test_personal_note_requires_traceable_user_quote(app_paths) -> None:
     _db, _artifacts, _sources, store, wiki = _services(app_paths)
     space = store.create_space(name="D", all_active=True)
     message_id = _message_id(store, space["id"], "请保存这份分析")
@@ -150,7 +181,7 @@ def test_model_cannot_invent_personal_note(app_paths) -> None:
         wiki.save_discussion(
             space_id=space["id"], title="判断", purpose="模型分析",
             blocks=[{"role": "personal", "heading": "我的决定", "markdown": "我已决定采用甲",
-                     "user_quote": "保存这份分析"}],
+                     "user_quote": "我已经决定采用甲"}],
             source_message_id=message_id, operation_key="d-unrelated-quote",
         )
 
@@ -169,17 +200,21 @@ def test_analysis_memory_dependency_and_unanchored_personal_time(app_paths, monk
     run = store.create_run(thread["id"], text="保存分析：根据我的面试安排，先练习条件比较",
                            request_id="d-analysis-memory")
     registry = AssistantToolRegistry(sources=sources, memories=memories, store=store, wiki=wiki)
+    with db.connect() as connection:
+        working = json.loads(connection.execute("SELECT working_state_json FROM assistant_runs WHERE id=?", (run["id"],)).fetchone()[0])
+        working["model_delivered_materials"] = [{"source_ref": f"video:{video_id}:{revision}", "kind": "collection_read", "view": "summary", "projection": "正文"}]
+        connection.execute("UPDATE assistant_runs SET working_state_json=? WHERE id=?", (json.dumps(working), run["id"]))
     stored = asyncio.run(registry.execute(
-        name="knowledge_save_outcome", arguments={
+        name="knowledge_save_discussion", arguments={"topics": [{
             "title": "面试材料", "purpose": "准备说明",
             "blocks": [{"role": "source", "heading": "独立来源", "markdown": "材料的条件差异保持独立",
                         "source_refs": [f"video:{video_id}:{revision}"]},
                        {**_block("根据近期面试安排先练习条件比较"),
                         "memory_id": memory["id"], "memory_version": memory["version"]}],
-        }, call_id="d-analysis-memory", run_context=store.run_context(run["id"]),
+        }]}, call_id="d-analysis-memory", run_context=store.run_context(run["id"]),
     ))
     assert stored["status"] == "ok"
-    page = wiki.get_page(stored["items"][0]["page_id"], space_id=space["id"])
+    page = wiki.get_page(stored["items"][0]["results"]["0"]["page_id"], space_id=space["id"])
     assert [block["assessment"] for block in page["blocks"]] == ["source_reported", "system_synthesis"]
     assert wiki.personal_dependency_refs(page["id"], space_id=space["id"]) == [
         f"memory:{memory['id']}:{memory['version']}"]
@@ -270,7 +305,7 @@ def test_page_write_requires_claimed_plan_in_same_transaction(app_paths) -> None
     assert wiki.list_pages(space_id=space["id"]) == []
 
 
-def test_negative_personal_and_confirmation_tool_guards(app_paths) -> None:
+def test_personal_save_forbidden_and_confirmation_thread_guard(app_paths) -> None:
     db, _artifacts, sources, store, wiki = _services(app_paths)
     space = store.create_space(name="D", all_active=True)
     seed_id = _message_id(store, space["id"], "保存这个单主题")
@@ -279,8 +314,8 @@ def test_negative_personal_and_confirmation_tool_guards(app_paths) -> None:
                                 operation_key="guard-seed")
     registry = AssistantToolRegistry(sources=sources, memories=MemoryService(db), store=store, wiki=wiki)
 
-    def call(text, name, arguments, call_id):
-        thread = store.create_thread(space["id"])
+    def call(text, name, arguments, call_id, thread_id=None):
+        thread = {"id": thread_id} if thread_id else store.create_thread(space["id"])
         run = store.create_run(thread["id"], text=text, request_id=call_id)
         return asyncio.run(registry.execute(name=name, arguments=arguments, call_id=call_id,
                                             run_context=store.run_context(run["id"])))
@@ -293,13 +328,15 @@ def test_negative_personal_and_confirmation_tool_guards(app_paths) -> None:
         {"title": "甲", "purpose": "甲用途", "blocks": [_block("甲")]},
         {"title": "乙", "purpose": "乙用途", "blocks": [_block("乙")]},
     ], omitted=[], source_message_id=plan_id, request_key="guard-plan")
-    for prompt in ("不要确认这个提案", "拒绝这个提案"):
-        wrong = call(prompt, "knowledge_confirm", {"plan_id": plan["id"], "expected_version": 1,
-                                                  "accept": True}, f"wrong-{prompt}")
-        assert wrong["status"] != "ok"
+    wrong = call("确认这个提案", "knowledge_confirm", {"plan_id": plan["id"], "expected_version": 1,
+                                                      "accept": True}, "foreign-confirm")
+    assert wrong["error_code"] == "knowledge_plan_request_mismatch"
     assert len(wiki.list_pages(space_id=space["id"])) == 1
+    with db.connect() as connection:
+        plan_thread_id = connection.execute('SELECT thread_id FROM assistant_messages WHERE id=?', (plan_id,)).fetchone()[0]
+        connection.execute("UPDATE assistant_runs SET status='completed' WHERE thread_id=? AND status='queued'", (plan_thread_id,))
     accepted = call("确认这个提案", "knowledge_confirm", {"plan_id": plan["id"],
-                                                   "expected_version": 1, "accept": True}, "right-confirm")
+                        "expected_version": 1, "accept": True}, "right-confirm", thread_id=plan_thread_id)
     assert accepted["status"] == "ok"
     assert len(wiki.list_pages(space_id=space["id"])) == 3
 
@@ -342,7 +379,7 @@ def test_mixed_run_keeps_read_tools_at_provider(
     graph = AssistantExecutionGraph(store=store, memories=MemoryService(db),
                                     tools=AssistantToolRegistry(sources=sources, memories=MemoryService(db),
                                                                 store=store, wiki=wiki),
-                                    provider_factory=lambda: provider)
+                                    provider_factory=lambda: offline_provider(provider))
     state = {
         "run_id": run["id"], "epoch": claimed["run_epoch"], "step_count": 0,
         "tool_count": tool_count, "tool_base": tool_base, "step_base": 0,
@@ -354,8 +391,209 @@ def test_mixed_run_keeps_read_tools_at_provider(
     offered = {item["function"]["name"] for item in provider.tools}
     assert {"collection_read", "run_read_result", "knowledge_propose"} <= offered
     prompt = str(provider.messages[0]["content"])
-    if expect_hint:
-        assert "及时调用 knowledge_propose" in prompt
-        assert "先使用现有读取工具" in prompt
-    else:
-        assert "当前多主题任务本段约剩" not in prompt
+    assert "当前多主题任务本段约剩" not in prompt
+    assert "及时调用 knowledge_propose" not in prompt
+
+
+def test_malformed_tool_arguments_get_one_bounded_retry(app_paths) -> None:
+    db, _artifacts, sources, store, wiki = _services(app_paths)
+    space = store.create_space(name="D", all_active=True)
+    thread = store.create_thread(space["id"])
+    run = store.create_run(thread["id"], text="分成两个主题给提案", request_id="d-json-retry")
+    claimed = store.claim_next_run()
+
+    class Provider:
+        calls = 0
+
+        def turn(self, *, messages, tools, max_tokens):
+            self.calls += 1
+            if self.calls == 1:
+                raise PipelineError("bad json", code="tool_arguments_invalid", retryable=False)
+            assert "工具调用必须是完整 JSON 对象" in messages[-1]["content"]
+            return ModelTurn(text="请查看提案", usage={"prompt_tokens": 10, "completion_tokens": 5})
+
+    provider = Provider()
+    graph = AssistantExecutionGraph(store=store, memories=MemoryService(db),
+                                    tools=AssistantToolRegistry(sources=sources, memories=MemoryService(db),
+                                                                store=store, wiki=wiki),
+                                    provider_factory=lambda: offline_provider(provider))
+    state = {"run_id": run["id"], "epoch": claimed["run_epoch"], "step_count": 0,
+             "tool_count": 0, "tool_base": 0, "step_base": 0, "usage": {},
+             "route": "model", "turn": None, "memory_restart_count": 0,
+             "context_metadata": {}}
+    result = asyncio.run(graph._model(state))
+    assert result["route"] == "final"
+    assert provider.calls == 2
+
+
+def test_two_pages_proposal_phrase_is_explicit_request(app_paths) -> None:
+    db, _artifacts, sources, store, wiki = _services(app_paths)
+    space = store.create_space(name="D", all_active=True)
+    thread = store.create_thread(space["id"])
+    run = store.create_run(thread["id"], text="请把上面两页作为待确认提案，先别写页面，不要保存个人记忆",
+                           request_id="d-two-pages")
+    registry = AssistantToolRegistry(sources=sources, memories=MemoryService(db), store=store, wiki=wiki)
+    result = asyncio.run(registry.execute(
+        name="knowledge_propose", arguments={"topics": [
+            {"title": "面试题卡", "purpose": "面试复习", "blocks": [_block("条件和依据")]},
+            {"title": "旅行练习卡", "purpose": "动作练习", "blocks": [_block("动作和边界")]},
+        ], "omitted": []}, call_id="d-two-pages",
+        run_context=store.run_context(run["id"]),
+    ))
+    assert result["status"] == "ok"
+    assert wiki.list_pages(space_id=space["id"]) == []
+
+
+def test_knowledge_page_read_is_bounded_and_versioned(app_paths) -> None:
+    db, _artifacts, sources, store, wiki = _services(app_paths)
+    space = store.create_space(name="D page read", all_active=True)
+    message_id = _message_id(store, space["id"], "保存面试比较")
+    page = wiki.save_discussion(
+        space_id=space["id"], title="面试比较", purpose="一次读小页",
+        blocks=[{"role": "analysis", "heading": f"条件 {i}",
+                 "markdown": f"条件 {i} 的依据"} for i in range(4)],
+        source_message_id=message_id, operation_key="d-read-page",
+    )
+    run = store.create_run(store.create_thread(space["id"])["id"],
+                           text="比较这页的四项条件", request_id="d-page-read")
+    registry = AssistantToolRegistry(sources=sources, memories=MemoryService(db), store=store, wiki=wiki)
+
+    def read(args: dict, call_id: str) -> dict:
+        return asyncio.run(registry.execute(
+            name="knowledge_read", arguments={"page_id": page["id"], **args},
+            call_id=call_id, run_context=store.run_context(run["id"]),
+        ))
+
+    small = read({"mode": "page"}, "d-small")
+    assert small["status"] == "ok" and small["next_cursor"] is None
+    assert small["coverage"]["complete"] is True
+    assert small["coverage"]["returned_blocks"] == 4
+    assert len(small["coverage"]["returned_block_ids"]) == 4
+    assert small["items"][0]["version"] == page["version"]
+    assert all(block["assessment"] == "system_synthesis" for block in small["items"][0]["blocks"])
+
+    large = wiki.save_discussion(
+        space_id=space["id"], title="大页", purpose="有界续读",
+        blocks=[{"role": "analysis", "heading": f"长块 {i}",
+                 "markdown": f"内容 {i} " + "甲" * 2500} for i in range(5)],
+        source_message_id=message_id, operation_key="d-read-large",
+    )
+    first = asyncio.run(registry.execute(
+        name="knowledge_read", arguments={"page_id": large["id"], "mode": "page"},
+        call_id="d-large-first", run_context=store.run_context(run["id"]),
+    ))
+    assert first["status"] == "ok" and first["truncated"] and first["next_cursor"]
+    second = asyncio.run(registry.execute(
+        name="knowledge_read", arguments={"page_id": large["id"], "mode": "page",
+                                          "cursor": first["next_cursor"]},
+        call_id="d-large-second", run_context=store.run_context(run["id"]),
+    ))
+    assert second["status"] == "ok"
+    assert set(first["coverage"]["returned_block_ids"]).isdisjoint(second["coverage"]["returned_block_ids"])
+    wiki.edit_block(large["id"], block_id=large["blocks"][0]["stable_id"],
+                    markdown="版本已更新", expected_version=large["version"], operation_key="d-page-edit")
+    stale = asyncio.run(registry.execute(
+        name="knowledge_read", arguments={"page_id": large["id"], "mode": "page",
+                                          "cursor": first["next_cursor"]},
+        call_id="d-large-stale", run_context=store.run_context(run["id"]),
+    ))
+    assert stale["error_code"] == "knowledge_cursor_version_changed"
+
+
+def test_task_note_retains_short_read_and_invalidates_edited_page(c3):
+    from test_assistant_context_c2 import execute, batch
+    run, state, _ = history(c3)
+    user = next(m for m in c3.store.get_thread(c3.thread['id'])['messages'] if m['role']=='user')
+    page = c3.wiki.save_discussion(space_id=c3.space['id'],title='页内具体判断',purpose='核对',
+        source_message_id=user['id'],operation_key='short-read',blocks=[{'role':'analysis','heading':'具体判断','markdown':'空镜、跟随、细节动作'}])
+    result = execute(c3,run,'knowledge_read',{'page_id':page['id'],'page_version':page['version'],'mode':'page'},call_id='wiki')
+    batch(c3,run,[('wiki','knowledge_read',{'page_id':page['id']},result)])
+    prepared = c3.composer.prepare(run['id'],provider=c3.provider)
+    c3.composer.persist(prepared)
+    c3.store.confirm_model_delivery(run['id'],epoch=run['run_epoch'],spans=[],message_ids=prepared.message_ids,context_revision=prepared.state['revision'])
+    c3.provider.summary = '页内具体判断：空镜、跟随、细节动作。'
+    candidate = asyncio.run(c3.graph._prepare_dispatch(state,provider=c3.provider,explicit_overflow=True))
+    assert '空镜、跟随、细节动作' in c3.graph.task_notes.render(candidate.checkpoint)
+    assert any(m['source_ref'].startswith('wiki:') for m in candidate.checkpoint['checkpoint']['material_index'])
+    c3.wiki.edit_block(page['id'],block_id=page['blocks'][0]['stable_id'],markdown='新版判断',expected_version=page['version'],operation_key='edit-note-page')
+    assert c3.graph.task_notes.checkpoint_for_context(c3.thread['id'],space_id=c3.space['id'],scope_version=1,identity=candidate.state['identity']) is None
+
+
+def test_real_ue_proposal_requires_sources_before_confirmation(app_paths) -> None:
+    fixture = json.loads((Path(__file__).resolve().parent / "fixtures" /
+                          "ue_r34_proposal_v1.json").read_text())
+    original = fixture["proposal_arguments"]["topics"]
+    db, artifacts, sources, store, wiki = _services(app_paths)
+    source_id = db.create_favorite_source(folder_id=995, folder_title="U-E isolated", history_policy="all")
+    video_ids = [
+        _add_material(db, artifacts, source_id, bvid="BV1UE0000001",
+                      title="Agent 长期记忆怎么做才安全？先别急着总结", text="整合不默认"),
+        _add_material(db, artifacts, source_id, bvid="BV1UE0000002",
+                      title="出游拍出电影感，一台运动相机就够了", text="空镜与人物跟随"),
+    ]
+    refs = [f"video:{video_id}:{sources.snapshots.capture(video_id).revision}"
+            for video_id in video_ids]
+    space = store.create_space(name="U-E isolated", source_ids=[source_id])
+    message_id = _message_id(store, space["id"], fixture["question"])
+
+    with pytest.raises(ValueError, match=r"topic\[1\]\.block\[1\].*source_block_requires_source"):
+        wiki.propose_discussion(space_id=space["id"], topics=copy.deepcopy(original),
+                                omitted=[], source_message_id=message_id,
+                                request_key="ue-fixed-invalid")
+    assert wiki.list_discussion_plans(space_id=space["id"]) == []
+
+    # Copy the already persisted v1 shape into this disposable database so
+    # the old pending state gets the same pre-confirmation protection.
+    plan_id = "akplan_ue_fixed_v1"
+    payload = {"topics": [{**topic, "source_refs": [], "page_id": None,
+                           "expected_version": None} for topic in copy.deepcopy(original)],
+               "omitted": []}
+    now = datetime.now(timezone.utc).isoformat()
+    with db.connect() as connection:
+        connection.execute(
+            """INSERT INTO assistant_knowledge_plans
+            (id,principal_id,space_id,version,scope_version,source_message_id,
+             payload_json,results_json,status,created_at,updated_at)
+            VALUES(?,?,?,?,?,?,?,'{}','pending',?,?)""",
+            (plan_id, "local_operator", space["id"], 1, space["scope_version"],
+             message_id, json.dumps(payload, ensure_ascii=False), now, now),
+        )
+    shown = next(plan for plan in wiki.list_discussion_plans(space_id=space["id"])
+                 if plan["id"] == plan_id)
+    assert shown["confirmable"] is False
+    assert len([issue for issue in shown["validation_issues"]
+                if "source_block_requires_source" in issue]) == 6
+    with pytest.raises(AssistantConflict, match="knowledge_plan_not_confirmable"):
+        wiki.decide_discussion_plan(plan_id, space_id=space["id"], expected_version=1,
+                                    accept=True, operation_key="ue-invalid-confirm")
+    assert wiki.list_pages(space_id=space["id"]) == []
+    with pytest.raises(ValueError, match=r"topic\[1\]\.block\[1\].*source_block_requires_source"):
+        wiki.revise_discussion_plan(plan_id, space_id=space["id"], expected_version=1,
+                                    topics=copy.deepcopy(original), omitted=[],
+                                    operation_key="ue-invalid-revise")
+
+    repaired = copy.deepcopy(original)
+    for index, topic in enumerate(repaired):
+        for block in topic["blocks"]:
+            if block["role"] == "source":
+                block["source_refs"] = [refs[index]]
+            else:
+                assert block.get("source_refs") in (None, [])
+    revised = wiki.revise_discussion_plan(
+        plan_id, space_id=space["id"], expected_version=1, topics=repaired,
+        omitted=[], operation_key="ue-fixed-revise",
+    )
+    assert revised["version"] == 2 and revised["confirmable"] is True
+    completed = wiki.decide_discussion_plan(
+        plan_id, space_id=space["id"], expected_version=2, accept=True,
+        operation_key="ue-fixed-confirm",
+    )
+    assert completed["status"] == "completed"
+    pages = wiki.list_pages(space_id=space["id"])
+    assert len(pages) == 2
+    for index, topic in enumerate(repaired):
+        page = next(page for page in pages if page["title"] == topic["title"])
+        assert sum(block["assessment"] == "source_reported" for block in page["blocks"]) == sum(
+            block["role"] == "source" for block in topic["blocks"])
+        assert all(block["source_refs"] == [] for block in page["blocks"]
+                   if block["assessment"] == "system_synthesis")

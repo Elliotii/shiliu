@@ -122,6 +122,60 @@ def union(ss, selected):
     return (cs, mapping)
 
 
+class SharedInputBudgetError(ValueError):
+    def __init__(self, metrics, mapping):
+        super().__init__('Shared input query anchors/bridges exceed character budget')
+        self.metrics = metrics
+        self.mapping = mapping
+
+
+def fit_shared_input(ss, selected, scores, question, budget):
+    """Fit whole source excerpts; keep each query's rank/score anchors and bridges."""
+    selected = {qid: list(cs) for qid, cs in selected.items()}
+    protected = set()
+    for s in ss:
+        cs = selected[s['id']]
+        if not cs:
+            raise ValueError('Shared input has no selected evidence for a query')
+        anchors = [min(cs, key=lambda c: c['rank']),
+                   max(cs, key=lambda c: (scores[s['id']][c['evidence_ref']], -c['rank']))]
+        protected.update(ident(c) for c in guard(anchors, s['candidates']))
+    before = None
+    while True:
+        candidates, mapping = union(ss, selected)
+        messages = [{'role': 'system', 'content': POLICY + json.dumps(BatchReduction.model_json_schema(), ensure_ascii=False)},
+                    {'role': 'user', 'content': json.dumps({'user_question': question,
+                        'queries': queries(ss), 'candidates': candidates}, ensure_ascii=False)}]
+        chars = sum(len(m['content']) for m in messages)
+        if before is None:
+            before = (chars, len(candidates))
+        metrics = {'input_chars': chars, 'selected_unique_count': len(candidates),
+            'input_chars_before_fit': before[0], 'selected_unique_count_before_fit': before[1],
+            'input_fit_removed_count': before[1] - len(candidates)}
+        if chars <= budget:
+            return messages, mapping, metrics
+        # An excerpt supplying the preceding context of another retained excerpt
+        # cannot be removed independently. Recompute bridges after each removal.
+        bridges = set()
+        priority = {}
+        for s in ss:
+            cs = selected[s['id']]
+            for c in cs:
+                prior = [x for x in s['candidates'] if x['video_id'] == c['video_id']
+                         and x['end_time'] <= c['start_time'] and c['start_time'] - x['end_time'] <= 5]
+                if prior:
+                    bridges.add(ident(max(prior, key=lambda x: x['end_time'])))
+                key = ident(c)
+                priority[key] = max(priority.get(key, (-1, float('-inf'))),
+                    (scores[s['id']][c['evidence_ref']], -c['rank']))
+        removable = set(priority) - protected - bridges
+        if not removable:
+            raise SharedInputBudgetError(metrics, mapping)
+        # Lowest relevance first, then worst retrieval rank; never source/display order.
+        drop = min(removable, key=lambda key: (priority[key], str(key)))
+        selected = {qid: [c for c in cs if ident(c) != drop] for qid, cs in selected.items()}
+
+
 def snapshots(graph, indices, actions, results, state):
     video_ids = list(dict.fromkeys(span.video_id for i in indices for span in results[i]["spans"]))
     descriptions = {}
@@ -237,17 +291,14 @@ def reduce_results(graph, actions, results, state, deadline):
                     on_dispatch=lambda: graph._publish(state, "jev_started", batch_id=batch_id))
                 state["usage"].extend({**call, "b0_batch": batch_id} for call in calls)
                 selected = {s["id"]: choose(s, "R", scores[s["id"]]) for s in ss}
-                candidates, mapping = union(ss, selected)
-                messages = [{"role": "system", "content": POLICY + json.dumps(BatchReduction.model_json_schema(), ensure_ascii=False)},
-                    {"role": "user", "content": json.dumps({"user_question": state["query"],
-                        "queries": queries(ss), "candidates": candidates}, ensure_ascii=False)}]
-                chars = sum(len(m["content"]) for m in messages)
-                record.update(selected_unique_count=len(candidates), input_chars=chars,
+                record.update(
                     full_unique_count=len({ident(c) for s in ss for c in s["candidates"]}),
-                    raw_candidate_count=sum(len(s["candidates"]) for s in ss), reference_map=mapping,
+                    raw_candidate_count=sum(len(s["candidates"]) for s in ss),
                     max_tokens=graph.budget.reduce_output_tokens * len(ss))
-                if chars > graph.budget.controller_context_chars:
-                    raise ValueError("Unified input exceeds character budget")
+                messages, mapping, fit = fit_shared_input(ss, selected, scores,
+                    state["query"], graph.budget.reduce_input_chars)
+                chars = fit["input_chars"]
+                record.update(**fit, reference_map=mapping)
                 if graph.clock() >= attempt_deadline or graph.cancelled(state.get("run_id", "")):
                     raise TimeoutError("Unified Reduce deadline/cancellation")
                 graph._publish(state, "reduce_started", batch_id=batch_id)
@@ -291,6 +342,8 @@ def reduce_results(graph, actions, results, state, deadline):
                 record["accepted"] = True
             except Exception as exc:
                 from shiliu.ask.deep.jev import JevBatchError
+                if isinstance(exc, SharedInputBudgetError):
+                    record.update(**exc.metrics, reference_map=exc.mapping)
                 if isinstance(exc, JevBatchError):
                     state["usage"].extend({**call, "b0_batch": batch_id} for call in exc.records)
                 record.update(fallback=True, reason=f"{type(exc).__name__}: {exc}"[:500])

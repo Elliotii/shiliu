@@ -40,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve = subcommands.add_parser("serve", help="启动本地页面")
     serve.add_argument("--host", default="127.0.0.1", choices=["127.0.0.1"], help="V0 只允许本机监听")
     serve.add_argument("--port", type=int, default=18520)
+    serve.add_argument("--no-background", action="store_true", help="暂停 Assistant 维护和 Research 自动恢复，仅处理用户前台请求")
     subcommands.add_parser("install-launchd", help="安装每小时同步任务")
     assistant = subcommands.add_parser("assistant", help="初始化或维护助手运行依赖")
     assistant_commands = assistant.add_subparsers(
@@ -240,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
 
         from shiliu.web import create_web_app
 
-        uvicorn.run(create_web_app(), host=arguments.host, port=arguments.port)
+        uvicorn.run(create_web_app(background_tasks=not arguments.no_background), host=arguments.host, port=arguments.port)
         return 0
     if arguments.command == "install-launchd":
         app = Application()

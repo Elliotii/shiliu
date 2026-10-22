@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -9,6 +10,12 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from shiliu.domain import FavoriteItem, FavoriteScan, FavoriteSourcePreview, PipelineError, VideoBundle
+
+
+def unavailable_video_error(message: str) -> bool:
+    """Known Bilibili missing/invisible responses require user review, not polling."""
+    codes = re.findall(r"(?:接口返回错误代码[：:]\s*|[\"']code[\"']\s*:\s*)(-?\d+)", message)
+    return any(int(code) in {-404, 62002} for code in codes)
 
 
 class BilibiliAdapter:
@@ -77,6 +84,7 @@ class BilibiliAdapter:
                     duration_seconds=_duration_seconds(
                         raw.get("duration_seconds", raw.get("duration", 0))
                     ),
+                    cover_url=raw.get("cover_url") or raw.get("cover"),
                     favorite_time=_int_or_none(
                         raw.get("fav_time") or raw.get("favorite_time")
                     ),
@@ -186,6 +194,9 @@ class BilibiliAdapter:
             message = _bounded_error_message(
                 str(error.get("message", result.stderr.strip() or "B 站读取失败"))
             )
+            if (arguments and arguments[0] in {"fetch-video", "fetch-video-metadata"}
+                    and code == "upstream_error" and unavailable_video_error(message)):
+                code = "video_unavailable"
             failure = PipelineError(
                 message,
                 code=code,

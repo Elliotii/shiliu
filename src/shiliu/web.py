@@ -284,20 +284,23 @@ class TaxonomySourcesRequest(BaseModel):
     source_ids: list[int] = Field(min_length=1)
 
 
-def create_web_app(application: Application | None = None) -> FastAPI:
+def create_web_app(application: Application | None = None, *, background_tasks: bool = True) -> FastAPI:
     core = application or Application()
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         if core.config.assistant_enabled:
+            core.assistant_runtime.maintenance_paused = not background_tasks
             core.assistant_runtime.start()
-        core.research_recovery.start()
+        if background_tasks:
+            core.research_recovery.start()
         try:
             yield
         finally:
             if core.config.assistant_enabled:
                 core.assistant_runtime.stop()
-            core.research_recovery.stop()
+            if background_tasks:
+                core.research_recovery.stop()
 
     web = FastAPI(
         title="拾流 Shiliu", docs_url=None, redoc_url=None, lifespan=lifespan

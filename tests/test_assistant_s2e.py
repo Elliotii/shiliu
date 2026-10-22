@@ -5,7 +5,7 @@ import asyncio
 import pytest
 
 from shiliu.assistant.memory import MemoryService
-from shiliu.assistant.context import ContextComposer
+from assistant_context_support import ContextHarness
 from shiliu.assistant.tools import AssistantToolRegistry
 from shiliu.assistant.store import AssistantConflict
 from shiliu.assistant.wiki import WikiService
@@ -94,6 +94,9 @@ def test_memory_derived_personal_content_hides_after_correction_without_hiding_i
     page = wiki.add_personal_note(page["id"], space_id=space["id"],
         text="派生判断：优先采用甲。", expected_version=page["version"],
         operation_key="e:derived", memory_id=memory["id"], memory_version=memory["version"])
+    from shiliu.assistant.wiki_retrieval import WikiHybridIndex
+    from test_assistant_k import FakeEmbedding
+    wiki.retrieval = WikiHybridIndex(FakeEmbedding())
     registry = AssistantToolRegistry(sources=sources, memories=memories, store=store, wiki=wiki)
     thread = store.create_thread(space["id"])
     run = store.create_run(thread["id"], text="读主题", request_id="e:read")
@@ -110,12 +113,12 @@ def test_memory_derived_personal_content_hides_after_correction_without_hiding_i
     }]})
     store.save_tool_result_message(run["id"], content=json.dumps(read, ensure_ascii=False),
                                    provider_payload={"tool_call_id": "before", "name": "knowledge_read"})
-    search = asyncio.run(registry.execute(name="knowledge_search",
-        arguments={"query": "派生判断"}, call_id="search-before",
+    search = asyncio.run(registry.execute(name="search_knowledge",
+        arguments={"query": "派生判断", "sources": ["wiki"]}, call_id="search-before",
         run_context=store.run_context(run["id"])))
     assert search["status"] == "ok"
     store.begin_tool_call(run["id"], ordinal=2, call_id="search-before",
-                          name="knowledge_search", arguments={"query": "派生判断"})
+                          name="search_knowledge", arguments={"query": "派生判断", "sources": ["wiki"]})
     store.finish_tool_call(run["id"], call_id="search-before", result=search)
     memories.correct(memory["id"], text="我的新判断：先核对乙。",
                      expected_version=memory["version"], operation_key="e:correct")
@@ -135,14 +138,15 @@ def test_memory_derived_personal_content_hides_after_correction_without_hiding_i
         call_id="after", run_context=store.run_context(run["id"])))
     assert old["status"] == "unavailable"
     fresh = asyncio.run(registry.execute(name="knowledge_read",
-        arguments={"page_id": page["id"], "mode": "relevant", "query": "独立笔记 适用条件"},
+        arguments={"page_id": page["id"], "page_version": current["version"], "mode": "block",
+                   "block_ids": [block["stable_id"] for block in current["blocks"] if "独立笔记" in block["markdown"]]},
         call_id="fresh", run_context=store.run_context(run["id"])))
     assert "派生判断：优先采用甲" not in json.dumps(fresh, ensure_ascii=False)
     store.cancel_run(run["id"])
     continuation = store.create_run(thread["id"], text="继续核对主题", request_id="e:continue")
-    messages, _tokens = ContextComposer(
-        memories, dependency_ref_validator=registry.dependency_refs_valid,
-    ).compose(store.run_context(continuation["id"]))
+    messages, _tokens = ContextHarness(
+        memories,
+    ).request_messages(store.run_context(continuation["id"]))
     provider_input = json.dumps(messages, ensure_ascii=False)
     assert "派生判断：优先采用甲" not in provider_input
     assert "我的新判断：先核对乙" in provider_input

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from shiliu.assistant.store import AssistantConflict, AssistantRunStore
-from shiliu.assistant.context import ContextComposer
+from assistant_context_support import ContextHarness
 from shiliu.assistant.memory import MemoryService
 
 from test_assistant_stage_b import _source_service
@@ -45,8 +45,9 @@ def test_history_is_scoped_paginated_and_abandoned_run_can_be_followed(app_paths
     assert not store.complete_run(run["id"], epoch=1, answer="迟到回答", usage={})
     following = store.create_run(first["id"], text="接着聊", request_id="a-2")
     context = store.run_context(following["id"])
-    projected, _cost = ContextComposer(MemoryService(db)).compose(context)
-    assert "五份材料都读完" not in str(projected)
+    projected, _cost = ContextHarness(MemoryService(db)).request_messages(context)
+    # Cancelled user requirements remain original user history, never a completion claim.
+    assert any(m["role"] == "user" and "五份材料都读完" in m["content"] for m in projected)
     assert "接着聊" in str(projected)
     assert [item["content"] for item in store.get_thread(first["id"])["messages"]] == [
         "五份材料都读完", "接着聊",
