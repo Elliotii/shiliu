@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import time
 import threading
-from typing import Callable
+import hashlib
 from pathlib import Path
+from typing import Callable
 from uuid import uuid4
 
 from shiliu.artifacts import ArtifactStore
@@ -18,6 +19,8 @@ from shiliu.ask.adaptive import (
 )
 from shiliu.ask.candidates import AskCandidateProjector
 from shiliu.ask.context import TranscriptContextBuilder
+from shiliu.ask.f1_context import F1ContextBuilder
+from shiliu.ask.deep.f1_tools import F1TranscriptTool
 from shiliu.ask.contracts import (
     AskRequest,
     AskResponse,
@@ -26,7 +29,6 @@ from shiliu.ask.contracts import (
     TraceSummary,
 )
 from shiliu.ask.deep.service import DeepSearchService
-from shiliu.ask.deep.f1_tools import F1Materializer
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.finalize import AnswerFinalizer
 from shiliu.ask.trust import ClaimVerifier
@@ -46,6 +48,12 @@ from shiliu.evidence.decision import EvidenceDecision, sha256_identity
 from shiliu.retrieval.product_search import ProductSearchRequest, ProductSearchService
 
 
+_FAST_RUNTIME_IDENTITY = {
+    "source_root": str(Path(__file__).resolve().parents[2]),
+    "service_module_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+}
+
+
 class AskModeNotImplemented(RuntimeError):
     code = "ask_mode_not_implemented"
     http_status = 501
@@ -60,15 +68,19 @@ class AskService:
         provider_factory: Callable[[str], object],
         answer_provider_factory: Callable[[str], object] | None = None,
         deep_answer_provider_factory: Callable[[str], object] | None = None,
+        deep_provider_factory: Callable[[str], object] | None = None,
+        deep_embedding_provider=None,
+        fast_f1: bool = False,
+        deep_reduce_strategy: str = "s",
+        jev_client=None,
         runtime_corpus_identity: str | None = None,
         evidence_search: EvidenceSearchService | None = None,
         context_builder: TranscriptContextBuilder | None = None,
         artifacts: ArtifactStore | None = None,
         claim_verifier: ClaimVerifier | None = None,
-        deep_embedding_provider: object | None = None,
-        deep_lexical_index_path: Path | None = None,
     ) -> None:
         self.db = db
+        self.fast_f1 = fast_f1
         self._owned_runs: set[str] = set()
         self._owned_runs_lock = threading.Lock()
         self.run_store = AskRunStore(db)
@@ -100,22 +112,31 @@ class AskService:
                 db=db,
                 artifacts=resolved_artifacts,
                 product_search=product_search,
-                provider_factory=provider_factory,
+                provider_factory=deep_provider_factory or provider_factory,
                 answer_provider_factory=(
                     deep_answer_provider_factory or provider_factory
                 ),
                 runtime_corpus_identity=runtime_corpus_identity,
                 evidence_search=self.evidence_search,
-                materializer=F1Materializer(db) if deep_embedding_provider is not None else self.materializer,
+                materializer=self.materializer,
                 context_builder=self.context_builder,
                 finalizer=self.finalizer,
                 claim_verifier=claim_verifier,
                 embedding_provider=deep_embedding_provider,
-                lexical_index_path=deep_lexical_index_path,
+                require_v2=deep_embedding_provider is not None,
+                reduce_strategy=deep_reduce_strategy, jev_client=jev_client,
             )
             if isinstance(resolved_artifacts, ArtifactStore)
             else None
         )
+        self.f1_transcripts = (
+            self.deep_service.graph.transcripts
+            if fast_f1 and self.deep_service is not None and self.deep_service.is_v2
+            else None
+        )
+        if fast_f1 and not isinstance(self.f1_transcripts, F1TranscriptTool):
+            raise ValueError("Fast F1 requires ArtifactStore and compatible F1 retrieval resources")
+
     def ask(
         self,
         request: AskRequest,
@@ -271,14 +292,14 @@ class AskService:
             raise ValueError("canonical decision and continuation envelope are required together")
         plan = (
             self.query_analyzer.analyze(request.query)
-            if evidence_decision is None
+            if evidence_decision is None and not self.fast_f1
             else None
         )
         self.run_store.append_event(
             run_id,
             "requirements_ready",
             {
-                "query_count": len(plan.queries) if plan is not None else 0,
+                "query_count": 1 if self.fast_f1 else len(plan.queries) if plan is not None else 0,
                 "analysis_available": plan is not None and plan.error is None,
             },
         )
@@ -286,11 +307,12 @@ class AskService:
         stale_reasons: list[str] = []
         retrieval_errors: list[str] = []
         search_references: list[dict[str, object]] = []
-        active_decision = evidence_decision
+        active_decision = None if self.fast_f1 else evidence_decision
+        f1_identity = {}
         adaptive_rounds: list[dict[str, object]] = []
         adaptive_stop_reason: str | None = None
         inherited_dropped: list[str] = []
-        if evidence_decision is not None and continuation_envelope is not None:
+        if not self.fast_f1 and evidence_decision is not None and continuation_envelope is not None:
             inherited = revalidate_inherited_evidence(
                 run_store=self.run_store,
                 materializer=self.materializer,
@@ -341,16 +363,8 @@ class AskService:
                     code="continuation_action_boundary",
                 )
 
-        queries = plan.queries if plan is not None else ()
+        queries = (request.query,) if self.fast_f1 else plan.queries if plan is not None else ()
         for query_index, query in enumerate(queries):
-            retrieval_request = ProductSearchRequest(
-                query=query,
-                mode="auto",
-                scope="transcript_chunk",
-                result_limit=10,
-                max_windows_per_video=2,
-                filters=request.filters,
-            )
             self.run_store.append_event(
                 run_id,
                 "search_started",
@@ -361,6 +375,27 @@ class AskService:
                 },
             )
             try:
+                if self.fast_f1:
+                    result = self.f1_transcripts.search(query, filters=request.filters)
+                    f1_identity = result["index_identity"]
+                    search_references.extend(result["search_executions"])
+                    all_spans.extend(result["spans"])
+                    stale_reasons.extend(result["stale"])
+                    self.run_store.append_event(run_id, "search_completed", {
+                        "query_index": query_index,
+                        "search_trace_id": result["trace_id"],
+                        "current_evidence_count": len(result["spans"]),
+                        "stale_evidence_count": len(result["stale"]),
+                    }, provenance={"evidence_reference_ids": [s.citation_id for s in result["spans"]]})
+                    continue
+                retrieval_request = ProductSearchRequest(
+                    query=query,
+                    mode="auto",
+                    scope="transcript_chunk",
+                    result_limit=10,
+                    max_windows_per_video=2,
+                    filters=request.filters,
+                )
                 execution = self.evidence_search.execute_search(
                     retrieval_request
                 )
@@ -438,6 +473,8 @@ class AskService:
             "created_at": created_at,
             "query": request.query,
             "mode": "fast",
+            "implementation_version": "fast-f1" if self.fast_f1 else "fast-legacy",
+            "runtime_identity": {**_FAST_RUNTIME_IDENTITY, "database": str(self.db.path.resolve())},
             "normalized_intent": (
                 plan.analysis.normalized_intent if plan is not None else request.query
             ),
@@ -454,6 +491,20 @@ class AskService:
             "adaptive_stop_reason": adaptive_stop_reason,
             "inherited_dropped_reference_ids": inherited_dropped,
         }
+        prepared_context = None
+        if self.fast_f1:
+            trace["f1"] = {
+                "retrieval": "original_query_dense50_jieba50_rrf60_top50",
+                "rewrite": False, "rerank": False, "neighborhood": False,
+                "context": "S5_S2Cbase", "payload_chars": 12000,
+                "quote_chars": 2500, "max_spans": 12,
+                "index_identity": f1_identity,
+            }
+            if all_spans:
+                prepared_context = F1ContextBuilder().build(
+                    query=request.query, normalized_intent=request.query, spans=tuple(all_spans)
+                )
+                trace["f1"]["delivered_context"] = prepared_context.model_context
         if active_decision is None:
             active_decision = create_current_evidence_decision(
                 question=request.query,
@@ -494,6 +545,7 @@ class AskService:
             retrieval_errors=retrieval_errors,
             decision_projection=trace["evidence_decision"],
             run_id=run_id,
+            prepared_context=prepared_context,
             event_sink=lambda event_type, payload: self.run_store.append_event(
                 run_id, event_type, payload
             ),
@@ -521,6 +573,7 @@ class AskService:
             mode="fast",
             status=final.status,
             execution_outcome=final.execution_outcome,
+            intro=final.intro, outro=final.outro,
             answer_blocks=list(final.answer_blocks),
             citations=list(final.citations),
             limitations=list(final.limitations),
@@ -567,6 +620,7 @@ class AskService:
                     all_spans,
                     {value.citation_id for value in response.citations},
                 ),
+                "intro": response.intro, "outro": response.outro,
                 "answer_blocks": [
                     value.model_dump(mode="json") for value in response.answer_blocks
                 ],
@@ -653,6 +707,12 @@ class AskService:
             ]
             if bodies:
                 trust = bodies[-1]["payload"].get("trust_summary")
+        finalization = trace.get("finalization")
+        repair_used = (
+            finalization["repair_used"]
+            if isinstance(finalization, dict) and "repair_used" in finalization
+            else trace.get("repair_used", False)
+        )
         answer_version = int(trace.get("answer_version") or 1)
         revisions = [
             value for value in run["events"] if value["event_type"] == "answer_revision_created"
@@ -664,9 +724,9 @@ class AskService:
             mode=run["mode"],
             status=run["answer_status"],
             execution_outcome=execution_outcome,
+            intro=run.get("intro"), outro=run.get("outro"),
             answer_blocks=run["answer_blocks"],
             citations=run["citations"],
-            source_matches=trace.get("source_matches") or [],
             limitations=run["limitations"],
             termination_reason=run["termination_reason"],
             trace_summary=TraceSummary(
@@ -678,7 +738,7 @@ class AskService:
                 stale_evidence_count=len(trace.get("stale_reasons") or ()),
                 context_span_count=len(run["final_evidence"]),
                 context_truncated=bool(trace.get("context_truncated", False)),
-                repair_used=bool(trace.get("repair_used", False)),
+                repair_used=bool(repair_used),
                 latency_ms=float(trace.get("latency_ms") or trace.get("total_latency_ms") or 0),
                 termination_reason=run["termination_reason"],
                 decision_rounds=int(trace.get("decision_rounds") or 0),
@@ -693,6 +753,7 @@ class AskService:
             candidate_disclosure=self._candidate_disclosure(run_id),
             trust_summary=trust,
             answer_version=answer_version,
+            source_matches=trace.get("source_matches", []),
         )
 
     def get_trace(self, run_id: str) -> dict[str, object] | None:
@@ -734,6 +795,7 @@ def _answer_event_payload(response: AskResponse) -> dict[str, object]:
         "answer_version": response.answer_version,
         "status": response.status,
         "execution_outcome": response.execution_outcome,
+        "intro": response.intro, "outro": response.outro,
         "answer_blocks": [
             value.model_dump(mode="json") for value in response.answer_blocks
         ],

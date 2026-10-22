@@ -329,6 +329,7 @@ class ProductSearchService:
         request: ProductSearchRequest,
         *,
         video_ids: tuple[int, ...] = (),
+        scope_video_ids: tuple[int, ...] | None = None,
         principal_id: str | None = None,
     ) -> tuple[RawSearchResponse, ProductSearchResponse]:
         started = time.monotonic()
@@ -341,11 +342,14 @@ class ProductSearchService:
             raw_top_k=raw_top_k,
             filters=request.filters,
         )
-        raw = (
-            self.raw_search.search_raw(raw_request, video_ids=video_ids)
-            if video_ids
-            else self.raw_search.search_raw(raw_request)
-        )
+        if scope_video_ids is not None:
+            raw = self.raw_search.search_raw(
+                raw_request, scope_video_ids=scope_video_ids
+            )
+        elif video_ids:
+            raw = self.raw_search.search_raw(raw_request, video_ids=video_ids)
+        else:
+            raw = self.raw_search.search_raw(raw_request)
         product_plan = _product_plan(raw, request)
         raw_ms = _milliseconds(raw_started)
         try:

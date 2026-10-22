@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
 import threading
@@ -176,9 +175,33 @@ def test_concurrent_queries_serialize_tokenizer_and_encode(tmp_path, fake_runtim
         return original_model_encode(texts, **kwargs)
 
     model.encode = model_encode
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        values = list(pool.map(provider.embed_query, ["深圳", "厦门", "小吃", "游玩"]))
-    assert len(values) == 4
+    # Daemon workers and a shared deadline expose non-reentrant lock deadlocks
+    # without leaving pytest blocked in an executor shutdown.
+    results, errors = [], []
+    def run(call):
+        try:
+            results.append(call())
+        except BaseException as exc:
+            errors.append(exc)
+    calls = (
+        lambda: provider.count_tokens("并发计数"),
+        lambda: provider.truncate_text("并发截断" * 200, 20),
+        lambda: provider.embed_query("并发查询" * 200),
+        lambda: provider.embed_documents(["长文档" * 300]),
+        lambda: provider.embed_query("自定义查询" * 200, instruction="Retrieve exact evidence."),
+    )
+    threads = [threading.Thread(target=run, args=(call,), daemon=True) for call in calls]
+    for thread in threads:
+        thread.start()
+    deadline = time.monotonic() + 10
+    for thread in threads:
+        thread.join(max(0, deadline - time.monotonic()))
+    assert not any(thread.is_alive() for thread in threads), "tokenizer lock deadlock"
+    assert errors == []
+    assert len(results) == len(calls)
+    assert provider.load_count == 1
+    assert any(text.startswith("Instruct: Retrieve exact evidence.")
+               for texts, _ in model.calls for text in texts)
 
 
 def test_document_budget_is_explicitly_truncated_and_missing_dependency_is_structured(
@@ -193,3 +216,12 @@ def test_document_budget_is_explicitly_truncated_and_missing_dependency_is_struc
     monkeypatch.setitem(sys.modules, "sentence_transformers", None)
     with pytest.raises(LocalModelNotReadyError, match="dependencies are missing"):
         provider.embed_query("MCP")
+
+def test_lazy_load_long_preparation_finishes_with_non_reentrant_locks(tmp_path, fake_runtime):
+    provider = QwenEmbeddingProvider(model_path=model_path(tmp_path))
+    results = []
+    worker = threading.Thread(target=lambda: results.append(provider.embed_documents(["x" * 2000])), daemon=True)
+    worker.start()
+    worker.join(10)
+    assert not worker.is_alive(), "lazy-load/preparation lock deadlock"
+    assert len(results) == provider.load_count == 1

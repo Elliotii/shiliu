@@ -30,3 +30,4 @@ def assert_snapshot_only(run_identity: dict[str, Any]) -> None:
         raise ValueError("Eval corpus/index tables changed")
     if not all(run_identity["live_trace_counts_unchanged"].values()):
         raise ValueError("Live traces changed")
+

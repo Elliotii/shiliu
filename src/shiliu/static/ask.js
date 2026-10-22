@@ -6,6 +6,7 @@
 
   const {element, formatTime, renderEvidenceCard, sourceLabels} = evidenceUI;
   const {shouldSubmitOnEnter} = askKeyboard;
+  const research = window.ShiliuAskResearch?.create(root);
   const form = root.querySelector('[data-ask-form]');
   const queryInput = form.elements.q;
   const submitButton = root.querySelector('[data-ask-submit]');
@@ -53,9 +54,120 @@
   let lastResponse = null;
   let traceLoadedFor = null;
   const seenPreviewCitationIds = new Set();
+  const answerNodeCache = new Map();
+  const evidenceGroupCache = new Map();
+  const evidenceCardCache = new Map();
+  let answerStream = null;
+  let activeRunId = null;
+
+  const syncNodes = (container, wanted) => {
+    wanted.forEach((node, index) => {
+      if (container.childNodes[index] !== node) container.insertBefore(node, container.childNodes[index] || null);
+    });
+    [...container.childNodes].filter(node => !wanted.includes(node)).forEach(node => node.remove());
+  };
+
+  const terminalVisibility = provisional => {
+    root.querySelectorAll('[data-terminal-only]').forEach(node => { node.hidden = provisional; });
+    root.querySelector('[data-status-badge]').hidden = provisional;
+    root.querySelector('[data-termination-copy]').hidden = provisional;
+  };
+
+  const resetAnswerStream = () => {
+    answerStream = null;
+    activeRunId = null;
+    window.__shiliuAnswerStream = null;
+    for (const key of ['answerRunId', 'answerGenerationStartedAtMs', 'answerFirstDOMAtMs',
+      'answerFirstVisibleAtMs', 'answerGenerationCompletedAtMs', 'answerFinalReceivedAtMs']) delete root.dataset[key];
+    lastResponse = null;
+    answerNodeCache.clear();
+    evidenceGroupCache.clear();
+    evidenceCardCache.clear();
+    root.querySelector('[data-answer-blocks]').replaceChildren();
+    root.querySelector('[data-citation-groups]').replaceChildren();
+    const button = root.querySelector('[data-save-knowledge-draft]');
+    button.disabled = false;
+    button.textContent = '保存为草稿';
+    root.querySelector('[data-draft-status]').textContent = '保存到知识草稿，稍后可继续整理。';
+  };
+
+  const streamEvent = event => {
+    const payload = event.payload || {};
+    const runId = event.source_id;
+    if (lastResponse?.run_id === runId) return;
+    if (activeRunId && activeRunId !== runId) return;
+    if (event.event_type === 'answer_generation_started') {
+      if (answerStream?.runId === runId) return;
+      answerStream = {runId: runId, generation: 0, sequence: 0,
+        blocks: new Map(), citations: new Map(), intro: null, outro: null};
+      window.__shiliuAnswerStream = {runId, startedAtMs: payload.started_at_ms};
+      root.dataset.answerRunId = runId;
+      root.dataset.answerGenerationStartedAtMs = String(payload.started_at_ms);
+      return;
+    }
+    if (!answerStream || answerStream.runId !== runId ||
+        Number(event.sequence) <= answerStream.sequence) return;
+    answerStream.sequence = Number(event.sequence);
+    if (event.event_type === 'answer_generation_finished') {
+      root.dataset.answerGenerationCompletedAtMs = String(payload.completed_at_ms);
+      Object.assign(window.__shiliuAnswerStream, {generationMs: payload.generation_ms,
+        providerCompletedAtMs: payload.completed_at_ms});
+      return;
+    }
+    if (payload.generation < answerStream.generation) return;
+    answerStream.generation = payload.generation;
+    if (event.event_type === 'answer_stream_reset') {
+      answerStream.blocks.clear();
+      answerStream.citations.clear();
+      answerStream.intro = answerStream.outro = null;
+      root.querySelector('[data-answer-blocks]').replaceChildren();
+      root.querySelector('[data-citation-groups]').replaceChildren();
+      showState('loading');
+      return;
+    }
+    if (event.event_type !== 'answer_part') return;
+    if (payload.block) {
+      answerStream.blocks.set(payload.index, payload.block);
+      (payload.citations || []).forEach(c => answerStream.citations.set(c.citation_id, c));
+    }
+    answerStream.intro = payload.intro;
+    answerStream.outro = payload.outro;
+    if (!answerStream.blocks.size) return;
+    const data = {mode: lastRequest?.mode || selectedMode(), status: 'partial',
+      intro: answerStream.intro, outro: answerStream.outro,
+      answer_blocks: [...answerStream.blocks].sort((a, b) => a[0] - b[0]).map(v => v[1]),
+      citations: [...answerStream.citations.values()]};
+    renderAnswerBlocks(data);
+    renderEvidence(data);
+    root.querySelector('[data-result-title]').textContent = `${modeLabels[data.mode]}结果`;
+    terminalVisibility(true);
+    for (const selector of ['[data-limitations-panel]', '[data-candidate-disclosure]',
+      '[data-continue-deep]', '[data-evidence-preview]', '[data-context-scope-note]']) {
+      root.querySelector(selector).hidden = true;
+    }
+    research?.answerStarted();
+    showState('result');
+    const timing = window.__shiliuAnswerStream;
+    if (!timing.firstDOMAtMs) {
+      timing.firstDOMAtMs = Date.now();
+      root.dataset.answerFirstDOMAtMs = String(timing.firstDOMAtMs);
+    }
+    if (!timing.firstVisibleAtMs) {
+      const generation = answerStream.generation;
+      window.requestAnimationFrame?.(() => {
+        if (timing !== window.__shiliuAnswerStream || timing.firstVisibleAtMs ||
+            answerStream?.generation !== generation || states.result.hidden ||
+            !root.querySelector('[data-answer-blocks]').childNodes.length) return;
+        timing.firstVisibleAtMs = Date.now();
+        root.dataset.answerFirstVisibleAtMs = String(timing.firstVisibleAtMs);
+        timing.firstVisibleMs = timing.firstVisibleAtMs - timing.startedAtMs;
+      });
+    }
+  };
 
   const showState = name => {
     Object.entries(states).forEach(([key, node]) => { node.hidden = key !== name; });
+    if (name === 'loading' && lastRequest?.mode === 'deep' && research) states.loading.hidden = true;
   };
 
   const resetPreview = () => {
@@ -101,6 +213,21 @@
   };
 
   const showLifecycle = event => {
+    if (activeRunId && event.source_id !== activeRunId) return;
+    if (lastResponse && event.source_id && lastResponse.run_id === event.source_id) return;
+    research?.event(event);
+    if (event.event_type === "b0_batch") return;
+    if (event.event_type === 'deep_research') {
+      const target = root.querySelector('[data-lifecycle-status]');
+      const phase = event.payload?.phase;
+      const labels = {jev_started:'正在使用 Jev 筛选并整理检索证据', controller_started:'正在规划后续研究', tool_started:'正在检索相关资料', reduce_started:'正在筛选并整理检索证据', research_finished:'研究已结束，正在准备回答'};
+      if (labels[phase]) target.textContent = labels[phase];
+      return;
+    }
+    if (event.event_type.startsWith('answer_generation_') || ['answer_part', 'answer_stream_reset'].includes(event.event_type)) {
+      streamEvent(event);
+      return;
+    }
     const target = root.querySelector('[data-lifecycle-status]');
     target.textContent = lifecycleLabels[event.event_type] || `已提交事件：${event.event_type}`;
     target.dataset.sequence = String(event.sequence || '');
@@ -235,22 +362,58 @@
     window.setTimeout(() => card.classList.remove('is-citation-target'), 2200);
   };
 
+  // Display-only emphasis: retain raw answers and build DOM with textContent.
+  // Escapes, code spans, triple stars and unsupported Markdown stay literal.
+  const answerParagraph = (className, text) => {
+    const raw = String(text);
+    const tokens = /\\\*\*[^*\n]*\*\*|\\[\s\S]|`+[^`\n]*`+|\*{3,}|\*\*([^*\n]+)\*\*(?!\*)/g;
+    const parts = [];
+    let offset = 0;
+    for (const match of raw.matchAll(tokens)) {
+      if (!match[1] || match[1].trim() !== match[1]) continue;
+      parts.push(element('span', '', raw.slice(offset, match.index)));
+      parts.push(element('strong', '', match[1]));
+      offset = match.index + match[0].length;
+    }
+    if (!parts.length) return element('p', className, raw);
+    const paragraph = element('p', className);
+    paragraph.append(...parts, element('span', '', raw.slice(offset)));
+    return paragraph;
+  };
+
   const renderAnswerBlocks = data => {
     const container = root.querySelector('[data-answer-blocks]');
     const numbering = citationNumberMap(data.citations);
-    container.replaceChildren();
+    const wanted = [];
     if (data.status === 'insufficient') {
       const copy = data.execution_outcome === 'generation_failed'
         ? '字幕检索可能已经完成，但回答服务未能生成可验证的事实答案。'
         : data.execution_outcome === 'evidence_unavailable'
           ? '相关权威字幕证据不可用，因此没有生成事实答案。'
           : '当前没有足够的权威字幕证据，因此没有生成事实答案。';
-      container.append(element('p', 'insufficient-copy', copy));
+      container.replaceChildren(element('p', 'insufficient-copy', copy));
       return;
     }
+    const framing = (kind, text) => {
+      const key = `framing:${kind}`;
+      let cached = answerNodeCache.get(key);
+      if (!cached || cached.text !== text) {
+        cached = {text, node: answerParagraph(kind, text)};
+        answerNodeCache.set(key, cached);
+      }
+      wanted.push(cached.node);
+    };
+    if (data.intro) framing('answer-intro', data.intro);
     (data.answer_blocks || []).forEach(block => {
-      const article = element('article', 'answer-block');
-      const paragraph = element('p', '', block.text);
+      const key = `body:${block.text}`;
+      const signature = JSON.stringify(block.citation_ids.map(id => [id, numbering.get(id)]));
+      const cached = answerNodeCache.get(key);
+      if (cached?.signature === signature) {
+        wanted.push(cached.node);
+        return;
+      }
+      const article = cached?.node || element('article', 'answer-block');
+      const paragraph = answerParagraph('', block.text);
       const markers = element('span', 'citation-markers');
       (block.citation_ids || []).forEach(citationId => {
         const number = numbering.get(citationId);
@@ -263,13 +426,17 @@
         markers.append(marker);
       });
       paragraph.append(markers);
-      article.append(paragraph);
-      container.append(article);
+      article.replaceChildren(paragraph);
+      answerNodeCache.set(key, {signature, node: article});
+      wanted.push(article);
     });
+    if (data.outro) framing('answer-outro', data.outro);
+    syncNodes(container, wanted);
   };
 
   const renderCitation = (citation, number) => renderEvidenceCard({
     id: `citation-${number}`,
+    quoteId: `citation-quote-${citation.citation_id}`,
     evidenceId: citation.citation_id,
     videoId: citation.video_id,
     eyebrow: `证据 [${number}] · ${sourceLabels[citation.source_type] || sourceLabels.unknown}`,
@@ -296,36 +463,56 @@
     const section = root.querySelector('[data-evidence-section]');
     section.hidden = citations.length === 0;
     const groups = root.querySelector('[data-citation-groups]');
-    groups.replaceChildren();
     const numbering = citationNumberMap(citations);
     const byVideo = new Map();
     citations.forEach(citation => {
       if (!byVideo.has(citation.video_id)) byVideo.set(citation.video_id, []);
       byVideo.get(citation.video_id).push(citation);
     });
+    const card = citation => {
+      const number = numbering.get(citation.citation_id);
+      const signature = JSON.stringify(citation);
+      let cached = evidenceCardCache.get(citation.citation_id);
+      if (!cached || cached.signature !== signature) {
+        cached = {signature, node: renderCitation(citation, number)};
+        evidenceCardCache.set(citation.citation_id, cached);
+      } else {
+        cached.node.id = `citation-${number}`;
+        const eyebrow = cached.node.querySelector('.evidence-ui-eyebrow');
+        if (eyebrow) eyebrow.textContent = `证据 [${number}] · ${sourceLabels[citation.source_type] || sourceLabels.unknown}`;
+      }
+      return cached.node;
+    };
+    const wanted = [];
     byVideo.forEach(values => {
-      const group = element('section', 'citation-video-group');
-      const heading = element('div', 'citation-video-heading');
-      heading.append(element('h3', '', values[0].title || `Video ${values[0].video_id}`));
-      heading.append(element('span', '', `${values.length} 条引用`));
-      group.append(heading, renderCitation(values[0], numbering.get(values[0].citation_id)));
-      if (values.length > 1) {
+      let record = evidenceGroupCache.get(values[0].video_id);
+      if (!record) {
+        const group = element('section', 'citation-video-group');
+        const heading = element('div', 'citation-video-heading');
+        const count = element('span', '');
+        heading.append(element('h3', '', values[0].title || `Video ${values[0].video_id}`), count);
         const extra = element('div', 'citation-extra');
         extra.hidden = true;
-        values.slice(1).forEach(value => extra.append(renderCitation(value, numbering.get(value.citation_id))));
-        const toggle = element('button', 'citation-toggle', `展开另外 ${values.length - 1} 条证据`);
+        const toggle = element('button', 'citation-toggle');
         toggle.type = 'button';
         toggle.setAttribute('aria-expanded', 'false');
+        record = {group, heading, count, extra, toggle, size: 0};
         toggle.addEventListener('click', () => {
           const expanded = toggle.getAttribute('aria-expanded') === 'true';
           toggle.setAttribute('aria-expanded', String(!expanded));
-          toggle.textContent = expanded ? `展开另外 ${values.length - 1} 条证据` : '收起其他证据';
+          toggle.textContent = expanded ? `展开另外 ${record.size - 1} 条证据` : '收起其他证据';
           extra.hidden = expanded;
         });
-        group.append(toggle, extra);
+        evidenceGroupCache.set(values[0].video_id, record);
       }
-      groups.append(group);
+      record.size = values.length;
+      record.count.textContent = `${values.length} 条引用`;
+      record.toggle.textContent = record.extra.hidden ? `展开另外 ${values.length - 1} 条证据` : '收起其他证据';
+      syncNodes(record.extra, values.slice(1).map(card));
+      syncNodes(record.group, [record.heading, card(values[0]), ...(values.length > 1 ? [record.toggle, record.extra] : [])]);
+      wanted.push(record.group);
     });
+    syncNodes(groups, wanted);
   };
 
   const appendMetric = (container, term, value) => {
@@ -389,9 +576,9 @@
       article.append(element('h3', '', source.title || `Video ${source.video_id}`));
       if (source.uploader) article.append(element('p', 'candidate-identity', `作者：${source.uploader}`));
       if (source.matched_excerpt) article.append(element('blockquote', '', source.matched_excerpt));
-      if (source.url) {
+      if (source.url || source.video_id) {
         const link = element('a', '', '打开视频');
-        link.href = source.url;
+        link.href = source.url || `/videos/${source.video_id}`;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         article.append(link);
@@ -443,6 +630,12 @@
 
   const renderResult = data => {
     lastResponse = data;
+    research?.finish(data);
+    terminalVisibility(false);
+    if (window.__shiliuAnswerStream?.runId === data.run_id) {
+      window.__shiliuAnswerStream.finalReceivedAtMs = Date.now();
+      root.dataset.answerFinalReceivedAtMs = String(window.__shiliuAnswerStream.finalReceivedAtMs);
+    }
     const researchParams = new URLSearchParams({objective: lastRequest?.q || queryInput.value.trim()});
     root.querySelector('[data-ask-research]').href = `/research?${researchParams}`;
     root.querySelector('[data-result-title]').textContent = `${modeLabels[data.mode] || '回答'}结果`;
@@ -491,6 +684,8 @@
   };
 
   const showError = (status, data) => {
+    research?.fail();
+    resetAnswerStream();
     const error = data?.error || {};
     const code = typeof error === 'object' ? error.code : '';
     const message = typeof error === 'object' ? error.message : '';
@@ -532,6 +727,8 @@
       : '正在检索字幕并生成有依据的回答……';
     root.querySelector('[data-lifecycle-status]').textContent = '正在创建持久运行记录…';
     resetPreview();
+    resetAnswerStream();
+    research?.reset(state.mode);
     showState('loading');
     try {
       const data = state.mode === 'fast'
@@ -586,6 +783,7 @@
     if (!response.ok) throw await responseError(response);
     const runId = response.headers.get('X-Shiliu-Run-ID');
     if (!runId || !response.body) throw new Error('流式运行缺少持久身份');
+    activeRunId = runId;
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -608,6 +806,7 @@
     });
     if (!created.ok) throw await responseError(created);
     const identity = await created.json();
+    activeRunId = identity.run_id;
     let cursor = 0;
     while (true) {
       const response = await fetch(`${identity.events_href}?after_sequence=${cursor}`, {signal});
@@ -618,7 +817,7 @@
         showLifecycle(event);
       });
       if (data.result) return data.result;
-      if (data.run?.lifecycle_status === 'failed') {
+      if (['failed', 'interrupted'].includes(data.run?.lifecycle_status)) {
         const error = new Error(data.run.error?.message || '深入搜索运行失败');
         error.data = {error: data.run.error || {}};
         throw error;
@@ -781,6 +980,7 @@
     submitButton.textContent = '开始回答';
     restoreForm();
     resetPreview();
+    resetAnswerStream();
     showState('idle');
   });
 

@@ -19,3 +19,4 @@ def test_repetitions_require_identical_product_and_raw_order():
 
 def test_snapshot_only_integrity_gate():
     assert_snapshot_only({"snapshot_sha256_before": "x", "snapshot_sha256_after": "x", "work_hashes_unchanged": True, "live_trace_counts_unchanged": {"raw": True, "presentation": True}})
+

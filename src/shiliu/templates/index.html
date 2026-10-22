@@ -37,7 +37,7 @@
         {% else %}<div class="cover-fallback">NO COVER</div>{% endif %}
         <span class="state state-{{ video.status }}">{{ video.status_label }}</span>
         {% if video.duration_label %}<span class="duration-badge">{{ video.duration_label }}</span>{% endif %}
-        {% if video.active_revision == 'fast' %}<span class="revision-badge">快速版{% if video.refinement_status == 'processing' %} · 精修中{% elif video.refinement_status == 'failed' %} · 精修失败{% endif %}</span>{% endif %}
+        {% if video.active_revision == 'fast' and video.summary_path %}<span class="revision-badge">快速版{% if video.refinement_status == 'processing' %} · 精修中{% elif video.refinement_status == 'failed' %} · 精修失败{% endif %}</span>{% endif %}
         <span class="mark-badge" {% if not video.is_marked %}hidden{% endif %} aria-label="已加入稍后回看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10v14.5l-5-3.1-5 3.1z"/></svg> 稍后回看</span>
       </div>
       <div class="card-body">
@@ -80,7 +80,7 @@
             <a class="text-button" href="/ask?q={{ ('基于“' ~ video.title ~ '”，')|urlencode }}&folder_id={{ video.card_folder_id }}">基于这个内容提问</a>
             {% if video.status in ['needs_review', 'retry_wait'] %}<button class="text-button" data-action="retry">立即重试</button>{% endif %}
             {% if not video.raw_subtitle_path and (video.status == 'skipped_no_subtitle' or video.asr_job) %}<button class="text-button" data-action="asr">立即生成字幕</button>{% endif %}
-            {% if video.active_revision == 'fast' %}<button class="text-button" data-action="refine">立即精修</button>{% endif %}
+            {% if video.active_revision == 'fast' and video.summary_path %}<button class="text-button" data-action="refine">立即精修</button>{% endif %}
             <button class="text-button muted-action" data-action="ignore">忽略</button>
           </div>
           <section class="inline-notes" data-notes>

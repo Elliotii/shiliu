@@ -73,7 +73,7 @@
     const quoteText = options.quote || '该时间段暂无可显示的字幕摘录。';
     const preview = previewText(quoteText);
     const quote = element('blockquote', 'evidence-ui-quote', preview.text);
-    quote.id = `${options.id || `evidence-${String(options.evidenceId || 'quote')}`}-quote`;
+    quote.id = options.quoteId || `${options.id || `evidence-${String(options.evidenceId || 'quote')}`}-quote`;
     card.append(quote);
 
     let expandButton = null;

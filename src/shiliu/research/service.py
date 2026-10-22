@@ -342,6 +342,7 @@ class ResearchTaskService:
         task_id: str | None = None,
         parent_task_id: str | None = None,
         _server_constraint_profile: dict[str, Any] | None = None,
+        _execution_metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         objective = objective.strip()
         if not objective:
@@ -355,6 +356,8 @@ class ResearchTaskService:
             "task_id": task_id,
             "server_constraint_profile": _server_constraint_profile,
         }
+        if _execution_metadata is not None:
+            payload["execution_metadata"] = _execution_metadata
         payload_hash = _hash(payload)
         now = _iso(self._now())
         with self._transaction() as connection:
@@ -408,6 +411,27 @@ class ResearchTaskService:
                 "UPDATE research_tasks SET active_goal_id=? WHERE task_id=?",
                 (goal_id, task_id),
             )
+            if _execution_metadata is not None:
+                connection.execute(
+                    """
+                    INSERT INTO research_execution_metadata(
+                        task_id, time_policy_version, active_budget_ms,
+                        scheduling_intent, scheduling_status, run_command_id,
+                        resume_reason, created_at, updated_at
+                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        task_id,
+                        str(_execution_metadata["time_policy_version"]),
+                        int(_execution_metadata["active_budget_ms"]),
+                        str(_execution_metadata["scheduling_intent"]),
+                        str(_execution_metadata["scheduling_status"]),
+                        str(_execution_metadata["run_command_id"]),
+                        _execution_metadata.get("resume_reason"),
+                        now,
+                        now,
+                    ),
+                )
             event_id = self._event(
                 connection,
                 task_id=task_id,
@@ -736,6 +760,7 @@ class ResearchTaskService:
         cause: AttemptCause = AttemptCause.INITIAL,
         parent_attempt_id: str | None = None,
         source_checkpoint_id: str | None = None,
+        _execution_enqueue: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         now_value = self._now()
         now = _iso(now_value)
@@ -747,6 +772,8 @@ class ResearchTaskService:
             "parent_attempt_id": parent_attempt_id,
             "source_checkpoint_id": source_checkpoint_id,
         }
+        if _execution_enqueue is not None:
+            payload["execution_enqueue"] = _execution_enqueue
         payload_hash = _hash(payload)
         with self._transaction() as connection:
             existing = self._existing_receipt(
@@ -922,6 +949,39 @@ class ResearchTaskService:
                 owner_epoch=owner_epoch,
                 now=now,
             )
+            if _execution_enqueue is not None:
+                execution = connection.execute(
+                    "SELECT * FROM research_execution_metadata WHERE task_id=?",
+                    (task_id,),
+                ).fetchone()
+                if execution is None:
+                    raise ResearchUnsafeState(
+                        "legacy_time_unaccounted: old active Task cannot receive new budget"
+                    )
+                if str(execution["timing_status"]) in {"uncertain", "exhausted"}:
+                    raise ResearchUnsafeState(
+                        f"active-time state is {execution['timing_status']}; "
+                        "resolution is required before execution"
+                    )
+                run_command_id = str(
+                    _execution_enqueue.get("run_command_id") or ""
+                ).strip()
+                reason = str(_execution_enqueue.get("reason") or "").strip()
+                if not run_command_id or not reason:
+                    raise ResearchValidationError(
+                        "execution enqueue requires run_command_id and reason"
+                    )
+                connection.execute(
+                    """
+                    UPDATE research_execution_metadata
+                    SET scheduling_intent='manual', scheduling_status='queued',
+                        run_command_id=?, resume_reason=?,
+                        manual_generation=manual_generation+1,
+                        automatic_failure_count=0, next_retry_at=NULL, updated_at=?
+                    WHERE task_id=?
+                    """,
+                    (run_command_id, reason, now, task_id),
+                )
             response = {
                 "task_id": task_id,
                 "attempt_id": attempt_id,
@@ -1312,6 +1372,7 @@ class ResearchTaskService:
         owner_id: str,
         owner_epoch: int,
         expected_state_version: int,
+        _execution_enqueue: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return self.start_attempt(
             task_id=task_id,
@@ -1321,6 +1382,7 @@ class ResearchTaskService:
             expected_state_version=expected_state_version,
             cause=AttemptCause.RETRY,
             parent_attempt_id=parent_attempt_id,
+            _execution_enqueue=_execution_enqueue,
         )
 
     def revise_goal(

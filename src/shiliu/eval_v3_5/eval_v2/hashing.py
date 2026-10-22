@@ -26,3 +26,4 @@ def canonical_bytes(value: Any) -> bytes:
 
 def stable_sha256(value: Any) -> str:
     return hashlib.sha256(canonical_bytes(value)).hexdigest()
+

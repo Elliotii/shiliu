@@ -384,6 +384,8 @@ class AskRunStore:
                 "search_executions": record["search_executions"],
                 "final_evidence": record["final_evidence"],
                 "citations": record["citations"],
+                "intro": record["intro"],
+                "outro": record["outro"],
                 "answer_blocks": record["answer_blocks"],
                 "limitations": record["limitations"],
                 "provider_usage": record["usage_summary"],
@@ -431,6 +433,8 @@ class AskRunStore:
             "error",
         ):
             value[name] = json.loads(str(value.pop(f"{name}_json")))
+        value["intro"] = value["trace"].get("intro")
+        value["outro"] = value["trace"].get("outro")
         value["search_executions"] = []
         for item in links:
             link = dict(item)

@@ -34,8 +34,8 @@ def test_v15_migration_preserves_search_and_research_and_adds_ask(app_paths) -> 
 
     db.initialize()
 
-    assert SCHEMA_VERSION == 17
-    assert app_paths.database.with_name("shiliu.pre-v17.backup.db").is_file()
+    assert SCHEMA_VERSION == 19
+    assert app_paths.database.with_name("shiliu.pre-v19.backup.db").is_file()
     with db.connect() as connection:
         assert connection.execute(
             "SELECT payload FROM retrieval_search_traces WHERE trace_id='search-sentinel'"
@@ -45,7 +45,7 @@ def test_v15_migration_preserves_search_and_research_and_adds_ask(app_paths) -> 
         ).fetchone()[0] == "ready"
         assert connection.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "17"
+        ).fetchone()[0] == "19"
         tables = {
             str(row[0])
             for row in connection.execute(

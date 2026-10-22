@@ -377,6 +377,8 @@ class KnowledgeDraftService:
             "answer_version": answer_version,
             "trust_summary": run["trace"].get("trust_summary"),
         }
+        if run.get("intro") is not None or run.get("outro") is not None:
+            snapshot.update(intro=run.get("intro"), outro=run.get("outro"))
         for evidence in run["final_evidence"]:
             row = self.materializer._video_row(int(evidence["video_id"]))
             if row is None:

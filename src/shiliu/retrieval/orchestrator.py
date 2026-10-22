@@ -187,7 +187,8 @@ class SearchOrchestrator:
             )
 
     def search(
-        self, request: SearchRequest, *, video_ids: tuple[int, ...] = ()
+        self, request: SearchRequest, *, video_ids: tuple[int, ...] = (),
+        scope_video_ids: tuple[int, ...] | None = None,
     ) -> RawSearchResponse:
         trace_id = str(uuid4())
         started = time.monotonic()
@@ -208,9 +209,13 @@ class SearchOrchestrator:
         planning_ms = _milliseconds(planning_started)
         if len(video_ids) > 8 or any(value <= 0 for value in video_ids):
             raise ValueError("video_ids must contain at most 8 positive IDs")
+        if scope_video_ids is not None and (video_ids or any(value <= 0 for value in scope_video_ids)):
+            raise ValueError("invalid scoped video_ids")
         filters = replace(
             request.filters.retrieval_filters(),
-            video_ids=tuple(dict.fromkeys(video_ids)),
+            video_ids=tuple(dict.fromkeys(
+                scope_video_ids if scope_video_ids is not None else video_ids
+            )),
         )
         include_ignored = request.filters.ignored
         executed_mode = plan.planned_mode
@@ -314,9 +319,12 @@ class SearchOrchestrator:
             raise mapped from exc
 
     def search_raw(
-        self, request: SearchRequest, *, video_ids: tuple[int, ...] = ()
+        self, request: SearchRequest, *, video_ids: tuple[int, ...] = (),
+        scope_video_ids: tuple[int, ...] | None = None,
     ) -> RawSearchResponse:
         """Named Stage 4A boundary used by post-retrieval product presentation."""
+        if scope_video_ids is not None:
+            return self.search(request, scope_video_ids=scope_video_ids)
         if video_ids:
             return self.search(request, video_ids=video_ids)
         return self.search(request)

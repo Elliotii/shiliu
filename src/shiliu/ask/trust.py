@@ -127,6 +127,8 @@ def apply_answer_trust(
     validate_current: Callable[[TranscriptEvidenceSpan], None],
     verifier: ClaimVerifier | None = None,
     event_sink: EventSink | None = None,
+    intro: str | None = None,
+    outro: str | None = None,
 ) -> TrustedAnswer:
     """Apply one deterministic Citation Integrity pass before publication."""
 
@@ -136,6 +138,8 @@ def apply_answer_trust(
         "status": status,
         "limitations": list(limitations),
     }
+    if intro is not None or outro is not None:
+        snapshot.update(intro=intro, outro=outro)
     answer_snapshot_hash = sha256_identity(snapshot)
     _emit(
         event_sink,

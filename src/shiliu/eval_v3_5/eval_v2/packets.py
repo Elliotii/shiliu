@@ -32,3 +32,4 @@ def verify_packet_hash(packet: AnnotationPacketV2) -> bool:
     payload = packet.model_dump(mode="json")
     claimed = payload.pop("case_input_sha256")
     return stable_sha256(payload) == claimed
+

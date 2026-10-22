@@ -24,7 +24,9 @@ from shiliu.eval_v3_5.models import (
 from shiliu.eval_v3_5.sampling import PRIMARY_SELECTIONS, RESERVE_SELECTIONS, rationale
 
 
-DEFAULT_SNAPSHOT_DB = Path("local-data/eval/shiliu_eval.db")
+DEFAULT_SNAPSHOT_DB = Path(
+    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+)
 DEFAULT_ARTIFACT_MANIFEST = Path("research/v3_eval/artifact_manifest.jsonl")
 DEFAULT_QUERIES = Path("research/v3_eval/eval_queries.locked.jsonl")
 DEFAULT_GOLD = Path("research/v3_eval/eval_gold.locked.jsonl")

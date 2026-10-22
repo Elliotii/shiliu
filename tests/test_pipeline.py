@@ -290,3 +290,34 @@ def test_scheduled_cycle_submits_only_one_automatic_asr_and_defers_the_next(app_
     assert deferred["status"] == "subtitle_pending"
     assert deferred["error_code"] == "asr_deferred_capacity"
     assert deferred["subtitle_next_check_at"] is not None
+
+
+def test_discovery_cover_is_independent_of_models_and_preserves_old_cover_on_failure(app_paths, monkeypatch):
+    from shiliu.domain import FavoriteItem
+    db = Database(app_paths.database); db.initialize()
+    artifacts = ArtifactStore(app_paths.videos_dir)
+    video_id = db.create_video("BV1234567890", "新收藏", "UP")
+    def no_provider(*a, **k):
+        raise AssertionError("discovery must not invoke a model")
+    pipeline = PipelineService(db=db, adapter=None, artifacts=artifacts, provider_factory=no_provider)
+    cover = app_paths.state_dir / "test-cover.jpg"; cover.write_bytes(b"image")
+    calls = []
+    monkeypatch.setattr(artifacts, "download_cover", lambda bvid, url: calls.append(url) or cover)
+    item = FavoriteItem(bvid="BV1234567890", title="新收藏", cover_url="https://i.example/one.jpg")
+    pipeline.sync_favorite_covers([item]); pipeline.sync_favorite_covers([item])
+    assert calls == [item.cover_url]
+    assert db.get_video(video_id)["status"] == "discovered"
+    assert db.get_video(video_id)["cover_path"] == str(cover)
+    monkeypatch.setattr(artifacts, "download_cover", lambda *a: None)
+    changed = item.model_copy(update={"cover_url": "https://i.example/two.jpg"})
+    pipeline.sync_favorite_covers([changed])
+    assert db.get_video(video_id)["cover_url"] == item.cover_url
+    assert db.get_video(video_id)["cover_path"] == str(cover)
+    calls.clear(); monkeypatch.setattr(artifacts, "download_cover", lambda bvid, url: calls.append(url) or cover)
+    pipeline.sync_favorite_covers([changed])
+    assert calls == [changed.cover_url]
+
+    pipeline.adapter = FakeAdapter(bundle().model_copy(update={"cover_url": changed.cover_url}))
+    calls.clear()
+    assert pipeline._fetch_source(db.get_video(video_id))
+    assert calls == []  # The source stage reuses the discovery cover.

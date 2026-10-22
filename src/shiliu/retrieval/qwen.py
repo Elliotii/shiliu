@@ -13,7 +13,7 @@ from shiliu.retrieval.dense import DenseModelIdentity, _validate_vector
 QWEN_MODEL_ID = "Qwen/Qwen3-Embedding-0.6B"
 QWEN_MODEL_REVISION = "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3"
 QWEN_MODEL_PATH = Path(
-    Path.home() / "Library" / "Caches" / "Shiliu" / "model-selection" / "Qwen3-Embedding-0.6B"
+    "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B"
 )
 QWEN_DIMENSION = 512
 QWEN_MAX_TOKENS = 512
@@ -163,9 +163,16 @@ class QwenEmbeddingProvider:
             raise ValueError("unable to enforce the 512-token document input policy")
         return prepared
 
-    def embed_query(self, text: str) -> np.ndarray:
-        body = self._truncate_query_body(normalize_embedding_text(text))
-        formatted = format_qwen_query(body)
+    def embed_query(self, text: str, *, instruction: str | None = None) -> np.ndarray:
+        if instruction is None:
+            body = self._truncate_query_body(normalize_embedding_text(text))
+            formatted = format_qwen_query(body)
+        else:
+            body = normalize_embedding_text(text)
+            formatted = f"Instruct: {instruction}\nQuery: {body}"
+            while self.count_tokens(formatted) > QWEN_MAX_TOKENS and body:
+                body = self.truncate_text(body, max(0, self.count_tokens(body, add_special_tokens=False) - 16))
+                formatted = f"Instruct: {instruction}\nQuery: {body}"
         if self.count_tokens(formatted) > QWEN_MAX_TOKENS:
             raise ValueError("formatted query exceeds the 512-token Qwen input policy")
         with self._encode_lock:
@@ -176,6 +183,7 @@ class QwenEmbeddingProvider:
         return _validate_vector(value, self.dimension)
 
     def count_tokens(self, text: str, *, add_special_tokens: bool = True) -> int:
+        # Preparation calls this outside the model-encode critical section.
         with self._encode_lock:
             return len(
                 self._load().tokenizer.encode(text, add_special_tokens=add_special_tokens)

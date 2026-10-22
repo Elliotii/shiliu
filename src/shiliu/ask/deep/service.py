@@ -4,6 +4,8 @@ import time
 import os
 from pathlib import Path
 import json
+import hashlib
+import logging
 import re
 from dataclasses import replace
 from typing import Callable
@@ -66,6 +68,14 @@ _SAFE_ZERO_EVIDENCE_CONTINUATION_STOPS = frozenset(
 )
 
 
+# Captured at import, rather than hashing mutable files only after a run finishes.
+_DEEP_RUNTIME_IDENTITY = {
+    "source_root": str(Path(__file__).resolve().parents[3]),
+    "deep_module_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    "graph_module_sha256": hashlib.sha256(Path(__file__).with_name("v2.py").read_bytes()).hexdigest(),
+}
+
+
 class DeepSearchService:
     def __init__(
         self,
@@ -85,6 +95,9 @@ class DeepSearchService:
         embedding_provider: object | None = None,
         lexical_index_path: Path | None = None,
         v2_budget: V2Budget | None = None,
+        require_v2: bool = False,
+        reduce_strategy: str = "s",
+        jev_client=None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.db = db
@@ -95,14 +108,16 @@ class DeepSearchService:
         self.clock = clock
         self.budget = budget or DeepSearchBudget()
         self.v2_budget = v2_budget or V2Budget()
-        self.is_v2 = embedding_provider is not None
+        if require_v2 and embedding_provider is None:
+            raise ValueError("Formal Deep V2 requires the Qwen embedding provider")
+        self.is_v2 = require_v2 or embedding_provider is not None
         self.evidence_search = evidence_search or EvidenceSearchService(
             db=db,
             product_search=product_search,
             authority_mode="live_current_exact_replay",
             runtime_corpus_identity=runtime_corpus_identity,
         )
-        self.materializer = materializer or (F1Materializer(db) if self.is_v2 else TranscriptEvidenceMaterializer(db))
+        self.materializer = F1Materializer(db) if self.is_v2 else materializer or TranscriptEvidenceMaterializer(db)
         self.context_builder = (DeepV2ContextBuilder(self.v2_budget.final_context_chars) if self.is_v2
             else context_builder or TranscriptContextBuilder(total_character_budget=self.budget.final_evidence_context_chars))
         self.answer_service = GroundedAnswerService(
@@ -146,6 +161,7 @@ class DeepSearchService:
                 windows=TranscriptWindowReader(db, self.materializer),
                 budget=self.v2_budget, clock=clock,
                 cancelled=lambda run_id: self._v2_cancelled(run_id),
+                reduce_strategy=reduce_strategy, jev=jev_client,
             )
 
     def _v2_cancelled(self, run_id: str) -> bool:
@@ -323,7 +339,8 @@ class DeepSearchService:
         )
         parent_decision = active_decision
         if executed_deep_research:
-            state = self.graph.run(state)
+            state = self.graph.run(state, event_sink=lambda kind, payload:
+                self.run_store.append_event(run_id, kind, payload)) if self.is_v2 else self.graph.run(state)
         else:
             state["termination_reason"] = (
                 "answer_ready"
@@ -524,6 +541,7 @@ class DeepSearchService:
             mode="deep",
             status=final.status,
             execution_outcome=final.execution_outcome,
+            intro=final.intro, outro=final.outro,
             answer_blocks=list(final.answer_blocks),
             citations=list(final.citations),
             limitations=list(final.limitations),
@@ -555,6 +573,7 @@ class DeepSearchService:
                     "answer_version": 1,
                     "status": response.status,
                     "execution_outcome": response.execution_outcome,
+                    "intro": response.intro, "outro": response.outro,
                     "answer_blocks": [
                         value.model_dump(mode="json") for value in response.answer_blocks
                     ],
@@ -584,6 +603,8 @@ class DeepSearchService:
             "answer": final.trace.get("answer_usage", []),
         }
         trace: dict[str, object] = {
+            "reduce_strategy": getattr(self.graph, "reduce_strategy", "legacy"),
+            "runtime_identity": {**_DEEP_RUNTIME_IDENTITY, "database": str(self.db.path.resolve())},
             "run_id": run_id,
             "created_at": created_at,
             "query": request.query,
@@ -654,6 +675,7 @@ class DeepSearchService:
             "citation_ids": [
                 value.citation_id for value in response.citations
             ],
+            "intro": response.intro, "outro": response.outro,
             "answer_blocks": [
                 value.model_dump(mode="json") for value in response.answer_blocks
             ],
@@ -707,12 +729,15 @@ class DeepSearchService:
                 "answer_version": response.answer_version,
             },
         )
-        if self.is_v2:
-            trace_dir = Path(os.environ.get("SHILIU_DEEP_V2_TRACE_DIR",
-                Path.home() / "Library" / "Application Support" / "Shiliu" / "logs" / "deep-v2"))
-            trace_dir.mkdir(parents=True, exist_ok=True)
-            (trace_dir / f"{run_id}.json").write_text(
-                json.dumps(trace, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
+        try:
+            if self.is_v2:
+                trace_dir = Path(os.environ.get("SHILIU_DEEP_V2_TRACE_DIR",
+                    str(self.db.path.parent / "logs" / "deep-v2")))
+                trace_dir.mkdir(parents=True, exist_ok=True)
+                (trace_dir / f"{run_id}.json").write_text(
+                    json.dumps(trace, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
+        except OSError:
+            logging.getLogger(__name__).exception("Deep Trace file write failed; durable DB result retained")
         return response, trace
 
     def _initial_state(

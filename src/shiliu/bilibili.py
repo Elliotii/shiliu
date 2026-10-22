@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -9,6 +10,12 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from shiliu.domain import FavoriteItem, FavoriteScan, FavoriteSourcePreview, PipelineError, VideoBundle
+
+
+def unavailable_video_error(message: str) -> bool:
+    """Known Bilibili missing/invisible responses require user review, not polling."""
+    codes = re.findall(r"(?:接口返回错误代码[：:]\s*|[\"']code[\"']\s*:\s*)(-?\d+)", message)
+    return any(int(code) in {-404, 62002} for code in codes)
 
 
 class BilibiliAdapter:
@@ -77,6 +84,7 @@ class BilibiliAdapter:
                     duration_seconds=_duration_seconds(
                         raw.get("duration_seconds", raw.get("duration", 0))
                     ),
+                    cover_url=raw.get("cover_url") or raw.get("cover"),
                     favorite_time=_int_or_none(
                         raw.get("fav_time") or raw.get("favorite_time")
                     ),
@@ -143,6 +151,18 @@ class BilibiliAdapter:
             raise PipelineError("视频详情返回格式无效", code="upstream_schema", retryable=True)
         return VideoBundle.model_validate(data)
 
+    def fetch_video_metadata(self, bvid: str) -> VideoBundle:
+        data = self._run_bridge(["fetch-video-metadata", bvid])
+        if not isinstance(data, dict):
+            raise PipelineError("视频元数据返回格式无效", code="upstream_schema", retryable=True)
+        return VideoBundle.model_validate(data)
+
+    def fetch_video_pubdate(self, bvid: str) -> dict[str, Any]:
+        data = self._run_bridge(["fetch-video-pubdate", bvid])
+        if not isinstance(data, dict) or data.get("bvid") != bvid:
+            raise PipelineError("视频发布日期返回身份无效", code="upstream_schema", retryable=False)
+        return data
+
     def download_audio(self, bvid: str, output_path: Path) -> Path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         data = self._run_bridge(
@@ -174,11 +194,21 @@ class BilibiliAdapter:
             message = _bounded_error_message(
                 str(error.get("message", result.stderr.strip() or "B 站读取失败"))
             )
-            raise PipelineError(
+            if (arguments and arguments[0] in {"fetch-video", "fetch-video-metadata"}
+                    and code == "upstream_error" and unavailable_video_error(message)):
+                code = "video_unavailable"
+            failure = PipelineError(
                 message,
                 code=code,
                 retryable=code in {"upstream_retryable", "upstream_timeout", "upstream_error"},
             )
+            status = error.get("http_status")
+            if isinstance(status, int):
+                failure.http_status = status
+            retry_after = error.get("retry_after_seconds")
+            if isinstance(retry_after, (int, float)) and retry_after >= 0:
+                failure.retry_after_seconds = float(retry_after)
+            raise failure
         return payload.get("data")
 
     def login(self) -> int:

@@ -80,8 +80,7 @@ def test_clarification_survives_durable_api(app_paths):
     fixture = json.loads((FIXTURES / 'V2-C08.json').read_text())
     provider = RecordedController(fixture['decisions'])
     app = Application(app_paths)
-    app.provider = lambda _: provider
-    app.deep_answer_provider = lambda _: provider
+    app.deep_v2_provider = lambda _: provider
     client = TestClient(create_web_app(app))
     created = client.post('/api/ask/runs', json={'query': fixture['query'], 'mode': 'deep'})
     assert created.status_code == 202

@@ -8,7 +8,7 @@ from pathlib import Path
 from types import TracebackType
 from typing import Callable, Protocol
 
-from shiliu.bilibili import BilibiliAdapter
+from shiliu.bilibili import BilibiliAdapter, unavailable_video_error
 from shiliu.db import Database, utc_now
 from shiliu.domain import FavoriteScan, PipelineError, SyncMode, SyncResult
 from shiliu.pipeline import PipelineService
@@ -302,7 +302,6 @@ class SyncService:
                             authoritative=scan.is_complete,
                             remote_total=scan.remote_total,
                         )
-                        self._sync_source_videos(source_id, "source_baseline_initialized")
                         if scan.is_complete:
                             successful_source_ids.add(source_id)
                             result.baseline_created = True
@@ -318,11 +317,15 @@ class SyncService:
                             authoritative=scan.is_complete,
                             remote_total=scan.remote_total,
                         )
-                        self._sync_source_videos(source_id, "source_snapshot_recorded")
                         discovered_ids.extend(new_ids)
                         result.discovered_count += len(new_ids)
                         if scan.is_complete:
                             successful_source_ids.add(source_id)
+
+                    cover_sync = getattr(self.pipeline, "sync_favorite_covers", None)
+                    if cover_sync is not None:
+                        cover_sync(items)
+                    self._sync_source_videos(source_id, "source_snapshot_recorded" if source.get("baseline_initialized") else "source_baseline_initialized")
 
                     if not scan.is_complete:
                         error = PipelineError(
@@ -421,8 +424,17 @@ class SyncService:
             ]
         new_set = set(discovered_ids)
         due.sort(key=lambda video: (int(video["id"]) not in new_set, str(video["discovered_at"])))
+        unavailable_count = 0
         for video in due:
             video_id = int(video["id"])
+            # Retire only the legacy terminal errors previously mislabeled as
+            # transient. Keep the row/artifacts and the normal explicit retry path.
+            if (video["status"] == "retry_wait" and video.get("error_code") == "upstream_error"
+                    and unavailable_video_error(str(video.get("error_message") or ""))):
+                self.db.update_video(video_id, status="needs_review", error_code="video_unavailable",
+                                     subtitle_next_check_at=None)
+                unavailable_count += 1
+                continue
             self.db.update_sync_run(
                 run_id,
                 current_phase="processing",
@@ -443,6 +455,9 @@ class SyncService:
                     error_code="internal_error",
                     error_message=f"{type(exc).__name__}: {exc}",
                 )
+
+        if unavailable_count:
+            result.messages.append(f"{unavailable_count} 条旧不可用视频已转为待检查，保留记录且不再自动重试")
 
     def _process_pending_refinements(self, run_id: int, result: SyncResult) -> None:
         for video in self.db.list_videos():
@@ -603,6 +618,9 @@ class SyncService:
                     display_favorite_time=item.favorite_time,
                     duration_seconds=item.duration_seconds,
                 )
+            cover_sync = getattr(self.pipeline, "sync_favorite_covers", None)
+            if cover_sync is not None:
+                cover_sync(items)
             result.discovered_count = len(new_items)
             self._process_new_and_due(active_run_id, result, [])
             status = "completed" if result.failed_count == 0 else "completed_with_errors"

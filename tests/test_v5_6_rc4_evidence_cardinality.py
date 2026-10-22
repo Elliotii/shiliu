@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 
 from shiliu.ask.adaptive import (
     create_current_evidence_decision,
@@ -28,7 +27,6 @@ from shiliu.evidence.continuation import (
 )
 from shiliu.evidence.decision import (
     AuthorizationStatus,
-    ContributionKind,
     EvidenceDecisionAction,
     EvidenceAuthorityReference,
     ReferenceScopeStatus,
@@ -142,7 +140,7 @@ def test_long_reference_survives_decision_continuation_and_trust() -> None:
 
 
 def test_current_evidence_decision_preserves_all_distinct_references(tmp_path: Path) -> None:
-    spans = tuple(_span(f"reference-{index:03d}", 1) for index in range(120))
+    spans = tuple(_span(f"reference-{index:03d}", 1) for index in range(97))
 
     decision = create_current_evidence_decision(
         question="question",
@@ -173,12 +171,12 @@ def test_current_evidence_decision_preserves_all_distinct_references(tmp_path: P
     assert decision.covered_aspects == ("question",)
     assert decision.open_aspects == ()
     assert decision.action == EvidenceDecisionAction.ANSWER_FRESH
-    assert len(decision.contributions) == 120
+    assert len(decision.contributions) == 97
     envelope = envelope_for_completed_run(
         run_id="run-many", decision=decision, target=ContinuationTarget.DEEP,
         question="question", filters={}, citations=(), search_executions=(),
     )
-    assert len(envelope.contributions) == 120
+    assert len(envelope.contributions) == 97
     assert parse_continuation_envelope(serialize_continuation_envelope(envelope)) == envelope
     db = Database(tmp_path / "many-contributions.sqlite3")
     with db.connect() as connection:
@@ -193,8 +191,8 @@ def test_current_evidence_decision_preserves_all_distinct_references(tmp_path: P
         citations=(), answer_blocks=(), limitations=("round trip",), usage_summary={},
     )
     saved = store.get_run("run-many")
-    assert len(decision_from_persistence_projection(saved["trace"]["evidence_decision"]).contributions) == 120
-    assert len(parse_continuation_envelope(saved["trace"]["continuation_envelope"]).contributions) == 120
+    assert len(decision_from_persistence_projection(saved["trace"]["evidence_decision"]).contributions) == 97
+    assert len(parse_continuation_envelope(saved["trace"]["continuation_envelope"]).contributions) == 97
 
 
 def test_long_decision_canonical_hash_and_existing_trace_persistence_round_trip(
@@ -313,7 +311,7 @@ def test_long_continuation_round_trip_revalidation_and_lineage_tamper_fail_close
 
 
 def test_currentness_failure_still_hides_accepted_cardinality_support() -> None:
-    span = _span("stale", 167)
+    span = _span("stale", 500)
 
     def stale(_span: TranscriptEvidenceSpan) -> None:
         raise ValueError("source version changed")

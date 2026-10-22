@@ -20,3 +20,4 @@ def test_eligibility_migration_preserves_prior_label():
 def test_positive_query_without_relevant_is_blocked():
     with pytest.raises(ValueError):
         assert_positive_coverage([{"query_id": "Q01", "negative_control": False, "video_discovery_relevant_ids": [], "evidence_retrieval_relevant_ids": []}])
+

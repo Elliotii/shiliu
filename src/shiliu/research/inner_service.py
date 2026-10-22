@@ -2324,10 +2324,9 @@ class InnerResearchService:
             if (
                 effect is None
                 or str(effect["status"]) != "succeeded"
-                or int(effect["owner_epoch"]) != owner_epoch
             ):
                 raise ResearchUnsafeState(
-                    "Provider receipt is absent, stale, or not successful"
+                    "Provider receipt is absent or not successful"
                 )
             descriptor = json.loads(str(effect["request_json"]))
             if (

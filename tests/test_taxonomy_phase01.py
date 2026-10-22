@@ -75,7 +75,7 @@ def test_schema_v6_adds_only_four_taxonomy_tables(app_paths) -> None:
                 "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'taxonomy_%'"
             ).fetchall()
         }
-    assert SCHEMA_VERSION == 17
+    assert SCHEMA_VERSION == 19
     assert tables == {
         "taxonomy_corpus_snapshots",
         "taxonomy_classification_cards",

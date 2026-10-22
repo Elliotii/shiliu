@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 import hashlib
 import time
-from typing import Any, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
@@ -44,6 +44,7 @@ class StructuredCompletionResponse(Generic[SchemaT]):
 
 class OpenAICompatibleProvider:
     name = "openai-compatible"
+    supports_answer_streaming = True
 
     def __init__(
         self,
@@ -54,12 +55,16 @@ class OpenAICompatibleProvider:
         timeout_seconds: float = 120,
         thinking_enabled: bool | None = None,
         reasoning_effort: str | None = None,
+        structured_transport_retries: int = 1,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model = model
         self.timeout_seconds = timeout_seconds
         self.thinking_enabled = thinking_enabled
+        if structured_transport_retries < 0:
+            raise ValueError("structured_transport_retries must not be negative")
+        self.structured_transport_retries = int(structured_transport_retries)
         normalized_effort = (reasoning_effort or "").lower()
         if normalized_effort == "xhigh":
             normalized_effort = "max"
@@ -147,6 +152,8 @@ class OpenAICompatibleProvider:
         response_schema: type[SchemaT],
         max_tokens: int | None = None,
         timeout_seconds: float | None = None,
+        on_content: Callable[[str], None] | None = None,
+        on_reset: Callable[[], None] | None = None,
     ) -> StructuredCompletionResponse[SchemaT]:
         if role not in {"query_analysis", "agent_action", "query_reduce", "grounded_answer"}:
             raise PipelineError(
@@ -159,8 +166,10 @@ class OpenAICompatibleProvider:
                 messages,
                 max_tokens=max_tokens or (1200 if role == "query_analysis" else 4096),
                 response_format={"type": "json_object"},
-                transport_retries=1,
+                transport_retries=self.structured_transport_retries,
                 timeout_seconds=timeout_seconds,
+                on_content=on_content,
+                on_reset=on_reset,
             )
         except PipelineError as exc:
             metadata = dict(getattr(exc, "completion_metadata", {}))
@@ -208,6 +217,65 @@ class OpenAICompatibleProvider:
     def _generate(self, messages: list[dict[str, str]], *, max_tokens: int | None = None) -> str:
         return self._generate_response(messages, max_tokens=max_tokens).content
 
+    def _stream_response(self, client, body, on_content, deadline):
+        """Read real SSE deltas; reuse the ordinary parsing/error path afterwards."""
+        payload: dict[str, Any] = {"choices": []}
+        content: list[str] = []
+        reasoning: list[str] = []
+        finish_reason = None
+        stream_body = {**body, "stream": True, "stream_options": {"include_usage": True}}
+        with client.stream("POST", f"{self.base_url}/chat/completions",
+                           headers=self.headers, json=stream_body) as response:
+            if response.is_error:
+                response.read()
+                try:
+                    self._raise_for_status(response)
+                except PipelineError as exc:
+                    exc.completion_metadata = _http_failure_metadata(response, self.api_key)
+                    raise
+            data_lines: list[str] = []
+            def receive():
+                nonlocal finish_reason
+                data = "\n".join(data_lines)
+                data_lines.clear()
+                if not data or data == "[DONE]":
+                    return
+                try:
+                    chunk = json.loads(data)
+                    for key in ("id", "model", "usage"):
+                        if chunk.get(key) is not None:
+                            payload[key] = chunk[key]
+                    choices = chunk.get("choices", [])
+                    if not choices:
+                        if chunk.get("error"):
+                            raise ValueError("provider stream error")
+                        return
+                    choice = choices[0]
+                    delta = choice.get("delta", {})
+                    value = delta.get("content")
+                    if isinstance(value, str) and value:
+                        content.append(value)
+                        on_content(value)
+                    if isinstance(delta.get("reasoning_content"), str):
+                        reasoning.append(delta["reasoning_content"])
+                    if choice.get("finish_reason") is not None:
+                        finish_reason = choice["finish_reason"]
+                except (ValueError, TypeError, KeyError, AttributeError) as exc:
+                    raise PipelineError("模型增量响应格式无效", code="provider_schema", retryable=True) from exc
+            for line in response.iter_lines():
+                if _deadline_reached(deadline):
+                    raise _deadline_error()
+                if not line:
+                    receive()
+                elif line.startswith("data:"):
+                    data_lines.append(line[5:].lstrip())
+            receive()
+        if finish_reason is None:
+            raise PipelineError("模型增量连接在完成前中断", code="provider_network", retryable=True)
+        payload["choices"] = [{"message": {"content": "".join(content),
+            "reasoning_content": "".join(reasoning)}, "finish_reason": finish_reason}]
+        return httpx.Response(200, json=payload)
+
     def _generate_response(
         self,
         messages: list[dict[str, str]],
@@ -217,6 +285,8 @@ class OpenAICompatibleProvider:
         response_format: dict[str, str] | None = None,
         transport_retries: int = 0,
         timeout_seconds: float | None = None,
+        on_content: Callable[[str], None] | None = None,
+        on_reset: Callable[[], None] | None = None,
     ) -> CompletionResponse:
         if transport_retries < 0:
             raise ValueError("transport_retries must not be negative")
@@ -240,6 +310,8 @@ class OpenAICompatibleProvider:
         retry_count = 0
         for attempt in range(transport_retries + 1):
             try:
+                if attempt and on_reset is not None:
+                    on_reset()
                 invocation_remaining = (
                     timeout_seconds - (time.monotonic() - started)
                     if timeout_seconds is not None
@@ -257,7 +329,9 @@ class OpenAICompatibleProvider:
                         retryable=False,
                     )
                 with httpx.Client(timeout=effective_timeout) as client:
-                    response = client.post(
+                    response = self._stream_response(
+                        client, body, on_content, invocation_deadline
+                    ) if on_content is not None else client.post(
                         f"{self.base_url}/chat/completions",
                         headers=self.headers,
                         json=body,

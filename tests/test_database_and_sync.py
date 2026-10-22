@@ -183,3 +183,32 @@ def test_ignore_is_display_state_only(app_paths) -> None:
     restored = db.get_video(video_id)
     assert restored["is_ignored"] == 0
     assert restored["status"] == "summary_processing"
+
+
+def test_legacy_unavailable_retries_retire_without_fetch_and_do_not_repeat(app_paths):
+    from shiliu.domain import SyncResult
+    db = Database(app_paths.database); db.initialize()
+    ids = []
+    for index, message in enumerate(["接口返回错误代码：62002，稿件不可见", "{'code': -404}", "network timeout"]):
+        video_id = db.create_video(f"BV1retire{index}", f"视频{index}", "UP")
+        db.update_video(video_id, status="retry_wait", error_code="upstream_error", error_message=message)
+        ids.append(video_id)
+    pipeline = CompletingPipeline(db)
+    service = SyncService(db=db, adapter=FakeAdapter([]), pipeline=pipeline,
+        favorite_id=42, lock_path=app_paths.sync_lock)
+    result = SyncResult(mode=SyncMode.MANUAL)
+    run_id = db.start_sync_run("manual")
+    service._process_new_and_due(run_id, result, [])
+    assert pipeline.calls == [ids[2]]
+    assert result.processed_count == 1
+    for video_id in ids[:2]:
+        video = db.get_video(video_id)
+        assert video["status"] == "needs_review" and video["error_code"] == "video_unavailable"
+        assert video["subtitle_next_check_at"] is None
+        assert video["error_message"]
+    service._process_new_and_due(run_id, result, [])
+    assert pipeline.calls == [ids[2]]
+    assert len(db.list_videos()) == 3
+    db.reset_failed_stages(ids[0])
+    service._process_new_and_due(run_id, result, [])
+    assert pipeline.calls == [ids[2], ids[0]]

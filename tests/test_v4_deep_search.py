@@ -687,6 +687,8 @@ def test_navigation_projection_is_source_labeled_and_navigation_only(
     assert documents and documents[0].video_id == video_ids[0]
     document = documents[0]
     assert document.authority == "navigation_only"
+    assert document.metadata["video_url"] == f"https://www.bilibili.com/video/{document.bvid}"
+    assert document.metadata["subtitle_available"] is True
     assert "导航摘要绝密" in "\n".join(document.summary_sections)
     assert "用户笔记绝密" in "\n".join(document.user_notes)
     assert all(
@@ -697,6 +699,43 @@ def test_navigation_projection_is_source_labeled_and_navigation_only(
     assert document.source_labels["description"].priority == "medium"
     assert document.source_labels["user_notes"].priority == "low"
     assert document.source_labels["cleaned_transcript"].priority == "low"
+
+
+@pytest.mark.parametrize("failure", ["missing", "invalid", "pending", "ignored"])
+def test_navigation_does_not_report_unreadable_raw_subtitle(app_paths, failure):
+    core, video_ids = _make_core(app_paths, _ScriptedProvider(_dynamic_policy))
+    navigation = NavigationService(db=core.db, artifacts=core.artifacts, product_search=core.product_search)
+    video_id = video_ids[0]
+    raw_path = core.db.get_video(video_id)["raw_subtitle_path"]
+    from shiliu.evidence.source import authoritative_raw_json_path
+    raw_path = authoritative_raw_json_path(raw_path)
+    from pathlib import Path
+    if failure == "missing":
+        Path(raw_path).unlink()
+    elif failure == "invalid":
+        Path(raw_path).write_text("{}")
+    else:
+        with core.db.connect() as connection:
+            if failure == "pending":
+                connection.execute("UPDATE retrieval_sync_state SET lexical_state='pending' WHERE video_id=?", (video_id,))
+            else:
+                connection.execute("UPDATE videos SET is_ignored=1 WHERE id=?", (video_id,))
+    document = navigation._project(video_id, "MCP")
+    assert document.summary_sections and document.cleaned_transcript
+    assert document.metadata["subtitle_available"] is False
+
+
+@pytest.mark.parametrize("updates, expected", [
+    ({}, "https://www.bilibili.com/video/BV1234567890"),
+    ({"video_url": "https://www.bilibili.com/video/BV1234567890?t=4"}, "https://www.bilibili.com/video/BV1234567890"),
+    ({"video_url": "https://evil.test/video/BV1234567890"}, None),
+    ({"video_url": "https://www.bilibili.com/video/BV0987654321"}, None),
+    ({"source_id": "BVinvalid"}, None),
+    ({"platform": "other"}, None),
+])
+def test_navigation_public_url_uses_valid_bilibili_identity(updates, expected):
+    from shiliu.ask.deep.navigation import _public_video_url
+    assert _public_video_url({"platform": "bilibili", "source_id": "BV1234567890", **updates}) == expected
 
 
 def test_focused_filter_applies_before_lexical_dense_and_hybrid_ranking(
@@ -1415,12 +1454,13 @@ def test_fake_clock_enforces_search_cutoff_and_answer_deadline(app_paths) -> Non
     repair_response, repair_trace = repair_service.ask(request)
     assert repair_response.status == "complete"
     assert repair_response.trace_summary.repair_used is True
+    assert core.ask_service.get_result(repair_response.run_id).trace_summary.repair_used is True
     answer_timeouts = [
         value
         for role, value in repair_provider.timeouts
         if role == "grounded_answer"
     ]
-    assert answer_timeouts == [pytest.approx(210), pytest.approx(110)]
+    assert answer_timeouts == [pytest.approx(210), pytest.approx(30)]
     assert repair_trace["finalization"]["repair_calls"] == 1
 
 
@@ -1530,6 +1570,10 @@ def test_httpx_grounded_answer_deadline_maps_to_budget_exhausted(
                 "answer deadline elapsed",
                 request=httpx.Request("POST", url),
             )
+
+        def stream(self, method, url, *, headers, json):
+            assert method == "POST" and json["stream"] is True
+            return self.post(url, headers=headers, json=json)
 
     service = core.ask_service.deep_service.__class__(
         db=core.db,

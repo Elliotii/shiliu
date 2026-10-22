@@ -1,0 +1,78 @@
+{
+  "source_run_id": "synthetic-proposal-source-contract",
+  "question": "请把合成材料甲和乙整理成两个不同用途的主题提案。先预览，确认后再保存，不保存个人记忆。",
+  "proposal_arguments": {
+    "topics": [
+      {
+        "blocks": [
+          {
+            "heading": "合成段落1",
+            "markdown": "材料1的合成依据1，保留条件及不确定性。",
+            "role": "source"
+          },
+          {
+            "heading": "合成段落2",
+            "markdown": "材料1的合成依据2，保留条件及不确定性。",
+            "role": "source"
+          },
+          {
+            "heading": "合成段落3",
+            "markdown": "材料1的合成依据3，保留条件及不确定性。",
+            "role": "source"
+          },
+          {
+            "heading": "合成段落4",
+            "markdown": "材料1的合成依据4，保留条件及不确定性。",
+            "role": "source"
+          },
+          {
+            "heading": "合成段落5",
+            "markdown": "根据已提供材料形成的综合分析，不冒充来源原话。",
+            "role": "analysis"
+          },
+          {
+            "heading": "合成段落6",
+            "markdown": "根据已提供材料形成的综合分析，不冒充来源原话。",
+            "role": "analysis"
+          }
+        ],
+        "cross_references": [],
+        "omitted": [
+          "未提供的材料"
+        ],
+        "purpose": "验证来源块与综合分析的保存边界",
+        "title": "合成主题1"
+      },
+      {
+        "blocks": [
+          {
+            "heading": "合成段落1",
+            "markdown": "材料2的合成依据1，保留条件及不确定性。",
+            "role": "source"
+          },
+          {
+            "heading": "合成段落2",
+            "markdown": "材料2的合成依据2，保留条件及不确定性。",
+            "role": "source"
+          },
+          {
+            "heading": "合成段落3",
+            "markdown": "根据已提供材料形成的综合分析，不冒充来源原话。",
+            "role": "analysis"
+          },
+          {
+            "heading": "合成段落4",
+            "markdown": "根据已提供材料形成的综合分析，不冒充来源原话。",
+            "role": "analysis"
+          }
+        ],
+        "cross_references": [],
+        "omitted": [
+          "未提供的材料"
+        ],
+        "purpose": "验证来源块与综合分析的保存边界",
+        "title": "合成主题2"
+      }
+    ]
+  }
+}

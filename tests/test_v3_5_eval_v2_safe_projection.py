@@ -127,9 +127,7 @@ def test_validator_rejects_duplicate_candidate_id_and_forbidden_keys():
     with pytest.raises(ProjectionError, match="allowlist"):
         validate_projection_bytes(bad, 1)
 
-    # Construct the canary at runtime so the public repository does not contain
-    # a credential-shaped literal that triggers hosting-provider secret scans.
-    secret = dict(base, query="sk-" + ("a" * 32))
+    secret = dict(base, query="sk-abcdefghijklmnopqrstuvwxyz012345")
     secret_line = json.dumps(secret, sort_keys=True, separators=(",", ":")).encode() + b"\n"
     with pytest.raises(ProjectionError, match="secret_scan_failed"):
         validate_projection_bytes(secret_line, 1)

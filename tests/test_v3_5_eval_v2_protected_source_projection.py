@@ -51,3 +51,4 @@ def test_aggregate_does_not_expose_identities(tmp_path):
     assert "synthetic-q" not in serialized
     assert "synthetic-video" not in serialized
     assert aggregate["unknown_protection_excluded_count"] == 2
+

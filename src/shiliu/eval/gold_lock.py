@@ -69,3 +69,4 @@ def assert_positive_coverage(rows: Iterable[dict[str, Any]]) -> None:
                 raise ValueError(f"negative control has Relevant Gold: {row['query_id']}")
         elif not discovery or not evidence:
             raise ValueError(f"positive query lost Relevant Gold: {row['query_id']}")
+

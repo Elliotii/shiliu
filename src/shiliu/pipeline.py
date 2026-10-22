@@ -9,10 +9,11 @@ from typing import Callable, Protocol
 
 from shiliu.artifacts import ArtifactStore, extract_urls
 from shiliu.asr import ASRService
-from shiliu.bilibili import BilibiliAdapter
+from shiliu.bilibili import BilibiliAdapter, unavailable_video_error
 from shiliu.db import Database, utc_now
 from shiliu.domain import (
     PipelineError,
+    FavoriteItem,
     ASRTriggerMode,
     ProcessingProfile,
     RefinementStatus,
@@ -69,6 +70,27 @@ class PipelineService:
 
     def begin_sync_cycle(self) -> None:
         self._automatic_asr_submissions = 0
+
+    def sync_favorite_covers(self, items: list[FavoriteItem]) -> None:
+        """Covers belong to discovery; they never require subtitle or model work."""
+        for item in items:
+            video = self.db.get_video_by_source(item.bvid)
+            if video is None or not item.cover_url:
+                continue
+            if video.get("error_code") == "video_unavailable" or (
+                    video.get("error_code") == "upstream_error" and
+                    unavailable_video_error(str(video.get("error_message") or ""))):
+                continue
+            existing = video.get("cover_path")
+            if video.get("cover_url") == item.cover_url and existing and Path(str(existing)).is_file():
+                continue
+            cover = self.artifacts.download_cover(item.bvid, item.cover_url)
+            # A failed image request retains the last usable local image. The next
+            # ordinary snapshot retries an absent image without retrying the video.
+            if cover is not None:
+                self.db.update_video(int(video["id"]), cover_url=item.cover_url, cover_path=str(cover))
+            elif not existing:
+                self.db.update_video(int(video["id"]), cover_url=item.cover_url)
 
     def process_video(self, video_id: int) -> bool:
         video = self._require_video(video_id)
@@ -240,7 +262,12 @@ class PipelineService:
             return False
 
         self.artifacts.save_metadata(bundle)
-        cover_path = self.artifacts.download_cover(bvid, bundle.cover_url)
+        previous_cover = video.get("cover_path")
+        if (previous_cover and video.get("cover_url") == bundle.cover_url
+                and Path(str(previous_cover)).is_file()):
+            cover_path = Path(str(previous_cover))
+        else:
+            cover_path = self.artifacts.download_cover(bvid, bundle.cover_url)
         links = extract_urls(bundle.description)
         self.db.update_video(
             video_id,
@@ -254,6 +281,11 @@ class PipelineService:
             artifact_dir=str(self.artifacts.video_dir(bvid)),
             duration_seconds=bundle.duration_seconds,
             page_count=bundle.page_count,
+            published_at=bundle.published_at,
+            metadata_observed_at=bundle.metadata_observed_at,
+            cid=bundle.cid,
+            part_title=bundle.part_title,
+            uploader_id=bundle.uploader_id,
             error_code=None,
             error_message=None,
         )

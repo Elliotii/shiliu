@@ -34,6 +34,7 @@ from shiliu.research.control_service import (
     ControlAuthorizationPolicy,
     ResearchControlService,
 )
+from shiliu.research.execution import ResearchExecutionLedger
 from shiliu.research.schema import CONSTRAINT_SPEC_SCHEMA_VERSION
 from shiliu.research.service import ResearchTaskService
 from shiliu.web import create_web_app
@@ -159,12 +160,12 @@ def test_schema_10_adds_control_tables_to_temporary_schema9_database(app_paths) 
     db = Database(app_paths.database)
     db.initialize()
     db.initialize()
-    assert SCHEMA_VERSION == 17
-    assert app_paths.database.with_name("shiliu.pre-v17.backup.db").is_file()
+    assert SCHEMA_VERSION == 19
+    assert app_paths.database.with_name("shiliu.pre-v19.backup.db").is_file()
     with db.connect() as migrated:
         assert migrated.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()[0] == "17"
+        ).fetchone()[0] == "19"
         columns = {
             str(row[1]) for row in migrated.execute("PRAGMA table_info(research_tasks)")
         }
@@ -936,6 +937,51 @@ def test_current_interrupt_resume_is_exact_once_and_consumed(app_paths) -> None:
         if value["control_request_id"] == interrupted["control_request_id"]
     ]
     assert [value["status"] for value in source] == ["applied", "superseded"]
+
+
+def test_v2_control_resume_and_enqueue_commit_exactly_once(app_paths) -> None:
+    core = Application(app_paths)
+    run = _bootstrap(core, "resume-v2-schedule")
+    now = core.research._now().isoformat(timespec="microseconds")
+    with core.research._transaction() as connection:
+        ResearchExecutionLedger.insert_v2(
+            connection,
+            task_id=run["task_id"],
+            now=now,
+            run_command_id=f"web:provider-research:{run['task_id']}:run",
+            run_immediately=False,
+        )
+    interrupted = core.research_control.apply_control(
+        run["task_id"],
+        _control(run, "v2-interrupt", "interrupt"),
+        principal_id="local_operator",
+    )
+    interrupted_schedule = core.research_provider_product.execution.snapshot(
+        run["task_id"]
+    )
+    assert interrupted_schedule is not None
+    assert interrupted_schedule.scheduling_status == "manual_required"
+    request = _control(
+        run,
+        "v2-resume",
+        "resume",
+        state_version=interrupted["state_version"],
+        checkpoint_id=interrupted["checkpoint_id"],
+        generation=interrupted["control_generation"],
+    )
+    first = core.research_control.apply_control(
+        run["task_id"], request, principal_id="local_operator"
+    )
+    replay = core.research_control.apply_control(
+        run["task_id"], request, principal_id="local_operator"
+    )
+    schedule = core.research_provider_product.execution.snapshot(run["task_id"])
+    assert schedule is not None
+    assert schedule.scheduling_intent == "manual"
+    assert schedule.scheduling_status == "queued"
+    assert schedule.manual_generation == 1
+    assert schedule.resume_reason == "control_resume_applied"
+    assert replay["control_request_id"] == first["control_request_id"]
 
 
 def _insert_human_decidable_constraint(core: Application, run: dict) -> None:

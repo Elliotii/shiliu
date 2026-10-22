@@ -28,7 +28,9 @@ ROUND2_ORDER = (
     "CASE_002", "CASE_004", "CASE_005", "CASE_006",
     "CASE_011", "CASE_014", "CASE_016", "CASE_018",
 )
-DEFAULT_SNAPSHOT_DB = Path("local-data/eval/shiliu_eval.db")
+DEFAULT_SNAPSHOT_DB = Path(
+    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+)
 
 
 def _jsonl(path: Path) -> list[dict[str, object]]:
