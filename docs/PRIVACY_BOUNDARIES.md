@@ -29,3 +29,7 @@ copying user content into the repository.
 Removing a file from the current branch does not remove it from earlier Git
 history. Before making the repository public, publish from a sanitized history
 or perform a separately reviewed history cleanup.
+
+## PostgreSQL 0.4.0 release boundary
+
+This release publishes a curated code/schema/test snapshot on top of existing public main, not the private development branch history. Included aggregate evaluation results explicitly separate evidence coverage, answer completion and citation support. Private S0/Query/Gold, answers, source packages, deployment bindings, paired backups, screenshots, provider logs and internal operational reports remain local. Historical author metadata and local-path examples already present in public main history are not rewritten; current examples remove the private home prefix. A regex scan is a bounded safety check, not proof against every possible credential format.

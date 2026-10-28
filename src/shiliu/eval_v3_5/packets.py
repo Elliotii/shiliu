@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from hashlib import sha256
@@ -25,7 +27,7 @@ from shiliu.eval_v3_5.sampling import PRIMARY_SELECTIONS, RESERVE_SELECTIONS, ra
 
 
 DEFAULT_SNAPSHOT_DB = Path(
-    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+    "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
 )
 DEFAULT_ARTIFACT_MANIFEST = Path("research/v3_eval/artifact_manifest.jsonl")
 DEFAULT_QUERIES = Path("research/v3_eval/eval_queries.locked.jsonl")
@@ -67,9 +69,7 @@ def build_review_assets(
     queries = _records_by("query_id", queries_path)
     gold = _records_by("query_id", gold_path)
     pool = _pool_records(pool_path)
-    connection = sqlite3.connect(
-        f"file:{Path(snapshot_db).resolve()}?mode=ro&immutable=1", uri=True
-    )
+    connection = connect_snapshot(Path(snapshot_db))
     connection.row_factory = sqlite3.Row
     try:
         primary = tuple(
@@ -163,9 +163,7 @@ def validate_review_assets(
     if {item.case_id for item in decisions} != original_case_ids:
         raise ValueError("original decision template must retain the 20 primary and 6 Stage 2A reserves")
 
-    connection = sqlite3.connect(
-        f"file:{Path(snapshot_db).resolve()}?mode=ro&immutable=1", uri=True
-    )
+    connection = connect_snapshot(Path(snapshot_db))
     connection.row_factory = sqlite3.Row
     total_segments = 0
     largest = ("", 0)

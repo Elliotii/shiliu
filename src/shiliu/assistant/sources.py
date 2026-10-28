@@ -11,11 +11,15 @@ from datetime import datetime, timezone
 from typing import Any, Literal, Protocol
 from zoneinfo import ZoneInfo
 
-from shiliu.artifacts import ArtifactStore, extract_urls
+from shiliu.artifacts import ArtifactStore, extract_urls, format_timestamp
 from shiliu.assistant.contracts import MaterialDescriptor, SourceView, ToolResult
 from shiliu.assistant.snapshots import CapturedSource, SourceSnapshotStore
 from shiliu.db import Database
 from shiliu.domain import VideoBundle
+from shiliu.evidence.contracts import EvidenceContractError, RetrievalChunkReference, SourceArtifactReference
+from shiliu.evidence.mapping import map_chunk_in_artifact, replay_source_chunks
+from shiliu.evidence.source import load_source_artifact
+from shiliu.storage.artifacts import ArtifactError
 from shiliu.retrieval.product_search import ProductSearchRequest, ProductSearchService
 
 
@@ -50,38 +54,27 @@ class CollectionSourceService:
         self.metadata_adapter = metadata_adapter
         self._coverage_cache: tuple[str, float, dict[str, int]] | None = None
 
-    def visible_video_ids(
-        self,
-        scope: SourceScope,
-        *,
-        order: Literal["id", "collected_desc"] = "id",
-    ) -> list[int]:
-        allowed_sources = self._allowed_sources(scope, None)
-        if not allowed_sources:
-            return []
-        values, _unknown = self._candidate_video_ids(
-            allowed_sources,
-            published_from=None,
-            published_to=None,
-            collected_from=None,
-            collected_to=None,
-            uploader=None,
-            order=order,
-            video_ids=scope.video_ids,
-        )
-        return values
+    def visible_video_ids(self, scope: SourceScope, *, order: Literal["id", "collected_desc"]="id", conn=None) -> list[int]:
+        # This query is also used in Wiki's short repeatable-read snapshot.
+        with self.db.connect(conn) as c:
+            rows=c.execute("SELECT v.id,max(m.favorite_time) AS collected FROM videos v "
+                           "JOIN video_source_memberships m ON (m.workspace_id,m.video_id)=(v.workspace_id,v.id) "
+                           "JOIN favorite_sources s ON (s.workspace_id,s.id)=(m.workspace_id,m.source_id) "
+                           "WHERE v.workspace_id=%s AND m.removed_at IS NULL AND s.status='active' "
+                           "AND NOT v.is_ignored AND v.archived_at IS NULL AND v.removed_at IS NULL "
+                           "AND (%s OR s.id=ANY(%s)) AND (%s OR v.id=ANY(%s)) GROUP BY v.id "
+                           + ('ORDER BY collected DESC NULLS LAST,v.id DESC' if order=='collected_desc' else 'ORDER BY v.id'),
+                           (self.db.workspace_id,scope.all_active,list(scope.source_db_ids),not scope.video_ids,list(scope.video_ids))).fetchall()
+            return [r['id'] for r in rows]
 
-    def source_refs_visible(self, source_refs: list[str], scope: SourceScope) -> bool:
-        allowed_sources = self._allowed_sources(scope, None)
-        for source_ref in source_refs:
-            if not source_ref.startswith("video:"):
-                continue
-            try:
-                video_id, _revision = _parse_source_ref(source_ref)
-            except ValueError:
-                return False
-            if not self._video_is_available(video_id, allowed_sources, scope=scope):
-                return False
+    def source_refs_visible(self, source_refs: list[str], scope: SourceScope, *, conn=None) -> bool:
+        visible=None
+        for ref in source_refs:
+            if not ref.startswith('video:'):continue
+            try:video_id,_revision=_parse_source_ref(ref)
+            except ValueError:return False
+            if visible is None:visible=set(self.visible_video_ids(scope,conn=conn))
+            if video_id not in visible:return False
         return True
 
     def search(
@@ -93,6 +86,7 @@ class CollectionSourceService:
         query_variants: list[str] | None = None,
         require_transcript: bool = False,
         mode: Literal["auto", "metadata", "content"] = "auto",
+        collection_scope: Literal["all", "video", "transcript_chunk"] = "all",
         cursor: str | None = None,
         scope_version: int = 1,
         folder_ids: set[int] | None = None,
@@ -106,19 +100,31 @@ class CollectionSourceService:
     ) -> ToolResult:
         if limit < 1 or limit > 10:
             return ToolResult(
-                call_id=call_id, status="invalid_arguments", summary="limit 必须在 1 到 10 之间",
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="limit 必须在 1 到 10 之间",
                 error_code="invalid_limit",
             )
         allowed_sources = self._allowed_sources(scope, folder_ids)
         if not allowed_sources:
             if cursor:
-                return ToolResult(call_id=call_id, status="invalid_arguments",
-                    summary="范围已变化，请从第一页重新查询", error_code="cursor_scope_mismatch")
+                return ToolResult(
+                    call_id=call_id,
+                    status="invalid_arguments",
+                    summary="范围已变化，请从第一页重新查询",
+                    error_code="cursor_scope_mismatch",
+                )
             return ToolResult(
-                call_id=call_id, status="empty", summary="当前 Space 没有可搜索的活跃收藏范围",
+                call_id=call_id,
+                status="empty",
+                summary="当前 Space 没有可搜索的活跃收藏范围",
                 error_code="empty_scope",
-                coverage={"mode": mode, "visible_count": 0, "exhaustive": True,
-                          "unknown_published_count": 0},
+                coverage={
+                    "mode": mode,
+                    "visible_count": 0,
+                    "exhaustive": True,
+                    "unknown_published_count": 0,
+                },
             )
         candidate_ids, unknown_published = self._candidate_video_ids(
             allowed_sources,
@@ -134,53 +140,103 @@ class CollectionSourceService:
             candidate_ids = self._transcript_available_ids(candidate_ids)
         if not candidate_ids:
             if cursor:
-                return ToolResult(call_id=call_id, status="invalid_arguments",
-                    summary="范围或筛选结果已变化，请从第一页重新查询", error_code="cursor_scope_mismatch")
+                return ToolResult(
+                    call_id=call_id,
+                    status="invalid_arguments",
+                    summary="范围或筛选结果已变化，请从第一页重新查询",
+                    error_code="cursor_scope_mismatch",
+                )
             return ToolResult(
                 call_id=call_id,
                 status="empty",
                 summary=f"范围内没有匹配视频；其中 {unknown_published} 个视频发布时间未知",
                 error_code="no_matches",
-                coverage={"mode": mode, "visible_count": 0, "exhaustive": True,
-                          "unknown_published_count": unknown_published,
-                          "sort": sort, "scope_version": scope_version,
-                          "require_transcript": require_transcript,
-                          "pre_material_candidate_count": pre_material_candidate_count},
+                coverage={
+                    "mode": mode,
+                    "visible_count": 0,
+                    "exhaustive": True,
+                    "unknown_published_count": unknown_published,
+                    "sort": sort,
+                    "scope_version": scope_version,
+                    "require_transcript": require_transcript,
+                    "pre_material_candidate_count": pre_material_candidate_count,
+                },
             )
         normalized_query = " ".join((query or "").split())
-        variants = list(dict.fromkeys(
-            " ".join(value.split()) for value in [normalized_query, *(query_variants or [])]
-            if value.strip()
-        ))
+        variants = list(
+            dict.fromkeys(
+                " ".join(value.split())
+                for value in [normalized_query, *(query_variants or [])]
+                if value.strip()
+            )
+        )
         if len(variants) > 3 or any(len(value) > 2000 for value in variants):
-            return ToolResult(call_id=call_id, status="invalid_arguments",
-                              summary="最多三条有界查询", error_code="query_variants_limit")
-        resolved_mode = ("content" if normalized_query else "metadata") if mode == "auto" else mode
+            return ToolResult(
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="最多三条有界查询",
+                error_code="query_variants_limit",
+            )
+        resolved_mode = (
+            ("content" if normalized_query else "metadata") if mode == "auto" else mode
+        )
         if resolved_mode == "content" and not normalized_query:
-            return ToolResult(call_id=call_id, status="invalid_arguments", summary="内容检索需要 query", error_code="query_required")
+            return ToolResult(
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="内容检索需要 query",
+                error_code="query_required",
+            )
         coverage: dict[str, Any] = {
-            "mode": resolved_mode, "visible_count": len(candidate_ids),
+            "mode": resolved_mode,
+            "visible_count": len(candidate_ids),
             "unknown_published_count": unknown_published,
-            "sort": sort, "scope_version": scope_version,
+            "sort": sort,
+            "scope_version": scope_version,
             "material_counts_for": "filtered_candidates",
             "require_transcript": require_transcript,
             "pre_material_candidate_count": pre_material_candidate_count,
         }
         if resolved_mode == "metadata":
             if query_variants:
-                return ToolResult(call_id=call_id, status="invalid_arguments",
-                                  summary="元数据分页只接受一条查询", error_code="variants_not_supported")
+                return ToolResult(
+                    call_id=call_id,
+                    status="invalid_arguments",
+                    summary="元数据分页只接受一条查询",
+                    error_code="variants_not_supported",
+                )
             if normalized_query:
-                candidate_ids = self._metadata_matching_ids(candidate_ids, normalized_query)
-            ordered = self._ordered_metadata_ids(candidate_ids, allowed_sources, sort,
-                collected_from=collected_from, collected_to=collected_to)
-            fingerprint = hashlib.sha256(json.dumps(
-                {"ids": ordered, "query": normalized_query, "sources": sorted(allowed_sources),
-                 "filters": [published_from, published_to, collected_from, collected_to, uploader,
-                             require_transcript],
-                 "sort": sort, "scope_version": scope_version},
-                ensure_ascii=False, separators=(",", ":"),
-            ).encode()).hexdigest()
+                candidate_ids = self._metadata_matching_ids(
+                    candidate_ids, normalized_query
+                )
+            ordered = self._ordered_metadata_ids(
+                candidate_ids,
+                allowed_sources,
+                sort,
+                collected_from=collected_from,
+                collected_to=collected_to,
+            )
+            fingerprint = hashlib.sha256(
+                json.dumps(
+                    {
+                        "ids": ordered,
+                        "query": normalized_query,
+                        "sources": sorted(allowed_sources),
+                        "filters": [
+                            published_from,
+                            published_to,
+                            collected_from,
+                            collected_to,
+                            uploader,
+                            require_transcript,
+                        ],
+                        "sort": sort,
+                        "scope_version": scope_version,
+                    },
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode()
+            ).hexdigest()
             offset = 0
             if cursor:
                 try:
@@ -191,35 +247,76 @@ class CollectionSourceService:
                         offset = int(raw_offset)
                     else:
                         # Legacy U-A cursors remain readable.
-                        cursor_data = json.loads(base64.urlsafe_b64decode(cursor.encode()))
-                        if cursor_data["v"] != 1 or cursor_data["fingerprint"] != fingerprint:
+                        cursor_data = json.loads(
+                            base64.urlsafe_b64decode(cursor.encode())
+                        )
+                        if (
+                            cursor_data["v"] != 1
+                            or cursor_data["fingerprint"] != fingerprint
+                        ):
                             raise ValueError("stale cursor")
                         offset = int(cursor_data["offset"])
                     if offset < 0 or offset > len(ordered):
                         raise ValueError("invalid offset")
                 except (ValueError, KeyError, TypeError, binascii.Error):
-                    return ToolResult(call_id=call_id, status="invalid_arguments", summary="范围或排序已变化，请从第一页重新查询", error_code="cursor_scope_mismatch")
+                    return ToolResult(
+                        call_id=call_id,
+                        status="invalid_arguments",
+                        summary="范围或排序已变化，请从第一页重新查询",
+                        error_code="cursor_scope_mismatch",
+                    )
             cached = self._coverage_cache
-            if cached is not None and cached[0] == fingerprint and time.monotonic() - cached[1] < 30:
+            if (
+                cached is not None
+                and cached[0] == fingerprint
+                and time.monotonic() - cached[1] < 30
+            ):
                 coverage.update(cached[2])
             else:
                 material_coverage = self._material_coverage(candidate_ids)
-                self._coverage_cache = (fingerprint, time.monotonic(), material_coverage)
+                self._coverage_cache = (
+                    fingerprint,
+                    time.monotonic(),
+                    material_coverage,
+                )
                 coverage.update(material_coverage)
-            page = ordered[offset:offset + limit]
-            items = [self._card(video_id, allowed_source_ids=allowed_sources) for video_id in page]
+            page = ordered[offset : offset + limit]
+            items = [
+                self._card(video_id, allowed_source_ids=allowed_sources)
+                for video_id in page
+            ]
             next_offset = offset + len(page)
-            next_cursor = f"m1:{fingerprint[:16]}:{next_offset}" if next_offset < len(ordered) else None
-            coverage.update({"matched_count": len(ordered), "exhaustive": True,
-                             "has_more": next_cursor is not None,
-                             "sort_basis": "collected_desc" if sort == "relevance" else sort})
-            return ToolResult(call_id=call_id, status="ok" if items else "empty",
+            next_cursor = (
+                f"m1:{fingerprint[:16]}:{next_offset}"
+                if next_offset < len(ordered)
+                else None
+            )
+            coverage.update(
+                {
+                    "matched_count": len(ordered),
+                    "exhaustive": True,
+                    "has_more": next_cursor is not None,
+                    "sort_basis": "collected_desc" if sort == "relevance" else sort,
+                }
+            )
+            return ToolResult(
+                call_id=call_id,
+                status="ok" if items else "empty",
                 summary=f"元数据匹配 {len(ordered)} 项，本页 {len(items)} 项；{unknown_published} 个视频发布时间未知",
-                items=items, source_refs=[str(item["source_ref"]) for item in items],
-                next_cursor=next_cursor, coverage=coverage)
+                items=items,
+                source_refs=[str(item["source_ref"]) for item in items],
+                next_cursor=next_cursor,
+                coverage=coverage,
+            )
         if cursor:
-            return ToolResult(call_id=call_id, status="invalid_arguments", summary="内容候选检索不支持分页游标", error_code="cursor_not_supported")
+            return ToolResult(
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="内容候选检索不支持分页游标",
+                error_code="cursor_not_supported",
+            )
         coverage.update(self._material_coverage(candidate_ids))
+        coverage["collection_scope"] = collection_scope
         coverage_note = ""
         if self.product_search is not None:
             retrieval_limit = min(20, max(limit, 12)) if sort != "relevance" else limit
@@ -227,29 +324,44 @@ class CollectionSourceService:
             retrieval_details: list[dict[str, Any]] = []
             for variant in variants:
                 results_for_query, raw = self._product_results(
-                    query=variant, candidate_ids=candidate_ids,
+                    query=variant,
+                    candidate_ids=candidate_ids,
                     result_limit=retrieval_limit,
+                    collection_scope=collection_scope,
                 )
-                retrieval_details.append({
-                    "query": variant,
-                    "executed_mode": getattr(raw, "executed_mode", "unknown"),
-                    "fallback": bool(getattr(raw, "fallback", False)),
-                    "fallback_reason": getattr(raw, "fallback_reason", None),
-                    "raw_search_ms": getattr(getattr(raw, "timing", None), "total_ms", None),
-                    "candidate_count": len(results_for_query),
-                })
+                retrieval_details.append(
+                    {
+                        "query": variant,
+                        "collection_scope": collection_scope,
+                        "executed_mode": getattr(raw, "executed_mode", "unknown"),
+                        "fallback": bool(getattr(raw, "fallback", False)),
+                        "fallback_reason": getattr(raw, "fallback_reason", None),
+                        "raw_search_ms": getattr(
+                            getattr(raw, "timing", None), "total_ms", None
+                        ),
+                        "candidate_count": len(results_for_query),
+                    }
+                )
                 for rank, result in enumerate(results_for_query, start=1):
                     video_id = int(result.video_id)
-                    entry = ranked.setdefault(video_id, {
-                        "result": result, "score": 0.0, "matches": [], "windows": [],
-                    })
+                    entry = ranked.setdefault(
+                        video_id,
+                        {
+                            "result": result,
+                            "score": 0.0,
+                            "matches": [],
+                            "windows": [],
+                        },
+                    )
                     # Rank fusion avoids comparing scores from different retrieval paths.
                     entry["score"] += 1.0 / (20 + rank)
                     entry["matches"].append({"query": variant, "rank": rank})
                     for window in getattr(result, "windows", ()):
                         if window not in entry["windows"]:
                             entry["windows"].append(window)
-            ranked_items = sorted(ranked.items(), key=lambda pair: (-pair[1]["score"], pair[0]))
+            ranked_items = sorted(
+                ranked.items(), key=lambda pair: (-pair[1]["score"], pair[0])
+            )
             results = [entry["result"] for _, entry in ranked_items[:retrieval_limit]]
             if sort == "relevance":
                 items = [
@@ -264,8 +376,7 @@ class CollectionSourceService:
                     item["match_basis"] = ranked[int(item["video_id"])]["matches"]
             else:
                 excerpts = {
-                    int(result.video_id): result.match_excerpt
-                    for result in results
+                    int(result.video_id): result.match_excerpt for result in results
                 }
                 items = self._metadata_cards(
                     list(excerpts),
@@ -282,7 +393,13 @@ class CollectionSourceService:
                     "不是对范围内全部关键词命中的穷尽排序"
                 )
         else:
-            return ToolResult(call_id=call_id, status="unavailable", summary="内容检索器不可用；可使用 mode=metadata 查找标题、作者和时间", error_code="content_search_unavailable", coverage=coverage)
+            return ToolResult(
+                call_id=call_id,
+                status="unavailable",
+                summary="内容检索器不可用；可使用 mode=metadata 查找标题、作者和时间",
+                error_code="content_search_unavailable",
+                coverage=coverage,
+            )
         for item in items:
             entry = ranked[int(item["video_id"])]
             result = entry["result"]
@@ -290,13 +407,20 @@ class CollectionSourceService:
             item["retrieval_methods"] = list(getattr(result, "retrieval_methods", ()))
             item["best_unit_id"] = getattr(result, "best_unit_id", None)
             item["best_unit_type"] = getattr(result, "best_unit_type", None)
-        coverage.update({"candidate_limit": retrieval_limit, "exhaustive": False,
-                         "sort_basis": "rank_fusion" if sort == "relevance" else f"candidate_{sort}",
-                         "retrieval_requests": len(variants),
-                         "retrieval_candidate_count": len(ranked),
-                         "query_variants": variants,
-                         "retrieval_details": retrieval_details,
-                         "candidate_coverage": "top_k_not_exhaustive"})
+        coverage.update(
+            {
+                "candidate_limit": retrieval_limit,
+                "exhaustive": False,
+                "sort_basis": "rank_fusion"
+                if sort == "relevance"
+                else f"candidate_{sort}",
+                "retrieval_requests": len(variants),
+                "retrieval_candidate_count": len(ranked),
+                "query_variants": variants,
+                "retrieval_details": retrieval_details,
+                "candidate_coverage": "top_k_not_exhaustive",
+            }
+        )
         return ToolResult(
             call_id=call_id,
             status="ok" if items else "empty",
@@ -310,65 +434,168 @@ class CollectionSourceService:
         )
 
     def _product_results(
-        self, *, query: str, candidate_ids: list[int], result_limit: int
+        self, *, query: str, candidate_ids: list[int], result_limit: int,
+        collection_scope: Literal["all", "video", "transcript_chunk"] = "all",
     ) -> tuple[list[Any], Any]:
         """Search an assistant scope without leaking the deep-search eight-video bound."""
         if self.product_search is None:
             return [], None
         raw, response = self.product_search.search_with_raw(
             ProductSearchRequest(
-                query=query, result_limit=min(20, result_limit),
-                max_windows_per_video=2, corpus_aware=False,
+                query=query,
+                scope=collection_scope,
+                result_limit=min(20, result_limit),
+                max_windows_per_video=2,
+                corpus_aware=False,
             ),
-            scope_video_ids=tuple(candidate_ids), principal_id="local_operator",
+            scope_video_ids=tuple(candidate_ids),
+            principal_id="local_operator",
         )
         return list(response.results), raw
 
-    def _material_coverage(self, video_ids: list[int]) -> dict[str, int]:
-        if not video_ids:
-            return {"body_available_count": 0, "body_indexed_count": 0,
-                    "indexed_video_count": 0}
-        with self.db.connect() as connection:
+    def search_read_hints(self, candidate: dict, captured: CapturedSource) -> tuple[list[dict], list[str]]:
+        """Exact chunk positions in the captured JSON/TXT, never text/time guesses."""
+        windows = (candidate.get("windows") or [])[:2]
+        unit_ids = list(dict.fromkeys(w["best_chunk_id"] for w in windows if w.get("best_chunk_id")))
+        if not unit_ids:
+            return [], ["no_subtitle_window"]
+        snapshot = captured.snapshot
+        raw_text = snapshot["materials"].get("raw_subtitle")
+        version = snapshot["material_hashes"].get("raw_subtitle")
+        if not raw_text or not version:
+            return [], ["raw_subtitle_unavailable"]
+        video_id = int(candidate["video_id"])
+        if int(snapshot["metadata"]["id"]) != video_id:
+            return [], ["snapshot_video_mismatch"]
+        with self.db.connect(read_only=True) as connection:
             rows = connection.execute(
-                f"SELECT id, source_id FROM videos WHERE id IN ({','.join('?' for _ in video_ids)})",
-                video_ids,
+                "SELECT u.*,v.raw_subtitle_path,v.subtitle_source,v.subtitle_language "
+                "FROM shiliu.retrieval_units u JOIN shiliu.videos v "
+                "ON (v.workspace_id,v.id)=(u.workspace_id,u.video_id) "
+                "JOIN shiliu.retrieval_projection_tasks t ON t.workspace_id=u.workspace_id "
+                "AND t.domain='collection' AND t.resource_key=u.video_id::text "
+                "WHERE u.workspace_id=%s AND u.video_id=%s AND u.unit_id=ANY(%s) "
+                "AND u.unit_type='transcript_chunk' AND u.removed_at IS NULL "
+                "AND u.generation=t.requested_generation "
+                "AND (t.payload->>'ready_generation')::bigint=t.requested_generation "
+                "AND v.removed_at IS NULL AND v.archived_at IS NULL AND NOT v.is_ignored "
+                "AND EXISTS(SELECT 1 FROM shiliu.video_source_memberships m "
+                "JOIN shiliu.favorite_sources s ON (s.workspace_id,s.id)=(m.workspace_id,m.source_id) "
+                "WHERE m.workspace_id=v.workspace_id AND m.video_id=v.id "
+                "AND m.removed_at IS NULL AND s.status='active')",
+                (self.db.workspace_id, video_id, unit_ids),
             ).fetchall()
-            indexed = []
-            body_indexed = 0
-            if connection.execute("SELECT 1 FROM sqlite_master WHERE name='retrieval_units'").fetchone():
-                indexed = connection.execute(
-                    f"SELECT unit_type, COUNT(DISTINCT video_id) AS n FROM retrieval_units WHERE removed_at IS NULL AND video_id IN ({','.join('?' for _ in video_ids)}) GROUP BY unit_type",
-                    video_ids,
-                ).fetchall()
-                body_indexed = int(connection.execute(
-                    f"SELECT COUNT(DISTINCT video_id) FROM retrieval_units WHERE removed_at IS NULL "
-                    f"AND video_id IN ({','.join('?' for _ in video_ids)}) "
-                    "AND (unit_type='transcript_chunk' OR instr(source_text, '[Summary')>0 "
-                    "OR instr(source_text, '[Cleaned Transcript')>0)",
-                    video_ids,
-                ).fetchone()[0])
-        counts = {str(row["unit_type"]): int(row["n"]) for row in indexed}
-        available = 0
-        for row in rows:
-            directory = self.artifacts.videos_dir / str(row["source_id"])
-            if (directory / "subtitle-raw.txt").is_file() or any(directory.glob("transcript*.md")) or any(directory.glob("summary*.md")):
-                available += 1
-        return {"body_available_count": available,
-                "body_indexed_count": body_indexed,
-                "indexed_video_count": counts.get("video", 0)}
+        by_id = {row["unit_id"]: row for row in rows}
+        hints, reasons = [], []
+        artifact = replayed = txt_positions = None
+        for unit_id in unit_ids:
+            row = by_id.get(unit_id)
+            if row is None:
+                reasons.append("retrieval_unit_unavailable")
+                continue
+            if any(row[key] != snapshot["metadata"].get(key) for key in ("platform", "source_id", "part")):
+                reasons.append("snapshot_source_mismatch")
+                continue
+            try:
+                if artifact is None:
+                    reference = SourceArtifactReference(
+                        platform=row["platform"], source_id=row["source_id"], part=row["part"],
+                        source_type=row["subtitle_source"] or "unknown",
+                        source_language=row["subtitle_language"] or "unknown",
+                        artifact_path=row["raw_subtitle_path"] or "",
+                    )
+                    if hashlib.sha256(raw_text.encode("utf-8")).hexdigest() != version:
+                        raise EvidenceContractError("snapshot text hash mismatch", code="source_version_mismatch")
+                    manifest = self.artifacts.objects.manifest(version_id=reference.artifact_path)
+                    json_version = version
+                    is_txt = manifest["logical_key"].endswith(":subtitle-raw.txt")
+                    if is_txt:
+                        if self.artifacts.read_text(reference.artifact_path) != raw_text:
+                            raise EvidenceContractError("raw TXT differs from snapshot", code="snapshot_text_mismatch")
+                        # raw_bytes proves an exact-version pair, or the guarded
+                        # current legacy pair with independent byte hashes. Pin
+                        # the returned JSON bytes before replay; never pass a TXT
+                        # hash as the JSON version or unconditionally use a head.
+                        paired_json = self.artifacts.raw_bytes(reference.artifact_path)
+                        json_version = hashlib.sha256(paired_json).hexdigest()
+                    loaded = load_source_artifact(reference, expected_source_version=json_version, artifacts=self.artifacts)
+                    if is_txt:
+                        txt_positions = _txt_segment_positions(raw_text, loaded.segments)
+                    replayed = replay_source_chunks(loaded)
+                    artifact = loaded
+                mapping = map_chunk_in_artifact(artifact, RetrievalChunkReference(
+                    unit_id=unit_id, chunk_id=row["chunk_id"], start_time=row["start_time"],
+                    end_time=row["end_time"], source_text=row["source_text"], content_hash=row["content_hash"],
+                ), replayed_chunks=replayed)
+                if mapping.mapping_status != "exact_mapped" or not mapping.candidate_eligibility or not mapping.segment_ordinals:
+                    reasons.append(mapping.mapping_status)
+                    continue
+                positions = txt_positions if txt_positions is not None else _raw_segment_positions(raw_text, mapping.segment_ordinals)
+                start = min(positions[ordinal][0] for ordinal in mapping.segment_ordinals)
+                hints.append({
+                    "unit_id": unit_id, "start_time": row["start_time"], "end_time": row["end_time"],
+                    "read_args": {"source_ref": f"video:{video_id}:{captured.revision}", "view": "transcript",
+                        "cursor": _encode_read_cursor(video_id=video_id, revision=captured.revision,
+                                                      view="transcript", offset=max(0, start - 500))},
+                })
+            except EvidenceContractError as exc:
+                reasons.append(exc.code)
+            except (ArtifactError, OSError):
+                reasons.append("source_unavailable")
+            except (ValueError, KeyError):
+                reasons.append("snapshot_segment_position_unavailable")
+        return hints, list(dict.fromkeys(reasons))
+
+    def _material_coverage(self, video_ids):
+        if not video_ids:
+            return {
+                "body_available_count": 0,
+                "body_indexed_count": 0,
+                "indexed_video_count": 0,
+            }
+        with self.db.connect(read_only=True) as c:
+            videos = c.execute(
+                "SELECT id,raw_subtitle_path,transcript_path,summary_path FROM shiliu.videos "
+                "WHERE workspace_id=%s AND id=ANY(%s)",
+                (self.db.workspace_id, video_ids),
+            ).fetchall()
+            units = c.execute(
+                "SELECT ru.unit_type,COUNT(DISTINCT ru.video_id) AS n FROM shiliu.retrieval_units ru "
+                "JOIN shiliu.retrieval_projection_tasks t ON t.workspace_id=ru.workspace_id AND t.domain='collection' "
+                "AND t.resource_key=ru.video_id::text AND t.requested_generation=ru.generation "
+                "WHERE ru.workspace_id=%s AND ru.removed_at IS NULL AND ru.video_id=ANY(%s) GROUP BY ru.unit_type",
+                (self.db.workspace_id, video_ids),
+            ).fetchall()
+        counts = {r["unit_type"]: r["n"] for r in units}
+        available = sum(
+            any(
+                self._managed_exists(r[k])
+                for k in ("raw_subtitle_path", "transcript_path", "summary_path")
+            )
+            for r in videos
+        )
+        return {
+            "body_available_count": available,
+            "body_indexed_count": counts.get("transcript_chunk", 0),
+            "indexed_video_count": counts.get("video", 0),
+        }
 
     def _transcript_available_ids(self, video_ids: list[int]) -> list[int]:
         if not video_ids:
             return []
         with self.db.connect() as connection:
             rows = connection.execute(
-                f"SELECT id,raw_subtitle_path,transcript_path FROM videos WHERE id IN ({','.join('?' for _ in video_ids)})",
-                video_ids,
+                f"SELECT id,raw_subtitle_path,transcript_path FROM videos WHERE workspace_id=%s AND id IN ({','.join('%s' for _ in video_ids)})",
+                [self.db.workspace_id, *video_ids],
             ).fetchall()
-        available = {int(row["id"]) for row in rows if any(
-            self._managed_exists(value)
-            for value in (row["raw_subtitle_path"], row["transcript_path"])
-        )}
+        available = {
+            int(row["id"])
+            for row in rows
+            if any(
+                self._managed_exists(value)
+                for value in (row["raw_subtitle_path"], row["transcript_path"])
+            )
+        }
         return [value for value in video_ids if value in available]
 
     def _managed_exists(self, value: Any) -> bool:
@@ -384,15 +611,27 @@ class CollectionSourceService:
         tokens = [token.casefold() for token in query.split() if token]
         with self.db.connect() as connection:
             rows = connection.execute(
-                f"SELECT id, title, uploader FROM videos WHERE id IN ({','.join('?' for _ in video_ids)})",
-                video_ids,
+                f"SELECT id, title, uploader FROM videos WHERE workspace_id=%s AND id IN ({','.join('%s' for _ in video_ids)})",
+                [self.db.workspace_id, *video_ids],
             ).fetchall()
-        return [int(row["id"]) for row in rows if all(
-            token in f"{row['title']} {row['uploader']}".casefold() for token in tokens
-        )]
+        return [
+            int(row["id"])
+            for row in rows
+            if all(
+                token in f"{row['title']} {row['uploader']}".casefold()
+                for token in tokens
+            )
+        ]
 
-    def _ordered_metadata_ids(self, video_ids: list[int], allowed_source_ids: set[int], sort: str,
-                              *, collected_from: int | None = None, collected_to: int | None = None) -> list[int]:
+    def _ordered_metadata_ids(
+        self,
+        video_ids: list[int],
+        allowed_source_ids: set[int],
+        sort: str,
+        *,
+        collected_from: int | None = None,
+        collected_to: int | None = None,
+    ) -> list[int]:
         if not video_ids:
             return []
         order = {
@@ -403,15 +642,20 @@ class CollectionSourceService:
         time_filter = ""
         time_params: list[int] = []
         if collected_from is not None:
-            time_filter += " AND m.favorite_time>=?"
+            time_filter += " AND m.favorite_time>=%s"
             time_params.append(collected_from)
         if collected_to is not None:
-            time_filter += " AND m.favorite_time<=?"
+            time_filter += " AND m.favorite_time<=%s"
             time_params.append(collected_to)
         with self.db.connect() as connection:
             rows = connection.execute(
-                f"SELECT v.id FROM videos v JOIN video_source_memberships m ON m.video_id=v.id AND m.removed_at IS NULL AND m.source_id IN ({','.join('?' for _ in allowed_source_ids)}){time_filter} WHERE v.id IN ({','.join('?' for _ in video_ids)}) GROUP BY v.id ORDER BY {order}",
-                [*sorted(allowed_source_ids), *time_params, *video_ids],
+                f"SELECT v.id FROM videos v JOIN video_source_memberships m ON m.video_id=v.id AND m.removed_at IS NULL AND m.source_id IN ({','.join('%s' for _ in allowed_source_ids)}){time_filter} WHERE v.workspace_id=%s AND v.id IN ({','.join('%s' for _ in video_ids)}) GROUP BY v.id ORDER BY {order}",
+                [
+                    *sorted(allowed_source_ids),
+                    *time_params,
+                    self.db.workspace_id,
+                    *video_ids,
+                ],
             ).fetchall()
         return [int(row["id"]) for row in rows]
 
@@ -421,7 +665,9 @@ class CollectionSourceService:
         call_id: str,
         scope: SourceScope,
         source_ref: str,
-        view: Literal["overview", "description", "summary", "notes", "transcript"] = "overview",
+        view: Literal[
+            "overview", "description", "summary", "notes", "transcript"
+        ] = "overview",
         revision: str | None = None,
         cursor: str | None = None,
         query: str | None = None,
@@ -431,10 +677,16 @@ class CollectionSourceService:
             video_id, ref_revision = _parse_source_ref(source_ref)
         except ValueError:
             return ToolResult(
-                call_id=call_id, status="invalid_arguments", summary="source_ref 无效",
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="source_ref 无效",
                 error_code="invalid_source_ref",
             )
-        if revision is not None and ref_revision is not None and revision != ref_revision:
+        if (
+            revision is not None
+            and ref_revision is not None
+            and revision != ref_revision
+        ):
             return ToolResult(
                 call_id=call_id,
                 status="invalid_arguments",
@@ -443,11 +695,19 @@ class CollectionSourceService:
             )
         resolved_revision = ref_revision or revision
         if max_characters < 1 or max_characters > 40000:
-            return ToolResult(call_id=call_id, status="invalid_arguments",
-                              summary="单次读取限 1 至 40000 字符", error_code="read_budget_invalid")
+            return ToolResult(
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="单次读取限 1 至 40000 字符",
+                error_code="read_budget_invalid",
+            )
         if query and cursor:
-            return ToolResult(call_id=call_id, status="invalid_arguments",
-                              summary="query 定位与 cursor 续读只能选一个；续读请只传 source_ref、view、cursor", error_code="query_cursor_conflict")
+            return ToolResult(
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="query 定位与 cursor 续读只能选一个；续读请只传 source_ref、view、cursor",
+                error_code="query_cursor_conflict",
+            )
         offset = 0
         if cursor is not None:
             try:
@@ -466,7 +726,10 @@ class CollectionSourceService:
                     summary="cursor 与来源或读取视图不匹配",
                     error_code="cursor_scope_mismatch",
                 )
-            if resolved_revision is not None and resolved_revision != cursor_value["revision"]:
+            if (
+                resolved_revision is not None
+                and resolved_revision != cursor_value["revision"]
+            ):
                 return ToolResult(
                     call_id=call_id,
                     status="invalid_arguments",
@@ -478,7 +741,9 @@ class CollectionSourceService:
         allowed_sources = self._allowed_sources(scope, None)
         if not self._video_is_available(video_id, allowed_sources, scope=scope):
             return ToolResult(
-                call_id=call_id, status="unavailable", summary="该来源不在当前 Space 范围内",
+                call_id=call_id,
+                status="unavailable",
+                summary="该来源不在当前 Space 范围内",
                 error_code="source_out_of_scope",
             )
         try:
@@ -515,10 +780,15 @@ class CollectionSourceService:
         )
         available_views = [
             "transcript" if material.kind == "raw_subtitle" else material.kind
-            for material in view_model.materials if material.available
+            for material in view_model.materials
+            if material.available
         ]
         available_views = sorted(set(available_views))
-        requested_empty = view != "overview" and (view_model.content or "").strip() in {"", "-", "—"}
+        requested_empty = view != "overview" and (view_model.content or "").strip() in {
+            "",
+            "-",
+            "—",
+        }
         if requested_empty:
             summary = f"本轮请求的 {view} 视图没有正文；可用视图：{', '.join(available_views) or '无'}。不能据此断言其他视图也为空"
         else:
@@ -532,54 +802,67 @@ class CollectionSourceService:
             source_refs=[stable_ref],
             truncated=truncated,
             next_cursor=next_cursor,
-            coverage={"requested_view": view, "requested_view_has_content": not requested_empty,
-                      "available_views": available_views,
-                      "body_coverage": view_model.coverage,
-                      "read_position": position,
-                      "read_complete": bool(total_characters == end_offset and not query),
-                      "selection": "relevant_span" if query else "sequential",
-                      "model_delivery": "pending_context_projection"},
+            coverage={
+                "requested_view": view,
+                "requested_view_has_content": not requested_empty,
+                "available_views": available_views,
+                "body_coverage": view_model.coverage,
+                "read_position": position,
+                "read_complete": bool(total_characters == end_offset and not query),
+                "selection": "relevant_span" if query else "sequential",
+                "model_delivery": "pending_context_projection",
+            },
         )
 
     def clip_read_result(self, result: dict, *, max_characters: int) -> dict:
         """Allocate only an unsent representation; preserve the immutable raw receipt."""
         value = deepcopy(result)
         remaining = max(0, max_characters)
-        for item in value.get('items') or []:
-            text = item.get('content')
+        for item in value.get("items") or []:
+            text = item.get("content")
             if not isinstance(text, str):
                 continue
-            original = item.get('provenance', {}).get('content_position') or {}
-            start = int(original.get('start') or 0)
+            original = item.get("provenance", {}).get("content_position") or {}
+            start = int(original.get("start") or 0)
             kept = text[:remaining]
             remaining -= len(kept)
             end = start + len(kept)
-            position = {**original, 'start': start, 'end': end}
-            item.setdefault('provenance', {})['content_position'] = position
-            item['content'] = kept
-            value.setdefault('coverage', {})['read_position'] = position
+            position = {**original, "start": start, "end": end}
+            item.setdefault("provenance", {})["content_position"] = position
+            item["content"] = kept
+            value.setdefault("coverage", {})["read_position"] = position
             if len(kept) < len(text):
-                view = value['coverage']['requested_view']
-                ref = next(iter(value.get('source_refs') or []), item['source_ref'])
+                view = value["coverage"]["requested_view"]
+                ref = next(iter(value.get("source_refs") or []), item["source_ref"])
                 video_id, revision = _parse_source_ref(ref)
-                revision = revision or item['revision']
-                value['truncated'] = True
-                value['coverage']['read_complete'] = False
-                value['next_cursor'] = _encode_read_cursor(video_id=video_id, revision=revision,
-                                                           view=view, offset=end)
-                value['coverage']['next_read_args'] = {'source_ref': ref, 'view': view,
-                                                       'cursor': value['next_cursor']}
+                revision = revision or item["revision"]
+                value["truncated"] = True
+                value["coverage"]["read_complete"] = False
+                value["next_cursor"] = _encode_read_cursor(
+                    video_id=video_id, revision=revision, view=view, offset=end
+                )
+                value["coverage"]["next_read_args"] = {
+                    "source_ref": ref,
+                    "view": view,
+                    "cursor": value["next_cursor"],
+                }
         return value
 
     def refresh_metadata(
-        self, *, call_id: str, scope: SourceScope, source_ref: str,
+        self,
+        *,
+        call_id: str,
+        scope: SourceScope,
+        source_ref: str,
         publish_guard: Any = None,
     ) -> ToolResult:
         try:
             video_id, ref_revision = _parse_source_ref(source_ref)
         except ValueError:
             return ToolResult(
-                call_id=call_id, status="invalid_arguments", summary="source_ref 无效",
+                call_id=call_id,
+                status="invalid_arguments",
+                summary="source_ref 无效",
                 error_code="invalid_source_ref",
             )
         if ref_revision is not None:
@@ -592,39 +875,52 @@ class CollectionSourceService:
         allowed_sources = self._allowed_sources(scope, None)
         if not self._video_is_available(video_id, allowed_sources, scope=scope):
             return ToolResult(
-                call_id=call_id, status="unavailable", summary="该来源不在当前 Space 范围内",
+                call_id=call_id,
+                status="unavailable",
+                summary="该来源不在当前 Space 范围内",
                 error_code="source_out_of_scope",
             )
         if self.metadata_adapter is None:
             return ToolResult(
-                call_id=call_id, status="unavailable", summary="元数据刷新适配器未配置",
+                call_id=call_id,
+                status="unavailable",
+                summary="元数据刷新适配器未配置",
                 error_code="metadata_refresh_unavailable",
             )
         video = self.db.get_video(video_id)
         if video is None:
             raise KeyError(video_id)
         bundle = self.metadata_adapter.fetch_video_metadata(str(video["source_id"]))
-        self.artifacts.save_metadata(bundle)
-        self.db.update_video(
-            video_id,
-            publish_guard=publish_guard,
-            title=bundle.title,
-            uploader=bundle.uploader,
-            uploader_id=bundle.uploader_id,
-            description=bundle.description,
-            description_links_json=json.dumps(extract_urls(bundle.description), ensure_ascii=False),
-            video_url=bundle.video_url,
-            cover_url=bundle.cover_url,
-            cid=bundle.cid,
-            part_title=bundle.part_title,
-            duration_seconds=bundle.duration_seconds,
-            page_count=bundle.page_count,
-            published_at=bundle.published_at,
-            metadata_observed_at=bundle.metadata_observed_at,
+        batch = self.artifacts.batch(video_id)
+        batch.save_metadata(bundle)
+        batch.commit(
+            lambda conn: self.db.update_video(
+                video_id,
+                publish_guard=publish_guard,
+                title=bundle.title,
+                uploader=bundle.uploader,
+                uploader_id=bundle.uploader_id,
+                description=bundle.description,
+                description_links_json=json.dumps(
+                    extract_urls(bundle.description), ensure_ascii=False
+                ),
+                video_url=bundle.video_url,
+                cover_url=bundle.cover_url,
+                cid=bundle.cid,
+                part_title=bundle.part_title,
+                duration_seconds=bundle.duration_seconds,
+                page_count=bundle.page_count,
+                published_at=bundle.published_at,
+                metadata_observed_at=bundle.metadata_observed_at,
+                conn=conn,
+            ),
+            validate=publish_guard,
         )
         captured = self.snapshots.capture(video_id, publish_guard=publish_guard)
         return ToolResult(
-            call_id=call_id, status="ok", summary="视频元数据已轻量刷新；未读取字幕、未触发 ASR 或摘要",
+            call_id=call_id,
+            status="ok",
+            summary="视频元数据已轻量刷新；未读取字幕、未触发 ASR 或摘要",
             result_ref=f"assistant-object:{captured.snapshot_ref}",
             source_refs=[f"video:{video_id}:{captured.revision}"],
         )
@@ -654,12 +950,19 @@ class CollectionSourceService:
     ) -> set[int]:
         with self.db.connect() as connection:
             rows = connection.execute(
-                "SELECT id, folder_id FROM favorite_sources WHERE status='active'"
+                "SELECT id, folder_id FROM favorite_sources WHERE workspace_id=%s AND status='active'",
+                (self.db.workspace_id,),
             ).fetchall()
         active = {int(row["id"]): int(row["folder_id"]) for row in rows}
-        allowed = set(active) if scope.all_active else set(scope.source_db_ids) & set(active)
+        allowed = (
+            set(active) if scope.all_active else set(scope.source_db_ids) & set(active)
+        )
         if requested_folder_ids is not None:
-            allowed = {source_id for source_id in allowed if active[source_id] in requested_folder_ids}
+            allowed = {
+                source_id
+                for source_id in allowed
+                if active[source_id] in requested_folder_ids
+            }
         return allowed
 
     def _candidate_video_ids(
@@ -674,45 +977,58 @@ class CollectionSourceService:
         order: Literal["id", "collected_desc"] = "id",
         video_ids: frozenset[int] = frozenset(),
     ) -> tuple[list[int], int]:
-        placeholders = ",".join("?" for _ in source_ids)
+        placeholders = ",".join("%s" for _ in source_ids)
         conditions = [
-            f"m.source_id IN ({placeholders})", "m.removed_at IS NULL", "s.status='active'",
-            "v.is_ignored=0", "v.archived_at IS NULL",
+            f"m.source_id IN ({placeholders})",
+            "m.removed_at IS NULL",
+            "s.status='active'",
+            "NOT v.is_ignored",
+            "v.archived_at IS NULL",
+            "v.removed_at IS NULL",
+            "v.workspace_id=%s",
         ]
-        params: list[Any] = sorted(source_ids)
+        params: list[Any] = [*sorted(source_ids), self.db.workspace_id]
         if video_ids:
-            conditions.append(f"v.id IN ({','.join('?' for _ in video_ids)})")
+            conditions.append(f"v.id IN ({','.join('%s' for _ in video_ids)})")
             params.extend(sorted(video_ids))
         if collected_from is not None:
-            conditions.append("m.favorite_time>=?")
+            conditions.append("m.favorite_time>=%s")
             params.append(collected_from)
         if collected_to is not None:
-            conditions.append("m.favorite_time<=?")
+            conditions.append("m.favorite_time<=%s")
             params.append(collected_to)
         if uploader:
-            conditions.append("v.uploader LIKE ? ESCAPE '\\'")
+            conditions.append("v.uploader LIKE %s ESCAPE '\\'")
             params.append(f"%{_escape_like(uploader)}%")
         base_where = " AND ".join(conditions)
         with self.db.connect() as connection:
             unknown = connection.execute(
                 f"""
-                SELECT COUNT(DISTINCT v.id)
+                SELECT COUNT(DISTINCT v.id) AS n
                 FROM videos v
                 JOIN video_source_memberships m ON m.video_id=v.id
                 JOIN favorite_sources s ON s.id=m.source_id
                 WHERE {base_where} AND v.published_at IS NULL
                 """,
                 params,
-            ).fetchone()[0]
+            ).fetchone()["n"]
             published_conditions: list[str] = []
             published_params = list(params)
             if published_from is not None:
-                published_conditions.append("v.published_at IS NOT NULL AND v.published_at>=?")
+                published_conditions.append(
+                    "v.published_at IS NOT NULL AND v.published_at>=%s"
+                )
                 published_params.append(published_from)
             if published_to is not None:
-                published_conditions.append("v.published_at IS NOT NULL AND v.published_at<=?")
+                published_conditions.append(
+                    "v.published_at IS NOT NULL AND v.published_at<=%s"
+                )
                 published_params.append(published_to)
-            extra = " AND " + " AND ".join(published_conditions) if published_conditions else ""
+            extra = (
+                " AND " + " AND ".join(published_conditions)
+                if published_conditions
+                else ""
+            )
             order_sql = (
                 "MAX(m.favorite_time) IS NULL, MAX(m.favorite_time) DESC, v.id DESC"
                 if order == "collected_desc"
@@ -743,8 +1059,8 @@ class CollectionSourceService:
         collected_from: int | None = None,
         collected_to: int | None = None,
     ) -> list[dict[str, Any]]:
-        placeholders = ",".join("?" for _ in video_ids)
-        source_placeholders = ",".join("?" for _ in allowed_source_ids)
+        placeholders = ",".join("%s" for _ in video_ids)
+        source_placeholders = ",".join("%s" for _ in allowed_source_ids)
         order = {
             "published_desc": "v.published_at IS NULL, v.published_at DESC, v.id DESC",
             "collected_desc": "MAX(m.favorite_time) IS NULL, MAX(m.favorite_time) DESC, v.id DESC",
@@ -753,10 +1069,10 @@ class CollectionSourceService:
         time_filter = ""
         time_params: list[int] = []
         if collected_from is not None:
-            time_filter += " AND m.favorite_time>=?"
+            time_filter += " AND m.favorite_time>=%s"
             time_params.append(collected_from)
         if collected_to is not None:
-            time_filter += " AND m.favorite_time<=?"
+            time_filter += " AND m.favorite_time<=%s"
             time_params.append(collected_to)
         with self.db.connect() as connection:
             rows = connection.execute(
@@ -768,12 +1084,18 @@ class CollectionSourceService:
                  AND m.removed_at IS NULL
                  AND m.source_id IN ({source_placeholders})
                  {time_filter}
-                WHERE v.id IN ({placeholders})
+                WHERE v.workspace_id=%s AND v.id IN ({placeholders})
                 GROUP BY v.id
                 ORDER BY {order}
-                LIMIT ?
+                LIMIT %s
                 """,
-                [*sorted(allowed_source_ids), *time_params, *video_ids, limit],
+                [
+                    *sorted(allowed_source_ids),
+                    *time_params,
+                    self.db.workspace_id,
+                    *video_ids,
+                    limit,
+                ],
             ).fetchall()
         return [
             self._card(
@@ -795,11 +1117,11 @@ class CollectionSourceService:
         tokens = [token.casefold() for token in query.split() if token.strip()]
         if not tokens:
             return []
-        placeholders = ",".join("?" for _ in video_ids)
+        placeholders = ",".join("%s" for _ in video_ids)
         with self.db.connect() as connection:
             rows = connection.execute(
-                f"SELECT id, title, uploader FROM videos WHERE id IN ({placeholders})",
-                video_ids,
+                f"SELECT id, title, uploader FROM videos WHERE workspace_id=%s AND id IN ({placeholders})",
+                [self.db.workspace_id, *video_ids],
             ).fetchall()
         ranked: list[tuple[int, int]] = []
         for row in rows:
@@ -829,11 +1151,13 @@ class CollectionSourceService:
             if item["removed_at"] is None and int(item["id"]) in allowed_source_ids
         ]
         available_views = [
-            view for view, column in (
+            view
+            for view, column in (
                 ("transcript", "raw_subtitle_path"),
                 ("transcript", "transcript_path"),
                 ("summary", "summary_path"),
-            ) if self._managed_exists(video.get(column))
+            )
+            if self._managed_exists(video.get(column))
         ]
         if str(video.get("description") or "").strip() not in {"", "-"}:
             available_views.append("description")
@@ -843,7 +1167,9 @@ class CollectionSourceService:
             "video_id": video_id,
             "bvid": video["source_id"],
             "part": video["part"],
-            "coverage": "p1_only" if int(video.get("page_count") or 1) > 1 else "single_part",
+            "coverage": "p1_only"
+            if int(video.get("page_count") or 1) > 1
+            else "single_part",
             "title": video["title"],
             "uploader": video["uploader"],
             "published_at": _epoch_iso(video.get("published_at")),
@@ -866,21 +1192,7 @@ class CollectionSourceService:
     def _capture_or_load(self, video_id: int, revision: str | None) -> CapturedSource:
         if revision is None:
             return self.snapshots.capture(video_id)
-        with self.db.connect() as connection:
-            row = connection.execute(
-                """
-                SELECT r.snapshot_ref FROM assistant_source_revisions r
-                JOIN assistant_source_heads h ON h.id=r.head_id
-                WHERE r.revision=? AND h.video_id=? AND h.principal_id='local_operator'
-                """,
-                (revision, video_id),
-            ).fetchone()
-        if row is None:
-            raise KeyError(revision)
-        relative = str(row["snapshot_ref"])
-        path = self.snapshots.root / relative
-        snapshot = json.loads(path.read_text(encoding="utf-8"))
-        return CapturedSource(revision=revision, snapshot_ref=relative, snapshot=snapshot)
+        return self.snapshots.load(video_id, revision)
 
     def _source_view(
         self,
@@ -917,21 +1229,26 @@ class CollectionSourceService:
             content = content[offset:end_offset]
         descriptors = [
             MaterialDescriptor(
-                kind="description", available=str(metadata.get("description") or "").strip() not in {"", "-", "—"},
+                kind="description",
+                available=str(metadata.get("description") or "").strip()
+                not in {"", "-", "—"},
                 content_hash=None,
             ),
             MaterialDescriptor(
-                kind="raw_subtitle", available="raw_subtitle" in materials,
+                kind="raw_subtitle",
+                available="raw_subtitle" in materials,
                 subtitle_source=metadata.get("subtitle_source"),
                 content_hash=snapshot["material_hashes"].get("raw_subtitle"),
             ),
             MaterialDescriptor(
-                kind="transcript", available="transcript" in materials,
+                kind="transcript",
+                available="transcript" in materials,
                 revision=metadata.get("active_revision"),
                 content_hash=snapshot["material_hashes"].get("transcript"),
             ),
             MaterialDescriptor(
-                kind="summary", available="summary" in materials,
+                kind="summary",
+                available="summary" in materials,
                 revision=metadata.get("active_revision"),
                 content_hash=snapshot["material_hashes"].get("summary"),
             ),
@@ -941,15 +1258,25 @@ class CollectionSourceService:
             source_ref=f"video:{metadata['id']}",
             revision=captured.revision,
             video={
-                "video_id": metadata["id"], "bvid": metadata["source_id"],
-                "part": metadata["part"], "cid": metadata.get("cid"),
+                "video_id": metadata["id"],
+                "bvid": metadata["source_id"],
+                "part": metadata["part"],
+                "cid": metadata.get("cid"),
                 "page_count": metadata.get("page_count"),
-                "part_title": metadata.get("part_title"), "title": metadata.get("title"),
-                "uploader": metadata.get("uploader"), "uploader_id": metadata.get("uploader_id"),
+                "part_title": metadata.get("part_title"),
+                "title": metadata.get("title"),
+                "uploader": metadata.get("uploader"),
+                "uploader_id": metadata.get("uploader_id"),
                 "description": metadata.get("description"),
-                "description_links": json.loads(metadata.get("description_links_json") or "[]"),
+                "description_links": (
+                    json.loads(metadata["description_links_json"])
+                    if isinstance(metadata.get("description_links_json"), str)
+                    else list(metadata.get("description_links_json") or [])
+                ),
                 "duration_seconds": metadata.get("duration_seconds"),
-                "coverage": "p1_only" if int(metadata.get("page_count") or 1) > 1 else "single_part",
+                "coverage": "p1_only"
+                if int(metadata.get("page_count") or 1) > 1
+                else "single_part",
             },
             time={
                 "published_at": _epoch_iso(metadata.get("published_at")),
@@ -984,6 +1311,45 @@ class CollectionSourceService:
         )
 
 
+def _txt_segment_positions(text: str, segments) -> dict[int, tuple[int, int]]:
+    """Match the established JSON→TXT export, including blank/multiline segments."""
+    parts, positions, offset = [], {}, 0
+    for segment in segments:
+        part = f"[{format_timestamp(segment.start_time)} --> {format_timestamp(segment.end_time)}] {segment.source_text}\n"
+        positions[segment.original_ordinal] = (offset, offset + len(part))
+        parts.append(part)
+        offset += len(part)
+    if "".join(parts) != text:
+        raise EvidenceContractError("paired JSON projection differs from snapshot", code="snapshot_text_mismatch")
+    return positions
+
+
+def _raw_segment_positions(text: str, ordinals: tuple[int, ...]) -> dict[int, tuple[int, int]]:
+    """JSONDecoder offsets count characters in the original snapshot string."""
+    decoder = json.JSONDecoder()
+    positions = {}
+    index = 0
+    def skip_space(index):
+        while index < len(text) and text[index] in " \t\r\n":
+            index += 1
+        return index
+    index = skip_space(index)
+    if text[index:index + 1] != "[":
+        raise ValueError("raw subtitle must be an array")
+    index = skip_space(index + 1)
+    for ordinal in range(max(ordinals) + 1):
+        start = index
+        _, end = decoder.raw_decode(text, index)
+        if ordinal in ordinals:
+            positions[ordinal] = (start, end)
+        index = skip_space(end)
+        if ordinal < max(ordinals):
+            if text[index:index + 1] != ",":
+                raise ValueError("missing raw segment")
+            index = skip_space(index + 1)
+    return positions
+
+
 def _parse_source_ref(source_ref: str) -> tuple[int, str | None]:
     parts = source_ref.split(":")
     if (
@@ -998,12 +1364,20 @@ def _parse_source_ref(source_ref: str) -> tuple[int, str | None]:
 
 
 def _is_revision(value: str) -> bool:
-    return len(value) == 64 and all(character in "0123456789abcdef" for character in value)
+    return len(value) == 64 and all(
+        character in "0123456789abcdef" for character in value
+    )
 
 
 def _encode_read_cursor(*, video_id: int, revision: str, view: str, offset: int) -> str:
     payload = json.dumps(
-        {"v": 1, "video_id": video_id, "revision": revision, "view": view, "offset": offset},
+        {
+            "v": 1,
+            "video_id": video_id,
+            "revision": revision,
+            "view": view,
+            "offset": offset,
+        },
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
@@ -1020,7 +1394,8 @@ def _decode_read_cursor(cursor: str) -> dict[str, Any]:
             or not isinstance(value.get("video_id"), int)
             or value["video_id"] <= 0
             or not _is_revision(str(value.get("revision") or ""))
-            or value.get("view") not in {"overview", "description", "summary", "notes", "transcript"}
+            or value.get("view")
+            not in {"overview", "description", "summary", "notes", "transcript"}
             or not isinstance(value.get("offset"), int)
             or value["offset"] < 0
         ):
@@ -1039,9 +1414,11 @@ def _epoch_iso(value: object) -> str | None:
         return None
     if epoch <= 0:
         return None
-    return datetime.fromtimestamp(epoch, tz=timezone.utc).astimezone(
-        DISPLAY_TIMEZONE
-    ).isoformat(timespec="seconds")
+    return (
+        datetime.fromtimestamp(epoch, tz=timezone.utc)
+        .astimezone(DISPLAY_TIMEZONE)
+        .isoformat(timespec="seconds")
+    )
 
 
 def _escape_like(value: str) -> str:

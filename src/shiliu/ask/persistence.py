@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
-import sqlite3
 from typing import Any, Iterable, Mapping
 
 from shiliu.db import Database
@@ -13,448 +12,204 @@ ASK_RUN_SCHEMA_VERSION = "post-v5-ask-run-v1"
 LIFECYCLE_EVENT_SCHEMA_VERSION = "v5.6-lifecycle-event-v1"
 
 
-def initialize_ask_schema(connection: sqlite3.Connection) -> None:
-    """Create the bounded Ask persistence contract.
-
-    Search trace payloads remain in the retrieval tables.  These tables only own
-    Ask identity/result data, ordered references, and bounded Deep diagnostics.
-    """
-
-    connection.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS ask_runs (
-            run_id TEXT PRIMARY KEY,
-            run_schema_version TEXT NOT NULL,
-            parent_run_id TEXT REFERENCES ask_runs(run_id) ON DELETE RESTRICT,
-            created_at TEXT NOT NULL,
-            completed_at TEXT,
-            query TEXT NOT NULL,
-            mode TEXT NOT NULL CHECK(mode IN ('fast', 'deep')),
-            filters_json TEXT NOT NULL DEFAULT '{}',
-            lifecycle_status TEXT NOT NULL
-                CHECK(lifecycle_status IN ('running', 'completed', 'failed')),
-            answer_status TEXT
-                CHECK(answer_status IS NULL OR answer_status IN
-                      ('complete', 'partial', 'insufficient')),
-            termination_reason TEXT,
-            query_analysis_json TEXT NOT NULL DEFAULT '{}',
-            rewrites_json TEXT NOT NULL DEFAULT '[]',
-            final_evidence_json TEXT NOT NULL DEFAULT '[]',
-            citations_json TEXT NOT NULL DEFAULT '[]',
-            answer_blocks_json TEXT NOT NULL DEFAULT '[]',
-            limitations_json TEXT NOT NULL DEFAULT '[]',
-            usage_summary_json TEXT NOT NULL DEFAULT '{}',
-            trace_json TEXT NOT NULL DEFAULT '{}',
-            error_json TEXT NOT NULL DEFAULT '{}'
-        );
-
-        CREATE TABLE IF NOT EXISTS ask_search_trace_links (
-            run_id TEXT NOT NULL REFERENCES ask_runs(run_id) ON DELETE CASCADE,
-            sequence INTEGER NOT NULL CHECK(sequence >= 0),
-            relation_kind TEXT NOT NULL,
-            decision_sequence INTEGER,
-            execution_id TEXT,
-            search_trace_id TEXT NOT NULL,
-            trace_persisted INTEGER NOT NULL CHECK(trace_persisted IN (0, 1)),
-            trace_error TEXT,
-            query TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            PRIMARY KEY(run_id, sequence)
-        );
-
-        CREATE TABLE IF NOT EXISTS ask_events (
-            run_id TEXT NOT NULL REFERENCES ask_runs(run_id) ON DELETE CASCADE,
-            sequence INTEGER NOT NULL CHECK(sequence >= 0),
-            event_type TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            PRIMARY KEY(run_id, sequence)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_ask_runs_created
-            ON ask_runs(created_at DESC, run_id);
-        CREATE INDEX IF NOT EXISTS idx_ask_runs_parent
-            ON ask_runs(parent_run_id, created_at);
-        CREATE INDEX IF NOT EXISTS idx_ask_search_trace
-            ON ask_search_trace_links(search_trace_id, run_id);
-        """
+def project_trace(record: dict[str, Any] | None) -> dict[str, Any] | None:
+    if record is None:
+        return None
+    trace = dict(record.pop("trace"))
+    trace.update(
+        {
+            "run_id": record["run_id"],
+            "query": record["query"],
+            "mode": record["mode"],
+            "created_at": record["created_at"],
+            "completed_at": record["completed_at"],
+            "lifecycle_status": record["lifecycle_status"],
+            "parent_run_id": record["parent_run_id"],
+            "filters": record["filters"],
+            "termination_reason": record["termination_reason"],
+            "search_executions": record["search_executions"],
+            "final_evidence": record["final_evidence"],
+            "citations": record["citations"],
+            "intro": record["intro"],
+            "outro": record["outro"],
+            "answer_blocks": record["answer_blocks"],
+            "limitations": record["limitations"],
+            "provider_usage": record["usage_summary"],
+        }
     )
+    if record["answer_status"] is not None:
+        trace["status"] = record["answer_status"]
+    if record["mode"] == "deep":
+        trace["events"] = [_developer_event(value) for value in record["events"]]
+    if record["error"]:
+        trace["error"] = record["error"]
+    return trace
 
 
-class AskRunStore:
+class PgAskRunStore:
+    """PostgreSQL Ask lifecycle store; scope comes only from injected context."""
+
     def __init__(self, db: Database) -> None:
+        from shiliu.storage.postgres import PgDatabase
+        if not isinstance(getattr(db, "pg", None), PgDatabase) or db.context is None:
+            raise TypeError("PgAskRunStore requires an injected PostgreSQL Database and ResourceContext")
         self.db = db
+        self.context = db.context
 
-    def start(
-        self,
-        *,
-        run_id: str,
-        query: str,
-        mode: str,
-        filters: Mapping[str, Any],
-        parent_run_id: str | None = None,
-    ) -> str:
-        created_at = _utc_now()
-        with self.db.connect() as connection:
-            connection.execute(
-                """
-                INSERT INTO ask_runs(
-                    run_id, run_schema_version, parent_run_id, created_at,
-                    query, mode, filters_json, lifecycle_status
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, 'running')
-                """,
-                (
-                    run_id,
-                    ASK_RUN_SCHEMA_VERSION,
-                    parent_run_id,
-                    created_at,
-                    query,
-                    mode,
-                    _json(dict(filters)),
-                ),
-            )
-        return created_at
+    def start(self, *, run_id: str, query: str, mode: str, filters: Mapping[str, Any],
+              parent_run_id: str | None = None) -> str:
+        from psycopg.types.json import Jsonb
+        created = datetime.now(timezone.utc)
+        with self.db.connect() as conn:
+            if parent_run_id:
+                parent = conn.execute("SELECT 1 FROM shiliu.ask_runs WHERE workspace_id=%s AND run_id=%s AND owner_user_id=%s",
+                                      (self.context.workspace_id, parent_run_id, self.context.user_id)).fetchone()
+                if parent is None:
+                    raise KeyError(parent_run_id)
+            conn.execute("INSERT INTO shiliu.ask_runs(workspace_id,owner_user_id,run_id,run_schema_version,parent_run_id,created_at,query,mode,filters_json,lifecycle_status) "
+                         "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,'running')",
+                         (self.context.workspace_id,self.context.user_id,run_id,ASK_RUN_SCHEMA_VERSION,parent_run_id,created,query,mode,Jsonb(dict(filters))))
+        return created.isoformat(timespec="milliseconds")
 
-    def complete(
-        self,
-        *,
-        run_id: str,
-        trace: Mapping[str, Any],
-        answer_status: str,
-        termination_reason: str,
-        query_analysis: Mapping[str, Any],
-        rewrites: Iterable[str],
-        search_executions: Iterable[Mapping[str, Any]],
-        final_evidence: Iterable[Mapping[str, Any]],
-        citations: Iterable[Mapping[str, Any]],
-        answer_blocks: Iterable[Mapping[str, Any]],
-        limitations: Iterable[str],
-        usage_summary: Mapping[str, Any],
-        events: Iterable[Mapping[str, Any]] = (),
-    ) -> str:
-        completed_at = _utc_now()
-        search_rows = [dict(value) for value in search_executions]
-        event_rows = [dict(value) for value in events]
-        trace_payload = dict(trace)
-        for duplicated in (
-            "search_executions",
-            "events",
-            "final_evidence",
-            "citations",
-            "answer_blocks",
-            "limitations",
-            "provider_usage",
-        ):
-            trace_payload.pop(duplicated, None)
-        with self.db.connect() as connection:
-            cursor = connection.execute(
-                """
-                UPDATE ask_runs SET
-                    completed_at=?, lifecycle_status='completed',
-                    answer_status=?, termination_reason=?,
-                    query_analysis_json=?, rewrites_json=?,
-                    final_evidence_json=?, citations_json=?,
-                    answer_blocks_json=?, limitations_json=?,
-                    usage_summary_json=?, trace_json=?, error_json='{}'
-                WHERE run_id=? AND lifecycle_status='running'
-                """,
-                (
-                    completed_at,
-                    answer_status,
-                    termination_reason,
-                    _json(dict(query_analysis)),
-                    _json(list(rewrites)),
-                    _json(list(final_evidence)),
-                    _json(list(citations)),
-                    _json(list(answer_blocks)),
-                    _json(list(limitations)),
-                    _json(dict(usage_summary)),
-                    _json(trace_payload),
-                    run_id,
-                ),
-            )
-            if cursor.rowcount != 1:
-                raise RuntimeError(f"Ask run is not active: {run_id}")
-            connection.executemany(
-                """
-                INSERT INTO ask_search_trace_links(
-                    run_id, sequence, relation_kind, decision_sequence,
-                    execution_id, search_trace_id, trace_persisted,
-                    trace_error, query, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
-                    (
-                        run_id,
-                        sequence,
-                        str(value.get("relation_kind") or "retrieval"),
-                        value.get("decision_sequence"),
-                        value.get("execution_id"),
-                        str(value["search_trace_id"]),
-                        int(bool(value.get("trace_persisted", True))),
-                        (
-                            _json(value["trace_error"])
-                            if value.get("trace_error") is not None
-                            else None
-                        ),
-                        str(value.get("query") or ""),
-                        completed_at,
-                    )
-                    for sequence, value in enumerate(search_rows)
-                ],
-            )
-            next_sequence = int(
-                connection.execute(
-                    "SELECT COALESCE(MAX(sequence), 0) + 1 FROM ask_events WHERE run_id=?",
-                    (run_id,),
-                ).fetchone()[0]
-            )
-            for offset, value in enumerate(event_rows):
-                event_type = str(value.get("event_type") or "unknown")
-                payload = {key: item for key, item in value.items() if key != "event_type"}
-                envelope = _lifecycle_envelope(
-                    run_id=run_id,
-                    sequence=next_sequence + offset,
-                    event_type=event_type,
-                    payload=payload,
-                )
-                connection.execute(
-                    "INSERT INTO ask_events(run_id, sequence, event_type, payload_json) "
-                    "VALUES(?, ?, ?, ?)",
-                    (run_id, next_sequence + offset, event_type, _json(envelope)),
-                )
-        return completed_at
-
-    def append_event(
-        self,
-        run_id: str,
-        event_type: str,
-        payload: Mapping[str, Any] | None = None,
-        *,
-        provenance: Mapping[str, Iterable[str]] | None = None,
-    ) -> dict[str, Any]:
-        """Append one immutable event at the real execution boundary."""
-
-        with self.db.connect() as connection:
-            connection.execute("BEGIN IMMEDIATE")
-            active = connection.execute(
-                "SELECT 1 FROM ask_runs WHERE run_id=?", (run_id,)
-            ).fetchone()
-            if active is None:
-                raise RuntimeError(f"Ask run does not exist: {run_id}")
-            sequence = int(
-                connection.execute(
-                    "SELECT COALESCE(MAX(sequence), 0) + 1 FROM ask_events WHERE run_id=?",
-                    (run_id,),
-                ).fetchone()[0]
-            )
-            envelope = _lifecycle_envelope(
-                run_id=run_id,
-                sequence=sequence,
-                event_type=event_type,
-                payload=dict(payload or {}),
-                provenance=provenance,
-            )
-            connection.execute(
-                "INSERT INTO ask_events(run_id, sequence, event_type, payload_json) "
-                "VALUES(?, ?, ?, ?)",
-                (run_id, sequence, event_type, _json(envelope)),
-            )
+    def _append_event_on(self, conn, run_id, event_type, payload=None, *, provenance=None):
+        from psycopg.types.json import Jsonb
+        owner=conn.execute("SELECT run_id FROM shiliu.ask_runs WHERE workspace_id=%s AND owner_user_id=%s AND run_id=%s FOR UPDATE",
+                           (self.context.workspace_id,self.context.user_id,run_id)).fetchone()
+        if owner is None:raise KeyError(run_id)
+        seq=int(conn.execute("SELECT COALESCE(MAX(sequence),0)+1 AS seq FROM shiliu.ask_events WHERE workspace_id=%s AND run_id=%s",
+                             (self.context.workspace_id,run_id)).fetchone()["seq"])
+        envelope=_lifecycle_envelope(run_id=run_id,sequence=seq,event_type=event_type,payload=dict(payload or {}),provenance=provenance)
+        conn.execute("INSERT INTO shiliu.ask_events(workspace_id,run_id,sequence,event_type,payload_json) VALUES(%s,%s,%s,%s,%s)",
+                     (self.context.workspace_id,run_id,seq,event_type,Jsonb(envelope)))
         return envelope
 
+    def append_event(self, run_id, event_type, payload=None, *, provenance=None):
+        with self.db.connect() as conn:
+            return self._append_event_on(conn,run_id,event_type,payload,provenance=provenance)
+
+    def complete(self, *, run_id: str, trace: Mapping[str, Any], answer_status: str,
+                 termination_reason: str, query_analysis: Mapping[str, Any], rewrites: Iterable[str],
+                 search_executions: Iterable[Mapping[str, Any]], final_evidence: Iterable[Mapping[str, Any]],
+                 citations: Iterable[Mapping[str, Any]], answer_blocks: Iterable[Mapping[str, Any]],
+                 limitations: Iterable[str], usage_summary: Mapping[str, Any],
+                 events: Iterable[Mapping[str, Any]] = ()) -> str:
+        from psycopg.types.json import Jsonb
+        completed=datetime.now(timezone.utc)
+        trace_payload=dict(trace)
+        for key in ("search_executions","events","final_evidence","citations","answer_blocks","limitations","provider_usage"):
+            trace_payload.pop(key,None)
+        with self.db.connect() as conn:
+            conn.execute("SELECT run_id FROM shiliu.ask_runs WHERE workspace_id=%s AND owner_user_id=%s AND run_id=%s FOR UPDATE",
+                         (self.context.workspace_id,self.context.user_id,run_id))
+            updated=conn.execute("UPDATE shiliu.ask_runs SET completed_at=%s,lifecycle_status='completed',answer_status=%s,termination_reason=%s,"
+                "query_analysis_json=%s,rewrites_json=%s,final_evidence_json=%s,citations_json=%s,answer_blocks_json=%s,limitations_json=%s,"
+                "usage_summary_json=%s,trace_json=%s,error_json='{}'::jsonb WHERE workspace_id=%s AND owner_user_id=%s AND run_id=%s "
+                "AND lifecycle_status='running' RETURNING run_id",
+                (completed,answer_status,termination_reason,Jsonb(dict(query_analysis)),Jsonb(list(rewrites)),Jsonb(list(final_evidence)),
+                 Jsonb(list(citations)),Jsonb(list(answer_blocks)),Jsonb(list(limitations)),Jsonb(dict(usage_summary)),Jsonb(trace_payload),
+                 self.context.workspace_id,self.context.user_id,run_id)).fetchone()
+            if updated is None:raise RuntimeError(f"Ask run is not active: {run_id}")
+            for seq,value in enumerate(search_executions):
+                conn.execute("INSERT INTO shiliu.ask_search_trace_links(workspace_id,run_id,sequence,relation_kind,decision_sequence,execution_id,search_trace_id,trace_persisted,trace_error,query,created_at) "
+                    "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (self.context.workspace_id,run_id,seq,str(value.get("relation_kind") or "retrieval"),value.get("decision_sequence"),value.get("execution_id"),
+                    str(value["search_trace_id"]),bool(value.get("trace_persisted",True)),_json(value["trace_error"]) if value.get("trace_error") is not None else None,
+                     str(value.get("query") or ""),completed))
+            next_seq=int(conn.execute("SELECT COALESCE(MAX(sequence),0)+1 AS n FROM shiliu.ask_events WHERE workspace_id=%s AND run_id=%s",
+                                      (self.context.workspace_id,run_id)).fetchone()["n"])
+            for offset,value in enumerate(events):
+                event_type=str(value.get("event_type") or "unknown")
+                payload={k:v for k,v in value.items() if k!="event_type"}
+                envelope=_lifecycle_envelope(run_id=run_id,sequence=next_seq+offset,event_type=event_type,payload=payload)
+                conn.execute("INSERT INTO shiliu.ask_events(workspace_id,run_id,sequence,event_type,payload_json) VALUES(%s,%s,%s,%s,%s)",
+                             (self.context.workspace_id,run_id,next_seq+offset,event_type,Jsonb(envelope)))
+        return completed.isoformat(timespec="milliseconds")
+
     def get_events(self, run_id: str, *, after_sequence: int = 0) -> list[dict[str, Any]]:
-        with self.db.connect() as connection:
-            rows = connection.execute(
-                "SELECT payload_json FROM ask_events "
-                "WHERE run_id=? AND sequence>? ORDER BY sequence",
-                (run_id, max(0, int(after_sequence))),
-            ).fetchall()
-        return [json.loads(str(value["payload_json"])) for value in rows]
-
-    def request_abort(self, run_id: str, *, command_id: str) -> dict[str, Any]:
-        """Persist a bounded abort and truthfully interrupt an active owner."""
-
-        requested = self.append_event(
-            run_id,
-            "abort_requested",
-            {"command_id": command_id, "automatic_replay": False},
-        )
-        completed_at = _utc_now()
-        with self.db.connect() as connection:
-            cursor = connection.execute(
-                """
-                UPDATE ask_runs SET completed_at=?, lifecycle_status='failed',
-                    termination_reason='interrupted', error_json=?
-                WHERE run_id=? AND lifecycle_status='running'
-                """,
-                (
-                    completed_at,
-                    _json(
-                        {
-                            "error_type": "AskAbort",
-                            "error_code": "interrupted",
-                            "failure_class": "interrupted",
-                            "message": "user requested abort",
-                        }
-                    ),
-                    run_id,
-                ),
-            )
-        if cursor.rowcount:
-            terminal = self.append_event(
-                run_id,
-                "run_interrupted",
-                {"command_id": command_id, "reason": "explicit_abort"},
-            )
-        else:
-            terminal = requested
-        return {"requested": requested, "terminal": terminal}
-
-    def interrupt_owner_loss(self, run_id: str, *, reason: str) -> bool:
-        """Fail closed when an in-process owner is no longer available."""
-
-        completed_at = _utc_now()
-        payload = {
-            "error_type": "AskOwnerLoss",
-            "error_code": "interrupted",
-            "failure_class": "interrupted",
-            "message": reason,
-        }
-        with self.db.connect() as connection:
-            cursor = connection.execute(
-                """
-                UPDATE ask_runs SET completed_at=?, lifecycle_status='failed',
-                    termination_reason='interrupted', error_json=?
-                WHERE run_id=? AND lifecycle_status='running'
-                """,
-                (completed_at, _json(payload), run_id),
-            )
-        if cursor.rowcount:
-            self.append_event(
-                run_id,
-                "run_interrupted",
-                {**payload, "reason": reason, "automatic_replay": False},
-            )
-            return True
-        return False
+        with self.db.connect(read_only=True) as conn:
+            rows=conn.execute("SELECT payload_json FROM shiliu.ask_events e WHERE workspace_id=%s AND run_id=%s AND sequence>%s "
+                              "AND EXISTS(SELECT 1 FROM shiliu.ask_runs r WHERE r.workspace_id=e.workspace_id AND r.run_id=e.run_id AND r.owner_user_id=%s) ORDER BY sequence",
+                              (self.context.workspace_id,run_id,max(0,int(after_sequence)),self.context.user_id)).fetchall()
+        return [dict(r["payload_json"]) for r in rows]
 
     def fail(self, run_id: str, error: Exception) -> None:
-        completed_at = _utc_now()
-        termination_reason, failure_class = _failure_disposition(error)
-        payload = {
-            "error_type": type(error).__name__,
-            "error_code": str(getattr(error, "code", type(error).__name__)),
-            "failure_class": failure_class,
-            "message": str(error)[:500],
-        }
-        with self.db.connect() as connection:
-            cursor = connection.execute(
-                """
-                UPDATE ask_runs SET completed_at=?, lifecycle_status='failed',
-                    termination_reason=?, error_json=?
-                WHERE run_id=? AND lifecycle_status='running'
-                """,
-                (completed_at, termination_reason, _json(payload), run_id),
-            )
-        if cursor.rowcount:
-            event_type = (
-                "run_interrupted" if failure_class == "interrupted" else "run_failed"
-            )
-            self.append_event(
-                run_id,
-                event_type,
-                {**payload, "termination_reason": termination_reason},
-            )
-
-    def get_trace(self, run_id: str) -> dict[str, Any] | None:
-        record = self.get_run(run_id)
-        if record is None:
-            return None
-        trace = dict(record.pop("trace"))
-        trace.update(
-            {
-                "run_id": record["run_id"],
-                "query": record["query"],
-                "mode": record["mode"],
-                "created_at": record["created_at"],
-                "completed_at": record["completed_at"],
-                "lifecycle_status": record["lifecycle_status"],
-                "parent_run_id": record["parent_run_id"],
-                "filters": record["filters"],
-                "termination_reason": record["termination_reason"],
-                "search_executions": record["search_executions"],
-                "final_evidence": record["final_evidence"],
-                "citations": record["citations"],
-                "intro": record["intro"],
-                "outro": record["outro"],
-                "answer_blocks": record["answer_blocks"],
-                "limitations": record["limitations"],
-                "provider_usage": record["usage_summary"],
-            }
-        )
-        if record["answer_status"] is not None:
-            trace["status"] = record["answer_status"]
-        if record["mode"] == "deep":
-            trace["events"] = [_developer_event(value) for value in record["events"]]
-        if record["error"]:
-            trace["error"] = record["error"]
-        return trace
+        from psycopg.types.json import Jsonb
+        completed=datetime.now(timezone.utc)
+        termination,failure_class=_failure_disposition(error)
+        payload={"error_type":type(error).__name__,"error_code":str(getattr(error,"code",type(error).__name__)),
+                 "failure_class":failure_class,"message":str(error)[:500]}
+        with self.db.connect() as conn:
+            row=conn.execute("UPDATE shiliu.ask_runs SET completed_at=%s,lifecycle_status='failed',termination_reason=%s,error_json=%s "
+                             "WHERE workspace_id=%s AND owner_user_id=%s AND run_id=%s AND lifecycle_status='running' RETURNING run_id",
+                             (completed,termination,Jsonb(payload),self.context.workspace_id,self.context.user_id,run_id)).fetchone()
+            if row:
+                event="run_interrupted" if failure_class=="interrupted" else "run_failed"
+                self._append_event_on(conn,run_id,event,{**payload,"termination_reason":termination})
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:
-        with self.db.connect() as connection:
-            row = connection.execute(
-                "SELECT * FROM ask_runs WHERE run_id=?", (run_id,)
-            ).fetchone()
-            if row is None:
-                return None
-            links = connection.execute(
-                """
-                SELECT sequence, relation_kind, decision_sequence, execution_id,
-                       search_trace_id, trace_persisted, trace_error, query
-                FROM ask_search_trace_links
-                WHERE run_id=? ORDER BY sequence
-                """,
-                (run_id,),
-            ).fetchall()
-            events = connection.execute(
-                "SELECT payload_json FROM ask_events WHERE run_id=? ORDER BY sequence",
-                (run_id,),
-            ).fetchall()
-        value = dict(row)
-        for name in (
-            "filters",
-            "query_analysis",
-            "rewrites",
-            "final_evidence",
-            "citations",
-            "answer_blocks",
-            "limitations",
-            "usage_summary",
-            "trace",
-            "error",
-        ):
-            value[name] = json.loads(str(value.pop(f"{name}_json")))
-        value["intro"] = value["trace"].get("intro")
-        value["outro"] = value["trace"].get("outro")
-        value["search_executions"] = []
+        with self.db.connect(read_only=True) as conn:
+            row=conn.execute("SELECT * FROM shiliu.ask_runs WHERE workspace_id=%s AND owner_user_id=%s AND run_id=%s",
+                             (self.context.workspace_id,self.context.user_id,run_id)).fetchone()
+            if row is None:return None
+            links=conn.execute("SELECT sequence,relation_kind,decision_sequence,execution_id,search_trace_id,trace_persisted,trace_error,query FROM shiliu.ask_search_trace_links WHERE workspace_id=%s AND run_id=%s ORDER BY sequence",
+                               (self.context.workspace_id,run_id)).fetchall()
+            events=conn.execute("SELECT payload_json FROM shiliu.ask_events WHERE workspace_id=%s AND run_id=%s ORDER BY sequence",
+                                (self.context.workspace_id,run_id)).fetchall()
+        from shiliu.storage.dto import row_dto
+        value=row_dto(row,timestamps=("created_at","completed_at"),timespec="milliseconds")
+        value.pop("workspace_id",None);value.pop("owner_user_id",None)
+        for name in ("filters","query_analysis","rewrites","final_evidence","citations","answer_blocks","limitations","usage_summary","trace","error"):
+            key=name+"_json"
+            raw=value.pop(key)
+            value[name]=dict(raw) if isinstance(raw,Mapping) else list(raw) if isinstance(raw,list) else raw
+        value["intro"]=value["trace"].get("intro"); value["outro"]=value["trace"].get("outro")
+        value["search_executions"]=[]
         for item in links:
-            link = dict(item)
-            link["trace_persisted"] = bool(link["trace_persisted"])
-            link["trace_error"] = (
-                json.loads(str(link["trace_error"]))
-                if link["trace_error"] is not None
-                else None
-            )
+            link=dict(item)
+            link["trace_persisted"]=bool(link["trace_persisted"])
+            link["trace_error"]=json.loads(link["trace_error"]) if link["trace_error"] is not None else None
             value["search_executions"].append(link)
-        value["events"] = [json.loads(str(item["payload_json"])) for item in events]
+        value["events"]=[dict(item["payload_json"]) for item in events]
         return value
 
+    def _interrupt_on(self, conn, run_id, *, reason, error_type="AskOwnerLoss", command_id=None):
+        from psycopg.types.json import Jsonb
+        payload={"error_type":error_type,"error_code":"interrupted","failure_class":"interrupted","message":reason}
+        row=conn.execute("UPDATE shiliu.ask_runs SET completed_at=clock_timestamp(),lifecycle_status='failed',"
+            "termination_reason='interrupted',error_json=%s WHERE workspace_id=%s AND owner_user_id=%s AND run_id=%s "
+            "AND lifecycle_status='running' RETURNING run_id",
+            (Jsonb(payload),self.context.workspace_id,self.context.user_id,run_id)).fetchone()
+        if row:
+            return self._append_event_on(conn,run_id,"run_interrupted",{**payload,"reason":reason,"automatic_replay":False,
+                **({"command_id":command_id} if command_id else {})})
+        return None
 
-def _json(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    def interrupt_owner_loss(self, run_id, *, reason):
+        with self.db.connect() as conn:
+            return self._interrupt_on(conn,run_id,reason=reason) is not None
+
+    def request_abort(self, run_id, *, command_id):
+        with self.db.connect() as conn:
+            requested=self._append_event_on(conn,run_id,"abort_requested",{"command_id":command_id,"automatic_replay":False})
+            terminal=self._interrupt_on(conn,run_id,reason="user requested abort",error_type="AskAbort",command_id=command_id)
+            return {"requested":requested,"terminal":terminal or requested}
+
+    def interrupt_running_on_startup(self):
+        with self.db.connect() as conn:
+            rows=conn.execute("SELECT run_id FROM shiliu.ask_runs WHERE workspace_id=%s AND owner_user_id=%s "
+                "AND lifecycle_status='running' ORDER BY run_id",(self.context.workspace_id,self.context.user_id)).fetchall()
+            return sum(self._interrupt_on(conn,row["run_id"],reason="process owner lost at startup") is not None for row in rows)
+
+    def get_trace(self, run_id: str):
+        return project_trace(self.get_run(run_id))
 
 
-def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+# Formal runtime entry; SQLite remains available only by its explicit legacy name.
+AskRunStore = PgAskRunStore
+
+
+
+
 
 
 def _failure_disposition(error: Exception) -> tuple[str, str]:
@@ -553,3 +308,10 @@ def final_evidence_identities(
         for span in spans
         if span.citation_id in citation_ids
     ]
+
+
+def _json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")

@@ -37,8 +37,8 @@ def _specs() -> tuple[CanaryCaseSpec, CanaryCaseSpec]:
             video_id="BV1zDTX6eEGu",
             source_language="zh",
             source_type="raw_subtitle",
-            raw_subtitle_json=Path("/Users/elliot/Documents/Shiliu/videos/BV1zDTX6eEGu/subtitle-raw.json"),
-            full_transcript_reference=Path("/Users/elliot/Documents/Shiliu/videos/BV1zDTX6eEGu/subtitle-raw.txt"),
+            raw_subtitle_json=Path("/absolute/historical/Documents/Shiliu/videos/BV1zDTX6eEGu/subtitle-raw.json"),
+            full_transcript_reference=Path("/absolute/historical/Documents/Shiliu/videos/BV1zDTX6eEGu/subtitle-raw.txt"),
             development_authorization_source="B1-B instruction; exact B1-A canary reuse",
         ),
         CanaryCaseSpec(
@@ -59,8 +59,8 @@ def _specs() -> tuple[CanaryCaseSpec, CanaryCaseSpec]:
             video_id="BV1o87764Ebs",
             source_language="zh",
             source_type="raw_subtitle",
-            raw_subtitle_json=Path("/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json"),
-            full_transcript_reference=Path("/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.txt"),
+            raw_subtitle_json=Path("/absolute/historical/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json"),
+            full_transcript_reference=Path("/absolute/historical/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.txt"),
             development_authorization_source="B1-B instruction; exact B1-A canary reuse",
         ),
     )

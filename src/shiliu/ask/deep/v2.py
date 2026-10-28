@@ -750,10 +750,10 @@ class DeepV2Graph:
         if self.navigation is not None:
             video_ids = list(dict.fromkeys(span.video_id for span in spans))
             with self.navigation.db.connect() as connection:
-                placeholders = ",".join("?" for _ in video_ids)
+                placeholders = ",".join("%s" for _ in video_ids)
                 descriptions = {row["id"]: (row["description"] or "")[:240]
                     for row in connection.execute(
-                        f"SELECT id, description FROM videos WHERE id IN ({placeholders})", video_ids)}
+                        f"SELECT id, description FROM videos WHERE workspace_id=%s AND id IN ({placeholders})", [self.navigation.db.workspace_id, *video_ids])}
         candidates = [{"evidence_ref": short_ref, "video_id": span.video_id,
             "title": span.title, "source_description_for_identity": descriptions.get(span.video_id, ""),
             "start_time": span.start_time, "end_time": span.end_time,
@@ -831,7 +831,7 @@ class DeepV2Graph:
             elif action.kind == "search_transcripts":
                 args = action.arguments
                 result = self.transcripts.search(args["query"], filters=snapshot["filters"],
-                    video_ids=tuple(args.get("video_ids", [])))
+                    video_ids=tuple(args.get("video_ids", [])) or None)
                 result["delivered_limit"] = args.get("result_limit", 10)
             elif action.kind == "read_context":
                 args = action.arguments
@@ -891,8 +891,9 @@ class DeepV2Graph:
         return result
 
     def _field_only_videos(self, filters, limit):
-        clauses = ["v.removed_at IS NULL", "v.is_ignored=0"]
-        params = []
+        clauses = ["v.workspace_id=%s", "v.removed_at IS NULL", "NOT v.is_ignored",
+            "EXISTS(SELECT 1 FROM shiliu.video_source_memberships a JOIN shiliu.favorite_sources s ON (a.workspace_id,a.source_id)=(s.workspace_id,s.id) WHERE a.workspace_id=v.workspace_id AND a.video_id=v.id AND a.removed_at IS NULL AND s.status='active')"]
+        params = [self.navigation.db.workspace_id]
         for field, column in (("reading_state", "v.reading_state"), ("marked", "v.is_marked"),
                               ("archived", "v.archived_at"), ("uploader", "v.uploader")):
             value = getattr(filters, field)
@@ -901,24 +902,24 @@ class DeepV2Graph:
             if field == "archived":
                 clauses.append(column + (" IS NOT NULL" if value else " IS NULL"))
             else:
-                clauses.append(column + "=?")
-                params.append(int(value) if isinstance(value, bool) else value)
+                clauses.append(column + "=%s")
+                params.append(value)
         if filters.uploader_contains:
-            clauses.append("instr(lower(v.uploader),lower(?))>0")
+            clauses.append("strpos(lower(v.uploader),lower(%s))>0")
             params.append(filters.uploader_contains)
         favorite = []
         for field, column, operator in (("source_db_id", "s.id", "="), ("folder_id", "s.folder_id", "="),
                 ("favorite_time_from", "m.favorite_time", ">="), ("favorite_time_to", "m.favorite_time", "<=")):
             value = getattr(filters, field)
             if value is not None:
-                favorite.append(column + operator + "?")
+                favorite.append(column + operator + "%s")
                 params.append(value)
         if favorite:
-            clauses.append("EXISTS(SELECT 1 FROM video_source_memberships m JOIN favorite_sources s ON s.id=m.source_id "
-                "WHERE m.video_id=v.id AND m.removed_at IS NULL AND " + " AND ".join(favorite) + ")")
+            clauses.append("EXISTS(SELECT 1 FROM video_source_memberships m JOIN favorite_sources s ON (s.workspace_id,s.id)=(m.workspace_id,m.source_id) "
+                "WHERE m.workspace_id=v.workspace_id AND m.video_id=v.id AND m.removed_at IS NULL AND s.status='active' AND " + " AND ".join(favorite) + ")")
         with self.navigation.db.connect() as connection:
             rows = connection.execute("SELECT v.id FROM videos v WHERE " + " AND ".join(clauses)
-                + " ORDER BY COALESCE(v.display_favorite_time,0) DESC,v.id DESC LIMIT ?",
+                + " ORDER BY COALESCE(v.display_favorite_time,0) DESC,v.id DESC LIMIT %s",
                 [*params, min(20, max(1, limit))]).fetchall()
         return [self.navigation._project(row["id"], "field match") for row in rows]
 

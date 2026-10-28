@@ -3,13 +3,16 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-import sqlite3
+from psycopg import Connection
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from shiliu.db import Database
+from shiliu.research.errors import ResearchForbidden
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import iso_time, json_value
+from shiliu.research.service import _parse_iso
 from shiliu.evidence.continuation import (
     ContinuationTarget,
     create_continuation_envelope,
@@ -88,7 +91,7 @@ def _now() -> str:
 
 
 def _json(value: object, *, expected: type) -> Any:
-    decoded = json.loads(str(value))
+    decoded = json_value(value)
     if not isinstance(decoded, expected):
         raise ResearchUnsafeState("persisted ArtifactRoute JSON has invalid shape")
     return decoded
@@ -120,9 +123,10 @@ class ResearchArtifactRouteService:
         fault_injector: FaultInjector | None = None,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.retrieval = retrieval
-        self.authority = PersistentEvidenceAuthority(db)
+        self.authority = PersistentEvidenceAuthority(db, retrieval.artifacts)
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
 
@@ -254,29 +258,9 @@ class ResearchArtifactRouteService:
             retrieval_value["compatibility_recommendation"] = compatibility_recommendation
             connection.execute(
                 """
-                INSERT INTO research_artifact_routes(
-                    record_id, route_id, version, parent_record_id, task_id,
-                    record_kind, command_id, payload_hash, query_json,
-                    retrieval_json, gates_json, recommended_route, final_route,
-                    expected_authority_hash, continuation_task_id,
-                    outcome_artifact_revision_id, contribution_json,
-                    status, created_at
-                ) VALUES(?, ?, 1, NULL, ?, 'assessment', ?, ?, ?, ?, ?, ?, NULL,
-                         ?, NULL, NULL, '{}', 'assessed', ?)
+                INSERT INTO research_artifact_routes(workspace_id, record_id, route_id, version, parent_record_id, task_id, record_kind, command_id, payload_hash, query_json, retrieval_json, gates_json, recommended_route, final_route, expected_authority_hash, continuation_task_id, outcome_artifact_revision_id, contribution_json, status, created_at) VALUES(%s, %s, %s, 1, NULL, %s, 'assessment', %s, %s, %s, %s, %s, %s, NULL, %s, NULL, NULL, '{}', 'assessed', %s)
                 """,
-                (
-                    record_id,
-                    route_id,
-                    task_id,
-                    request.command_id,
-                    payload_hash,
-                    _canonical_json(query_value),
-                    _canonical_json(retrieval_value),
-                    _canonical_json(gates),
-                    recommended,
-                    expected_authority_hash,
-                    _now(),
-                ),
+                (self.context.workspace_id, record_id, route_id, task_id, request.command_id, payload_hash, json_field(_canonical_json(query_value)), json_field(_canonical_json(retrieval_value)), json_field(_canonical_json(gates)), recommended, expected_authority_hash, _parse_iso(_now())),
             )
             self.fault_injector("after_stage3_route_assessment")
             response = {
@@ -339,6 +323,8 @@ class ResearchArtifactRouteService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = ProceedArtifactRouteRequest.model_validate(
             request.model_dump(mode="json")
         )
@@ -412,9 +398,8 @@ class ResearchArtifactRouteService:
         with self.db.connect() as connection:
             self.kernel._task(connection, task_id)
             rows = connection.execute(
-                "SELECT * FROM research_artifact_routes WHERE task_id=? AND route_id=? "
-                "ORDER BY version",
-                (task_id, route_id),
+                'SELECT * FROM research_artifact_routes WHERE research_artifact_routes.workspace_id=%s AND  task_id=%s AND route_id=%s ORDER BY version',
+                (self.context.workspace_id, task_id, route_id),
             ).fetchall()
         if not rows:
             raise ResearchNotFound(f"ArtifactRoute does not exist: {route_id}")
@@ -429,11 +414,11 @@ class ResearchArtifactRouteService:
                 SELECT r.* FROM research_artifact_routes r
                 JOIN (
                     SELECT route_id, MAX(version) AS version
-                    FROM research_artifact_routes WHERE task_id=? GROUP BY route_id
+                    FROM research_artifact_routes WHERE task_id=%s GROUP BY route_id
                 ) latest ON latest.route_id=r.route_id AND latest.version=r.version
-                WHERE r.task_id=? ORDER BY r.created_at, r.route_id
+                WHERE r.workspace_id=%s AND  r.task_id=%s ORDER BY r.created_at, r.route_id
                 """,
-                (task_id, task_id),
+                (task_id, self.context.workspace_id, task_id),
             ).fetchall()
         return [self._project(row) for row in rows]
 
@@ -445,12 +430,12 @@ class ResearchArtifactRouteService:
                 SELECT r.* FROM research_artifact_routes r
                 JOIN (
                     SELECT route_id, MAX(version) AS version
-                    FROM research_artifact_routes WHERE task_id=? GROUP BY route_id
+                    FROM research_artifact_routes WHERE task_id=%s GROUP BY route_id
                 ) latest ON latest.route_id=r.route_id AND latest.version=r.version
-                WHERE r.task_id=? AND r.record_kind='assessment' AND r.status='assessed'
+                WHERE r.workspace_id=%s AND  r.task_id=%s AND r.record_kind='assessment' AND r.status='assessed'
                 ORDER BY r.created_at, r.route_id
                 """,
-                (task_id, task_id),
+                (task_id, self.context.workspace_id, task_id),
             ).fetchall()
             if not rows:
                 return None
@@ -708,32 +693,32 @@ class ResearchArtifactRouteService:
 
     def _artifact_candidates(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         query: str,
         aspects: list[str],
         limit: int,
-    ) -> list[sqlite3.Row]:
+    ) -> list[dict[str, Any]]:
         rows = connection.execute(
             """
             SELECT ar.* FROM research_knowledge_artifact_revisions ar
-            WHERE ar.revision=(
+            WHERE ar.workspace_id=%s AND ar.revision=(
                 SELECT MAX(ar2.revision)
                 FROM research_knowledge_artifact_revisions ar2
-                WHERE ar2.artifact_id=ar.artifact_id
+                WHERE (ar2.workspace_id,ar2.artifact_id)=(ar.workspace_id,ar.artifact_id)
             )
             ORDER BY ar.created_at DESC, ar.artifact_revision_id
-            """
+            """, (self.context.workspace_id,)
         ).fetchall()
         query_terms = _terms(" ".join([query, *aspects]))
-        ranked: list[tuple[float, str, sqlite3.Row]] = []
+        ranked: list[tuple[float, str, dict[str, Any]]] = []
         for row in rows:
             text = " ".join(
                 [
                     str(row["topic"]),
-                    str(row["body_json"]),
-                    str(row["limitations_json"]),
-                    str(row["unresolved_json"]),
+                    _canonical_json(_json(row['body_json'], expected=dict)),
+                    _canonical_json(_json(row['limitations_json'], expected=list)),
+                    _canonical_json(_json(row['unresolved_json'], expected=list)),
                 ]
             )
             artifact_terms = _terms(text)
@@ -746,8 +731,8 @@ class ResearchArtifactRouteService:
 
     def _assess_candidate(
         self,
-        connection: sqlite3.Connection,
-        artifact: sqlite3.Row,
+        connection: Connection,
+        artifact: dict[str, Any],
         query_value: dict[str, Any],
     ) -> dict[str, Any]:
         fact_rows = connection.execute(
@@ -756,11 +741,11 @@ class ResearchArtifactRouteService:
                    fs.lifecycle_status, fs.currentness_status, fs.state_version
             FROM research_artifact_fact_links afl
             JOIN research_fact_revisions fr
-              ON fr.fact_revision_id=afl.fact_revision_id
-            LEFT JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
-            WHERE afl.artifact_revision_id=? ORDER BY afl.ordinal
+              ON fr.workspace_id=afl.workspace_id AND fr.fact_revision_id=afl.fact_revision_id
+            LEFT JOIN research_knowledge_fact_states fs ON fs.workspace_id=afl.workspace_id AND fs.fact_id=fr.fact_id
+            WHERE afl.workspace_id=%s AND  afl.artifact_revision_id=%s ORDER BY afl.ordinal
             """,
-            (str(artifact["artifact_revision_id"]),),
+            (self.context.workspace_id, str(artifact['artifact_revision_id'])),
         ).fetchall()
         facts = [self._fact_authority(connection, row) for row in fact_rows]
         aspects = list(query_value["required_aspects"])
@@ -884,10 +869,9 @@ class ResearchArtifactRouteService:
             "content_hash": str(artifact["content_hash"]),
             "latest_revision": int(
                 connection.execute(
-                    "SELECT MAX(revision) FROM research_knowledge_artifact_revisions "
-                    "WHERE artifact_id=?",
-                    (str(artifact["artifact_id"]),),
-                ).fetchone()[0]
+                    'SELECT MAX(revision) AS value FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  artifact_id=%s',
+                    (self.context.workspace_id, str(artifact['artifact_id'])),
+                ).fetchone()["value"]
             ),
             "facts": [fact["authority_snapshot"] for fact in facts],
         }
@@ -895,7 +879,7 @@ class ResearchArtifactRouteService:
             " ".join([str(query_value["query"]), *list(query_value["required_aspects"])])
         )
         artifact_terms = _terms(
-            " ".join([str(artifact["topic"]), str(artifact["body_json"])])
+            " ".join([str(artifact["topic"]), _canonical_json(_json(artifact['body_json'], expected=dict))])
         )
         overlap = sorted(score_terms & artifact_terms)
         return {
@@ -929,7 +913,7 @@ class ResearchArtifactRouteService:
         }
 
     def _fact_authority(
-        self, connection: sqlite3.Connection, fact: sqlite3.Row
+        self, connection: Connection, fact: dict[str, Any]
     ) -> dict[str, Any]:
         links = connection.execute(
             """
@@ -937,11 +921,11 @@ class ResearchArtifactRouteService:
                    eu.originating_checkpoint_id AS checkpoint_id,
                    eu.owner_epoch, ei.*
             FROM research_fact_evidence_links fel
-            JOIN research_evidence_uses eu ON eu.evidence_use_id=fel.evidence_use_id
-            JOIN research_evidence_identities ei ON ei.evidence_id=fel.evidence_id
-            WHERE fel.fact_revision_id=? ORDER BY fel.ordinal
+            JOIN research_evidence_uses eu ON eu.workspace_id=fel.workspace_id AND eu.evidence_use_id=fel.evidence_use_id
+            JOIN research_evidence_identities ei ON ei.workspace_id=fel.workspace_id AND ei.evidence_id=fel.evidence_id
+            WHERE fel.workspace_id=%s AND  fel.fact_revision_id=%s ORDER BY fel.ordinal
             """,
-            (str(fact["fact_revision_id"]),),
+            (self.context.workspace_id, str(fact['fact_revision_id'])),
         ).fetchall()
         citations = []
         for link in links:
@@ -1018,10 +1002,10 @@ class ResearchArtifactRouteService:
 
     def _confirm(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
-        latest: sqlite3.Row,
+        task: dict[str, Any],
+        latest: dict[str, Any],
         request: ProceedArtifactRouteRequest,
         payload_hash: str,
         principal_id: str,
@@ -1113,35 +1097,9 @@ class ResearchArtifactRouteService:
         )
         connection.execute(
             """
-            INSERT INTO research_artifact_routes(
-                record_id, route_id, version, parent_record_id, task_id,
-                record_kind, command_id, payload_hash, query_json,
-                retrieval_json, gates_json, recommended_route, final_route,
-                expected_authority_hash, continuation_task_id,
-                outcome_artifact_revision_id, contribution_json,
-                status, created_at
-            ) VALUES(?, ?, ?, ?, ?, 'proceed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_artifact_routes(workspace_id, record_id, route_id, version, parent_record_id, task_id, record_kind, command_id, payload_hash, query_json, retrieval_json, gates_json, recommended_route, final_route, expected_authority_hash, continuation_task_id, outcome_artifact_revision_id, contribution_json, status, created_at) VALUES(%s, %s, %s, %s, %s, %s, 'proceed', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                record_id,
-                str(latest["route_id"]),
-                version,
-                str(latest["record_id"]),
-                str(task["task_id"]),
-                request.command_id,
-                payload_hash,
-                str(latest["query_json"]),
-                str(latest["retrieval_json"]),
-                str(latest["gates_json"]),
-                recommended,
-                chosen,
-                str(latest["expected_authority_hash"]),
-                continuation_task_id,
-                outcome_artifact_revision_id,
-                _canonical_json(contribution),
-                status,
-                _now(),
-            ),
+            (self.context.workspace_id, record_id, str(latest['route_id']), version, str(latest['record_id']), str(task['task_id']), request.command_id, payload_hash, json_field(latest['query_json']), json_field(latest['retrieval_json']), json_field(latest['gates_json']), recommended, chosen, str(latest['expected_authority_hash']), continuation_task_id, outcome_artifact_revision_id, json_field(_canonical_json(contribution)), status, _parse_iso(_now())),
         )
         return {
             "route_id": str(latest["route_id"]),
@@ -1160,10 +1118,10 @@ class ResearchArtifactRouteService:
 
     def _finalize(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
-        latest: sqlite3.Row,
+        task: dict[str, Any],
+        latest: dict[str, Any],
         request: ProceedArtifactRouteRequest,
         payload_hash: str,
         principal_id: str,
@@ -1233,9 +1191,8 @@ class ResearchArtifactRouteService:
                     "seed finalize requires the independently built Artifact revision"
                 )
             artifact = connection.execute(
-                "SELECT * FROM research_knowledge_artifact_revisions "
-                "WHERE artifact_revision_id=? AND task_id=?",
-                (outcome_id, child_task_id),
+                'SELECT * FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  artifact_revision_id=%s AND task_id=%s',
+                (self.context.workspace_id, outcome_id, child_task_id),
             ).fetchone()
             if artifact is None:
                 raise ResearchValidationError("seed outcome Artifact left child Task boundary")
@@ -1263,34 +1220,9 @@ class ResearchArtifactRouteService:
         )
         connection.execute(
             """
-            INSERT INTO research_artifact_routes(
-                record_id, route_id, version, parent_record_id, task_id,
-                record_kind, command_id, payload_hash, query_json,
-                retrieval_json, gates_json, recommended_route, final_route,
-                expected_authority_hash, continuation_task_id,
-                outcome_artifact_revision_id, contribution_json,
-                status, created_at
-            ) VALUES(?, ?, ?, ?, ?, 'outcome', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)
+            INSERT INTO research_artifact_routes(workspace_id, record_id, route_id, version, parent_record_id, task_id, record_kind, command_id, payload_hash, query_json, retrieval_json, gates_json, recommended_route, final_route, expected_authority_hash, continuation_task_id, outcome_artifact_revision_id, contribution_json, status, created_at) VALUES(%s, %s, %s, %s, %s, %s, 'outcome', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'completed', %s)
             """,
-            (
-                record_id,
-                str(latest["route_id"]),
-                version,
-                str(latest["record_id"]),
-                str(task["task_id"]),
-                request.command_id,
-                payload_hash,
-                str(latest["query_json"]),
-                _canonical_json(outcome_retrieval),
-                str(latest["gates_json"]),
-                str(latest["recommended_route"]),
-                final_route,
-                str(latest["expected_authority_hash"]),
-                child_task_id,
-                outcome_artifact_revision_id,
-                _canonical_json(contribution),
-                _now(),
-            ),
+            (self.context.workspace_id, record_id, str(latest['route_id']), version, str(latest['record_id']), str(task['task_id']), request.command_id, payload_hash, json_field(latest['query_json']), json_field(_canonical_json(outcome_retrieval)), json_field(latest['gates_json']), str(latest['recommended_route']), final_route, str(latest['expected_authority_hash']), child_task_id, outcome_artifact_revision_id, json_field(_canonical_json(contribution)), _parse_iso(_now())),
         )
         return {
             "route_id": str(latest["route_id"]),
@@ -1309,7 +1241,7 @@ class ResearchArtifactRouteService:
 
     def _incremental_outcome_decision(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         parent_decision: EvidenceDecision,
         new_fact_aspect_map: dict[str, str],
@@ -1349,10 +1281,10 @@ class ResearchArtifactRouteService:
                 SELECT fr.*, fs.current_revision_id, fs.lifecycle_status,
                        fs.currentness_status, fs.state_version
                 FROM research_fact_revisions fr
-                JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
-                WHERE fr.fact_revision_id=?
+                JOIN research_knowledge_fact_states fs ON fs.workspace_id=fr.workspace_id AND fs.fact_id=fr.fact_id
+                WHERE fr.workspace_id=%s AND  fr.fact_revision_id=%s
                 """,
-                (fact_id,),
+                (self.context.workspace_id, fact_id),
             ).fetchone()
             if row is None:
                 raise ResearchUnsafeState("incremental canonical Fact is missing")
@@ -1420,7 +1352,7 @@ class ResearchArtifactRouteService:
 
     def _assert_authority_fence(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         query_value: dict[str, Any],
         selected_gate: dict[str, Any] | None,
@@ -1437,12 +1369,8 @@ class ResearchArtifactRouteService:
                 raise ResearchConflict("no-hit route is stale; reroute required")
             return
         artifact = connection.execute(
-            "SELECT * FROM research_knowledge_artifact_revisions "
-            "WHERE artifact_revision_id=? AND content_hash=?",
-            (
-                str(selected_gate["artifact_revision_id"]),
-                str(selected_gate["content_hash"]),
-            ),
+            'SELECT * FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  artifact_revision_id=%s AND content_hash=%s',
+            (self.context.workspace_id, str(selected_gate['artifact_revision_id']), str(selected_gate['content_hash'])),
         ).fetchone()
         if artifact is None:
             raise ResearchConflict("Artifact content-hash fence changed")
@@ -1452,9 +1380,9 @@ class ResearchArtifactRouteService:
 
     def _create_continuation_task(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        parent_task: sqlite3.Row,
+        parent_task: dict[str, Any],
         route_id: str,
         final_route: str,
         query_value: dict[str, Any],
@@ -1468,7 +1396,7 @@ class ResearchArtifactRouteService:
             "rtask", {"route_id": route_id, "final_route": final_route}
         )
         if connection.execute(
-            "SELECT 1 FROM research_tasks WHERE task_id=?", (child_task_id,)
+            'SELECT 1 FROM research_tasks WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s', (self.context.workspace_id, self.context.user_id, child_task_id)
         ).fetchone():
             raise ResearchConflict("continuation Task already exists without route receipt")
         target_aspects = (
@@ -1517,35 +1445,20 @@ class ResearchArtifactRouteService:
         goal_id = _id("goal", {"task_id": child_task_id, "revision": 1})
         connection.execute(
             """
-            INSERT INTO research_tasks(
-                task_id, parent_task_id, status, active_goal_id, state_version,
-                owner_id, owner_epoch, lease_until, terminal_result_id,
-                created_at, updated_at
-            ) VALUES(?, ?, 'ready', NULL, 0, NULL, 0, NULL, NULL, ?, ?)
+            INSERT INTO research_tasks(workspace_id, owner_user_id, task_id, parent_task_id, status, active_goal_id, state_version, owner_id, owner_epoch, lease_until, terminal_result_id, created_at, updated_at) VALUES(%s, %s, %s, %s, 'ready', NULL, 0, NULL, 0, NULL, NULL, %s, %s)
             """,
-            (child_task_id, str(parent_task["task_id"]), now, now),
+            (self.context.workspace_id, self.context.user_id, child_task_id, str(parent_task['task_id']), _parse_iso(now), _parse_iso(now)),
         )
         self.fault_injector("after_stage3_continuation_task")
         connection.execute(
             """
-            INSERT INTO research_goals(
-                goal_id, task_id, revision, parent_goal_id, objective,
-                success_constraints_json, evidence_policy_json,
-                created_by_event_id, created_at
-            ) VALUES(?, ?, 1, NULL, ?, ?, ?, NULL, ?)
+            INSERT INTO research_goals(workspace_id, goal_id, task_id, revision, parent_goal_id, objective, success_constraints_json, evidence_policy_json, created_by_event_id, created_at) VALUES(%s, %s, %s, 1, NULL, %s, %s, %s, NULL, %s)
             """,
-            (
-                goal_id,
-                child_task_id,
-                child_objective,
-                _canonical_json([]),
-                _canonical_json(evidence_policy),
-                now,
-            ),
+            (self.context.workspace_id, goal_id, child_task_id, child_objective, json_field(_canonical_json([])), json_field(_canonical_json(evidence_policy)), _parse_iso(now)),
         )
         connection.execute(
-            "UPDATE research_tasks SET active_goal_id=? WHERE task_id=?",
-            (goal_id, child_task_id),
+            'UPDATE research_tasks SET active_goal_id=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s',
+            (goal_id, self.context.workspace_id, self.context.user_id, child_task_id),
         )
         event_id = self.kernel._event(
             connection,
@@ -1564,8 +1477,8 @@ class ResearchArtifactRouteService:
             now=now,
         )
         connection.execute(
-            "UPDATE research_goals SET created_by_event_id=? WHERE goal_id=?",
-            (event_id, goal_id),
+            'UPDATE research_goals SET created_by_event_id=%s WHERE research_goals.workspace_id=%s AND  goal_id=%s',
+            (event_id, self.context.workspace_id, goal_id),
         )
         child_payload_hash = _hash(
             {
@@ -1591,7 +1504,7 @@ class ResearchArtifactRouteService:
 
     def _assert_new_fact_current(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         child_task_id: str,
         fact_revision_id: str,
@@ -1602,10 +1515,10 @@ class ResearchArtifactRouteService:
             SELECT fr.*, fs.current_revision_id, fs.lifecycle_status,
                    fs.currentness_status, fs.state_version
             FROM research_fact_revisions fr
-            JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
-            WHERE fr.fact_revision_id=? AND fr.task_id=?
+            JOIN research_knowledge_fact_states fs ON fs.workspace_id=fr.workspace_id AND fs.fact_id=fr.fact_id
+            WHERE fr.workspace_id=%s AND  fr.fact_revision_id=%s AND fr.task_id=%s
             """,
-            (fact_revision_id, child_task_id),
+            (self.context.workspace_id, fact_revision_id, child_task_id),
         ).fetchone()
         if row is None or not self._fact_authority(connection, row)["eligible_current"]:
             raise ResearchValidationError(
@@ -1621,7 +1534,7 @@ class ResearchArtifactRouteService:
 
     def _create_incremental_artifact(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         route_id: str,
         parent_artifact_revision_id: str,
@@ -1631,18 +1544,16 @@ class ResearchArtifactRouteService:
         dropped_fact_revision_ids: list[str],
     ) -> tuple[str, dict[str, Any]]:
         parent = connection.execute(
-            "SELECT * FROM research_knowledge_artifact_revisions "
-            "WHERE artifact_revision_id=?",
-            (parent_artifact_revision_id,),
+            'SELECT * FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  artifact_revision_id=%s',
+            (self.context.workspace_id, parent_artifact_revision_id),
         ).fetchone()
         if parent is None:
             raise ResearchUnsafeState("parent Artifact revision missing")
         old_fact_ids = [
-            str(row[0])
+            str(row["fact_revision_id"])
             for row in connection.execute(
-                "SELECT fact_revision_id FROM research_artifact_fact_links "
-                "WHERE artifact_revision_id=? ORDER BY ordinal",
-                (parent_artifact_revision_id,),
+                'SELECT fact_revision_id FROM research_artifact_fact_links WHERE research_artifact_fact_links.workspace_id=%s AND  artifact_revision_id=%s ORDER BY ordinal',
+                (self.context.workspace_id, parent_artifact_revision_id),
             ).fetchall()
         ]
         reused = list(selected_gate["reused_fact_revision_ids"])
@@ -1663,10 +1574,9 @@ class ResearchArtifactRouteService:
         facts, corpus = self._artifact_body(connection, result_fact_ids)
         revision = int(
             connection.execute(
-                "SELECT MAX(revision)+1 FROM research_knowledge_artifact_revisions "
-                "WHERE artifact_id=?",
-                (str(parent["artifact_id"]),),
-            ).fetchone()[0]
+                'SELECT MAX(revision)+1 AS value FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  artifact_id=%s',
+                (self.context.workspace_id, str(parent['artifact_id'])),
+            ).fetchone()["value"]
         )
         input_value = {
             "route_id": route_id,
@@ -1713,12 +1623,12 @@ class ResearchArtifactRouteService:
                 """
                 SELECT kc.result_id, kc.source_boundary_hash
                 FROM research_fact_revisions fr
-                JOIN research_grounded_facts gf ON gf.fact_id=fr.fact_id
+                JOIN research_grounded_facts gf ON gf.workspace_id=fr.workspace_id AND gf.fact_id=fr.fact_id
                 JOIN research_knowledge_candidates kc
-                  ON kc.candidate_id=gf.origin_candidate_id
-                WHERE fr.fact_revision_id=?
+                  ON kc.workspace_id=fr.workspace_id AND kc.candidate_id=gf.origin_candidate_id
+                WHERE fr.workspace_id=%s AND  fr.fact_revision_id=%s
                 """,
-                (fact_id,),
+                (self.context.workspace_id, fact_id),
             ).fetchone()
             if row and row["result_id"]:
                 source_result_ids.add(str(row["result_id"]))
@@ -1726,47 +1636,14 @@ class ResearchArtifactRouteService:
                 source_boundaries.add(str(row["source_boundary_hash"]))
         connection.execute(
             """
-            INSERT INTO research_knowledge_artifact_revisions(
-                artifact_revision_id, artifact_id, task_id, revision,
-                parent_revision_id, supersedes_revision_id, topic, body_json,
-                limitations_json, unresolved_json, build_policy_version,
-                source_result_ids_json, source_boundary_hashes_json,
-                corpus_snapshot_json, input_hash, content_hash, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_knowledge_artifact_revisions(workspace_id, artifact_revision_id, artifact_id, task_id, revision, parent_revision_id, supersedes_revision_id, topic, body_json, limitations_json, unresolved_json, build_policy_version, source_result_ids_json, source_boundary_hashes_json, corpus_snapshot_json, input_hash, content_hash, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                revision_id,
-                str(parent["artifact_id"]),
-                str(parent["task_id"]),
-                revision,
-                parent_artifact_revision_id,
-                parent_artifact_revision_id,
-                str(query_value["query"]),
-                _canonical_json(body),
-                _canonical_json(limitations),
-                _canonical_json(unresolved),
-                ARTIFACT_ROUTE_POLICY_VERSION,
-                _canonical_json(sorted(source_result_ids)),
-                _canonical_json(sorted(source_boundaries)),
-                _canonical_json(corpus),
-                input_hash,
-                content_hash,
-                _now(),
-            ),
+            (self.context.workspace_id, revision_id, str(parent['artifact_id']), str(parent['task_id']), revision, parent_artifact_revision_id, parent_artifact_revision_id, str(query_value['query']), json_field(_canonical_json(body)), json_field(_canonical_json(limitations)), json_field(_canonical_json(unresolved)), ARTIFACT_ROUTE_POLICY_VERSION, json_field(_canonical_json(sorted(source_result_ids))), json_field(_canonical_json(sorted(source_boundaries))), json_field(_canonical_json(corpus)), input_hash, content_hash, _parse_iso(_now())),
         )
         for ordinal, fact_id in enumerate(result_fact_ids):
             connection.execute(
-                "INSERT INTO research_artifact_fact_links("
-                "link_id, task_id, artifact_revision_id, fact_revision_id, ordinal, created_at"
-                ") VALUES(?, ?, ?, ?, ?, ?)",
-                (
-                    _id("artifactfact", {"artifact_revision_id": revision_id, "fact": fact_id}),
-                    str(parent["task_id"]),
-                    revision_id,
-                    fact_id,
-                    ordinal,
-                    _now(),
-                ),
+                'INSERT INTO research_artifact_fact_links(workspace_id, link_id, task_id, artifact_revision_id, fact_revision_id, ordinal, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s)',
+                (self.context.workspace_id, _id('artifactfact', {'artifact_revision_id': revision_id, 'fact': fact_id}), str(parent['task_id']), revision_id, fact_id, ordinal, _parse_iso(_now())),
             )
         self.fault_injector("after_stage3_incremental_artifact")
         contribution = {
@@ -1801,31 +1678,31 @@ class ResearchArtifactRouteService:
         return revision_id, contribution
 
     def _fact_authority_by_id(
-        self, connection: sqlite3.Connection, fact_revision_id: str
+        self, connection: Connection, fact_revision_id: str
     ) -> dict[str, Any]:
         row = connection.execute(
             """
             SELECT fr.*, fs.current_revision_id, fs.lifecycle_status,
                    fs.currentness_status, fs.state_version
             FROM research_fact_revisions fr
-            LEFT JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
-            WHERE fr.fact_revision_id=?
+            LEFT JOIN research_knowledge_fact_states fs ON fs.workspace_id=fr.workspace_id AND fs.fact_id=fr.fact_id
+            WHERE fr.workspace_id=%s AND  fr.fact_revision_id=%s
             """,
-            (fact_revision_id,),
+            (self.context.workspace_id, fact_revision_id),
         ).fetchone()
         if row is None:
             raise ResearchUnsafeState("Artifact contribution Fact missing")
         return self._fact_authority(connection, row)
 
     def _artifact_body(
-        self, connection: sqlite3.Connection, fact_revision_ids: list[str]
+        self, connection: Connection, fact_revision_ids: list[str]
     ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         facts = []
         corpus: dict[str, dict[str, Any]] = {}
         for fact_id in fact_revision_ids:
             row = connection.execute(
-                "SELECT * FROM research_fact_revisions WHERE fact_revision_id=?",
-                (fact_id,),
+                'SELECT * FROM research_fact_revisions WHERE research_fact_revisions.workspace_id=%s AND  fact_revision_id=%s',
+                (self.context.workspace_id, fact_id),
             ).fetchone()
             if row is None:
                 raise ResearchUnsafeState("Artifact contribution Fact missing")
@@ -1834,10 +1711,10 @@ class ResearchArtifactRouteService:
                 SELECT fel.evidence_id, ei.video_id, ei.source_artifact_id,
                        ei.source_version, ei.timeline_run_id
                 FROM research_fact_evidence_links fel
-                JOIN research_evidence_identities ei ON ei.evidence_id=fel.evidence_id
-                WHERE fel.fact_revision_id=? ORDER BY fel.ordinal
+                JOIN research_evidence_identities ei ON ei.workspace_id=fel.workspace_id AND ei.evidence_id=fel.evidence_id
+                WHERE fel.workspace_id=%s AND  fel.fact_revision_id=%s ORDER BY fel.ordinal
                 """,
-                (fact_id,),
+                (self.context.workspace_id, fact_id),
             ).fetchall()
             citation_ids = [str(link["evidence_id"]) for link in links]
             facts.append(
@@ -1860,21 +1737,19 @@ class ResearchArtifactRouteService:
             "evidence": [corpus[key] for key in sorted(corpus)],
         }
 
-    @staticmethod
-    def _latest_record(
-        connection: sqlite3.Connection, task_id: str, route_id: str
-    ) -> sqlite3.Row:
+    def _latest_record(self,
+        connection: Connection, task_id: str, route_id: str
+    ) -> dict[str, Any]:
         row = connection.execute(
-            "SELECT * FROM research_artifact_routes WHERE task_id=? AND route_id=? "
-            "ORDER BY version DESC LIMIT 1",
-            (task_id, route_id),
+            'SELECT * FROM research_artifact_routes WHERE research_artifact_routes.workspace_id=%s AND  task_id=%s AND route_id=%s ORDER BY version DESC LIMIT 1',
+            (self.context.workspace_id, task_id, route_id),
         ).fetchone()
         if row is None:
             raise ResearchNotFound(f"ArtifactRoute does not exist: {route_id}")
         return row
 
     @staticmethod
-    def _project(row: sqlite3.Row) -> dict[str, Any]:
+    def _project(row: dict[str, Any]) -> dict[str, Any]:
         return {
             "record_id": str(row["record_id"]),
             "route_id": str(row["route_id"]),
@@ -1898,5 +1773,5 @@ class ResearchArtifactRouteService:
             ),
             "contribution": _json(row["contribution_json"], expected=dict),
             "status": str(row["status"]),
-            "created_at": str(row["created_at"]),
+            "created_at": iso_time(row['created_at'], timespec="microseconds"),
         }

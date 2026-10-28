@@ -6,7 +6,9 @@ import json
 from typing import Any
 from urllib.parse import urlencode
 
-from shiliu.db import Database
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import json_value
+from shiliu.research.service import _parse_iso
 from shiliu.research.errors import ResearchError
 from shiliu.research.knowledge_reuse import ResearchArtifactRouteService
 from shiliu.research.schema import PERSONAL_WORKSPACE_POLICY_VERSION
@@ -28,7 +30,7 @@ def _hash(value: object) -> str:
 
 
 def _decode(value: object, expected: type) -> Any:
-    decoded = json.loads(str(value))
+    decoded = json_value(value)
     if not isinstance(decoded, expected):
         raise ValueError("invalid persisted JSON shape")
     return decoded
@@ -48,6 +50,7 @@ class RouteRecommendationProjection:
         artifact_routes: ResearchArtifactRouteService,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.artifact_routes = artifact_routes
 
     def project(
@@ -233,10 +236,10 @@ class RouteRecommendationProjection:
                 """
                 SELECT t.task_id, t.status, g.goal_id, g.revision, g.objective
                 FROM research_tasks t
-                JOIN research_goals g ON g.goal_id=t.active_goal_id
-                WHERE t.task_id=?
+                JOIN research_goals g ON g.workspace_id=t.workspace_id AND g.goal_id=t.active_goal_id
+                WHERE t.workspace_id=%s AND t.owner_user_id=%s AND  t.task_id=%s
                 """,
-                (task_id,),
+                (self.context.workspace_id, self.context.user_id, task_id),
             ).fetchone()
         if row is None:
             raise ValueError("routing Task does not exist")
@@ -257,12 +260,12 @@ class RouteRecommendationProjection:
                 SELECT w.* FROM research_workspace_records w
                 JOIN (
                     SELECT record_id, MAX(version) AS version
-                    FROM research_workspace_records GROUP BY record_id
+                    FROM research_workspace_records WHERE workspace_id=%s AND principal_id=%s GROUP BY record_id
                 ) latest ON latest.record_id=w.record_id AND latest.version=w.version
-                WHERE w.command_task_id=? AND w.semantic_key=?
+                WHERE w.workspace_id=%s AND  w.command_task_id=%s AND w.semantic_key=%s
                 ORDER BY w.record_id
                 """,
-                (task_id, ROUTING_PREFERENCE_KEY),
+                (self.context.workspace_id, self.context.user_id, self.context.workspace_id, task_id, ROUTING_PREFERENCE_KEY),
             ).fetchall()
         if not rows:
             return None, ["no_confirmed_route_preference"], False
@@ -393,10 +396,10 @@ class RouteRecommendationProjection:
             return {"status": "inapplicable", "reason": "no_exact_video_context"}
         with self.db.connect() as connection:
             video = connection.execute(
-                "SELECT id, raw_subtitle_path FROM videos WHERE id=?", (video_id,)
+                "SELECT id, raw_subtitle_path FROM videos WHERE workspace_id=%s AND id=%s", (self.context.workspace_id,video_id,)
             ).fetchone()
             job = connection.execute(
-                "SELECT status, trigger_mode FROM asr_jobs WHERE video_id=?", (video_id,)
+                "SELECT status, trigger_mode FROM asr_jobs WHERE workspace_id=%s AND video_id=%s", (self.context.workspace_id,video_id,)
             ).fetchone()
         if video is None:
             return {"status": "unsafe", "reason": "exact_video_not_found"}

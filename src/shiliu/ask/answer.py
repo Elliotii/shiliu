@@ -9,6 +9,7 @@ from shiliu.ask.context import ContextBuildResult
 from shiliu.ask.contracts import AnswerDraftBlock, GroundedAnswerDraft
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
 from shiliu.ask.validation import ValidationIssue, validate_grounded_answer
+from shiliu.domain import PipelineError
 
 
 _ANSWER_PRODUCT_INSTRUCTIONS = """Answer the user's actual question directly and coherently. Let the question determine the structure. Each answer block represents one coherent user-facing conclusion or theme; merge evidence spans that support the same conclusion and use separate blocks only for genuinely distinct conclusions. For multi-source or cross-video questions, synthesize themes, common ground, and differences rather than listing one source per block. Mention video titles naturally when source identity helps. Omit weak, tangential, or merely similar evidence.
@@ -66,9 +67,12 @@ class GroundedAnswerService:
         self,
         provider_factory: Callable[[str], object],
         materializer: TranscriptEvidenceMaterializer,
+        *,
+        fast_request_preflight: bool = False,
     ) -> None:
         self.provider_factory = provider_factory
         self.materializer = materializer
+        self.fast_request_preflight = fast_request_preflight
 
     def answer(
         self,
@@ -377,8 +381,8 @@ class GroundedAnswerService:
             ),
         )
 
-    @staticmethod
     def _call(
+        self,
         provider: object,
         *,
         messages: list[dict[str, str]],
@@ -401,6 +405,8 @@ class GroundedAnswerService:
                 kwargs["timeout_seconds"] = timeout_seconds
             if on_content is not None and getattr(provider, "supports_answer_streaming", False):
                 kwargs.update(on_content=on_content, on_reset=on_reset)
+            if self.fast_request_preflight:
+                _check_fast_request_size(provider, kwargs)
             response = provider.generate_structured(**kwargs)  # type: ignore[attr-defined]
             value = getattr(response, "output", response)
             draft = (
@@ -474,6 +480,36 @@ class GroundedAnswerService:
                 ),
                 transport_retry_count=retry_count,
             )
+
+
+def _check_fast_request_size(provider: object, kwargs: dict[str, Any]) -> None:
+    """Conservative byte bound for the fixed Fast Flash 1M window.
+
+    Mirror the existing structured request fields; schema is already in messages.
+    Each initial, natural recovery and citation repair call passes this send point.
+    """
+    body = {
+        "model": getattr(provider, "model", "deepseek-v4-flash"),
+        "messages": kwargs["messages"],
+        "max_tokens": kwargs["max_tokens"],
+        "response_format": {"type": "json_object"},
+    }
+    thinking = getattr(provider, "thinking_enabled", None)
+    if thinking is not None:
+        body["thinking"] = {"type": "enabled" if thinking else "disabled"}
+    effort = getattr(provider, "reasoning_effort", None)
+    if thinking is not False and effort:
+        body["reasoning_effort"] = effort
+    if thinking is False:
+        body["temperature"] = 0
+    if "on_content" in kwargs:
+        body.update(stream=True, stream_options={"include_usage": True})
+    request_bytes = len(json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    if request_bytes + 4096 + kwargs["max_tokens"] > 1_000_000:
+        raise PipelineError(
+            "Fast request exceeds the 1,000,000 token window byte bound",
+            code="context_too_large", retryable=False,
+        )
 
 
 def _answer_messages(

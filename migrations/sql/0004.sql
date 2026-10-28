@@ -1,0 +1,3 @@
+ALTER TABLE shiliu.metadata_backfill_job_holds ADD CONSTRAINT fk_w04_02e8038467900911 FOREIGN KEY (workspace_id,video_id) REFERENCES shiliu.videos (workspace_id,id) DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE shiliu.metadata_backfill_wiki_intents ADD CONSTRAINT fk_w04_6d0d61c7ad5d1f6c FOREIGN KEY (workspace_id,video_id,old_revision) REFERENCES shiliu.assistant_source_revisions (workspace_id,video_id,revision) DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE shiliu.metadata_backfill_wiki_intents ADD CONSTRAINT fk_w04_05a8304860558e3c FOREIGN KEY (workspace_id,video_id,new_revision) REFERENCES shiliu.assistant_source_revisions (workspace_id,video_id,revision) DEFERRABLE INITIALLY IMMEDIATE;

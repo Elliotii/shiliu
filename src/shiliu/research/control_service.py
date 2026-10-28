@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
+from psycopg import Connection
+from psycopg.types.json import Jsonb
+from shiliu.storage.dto import json_object, json_array, row_dto
 from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 from typing import Any
 
-from shiliu.db import Database
+from shiliu.db import Database, json_field
 from shiliu.research.contracts import AnswerStatus
 from shiliu.research.control_contracts import (
     ControlCommandRequest,
@@ -106,8 +108,9 @@ class ResearchControlService:
         fault_injector: FaultInjector | None = None,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
-        self.authorization = authorization or ControlAuthorizationPolicy()
+        self.authorization = authorization or ControlAuthorizationPolicy({self.context.user_id: ALL_CAPABILITIES})
         self.clock = clock
         self.fault_injector = fault_injector or (lambda _point: None)
 
@@ -117,33 +120,29 @@ class ResearchControlService:
             value = value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc)
 
-    @staticmethod
-    def _active_attempt(
-        connection: sqlite3.Connection, task_id: str
-    ) -> sqlite3.Row | None:
+    def _active_attempt(self,
+        connection: Connection, task_id: str
+    ) -> dict[str, Any] | None:
         return connection.execute(
-            "SELECT * FROM research_attempts WHERE task_id=? AND status!='terminal' "
-            "ORDER BY ordinal DESC LIMIT 1",
-            (task_id,),
+            "SELECT * FROM research_attempts WHERE workspace_id=%s AND  task_id=%s AND status!='terminal' ORDER BY ordinal DESC LIMIT 1",
+            (self.context.workspace_id, task_id),
+        ).fetchone()
+
+    def _latest_checkpoint(self,
+        connection: Connection, attempt_id: str
+    ) -> dict[str, Any] | None:
+        return connection.execute(
+            'SELECT * FROM research_checkpoints WHERE workspace_id=%s AND  attempt_id=%s ORDER BY sequence DESC LIMIT 1',
+            (self.context.workspace_id, attempt_id),
         ).fetchone()
 
     @staticmethod
-    def _latest_checkpoint(
-        connection: sqlite3.Connection, attempt_id: str
-    ) -> sqlite3.Row | None:
-        return connection.execute(
-            "SELECT * FROM research_checkpoints WHERE attempt_id=? "
-            "ORDER BY sequence DESC LIMIT 1",
-            (attempt_id,),
-        ).fetchone()
-
-    @staticmethod
-    def _control_generation(task: sqlite3.Row) -> int:
+    def _control_generation(task: dict[str, Any]) -> int:
         return int(task["control_generation"])
 
     @staticmethod
     def _assert_control_expected(
-        task: sqlite3.Row,
+        task: dict[str, Any],
         *,
         expected_state_version: int,
         expected_control_generation: int,
@@ -155,15 +154,14 @@ class ResearchControlService:
 
     @staticmethod
     def _assert_checkpoint(
-        latest: sqlite3.Row | None, expected_checkpoint_id: str | None
+        latest: dict[str, Any] | None, expected_checkpoint_id: str | None
     ) -> None:
         current = str(latest["checkpoint_id"]) if latest is not None else None
         if current != expected_checkpoint_id:
             raise ResearchConflict("stale expected checkpoint for control mutation")
 
-    @staticmethod
-    def _insert_input_disposition(
-        connection: sqlite3.Connection,
+    def _insert_input_disposition(self,
+        connection: Connection,
         *,
         input_request_id: str,
         task_id: str,
@@ -175,38 +173,24 @@ class ResearchControlService:
     ) -> str:
         disposition_id = _new_id("input_disposition")
         connection.execute(
-            "INSERT INTO research_input_dispositions("
-            "disposition_id, input_request_id, task_id, status, control_generation, "
-            "reason, resulting_reference, created_at) "
-            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-            (
-                disposition_id,
-                input_request_id,
-                task_id,
-                status,
-                control_generation,
-                reason,
-                resulting_reference,
-                now,
-            ),
+            'INSERT INTO research_input_dispositions(workspace_id, disposition_id, input_request_id, task_id, status, control_generation, reason, resulting_reference, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+            (self.context.workspace_id, disposition_id, input_request_id, task_id, status, control_generation, reason, resulting_reference, _parse_iso(now)),
         )
         return disposition_id
 
-    @staticmethod
-    def _latest_input_disposition(
-        connection: sqlite3.Connection, input_request_id: str
-    ) -> sqlite3.Row | None:
+    def _latest_input_disposition(self,
+        connection: Connection, input_request_id: str
+    ) -> dict[str, Any] | None:
         return connection.execute(
-            "SELECT * FROM research_input_dispositions WHERE input_request_id=? "
-            "ORDER BY rowid DESC LIMIT 1",
-            (input_request_id,),
+            'SELECT * FROM research_input_dispositions WHERE workspace_id=%s AND  input_request_id=%s ORDER BY insertion_seq DESC LIMIT 1',
+            (self.context.workspace_id, input_request_id),
         ).fetchone()
 
     def _expire_open_inputs(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         now_value: datetime,
         now: str,
         command_id: str,
@@ -216,13 +200,13 @@ class ResearchControlService:
             """
             SELECT ir.* FROM research_input_requests ir
             JOIN research_input_dispositions idp
-              ON idp.rowid=(
-                SELECT MAX(last.rowid) FROM research_input_dispositions last
-                WHERE last.input_request_id=ir.input_request_id
+              ON idp.workspace_id=ir.workspace_id AND idp.insertion_seq=(
+                SELECT MAX(last.insertion_seq) FROM research_input_dispositions last
+                WHERE (last.workspace_id,last.input_request_id)=(ir.workspace_id,ir.input_request_id)
               )
-            WHERE ir.task_id=? AND idp.status='open' AND ir.expires_at IS NOT NULL
+            WHERE ir.workspace_id=%s AND  ir.task_id=%s AND idp.status='open' AND ir.expires_at IS NOT NULL
             """,
-            (str(task["task_id"]),),
+            (self.context.workspace_id, str(task['task_id'])),
         ).fetchall()
         for row in rows:
             if _parse_iso(str(row["expires_at"])) > now_value:
@@ -258,9 +242,9 @@ class ResearchControlService:
 
     def _cancel_open_inputs(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         control_request_id: str,
         command_id: str,
         generation: int,
@@ -270,13 +254,13 @@ class ResearchControlService:
             """
             SELECT ir.* FROM research_input_requests ir
             JOIN research_input_dispositions idp
-              ON idp.rowid=(
-                SELECT MAX(last.rowid) FROM research_input_dispositions last
-                WHERE last.input_request_id=ir.input_request_id
+              ON idp.workspace_id=ir.workspace_id AND idp.insertion_seq=(
+                SELECT MAX(last.insertion_seq) FROM research_input_dispositions last
+                WHERE (last.workspace_id,last.input_request_id)=(ir.workspace_id,ir.input_request_id)
               )
-            WHERE ir.task_id=? AND idp.status='open'
+            WHERE ir.workspace_id=%s AND  ir.task_id=%s AND idp.status='open'
             """,
-            (str(task["task_id"]),),
+            (self.context.workspace_id, str(task['task_id'])),
         ).fetchall()
         cancelled: list[str] = []
         for row in rows:
@@ -312,11 +296,11 @@ class ResearchControlService:
 
     def _resume_authority(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
-        attempt: sqlite3.Row,
-        checkpoint: sqlite3.Row,
+        task: dict[str, Any],
+        attempt: dict[str, Any],
+        checkpoint: dict[str, Any],
     ) -> dict[str, Any] | None:
         task_id = str(task["task_id"])
         attempt_id = str(attempt["attempt_id"])
@@ -326,10 +310,9 @@ class ResearchControlService:
             return None
         unresolved = int(
             connection.execute(
-                "SELECT COUNT(*) FROM research_side_effects WHERE task_id=? "
-                "AND status IN ('in_flight','unknown')",
-                (task_id,),
-            ).fetchone()[0]
+                "SELECT COUNT(*) AS value FROM research_side_effects WHERE workspace_id=%s AND  task_id=%s AND status IN ('in_flight','unknown')",
+                (self.context.workspace_id, task_id),
+            ).fetchone()["value"]
         )
         if unresolved:
             return None
@@ -340,26 +323,21 @@ class ResearchControlService:
                    idp.resulting_reference
             FROM research_input_requests ir
             JOIN research_input_dispositions idp
-              ON idp.rowid=(
-                SELECT MAX(last.rowid) FROM research_input_dispositions last
-                WHERE last.input_request_id=ir.input_request_id
+              ON idp.workspace_id=ir.workspace_id AND idp.insertion_seq=(
+                SELECT MAX(last.insertion_seq) FROM research_input_dispositions last
+                WHERE (last.workspace_id,last.input_request_id)=(ir.workspace_id,ir.input_request_id)
               )
-            WHERE ir.task_id=? AND ir.attempt_id=?
-              AND ir.source_checkpoint_id=? AND idp.status='resolved'
-              AND idp.control_generation=?
-            ORDER BY idp.rowid DESC
+            WHERE ir.workspace_id=%s AND  ir.task_id=%s AND ir.attempt_id=%s
+              AND ir.source_checkpoint_id=%s AND idp.status='resolved'
+              AND idp.control_generation=%s
+            ORDER BY idp.insertion_seq DESC
             """,
-            (task_id, attempt_id, checkpoint_id, generation),
+            (self.context.workspace_id, task_id, attempt_id, checkpoint_id, generation),
         ).fetchall()
         for row in inputs:
             decision = connection.execute(
-                "SELECT * FROM research_human_decisions WHERE decision_id=? "
-                "AND input_request_id=? AND control_generation=?",
-                (
-                    str(row["resulting_reference"]),
-                    str(row["input_request_id"]),
-                    generation,
-                ),
+                'SELECT * FROM research_human_decisions WHERE workspace_id=%s AND  decision_id=%s AND input_request_id=%s AND control_generation=%s',
+                (self.context.workspace_id, str(row['resulting_reference']), str(row['input_request_id']), generation),
             ).fetchone()
             if decision is not None:
                 return {
@@ -373,18 +351,18 @@ class ResearchControlService:
             SELECT cr.*, cd.resulting_references_json
             FROM research_control_requests cr
             JOIN research_control_dispositions cd
-              ON cd.rowid=(
-                SELECT MAX(last.rowid) FROM research_control_dispositions last
-                WHERE last.control_request_id=cr.control_request_id
+              ON cd.workspace_id=cr.workspace_id AND cd.insertion_seq=(
+                SELECT MAX(last.insertion_seq) FROM research_control_dispositions last
+                WHERE (last.workspace_id,last.control_request_id)=(cr.workspace_id,cr.control_request_id)
               )
-            WHERE cr.task_id=? AND cr.attempt_id=?
+            WHERE cr.workspace_id=%s AND  cr.task_id=%s AND cr.attempt_id=%s
               AND cr.request_kind='interrupt' AND cd.status='applied'
             ORDER BY cr.admitted_control_generation DESC
             """,
-            (task_id, attempt_id),
+            (self.context.workspace_id, task_id, attempt_id),
         ).fetchall()
         for row in interrupts:
-            references = json.loads(str(row["resulting_references_json"]))
+            references = json_object(row["resulting_references_json"])
             if references.get("checkpoint_id") != checkpoint_id:
                 continue
             admitted_generation = int(row["admitted_control_generation"])
@@ -398,26 +376,24 @@ class ResearchControlService:
                 continue
             newer_control = int(
                 connection.execute(
-                    "SELECT COUNT(*) FROM research_control_requests WHERE task_id=? "
-                    "AND admitted_control_generation>?",
-                    (task_id, admitted_generation),
-                ).fetchone()[0]
+                    'SELECT COUNT(*) AS value FROM research_control_requests WHERE workspace_id=%s AND  task_id=%s AND admitted_control_generation>%s',
+                    (self.context.workspace_id, task_id, admitted_generation),
+                ).fetchone()["value"]
             )
             newer_decision = int(
                 connection.execute(
-                    "SELECT COUNT(*) FROM research_human_decisions WHERE task_id=? "
-                    "AND control_generation>?",
-                    (task_id, admitted_generation),
-                ).fetchone()[0]
+                    'SELECT COUNT(*) AS value FROM research_human_decisions WHERE workspace_id=%s AND  task_id=%s AND control_generation>%s',
+                    (self.context.workspace_id, task_id, admitted_generation),
+                ).fetchone()["value"]
             )
             if newer_control or newer_decision:
                 continue
-            placeholders = ",".join("?" for _ in unknown_ids)
+            placeholders = ",".join("%s" for _ in unknown_ids)
             resolutions = connection.execute(
                 f"SELECT side_effect_id, control_generation "
                 f"FROM research_side_effect_resolutions "
-                f"WHERE task_id=? AND side_effect_id IN ({placeholders})",
-                (task_id, *unknown_ids),
+                f"WHERE workspace_id=%s AND task_id=%s AND side_effect_id IN ({placeholders})",
+                (self.context.workspace_id, task_id, *unknown_ids),
             ).fetchall()
             if (
                 {str(value["side_effect_id"]) for value in resolutions}
@@ -434,7 +410,7 @@ class ResearchControlService:
 
     def _consume_resume_authority(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         authority: dict[str, Any],
         task_id: str,
@@ -476,9 +452,9 @@ class ResearchControlService:
 
     def _fence(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         now: str,
     ) -> tuple[int, int]:
         next_generation = int(task["control_generation"]) + 1
@@ -486,64 +462,40 @@ class ResearchControlService:
         updated = connection.execute(
             """
             UPDATE research_tasks
-            SET owner_id=NULL, lease_until=NULL, owner_epoch=?, control_generation=?,
-                state_version=state_version+1, updated_at=?
-            WHERE task_id=? AND state_version=? AND control_generation=?
+            SET owner_id=NULL, lease_until=NULL, owner_epoch=%s, control_generation=%s,
+                state_version=state_version+1, updated_at=%s
+            WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s AND state_version=%s AND control_generation=%s
             """,
-            (
-                next_epoch,
-                next_generation,
-                now,
-                str(task["task_id"]),
-                int(task["state_version"]),
-                int(task["control_generation"]),
-            ),
+            (next_epoch, next_generation, _parse_iso(now), self.context.workspace_id, self.context.user_id, str(task['task_id']), int(task['state_version']), int(task['control_generation'])),
         )
         if updated.rowcount != 1:
             raise ResearchConflict("control fence CAS failed")
         connection.execute(
-            "UPDATE research_attempts SET owner_epoch=? "
-            "WHERE task_id=? AND status!='terminal'",
-            (next_epoch, str(task["task_id"])),
+            "UPDATE research_attempts SET owner_epoch=%s WHERE workspace_id=%s AND  task_id=%s AND status!='terminal'",
+            (next_epoch, self.context.workspace_id, str(task['task_id'])),
         )
         return next_generation, next_epoch
 
     def _clone_checkpoint(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        checkpoint: sqlite3.Row,
+        checkpoint: dict[str, Any],
         owner_epoch: int,
         now: str,
     ) -> str:
         checkpoint_id = _new_id("checkpoint")
         connection.execute(
             """
-            INSERT INTO research_checkpoints(
-                checkpoint_id, task_id, goal_id, attempt_id,
-                parent_checkpoint_id, sequence, state_schema_version,
-                state_hash, state_payload_json, is_complete, owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+            INSERT INTO research_checkpoints(workspace_id, checkpoint_id, task_id, goal_id, attempt_id, parent_checkpoint_id, sequence, state_schema_version, state_hash, state_payload_json, is_complete, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, true, %s, %s)
             """,
-            (
-                checkpoint_id,
-                str(checkpoint["task_id"]),
-                str(checkpoint["goal_id"]),
-                str(checkpoint["attempt_id"]),
-                str(checkpoint["checkpoint_id"]),
-                int(checkpoint["sequence"]) + 1,
-                str(checkpoint["state_schema_version"]),
-                str(checkpoint["state_hash"]),
-                str(checkpoint["state_payload_json"]),
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, checkpoint_id, str(checkpoint['task_id']), str(checkpoint['goal_id']), str(checkpoint['attempt_id']), str(checkpoint['checkpoint_id']), int(checkpoint['sequence']) + 1, str(checkpoint['state_schema_version']), str(checkpoint['state_hash']), json_field(checkpoint['state_payload_json']), owner_epoch, _parse_iso(now)),
         )
         return checkpoint_id
 
     def _insert_control_records(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         task_id: str,
         attempt_id: str | None,
@@ -559,39 +511,15 @@ class ResearchControlService:
         request_id = _new_id("control")
         connection.execute(
             """
-            INSERT INTO research_control_requests(
-                control_request_id, control_schema_version, task_id, attempt_id,
-                command_id, request_kind, payload_hash, payload_json,
-                audit_actor_metadata_json, principal_id, expected_state_version,
-                expected_checkpoint_id, expected_control_generation,
-                admitted_control_generation, admitted_owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_control_requests(workspace_id, control_request_id, control_schema_version, task_id, attempt_id, command_id, request_kind, payload_hash, payload_json, audit_actor_metadata_json, principal_id, expected_state_version, expected_checkpoint_id, expected_control_generation, admitted_control_generation, admitted_owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                request_id,
-                CONTROL_SCHEMA_VERSION,
-                task_id,
-                attempt_id,
-                request.command_id,
-                request.kind,
-                payload_hash,
-                payload_json,
-                audit_json,
-                principal_id,
-                request.expected_state_version,
-                request.expected_checkpoint_id,
-                request.expected_control_generation,
-                generation,
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, request_id, CONTROL_SCHEMA_VERSION, task_id, attempt_id, request.command_id, request.kind, payload_hash, json_field(payload_json), json_field(audit_json), principal_id, request.expected_state_version, request.expected_checkpoint_id, request.expected_control_generation, generation, owner_epoch, _parse_iso(now)),
         )
         self.fault_injector("after_control_request_insert")
         return request_id
 
-    @staticmethod
-    def _insert_disposition(
-        connection: sqlite3.Connection,
+    def _insert_disposition(self,
+        connection: Connection,
         *,
         request_id: str,
         task_id: str,
@@ -605,34 +533,18 @@ class ResearchControlService:
         disposition_id = _new_id("control_disposition")
         connection.execute(
             """
-            INSERT INTO research_control_dispositions(
-                disposition_id, control_request_id, task_id, status,
-                observed_control_generation, owner_epoch, reason,
-                resulting_references_json, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_control_dispositions(workspace_id, disposition_id, control_request_id, task_id, status, observed_control_generation, owner_epoch, reason, resulting_references_json, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                disposition_id,
-                request_id,
-                task_id,
-                status,
-                generation,
-                owner_epoch,
-                reason,
-                _canonical_json(references),
-                now,
-            ),
+            (self.context.workspace_id, disposition_id, request_id, task_id, status, generation, owner_epoch, reason, json_field(_canonical_json(references)), _parse_iso(now)),
         )
         return disposition_id
 
-    @staticmethod
-    def _latest_answer_status(
-        connection: sqlite3.Connection, task_id: str
+    def _latest_answer_status(self,
+        connection: Connection, task_id: str
     ) -> str:
         artifact = connection.execute(
-            "SELECT answer_status FROM research_provisional_artifacts "
-            "WHERE task_id=? ORDER BY created_at DESC, artifact_id DESC LIMIT 1",
-            (task_id,),
+            'SELECT answer_status FROM research_provisional_artifacts WHERE workspace_id=%s AND  task_id=%s ORDER BY created_at DESC, artifact_id DESC LIMIT 1',
+            (self.context.workspace_id, task_id),
         ).fetchone()
         if artifact is not None and str(artifact["answer_status"]) in {
             AnswerStatus.VALID_PARTIAL.value,
@@ -640,9 +552,8 @@ class ResearchControlService:
         }:
             return str(artifact["answer_status"])
         result = connection.execute(
-            "SELECT answer_status FROM research_results WHERE task_id=? "
-            "ORDER BY created_at DESC, result_id DESC LIMIT 1",
-            (task_id,),
+            'SELECT answer_status FROM research_results WHERE workspace_id=%s AND  task_id=%s ORDER BY created_at DESC, result_id DESC LIMIT 1',
+            (self.context.workspace_id, task_id),
         ).fetchone()
         if result is not None and str(result["answer_status"]) in {
             AnswerStatus.VALID_PARTIAL.value,
@@ -653,10 +564,10 @@ class ResearchControlService:
 
     def _terminal_cancel(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
-        attempt: sqlite3.Row | None,
+        task: dict[str, Any],
+        attempt: dict[str, Any] | None,
         checkpoint_id: str | None,
         owner_epoch: int,
         reason: str,
@@ -672,39 +583,22 @@ class ResearchControlService:
         answer_status = self._latest_answer_status(connection, task_id)
         connection.execute(
             """
-            INSERT INTO research_results(
-                result_id, task_id, goal_id, attempt_id, checkpoint_id,
-                answer_status, termination_reason, failure_class, reason_detail,
-                is_task_terminal, owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, 'cancelled', 'none', ?, 1, ?, ?)
+            INSERT INTO research_results(workspace_id, result_id, task_id, goal_id, attempt_id, checkpoint_id, answer_status, termination_reason, failure_class, reason_detail, is_task_terminal, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, 'cancelled', 'none', %s, true, %s, %s)
             """,
-            (
-                result_id,
-                task_id,
-                goal_id,
-                str(attempt["attempt_id"]) if attempt is not None else None,
-                checkpoint_id,
-                answer_status,
-                reason or "cancel requested",
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, result_id, task_id, goal_id, str(attempt['attempt_id']) if attempt is not None else None, checkpoint_id, answer_status, reason or 'cancel requested', owner_epoch, _parse_iso(now)),
         )
         if attempt is not None:
             connection.execute(
-                "UPDATE research_attempts SET status='terminal', result_id=?, ended_at=? "
-                "WHERE attempt_id=?",
-                (result_id, now, str(attempt["attempt_id"])),
+                "UPDATE research_attempts SET status='terminal', result_id=%s, ended_at=%s WHERE workspace_id=%s AND  attempt_id=%s",
+                (result_id, _parse_iso(now), self.context.workspace_id, str(attempt['attempt_id'])),
             )
             connection.execute(
-                "UPDATE research_traces SET ended_at=?, termination_reason='cancelled' "
-                "WHERE attempt_id=? AND ended_at IS NULL",
-                (now, str(attempt["attempt_id"])),
+                "UPDATE research_traces SET ended_at=%s, termination_reason='cancelled' WHERE workspace_id=%s AND  attempt_id=%s AND ended_at IS NULL",
+                (_parse_iso(now), self.context.workspace_id, str(attempt['attempt_id'])),
             )
         connection.execute(
-            "UPDATE research_tasks SET status='terminal', terminal_result_id=?, updated_at=? "
-            "WHERE task_id=?",
-            (result_id, now, task_id),
+            "UPDATE research_tasks SET status='terminal', terminal_result_id=%s, updated_at=%s WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+            (result_id, _parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
         )
         return result_id
 
@@ -765,8 +659,8 @@ class ResearchControlService:
                         "resume lacks unconsumed current pause lineage"
                     )
                 execution = connection.execute(
-                    "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                    (task_id,),
+                    'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                    (self.context.workspace_id, task_id),
                 ).fetchone()
                 if execution is not None and str(execution["timing_status"]) in {
                     "uncertain",
@@ -811,25 +705,22 @@ class ResearchControlService:
             cancelled_input_ids: list[str] = []
             if request.kind in {"interrupt", "cancel"}:
                 rows = connection.execute(
-                    "SELECT side_effect_id, attempt_id FROM research_side_effects "
-                    "WHERE task_id=? AND status='in_flight'",
-                    (task_id,),
+                    "SELECT side_effect_id, attempt_id FROM research_side_effects WHERE workspace_id=%s AND  task_id=%s AND status='in_flight'",
+                    (self.context.workspace_id, task_id),
                 ).fetchall()
                 for row in rows:
                     connection.execute(
-                        "UPDATE research_side_effects SET status='unknown', updated_at=? "
-                        "WHERE side_effect_id=? AND status='in_flight'",
-                        (now, str(row["side_effect_id"])),
+                        "UPDATE research_side_effects SET status='unknown', updated_at=%s WHERE workspace_id=%s AND  side_effect_id=%s AND status='in_flight'",
+                        (_parse_iso(now), self.context.workspace_id, str(row['side_effect_id'])),
                     )
                     unknown_ids.append(str(row["side_effect_id"]))
                 unknown_ids.extend(
-                    str(row[0])
+                    str(row["side_effect_id"])
                     for row in connection.execute(
-                        "SELECT side_effect_id FROM research_side_effects "
-                        "WHERE task_id=? AND status='unknown'",
-                        (task_id,),
+                        "SELECT side_effect_id FROM research_side_effects WHERE workspace_id=%s AND  task_id=%s AND status='unknown'",
+                        (self.context.workspace_id, task_id),
                     ).fetchall()
-                    if str(row[0]) not in unknown_ids
+                    if str(row["side_effect_id"]) not in unknown_ids
                 )
             if request.kind == "cancel":
                 cancelled_input_ids = self._cancel_open_inputs(
@@ -841,19 +732,18 @@ class ResearchControlService:
                     now=now,
                 )
                 connection.execute(
-                    "UPDATE research_side_effects SET status='failed', owner_epoch=?, "
-                    "updated_at=? WHERE task_id=? AND status='reserved'",
-                    (owner_epoch, now, task_id),
+                    "UPDATE research_side_effects SET status='failed', owner_epoch=%s, updated_at=%s WHERE workspace_id=%s AND  task_id=%s AND status='reserved'",
+                    (owner_epoch, _parse_iso(now), self.context.workspace_id, task_id),
                 )
                 if unknown_ids:
                     if attempt is not None:
                         connection.execute(
-                            "UPDATE research_attempts SET status='blocked' WHERE attempt_id=?",
-                            (str(attempt["attempt_id"]),),
+                            "UPDATE research_attempts SET status='blocked' WHERE workspace_id=%s AND  attempt_id=%s",
+                            (self.context.workspace_id, str(attempt['attempt_id'])),
                         )
                     connection.execute(
-                        "UPDATE research_tasks SET status='blocked' WHERE task_id=?",
-                        (task_id,),
+                        "UPDATE research_tasks SET status='blocked' WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                        (self.context.workspace_id, self.context.user_id, task_id),
                     )
                     outcome = "cancel_pending"
                 else:
@@ -879,12 +769,12 @@ class ResearchControlService:
                     )
                 assert attempt is not None
                 connection.execute(
-                    "UPDATE research_attempts SET status='blocked' WHERE attempt_id=?",
-                    (str(attempt["attempt_id"]),),
+                    "UPDATE research_attempts SET status='blocked' WHERE workspace_id=%s AND  attempt_id=%s",
+                    (self.context.workspace_id, str(attempt['attempt_id'])),
                 )
                 connection.execute(
-                    "UPDATE research_tasks SET status='blocked' WHERE task_id=?",
-                    (task_id,),
+                    "UPDATE research_tasks SET status='blocked' WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                    (self.context.workspace_id, self.context.user_id, task_id),
                 )
                 outcome = "blocked_external_unknown" if unknown_ids else "interrupted"
             else:
@@ -896,18 +786,18 @@ class ResearchControlService:
                     now=now,
                 )
                 connection.execute(
-                    "UPDATE research_attempts SET status='running' WHERE attempt_id=?",
-                    (str(attempt["attempt_id"]),),
+                    "UPDATE research_attempts SET status='running' WHERE workspace_id=%s AND  attempt_id=%s",
+                    (self.context.workspace_id, str(attempt['attempt_id'])),
                 )
                 connection.execute(
-                    "UPDATE research_tasks SET status='running' WHERE task_id=?",
-                    (task_id,),
+                    "UPDATE research_tasks SET status='running' WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                    (self.context.workspace_id, self.context.user_id, task_id),
                 )
                 outcome = "resumed"
 
             execution = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if execution is not None:
                 if request.kind == "resume":
@@ -915,51 +805,33 @@ class ResearchControlService:
                         """
                         UPDATE research_execution_metadata
                         SET scheduling_intent='manual', scheduling_status='queued',
-                            run_command_id=?, resume_reason='control_resume_applied',
+                            run_command_id=%s, resume_reason='control_resume_applied',
                             manual_generation=manual_generation+1,
                             automatic_failure_count=0, next_retry_at=NULL,
-                            updated_at=?
-                        WHERE task_id=?
+                            updated_at=%s
+                        WHERE workspace_id=%s AND  task_id=%s
                         """,
-                        (f"web:provider-research:{task_id}:run", now, task_id),
+                        (f'web:provider-research:{task_id}:run', _parse_iso(now), self.context.workspace_id, task_id),
                     )
                 elif request.kind == "interrupt":
                     connection.execute(
                         """
                         UPDATE research_execution_metadata
-                        SET scheduling_intent='none', scheduling_status=?,
-                            resume_reason=?, next_retry_at=NULL, updated_at=?
-                        WHERE task_id=?
+                        SET scheduling_intent='none', scheduling_status=%s,
+                            resume_reason=%s, next_retry_at=NULL, updated_at=%s
+                        WHERE workspace_id=%s AND  task_id=%s
                         """,
-                        (
-                            "blocked" if unknown_ids else "manual_required",
-                            (
-                                "provider_outcome_unknown"
-                                if unknown_ids
-                                else "control_interrupt_applied"
-                            ),
-                            now,
-                            task_id,
-                        ),
+                        ('blocked' if unknown_ids else 'manual_required', 'provider_outcome_unknown' if unknown_ids else 'control_interrupt_applied', _parse_iso(now), self.context.workspace_id, task_id),
                     )
                 elif request.kind == "cancel":
                     connection.execute(
                         """
                         UPDATE research_execution_metadata
-                        SET scheduling_intent='none', scheduling_status=?,
-                            resume_reason=?, next_retry_at=NULL, updated_at=?
-                        WHERE task_id=?
+                        SET scheduling_intent='none', scheduling_status=%s,
+                            resume_reason=%s, next_retry_at=NULL, updated_at=%s
+                        WHERE workspace_id=%s AND  task_id=%s
                         """,
-                        (
-                            "blocked" if unknown_ids else "complete",
-                            (
-                                "cancel_pending_unknown"
-                                if unknown_ids
-                                else "control_cancel_applied"
-                            ),
-                            now,
-                            task_id,
-                        ),
+                        ('blocked' if unknown_ids else 'complete', 'cancel_pending_unknown' if unknown_ids else 'control_cancel_applied', _parse_iso(now), self.context.workspace_id, task_id),
                     )
 
             references = {
@@ -1079,13 +951,13 @@ class ResearchControlService:
             open_request = connection.execute(
                 """
                 SELECT 1 FROM research_input_requests ir
-                WHERE ir.task_id=? AND NOT EXISTS (
+                WHERE ir.workspace_id=%s AND  ir.task_id=%s AND NOT EXISTS (
                     SELECT 1 FROM research_input_dispositions idp
                     WHERE idp.input_request_id=ir.input_request_id
                       AND idp.status IN ('resolved', 'cancelled', 'superseded')
                 ) LIMIT 1
                 """,
-                (task_id,),
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if open_request is not None:
                 raise ResearchConflict("Task already has an open InputRequest")
@@ -1095,12 +967,12 @@ class ResearchControlService:
                         "constraint_choice requires constraint_id and choices"
                     )
                 constraint = connection.execute(
-                    "SELECT * FROM research_constraint_specs WHERE constraint_id=?",
-                    (request.constraint_id,),
+                    'SELECT * FROM research_constraint_specs WHERE workspace_id=%s AND  constraint_id=%s',
+                    (self.context.workspace_id, request.constraint_id),
                 ).fetchone()
                 if constraint is None or str(constraint["task_id"]) != task_id:
                     raise ResearchValidationError("constraint identity mismatch")
-                policy = json.loads(str(constraint["evaluator_policy_json"]))
+                policy = json_object(constraint["evaluator_policy_json"])
                 allowed = policy.get("allowed_human_options")
                 if (
                     policy.get("authority") != "server_registry"
@@ -1114,50 +986,18 @@ class ResearchControlService:
             input_request_id = _new_id("input")
             connection.execute(
                 """
-                INSERT INTO research_input_requests(
-                    input_request_id, input_schema_version, task_id, goal_id,
-                    attempt_id, source_checkpoint_id, command_id, request_kind,
-                    prompt, choices_json, response_schema_json, constraint_id,
-                    payload_hash, owner_epoch, expires_at, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_input_requests(workspace_id, input_request_id, input_schema_version, task_id, goal_id, attempt_id, source_checkpoint_id, command_id, request_kind, prompt, choices_json, response_schema_json, constraint_id, payload_hash, owner_epoch, expires_at, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    input_request_id,
-                    INPUT_SCHEMA_VERSION,
-                    task_id,
-                    str(attempt["goal_id"]),
-                    request.attempt_id,
-                    request.expected_checkpoint_id,
-                    request.command_id,
-                    request.kind,
-                    request.prompt,
-                    _canonical_json(request.choices),
-                    response_schema_json,
-                    request.constraint_id,
-                    payload_hash,
-                    request.owner_epoch,
-                    request.expires_at,
-                    now,
-                ),
+                (self.context.workspace_id, input_request_id, INPUT_SCHEMA_VERSION, task_id, str(attempt['goal_id']), request.attempt_id, request.expected_checkpoint_id, request.command_id, request.kind, request.prompt, json_field(_canonical_json(request.choices)), json_field(response_schema_json), request.constraint_id, payload_hash, request.owner_epoch, (_parse_iso(request.expires_at) if request.expires_at is not None else None), _parse_iso(now)),
             )
             disposition_id = _new_id("input_disposition")
             connection.execute(
-                "INSERT INTO research_input_dispositions("
-                "disposition_id, input_request_id, task_id, status, control_generation, "
-                "reason, resulting_reference, created_at) "
-                "VALUES(?, ?, ?, 'open', ?, '', NULL, ?)",
-                (
-                    disposition_id,
-                    input_request_id,
-                    task_id,
-                    int(task["control_generation"]),
-                    now,
-                ),
+                "INSERT INTO research_input_dispositions(workspace_id, disposition_id, input_request_id, task_id, status, control_generation, reason, resulting_reference, created_at) VALUES(%s, %s, %s, %s, 'open', %s, '', NULL, %s)",
+                (self.context.workspace_id, disposition_id, input_request_id, task_id, int(task['control_generation']), _parse_iso(now)),
             )
             connection.execute(
-                "UPDATE research_tasks SET state_version=state_version+1, updated_at=? "
-                "WHERE task_id=?",
-                (now, task_id),
+                'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s',
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
             )
             self.kernel._event(
                 connection,
@@ -1223,15 +1063,14 @@ class ResearchControlService:
                 expected_control_generation=request.expected_control_generation,
             )
             input_row = connection.execute(
-                "SELECT * FROM research_input_requests WHERE input_request_id=?",
-                (request.input_request_id,),
+                'SELECT * FROM research_input_requests WHERE workspace_id=%s AND  input_request_id=%s',
+                (self.context.workspace_id, request.input_request_id),
             ).fetchone()
             if input_row is None or str(input_row["task_id"]) != task_id:
                 raise ResearchNotFound("InputRequest not found for Task")
             terminal_disposition = connection.execute(
-                "SELECT * FROM research_input_dispositions WHERE input_request_id=? "
-                "AND status IN ('resolved','cancelled','superseded') LIMIT 1",
-                (request.input_request_id,),
+                "SELECT * FROM research_input_dispositions WHERE workspace_id=%s AND  input_request_id=%s AND status IN ('resolved','cancelled','superseded') LIMIT 1",
+                (self.context.workspace_id, request.input_request_id),
             ).fetchone()
             if terminal_disposition is not None:
                 raise ResearchConflict("InputRequest already disposed")
@@ -1247,9 +1086,8 @@ class ResearchControlService:
                 )
                 if request.input_request_id in expired_ids:
                     connection.execute(
-                        "UPDATE research_tasks SET state_version=state_version+1, "
-                        "updated_at=? WHERE task_id=?",
-                        (now, task_id),
+                        'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s',
+                        (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
                     )
                     # Expiry is a durable lifecycle transition. Preserve it even
                     # though the attempted response is rejected.
@@ -1257,7 +1095,7 @@ class ResearchControlService:
                 raise ResearchConflict("InputRequest expired")
             kind = str(input_row["request_kind"])
             canonical_schema = self.CANONICAL_RESPONSE_SCHEMAS[kind]
-            if json.loads(str(input_row["response_schema_json"])) != canonical_schema:
+            if json_object(input_row["response_schema_json"]) != canonical_schema:
                 raise ResearchUnsafeState("stored InputRequest response schema mismatch")
             if kind == "clarification" and request.decision_kind != "clarify_goal":
                 raise ResearchValidationError("decision kind does not match clarification")
@@ -1279,7 +1117,7 @@ class ResearchControlService:
             generation, owner_epoch = self._fence(connection, task=task, now=now)
             decision_id = _new_id("human_decision")
             references: dict[str, Any] = {}
-            human_observation: tuple[str, sqlite3.Row, str] | None = None
+            human_observation: tuple[str, dict[str, Any], str] | None = None
             if request.decision_kind == "clarify_goal":
                 objective = str(request.response.get("objective", "")).strip()
                 if not objective:
@@ -1293,12 +1131,12 @@ class ResearchControlService:
                 if not isinstance(policy, dict):
                     raise ResearchValidationError("invalid evidence_policy")
                 source_goal = connection.execute(
-                    "SELECT evidence_policy_json FROM research_goals WHERE goal_id=?",
-                    (str(attempt["goal_id"]),),
+                    'SELECT evidence_policy_json FROM research_goals WHERE workspace_id=%s AND  goal_id=%s',
+                    (self.context.workspace_id, str(attempt['goal_id'])),
                 ).fetchone()
                 if source_goal is None:
                     raise ResearchUnsafeState("clarification source Goal is missing")
-                source_policy = json.loads(str(source_goal["evidence_policy_json"]))
+                source_policy = json_object(source_goal["evidence_policy_json"])
                 if source_policy.get("product_execution") == "receipt_bound_provider":
                     # A user's clarification can change the question and semantic
                     # constraints, never the server-owned Provider authority,
@@ -1308,100 +1146,47 @@ class ResearchControlService:
                 result_id = _new_id("result")
                 connection.execute(
                     """
-                    INSERT INTO research_results(
-                        result_id, task_id, goal_id, attempt_id, checkpoint_id,
-                        answer_status, termination_reason, failure_class,
-                        reason_detail, is_task_terminal, owner_epoch, created_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, 'goal_revised', 'none',
-                             'human clarification', 0, ?, ?)
+                    INSERT INTO research_results(workspace_id, result_id, task_id, goal_id, attempt_id, checkpoint_id, answer_status, termination_reason, failure_class, reason_detail, is_task_terminal, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, 'goal_revised', 'none', 'human clarification', false, %s, %s)
                     """,
-                    (
-                        result_id,
-                        task_id,
-                        str(attempt["goal_id"]),
-                        str(attempt["attempt_id"]),
-                        checkpoint_id,
-                        self._latest_answer_status(connection, task_id),
-                        owner_epoch,
-                        now,
-                    ),
+                    (self.context.workspace_id, result_id, task_id, str(attempt['goal_id']), str(attempt['attempt_id']), checkpoint_id, self._latest_answer_status(connection, task_id), owner_epoch, _parse_iso(now)),
                 )
                 connection.execute(
-                    "UPDATE research_attempts SET status='terminal', result_id=?, ended_at=? "
-                    "WHERE attempt_id=?",
-                    (result_id, now, str(attempt["attempt_id"])),
+                    "UPDATE research_attempts SET status='terminal', result_id=%s, ended_at=%s WHERE workspace_id=%s AND  attempt_id=%s",
+                    (result_id, _parse_iso(now), self.context.workspace_id, str(attempt['attempt_id'])),
                 )
                 connection.execute(
-                    "UPDATE research_traces SET ended_at=?, termination_reason='goal_revised' "
-                    "WHERE attempt_id=? AND ended_at IS NULL",
-                    (now, str(attempt["attempt_id"])),
+                    "UPDATE research_traces SET ended_at=%s, termination_reason='goal_revised' WHERE workspace_id=%s AND  attempt_id=%s AND ended_at IS NULL",
+                    (_parse_iso(now), self.context.workspace_id, str(attempt['attempt_id'])),
                 )
                 revision = int(
                     connection.execute(
-                        "SELECT MAX(revision)+1 FROM research_goals WHERE task_id=?",
-                        (task_id,),
-                    ).fetchone()[0]
+                        'SELECT MAX(revision)+1 AS value FROM research_goals WHERE workspace_id=%s AND  task_id=%s',
+                        (self.context.workspace_id, task_id),
+                    ).fetchone()["value"]
                 )
                 goal_id = _new_id("goal")
                 connection.execute(
                     """
-                    INSERT INTO research_goals(
-                        goal_id, task_id, revision, parent_goal_id, objective,
-                        success_constraints_json, evidence_policy_json,
-                        created_by_event_id, created_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, NULL, ?)
+                    INSERT INTO research_goals(workspace_id, goal_id, task_id, revision, parent_goal_id, objective, success_constraints_json, evidence_policy_json, created_by_event_id, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, NULL, %s)
                     """,
-                    (
-                        goal_id,
-                        task_id,
-                        revision,
-                        str(attempt["goal_id"]),
-                        objective,
-                        _canonical_json(constraints),
-                        _canonical_json(policy),
-                        now,
-                    ),
+                    (self.context.workspace_id, goal_id, task_id, revision, str(attempt['goal_id']), objective, json_field(_canonical_json(constraints)), json_field(_canonical_json(policy)), _parse_iso(now)),
                 )
                 child_attempt_id = _new_id("attempt")
                 ordinal = int(attempt["ordinal"]) + 1
                 connection.execute(
                     """
-                    INSERT INTO research_attempts(
-                        attempt_id, task_id, goal_id, ordinal, cause,
-                        parent_attempt_id, source_checkpoint_id, status, owner_epoch,
-                        result_id, started_at, ended_at, created_at
-                    ) VALUES(?, ?, ?, ?, 'goal_revision', ?, ?, 'running', ?,
-                             NULL, ?, NULL, ?)
+                    INSERT INTO research_attempts(workspace_id, attempt_id, task_id, goal_id, ordinal, cause, parent_attempt_id, source_checkpoint_id, status, owner_epoch, result_id, started_at, ended_at, created_at) VALUES(%s, %s, %s, %s, %s, 'goal_revision', %s, %s, 'running', %s, NULL, %s, NULL, %s)
                     """,
-                    (
-                        child_attempt_id,
-                        task_id,
-                        goal_id,
-                        ordinal,
-                        str(attempt["attempt_id"]),
-                        checkpoint_id,
-                        owner_epoch,
-                        now,
-                        now,
-                    ),
+                    (self.context.workspace_id, child_attempt_id, task_id, goal_id, ordinal, str(attempt['attempt_id']), checkpoint_id, owner_epoch, _parse_iso(now), _parse_iso(now)),
                 )
                 trace_id = _new_id("trace")
                 connection.execute(
-                    "INSERT INTO research_traces(trace_id, task_id, attempt_id, "
-                    "trace_schema_version, started_at, ended_at, termination_reason, "
-                    "retention_class) VALUES(?, ?, ?, ?, ?, NULL, NULL, 'stage4_control')",
-                    (
-                        trace_id,
-                        task_id,
-                        child_attempt_id,
-                        self.TRACE_SCHEMA_VERSION,
-                        now,
-                    ),
+                    "INSERT INTO research_traces(workspace_id, trace_id, task_id, attempt_id, trace_schema_version, started_at, ended_at, termination_reason, retention_class) VALUES(%s, %s, %s, %s, %s, %s, NULL, NULL, 'stage4_control')",
+                    (self.context.workspace_id, trace_id, task_id, child_attempt_id, self.TRACE_SCHEMA_VERSION, _parse_iso(now)),
                 )
                 connection.execute(
-                    "UPDATE research_tasks SET active_goal_id=?, status='running' "
-                    "WHERE task_id=?",
-                    (goal_id, task_id),
+                    "UPDATE research_tasks SET active_goal_id=%s, status='running' WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                    (goal_id, self.context.workspace_id, self.context.user_id, task_id),
                 )
                 references = {
                     "result_id": result_id,
@@ -1412,16 +1197,16 @@ class ResearchControlService:
                 applied_action = "goal_revision"
             else:
                 selected = request.response.get("selected_option")
-                choices = json.loads(str(input_row["choices_json"]))
+                choices = json_array(input_row["choices_json"])
                 if not isinstance(selected, str) or selected not in choices:
                     raise ResearchValidationError("selected_option is not allowed")
                 constraint = connection.execute(
-                    "SELECT * FROM research_constraint_specs WHERE constraint_id=?",
-                    (str(input_row["constraint_id"]),),
+                    'SELECT * FROM research_constraint_specs WHERE workspace_id=%s AND  constraint_id=%s',
+                    (self.context.workspace_id, str(input_row['constraint_id'])),
                 ).fetchone()
                 if constraint is None:
                     raise ResearchUnsafeState("human-decidable constraint disappeared")
-                policy = json.loads(str(constraint["evaluator_policy_json"]))
+                policy = json_object(constraint["evaluator_policy_json"])
                 if (
                     policy.get("authority") != "server_registry"
                     or policy.get("human_decidable") is not True
@@ -1431,62 +1216,29 @@ class ResearchControlService:
                 observation_id = _new_id("human_observation")
                 human_observation = (observation_id, constraint, selected)
                 connection.execute(
-                    "UPDATE research_attempts SET status='blocked' WHERE attempt_id=?",
-                    (str(attempt["attempt_id"]),),
+                    "UPDATE research_attempts SET status='blocked' WHERE workspace_id=%s AND  attempt_id=%s",
+                    (self.context.workspace_id, str(attempt['attempt_id'])),
                 )
                 connection.execute(
-                    "UPDATE research_tasks SET status='blocked' WHERE task_id=?",
-                    (task_id,),
+                    "UPDATE research_tasks SET status='blocked' WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                    (self.context.workspace_id, self.context.user_id, task_id),
                 )
                 references = {"observation_id": observation_id}
                 applied_action = "human_constraint_observation"
 
             connection.execute(
                 """
-                INSERT INTO research_human_decisions(
-                    decision_id, input_request_id, task_id, command_id,
-                    principal_id, decision_kind, response_hash, response_json,
-                    applied_action, result_references_json, control_generation,
-                    created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_human_decisions(workspace_id, decision_id, input_request_id, task_id, command_id, principal_id, decision_kind, response_hash, response_json, applied_action, result_references_json, control_generation, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    decision_id,
-                    request.input_request_id,
-                    task_id,
-                    request.command_id,
-                    principal_id,
-                    request.decision_kind,
-                    hashlib.sha256(response_json.encode()).hexdigest(),
-                    response_json,
-                    applied_action,
-                    _canonical_json(references),
-                    generation,
-                    now,
-                ),
+                (self.context.workspace_id, decision_id, request.input_request_id, task_id, request.command_id, principal_id, request.decision_kind, hashlib.sha256(response_json.encode()).hexdigest(), json_field(response_json), applied_action, json_field(_canonical_json(references)), generation, _parse_iso(now)),
             )
             if human_observation is not None:
                 observation_id, constraint, selected = human_observation
                 connection.execute(
                     """
-                    INSERT INTO research_human_constraint_observations(
-                        observation_id, task_id, goal_id, attempt_id,
-                        constraint_id, decision_id, selected_option,
-                        evaluator_policy_version, control_generation, created_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO research_human_constraint_observations(workspace_id, observation_id, task_id, goal_id, attempt_id, constraint_id, decision_id, selected_option, evaluator_policy_version, control_generation, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
-                    (
-                        observation_id,
-                        task_id,
-                        str(input_row["goal_id"]),
-                        str(input_row["attempt_id"]),
-                        str(input_row["constraint_id"]),
-                        decision_id,
-                        selected,
-                        str(constraint["evaluator_policy_version"]),
-                        generation,
-                        now,
-                    ),
+                    (self.context.workspace_id, observation_id, task_id, str(input_row['goal_id']), str(input_row['attempt_id']), str(input_row['constraint_id']), decision_id, selected, str(constraint['evaluator_policy_version']), generation, _parse_iso(now)),
                 )
             disposition_id = self._insert_input_disposition(
                 connection,
@@ -1579,26 +1331,9 @@ class ResearchControlService:
             resolution_id = _new_id("side_effect_resolution")
             connection.execute(
                 """
-                INSERT INTO research_side_effect_resolutions(
-                    resolution_id, side_effect_id, task_id, command_id,
-                    principal_id, resolution, reason, receipt_hash,
-                    result_reference, control_generation, owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_side_effect_resolutions(workspace_id, resolution_id, side_effect_id, task_id, command_id, principal_id, resolution, reason, receipt_hash, result_reference, control_generation, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    resolution_id,
-                    request.side_effect_id,
-                    task_id,
-                    request.command_id,
-                    principal_id,
-                    request.resolution,
-                    request.reason,
-                    request.receipt_hash,
-                    request.result_reference,
-                    generation,
-                    owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, resolution_id, request.side_effect_id, task_id, request.command_id, principal_id, request.resolution, request.reason, request.receipt_hash, request.result_reference, generation, owner_epoch, _parse_iso(now)),
             )
             effect_status = (
                 "succeeded"
@@ -1606,35 +1341,24 @@ class ResearchControlService:
                 else "failed"
             )
             connection.execute(
-                "UPDATE research_side_effects SET status=?, owner_epoch=?, "
-                "receipt_hash=COALESCE(?, receipt_hash), "
-                "result_reference=COALESCE(?, result_reference), updated_at=? "
-                "WHERE side_effect_id=? AND status='unknown'",
-                (
-                    effect_status,
-                    owner_epoch,
-                    request.receipt_hash,
-                    request.result_reference,
-                    now,
-                    request.side_effect_id,
-                ),
+                "UPDATE research_side_effects SET status=%s, owner_epoch=%s, receipt_hash=COALESCE(%s, receipt_hash), result_reference=COALESCE(%s, result_reference), updated_at=%s WHERE workspace_id=%s AND  side_effect_id=%s AND status='unknown'",
+                (effect_status, owner_epoch, request.receipt_hash, request.result_reference, _parse_iso(now), self.context.workspace_id, request.side_effect_id),
             )
             pending_unknown = int(
                 connection.execute(
-                    "SELECT COUNT(*) FROM research_side_effects WHERE task_id=? "
-                    "AND status IN ('in_flight','unknown')",
-                    (task_id,),
-                ).fetchone()[0]
+                    "SELECT COUNT(*) AS value FROM research_side_effects WHERE workspace_id=%s AND  task_id=%s AND status IN ('in_flight','unknown')",
+                    (self.context.workspace_id, task_id),
+                ).fetchone()["value"]
             )
             pending_cancel = connection.execute(
                 """
                 SELECT cr.* FROM research_control_requests cr
                 JOIN research_control_dispositions cd
-                  ON cd.control_request_id=cr.control_request_id
-                WHERE cr.task_id=? AND cr.request_kind='cancel' AND cd.status='applied'
+                  ON (cd.workspace_id,cd.control_request_id)=(cr.workspace_id,cr.control_request_id)
+                WHERE cr.workspace_id=%s AND  cr.task_id=%s AND cr.request_kind='cancel' AND cd.status='applied'
                 ORDER BY cr.created_at DESC LIMIT 1
                 """,
-                (task_id,),
+                (self.context.workspace_id, task_id),
             ).fetchone()
             result_id: str | None = None
             if pending_cancel is not None and pending_unknown == 0:
@@ -1656,8 +1380,8 @@ class ResearchControlService:
                 outcome = "cancelled"
             else:
                 connection.execute(
-                    "UPDATE research_tasks SET status='blocked' WHERE task_id=?",
-                    (task_id,),
+                    "UPDATE research_tasks SET status='blocked' WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                    (self.context.workspace_id, self.context.user_id, task_id),
                 )
                 outcome = "resolved_blocked"
             self.kernel._event(
@@ -1701,7 +1425,7 @@ class ResearchControlService:
         return {**response, "deduplicated": False}
 
     def _assert_derivation_depth(
-        self, connection: sqlite3.Connection, source_task_id: str
+        self, connection: Connection, source_task_id: str
     ) -> None:
         current = source_task_id
         visited: set[str] = set()
@@ -1710,9 +1434,8 @@ class ResearchControlService:
                 raise ResearchUnsafeState("TaskDerivation lineage cycle")
             visited.add(current)
             row = connection.execute(
-                "SELECT source_task_id FROM research_task_derivations "
-                "WHERE child_task_id=?",
-                (current,),
+                'SELECT source_task_id FROM research_task_derivations WHERE workspace_id=%s AND  child_task_id=%s',
+                (self.context.workspace_id, current),
             ).fetchone()
             if row is None:
                 return
@@ -1746,10 +1469,12 @@ class ResearchControlService:
         )
         now = _iso(self._now())
         with self.kernel._transaction() as connection:
+            # The immutable TaskDerivation row closes this independent child's
+            # source lineage later in this same transaction.
+            connection.execute("SET CONSTRAINTS shiliu.research_attempt_source_lineage DEFERRED")
             existing_derivation = connection.execute(
-                "SELECT child_task_id FROM research_task_derivations "
-                "WHERE source_task_id=? AND command_id=?",
-                (source_task_id, request.command_id),
+                'SELECT child_task_id FROM research_task_derivations WHERE workspace_id=%s AND  source_task_id=%s AND command_id=%s',
+                (self.context.workspace_id, source_task_id, request.command_id),
             ).fetchone()
             if existing_derivation is not None:
                 existing = self.kernel._existing_receipt(
@@ -1762,7 +1487,7 @@ class ResearchControlService:
                     raise ResearchConflict("TaskDerivation receipt is missing")
                 return {**existing, "deduplicated": True}
             existing_child = connection.execute(
-                "SELECT 1 FROM research_tasks WHERE task_id=?", (child_task_id,)
+                'SELECT 1 FROM research_tasks WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s', (self.context.workspace_id, self.context.user_id, child_task_id)
             ).fetchone()
             if existing_child is not None:
                 existing = self.kernel._existing_receipt(
@@ -1776,8 +1501,8 @@ class ResearchControlService:
                 return {**existing, "deduplicated": True}
             source_task = self.kernel._task(connection, source_task_id)
             source_checkpoint = connection.execute(
-                "SELECT * FROM research_checkpoints WHERE checkpoint_id=?",
-                (request.source_checkpoint_id,),
+                'SELECT * FROM research_checkpoints WHERE workspace_id=%s AND  checkpoint_id=%s',
+                (self.context.workspace_id, request.source_checkpoint_id),
             ).fetchone()
             if (
                 source_checkpoint is None
@@ -1789,8 +1514,8 @@ class ResearchControlService:
                 connection, str(source_checkpoint["attempt_id"])
             )
             source_goal = connection.execute(
-                "SELECT * FROM research_goals WHERE goal_id=?",
-                (str(source_checkpoint["goal_id"]),),
+                'SELECT * FROM research_goals WHERE workspace_id=%s AND  goal_id=%s',
+                (self.context.workspace_id, str(source_checkpoint['goal_id'])),
             ).fetchone()
             if source_goal is None:
                 raise ResearchUnsafeState("source Goal is not addressable")
@@ -1806,11 +1531,10 @@ class ResearchControlService:
                 "source_state_hash": str(source_checkpoint["state_hash"]),
                 "source_owner_epoch": int(source_checkpoint["owner_epoch"]),
                 "evidence_identity_ids": [
-                    str(row[0])
+                    str(row["evidence_id"])
                     for row in connection.execute(
-                        "SELECT DISTINCT evidence_id FROM research_evidence_uses "
-                        "WHERE task_id=? ORDER BY evidence_id",
-                        (source_task_id,),
+                        'SELECT DISTINCT evidence_id FROM research_evidence_uses WHERE workspace_id=%s AND  task_id=%s ORDER BY evidence_id',
+                        (self.context.workspace_id, source_task_id),
                     ).fetchall()
                 ],
                 "provider_replay": False,
@@ -1831,19 +1555,19 @@ class ResearchControlService:
             constraints = (
                 request.success_constraints
                 if request.success_constraints is not None
-                else json.loads(str(source_goal["success_constraints_json"]))
+                else json_array(source_goal["success_constraints_json"])
             )
             evidence_policy = (
                 request.evidence_policy
                 if request.evidence_policy is not None
-                else json.loads(str(source_goal["evidence_policy_json"]))
+                else json_object(source_goal["evidence_policy_json"])
             )
             goal_delta = {
                 "objective_changed": objective != str(source_goal["objective"]),
                 "success_constraints_changed": constraints
-                != json.loads(str(source_goal["success_constraints_json"])),
+                != json_array(source_goal["success_constraints_json"]),
                 "evidence_policy_changed": evidence_policy
-                != json.loads(str(source_goal["evidence_policy_json"])),
+                != json_object(source_goal["evidence_policy_json"]),
             }
             if request.kind == "branch" and not any(goal_delta.values()):
                 raise ResearchValidationError("branch requires an explicit Goal delta")
@@ -1853,115 +1577,42 @@ class ResearchControlService:
             trace_id = _new_id("trace")
             connection.execute(
                 """
-                INSERT INTO research_tasks(
-                    task_id, parent_task_id, status, active_goal_id, state_version,
-                    owner_id, owner_epoch, control_generation, lease_until,
-                    terminal_result_id, created_at, updated_at
-                ) VALUES(?, NULL, 'blocked', NULL, 0, NULL, 1, 0, NULL, NULL, ?, ?)
+                INSERT INTO research_tasks(workspace_id, owner_user_id, task_id, parent_task_id, status, active_goal_id, state_version, owner_id, owner_epoch, control_generation, lease_until, terminal_result_id, created_at, updated_at) VALUES(%s, %s, %s, NULL, 'blocked', NULL, 0, NULL, 1, 0, NULL, NULL, %s, %s)
                 """,
-                (child_task_id, now, now),
+                (self.context.workspace_id, self.context.user_id, child_task_id, _parse_iso(now), _parse_iso(now)),
             )
             connection.execute(
                 """
-                INSERT INTO research_goals(
-                    goal_id, task_id, revision, parent_goal_id, objective,
-                    success_constraints_json, evidence_policy_json,
-                    created_by_event_id, created_at
-                ) VALUES(?, ?, 1, NULL, ?, ?, ?, NULL, ?)
+                INSERT INTO research_goals(workspace_id, goal_id, task_id, revision, parent_goal_id, objective, success_constraints_json, evidence_policy_json, created_by_event_id, created_at) VALUES(%s, %s, %s, 1, NULL, %s, %s, %s, NULL, %s)
                 """,
-                (
-                    child_goal_id,
-                    child_task_id,
-                    objective,
-                    _canonical_json(constraints),
-                    _canonical_json(evidence_policy),
-                    now,
-                ),
+                (self.context.workspace_id, child_goal_id, child_task_id, objective, json_field(_canonical_json(constraints)), json_field(_canonical_json(evidence_policy)), _parse_iso(now)),
             )
             connection.execute(
-                "UPDATE research_tasks SET active_goal_id=? WHERE task_id=?",
-                (child_goal_id, child_task_id),
+                'UPDATE research_tasks SET active_goal_id=%s WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s',
+                (child_goal_id, self.context.workspace_id, self.context.user_id, child_task_id),
             )
             connection.execute(
                 """
-                INSERT INTO research_attempts(
-                    attempt_id, task_id, goal_id, ordinal, cause,
-                    parent_attempt_id, source_checkpoint_id, status, owner_epoch,
-                    result_id, started_at, ended_at, created_at
-                ) VALUES(?, ?, ?, 1, ?, ?, ?, 'blocked', 1, NULL, ?, NULL, ?)
+                INSERT INTO research_attempts(workspace_id, attempt_id, task_id, goal_id, ordinal, cause, parent_attempt_id, source_checkpoint_id, status, owner_epoch, result_id, started_at, ended_at, created_at) VALUES(%s, %s, %s, %s, 1, %s, %s, %s, 'blocked', 1, NULL, %s, NULL, %s)
                 """,
-                (
-                    child_attempt_id,
-                    child_task_id,
-                    child_goal_id,
-                    request.kind,
-                    str(source_attempt["attempt_id"]),
-                    request.source_checkpoint_id,
-                    now,
-                    now,
-                ),
+                (self.context.workspace_id, child_attempt_id, child_task_id, child_goal_id, request.kind, str(source_attempt['attempt_id']), request.source_checkpoint_id, _parse_iso(now), _parse_iso(now)),
             )
             connection.execute(
                 """
-                INSERT INTO research_checkpoints(
-                    checkpoint_id, task_id, goal_id, attempt_id,
-                    parent_checkpoint_id, sequence, state_schema_version,
-                    state_hash, state_payload_json, is_complete, owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, NULL, 1, ?, ?, ?, 1, 1, ?)
+                INSERT INTO research_checkpoints(workspace_id, checkpoint_id, task_id, goal_id, attempt_id, parent_checkpoint_id, sequence, state_schema_version, state_hash, state_payload_json, is_complete, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, NULL, 1, %s, %s, %s, true, 1, %s)
                 """,
-                (
-                    child_checkpoint_id,
-                    child_task_id,
-                    child_goal_id,
-                    child_attempt_id,
-                    str(source_checkpoint["state_schema_version"]),
-                    str(source_checkpoint["state_hash"]),
-                    str(source_checkpoint["state_payload_json"]),
-                    now,
-                ),
+                (self.context.workspace_id, child_checkpoint_id, child_task_id, child_goal_id, child_attempt_id, str(source_checkpoint['state_schema_version']), str(source_checkpoint['state_hash']), json_field(source_checkpoint['state_payload_json']), _parse_iso(now)),
             )
             connection.execute(
-                "INSERT INTO research_traces(trace_id, task_id, attempt_id, "
-                "trace_schema_version, started_at, ended_at, termination_reason, "
-                "retention_class) VALUES(?, ?, ?, ?, ?, NULL, NULL, 'stage4_derivation')",
-                (
-                    trace_id,
-                    child_task_id,
-                    child_attempt_id,
-                    self.TRACE_SCHEMA_VERSION,
-                    now,
-                ),
+                "INSERT INTO research_traces(workspace_id, trace_id, task_id, attempt_id, trace_schema_version, started_at, ended_at, termination_reason, retention_class) VALUES(%s, %s, %s, %s, %s, %s, NULL, NULL, 'stage4_derivation')",
+                (self.context.workspace_id, trace_id, child_task_id, child_attempt_id, self.TRACE_SCHEMA_VERSION, _parse_iso(now)),
             )
             derivation_id = _new_id("derivation")
             connection.execute(
                 """
-                INSERT INTO research_task_derivations(
-                    derivation_id, derivation_schema_version, source_task_id,
-                    source_goal_id, source_attempt_id, source_checkpoint_id,
-                    child_task_id, child_goal_id, child_attempt_id, command_id,
-                    derivation_kind, source_state_hash, source_manifest_json,
-                    goal_delta_json, payload_hash, principal_id, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_task_derivations(workspace_id, derivation_id, derivation_schema_version, source_task_id, source_goal_id, source_attempt_id, source_checkpoint_id, child_task_id, child_goal_id, child_attempt_id, command_id, derivation_kind, source_state_hash, source_manifest_json, goal_delta_json, payload_hash, principal_id, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    derivation_id,
-                    DERIVATION_SCHEMA_VERSION,
-                    source_task_id,
-                    str(source_goal["goal_id"]),
-                    str(source_attempt["attempt_id"]),
-                    request.source_checkpoint_id,
-                    child_task_id,
-                    child_goal_id,
-                    child_attempt_id,
-                    request.command_id,
-                    request.kind,
-                    str(source_checkpoint["state_hash"]),
-                    manifest_json,
-                    _canonical_json(goal_delta),
-                    payload_hash,
-                    principal_id,
-                    now,
-                ),
+                (self.context.workspace_id, derivation_id, DERIVATION_SCHEMA_VERSION, source_task_id, str(source_goal['goal_id']), str(source_attempt['attempt_id']), request.source_checkpoint_id, child_task_id, child_goal_id, child_attempt_id, request.command_id, request.kind, str(source_checkpoint['state_hash']), json_field(manifest_json), json_field(_canonical_json(goal_delta)), payload_hash, principal_id, _parse_iso(now)),
             )
             event_id = self.kernel._event(
                 connection,
@@ -1981,8 +1632,8 @@ class ResearchControlService:
                 now=now,
             )
             connection.execute(
-                "UPDATE research_goals SET created_by_event_id=? WHERE goal_id=?",
-                (event_id, child_goal_id),
+                'UPDATE research_goals SET created_by_event_id=%s WHERE workspace_id=%s AND  goal_id=%s',
+                (event_id, self.context.workspace_id, child_goal_id),
             )
             response = {
                 "task_id": child_task_id,
@@ -2010,8 +1661,8 @@ class ResearchControlService:
         return {**response, "deduplicated": False}
 
     @staticmethod
-    def _decode(row: sqlite3.Row) -> dict[str, Any]:
-        value = dict(row)
+    def _decode(row: dict[str, Any]) -> dict[str, Any]:
+        value = row_dto(row, timestamps=[k for k,v in row.items() if isinstance(v,datetime)], timespec="microseconds")
         for name in (
             "payload_json",
             "audit_actor_metadata_json",
@@ -2025,7 +1676,7 @@ class ResearchControlService:
         ):
             if name in value:
                 raw = value.pop(name)
-                value[name.removesuffix("_json")] = json.loads(str(raw)) if raw else None
+                value[name.removesuffix("_json")] = (json.loads(raw) if isinstance(raw,str) else raw) if raw is not None else None
         return value
 
     def get_status(self, task_id: str) -> dict[str, Any]:
@@ -2042,43 +1693,42 @@ class ResearchControlService:
             )
             if expired:
                 connection.execute(
-                    "UPDATE research_tasks SET state_version=state_version+1, "
-                    "updated_at=? WHERE task_id=?",
-                    (now, task_id),
+                    'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s',
+                    (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
                 )
                 task = self.kernel._task(connection, task_id)
             tables = {
                 "control_requests": (
-                    "SELECT * FROM research_control_requests WHERE task_id=? "
+                    "SELECT * FROM research_control_requests WHERE workspace_id=%s AND task_id=%s "
                     "ORDER BY created_at, control_request_id"
                 ),
                 "control_dispositions": (
-                    "SELECT * FROM research_control_dispositions WHERE task_id=? "
-                    "ORDER BY rowid"
+                    "SELECT * FROM research_control_dispositions WHERE workspace_id=%s AND task_id=%s "
+                    "ORDER BY insertion_seq"
                 ),
                 "input_requests": (
-                    "SELECT * FROM research_input_requests WHERE task_id=? "
+                    "SELECT * FROM research_input_requests WHERE workspace_id=%s AND task_id=%s "
                     "ORDER BY created_at, input_request_id"
                 ),
                 "input_dispositions": (
-                    "SELECT * FROM research_input_dispositions WHERE task_id=? "
-                    "ORDER BY rowid"
+                    "SELECT * FROM research_input_dispositions WHERE workspace_id=%s AND task_id=%s "
+                    "ORDER BY insertion_seq"
                 ),
                 "human_decisions": (
-                    "SELECT * FROM research_human_decisions WHERE task_id=? "
+                    "SELECT * FROM research_human_decisions WHERE workspace_id=%s AND task_id=%s "
                     "ORDER BY created_at, decision_id"
                 ),
                 "human_constraint_observations": (
-                    "SELECT * FROM research_human_constraint_observations WHERE task_id=? "
+                    "SELECT * FROM research_human_constraint_observations WHERE workspace_id=%s AND task_id=%s "
                     "ORDER BY created_at, observation_id"
                 ),
                 "side_effect_resolutions": (
-                    "SELECT * FROM research_side_effect_resolutions WHERE task_id=? "
+                    "SELECT * FROM research_side_effect_resolutions WHERE workspace_id=%s AND task_id=%s "
                     "ORDER BY created_at, resolution_id"
                 ),
                 "derivations": (
                     "SELECT * FROM research_task_derivations "
-                    "WHERE source_task_id=? OR child_task_id=? ORDER BY created_at, derivation_id"
+                    "WHERE workspace_id=%s AND (source_task_id=%s OR child_task_id=%s) ORDER BY created_at, derivation_id"
                 ),
             }
             status = str(task["status"])
@@ -2110,7 +1760,7 @@ class ResearchControlService:
                 "allowed_operations": sorted(allowed),
             }
             for key, query in tables.items():
-                params = (task_id, task_id) if key == "derivations" else (task_id,)
+                params = (self.context.workspace_id, task_id, task_id) if key == "derivations" else (self.context.workspace_id, task_id,)
                 value[key] = [
                     self._decode(row)
                     for row in connection.execute(query, params).fetchall()

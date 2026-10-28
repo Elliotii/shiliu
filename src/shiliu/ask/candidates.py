@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.storage.dto import json_array
+
 import json
 from typing import Any
 
@@ -100,19 +102,19 @@ class AskCandidateProjector:
         with self.db.connect() as connection:
             total = int(
                 connection.execute(
-                    "SELECT COUNT(*) FROM ask_search_trace_links WHERE run_id=?",
-                    (run_id,),
-                ).fetchone()[0]
+                    "SELECT COUNT(*) AS n FROM ask_search_trace_links WHERE workspace_id=%s AND run_id=%s",
+                    (self.db.workspace_id,run_id),
+                ).fetchone()["n"]
             )
             rows = connection.execute(
                 """
                 SELECT sequence, search_trace_id, query, trace_persisted
                 FROM ask_search_trace_links
-                WHERE run_id=?
+                WHERE workspace_id=%s AND run_id=%s
                 ORDER BY sequence
-                LIMIT ?
+                LIMIT %s
                 """,
-                (run_id, MAX_SEARCH_TRACES),
+                (self.db.workspace_id,run_id, MAX_SEARCH_TRACES),
             ).fetchall()
         return [dict(row) for row in rows], total
 
@@ -124,15 +126,15 @@ class AskCandidateProjector:
                 """
                 SELECT status, group_summary_json
                 FROM retrieval_search_presentations
-                WHERE trace_id=?
+                WHERE workspace_id=%s AND trace_id=%s
                 """,
-                (search_trace_id,),
+                (self.db.workspace_id,search_trace_id),
             ).fetchone()
         if row is None or str(row["status"]) != "success":
             return self._f1_groups(search_trace_id)
         try:
-            value = json.loads(str(row["group_summary_json"]))
-        except json.JSONDecodeError:
+            value = json_array(row["group_summary_json"])
+        except (ValueError,TypeError):
             return None
         if not isinstance(value, list):
             return None
@@ -146,14 +148,14 @@ class AskCandidateProjector:
         """
         with self.db.connect() as connection:
             row = connection.execute(
-                "SELECT trace_version,status,raw_hits_json FROM retrieval_search_traces WHERE trace_id=?",
-                (search_trace_id,),
+                "SELECT trace_version,status,raw_hits_json FROM retrieval_search_traces WHERE workspace_id=%s AND trace_id=%s",
+                (self.db.workspace_id,search_trace_id),
             ).fetchone()
         if row is None or row["trace_version"] != "deep-v2-f1" or row["status"] != "complete":
             return None
         try:
-            hits = json.loads(row["raw_hits_json"])
-        except (TypeError, json.JSONDecodeError):
+            hits = json_array(row["raw_hits_json"])
+        except (TypeError, ValueError):
             return None
         if not isinstance(hits, list):
             return None
@@ -205,15 +207,14 @@ class AskCandidateProjector:
         video_ids = sorted({int(value["video_id"]) for value in candidates})
         if not video_ids:
             return {}
-        placeholders = ",".join("?" for _ in video_ids)
         with self.db.connect() as connection:
             rows = connection.execute(
-                f"""
+                """
                 SELECT id, source_id AS bvid, title, video_url, status, removed_at
                 FROM videos
-                WHERE id IN ({placeholders})
+                WHERE workspace_id=%s AND id=ANY(%s)
                 """,
-                video_ids,
+                (self.db.workspace_id,video_ids),
             ).fetchall()
         return {int(row["id"]): dict(row) for row in rows}
 
@@ -229,15 +230,14 @@ class AskCandidateProjector:
         )
         if not unit_ids:
             return {}
-        placeholders = ",".join("?" for _ in unit_ids)
         with self.db.connect() as connection:
             rows = connection.execute(
-                f"""
+                """
                 SELECT unit_id, video_id, unit_type, source_text
                 FROM retrieval_units
-                WHERE unit_id IN ({placeholders})
+                WHERE workspace_id=%s AND unit_id=ANY(%s)
                 """,
-                unit_ids,
+                (self.db.workspace_id,unit_ids),
             ).fetchall()
         return {str(row["unit_id"]): dict(row) for row in rows}
 

@@ -16,7 +16,11 @@ from shiliu.evidence.contracts import (
     SourceArtifactReference,
 )
 from shiliu.evidence.source import canonical_json, load_source_artifact
-from shiliu.retrieval.chunking import ChunkingConfig, RawSubtitleChunk, build_raw_subtitle_chunks
+from shiliu.retrieval.chunking import (
+    ChunkingConfig,
+    RawSubtitleChunk,
+    build_raw_subtitle_chunks,
+)
 
 
 @dataclass(frozen=True)
@@ -40,7 +44,11 @@ def replay_source_chunks(artifact: ParsedSourceArtifact) -> tuple[ReplayedChunk,
         source_type=artifact.reference.source_type,
         segments=[
             SubtitleSegment.model_validate(
-                {"from": segment.start_time, "to": segment.end_time, "content": segment.source_text}
+                {
+                    "from": segment.start_time,
+                    "to": segment.end_time,
+                    "content": segment.source_text,
+                }
             )
             for segment in artifact.segments
         ],
@@ -63,6 +71,7 @@ def map_retrieval_chunk(
     expected_source_version: str,
     source_chunk_policy_version: str = SOURCE_CHUNK_POLICY_VERSION,
     replay_implementation_version: str = REPLAY_IMPLEMENTATION_VERSION,
+    artifacts=None,
 ) -> ChunkSegmentMapping:
     if (
         source_chunk_policy_version != SOURCE_CHUNK_POLICY_VERSION
@@ -73,7 +82,7 @@ def map_retrieval_chunk(
             code="chunk_policy_version_mismatch",
         )
     artifact = load_source_artifact(
-        reference, expected_source_version=expected_source_version
+        reference, expected_source_version=expected_source_version, artifacts=artifacts
     )
     return map_chunk_in_artifact(artifact, chunk_reference)
 
@@ -86,7 +95,8 @@ def map_chunk_in_artifact(
 ) -> ChunkSegmentMapping:
     replayed_values = replayed_chunks or replay_source_chunks(artifact)
     candidates = [
-        value for value in replayed_values
+        value
+        for value in replayed_values
         if value.chunk.chunk_id == chunk_reference.chunk_id
     ]
     if len(candidates) != 1:
@@ -215,7 +225,11 @@ def _frozen_chunk_selections(
                 break
         if selected:
             selections.append(tuple(selected))
-        if cursor < len(usable) and config.trailing_segment_overlap and len(selected) > 1:
+        if (
+            cursor < len(usable)
+            and config.trailing_segment_overlap
+            and len(selected) > 1
+        ):
             cursor -= 1
         if cursor <= start_index:
             cursor = start_index + 1

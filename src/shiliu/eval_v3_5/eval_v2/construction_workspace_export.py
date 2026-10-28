@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from hashlib import sha256
 import json
 from pathlib import Path
 import shutil
-import sqlite3
 from typing import Any
 
 from shiliu.evidence.source import canonical_json
@@ -30,7 +31,7 @@ def _write_json(path: Path, value: object) -> None:
 
 
 def _raw_paths(snapshot_db: Path) -> dict[str, Path]:
-    connection = sqlite3.connect(f"file:{snapshot_db}?mode=ro", uri=True)
+    connection = connect_snapshot(snapshot_db)
     try:
         return {
             str(source_id): Path(str(raw_path)).resolve()

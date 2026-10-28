@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
-import sqlite3
 from typing import Any
 
 from shiliu.ask.citations import stable_citation_id
@@ -13,6 +12,7 @@ from shiliu.ask.contracts import (
     TranscriptEvidenceSpan,
 )
 from shiliu.db import Database
+from shiliu.storage.dto import json_array
 from shiliu.evidence.authority import bind_live_current_version
 from shiliu.evidence.contracts import EvidenceContractError, SourceArtifactReference
 from shiliu.evidence.source import canonical_json, load_source_artifact
@@ -85,10 +85,11 @@ def provenance_payloads(
 class PersistentEvidenceAuthority:
     """Reconstruct current evidence from immutable identity, never from previews."""
 
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database, artifacts) -> None:
         self.db = db
+        self.artifacts = artifacts
 
-    def observe(self, identity: sqlite3.Row | dict[str, Any]) -> CurrentnessResult:
+    def observe(self, identity: dict[str, Any]) -> CurrentnessResult:
         expected = str(identity["source_version"])
         video_id = int(identity["video_id"])
         video = self.db.get_video(video_id)
@@ -111,7 +112,7 @@ class PersistentEvidenceAuthority:
         observed: str | None = None
         try:
             binding = bind_live_current_version(
-                reference, db=self.db, video_id=video_id
+                reference, db=self.db, video_id=video_id, artifacts=self.artifacts
             )
             observed = binding.source_version
             if (
@@ -126,12 +127,12 @@ class PersistentEvidenceAuthority:
                     span=None,
                 )
             artifact = load_source_artifact(
-                reference, expected_source_version=expected
+                reference, expected_source_version=expected, artifacts=self.artifacts
             )
-            segment_ids = tuple(json.loads(str(identity["segment_ids_json"])))
+            segment_ids = tuple(json_array(identity["segment_ids_json"]))
             ordinals = tuple(
                 int(value)
-                for value in json.loads(str(identity["segment_ordinals_json"]))
+                for value in json_array(identity["segment_ordinals_json"])
             )
             by_id = {value.segment_id: value for value in artifact.segments}
             try:

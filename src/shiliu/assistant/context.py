@@ -4,6 +4,8 @@ Request assembly lives in WorkingContextComposer; checkpoint writes live in Stor
 """
 from __future__ import annotations
 
+from shiliu.storage.dto import json_object
+
 import json
 import re
 from typing import Any
@@ -25,9 +27,9 @@ SYSTEM_RULES = """你是拾流收藏助手。围绕当前收藏范围的有效�
 - 需要收藏证据时先搜索再读取；结论需要时注明材料视图、覆盖范围和时间。界面单独展示本次参考的输入记录，正文直接回答任务即可。available 只表示可读，不等于已读；不声称读过画面或未打开的原文。
 - 某视图空不表示整个视频无正文；检查 available_views。不同搜索词结果可能重复，不能直接相加当独立视频数。
 - 跨材料频率按不同来源计数；同一来源内多次出现不算多篇推荐。匿名写法、品类同名和语音识别疑似错字不要擅自合并为同一款；无法核清时保留原文写法与不确定性。
-- search_knowledge：默认 Wiki 与 Collection 分源候选；Wiki 命中必须用页版本和块 ID Read 正文，候选不代表证据充分。收藏专属筛选请用 sources=[collection]。metadata 可分页穷尽标题/作者/时间条件；content 返回去重候选但非穷尽。用户点名的集合优先保持稳定，缺转写要说明，不能以另一个有字幕的视频替换。
+- search_knowledge：默认 Wiki 与 Collection 分源候选；Wiki 命中必须用页版本和块 ID Read 正文，候选不代表证据充分。收藏专属筛选请用 sources=[collection]。metadata 可分页穷尽标题/作者/时间条件；content 返回去重候选但非穷尽；字幕观点/原话选 collection_scope=transcript_chunk，综合/不确定选all，视频综合单元选video；默认all。用户点名的集合优先保持稳定，缺转写要说明，不能以另一个有字幕的视频替换。
 - 搜索候选的 matched_excerpt 可能拼接标题、简介、派生摘要和转写片段，保留其中的视图标签。摘要说了某个具体参数、已读转写对应处却含混时，不把摘要写成“转写原文确认”的操作条件；若该参数非任务核心，可以省略，或明确写“摘要称……，转写未核清”。其他已核清的动作照常保留。
-- collection_read：定位相关段落用 query；用户要求完整阅读时按 available view 从头沿 next_cursor 读到末尾。工具取回不等于回答模型已经收到全文；只有确认的同来源/版本/视图区间并集才记模型输入覆盖；read_complete 仅是本次触及末尾的旧提示，不代表全文已收到或已核查。版本和视图不一致时不要假装已读。
+- collection_read：有 Search read_hints 时优先照抄 read_args；无提示时可用 query 定位相关段落；用户要求完整阅读时按 available view 从头沿 next_cursor 读到末尾。工具取回不等于回答模型已经收到全文；只有确认的同来源/版本/视图区间并集才记模型输入覆盖；read_complete 仅是本次触及末尾的旧提示，不代表全文已收到或已核查。版本和视图不一致时不要假装已读。
 - 已确定需要、参数已知且互不依赖的工具调用，尽量在同一轮一起发出，避免无必要的模型往返；只有后续选择依赖前一批结果时才分轮。不为凑数量读取所有候选，长材料仍按 cursor 续读。
 - 具体疑点优先定位片段，信息不足再扩大；Wiki 按需要选 overview、block 或 page。用户要求重读、逐篇核查或检查遗漏时，实际读取必要正文，不用旧答案冒充重读；版本相同不是禁读理由。
 - query 定位和 next_cursor 顺序续读是两种读取方式，一次调用只选一种。TaskNote 若已保留同版本主题块正文或短原文，先用已有证据回答；仅针对未覆盖的具体疑点回读。回答任务即使材料仍有空白，也先给可证实的部分并标明空白。
@@ -109,7 +111,7 @@ class ContextMessages:
             if str(item.get("run_id") or "") != prior_run:
                 continue
             try:
-                payload = json.loads(item.get("provider_payload_json") or "{}")
+                payload = json_object(item.get("provider_payload_json") or "{}")
                 refs = list(payload.get("dependency_refs") or [])
                 if item.get("role") == "tool":
                     result = json.loads(str(item.get("content") or "{}"))
@@ -149,7 +151,7 @@ class ContextMessages:
 
     @staticmethod
     def _provider_message(item: dict[str, Any]) -> dict[str, Any]:
-        payload = json.loads(item.get("provider_payload_json") or "{}")
+        payload = json_object(item.get("provider_payload_json") or "{}")
         role = str(item["role"])
         if role == "assistant" and payload.get("tool_calls"):
             return {

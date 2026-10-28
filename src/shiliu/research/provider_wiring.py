@@ -5,12 +5,15 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import hashlib
 import json
-import sqlite3
+from psycopg import Connection
 from typing import Any, Callable, Generic, TypeVar
 
 from pydantic import BaseModel
 
-from shiliu.db import Database
+from shiliu.storage.fences import lock_workspace
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import json_value
+from shiliu.research.service import _parse_iso
 from shiliu.research.errors import (
     ResearchConflict,
     ResearchUnsafeState,
@@ -89,6 +92,25 @@ class ProviderPricePolicy:
     grounded_thinking_enabled: bool = True
     grounded_reasoning_effort: str | None = "high"
 
+    @classmethod
+    def deployed(cls, *, base_url: str, model: str, **kwargs):
+        if base_url.rstrip("/") != "https://api.deepseek.com/v1":
+            raise ResearchValidationError("unregistered provider pricing")
+        if model == "deepseek-v4-flash":
+            # Official 2026-10-25 peak prices. Keep a conservative upper bound
+            # across clock changes and Chinese holidays; no invoice claim.
+            # Off-peak is cheaper. The existing absolute USD cap still applies.
+            return cls(
+                base_url=base_url, model=model,
+                input_cache_hit_per_million=Decimal("0.006"),
+                input_cache_miss_per_million=Decimal("0.3"),
+                output_per_million=Decimal("1.2"),
+                reservation_peak_multiplier=Decimal("1"), **kwargs,
+            )
+        if model == "deepseek-v4-pro":
+            return cls(base_url=base_url, model=model, **kwargs)
+        raise ResearchValidationError("unregistered model pricing")
+
     def expected_identity(self, role: str) -> dict[str, object]:
         if role not in SUPPORTED_ROLES:
             raise ResearchValidationError(f"unsupported provider role: {role}")
@@ -143,6 +165,9 @@ class ProviderPricePolicy:
 
     def manifest(self) -> dict[str, object]:
         return {
+            **({"pricing_basis": "published_peak_upper_bound_20261025",
+                "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/"}
+               if self.model == "deepseek-v4-flash" else {}),
             "provider": self.provider,
             "provider_protocol": self.provider_protocol,
             "base_url": self.base_url,
@@ -434,6 +459,7 @@ class ReceiptBoundProviderService:
         provider_dispatch_authorized: bool = False,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.price_policy = price_policy or ProviderPricePolicy()
         self.role_token_caps = {
@@ -502,10 +528,10 @@ class ReceiptBoundProviderService:
             and context.run_budget.time_policy_version == "research_active_time_v2"
         ):
             with self.db.connect() as connection:
+                self.kernel._task(connection,context.task_id,lock=False)
                 time_row = connection.execute(
-                    "SELECT active_budget_ms, consumed_active_ms, reserved_tail_ms "
-                    "FROM research_execution_metadata WHERE task_id=?",
-                    (context.task_id,),
+                    'SELECT active_budget_ms, consumed_active_ms, reserved_tail_ms FROM research_execution_metadata WHERE research_execution_metadata.workspace_id=%s AND  task_id=%s',
+                    (self.context.workspace_id, context.task_id),
                 ).fetchone()
             if time_row is None:
                 raise ProviderBudgetExceeded("legacy_time_unaccounted")
@@ -797,13 +823,16 @@ class ReceiptBoundProviderService:
         return response
 
     def budget_snapshot(self, task_id: str) -> ProviderBudgetSnapshot:
-        with self.db.connect() as connection:
+        with self.db.pg.transaction(read_only=True,isolation="repeatable read") as connection:
+            self.kernel._task(connection,task_id,lock=False)
             return self._budget_snapshot(connection, task_id)
 
     def run_budget_snapshot(
         self, policy: ProviderRunBudgetPolicy
     ) -> ProviderRunBudgetSnapshot:
-        with self.db.connect() as connection:
+        with self.db.pg.transaction(read_only=True,isolation="repeatable read") as connection:
+            for task_id in sorted(policy.task_ids):
+                self.kernel._task(connection,task_id,lock=False)
             self._assert_run_budget_binding(connection, policy)
             return self._run_budget_snapshot(connection, policy.task_ids)
 
@@ -816,9 +845,10 @@ class ReceiptBoundProviderService:
         response_schema: type[SchemaT],
     ) -> DurableStructuredResponse[SchemaT] | None:
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             row = connection.execute(
-                "SELECT * FROM research_command_receipts WHERE task_id=? AND command_id=?",
-                (context.task_id, command_id),
+                'SELECT * FROM research_command_receipts WHERE research_command_receipts.workspace_id=%s AND  task_id=%s AND command_id=%s',
+                (self.context.workspace_id, context.task_id, command_id),
             ).fetchone()
             if row is None:
                 return None
@@ -838,7 +868,7 @@ class ReceiptBoundProviderService:
                     payload_hash=payload_hash,
                 )
                 raise AssertionError("unreachable")
-            payload = json.loads(str(row["response_json"]))
+            payload = json_value(row['response_json'])
             payload["state_version"] = int(task["state_version"])
         status = str(payload.get("status"))
         if status == "budget_rejected":
@@ -868,15 +898,16 @@ class ReceiptBoundProviderService:
         now = _iso(now_value)
         rejection: str | None = None
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task, attempt = self._guard(
                 connection, context=context, expected_state=True, now=now_value
             )
             existing = connection.execute(
                 """
                 SELECT * FROM research_side_effects
-                WHERE task_id=? AND effect_kind=? AND idempotency_key=?
+                WHERE research_side_effects.workspace_id=%s AND  task_id=%s AND effect_kind=%s AND idempotency_key=%s
                 """,
-                (context.task_id, PROVIDER_EFFECT_KIND, operation_key),
+                (self.context.workspace_id, context.task_id, PROVIDER_EFFECT_KIND, operation_key),
             ).fetchone()
             if existing is not None:
                 if str(existing["request_hash"]) != descriptor_hash:
@@ -894,11 +925,11 @@ class ReceiptBoundProviderService:
             unresolved = int(
                 connection.execute(
                     """
-                    SELECT COUNT(*) FROM research_side_effects
-                    WHERE task_id=? AND status IN ('in_flight', 'unknown')
+                    SELECT COUNT(*) AS value FROM research_side_effects
+                    WHERE research_side_effects.workspace_id=%s AND  task_id=%s AND status IN ('in_flight', 'unknown')
                     """,
-                    (context.task_id,),
-                ).fetchone()[0]
+                    (self.context.workspace_id, context.task_id),
+                ).fetchone()["value"]
             )
             if unresolved:
                 raise ProviderDispatchUnknown(
@@ -963,32 +994,13 @@ class ReceiptBoundProviderService:
                 side_effect_id = _id("effect", f"{context.task_id}:{operation_key}")
                 connection.execute(
                     """
-                    INSERT INTO research_side_effects(
-                        side_effect_id, task_id, attempt_id, command_id,
-                        idempotency_key, effect_kind, request_hash, request_json,
-                        status, owner_epoch, provider_operation_id, receipt_hash,
-                        result_reference, created_at, updated_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'reserved', ?, NULL, NULL,
-                             NULL, ?, ?)
+                    INSERT INTO research_side_effects(workspace_id, side_effect_id, task_id, attempt_id, command_id, idempotency_key, effect_kind, request_hash, request_json, status, owner_epoch, provider_operation_id, receipt_hash, result_reference, created_at, updated_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, 'reserved', %s, NULL, NULL, NULL, %s, %s)
                     """,
-                    (
-                        side_effect_id,
-                        context.task_id,
-                        context.attempt_id,
-                        f"provider:{operation_key}:reserve",
-                        operation_key,
-                        PROVIDER_EFFECT_KIND,
-                        descriptor_hash,
-                        _canonical_json(descriptor),
-                        context.owner_epoch,
-                        now,
-                        now,
-                    ),
+                    (self.context.workspace_id, side_effect_id, context.task_id, context.attempt_id, f'provider:{operation_key}:reserve', operation_key, PROVIDER_EFFECT_KIND, descriptor_hash, json_field(_canonical_json(descriptor)), context.owner_epoch, _parse_iso(now), _parse_iso(now)),
                 )
                 connection.execute(
-                    "UPDATE research_tasks SET state_version=state_version+1, "
-                    "updated_at=? WHERE task_id=?",
-                    (now, context.task_id),
+                    'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s',
+                    (_parse_iso(now), self.context.workspace_id, self.context.user_id, context.task_id),
                 )
                 self.kernel._event(
                     connection,
@@ -1028,6 +1040,7 @@ class ReceiptBoundProviderService:
         now_value = self.kernel._now()
         now = _iso(now_value)
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task, attempt = self._guard(
                 connection, context=context, expected_state=True, now=now_value
             )
@@ -1041,14 +1054,12 @@ class ReceiptBoundProviderService:
                     "Provider SideEffect cannot safely transition to in_flight"
                 )
             connection.execute(
-                "UPDATE research_side_effects SET status='in_flight', "
-                "updated_at=? WHERE side_effect_id=?",
-                (now, side_effect_id),
+                "UPDATE research_side_effects SET status='in_flight', updated_at=%s WHERE research_side_effects.workspace_id=%s AND  side_effect_id=%s",
+                (_parse_iso(now), self.context.workspace_id, side_effect_id),
             )
             connection.execute(
-                "UPDATE research_tasks SET state_version=state_version+1, "
-                "updated_at=? WHERE task_id=?",
-                (now, context.task_id),
+                'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s',
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, context.task_id),
             )
             self.kernel._event(
                 connection,
@@ -1138,6 +1149,7 @@ class ReceiptBoundProviderService:
         now_value = self.kernel._now()
         now = _iso(now_value)
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task, attempt = self._guard(
                 connection, context=context, expected_state=True, now=now_value
             )
@@ -1170,16 +1182,15 @@ class ReceiptBoundProviderService:
             connection.execute(
                 """
                 UPDATE research_side_effects
-                SET status='succeeded', provider_operation_id=?, receipt_hash=?,
-                    result_reference=?, updated_at=?
-                WHERE side_effect_id=?
+                SET status='succeeded', provider_operation_id=%s, receipt_hash=%s,
+                    result_reference=%s, updated_at=%s
+                WHERE research_side_effects.workspace_id=%s AND  side_effect_id=%s
                 """,
-                (operation_id, receipt_hash, result_reference, now, side_effect_id),
+                (operation_id, receipt_hash, result_reference, _parse_iso(now), self.context.workspace_id, side_effect_id),
             )
             connection.execute(
-                "UPDATE research_tasks SET state_version=state_version+1, "
-                "updated_at=? WHERE task_id=?",
-                (now, context.task_id),
+                'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s',
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, context.task_id),
             )
             next_version = int(task["state_version"]) + 1
             response_payload = {
@@ -1300,7 +1311,7 @@ class ReceiptBoundProviderService:
 
     def _budget_rejection(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         context: ProviderCallContext,
         descriptor: dict[str, Any],
@@ -1412,13 +1423,12 @@ class ReceiptBoundProviderService:
             )
         return None
 
-    @staticmethod
-    def _active_time_rejection(
-        connection: sqlite3.Connection, task_id: str
+    def _active_time_rejection(self,
+        connection: Connection, task_id: str
     ) -> str | None:
         row = connection.execute(
-            "SELECT * FROM research_execution_metadata WHERE task_id=?",
-            (task_id,),
+            'SELECT * FROM research_execution_metadata WHERE research_execution_metadata.workspace_id=%s AND  task_id=%s',
+            (self.context.workspace_id, task_id),
         ).fetchone()
         if row is None:
             return "legacy_time_unaccounted: Provider execution is disabled"
@@ -1482,6 +1492,7 @@ class ReceiptBoundProviderService:
         now_value = self.kernel._now()
         now = _iso(now_value)
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task, attempt = self._guard(
                 connection, context=context, expected_state=True, now=now_value
             )
@@ -1513,21 +1524,14 @@ class ReceiptBoundProviderService:
             connection.execute(
                 """
                 UPDATE research_side_effects SET status='failed',
-                    provider_operation_id=?, receipt_hash=?, result_reference=?,
-                    updated_at=? WHERE side_effect_id=?
+                    provider_operation_id=%s, receipt_hash=%s, result_reference=%s,
+                    updated_at=%s WHERE research_side_effects.workspace_id=%s AND  side_effect_id=%s
                 """,
-                (
-                    metadata["response_id"],
-                    receipt_hash,
-                    result_reference,
-                    now,
-                    side_effect_id,
-                ),
+                (metadata['response_id'], receipt_hash, result_reference, _parse_iso(now), self.context.workspace_id, side_effect_id),
             )
             connection.execute(
-                "UPDATE research_tasks SET state_version=state_version+1, "
-                "updated_at=? WHERE task_id=?",
-                (now, context.task_id),
+                'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s',
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, context.task_id),
             )
             next_version = int(task["state_version"]) + 1
             response = {
@@ -1586,6 +1590,7 @@ class ReceiptBoundProviderService:
         now = _iso(now_value)
         reason = "Provider runtime identity mismatch: " + ", ".join(mismatches)
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task, attempt = self._guard(
                 connection, context=context, expected_state=True, now=now_value
             )
@@ -1612,14 +1617,12 @@ class ReceiptBoundProviderService:
                 error_detail=reason,
             )
             connection.execute(
-                "UPDATE research_side_effects SET status='failed', updated_at=? "
-                "WHERE side_effect_id=?",
-                (now, side_effect_id),
+                "UPDATE research_side_effects SET status='failed', updated_at=%s WHERE research_side_effects.workspace_id=%s AND  side_effect_id=%s",
+                (_parse_iso(now), self.context.workspace_id, side_effect_id),
             )
             connection.execute(
-                "UPDATE research_tasks SET state_version=state_version+1, "
-                "updated_at=? WHERE task_id=?",
-                (now, context.task_id),
+                'UPDATE research_tasks SET state_version=state_version+1, updated_at=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s',
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, context.task_id),
             )
             next_version = int(task["state_version"]) + 1
             response = {
@@ -1672,6 +1675,7 @@ class ReceiptBoundProviderService:
         now_value = self.kernel._now()
         now = _iso(now_value)
         with self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task, attempt = self._guard(
                 connection, context=context, expected_state=True, now=now_value
             )
@@ -1705,14 +1709,12 @@ class ReceiptBoundProviderService:
                 error_detail=reason,
             )
             connection.execute(
-                "UPDATE research_side_effects SET status='unknown', "
-                "updated_at=? WHERE side_effect_id=?",
-                (now, side_effect_id),
+                "UPDATE research_side_effects SET status='unknown', updated_at=%s WHERE research_side_effects.workspace_id=%s AND  side_effect_id=%s",
+                (_parse_iso(now), self.context.workspace_id, side_effect_id),
             )
             connection.execute(
-                "UPDATE research_tasks SET status='blocked', "
-                "state_version=state_version+1, updated_at=? WHERE task_id=?",
-                (now, context.task_id),
+                "UPDATE research_tasks SET status='blocked', state_version=state_version+1, updated_at=%s WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s",
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, context.task_id),
             )
             next_version = int(task["state_version"]) + 1
             response = {
@@ -1754,12 +1756,12 @@ class ReceiptBoundProviderService:
 
     def _guard(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         context: ProviderCallContext,
         expected_state: bool,
         now: datetime,
-    ) -> tuple[sqlite3.Row, sqlite3.Row]:
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         task = self.kernel._task(connection, context.task_id)
         attempt = self.kernel._attempt(connection, context.attempt_id)
         self.kernel._assert_nonterminal(task)
@@ -1781,9 +1783,9 @@ class ReceiptBoundProviderService:
         latest = connection.execute(
             """
             SELECT checkpoint_id FROM research_checkpoints
-            WHERE attempt_id=? ORDER BY sequence DESC, created_at DESC LIMIT 1
+            WHERE research_checkpoints.workspace_id=%s AND  attempt_id=%s ORDER BY sequence DESC, created_at DESC LIMIT 1
             """,
-            (context.attempt_id,),
+            (self.context.workspace_id, context.attempt_id),
         ).fetchone()
         latest_id = str(latest["checkpoint_id"]) if latest else None
         if latest_id != context.expected_checkpoint_id:
@@ -1791,13 +1793,13 @@ class ReceiptBoundProviderService:
         return task, attempt
 
     @staticmethod
-    def _assert_control(task: sqlite3.Row, expected_generation: int) -> None:
+    def _assert_control(task: dict[str, Any], expected_generation: int) -> None:
         if int(task["control_generation"]) != expected_generation:
             raise ResearchConflict("Provider call stale control generation")
 
     @staticmethod
     def _assert_in_flight(
-        effect: sqlite3.Row,
+        effect: dict[str, Any],
         context: ProviderCallContext,
         descriptor_hash: str,
     ) -> None:
@@ -1810,15 +1812,14 @@ class ReceiptBoundProviderService:
         ):
             raise ResearchConflict("Provider call SideEffect fence mismatch")
 
-    @staticmethod
-    def _insert_action(
-        connection: sqlite3.Connection,
+    def _insert_action(self,
+        connection: Connection,
         *,
         action_id: str,
         action_kind: str,
         operation_key: str,
         context: ProviderCallContext,
-        attempt: sqlite3.Row,
+        attempt: dict[str, Any],
         side_effect_id: str,
         descriptor: dict[str, Any],
         status: str,
@@ -1829,54 +1830,25 @@ class ReceiptBoundProviderService:
     ) -> None:
         connection.execute(
             """
-            INSERT INTO research_inner_actions(
-                action_id, task_id, goal_id, attempt_id,
-                originating_checkpoint_id, action_kind,
-                action_schema_version, action_key, request_hash,
-                request_json, status, owner_epoch,
-                retrieval_execution_id, retrieval_trace_id, side_effect_id,
-                observation_json, error_code, error_detail,
-                created_at, started_at, completed_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?,
-                     ?, ?, ?, ?, ?)
+            INSERT INTO research_inner_actions(workspace_id, action_id, task_id, goal_id, attempt_id, originating_checkpoint_id, action_kind, action_schema_version, action_key, request_hash, request_json, status, owner_epoch, retrieval_execution_id, retrieval_trace_id, side_effect_id, observation_json, error_code, error_detail, created_at, started_at, completed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                action_id,
-                context.task_id,
-                str(attempt["goal_id"]),
-                context.attempt_id,
-                context.expected_checkpoint_id,
-                action_kind,
-                PROVIDER_ACTION_SCHEMA_VERSION,
-                f"provider:{operation_key}",
-                descriptor["structured_request_hash"],
-                _canonical_json(descriptor),
-                status,
-                context.owner_epoch,
-                side_effect_id,
-                _canonical_json(observation),
-                error_code,
-                error_detail,
-                now,
-                now,
-                now,
-            ),
+            (self.context.workspace_id, action_id, context.task_id, str(attempt['goal_id']), context.attempt_id, context.expected_checkpoint_id, action_kind, PROVIDER_ACTION_SCHEMA_VERSION, f'provider:{operation_key}', descriptor['structured_request_hash'], json_field(_canonical_json(descriptor)), status, context.owner_epoch, side_effect_id, json_field(_canonical_json(observation)), error_code, error_detail, _parse_iso(now), _parse_iso(now), _parse_iso(now)),
         )
 
     def _budget_snapshot(
-        self, connection: sqlite3.Connection, task_id: str
+        self, connection: Connection, task_id: str
     ) -> ProviderBudgetSnapshot:
         logical = transport = input_tokens = cached = output = 0
         committed = Decimal("0")
         for row in connection.execute(
             """
             SELECT observation_json FROM research_inner_actions
-            WHERE task_id=? AND action_schema_version=?
+            WHERE research_inner_actions.workspace_id=%s AND  task_id=%s AND action_schema_version=%s
               AND status IN ('succeeded', 'failed')
             """,
-            (task_id, PROVIDER_ACTION_SCHEMA_VERSION),
+            (self.context.workspace_id, task_id, PROVIDER_ACTION_SCHEMA_VERSION),
         ).fetchall():
-            observation = json.loads(str(row["observation_json"]))
+            observation = json_value(row['observation_json'])
             call = observation.get("provider_call", {})
             usage = call.get("usage", {})
             logical += 1
@@ -1889,12 +1861,12 @@ class ReceiptBoundProviderService:
         for row in connection.execute(
             """
             SELECT request_json FROM research_side_effects
-            WHERE task_id=? AND effect_kind=?
+            WHERE research_side_effects.workspace_id=%s AND  task_id=%s AND effect_kind=%s
               AND status IN ('reserved', 'in_flight', 'unknown')
             """,
-            (task_id, PROVIDER_EFFECT_KIND),
+            (self.context.workspace_id, task_id, PROVIDER_EFFECT_KIND),
         ).fetchall():
-            request = json.loads(str(row["request_json"]))
+            request = json_value(row['request_json'])
             active += Decimal(str(request["worst_case_cost_usd"]))
         return ProviderBudgetSnapshot(
             logical_calls=logical,
@@ -1909,17 +1881,16 @@ class ReceiptBoundProviderService:
 
     def _assert_run_budget_binding(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         policy: ProviderRunBudgetPolicy,
     ) -> None:
-        placeholders = ",".join("?" for _ in policy.task_ids)
         rows = connection.execute(
-            f"""
+            """
             SELECT task_id, evidence_policy_json FROM research_goals
-            WHERE revision=1 AND task_id IN ({placeholders})
+            WHERE workspace_id=%s AND revision=1 AND task_id=ANY(%s)
             ORDER BY task_id
             """,
-            tuple(policy.task_ids),
+            (self.context.workspace_id,list(policy.task_ids)),
         ).fetchall()
         if len(rows) != len(policy.task_ids):
             raise ResearchValidationError(
@@ -1928,7 +1899,7 @@ class ReceiptBoundProviderService:
         expected = policy.manifest()
         expected_hash = policy.policy_hash
         for row in rows:
-            evidence_policy = json.loads(str(row["evidence_policy_json"]))
+            evidence_policy = json_value(row['evidence_policy_json'])
             binding = evidence_policy.get("provider_run_budget")
             if not isinstance(binding, dict):
                 raise ResearchValidationError(
@@ -1945,23 +1916,22 @@ class ReceiptBoundProviderService:
 
     def _run_budget_snapshot(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         task_ids: tuple[str, ...],
     ) -> ProviderRunBudgetSnapshot:
-        placeholders = ",".join("?" for _ in task_ids)
         committed_logical = committed_http = 0
         committed_input = committed_output = 0
         committed_cost = Decimal("0")
         action_rows = connection.execute(
-            f"""
+            """
             SELECT observation_json FROM research_inner_actions
-            WHERE task_id IN ({placeholders}) AND action_schema_version=?
+            WHERE workspace_id=%s AND task_id=ANY(%s) AND action_schema_version=%s
               AND status IN ('succeeded', 'failed')
             """,
-            (*task_ids, PROVIDER_ACTION_SCHEMA_VERSION),
+            (self.context.workspace_id,list(task_ids), PROVIDER_ACTION_SCHEMA_VERSION),
         ).fetchall()
         for row in action_rows:
-            observation = json.loads(str(row["observation_json"]))
+            observation = json_value(row['observation_json'])
             call = observation.get("provider_call", {})
             usage = call.get("usage", {})
             committed_logical += 1
@@ -1974,15 +1944,15 @@ class ReceiptBoundProviderService:
         active_input = active_output = 0
         active_cost = Decimal("0")
         effect_rows = connection.execute(
-            f"""
+            """
             SELECT request_json FROM research_side_effects
-            WHERE task_id IN ({placeholders}) AND effect_kind=?
+            WHERE workspace_id=%s AND task_id=ANY(%s) AND effect_kind=%s
               AND status IN ('reserved', 'in_flight', 'unknown')
             """,
-            (*task_ids, PROVIDER_EFFECT_KIND),
+            (self.context.workspace_id,list(task_ids), PROVIDER_EFFECT_KIND),
         ).fetchall()
         for row in effect_rows:
-            request = json.loads(str(row["request_json"]))
+            request = json_value(row['request_json'])
             price = request.get("price_table", {})
             active_logical += 1
             active_http += int(

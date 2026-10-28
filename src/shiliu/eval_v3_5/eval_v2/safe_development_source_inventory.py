@@ -5,6 +5,8 @@ This module has no dependency on case construction or review workflows.
 
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter
 from hashlib import sha256
 import json
@@ -93,7 +95,7 @@ def build_safe_development_source_inventory_v2(
     if _sha(db_path) != snapshot_db_sha256 or _sha(manifest_path) != artifact_manifest_sha256:
         raise SafeInventoryError("frozen authority identity mismatch")
     artifacts = _manifest(manifest_path)
-    connection = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    connection = connect_snapshot(db_path)
     connection.row_factory = sqlite3.Row
     try:
         rows = connection.execute(

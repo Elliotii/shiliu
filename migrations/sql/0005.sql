@@ -1,0 +1,4 @@
+ALTER TABLE shiliu.model_dispatch_receipts ADD COLUMN request_hash text;
+ALTER TABLE shiliu.model_dispatch_receipts ADD CONSTRAINT dispatch_request_hash_shape CHECK (request_hash IS NULL OR request_hash ~ '^[0-9a-f]{64}$');
+CREATE TRIGGER dispatch_binding_immutable BEFORE UPDATE ON shiliu.model_dispatch_receipts FOR EACH ROW WHEN (NEW.workspace_id IS DISTINCT FROM OLD.workspace_id OR NEW.principal_id IS DISTINCT FROM OLD.principal_id OR NEW.dispatch_id IS DISTINCT FROM OLD.dispatch_id OR NEW.run_id IS DISTINCT FROM OLD.run_id OR NEW.job_id IS DISTINCT FROM OLD.job_id OR NEW.lane IS DISTINCT FROM OLD.lane OR NEW.budget_day IS DISTINCT FROM OLD.budget_day OR NEW.reserved_requests IS DISTINCT FROM OLD.reserved_requests OR NEW.request_hash IS DISTINCT FROM OLD.request_hash) EXECUTE FUNCTION shiliu.reject_immutable();
+CREATE TRIGGER dispatch_receipt_no_delete BEFORE DELETE ON shiliu.model_dispatch_receipts FOR EACH ROW EXECUTE FUNCTION shiliu.reject_immutable();

@@ -215,7 +215,7 @@ class DeepSearchGraph:
             result = self.transcripts.search(
                 action.query,
                 filters=state["filters"],
-                video_ids=tuple(action.video_ids),
+                video_ids=tuple(action.video_ids) or None,
                 query_index=state["tool_calls"] - 1,
             )
             observation = ToolObservation(

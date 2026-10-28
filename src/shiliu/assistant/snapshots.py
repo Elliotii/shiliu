@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from shiliu.artifacts import ArtifactStore
-from shiliu.db import Database, utc_now
+from shiliu.db import Database, utc_now, collection_dto
+from shiliu.storage.artifacts import ArtifactPrepareStale
+from shiliu.storage.fences import lock_workspace
 
 
 class SourceChangedDuringCapture(RuntimeError):
@@ -22,55 +24,83 @@ class CapturedSource:
 
 
 class SourceSnapshotStore:
-    def __init__(self, db: Database, artifacts: ArtifactStore, root: Path) -> None:
+    def __init__(
+        self, db: Database, artifacts: ArtifactStore, root: Path | None = None
+    ) -> None:
         self.db = db
         self.artifacts = artifacts
-        self.root = root.resolve()
+        self.root = artifacts.root
 
-    def capture(self, video_id: int, *, principal_id: str = "local_operator",
-                publish_guard: Callable[[Any], None] | None = None) -> CapturedSource:
-        for _attempt in range(2):
+    def capture(
+        self,
+        video_id: int,
+        *,
+        principal_id: str | None = None,
+        publish_guard: Callable[[Any], None] | None = None,
+    ) -> CapturedSource:
+        principal_id = principal_id or self.db.context.user_id
+        if principal_id != self.db.context.user_id:
+            raise PermissionError("source_snapshot_owner_mismatch")
+        for attempt in range(3):
             before = self._state(video_id)
-            file_stamps = self._file_stamps(before["video"])
             snapshot = self._build_snapshot(before)
-            after = self._state(video_id)
-            if self._capture_token(before) != self._capture_token(after):
-                continue
-            # The first read already computed exact hashes. Rehash only when a
-            # file changed during capture; normal captures no longer read all
-            # large subtitle files twice.
-            if (file_stamps != self._file_stamps(after["video"])
-                    and snapshot["material_hashes"] != self._material_hashes(after["video"])):
-                continue
-            return self._commit(snapshot, principal_id=principal_id,
-                                publish_guard=publish_guard)
-        raise SourceChangedDuringCapture(f"video {video_id} changed during source capture")
+            payload = _canonical_json(snapshot)
+            descriptor = self.artifacts.objects.prepare(
+                payload, media_type="application/json"
+            )
+            try:
+                with self.db.connect(guard=True) as conn:
+                    if publish_guard is not None:
+                        publish_guard(conn)
+                    current = self._state(video_id, conn=conn)
+                    if before["capture_epoch"] != current[
+                        "capture_epoch"
+                    ] or self._capture_token(before) != self._capture_token(current):
+                        raise SourceChangedDuringCapture(
+                            "source_changed_during_capture"
+                        )
+                    self.db._video(conn, video_id, lock=True)
+                    ref = self.artifacts.objects.publish(
+                        conn,
+                        f"assistant-source:{principal_id}:{video_id}",
+                        snapshot["revision"],
+                        descriptor,
+                        video_id=video_id,
+                    )
+                    self._commit(conn, snapshot, principal_id, ref)
+                return CapturedSource(snapshot["revision"], ref, snapshot)
+            except (ArtifactPrepareStale, SourceChangedDuringCapture):
+                if attempt == 2:
+                    raise
+        raise AssertionError("unreachable")
 
-    def _state(self, video_id: int) -> dict[str, Any]:
-        with self.db.connect() as connection:
-            video = connection.execute("SELECT * FROM videos WHERE id=?", (video_id,)).fetchone()
+    def _state(self, video_id, *, conn=None):
+        def read(c):
+            video = self.db.get_video(video_id, conn=c)
             if video is None:
                 raise KeyError(video_id)
-            memberships = connection.execute(
-                """
-                SELECT m.source_id, m.favorite_time, m.first_observed_at, m.removed_at,
-                       s.folder_id, s.folder_title, s.status
-                FROM video_source_memberships m
-                JOIN favorite_sources s ON s.id=m.source_id
-                WHERE m.video_id=?
-                ORDER BY m.source_id
-                """,
-                (video_id,),
+            memberships = c.execute(
+                "SELECT m.source_id,m.favorite_time,m.first_observed_at,m.removed_at,s.folder_id,s.folder_title,s.status "
+                "FROM shiliu.video_source_memberships m JOIN shiliu.favorite_sources s ON "
+                "(m.workspace_id,m.source_id)=(s.workspace_id,s.id) WHERE m.workspace_id=%s AND m.video_id=%s ORDER BY m.source_id",
+                (self.db.workspace_id, video_id),
             ).fetchall()
-            notes = connection.execute(
-                "SELECT id, content, updated_at FROM video_notes WHERE video_id=? ORDER BY id",
-                (video_id,),
-            ).fetchall()
-        return {
-            "video": dict(video),
-            "memberships": [dict(row) for row in memberships],
-            "notes": [dict(row) for row in notes],
-        }
+            notes = self.db.list_notes_for_videos([video_id], conn=c)[video_id]
+            epoch = c.execute(
+                "SELECT dependency_epoch FROM shiliu.workspace_guards WHERE workspace_id=%s",
+                (self.db.workspace_id,),
+            ).fetchone()["dependency_epoch"]
+            return {
+                "video": video,
+                "memberships": [collection_dto(r) for r in memberships],
+                "notes": notes,
+                "capture_epoch": epoch,
+            }
+
+        if conn is not None:
+            return read(conn)
+        with self.db.pg.transaction(read_only=True, isolation="repeatable read") as c:
+            return read(c)
 
     @staticmethod
     def _capture_token(state: dict[str, Any]) -> tuple[Any, ...]:
@@ -81,7 +111,10 @@ class SourceSnapshotStore:
             video.get("raw_subtitle_path"),
             video.get("transcript_path"),
             video.get("summary_path"),
-            tuple((m["source_id"], m["favorite_time"], m["removed_at"], m["status"]) for m in state["memberships"]),
+            tuple(
+                (m["source_id"], m["favorite_time"], m["removed_at"], m["status"])
+                for m in state["memberships"]
+            ),
             tuple((n["id"], n["updated_at"]) for n in state["notes"]),
         )
 
@@ -97,34 +130,56 @@ class SourceSnapshotStore:
             if not candidate:
                 continue
             try:
-                path = self.artifacts.managed_file(str(candidate))
-                text = path.read_text(encoding="utf-8")
+                text = self.artifacts.read_text(str(candidate))
             except (OSError, ValueError, UnicodeError):
-                continue
+                raise SourceChangedDuringCapture("source_material_unavailable")
             material_text[kind] = text
         material_hashes = {
-            kind: _sha256(text.encode("utf-8"))
-            for kind, text in material_text.items()
+            kind: _sha256(text.encode("utf-8")) for kind, text in material_text.items()
         }
         notes = [
-            {"id": row["id"], "content": row["content"], "updated_at": row["updated_at"]}
+            {
+                "id": row["id"],
+                "content": row["content"],
+                "updated_at": row["updated_at"],
+            }
             for row in state["notes"]
         ]
         metadata = {
             key: video.get(key)
             for key in (
-                "id", "platform", "source_id", "part", "title", "uploader", "uploader_id",
-                "description", "description_links_json", "video_url", "cid", "part_title",
-                "duration_seconds", "page_count", "published_at", "metadata_observed_at",
-                "subtitle_source", "active_revision", "discovered_at",
+                "id",
+                "platform",
+                "source_id",
+                "part",
+                "title",
+                "uploader",
+                "uploader_id",
+                "description",
+                "description_links_json",
+                "video_url",
+                "cid",
+                "part_title",
+                "duration_seconds",
+                "page_count",
+                "published_at",
+                "metadata_observed_at",
+                "subtitle_source",
+                "active_revision",
+                "discovered_at",
             )
         }
         memberships = [
             {
                 key: row.get(key)
                 for key in (
-                    "source_id", "folder_id", "folder_title", "favorite_time",
-                    "first_observed_at", "removed_at", "status",
+                    "source_id",
+                    "folder_id",
+                    "folder_title",
+                    "favorite_time",
+                    "first_observed_at",
+                    "removed_at",
+                    "status",
                 )
             }
             for row in state["memberships"]
@@ -133,7 +188,11 @@ class SourceSnapshotStore:
         stable_metadata.pop("metadata_observed_at", None)
         metadata_hash = _json_hash(stable_metadata)
         content_hash = _json_hash(
-            {"material_hashes": material_hashes, "notes": notes, "active_revision": video.get("active_revision")}
+            {
+                "material_hashes": material_hashes,
+                "notes": notes,
+                "active_revision": video.get("active_revision"),
+            }
         )
         membership_hash = _json_hash(memberships)
         coverage = _coverage(material_text)
@@ -159,105 +218,68 @@ class SourceSnapshotStore:
             "notes": notes,
         }
 
-    def _material_hashes(self, video: dict[str, Any]) -> dict[str, str]:
-        values: dict[str, str] = {}
-        for kind, column in (
-            ("raw_subtitle", "raw_subtitle_path"),
-            ("transcript", "transcript_path"),
-            ("summary", "summary_path"),
-        ):
-            candidate = video.get(column)
-            if not candidate:
-                continue
-            try:
-                path = self.artifacts.managed_file(str(candidate))
-                values[kind] = _sha256(path.read_bytes())
-            except (OSError, ValueError):
-                continue
-        return values
-
-    def _file_stamps(self, video: dict[str, Any]) -> dict[str, tuple[int, int, int] | None]:
-        stamps: dict[str, tuple[int, int, int] | None] = {}
-        for kind, column in (("raw_subtitle", "raw_subtitle_path"),
-                             ("transcript", "transcript_path"),
-                             ("summary", "summary_path")):
-            candidate = video.get(column)
-            try:
-                stat = self.artifacts.managed_file(str(candidate)).stat() if candidate else None
-                stamps[kind] = (stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns) if stat else None
-            except (OSError, ValueError):
-                stamps[kind] = None
-        return stamps
-
-    def _commit(self, snapshot: dict[str, Any], *, principal_id: str,
-                publish_guard: Callable[[Any], None] | None = None) -> CapturedSource:
+    def _commit(self, conn, snapshot, principal_id, ref):
         video_id = int(snapshot["metadata"]["id"])
-        with self.db.connect() as connection:
-            existing = connection.execute(
-                """SELECT r.snapshot_ref FROM assistant_source_heads h
-                JOIN assistant_source_revisions r ON r.head_id=h.id AND r.revision=h.current_revision
-                WHERE h.principal_id=? AND h.video_id=? AND h.current_revision=?""",
-                (principal_id, video_id, snapshot["revision"]),
-            ).fetchone()
-        if existing:
-            relative = str(existing["snapshot_ref"])
-            try:
-                previous = json.loads((self.root / relative).read_text(encoding="utf-8"))
-                return CapturedSource(str(snapshot["revision"]), relative, previous)
-            except (OSError, ValueError):
-                pass
-        payload = _canonical_json(snapshot)
-        object_hash = _sha256(payload)
-        relative = Path("objects") / "sha256" / object_hash[:2] / f"{object_hash}.json"
-        path = self.root / relative
-        if not path.exists():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            temporary = path.with_suffix(".json.tmp")
-            temporary.write_bytes(payload)
-            temporary.replace(path)
-        now = utc_now()
-        with self.db.connect() as connection:
-            connection.execute("BEGIN IMMEDIATE")
-            if publish_guard is not None:
-                publish_guard(connection)
-            connection.execute(
-                """
-                INSERT INTO assistant_source_heads(
-                    principal_id, video_id, metadata_hash, content_hash,
-                    membership_hash, current_revision, updated_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(principal_id, video_id) DO UPDATE SET
-                    metadata_hash=excluded.metadata_hash,
-                    content_hash=excluded.content_hash,
-                    membership_hash=excluded.membership_hash,
-                    current_revision=excluded.current_revision,
-                    updated_at=excluded.updated_at
-                """,
-                (
-                    principal_id, video_id, snapshot["metadata_hash"], snapshot["content_hash"],
-                    snapshot["membership_hash"], snapshot["revision"], now,
-                ),
-            )
-            head = connection.execute(
-                "SELECT id FROM assistant_source_heads WHERE principal_id=? AND video_id=?",
-                (principal_id, video_id),
-            ).fetchone()
-            connection.execute(
-                """
-                INSERT OR IGNORE INTO assistant_source_revisions(
-                    revision, head_id, metadata_hash, content_hash, membership_hash,
-                    snapshot_ref, coverage, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    snapshot["revision"], int(head["id"]), snapshot["metadata_hash"],
-                    snapshot["content_hash"], snapshot["membership_hash"],
-                    str(relative), snapshot["coverage"], now,
-                ),
-            )
-        return CapturedSource(
-            revision=str(snapshot["revision"]), snapshot_ref=str(relative), snapshot=snapshot
+        head = conn.execute(
+            "INSERT INTO shiliu.assistant_source_heads(workspace_id,principal_id,video_id,metadata_hash,content_hash,"
+            "membership_hash,current_revision,updated_at) VALUES(%s,%s,%s,%s,%s,%s,NULL,clock_timestamp()) "
+            "ON CONFLICT(principal_id,video_id) DO UPDATE SET metadata_hash=excluded.metadata_hash,content_hash=excluded.content_hash,"
+            "membership_hash=excluded.membership_hash,updated_at=excluded.updated_at RETURNING id",
+            (
+                self.db.workspace_id,
+                principal_id,
+                video_id,
+                snapshot["metadata_hash"],
+                snapshot["content_hash"],
+                snapshot["membership_hash"],
+            ),
+        ).fetchone()
+        conn.execute(
+            "INSERT INTO shiliu.assistant_source_revisions(workspace_id,video_id,revision,head_id,metadata_hash,content_hash,"
+            "membership_hash,snapshot_ref,coverage,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,clock_timestamp()) "
+            "ON CONFLICT(revision) DO NOTHING",
+            (
+                self.db.workspace_id,
+                video_id,
+                snapshot["revision"],
+                head["id"],
+                snapshot["metadata_hash"],
+                snapshot["content_hash"],
+                snapshot["membership_hash"],
+                ref,
+                snapshot["coverage"],
+            ),
         )
+
+        conn.execute(
+            "UPDATE shiliu.assistant_source_heads SET current_revision=%s WHERE workspace_id=%s AND id=%s",
+            (snapshot["revision"], self.db.workspace_id, head["id"]),
+        )
+
+        conn.execute(
+            "UPDATE shiliu.assistant_wiki_proposals SET status='stale',decided_at=clock_timestamp(),updated_at=clock_timestamp(),payload_json=jsonb_set(payload_json,'{decision_reason}','\"source_revision_changed\"') WHERE workspace_id=%s AND principal_id=%s AND kind='source_patch' AND status='pending' AND EXISTS (SELECT 1 FROM shiliu.assistant_source_revisions r WHERE r.workspace_id=assistant_wiki_proposals.workspace_id AND r.video_id=%s AND r.revision<>%s AND (r.revision=payload_json->>'revision' OR (payload_json->'source_revisions') ? r.revision))",
+            (self.db.workspace_id, principal_id, video_id, snapshot["revision"]),
+        )
+
+    def load(self, video_id, revision):
+        with self.db.connect(read_only=True) as c:
+            row = c.execute(
+                "SELECT r.snapshot_ref FROM shiliu.assistant_source_revisions r JOIN shiliu.assistant_source_heads h "
+                "ON (h.workspace_id,h.id)=(r.workspace_id,r.head_id) WHERE r.workspace_id=%s AND r.video_id=%s AND r.revision=%s "
+                "AND h.principal_id=%s",
+                (self.db.workspace_id, video_id, revision, self.db.context.user_id),
+            ).fetchone()
+        if row is None:
+            raise KeyError(revision)
+        ref = row["snapshot_ref"]
+        if ref.startswith("artifact:"):
+            raw = self.artifacts.read_bytes(ref)
+        else:
+            # Explicit W04 historical manifest binding; never read a naked path.
+            raw = self.artifacts.objects.read_bytes(
+                logical_key="source_snapshot:" + revision, source_version=revision
+            )
+        return CapturedSource(revision, ref, json.loads(raw))
 
 
 def _coverage(materials: dict[str, str]) -> str:
@@ -271,7 +293,9 @@ def _coverage(materials: dict[str, str]) -> str:
 
 
 def _canonical_json(value: Any) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
 
 
 def _json_hash(value: Any) -> str:

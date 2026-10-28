@@ -12,6 +12,7 @@ from shiliu.bilibili import BilibiliAdapter, unavailable_video_error
 from shiliu.db import Database, utc_now
 from shiliu.domain import FavoriteScan, PipelineError, SyncMode, SyncResult
 from shiliu.pipeline import PipelineService
+from shiliu.storage.collection_leases import renewing_lease, worker_id
 
 
 # Temporarily disabled on 2026-07-16 so scheduled discovery, refinement, and
@@ -88,9 +89,6 @@ class SyncService:
         run_id: int | None = None,
     ) -> SyncResult:
         result = SyncResult(mode=mode, run_id=run_id)
-        begin_cycle = getattr(self.pipeline, "begin_sync_cycle", None)
-        if begin_cycle is not None:
-            begin_cycle()
         quiet_hours = (
             QUIET_HOURS_ENABLED
             and mode == SyncMode.SCHEDULED
@@ -104,7 +102,9 @@ class SyncService:
             if source.get("status") in {"active", "cooldown"}
         ]
         if source_db_id is not None:
-            sources = [source for source in sources if int(source["id"]) == source_db_id]
+            sources = [
+                source for source in sources if int(source["id"]) == source_db_id
+            ]
             if not sources:
                 raise PipelineError(
                     "该来源未启用或正在等待人工处理",
@@ -119,7 +119,9 @@ class SyncService:
             result.skipped_quiet_hours = True
             result.messages.append("05:00–11:59 自动发现暂停；立即同步仍可使用")
             if run_id is not None:
-                self.db.finish_sync_run(run_id, status="skipped_quiet_hours", message=result.messages[0])
+                self.db.finish_sync_run(
+                    run_id, status="skipped_quiet_hours", message=result.messages[0]
+                )
             return result
 
         # Scheduled jitter happens before acquiring the global lock so a manual
@@ -142,10 +144,22 @@ class SyncService:
                     retryable=False,
                 )
             if self.favorite_id is None:
-                raise PipelineError("尚未添加收藏夹来源", code="setup_required", retryable=False)
+                raise PipelineError(
+                    "尚未添加收藏夹来源", code="setup_required", retryable=False
+                )
             with ProcessLock(self.lock_path):
                 self.db.recover_stale_sync_runs(exclude_run_id=run_id)
-                return self._sync_legacy(result, run_id=run_id)
+                source_id = self.db.create_favorite_source(
+                    folder_id=int(self.favorite_id),
+                    folder_title=str(self.favorite_id),
+                    history_policy="future_only",
+                )
+                return self._sync_sources(
+                    result,
+                    [self.db.get_source(source_id)],
+                    run_id=run_id,
+                    quiet_hours=quiet_hours,
+                )
 
         with ProcessLock(self.lock_path):
             self.db.recover_stale_sync_runs(exclude_run_id=run_id)
@@ -173,9 +187,6 @@ class SyncService:
         if batch_limit < 1:
             raise ValueError("batch_limit must be positive")
         result = SyncResult(mode=SyncMode.MANUAL, run_id=run_id)
-        begin_cycle = getattr(self.pipeline, "begin_sync_cycle", None)
-        if begin_cycle is not None:
-            begin_cycle()
 
         with ProcessLock(self.lock_path):
             self.db.recover_stale_sync_runs(exclude_run_id=run_id)
@@ -246,7 +257,9 @@ class SyncService:
         try:
             if quiet_hours:
                 result.skipped_quiet_hours = True
-                result.messages.append("05:00–11:59 暂停自动发现和精修；历史积压继续处理")
+                result.messages.append(
+                    "05:00–11:59 暂停自动发现和精修；历史积压继续处理"
+                )
                 self.db.update_sync_run(
                     active_run_id,
                     current_phase="history",
@@ -266,79 +279,104 @@ class SyncService:
                         continue
                     source = current_source
                     if self._source_is_cooling_down(source):
-                        result.messages.append(f"{source['folder_title']} 正在冷却，已跳过")
+                        result.messages.append(
+                            f"{source['folder_title']} 正在冷却，已跳过"
+                        )
                         continue
                     self.db.update_sync_run(
                         active_run_id,
                         current_phase="scanning",
                         message=f"正在读取 {source['account_name']} / {source['folder_title']}",
                     )
-                    try:
-                        scan = self._favorite_scan(int(source["folder_id"]))
-                        items = scan.items
-                    except PipelineError as exc:
-                        self._record_source_failure(source_id, exc, history=False)
-                        if exc.code == "authentication_required":
-                            for item in sources:
-                                self.db.update_source_error(
-                                    int(item["id"]),
-                                    status="needs_auth",
-                                    code=exc.code,
-                                    message=str(exc),
-                                )
-                            raise
-                        result.failed_count += 1
-                        continue
-                    self.db.update_video_durations(items)
-                    result.current_count += int(
-                        scan.remote_total
-                        if scan.remote_total is not None
-                        else len(items)
-                    )
-                    if not bool(source.get("baseline_initialized")):
-                        queued = self.db.initialize_source_memberships(
-                            source_id,
-                            items,
-                            authoritative=scan.is_complete,
-                            remote_total=scan.remote_total,
-                        )
-                        if scan.is_complete:
-                            successful_source_ids.add(source_id)
-                            result.baseline_created = True
-                            result.messages.append(
-                                f"{source['folder_title']} 已建立完整基线，历史待处理 {queued} 条"
-                            )
-                    else:
-                        profile = "fast" if result.mode == SyncMode.MANUAL else "formal"
-                        new_ids = self.db.record_source_snapshot(
-                            source_id,
-                            items,
-                            processing_profile=profile,
-                            authoritative=scan.is_complete,
-                            remote_total=scan.remote_total,
-                        )
-                        discovered_ids.extend(new_ids)
-                        result.discovered_count += len(new_ids)
-                        if scan.is_complete:
-                            successful_source_ids.add(source_id)
-
-                    cover_sync = getattr(self.pipeline, "sync_favorite_covers", None)
-                    if cover_sync is not None:
-                        cover_sync(items)
-                    self._sync_source_videos(source_id, "source_snapshot_recorded" if source.get("baseline_initialized") else "source_baseline_initialized")
-
-                    if not scan.is_complete:
-                        error = PipelineError(
-                            "收藏夹扫描未通过完整性校验；已保留观察结果且未执行删除对账",
-                            code="incomplete_snapshot",
-                            retryable=True,
-                        )
-                        self._record_source_failure(source_id, error, history=False)
-                        result.failed_count += 1
+                    claim = self.db.claim_source(source_id, worker_id())
+                    if claim is None:
                         result.messages.append(
-                            f"{source['folder_title']} 扫描不完整，未执行 removal reconciliation"
+                            f"{source['folder_title']} 已由其他同步者持有"
+                        )
+                        continue
+                    with renewing_lease(self.db, "favorite_sources", claim):
+                        try:
+                            scan = self._favorite_scan(int(source["folder_id"]))
+                            items = scan.items
+                        except PipelineError as exc:
+                            self._record_source_failure(
+                                source_id, exc, history=False, claim=claim
+                            )
+                            if exc.code == "authentication_required":
+                                for item in sources:
+                                    self.db.update_source_error(
+                                        int(item["id"]),
+                                        status="needs_auth",
+                                        code=exc.code,
+                                        message=str(exc),
+                                        claim=claim
+                                        if int(item["id"]) == source_id
+                                        else None,
+                                    )
+                                raise
+                            result.failed_count += 1
+                            continue
+                        result.current_count += int(
+                            scan.remote_total
+                            if scan.remote_total is not None
+                            else len(items)
+                        )
+                        if not bool(source.get("baseline_initialized")):
+                            queued = self.db.initialize_source_memberships(
+                                source_id,
+                                items,
+                                authoritative=scan.is_complete,
+                                remote_total=scan.remote_total,
+                                claim=claim,
+                            )
+                            if scan.is_complete:
+                                successful_source_ids.add(source_id)
+                                result.baseline_created = True
+                                result.messages.append(
+                                    f"{source['folder_title']} 已建立完整基线，历史待处理 {queued} 条"
+                                )
+                        else:
+                            profile = (
+                                "fast" if result.mode == SyncMode.MANUAL else "formal"
+                            )
+                            new_ids = self.db.record_source_snapshot(
+                                source_id,
+                                items,
+                                processing_profile=profile,
+                                authoritative=scan.is_complete,
+                                remote_total=scan.remote_total,
+                                claim=claim,
+                            )
+                            discovered_ids.extend(new_ids)
+                            result.discovered_count += len(new_ids)
+                            if scan.is_complete:
+                                successful_source_ids.add(source_id)
+
+                        cover_sync = getattr(
+                            self.pipeline, "sync_favorite_covers", None
+                        )
+                        if cover_sync is not None:
+                            cover_sync(items)
+                        self._sync_source_videos(
+                            source_id,
+                            "source_snapshot_recorded"
+                            if source.get("baseline_initialized")
+                            else "source_baseline_initialized",
                         )
 
+                        if not scan.is_complete:
+                            error = PipelineError(
+                                "收藏夹扫描未通过完整性校验；已保留观察结果且未执行删除对账",
+                                code="incomplete_snapshot",
+                                retryable=True,
+                            )
+                            self._record_source_failure(
+                                source_id, error, history=False, claim=claim
+                            )
+                            result.failed_count += 1
+                            result.messages.append(
+                                f"{source['folder_title']} 扫描不完整，未执行 removal reconciliation"
+                            )
                 self._process_new_and_due(
                     active_run_id,
                     result,
@@ -353,7 +391,8 @@ class SyncService:
                 {
                     int(source["id"])
                     for source in sources
-                    if (self.db.get_source(int(source["id"])) or {}).get("status") == "active"
+                    if (self.db.get_source(int(source["id"])) or {}).get("status")
+                    == "active"
                 }
                 if quiet_hours
                 else successful_source_ids
@@ -363,7 +402,9 @@ class SyncService:
             )
 
             result.history_pending_count = self.db.history_pending_count()
-            status = "completed" if result.failed_count == 0 else "completed_with_errors"
+            status = (
+                "completed" if result.failed_count == 0 else "completed_with_errors"
+            )
             self.db.finish_sync_run(
                 active_run_id,
                 status=status,
@@ -395,11 +436,11 @@ class SyncService:
             return
         with self.db.connect() as connection:
             video_ids = [
-                int(row[0])
+                int(row["video_id"])
                 for row in connection.execute(
                     "SELECT DISTINCT video_id FROM video_source_memberships "
-                    "WHERE source_id=? AND video_id IS NOT NULL ORDER BY video_id",
-                    (source_id,),
+                    "WHERE workspace_id=%s AND source_id=%s AND video_id IS NOT NULL ORDER BY video_id",
+                    (self.db.workspace_id, source_id),
                 )
             ]
         for video_id in video_ids:
@@ -423,16 +464,28 @@ class SyncService:
                 )
             ]
         new_set = set(discovered_ids)
-        due.sort(key=lambda video: (int(video["id"]) not in new_set, str(video["discovered_at"])))
+        due.sort(
+            key=lambda video: (
+                int(video["id"]) not in new_set,
+                str(video["discovered_at"]),
+            )
+        )
         unavailable_count = 0
         for video in due:
             video_id = int(video["id"])
             # Retire only the legacy terminal errors previously mislabeled as
             # transient. Keep the row/artifacts and the normal explicit retry path.
-            if (video["status"] == "retry_wait" and video.get("error_code") == "upstream_error"
-                    and unavailable_video_error(str(video.get("error_message") or ""))):
-                self.db.update_video(video_id, status="needs_review", error_code="video_unavailable",
-                                     subtitle_next_check_at=None)
+            if (
+                video["status"] == "retry_wait"
+                and video.get("error_code") == "upstream_error"
+                and unavailable_video_error(str(video.get("error_message") or ""))
+            ):
+                self.db.update_video(
+                    video_id,
+                    status="needs_review",
+                    error_code="video_unavailable",
+                    subtitle_next_check_at=None,
+                )
                 unavailable_count += 1
                 continue
             self.db.update_sync_run(
@@ -457,7 +510,9 @@ class SyncService:
                 )
 
         if unavailable_count:
-            result.messages.append(f"{unavailable_count} 条旧不可用视频已转为待检查，保留记录且不再自动重试")
+            result.messages.append(
+                f"{unavailable_count} 条旧不可用视频已转为待检查，保留记录且不再自动重试"
+            )
 
     def _process_pending_refinements(self, run_id: int, result: SyncResult) -> None:
         for video in self.db.list_videos():
@@ -520,7 +575,9 @@ class SyncService:
         if not any(token in message.lower() for token in ("412", "429", "rate")):
             return
         minutes = 20 if history else 10
-        cooldown = (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(timespec="seconds")
+        cooldown = (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(
+            timespec="seconds"
+        )
         for source in self.db.video_sources(video_id):
             self.db.update_source_error(
                 int(source["id"]),
@@ -531,10 +588,12 @@ class SyncService:
             )
 
     def _record_source_failure(
-        self, source_db_id: int, error: PipelineError, *, history: bool
+        self, source_db_id: int, error: PipelineError, *, history: bool, claim=None
     ) -> None:
         message = str(error)
-        is_rate_limited = any(token in message.lower() for token in ("412", "429", "rate"))
+        is_rate_limited = any(
+            token in message.lower() for token in ("412", "429", "rate")
+        )
         if error.code == "authentication_required":
             status = "needs_auth"
             cooldown = None
@@ -553,13 +612,18 @@ class SyncService:
             code=error.code,
             message=message,
             cooldown_until=cooldown,
+            claim=claim,
         )
 
     def _favorite_scan(self, folder_id: int) -> FavoriteScan:
         scan_method = getattr(self.adapter, "list_favorite_scan", None)
         if scan_method is not None:
             scan = scan_method(folder_id)
-            return scan if isinstance(scan, FavoriteScan) else FavoriteScan.model_validate(scan)
+            return (
+                scan
+                if isinstance(scan, FavoriteScan)
+                else FavoriteScan.model_validate(scan)
+            )
         items = self.adapter.list_favorite_items(folder_id)
         return FavoriteScan(
             items=items,
@@ -577,69 +641,6 @@ class SyncService:
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
         return value > datetime.now(timezone.utc)
-
-    def _sync_legacy(self, result: SyncResult, *, run_id: int | None) -> SyncResult:
-        active_run_id = run_id or self.db.start_sync_run(result.mode.value)
-        result.run_id = active_run_id
-        try:
-            items = self.adapter.list_favorite_items(int(self.favorite_id))
-            self.db.update_video_durations(items)
-            current_ids = {item.bvid for item in items}
-            result.current_count = len(current_ids)
-            if not self.db.has_baseline():
-                self.db.establish_baseline(sorted(current_ids))
-                result.baseline_created = True
-                result.messages.append(f"已建立 {len(current_ids)} 条首次基线；未生成历史卡片")
-                self.db.finish_sync_run(active_run_id, status="completed", current_count=result.current_count)
-                return result
-
-            known_ids = self.db.seen_source_ids()
-            new_items = [item for item in items if item.bvid not in known_ids]
-            for item in items:
-                self.db.mark_seen(item.bvid)
-            self.db.reconcile_current_items(current_ids)
-            if self.index_coordinator is not None:
-                with self.db.connect() as connection:
-                    legacy_video_ids = [
-                        int(row[0])
-                        for row in connection.execute("SELECT id FROM videos ORDER BY id")
-                    ]
-                for video_id in legacy_video_ids:
-                    self.index_coordinator.safe_sync_video(
-                        video_id, trigger="legacy_snapshot_recorded"
-                    )
-            profile = "fast" if result.mode == SyncMode.MANUAL else "formal"
-            for item in new_items:
-                self.db.create_video(
-                    item.bvid,
-                    item.title,
-                    item.uploader,
-                    processing_profile=profile,
-                    display_favorite_time=item.favorite_time,
-                    duration_seconds=item.duration_seconds,
-                )
-            cover_sync = getattr(self.pipeline, "sync_favorite_covers", None)
-            if cover_sync is not None:
-                cover_sync(items)
-            result.discovered_count = len(new_items)
-            self._process_new_and_due(active_run_id, result, [])
-            status = "completed" if result.failed_count == 0 else "completed_with_errors"
-            self.db.finish_sync_run(
-                active_run_id,
-                status=status,
-                current_count=result.current_count,
-                discovered_count=result.discovered_count,
-                processed_count=result.processed_count,
-                failed_count=result.failed_count,
-            )
-            return result
-        except Exception as exc:
-            self.db.finish_sync_run(
-                active_run_id,
-                status="failed",
-                error_summary=f"{type(exc).__name__}: {exc}",
-            )
-            raise
 
 
 def is_quiet_hour(moment: datetime) -> bool:

@@ -10,7 +10,10 @@ from decimal import Decimal
 from typing import Any
 
 from shiliu.ask.contracts import TranscriptEvidenceSpan
-from shiliu.db import Database
+from shiliu.storage.errors import StorageError
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import json_value
+from shiliu.research.service import _parse_iso
 from shiliu.ask.adaptive import decision_directive
 from shiliu.evidence.continuation import (
     ContinuationContractError,
@@ -142,8 +145,8 @@ class ResearchProductService:
     MAX_TRACE_EVENTS = 100
     MAX_ADVANCED_ROWS = 40
     MAX_DELTA_ITEMS = 8
-    LEASE_SECONDS = 600
-    LEASE_RENEW_EVERY = 4
+    LEASE_SECONDS = 60
+    LEASE_RENEW_EVERY = 15
     PROVIDER_EXECUTION = "receipt_bound_provider"
 
     STATUS_LABELS = {
@@ -224,18 +227,19 @@ class ResearchProductService:
         inner: InnerResearchService,
         outer: OuterResearchService,
         control: ResearchControlService,
-        principal_id: str = "local_operator",
+        principal_id: str | None = None,
         runner_id: str | None = None,
         fault_injector: FaultInjector | None = None,
         lease_seconds: int | None = None,
         lease_renew_every: int | None = LEASE_RENEW_EVERY,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.inner = inner
         self.outer = outer
         self.control = control
-        self.principal_id = principal_id
+        self.principal_id = principal_id or db.context.user_id
         self.runner_id = runner_id or f"stage5-local-{uuid.uuid4().hex}"
         self.lease_seconds = int(lease_seconds or self.LEASE_SECONDS)
         self.lease_renew_every = lease_renew_every
@@ -363,7 +367,19 @@ class ResearchProductService:
             evidence_decision=evidence_decision,
             continuation_envelope=continuation_envelope,
         )
-        task_id = f"rtask_{hashlib.sha256(request.command_id.encode()).hexdigest()[:32]}"
+        legacy_task_id = f"rtask_{hashlib.sha256(request.command_id.encode()).hexdigest()[:32]}"
+        try:
+            self.kernel.get_task(legacy_task_id)
+        except ResearchError as exc:
+            if exc.code != "research_not_found":
+                raise
+            task_id = "rtask_" + _hash({
+                "workspace_id": self.context.workspace_id,
+                "principal_id": self.context.user_id,
+                "command_id": request.command_id,
+            })[:32]
+        else:
+            task_id = legacy_task_id
         evidence_policy: dict[str, Any] | None = None
         creates_v2_metadata = False
         try:
@@ -689,33 +705,29 @@ class ResearchProductService:
                        r.termination_reason, r.failure_class,
                        EXISTS(
                            SELECT 1 FROM research_side_effects unresolved_effect
-                           WHERE unresolved_effect.task_id=t.task_id
+                           WHERE unresolved_effect.workspace_id=t.workspace_id AND unresolved_effect.task_id=t.task_id
                              AND unresolved_effect.status='unknown'
                        ) AS provider_outcome_unknown,
                        EXISTS(
                            SELECT 1 FROM research_constraint_specs objective_spec
-                           WHERE objective_spec.goal_id=g.goal_id
+                           WHERE objective_spec.workspace_id=g.workspace_id AND objective_spec.goal_id=g.goal_id
                              AND objective_spec.constraint_scope='objective'
-                             AND json_extract(
-                                 objective_spec.evaluator_policy_json, '$.authority'
-                             )='server_registry'
+                             AND (objective_spec.evaluator_policy_json->>'authority')='server_registry'
                        ) AS objective_evaluator_registered,
                        NOT EXISTS(
                            SELECT 1 FROM research_constraint_specs semantic_spec
-                           WHERE semantic_spec.goal_id=g.goal_id
+                           WHERE semantic_spec.workspace_id=g.workspace_id AND semantic_spec.goal_id=g.goal_id
                              AND semantic_spec.constraint_scope='success_constraint'
                              AND COALESCE(
-                                 json_extract(
-                                     semantic_spec.evaluator_policy_json, '$.authority'
-                                 ), ''
+                                 (semantic_spec.evaluator_policy_json->>'authority'), ''
                              )!='server_registry'
                        ) AS all_semantic_evaluators_registered
                 FROM research_tasks t
-                JOIN research_goals g ON g.goal_id=t.active_goal_id
-                LEFT JOIN research_results r ON r.result_id=t.terminal_result_id
-                ORDER BY t.updated_at DESC, t.task_id DESC LIMIT ?
+                JOIN research_goals g ON (g.workspace_id,g.goal_id)=(t.workspace_id,t.active_goal_id)
+                LEFT JOIN research_results r ON (r.workspace_id,r.result_id)=(t.workspace_id,t.terminal_result_id)
+                 WHERE t.workspace_id=%s AND t.owner_user_id=%s ORDER BY t.updated_at DESC, t.task_id DESC LIMIT %s
                 """,
-                (bounded,),
+                (self.context.workspace_id, self.context.user_id, bounded),
             ).fetchall()
         values = []
         for row in rows:
@@ -886,6 +898,9 @@ class ResearchProductService:
             task_id,
             str(active_attempt["attempt_id"]) if active_attempt is not None else None,
         )
+        if artifact is not None:
+            by_id={citation["citation_id"]:citation for citation in citations}
+            citations=[by_id[evidence_id] for evidence_id in artifact.get("evidence_ids",[]) if evidence_id in by_id]
         deltas = self._latest_deltas(raw["events"])
         if deltas is not None:
             deltas = {
@@ -1096,9 +1111,7 @@ class ResearchProductService:
                 "已完成",
             )
         elif answer_status == "valid_success":
-            execution = json.loads(
-                str(row.get("evidence_policy_json") or "{}")
-            ).get("product_execution")
+            execution = json_value(row.get('evidence_policy_json') or '{}').get("product_execution")
             status = (
                 "limited_deterministic_output"
                 if execution == "deterministic_no_provider"
@@ -1521,16 +1534,16 @@ class ResearchProductService:
                        ei.quote_preview, v.source_id, v.title, v.video_url,
                        v.subtitle_source,
                        (SELECT ev.outcome FROM research_evidence_validations ev
-                        WHERE ev.evidence_use_id=eu.evidence_use_id
+                        WHERE ev.workspace_id=eu.workspace_id AND ev.evidence_use_id=eu.evidence_use_id
                         ORDER BY ev.observed_at DESC, ev.observation_id DESC LIMIT 1)
                        AS currentness
                 FROM research_evidence_uses eu
-                JOIN research_evidence_identities ei ON ei.evidence_id=eu.evidence_id
-                JOIN videos v ON v.id=ei.video_id
-                WHERE eu.task_id=? AND eu.attempt_id=?
+                JOIN research_evidence_identities ei ON (ei.workspace_id,ei.evidence_id)=(eu.workspace_id,eu.evidence_id)
+                JOIN videos v ON (v.workspace_id,v.id)=(ei.workspace_id,ei.video_id)
+                WHERE eu.workspace_id=%s AND  eu.task_id=%s AND eu.attempt_id=%s
                 ORDER BY eu.created_at, eu.evidence_use_id LIMIT 48
                 """,
-                (task_id, attempt_id),
+                (self.context.workspace_id, task_id, attempt_id),
             ).fetchall()
         citations: list[dict[str, Any]] = []
         for row in rows:
@@ -1681,32 +1694,27 @@ class ResearchProductService:
             if str(task["status"]) not in {"blocked", "waiting_user", "terminal"}:
                 return None
             attempt = connection.execute(
-                "SELECT * FROM research_attempts WHERE task_id=? "
-                "ORDER BY ordinal DESC LIMIT 1",
-                (task_id,),
+                'SELECT * FROM research_attempts WHERE workspace_id=%s AND  task_id=%s ORDER BY ordinal DESC LIMIT 1',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             checkpoint = connection.execute(
-                "SELECT * FROM research_checkpoints WHERE task_id=? "
-                "ORDER BY created_at DESC, sequence DESC LIMIT 1",
-                (task_id,),
+                'SELECT * FROM research_checkpoints WHERE workspace_id=%s AND  task_id=%s ORDER BY created_at DESC, sequence DESC LIMIT 1',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             result = (
                 connection.execute(
-                    "SELECT * FROM research_results WHERE result_id=?",
-                    (str(task["terminal_result_id"]),),
+                    'SELECT * FROM research_results WHERE workspace_id=%s AND  result_id=%s',
+                    (self.context.workspace_id, str(task['terminal_result_id'])),
                 ).fetchone()
                 if task["terminal_result_id"] is not None
                 else connection.execute(
-                    "SELECT * FROM research_results WHERE task_id=? AND attempt_id=? "
-                    "ORDER BY created_at DESC, result_id DESC LIMIT 1",
-                    (task_id, str(attempt["attempt_id"]) if attempt else ""),
+                    'SELECT * FROM research_results WHERE workspace_id=%s AND  task_id=%s AND attempt_id=%s ORDER BY created_at DESC, result_id DESC LIMIT 1',
+                    (self.context.workspace_id, task_id, str(attempt['attempt_id']) if attempt else ''),
                 ).fetchone()
             )
             artifact = connection.execute(
-                "SELECT * FROM research_provisional_artifacts "
-                "WHERE task_id=? AND attempt_id=? "
-                "ORDER BY created_at DESC, artifact_id DESC LIMIT 1",
-                (task_id, str(attempt["attempt_id"]) if attempt else ""),
+                'SELECT * FROM research_provisional_artifacts WHERE workspace_id=%s AND  task_id=%s AND attempt_id=%s ORDER BY created_at DESC, artifact_id DESC LIMIT 1',
+                (self.context.workspace_id, task_id, str(attempt['attempt_id']) if attempt else ''),
             ).fetchone()
             boundary = {
                 "task_id": task_id,
@@ -1788,23 +1796,20 @@ class ResearchProductService:
         boundary_hash: str,
     ) -> dict[str, Any]:
         event_ids = [
-            str(row[0])
+            str(row["event_id"])
             for row in connection.execute(
-                "SELECT event_id FROM research_events WHERE task_id=? "
-                "ORDER BY sequence DESC LIMIT 12",
-                (boundary["task_id"],),
+                'SELECT event_id FROM research_events WHERE workspace_id=%s AND  task_id=%s ORDER BY sequence DESC LIMIT 12',
+                (self.context.workspace_id, boundary['task_id']),
             ).fetchall()
         ]
         evidence_use_ids = [
-            str(row[0])
+            str(row["evidence_use_id"])
             for row in connection.execute(
-                "SELECT evidence_use_id FROM research_evidence_uses "
-                "WHERE task_id=? AND attempt_id=? "
-                "ORDER BY created_at, evidence_use_id LIMIT 24",
-                (boundary["task_id"], boundary["attempt_id"]),
+                'SELECT evidence_use_id FROM research_evidence_uses WHERE workspace_id=%s AND  task_id=%s AND attempt_id=%s ORDER BY created_at, evidence_use_id LIMIT 24',
+                (self.context.workspace_id, boundary['task_id'], boundary['attempt_id']),
             ).fetchall()
         ]
-        blocks = json.loads(str(artifact["answer_blocks_json"])) if artifact else []
+        blocks = json_value(artifact['answer_blocks_json']) if artifact else []
         knowledge_items = [
             {
                 "summary": _bounded_text(block.get("text"), 500),
@@ -1818,14 +1823,14 @@ class ResearchProductService:
             SELECT ev.* FROM research_evidence_validations ev
             JOIN (
                 SELECT evidence_use_id, MAX(observed_at) AS observed_at
-                FROM research_evidence_validations WHERE task_id=?
+                FROM research_evidence_validations WHERE workspace_id=%s AND task_id=%s
                 GROUP BY evidence_use_id
             ) latest ON latest.evidence_use_id=ev.evidence_use_id
                     AND latest.observed_at=ev.observed_at
-            WHERE ev.task_id=? AND ev.outcome IN ('stale','missing','invalid','error')
-            ORDER BY ev.observed_at DESC LIMIT ?
+            WHERE ev.workspace_id=%s AND  ev.task_id=%s AND ev.outcome IN ('stale','missing','invalid','error')
+            ORDER BY ev.observed_at DESC LIMIT %s
             """,
-            (boundary["task_id"], boundary["task_id"], self.MAX_DELTA_ITEMS),
+            (self.context.workspace_id, boundary['task_id'], self.context.workspace_id, boundary['task_id'], self.MAX_DELTA_ITEMS),
         ).fetchall()
         corpus_items = [
             {
@@ -1838,9 +1843,8 @@ class ResearchProductService:
             for row in validation_rows
         ]
         decisions = connection.execute(
-            "SELECT decision_id, decision_kind FROM research_human_decisions "
-            "WHERE task_id=? ORDER BY created_at DESC LIMIT ?",
-            (boundary["task_id"], self.MAX_DELTA_ITEMS),
+            'SELECT decision_id, decision_kind FROM research_human_decisions WHERE workspace_id=%s AND  task_id=%s ORDER BY created_at DESC LIMIT %s',
+            (self.context.workspace_id, boundary['task_id'], self.MAX_DELTA_ITEMS),
         ).fetchall()
         user_items = [
             {
@@ -1939,7 +1943,7 @@ class ResearchProductService:
                 payload_hash=payload_hash,
                 response=response,
             )
-        except (ResearchError, SimulatedCrash):
+        except (ResearchError, SimulatedCrash, StorageError):
             raise
         except Exception as exc:
             raise ResearchUnsafeState(
@@ -2151,13 +2155,13 @@ class ResearchProductService:
                 SELECT 1
                 FROM research_input_requests ir
                 JOIN research_human_decisions hd
-                  ON hd.input_request_id=ir.input_request_id
-                WHERE ir.task_id=? AND ir.request_kind='clarification'
-                  AND ir.prompt=? AND hd.decision_kind='clarify_goal'
+                  ON (hd.workspace_id,hd.input_request_id)=(ir.workspace_id,ir.input_request_id)
+                WHERE ir.workspace_id=%s AND  ir.task_id=%s AND ir.request_kind='clarification'
+                  AND ir.prompt=%s AND hd.decision_kind='clarify_goal'
                   AND hd.applied_action='goal_revision'
                 LIMIT 1
                 """,
-                (task_id, UNSUPPORTED_EVALUATOR_PROMPT),
+                (self.context.workspace_id, task_id, UNSUPPORTED_EVALUATOR_PROMPT),
             ).fetchone()
         return row is not None
 
@@ -2215,9 +2219,8 @@ class ResearchProductService:
                     "repeated InputRequest suppression lost current pause lineage"
                 )
             latest = connection.execute(
-                "SELECT checkpoint_id FROM research_checkpoints "
-                "WHERE attempt_id=? ORDER BY sequence DESC LIMIT 1",
-                (str(attempt["attempt_id"]),),
+                'SELECT checkpoint_id FROM research_checkpoints WHERE workspace_id=%s AND  attempt_id=%s ORDER BY sequence DESC LIMIT 1',
+                (self.context.workspace_id, str(attempt['attempt_id'])),
             ).fetchone()
             if latest is None or str(latest["checkpoint_id"]) != str(
                 outcome["checkpoint_id"]
@@ -2228,24 +2231,23 @@ class ResearchProductService:
             open_input = connection.execute(
                 """
                 SELECT 1 FROM research_input_requests ir
-                WHERE ir.task_id=? AND NOT EXISTS (
+                WHERE ir.workspace_id=%s AND  ir.task_id=%s AND NOT EXISTS (
                     SELECT 1 FROM research_input_dispositions idp
                     WHERE idp.input_request_id=ir.input_request_id
                       AND idp.status IN ('resolved','cancelled','superseded')
                 ) LIMIT 1
                 """,
-                (task_id,),
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if open_input is not None:
                 raise ResearchConflict("current InputRequest already exists")
             connection.execute(
-                "UPDATE research_attempts SET status='blocked' WHERE attempt_id=?",
-                (str(attempt["attempt_id"]),),
+                "UPDATE research_attempts SET status='blocked' WHERE workspace_id=%s AND  attempt_id=%s",
+                (self.context.workspace_id, str(attempt['attempt_id'])),
             )
             connection.execute(
-                "UPDATE research_tasks SET status='blocked', "
-                "state_version=state_version+1, updated_at=? WHERE task_id=?",
-                (now, task_id),
+                "UPDATE research_tasks SET status='blocked', state_version=state_version+1, updated_at=%s WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s",
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
             )
             event_id = self.kernel._event(
                 connection,
@@ -2314,9 +2316,8 @@ class ResearchProductService:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             latest = connection.execute(
-                "SELECT checkpoint_id, attempt_id FROM research_checkpoints "
-                "WHERE task_id=? ORDER BY created_at DESC, sequence DESC LIMIT 1",
-                (task_id,),
+                'SELECT checkpoint_id, attempt_id FROM research_checkpoints WHERE workspace_id=%s AND  task_id=%s ORDER BY created_at DESC, sequence DESC LIMIT 1',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             now = _now()
             event_id = self.kernel._event(

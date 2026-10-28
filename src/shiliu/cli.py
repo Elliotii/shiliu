@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import ExitStack
 import argparse
 import getpass
 import json
@@ -26,7 +27,6 @@ from shiliu.retrieval import (
 from shiliu.retrieval.dense import (
     provider_identity,
 )
-from shiliu.assistant.dependencies import MEM0_MODEL, Mem0SemanticIndex
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     retrieval_commands = retrieval.add_subparsers(
         dest="retrieval_command", required=True
     )
-    retrieval_commands.add_parser("rebuild", help="完整重建 FTS5 词法索引")
+    retrieval_commands.add_parser("rebuild", help="完整重建 PG 词法索引")
     retrieval_commands.add_parser("stats", help="显示词法索引统计与一致性")
     retrieval_commands.add_parser("dense-rebuild", help="构建或增量刷新 Dense 索引")
     retrieval_commands.add_parser("dense-stats", help="显示 Dense 索引统计")
@@ -227,11 +227,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    arguments = build_parser().parse_args(argv)
+    arguments=build_parser().parse_args(argv)
+    with ExitStack() as stack:
+        def application_factory():
+            return stack.enter_context(Application())
+        return _execute(arguments,application_factory)
+
+
+def _execute(arguments,application_factory) -> int:
     if arguments.command == "setup":
         return run_setup()
     if arguments.command == "sync":
-        app = Application()
+        app = application_factory()
         mode = SyncMode.MANUAL if arguments.manual else SyncMode.SCHEDULED
         result = app.sync_service.sync(mode)
         print(result.model_dump_json(indent=2))
@@ -244,14 +251,14 @@ def main(argv: list[str] | None = None) -> int:
         uvicorn.run(create_web_app(background_tasks=not arguments.no_background), host=arguments.host, port=arguments.port)
         return 0
     if arguments.command == "install-launchd":
-        app = Application()
+        app = application_factory()
         destination = install_launch_agent(app.paths)
         print(destination)
         return 0
     if arguments.command == "assistant" and arguments.assistant_command == "init-memory":
         return initialize_assistant_memory()
     if arguments.command == "retrieval":
-        app = Application()
+        app = application_factory()
         if arguments.retrieval_command == "rebuild":
             print(json.dumps(app.retrieval.rebuild().as_dict(), ensure_ascii=False, indent=2))
             return 0
@@ -358,7 +365,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "facet-spike":
-        app = Application()
+        app = application_factory()
         result = app.taxonomy_facets.run_spike(
             arguments.snapshot_id,
             limit=arguments.limit,
@@ -368,7 +375,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-spike":
-        app = Application()
+        app = application_factory()
         result = app.taxonomy_profiles.run_spike(
             arguments.snapshot_id,
             limit=arguments.limit,
@@ -378,12 +385,12 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-resume":
-        app = Application()
+        app = application_factory()
         result = app.taxonomy_profiles.resume_spike(arguments.run_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "profile-materialize":
-        app = Application()
+        app = application_factory()
         result = app.taxonomy_profiles.materialize_snapshot(
             arguments.snapshot_id,
             reuse_run_id=arguments.reuse_run_id,
@@ -396,7 +403,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "profile-compare-resume"
     ):
-        app = Application()
+        app = application_factory()
         result = app.taxonomy_profile_comparison.resume(arguments.comparison_id)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
@@ -404,7 +411,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-domain-stability-run"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_domain_stability.create_domain_run(
             source_run_id=arguments.source_run_id,
             run_label=arguments.label,
@@ -416,7 +423,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-domain-cross-run-merge"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_domain_stability.create_merge_run(
             run_a_id=arguments.run_a_id,
             run_b_id=arguments.run_b_id,
@@ -425,7 +432,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-domain-c1":
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_domain_consolidation_v2.create_run_c1(
             source_run_id=arguments.source_run_id, seed=arguments.seed,
         )
@@ -435,7 +442,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-domain-completion"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_domain_completion.create(
             run_a_id=arguments.run_a_id,
             run_b_id=arguments.run_b_id,
@@ -444,7 +451,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "discovery-spike":
-        app = Application()
+        app = application_factory()
         result = app.taxonomy_discovery_spikes.run_spike(
             arguments.snapshot_id,
             batch_size=arguments.batch_size,
@@ -455,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-run":
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_workflow.create_run(
             snapshot_id=arguments.snapshot_id,
             run_kind=arguments.kind,
@@ -470,7 +477,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-dual-view-regression"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_workflow.create_dual_view_regression(
             snapshot_id=arguments.snapshot_id,
             profile_run_id=arguments.profile_run_id,
@@ -480,7 +487,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"run_id": run_id}, ensure_ascii=False, indent=2))
         return 0
     if arguments.command == "taxonomy" and arguments.taxonomy_command == "create-full-run-a":
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_workflow.create_full_discovery_run_a(
             snapshot_id=arguments.snapshot_id,
             profile_run_id=arguments.profile_run_id,
@@ -497,7 +504,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-content-type-purity-run"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_workflow.create_content_type_purity_run(
             source_run_id=arguments.source_run_id
         )
@@ -507,7 +514,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-content-type-second-layer-run"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_workflow.create_content_type_second_layer_run(
             source_run_id=arguments.source_run_id,
             first_layer_run_id=arguments.first_layer_run_id,
@@ -518,7 +525,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-faceted-spike"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_faceted_metadata.create_spike(
             snapshot_id=arguments.snapshot_id,
             domain_run_id=arguments.domain_run_id,
@@ -532,7 +539,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-hybrid-facets-spike"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_controlled_facets.create_spike(
             snapshot_id=arguments.snapshot_id,
             domain_run_id=arguments.domain_run_id,
@@ -544,7 +551,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.command == "taxonomy"
         and arguments.taxonomy_command == "create-controlled-facets-completion"
     ):
-        app = Application()
+        app = application_factory()
         run_id = app.taxonomy_controlled_facet_completion.create_completion(
             source_run_id=arguments.source_run_id,
         )
@@ -553,7 +560,7 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "taxonomy" and arguments.taxonomy_command in {
         "run", "resume", "status"
     }:
-        app = Application()
+        app = application_factory()
         run = app.taxonomy_run_repository.get_run(arguments.run_id)
         is_faceted = bool(run and run.get("run_kind") == "faceted_metadata_spike")
         is_controlled = bool(
@@ -605,6 +612,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def run_setup() -> int:
+    from shiliu.config import load_postgres_config
+    postgres_config=load_postgres_config()
     paths = AppPaths.defaults()
     config = AppConfig.default(paths)
     content = input(f"内容目录 [{config.content_dir}]: ").strip() or config.content_dir
@@ -647,9 +656,8 @@ def run_setup() -> int:
         baseline_confirmed=True,
     )
     resolved = save_config(config, paths)
-    database = Database(resolved.database)
-    database.initialize()
-    database.establish_baseline([item.bvid for item in items])
+    with Application(resolved,config=config,postgres_config=postgres_config) as core:
+        core.db.establish_baseline([item.bvid for item in items])
     print(f"设置完成，基线 {len(items)} 条，配置保存在 {resolved.config}")
     if input("安装每小时 launchd 同步任务？[Y/n]: ").strip().lower() not in {"n", "no"}:
         install_launch_agent(resolved)
@@ -660,36 +668,9 @@ def run_setup() -> int:
 
 
 def initialize_assistant_memory() -> int:
-    """Explicitly permit the one network download required by the local Mem0 index."""
-    paths = AppPaths.defaults()
-    backend = Mem0SemanticIndex(paths.assistant_state_dir / "mem0")
-    prior = {
-        name: os.environ.get(name)
-        for name in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE")
-    }
-    try:
-        os.environ["HF_HUB_OFFLINE"] = "0"
-        os.environ["TRANSFORMERS_OFFLINE"] = "0"
-        backend.start()
-        # Mem0's Qdrant adapter initializes its optional sparse encoder lazily on
-        # the first projection. Prime that cache here so normal serve remains
-        # strictly offline without emitting a misleading model error.
-        from fastembed import SparseTextEmbedding
-
-        SparseTextEmbedding(model_name="Qdrant/bm25")
-    finally:
-        backend.stop()
-        for name, value in prior.items():
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
-    print(json.dumps({
-        "status": "ready",
-        "model": MEM0_MODEL,
-        "state_dir": str(paths.assistant_state_dir / "mem0"),
-    }, ensure_ascii=False, indent=2))
-    return 0
+    """The former standalone vector-store download command is retired."""
+    print(json.dumps({'status':'retired','replacement':'Use the explicitly configured PostgreSQL Memory projection worker; Memory projections are managed by the configured PostgreSQL runtime.'},ensure_ascii=False))
+    return 2
 
 
 def _cli_bool(value: str | None) -> bool | None:

@@ -19,7 +19,7 @@ from .stage2r_b2_intake import (
 
 def main() -> None:
     validate_preconditions()
-    source = Path("/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json")
+    source = Path("/absolute/historical/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json")
     source_rows = json.loads(source.read_text(encoding="utf-8"))
     cases = []
     for case_id in ("V2C_B2P00001", "V2C_B2P00002"):

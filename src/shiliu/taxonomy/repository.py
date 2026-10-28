@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from shiliu.db import Database, utc_now
+from shiliu.db import Database, utc_now, collection_dto
+from psycopg.types.json import Jsonb
 from shiliu.taxonomy.domain import CorpusPreview, FrozenSnapshot
 
 
@@ -23,12 +24,12 @@ class TaxonomyRepository:
             raise ValueError("至少选择一个收藏夹")
         if len(source_ids) != len(set(source_ids)):
             raise ValueError("收藏夹选择中存在重复项")
-        placeholders = ",".join("?" for _ in source_ids)
-        with self.db.connect() as connection:
+        placeholders = ",".join("%s" for _ in source_ids)
+        with self.db.connect(read_only=True) as connection:
             source_count = connection.execute(
-                f"SELECT COUNT(*) FROM favorite_sources WHERE status IN ('active', 'cooldown', 'paused') AND id IN ({placeholders})",
-                source_ids,
-            ).fetchone()[0]
+                f"SELECT COUNT(*) FROM favorite_sources WHERE status IN ('active', 'cooldown', 'paused') AND workspace_id=%s AND id IN ({placeholders})",
+                [self.db.workspace_id, *source_ids],
+            ).fetchone()["count"]
             if int(source_count) != len(source_ids):
                 raise ValueError("所选收藏夹不存在或未启用")
             rows = connection.execute(
@@ -43,36 +44,37 @@ class TaxonomyRepository:
                 FROM video_source_memberships m
                 JOIN favorite_sources s ON s.id=m.source_id
                 LEFT JOIN videos v ON v.id=m.video_id
-                WHERE m.removed_at IS NULL
+                WHERE m.workspace_id=%s AND m.removed_at IS NULL
                   AND s.status IN ('active', 'cooldown', 'paused')
                   AND m.source_id IN ({placeholders})
                 ORDER BY s.sort_order, m.source_position, m.bvid
                 """,
-                source_ids,
+                [self.db.workspace_id, *source_ids],
             ).fetchall()
-        return [dict(row) for row in rows]
+        return [collection_dto(row) for row in rows]
 
     def freeze(self, preview: CorpusPreview, snapshot_hash: str) -> FrozenSnapshot:
         if preview.total_cards == 0:
             raise ValueError("不能创建空快照")
         now = utc_now()
-        with self.db.connect() as connection:
+        with self.db.connect(guard=True) as connection:
             existing = connection.execute(
-                "SELECT * FROM taxonomy_corpus_snapshots WHERE snapshot_hash=?",
-                (snapshot_hash,),
+                "SELECT * FROM taxonomy_corpus_snapshots WHERE workspace_id=%s AND snapshot_hash=%s",
+                (self.db.workspace_id, snapshot_hash),
             ).fetchone()
             if existing is not None:
                 return self._snapshot_from_row(dict(existing), reused=True)
             cursor = connection.execute(
                 """
                 INSERT INTO taxonomy_corpus_snapshots(
-                    selected_source_ids_json, membership_count, content_count,
+                    workspace_id, selected_source_ids_json, membership_count, content_count,
                     duplicate_memberships_merged, discovery_eligible_count,
                     trial_assignment_only_count, evidence_counts_json,
                     snapshot_hash, created_at, frozen_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
                 """,
                 (
+                    self.db.workspace_id,
                     _compact_json(preview.selected_source_ids),
                     preview.membership_count,
                     preview.total_cards,
@@ -85,25 +87,26 @@ class TaxonomyRepository:
                     now,
                 ),
             )
-            snapshot_id = int(cursor.lastrowid)
+            snapshot_id = int(cursor.fetchone()["id"])
             for ordinal, card in enumerate(preview.cards):
                 connection.execute(
                     """
                     INSERT INTO taxonomy_classification_cards(
-                        snapshot_id, content_key, video_id, platform,
+                        workspace_id, snapshot_id, content_key, video_id, platform,
                         source_content_id, ordinal, evidence_level,
                         discovery_eligible, selected_revision, stored_card_json,
                         discovery_view_json, card_hash, discovery_view_hash, created_at
-                    ) VALUES(?, ?, ?, 'bilibili', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES(%s, %s, %s, %s, 'bilibili', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
+                        self.db.workspace_id,
                         snapshot_id,
                         card.content_key,
                         card.video_id,
                         card.content_key.split(":", 2)[1],
                         ordinal,
                         card.evidence_level.value,
-                        int(card.discovery_eligible),
+                        bool(card.discovery_eligible),
                         card.selected_revision,
                         _compact_json(card.stored_card.model_dump(mode="json")),
                         _compact_json(card.discovery_view.model_dump(mode="json")),
@@ -127,16 +130,18 @@ class TaxonomyRepository:
         )
 
     def list_snapshots(self) -> list[dict[str, Any]]:
-        with self.db.connect() as connection:
+        with self.db.connect(read_only=True) as connection:
             rows = connection.execute(
-                "SELECT * FROM taxonomy_corpus_snapshots ORDER BY id DESC"
+                "SELECT * FROM taxonomy_corpus_snapshots WHERE workspace_id=%s ORDER BY id DESC",
+                (self.db.workspace_id,),
             ).fetchall()
         return [self._snapshot_row(dict(row)) for row in rows]
 
     def get_snapshot(self, snapshot_id: int) -> dict[str, Any] | None:
-        with self.db.connect() as connection:
+        with self.db.connect(read_only=True) as connection:
             snapshot = connection.execute(
-                "SELECT * FROM taxonomy_corpus_snapshots WHERE id=?", (snapshot_id,)
+                "SELECT * FROM taxonomy_corpus_snapshots WHERE workspace_id=%s AND id=%s",
+                (self.db.workspace_id, snapshot_id),
             ).fetchone()
             if snapshot is None:
                 return None
@@ -146,9 +151,9 @@ class TaxonomyRepository:
                        discovery_eligible, selected_revision, stored_card_json,
                        discovery_view_json, card_hash, discovery_view_hash
                 FROM taxonomy_classification_cards
-                WHERE snapshot_id=? ORDER BY ordinal
+                WHERE workspace_id=%s AND snapshot_id=%s ORDER BY ordinal
                 """,
-                (snapshot_id,),
+                (self.db.workspace_id, snapshot_id),
             ).fetchall()
         result = self._snapshot_row(dict(snapshot))
         result["cards"] = [
@@ -159,8 +164,8 @@ class TaxonomyRepository:
                 "evidence_level": str(row["evidence_level"]),
                 "discovery_eligible": bool(row["discovery_eligible"]),
                 "selected_revision": row["selected_revision"],
-                "stored_card": json.loads(row["stored_card_json"]),
-                "discovery_view": json.loads(row["discovery_view_json"]),
+                "stored_card": row["stored_card_json"],
+                "discovery_view": row["discovery_view_json"],
                 "card_hash": str(row["card_hash"]),
                 "discovery_view_hash": str(row["discovery_view_hash"]),
             }
@@ -184,8 +189,9 @@ class TaxonomyRepository:
 
     @staticmethod
     def _snapshot_row(row: dict[str, Any]) -> dict[str, Any]:
-        row["selected_source_ids"] = json.loads(row.pop("selected_source_ids_json"))
-        row["evidence_counts"] = json.loads(row.pop("evidence_counts_json"))
+        row = collection_dto(row)
+        row["selected_source_ids"] = row.pop("selected_source_ids_json")
+        row["evidence_counts"] = row.pop("evidence_counts_json")
         return row
 
     @classmethod
@@ -206,5 +212,5 @@ class TaxonomyRepository:
         )
 
 
-def _compact_json(value: object) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+def _compact_json(value: object) -> Jsonb:
+    return Jsonb(value)

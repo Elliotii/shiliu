@@ -1,3 +1,5 @@
+> 0.4.0 update: current PostgreSQL/BM25/Wide-30 scope, evidence and limitations are in [README](README.md) and [release notes](docs/releases/v0.4.0.md). The earlier experiments and version-specific claims below are historical; they are not new PostgreSQL quality or performance promises.
+
 # Shiliu Demo Guide
 
 目标：用 6–8 分钟展示“个人收藏 → 权威字幕证据 → 可验证回答 → 持久研究”的完整

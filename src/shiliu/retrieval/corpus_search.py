@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shiliu.db import collection_dto
 
 from dataclasses import dataclass
 import hashlib
@@ -35,7 +36,7 @@ def _hash(value: object) -> str:
 
 
 def _decode(value: object, expected: type) -> Any:
-    decoded = json.loads(str(value))
+    decoded = json.loads(value) if isinstance(value, str) else value
     if not isinstance(decoded, expected):
         raise ValueError("invalid persisted JSON shape")
     return decoded
@@ -89,7 +90,7 @@ class CorpusSearchContextProjection:
                 status="baseline",
                 reasons=["no_corpus_task_context"],
             )
-        if principal_id is None:
+        if principal_id is None or principal_id != self.db.context.user_id:
             return self._outcome(
                 task_id=task_id,
                 enabled=True,
@@ -99,7 +100,8 @@ class CorpusSearchContextProjection:
 
         with self.db.connect() as connection:
             task = connection.execute(
-                "SELECT task_id FROM research_tasks WHERE task_id=?", (task_id,)
+                "SELECT task_id FROM research_tasks WHERE workspace_id=%s AND owner_user_id=%s AND task_id=%s",
+                (self.db.workspace_id, self.db.context.user_id, task_id),
             ).fetchone()
             if task is None:
                 return self._outcome(
@@ -113,13 +115,13 @@ class CorpusSearchContextProjection:
                 SELECT w.* FROM research_workspace_records w
                 JOIN (
                     SELECT record_id, MAX(version) AS version
-                    FROM research_workspace_records GROUP BY record_id
+                    FROM research_workspace_records WHERE workspace_id=%s AND principal_id=%s GROUP BY record_id
                 ) latest
                   ON latest.record_id=w.record_id AND latest.version=w.version
-                WHERE w.command_task_id=? AND w.record_kind='corpus_observation'
+                WHERE w.workspace_id=%s AND w.principal_id=%s AND w.command_task_id=%s AND w.record_kind='corpus_observation'
                 ORDER BY w.semantic_key, w.record_id
                 """,
-                (task_id,),
+                (self.db.workspace_id, self.db.context.user_id, self.db.workspace_id, self.db.context.user_id, task_id),
             ).fetchall()
             if not rows:
                 return self._outcome(
@@ -136,6 +138,7 @@ class CorpusSearchContextProjection:
             unrelated = 0
             snapshot_cache: dict[int, list[dict[str, Any]]] = {}
             for row in rows:
+                row = collection_dto(row)
                 if str(row["status"]) != "current":
                     terminal += 1
                     continue
@@ -284,16 +287,22 @@ class CorpusSearchContextProjection:
             raise ValueError("workspace content hash drift")
         snapshot_id = int(refs[0]["ref_id"])
         snapshot_row = connection.execute(
-            "SELECT * FROM taxonomy_corpus_snapshots WHERE id=?", (snapshot_id,)
+            "SELECT * FROM taxonomy_corpus_snapshots WHERE workspace_id=%s AND id=%s",
+            (self.db.workspace_id, snapshot_id),
         ).fetchone()
         if snapshot_row is None:
             raise ValueError("snapshot missing")
-        snapshot = dict(snapshot_row)
+        snapshot = collection_dto(snapshot_row)
+        snapshot.pop("workspace_id", None)
+        # The prior boundary hash used the explicit legacy snapshot DTO with
+        # compact JSON text columns. Its identity is preserved after JSONB ETL.
+        for key in ("selected_source_ids_json", "evidence_counts_json"):
+            snapshot[key] = _canonical_json(snapshot[key])
         if refs[0].get("boundary_hash") != _hash(snapshot):
             raise ValueError("snapshot boundary drift")
         if snapshot_id not in snapshot_cache:
             snapshot_cache[snapshot_id] = self._validated_cards(
-                connection, snapshot=snapshot
+                connection, snapshot=snapshot, workspace_id=self.db.workspace_id
             )
         return (
             {
@@ -312,15 +321,17 @@ class CorpusSearchContextProjection:
         )
 
     @staticmethod
-    def _validated_cards(connection: Any, *, snapshot: dict[str, Any]) -> list[dict[str, Any]]:
+    def _validated_cards(
+        connection: Any, *, snapshot: dict[str, Any], workspace_id
+    ) -> list[dict[str, Any]]:
         rows = connection.execute(
             """
             SELECT video_id, evidence_level, discovery_eligible, stored_card_json,
                    discovery_view_json, card_hash, discovery_view_hash
             FROM taxonomy_classification_cards
-            WHERE snapshot_id=? ORDER BY ordinal
+            WHERE workspace_id=%s AND snapshot_id=%s ORDER BY ordinal
             """,
-            (snapshot["id"],),
+            (workspace_id, snapshot["id"]),
         ).fetchall()
         cards: list[dict[str, Any]] = []
         card_hashes: list[str] = []
@@ -444,7 +455,9 @@ def compose_corpus_search_results(
     baseline = list(groups)
     target = min(result_limit, len(baseline))
     baseline_selected = baseline[:target]
-    baseline_rank = {int(group.video_id): index + 1 for index, group in enumerate(baseline)}
+    baseline_rank = {
+        int(group.video_id): index + 1 for index, group in enumerate(baseline)
+    }
     matches = projection.matches_by_video
     context = dict(projection.context)
     selected = list(baseline_selected)
@@ -468,7 +481,8 @@ def compose_corpus_search_results(
             (
                 group
                 for group in baseline
-                if int(group.video_id) in matches and int(group.video_id) not in open_ids
+                if int(group.video_id) in matches
+                and int(group.video_id) not in open_ids
             ),
             key=lambda group: (
                 -len(matches[int(group.video_id)]),

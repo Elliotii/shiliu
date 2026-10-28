@@ -80,7 +80,7 @@ def verify_prediction_seal(output_root: Path) -> bool:
 
 
 def test_p8_decision_ledger_hash_matches():
-    assert digest(Path("/Users/elliot/Downloads/V3_5_PQS_V1_P8_PRODUCT_INITIAL_BASELINE_DECISION_LEDGER.json")) == "e5af8a5e35f25c5946ae0c26f7f759245e62eb1189144604e78e64ee49d0c79e"
+    assert digest(Path("/absolute/historical/Downloads/V3_5_PQS_V1_P8_PRODUCT_INITIAL_BASELINE_DECISION_LEDGER.json")) == "e5af8a5e35f25c5946ae0c26f7f759245e62eb1189144604e78e64ee49d0c79e"
 
 
 def test_authority_index_hash_matches():

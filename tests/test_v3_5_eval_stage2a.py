@@ -18,7 +18,7 @@ from shiliu.eval_v3_5.packets import validate_review_assets
 
 ROOT = Path("research/v3_5")
 SNAPSHOT_DB = Path(
-    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+    "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
 )
 
 

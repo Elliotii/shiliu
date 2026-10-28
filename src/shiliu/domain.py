@@ -18,6 +18,7 @@ class VideoStatus(str, Enum):
 
 
 class StageName(str, Enum):
+    SOURCE_FETCH = "source_fetch"
     TRANSCRIPT = "transcript_cleanup"
     SUMMARY = "summary_generation"
     REFINED_TRANSCRIPT = "refined_transcript_cleanup"

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
-import json
-import sqlite3
+from psycopg import sql
+from psycopg.types.json import Jsonb
+from shiliu.db import collection_dto
+from shiliu.storage.errors import StorageError
 import time
 from typing import Callable, Sequence
 from uuid import uuid4
@@ -12,13 +14,21 @@ from shiliu.db import Database
 from shiliu.retrieval.dense import (
     DenseIndexNotReadyError,
     DenseIndexRebuildRequiredError,
-    SQLiteExactDenseIndex,
+    PgExactDenseIndex,
 )
-from shiliu.retrieval.hybrid import FUSION_VERSION, HybridExecution, HybridRetrievalService
+from shiliu.retrieval.hybrid import (
+    FUSION_VERSION,
+    HybridRetrievalService,
+)
 from shiliu.retrieval.models import DenseSearchResult, HybridSearchResult, SearchResult
-from shiliu.retrieval.planner import SearchPlan, SearchPlanner, SearchRequest, SearchValidationError
+from shiliu.retrieval.planner import (
+    SearchPlan,
+    SearchPlanner,
+    SearchRequest,
+    SearchValidationError,
+)
 from shiliu.retrieval.qwen import LocalModelNotReadyError
-from shiliu.retrieval.service import INDEX_NAME, RetrievalService
+from shiliu.retrieval.service import INDEX_VERSION, RetrievalService
 
 
 TRACE_VERSION = "v3-stage4a-search-trace-v1"
@@ -64,8 +74,14 @@ class RawSearchHit:
         return {
             name: getattr(self, name)
             for name in (
-                "unit_id", "rank", "score", "lexical_rank", "lexical_score",
-                "dense_rank", "dense_score", "rrf_score",
+                "unit_id",
+                "rank",
+                "score",
+                "lexical_rank",
+                "lexical_score",
+                "dense_rank",
+                "dense_score",
+                "rrf_score",
             )
         }
 
@@ -104,8 +120,14 @@ class RawSearchResponse:
 
 class SearchExecutionError(RuntimeError):
     def __init__(
-        self, message: str, *, code: str, stage: str, http_status: int,
-        trace_id: str | None = None, trace_persisted: bool = False,
+        self,
+        message: str,
+        *,
+        code: str,
+        stage: str,
+        http_status: int,
+        trace_id: str | None = None,
+        trace_persisted: bool = False,
     ) -> None:
         super().__init__(message)
         self.code = code
@@ -116,15 +138,21 @@ class SearchExecutionError(RuntimeError):
 
     def as_dict(self) -> dict[str, object]:
         return {
-            "code": self.code, "stage": self.stage, "message": str(self),
-            "trace_id": self.trace_id, "trace_persisted": self.trace_persisted,
+            "code": self.code,
+            "stage": self.stage,
+            "message": str(self),
+            "trace_id": self.trace_id,
+            "trace_persisted": self.trace_persisted,
         }
 
 
 class SearchOrchestrator:
     def __init__(
-        self, *, db: Database, lexical: RetrievalService,
-        dense_factory: Callable[[], SQLiteExactDenseIndex],
+        self,
+        *,
+        db: Database,
+        lexical: RetrievalService,
+        dense_factory: Callable[[], PgExactDenseIndex],
         hybrid_factory: Callable[[], HybridRetrievalService],
         planner: SearchPlanner | None = None,
         persist_trace: bool = True,
@@ -135,59 +163,12 @@ class SearchOrchestrator:
         self._hybrid_factory = hybrid_factory
         self.planner = planner or SearchPlanner()
         self.persist_trace = persist_trace
-        if self.persist_trace:
-            self.initialize_schema()
-
-    def initialize_schema(self) -> None:
-        with self.db.connect() as connection:
-            connection.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS retrieval_search_traces (
-                    trace_id TEXT PRIMARY KEY,
-                    trace_version TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    raw_query TEXT NOT NULL,
-                    normalized_query TEXT,
-                    query_type TEXT,
-                    requested_mode TEXT NOT NULL,
-                    planned_mode TEXT,
-                    executed_mode TEXT,
-                    routing_reason TEXT,
-                    scope TEXT NOT NULL,
-                    filters_json TEXT NOT NULL,
-                    raw_top_k INTEGER NOT NULL,
-                    lexical_candidate_count INTEGER NOT NULL DEFAULT 0,
-                    dense_candidate_count INTEGER NOT NULL DEFAULT 0,
-                    raw_hit_count INTEGER NOT NULL DEFAULT 0,
-                    planning_ms REAL NOT NULL DEFAULT 0,
-                    lexical_ms REAL NOT NULL DEFAULT 0,
-                    dense_ms REAL NOT NULL DEFAULT 0,
-                    fusion_ms REAL NOT NULL DEFAULT 0,
-                    total_ms REAL NOT NULL DEFAULT 0,
-                    lexical_index_version TEXT,
-                    dense_index_version TEXT,
-                    model_id TEXT,
-                    model_revision TEXT,
-                    provider_version TEXT,
-                    projection_version TEXT,
-                    query_instruction_version TEXT,
-                    input_policy_version TEXT,
-                    fusion_version TEXT,
-                    fallback INTEGER NOT NULL DEFAULT 0,
-                    fallback_reason TEXT,
-                    status TEXT NOT NULL,
-                    error_code TEXT,
-                    error_stage TEXT,
-                    error_message TEXT,
-                    raw_hits_json TEXT NOT NULL DEFAULT '[]'
-                );
-                CREATE INDEX IF NOT EXISTS idx_retrieval_search_traces_created
-                    ON retrieval_search_traces(created_at DESC, trace_id);
-                """
-            )
 
     def search(
-        self, request: SearchRequest, *, video_ids: tuple[int, ...] = (),
+        self,
+        request: SearchRequest,
+        *,
+        video_ids: tuple[int, ...] | None = None,
         scope_video_ids: tuple[int, ...] | None = None,
     ) -> RawSearchResponse:
         trace_id = str(uuid4())
@@ -198,8 +179,11 @@ class SearchOrchestrator:
         except SearchValidationError as exc:
             total = _milliseconds(started)
             error = SearchExecutionError(
-                str(exc), code="invalid_search_request", stage="planning",
-                http_status=400, trace_id=trace_id,
+                str(exc),
+                code="invalid_search_request",
+                stage="planning",
+                http_status=400,
+                trace_id=trace_id,
             )
             if self.persist_trace:
                 error.trace_persisted = self._persist_validation_error(
@@ -207,15 +191,23 @@ class SearchOrchestrator:
                 )
             raise error from exc
         planning_ms = _milliseconds(planning_started)
-        if len(video_ids) > 8 or any(value <= 0 for value in video_ids):
+        if video_ids is not None and (
+            len(video_ids) > 8 or any(value <= 0 for value in video_ids)
+        ):
             raise ValueError("video_ids must contain at most 8 positive IDs")
-        if scope_video_ids is not None and (video_ids or any(value <= 0 for value in scope_video_ids)):
+        if scope_video_ids is not None and (
+            video_ids or any(value <= 0 for value in scope_video_ids)
+        ):
             raise ValueError("invalid scoped video_ids")
         filters = replace(
             request.filters.retrieval_filters(),
-            video_ids=tuple(dict.fromkeys(
-                scope_video_ids if scope_video_ids is not None else video_ids
-            )),
+            video_ids=(
+                tuple(dict.fromkeys(scope_video_ids))
+                if scope_video_ids is not None
+                else tuple(dict.fromkeys(video_ids))
+                if video_ids is not None
+                else None
+            ),
         )
         include_ignored = request.filters.ignored
         executed_mode = plan.planned_mode
@@ -226,20 +218,24 @@ class SearchOrchestrator:
         try:
             if plan.planned_mode == "lexical":
                 phase = time.monotonic()
-                results: Sequence[SearchResult | DenseSearchResult | HybridSearchResult] = (
-                    self.lexical.search(
-                        plan.normalized_query, level=plan.scope,
-                        top_k=plan.raw_top_k, filters=filters,
-                        include_ignored=include_ignored,
-                    )
+                results: Sequence[
+                    SearchResult | DenseSearchResult | HybridSearchResult
+                ] = self.lexical.search(
+                    plan.normalized_query,
+                    level=plan.scope,
+                    top_k=plan.raw_top_k,
+                    filters=filters,
+                    include_ignored=include_ignored,
                 )
                 lexical_ms = _milliseconds(phase)
                 lexical_count = len(results)
             elif plan.planned_mode == "dense":
                 phase = time.monotonic()
                 results = self._dense_factory().search(
-                    plan.normalized_query, level=plan.scope,
-                    top_k=plan.raw_top_k, filters=filters,
+                    plan.normalized_query,
+                    level=plan.scope,
+                    top_k=plan.raw_top_k,
+                    filters=filters,
                     include_ignored=include_ignored,
                 )
                 dense_ms = _milliseconds(phase)
@@ -247,13 +243,17 @@ class SearchOrchestrator:
             else:
                 try:
                     execution = self._hybrid_factory().search_with_trace(
-                        plan.normalized_query, level=plan.scope,
-                        top_k=plan.raw_top_k, filters=filters,
+                        plan.normalized_query,
+                        level=plan.scope,
+                        top_k=plan.raw_top_k,
+                        filters=filters,
                         include_ignored=include_ignored,
                     )
                     results = execution.results
                     lexical_ms, dense_ms, fusion_ms = (
-                        execution.lexical_ms, execution.dense_ms, execution.fusion_ms
+                        execution.lexical_ms,
+                        execution.dense_ms,
+                        execution.fusion_ms,
                     )
                     lexical_count, dense_count = (
                         execution.lexical_candidate_count,
@@ -267,24 +267,40 @@ class SearchOrchestrator:
                     fallback_reason = _dense_error(exc)[0]
                     phase = time.monotonic()
                     results = self.lexical.search(
-                        plan.normalized_query, level=plan.scope,
-                        top_k=plan.raw_top_k, filters=filters,
+                        plan.normalized_query,
+                        level=plan.scope,
+                        top_k=plan.raw_top_k,
+                        filters=filters,
                         include_ignored=include_ignored,
                     )
                     lexical_ms = _milliseconds(phase)
                     lexical_count = len(results)
-            hits = tuple(_raw_hit(result, rank) for rank, result in enumerate(results, 1))
-            identity = self._index_identity(executed_mode)
+            hits = tuple(
+                _raw_hit(result, rank) for rank, result in enumerate(results, 1)
+            )
+            identity = self._index_identity(executed_mode, plan.scope, plan.normalized_query)
+            if fallback_reason:
+                identity["degraded_reason"] = fallback_reason
             timing = SearchTiming(
-                planning_ms=planning_ms, lexical_ms=lexical_ms, dense_ms=dense_ms,
-                fusion_ms=fusion_ms, total_ms=_milliseconds(started),
+                planning_ms=planning_ms,
+                lexical_ms=lexical_ms,
+                dense_ms=dense_ms,
+                fusion_ms=fusion_ms,
+                total_ms=_milliseconds(started),
             )
             candidate_counts = {"lexical": lexical_count, "dense": dense_count}
             response = RawSearchResponse(
-                trace_id=trace_id, trace_persisted=False, trace_error=None,
-                plan=plan, executed_mode=executed_mode, fallback=fallback,
-                fallback_reason=fallback_reason, index_identity=identity,
-                raw_hits=hits, timing=timing, candidate_counts=candidate_counts,
+                trace_id=trace_id,
+                trace_persisted=False,
+                trace_error=None,
+                plan=plan,
+                executed_mode=executed_mode,
+                fallback=fallback,
+                fallback_reason=fallback_reason,
+                index_identity=identity,
+                raw_hits=hits,
+                timing=timing,
+                candidate_counts=candidate_counts,
             )
             if self.persist_trace:
                 try:
@@ -293,22 +309,39 @@ class SearchOrchestrator:
                     return RawSearchResponse(
                         **{**response.__dict__, "trace_error": _bounded_error(exc)}
                     )
-                return RawSearchResponse(**{**response.__dict__, "trace_persisted": True})
+                return RawSearchResponse(
+                    **{**response.__dict__, "trace_persisted": True}
+                )
             return response
         except Exception as exc:
             mapped = _map_error(exc, trace_id=trace_id)
-            identity = self._index_identity(executed_mode)
+            identity = self._index_identity(executed_mode, plan.scope, plan.normalized_query)
+            if fallback_reason:
+                identity["degraded_reason"] = fallback_reason
             timing = SearchTiming(
-                planning_ms=planning_ms, lexical_ms=lexical_ms, dense_ms=dense_ms,
-                fusion_ms=fusion_ms, total_ms=_milliseconds(started),
+                planning_ms=planning_ms,
+                lexical_ms=lexical_ms,
+                dense_ms=dense_ms,
+                fusion_ms=fusion_ms,
+                total_ms=_milliseconds(started),
             )
             empty = RawSearchResponse(
-                trace_id=trace_id, trace_persisted=False, trace_error=None,
-                plan=plan, executed_mode=executed_mode, fallback=fallback,
-                fallback_reason=fallback_reason, index_identity=identity,
-                raw_hits=(), timing=timing,
+                trace_id=trace_id,
+                trace_persisted=False,
+                trace_error=None,
+                plan=plan,
+                executed_mode=executed_mode,
+                fallback=fallback,
+                fallback_reason=fallback_reason,
+                index_identity=identity,
+                raw_hits=(),
+                timing=timing,
                 candidate_counts={"lexical": lexical_count, "dense": dense_count},
-                error={"code": mapped.code, "stage": mapped.stage, "message": str(mapped)},
+                error={
+                    "code": mapped.code,
+                    "stage": mapped.stage,
+                    "message": str(mapped),
+                },
             )
             if self.persist_trace:
                 try:
@@ -319,117 +352,172 @@ class SearchOrchestrator:
             raise mapped from exc
 
     def search_raw(
-        self, request: SearchRequest, *, video_ids: tuple[int, ...] = (),
+        self,
+        request: SearchRequest,
+        *,
+        video_ids: tuple[int, ...] | None = None,
         scope_video_ids: tuple[int, ...] | None = None,
     ) -> RawSearchResponse:
         """Named Stage 4A boundary used by post-retrieval product presentation."""
         if scope_video_ids is not None:
             return self.search(request, scope_video_ids=scope_video_ids)
-        if video_ids:
+        if video_ids is not None:
             return self.search(request, video_ids=video_ids)
         return self.search(request)
 
-    def get_trace(self, trace_id: str) -> dict[str, object] | None:
-        with self.db.connect() as connection:
-            row = connection.execute(
-                "SELECT * FROM retrieval_search_traces WHERE trace_id=?", (trace_id,)
+    def get_trace(self, trace_id):
+        with self.db.connect(read_only=True) as c:
+            row = c.execute(
+                "SELECT * FROM shiliu.retrieval_search_traces WHERE workspace_id=%s AND trace_id=%s",
+                (self.db.workspace_id, trace_id),
             ).fetchone()
         if row is None:
             return None
-        result = dict(row)
-        result["filters"] = json.loads(str(result.pop("filters_json")))
-        result["raw_hits"] = json.loads(str(result.pop("raw_hits_json")))
-        result["fallback"] = bool(result["fallback"])
+        result = collection_dto(row)
+        result["filters"] = result.pop("filters_json")
+        result["raw_hits"] = result.pop("raw_hits_json")
         return result
 
-    def _index_identity(self, executed_mode: str) -> dict[str, object]:
-        with self.db.connect() as connection:
-            lexical = connection.execute(
-                "SELECT * FROM retrieval_index_meta WHERE index_name=?", (INDEX_NAME,)
+    def _index_identity(self, executed_mode, scope="all", query=""):
+        from shiliu.retrieval.bm25 import RANKING_VERSION
+        chunk_bm25 = scope == "transcript_chunk" and len(query) >= 3
+        with self.db.connect(read_only=True) as c:
+            row = c.execute(
+                "SELECT p.* FROM shiliu.assistant_runtime_state s JOIN shiliu.embedding_profiles p ON p.profile_id=s.embedding_profile_id WHERE s.workspace_id=%s AND s.principal_id=%s AND s.embedding_domain='collection'",
+                (self.db.workspace_id, self.db.context.user_id),
             ).fetchone()
-            dense_table = connection.execute(
-                "SELECT 1 FROM sqlite_master WHERE type='table' "
-                "AND name='retrieval_dense_index_meta'"
-            ).fetchone()
-            dense = (
-                connection.execute(
-                    "SELECT * FROM retrieval_dense_index_meta "
-                    "WHERE index_name='shiliu_dense'"
-                ).fetchone()
-                if dense_table is not None
+            pending = c.execute(
+                "SELECT COUNT(*) AS n FROM shiliu.retrieval_projection_tasks WHERE workspace_id=%s AND domain='collection' AND status!='completed'",
+                (self.db.workspace_id,),
+            ).fetchone()["n"]
+        identity = row["identity"] if row else {}
+        configured_dense = self._dense_factory()
+        missing = (
+            configured_dense.statistics()["index"]["missing_count"]
+            if row and row["profile_id"] == configured_dense.profile_id
+            else 0
+        )
+        return dict(
+            storage_backend="postgresql+pgvector",
+            lexical_profile=self.lexical.tokenizer.profile,
+            embedding_profile=row["profile_id"] if row else None,
+            degraded_reason="lexical_only"
+            if row is None
+            else "partial"
+            if pending or missing
+            else None,
+            lexical_index_version=RANKING_VERSION if chunk_bm25 else INDEX_VERSION,
+            dense_index_version=identity.get("dense_index_version"),
+            model_id=identity.get("model_id"),
+            model_revision=identity.get("model_revision"),
+            provider_version=identity.get("provider_version"),
+            projection_version=identity.get("projection_version"),
+            query_instruction_version=(
+                self._dense_factory().identity.query_instruction_version
+                if row
                 else None
-            )
-        result: dict[str, object] = {
-            "lexical_index_version": str(lexical["index_version"]) if lexical else None,
-            "dense_index_version": str(dense["dense_index_version"]) if dense else None,
-            "model_id": str(dense["model_id"]) if dense else None,
-            "model_revision": str(dense["model_revision"]) if dense else None,
-            "provider_version": str(dense["provider_version"]) if dense else None,
-            "projection_version": str(dense["projection_version"]) if dense else None,
-            "query_instruction_version": str(dense["query_instruction_version"]) if dense else None,
-            "input_policy_version": str(dense["input_policy_version"]) if dense else None,
-            "fusion_version": FUSION_VERSION if executed_mode == "hybrid" else None,
-        }
-        return result
+            ),
+            input_policy_version=identity.get("input_policy_version"),
+            fusion_version=FUSION_VERSION if executed_mode == "hybrid" else None,
+        )
 
-    def _persist_validation_error(
-        self, trace_id: str, request: SearchRequest,
-        error: SearchExecutionError, total_ms: float,
-    ) -> bool:
+    def _insert_trace(self, c, values):
+        values = dict(values, workspace_id=self.db.workspace_id)
+        c.execute(
+            sql.SQL("INSERT INTO shiliu.retrieval_search_traces({}) VALUES({})").format(
+                sql.SQL(",").join(map(sql.Identifier, values)),
+                sql.SQL(",").join(sql.SQL("%s") for _ in values),
+            ),
+            list(values.values()),
+        )
+
+    def _persist_validation_error(self, trace_id, request, error, total_ms):
         try:
-            with self.db.connect() as connection:
-                connection.execute(
-                    """
-                    INSERT INTO retrieval_search_traces(
-                      trace_id,trace_version,created_at,raw_query,requested_mode,
-                      scope,filters_json,raw_top_k,total_ms,status,error_code,
-                      error_stage,error_message
-                    ) VALUES(?,?,?,?,?,?,?,?,?,'error',?,?,?)
-                    """,
-                    (trace_id, TRACE_VERSION, _utc_now(), request.query, request.mode,
-                     request.scope, request.filters.model_dump_json(exclude_none=True),
-                     request.raw_top_k, total_ms, error.code, error.stage,
-                     str(error)[:500]),
+            with self.db.connect() as c:
+                self._insert_trace(
+                    c,
+                    dict(
+                        trace_id=trace_id,
+                        trace_version=TRACE_VERSION,
+                        created_at=_utc_now(),
+                        raw_query=request.query,
+                        requested_mode=request.mode,
+                        scope=request.scope,
+                        filters_json=Jsonb(
+                            request.filters.model_dump(exclude_none=True)
+                        ),
+                        raw_top_k=request.raw_top_k,
+                        total_ms=total_ms,
+                        status="error",
+                        error_code=error.code,
+                        error_stage=error.stage,
+                        error_message=str(error)[:500],
+                        storage_backend="postgresql+pgvector",
+                    ),
                 )
             return True
         except Exception:
             return False
 
-    def _persist_trace(self, response: RawSearchResponse, *, status: str) -> None:
-        plan, identity, timing = response.plan, response.index_identity, response.timing
-        error = response.error or {}
-        with self.db.connect() as connection:
-            connection.execute(
-                """
-                INSERT INTO retrieval_search_traces VALUES(
-                  ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-                )
-                """,
-                (
-                    response.trace_id, TRACE_VERSION, _utc_now(), plan.raw_query,
-                    plan.normalized_query, plan.query_type, plan.requested_mode,
-                    plan.planned_mode, response.executed_mode, plan.routing_reason,
-                    plan.scope, json.dumps(plan.validated_filters, ensure_ascii=False),
-                    plan.raw_top_k, response.candidate_counts["lexical"],
-                    response.candidate_counts["dense"], len(response.raw_hits),
-                    timing.planning_ms, timing.lexical_ms, timing.dense_ms,
-                    timing.fusion_ms, timing.total_ms,
-                    identity.get("lexical_index_version"),
-                    identity.get("dense_index_version"), identity.get("model_id"),
-                    identity.get("model_revision"), identity.get("provider_version"),
-                    identity.get("projection_version"),
-                    identity.get("query_instruction_version"),
-                    identity.get("input_policy_version"), identity.get("fusion_version"),
-                    int(response.fallback), response.fallback_reason, status,
-                    error.get("code"), error.get("stage"),
-                    str(error.get("message", ""))[:500] or None,
-                    json.dumps([item.trace_dict() for item in response.raw_hits]),
-                ),
-            )
+    def _persist_trace(self, response, *, status):
+        p, i, t = response.plan, response.index_identity, response.timing
+        e = response.error or {}
+        values = dict(
+            trace_id=response.trace_id,
+            trace_version=TRACE_VERSION,
+            created_at=_utc_now(),
+            raw_query=p.raw_query,
+            normalized_query=p.normalized_query,
+            query_type=p.query_type,
+            requested_mode=p.requested_mode,
+            planned_mode=p.planned_mode,
+            executed_mode=response.executed_mode,
+            routing_reason=p.routing_reason,
+            scope=p.scope,
+            filters_json=Jsonb(p.validated_filters),
+            raw_top_k=p.raw_top_k,
+            lexical_candidate_count=response.candidate_counts["lexical"],
+            dense_candidate_count=response.candidate_counts["dense"],
+            raw_hit_count=len(response.raw_hits),
+            planning_ms=t.planning_ms,
+            lexical_ms=t.lexical_ms,
+            dense_ms=t.dense_ms,
+            fusion_ms=t.fusion_ms,
+            total_ms=t.total_ms,
+            fallback=response.fallback,
+            fallback_reason=response.fallback_reason,
+            status=status,
+            error_code=e.get("code"),
+            error_stage=e.get("stage"),
+            error_message=str(e.get("message", ""))[:500] or None,
+            raw_hits_json=Jsonb([h.trace_dict() for h in response.raw_hits]),
+        )
+        for key in [
+            "lexical_index_version",
+            "dense_index_version",
+            "model_id",
+            "model_revision",
+            "provider_version",
+            "projection_version",
+            "query_instruction_version",
+            "input_policy_version",
+            "fusion_version",
+            "storage_backend",
+            "lexical_profile",
+            "embedding_profile",
+            "degraded_reason",
+        ]:
+            values[key] = i.get(key)
+        if response.fallback_reason:
+            values["degraded_reason"] = response.fallback_reason
+        with self.db.connect() as c:
+            self._insert_trace(c, values)
 
 
 _APPROVED_DENSE_ERRORS = (
-    DenseIndexNotReadyError, DenseIndexRebuildRequiredError, LocalModelNotReadyError,
+    DenseIndexNotReadyError,
+    DenseIndexRebuildRequiredError,
+    LocalModelNotReadyError,
 )
 
 
@@ -440,7 +528,9 @@ def _raw_hit(
         score = result.rrf_score
         lexical_rank, dense_rank = result.lexical_rank, result.dense_rank
         lexical_score, dense_score, rrf_score = (
-            result.lexical_score, result.dense_score, result.rrf_score
+            result.lexical_score,
+            result.dense_score,
+            result.rrf_score,
         )
     elif isinstance(result, DenseSearchResult):
         score = result.dense_score
@@ -452,13 +542,23 @@ def _raw_hit(
         lexical_rank, lexical_score = rank, result.lexical_score
     excerpt = result.matched_excerpt[:MAX_EXCERPT_CHARACTERS]
     return RawSearchHit(
-        unit_id=result.unit_id, video_id=result.video_id, unit_type=result.unit_type,
-        rank=rank, score=float(score), retrieval_method=result.retrieval_method,
-        lexical_rank=lexical_rank, lexical_score=lexical_score,
-        dense_rank=dense_rank, dense_score=dense_score, rrf_score=rrf_score,
-        title=result.title, uploader=result.uploader,
+        unit_id=result.unit_id,
+        video_id=result.video_id,
+        unit_type=result.unit_type,
+        rank=rank,
+        score=float(score),
+        retrieval_method=result.retrieval_method,
+        lexical_rank=lexical_rank,
+        lexical_score=lexical_score,
+        dense_rank=dense_rank,
+        dense_score=dense_score,
+        rrf_score=rrf_score,
+        title=result.title,
+        uploader=result.uploader,
         subtitle_source=result.source_type,
-        start_time=result.start_time, end_time=result.end_time, excerpt=excerpt,
+        start_time=result.start_time,
+        end_time=result.end_time,
+        excerpt=excerpt,
     )
 
 
@@ -470,14 +570,24 @@ def _map_error(exc: Exception, *, trace_id: str) -> SearchExecutionError:
         return SearchExecutionError(
             str(exc), code=code, stage="dense", http_status=status, trace_id=trace_id
         )
+    if isinstance(exc, StorageError) and exc.category.startswith("bm25_"):
+        return SearchExecutionError(
+            str(exc), code=exc.category, stage="lexical", http_status=503, trace_id=trace_id
+        )
     if isinstance(exc, ValueError):
         return SearchExecutionError(
-            str(exc), code="invalid_search_request", stage="retrieval",
-            http_status=400, trace_id=trace_id,
+            str(exc),
+            code="invalid_search_request",
+            stage="retrieval",
+            http_status=400,
+            trace_id=trace_id,
         )
     return SearchExecutionError(
-        f"{type(exc).__name__}: {exc}"[:500], code="retrieval_internal_error",
-        stage="retrieval", http_status=500, trace_id=trace_id,
+        f"{type(exc).__name__}: {exc}"[:500],
+        code="retrieval_internal_error",
+        stage="retrieval",
+        http_status=500,
+        trace_id=trace_id,
     )
 
 
@@ -492,7 +602,10 @@ def _dense_error(exc: Exception) -> tuple[str | None, int]:
 
 
 def _bounded_error(exc: Exception) -> dict[str, str]:
-    return {"code": "trace_persistence_failed", "message": f"{type(exc).__name__}: {exc}"[:500]}
+    return {
+        "code": "trace_persistence_failed",
+        "message": f"{type(exc).__name__}: {exc}"[:500],
+    }
 
 
 def _milliseconds(started: float) -> float:

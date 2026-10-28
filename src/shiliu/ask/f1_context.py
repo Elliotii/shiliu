@@ -88,3 +88,38 @@ class S2Cbase(Cbase):
 
 
 F1ContextBuilder = S2Cbase
+
+
+class FastWide30ContextBuilder:
+    """Deliver complete original RRF rank <= 30 segments in input order."""
+
+    def build(self, *, query, normalized_intent, spans):
+        selected, seen = [], {}
+        barrier = False
+        for span in spans:
+            if span.retrieval_provenance[0]["rank"] > 30:
+                continue
+            for segment in span.segments:
+                key = (span.source_artifact_id, span.source_version,
+                       span.timeline_run_id, segment.original_ordinal)
+                if not segment.source_text.strip():
+                    barrier = True
+                    continue
+                if key in seen:
+                    if seen[key] != segment.source_text:
+                        raise ValueError(f"conflicting original segment text at {key!r}")
+                    barrier = True
+                    continue
+                single = _span_with_segments(span, (segment,))
+                if (not barrier and selected and _same_lineage(selected[-1], single)
+                        and selected[-1].segments[-1].run_local_ordinal + 1
+                        == segment.run_local_ordinal):
+                    selected[-1] = _merge_spans(selected[-1], single)
+                else:
+                    selected.append(single)
+                seen[key] = segment.source_text
+                barrier = False
+        return ContextBuildResult(
+            tuple(selected), serialize(query, normalized_intent, selected),
+            tuple(span.citation_id for span in selected), False, 0,
+        )

@@ -101,7 +101,7 @@ def project_tool_result(name: str, result: dict, *, result_ref: str,
                 group['candidates'] = [{k: v for k, v in card.items() if k in {
                     'source_ref', 'revision', 'video_id', 'bvid', 'part', 'coverage', 'title',
                     'uploader', 'published_at', 'metadata_observed_at', 'memberships',
-                    'matched_excerpt', 'available_views', 'full_text_available',
+                    'matched_excerpt', 'available_views', 'full_text_available', 'read_hints',
                 }} for card in group.get('candidates') or []]
     elif name == 'knowledge_read' and body_characters is not None:
         remaining = body_characters

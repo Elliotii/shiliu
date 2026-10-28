@@ -23,7 +23,7 @@ MANIFEST = INPUTS / "development_execution_manifest.8_cases.locked.jsonl"
 LOCK = INPUTS / "development_execution_manifest.lock.json"
 AUDIT = INPUTS / "development_execution_manifest.audit.json"
 SNAPSHOT = Path(
-    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+    "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
 )
 SNAPSHOT_ARTIFACTS = SNAPSHOT.parent / "artifacts"
 ARTIFACT_MANIFEST = ROOT / "research/v3_eval/artifact_manifest.jsonl"

@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 from pydantic import ConfigDict
 
@@ -37,7 +37,7 @@ from shiliu.evidence.stage3a import (
 from shiliu.evidence.stage4 import (
     FINAL_CANDIDATE_BUILDER_VERSION,
     MECHANICAL_GATE_CONTRACT_VERSION,
-    MECHANICAL_GATE_POLICY_VERSION,
+    MECHANICAL_GATE_POLICY_VERSION as MECHANICAL_GATE_POLICY_VERSION,
     SUFFICIENCY_REQUEST_CONTRACT_VERSION,
     EvidenceResolutionState,
     MechanicalGateDecision,
@@ -593,10 +593,9 @@ class Stage5PipelineService:
                 "authoritative raw subtitle is unavailable",
                 code="raw_source_unavailable",
             )
-        try:
-            path = self.artifacts.managed_file(str(row["raw_subtitle_path"]))
-        except (ValueError, FileNotFoundError) as exc:
-            raise EvidenceContractError(str(exc), code="raw_source_unavailable") from exc
+        reference=str(row['raw_subtitle_path'])
+        if not reference.startswith('artifact:'):
+            raise EvidenceContractError('artifact manifest reference required',code='raw_source_unavailable')
         return load_source_artifact(
             SourceArtifactReference(
                 platform=str(row["platform"]),
@@ -604,8 +603,9 @@ class Stage5PipelineService:
                 part=int(row["part"]),
                 source_type=str(row.get("subtitle_source") or "unknown"),
                 source_language=str(row.get("subtitle_language") or "unknown"),
-                artifact_path=str(path),
-            )
+                artifact_path=reference,
+            ),
+            artifacts=self.artifacts,
         )
 
     def _stage(

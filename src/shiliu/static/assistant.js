@@ -258,13 +258,15 @@
   }
 
   function openDrawer(panel, title) {
+    if(panel!=='assistant-messages-panel'){++messages.serial;++messages.detailSerial;messages.selected=null;}
+    $('assistant-messages-panel').parentElement.classList.toggle('assistant-drawer-messages',panel==='assistant-messages-panel');
     $('assistant-drawer-title').textContent = title;
     ++state.managementSerial; ++state.activitySerial;
-    ['assistant-history-panel', 'assistant-memory-panel', 'assistant-knowledge-panel', 'assistant-settings-panel', 'assistant-spaces-panel', 'assistant-maintenance-panel'].forEach(id => { $(id).hidden = id !== panel; });
+    ['assistant-history-panel', 'assistant-memory-panel', 'assistant-knowledge-panel', 'assistant-settings-panel', 'assistant-spaces-panel', 'assistant-messages-panel'].forEach(id => { $(id).hidden = id !== panel; });
     $('assistant-shade').hidden = false;
     $('assistant-close-drawer').focus();
   }
-  function closeDrawer() { ++state.managementSerial; ++state.activitySerial; $('assistant-shade').hidden = true; }
+  function closeDrawer() { ++messages.detailSerial; messages.selected=null; $('assistant-messages-panel').parentElement.classList.remove('assistant-drawer-messages'); ++messages.serial; ++state.managementSerial; ++state.activitySerial; $('assistant-shade').hidden = true; }
 
   async function loadSpaces(useDefault = false) {
     const {spaces} = await api('/spaces');
@@ -650,7 +652,6 @@
     state.capabilities = capabilities;
     $('assistant-model-name').textContent = model === 'deepseek-v4-flash' ? 'DeepSeek V4 Flash' : model;
     const failures = [];
-    if (capabilities.context7 === 'unavailable') failures.push('技术文档查询暂时不可用');
     if (capabilities.memory_index === 'unavailable') failures.push('记忆语义索引暂时不可用，正式记录仍会保存');
     const note = $('assistant-service-note'); note.hidden = failures.length === 0; note.textContent = failures.join('；');
   }
@@ -980,16 +981,16 @@
     return true;
   }
 
-  async function openKnowledgePage(pageId) {
+  async function openKnowledgePage(pageId, fromMessage=false) {
     const serial = ++state.knowledgeSerial, nav = state.navigationSerial, spaceId = state.spaceId, threadId = state.threadId;
     const requested = () => serial === state.knowledgeSerial && navigationCurrent(nav, spaceId) && threadId === state.threadId;
     const current = () => serial === state.knowledgeRenderedSerial && !state.knowledgeLoading && navigationCurrent(nav, spaceId) && threadId === state.threadId;
     state.knowledgeLoading = true;
     let loaded;
     try { loaded = await Promise.all([
-      api(`/wiki/${pageId}/management?space_id=${spaceId}&thread_id=${threadId || ""}`),
+      api(`/wiki/${pageId}/management?space_id=${spaceId}&thread_id=${fromMessage ? "" : threadId || ""}`),
       api(`/wiki/${pageId}/changes?space_id=${spaceId}&management=true`),
-      api(`/wiki?space_id=${spaceId}&thread_id=${threadId || ""}`),
+      api(`/wiki?space_id=${spaceId}&thread_id=${fromMessage ? "" : threadId || ""}`),
       api(`/wiki-actions/proposals?space_id=${spaceId}`),
     ]); } catch (error) {
       if (requested()) { state.knowledgeLoading=false; toast(`知识内容加载失败，请重试：${error.message}`); }
@@ -998,7 +999,7 @@
     if (!requested()) return;
     state.knowledgeLoading=false; state.knowledgeRenderedSerial=serial;
     const [{page}, {changes}, {pages}, {proposals}] = loaded;
-    if (page.id !== pageId) return openKnowledgePage(page.id);
+    if (page.id !== pageId) return openKnowledgePage(page.id,fromMessage);
     $('assistant-knowledge-list-view').hidden = true;
     $('assistant-knowledge-detail').hidden = false;
     const box = $('assistant-knowledge-page'); box.innerHTML = '';
@@ -1047,7 +1048,10 @@
       };
       mergeForm.append(mergeTitle, select, mergeButton); box.append(mergeForm);
     }
-    proposals.filter(item => item.source_page_id === page.id || item.target_page_id === page.id).forEach(item => {
+    if(proposals.some(item=>item.kind==='source_patch' && item.target_page_id===page.id)) {
+      const review=document.createElement('button');review.type='button';review.className='quiet-button';review.textContent='查看视频正文修改建议';review.onclick=openMessages;box.append(review);
+    }
+    proposals.filter(item => item.kind==='merge' && (item.source_page_id === page.id || item.target_page_id === page.id)).forEach(item => {
       const pending = document.createElement('details'); pending.className = 'assistant-knowledge-history';
       const title = document.createElement('summary'); title.textContent = `待确认：合并「${item.source_title}」与「${item.target_title}」`;
       pending.append(title);
@@ -1301,54 +1305,177 @@
     } catch(error) {if(current())box.textContent=`读取失败：${error.message}`;}
   }
 
-  async function loadMaintenanceActivity() {
-    const serial=++state.activitySerial, nav=state.navigationSerial, spaceId=state.spaceId;
-    const box=$('assistant-activity-list'); box.textContent='正在加载动态…';
-    const current=()=>serial===state.activitySerial && navigationCurrent(nav,spaceId) && !$('assistant-shade').hidden;
-    $('assistant-activity-scope').textContent=`${state.spaces.find(space=>Number(space.id)===spaceId)?.name || '当前 Space'} · ${backgroundLabel()}`;
+  const messages = {serial:0, detailSerial:0, cursor:null, query:null, selected:null, rows:new Map(), scroll:0, trigger:null};
+  const messageLabels = {pending:'待确认',partial:'部分完成，待处理',applied:'已更新',rejected:'已拒绝',expired:'已过期',undone:'已撤销',important_failure:'异常',unavailable:'记录不可用'};
+  const messageSources = {dialogue:'对话',auto_memory:'自动记忆',video:'视频来源',manual:'手动',system:'系统'};
+  function messageElement(tag,text) {const el=document.createElement(tag);el.textContent=text;return el;}
+  function messageTime(value) {if(!value)return '';const date=new Date(value);return Number.isNaN(date.getTime())?String(value):date.toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});}
+  function messageTitle(item) {return item.object_label && item.object_label!=='业务记录' ? item.object_label : item.business_state==='important_failure' ? '一项'+(item.object_type==='memory'?'记忆提炼':'后台处理')+'未完成' : item.object_type==='memory'?'记忆变更':'Wiki 变更';}
+  async function messageCount() {
+    const data=await api('/messages/unread-count');
+    $('assistant-open-messages').textContent=`消息${data.unread_count ? ` · ${data.unread_count}` : ''}`;
+  }
+  function messageQuery() {
+    const query=new URLSearchParams();
+    ['view','object_type','source_type','space_id'].forEach(key=>{const value=$(`assistant-message-${key}`).value;if(value)query.set(key,value);});
+    ['unread_only','show_history'].forEach(key=>query.set(key,$(`assistant-message-${key}`).checked));
+    return query;
+  }
+  function messageFilterSummary(query) {
+    const box=$('assistant-message-active');box.replaceChildren();
+    ['object_type','source_type','space_id'].forEach(key=>{if(query.get(key)){const select=$(`assistant-message-${key}`);box.append(messageElement('span',select.selectedOptions?.[0]?.textContent || query.get(key)));}});
+    if(query.get('show_history')==='true') {const close=messageElement('button','包含历史消息 ×');close.type='button';close.setAttribute('aria-label','关闭历史消息筛选');close.onclick=()=>{$('assistant-message-show_history').checked=false;loadMessages();};box.append(close);}
+  }
+  function renderMessageRow(item,article) {
+    article.replaceChildren();article.className=`assistant-activity-item${['pending','partial'].includes(item.business_state)?' is-pending':''}`;
+    const button=messageElement('button','');button.type='button';button.className='assistant-message-row';
+    const heading=messageElement('span','');heading.className='assistant-message-row-head';
+    const title=messageElement('strong',messageTitle(item));const status=messageElement('span',messageLabels[item.business_state] || '记录');status.className='assistant-message-status';
+    const dot=messageElement('span',item.read_at?'':'●');dot.className='assistant-message-unread';dot.setAttribute('aria-label',item.read_at?'已读':'未读');
+    heading.append(dot,title,status);button.append(heading);
+    if(item.change_summary && item.change_summary!==messageTitle(item)) {const summary=messageElement('span',item.change_summary);summary.className='assistant-message-summary';button.append(summary);}
+    const meta=messageElement('small',`${item.object_type==='memory'?'记忆':'Wiki'} · ${messageSources[item.source_type] || '来源未记录'}${item.activity_at?' · '+messageTime(item.activity_at):''}`);button.append(meta);
+    if(item._notice)button.append(messageElement('small',item._notice));
+    button.onclick=()=>openMessage(item.id,button);article.append(button);
+  }
+  function backToMessages() {
+    ++messages.detailSerial;messages.selected=null;
+    $('assistant-message-detail-view').hidden=true;$('assistant-message-list-view').hidden=false;
+    $('assistant-message-scroll').scrollTop=messages.scroll;
+    messages.trigger?.focus({preventScroll:true});
+  }
+  async function openMessage(id,trigger) {
+    messages.scroll=$('assistant-message-scroll').scrollTop;messages.trigger=trigger;messages.selected=id;
+    $('assistant-message-list-view').hidden=true;$('assistant-message-detail-view').hidden=false;
+    const box=$('assistant-message-detail');box.replaceChildren(messageElement('p','正在读取消息…'));box.scrollTop=0;
+    $('assistant-message-actions').replaceChildren();$('assistant-message-actions').hidden=true;
+    $('assistant-message-back').focus();
+    const detailSerial=messages.detailSerial+1;
+    try {await showMessage(id,box);} catch(error) {if(messages.selected===id && detailSerial===messages.detailSerial){box.replaceChildren(messageElement('p',`读取失败，列表已保留：${error.message}`));messageReload(id,box);}}
+  }
+  function messageReload(id,box) {const retry=messageElement('button','重新读取');retry.type='button';retry.className='quiet-button';retry.onclick=async()=>{const detailSerial=messages.detailSerial+1;try{await showMessage(id,box);}catch(error){if(messages.selected===id && detailSerial===messages.detailSerial)toast(`读取失败：${error.message}`);}};box.append(retry);}
+  async function loadMessages(append=false) {
+    if(append && (!messages.cursor || !messages.query || messages.query!==messageQuery().toString()))return;
+    const serial=++messages.serial, query=new URLSearchParams(append?messages.query:messageQuery());
+    if(!append){messages.cursor=null;$('assistant-message-more').hidden=true;}
+    $('assistant-message-more').disabled=true;
+    if(append)query.set('cursor',messages.cursor);
+    $('assistant-message-error').textContent='正在更新，暂时保留上次结果…';
     try {
-      const {items}=await api(`/maintenance-activity?space_id=${spaceId}&limit=20`);
-      if(!current())return;
-      box.replaceChildren();
-      if(!items.length) {box.textContent='当前范围暂无最近维护记录。';return;}
-      items.forEach(item=>{
-        const article=document.createElement('article');article.className='assistant-activity-item';
-        const label=document.createElement('small');label.textContent=`${item.scope} · ${formatDate(item.time)}`;
-        const title=document.createElement('strong');title.textContent=item.title;
-        const result=document.createElement('p');result.textContent=item.result;
-        if(item.detail)result.textContent+=` · ${item.detail}`;
-        article.append(label,title,result);
-        if(item.page_id || item.memory_id) {
-          const view=document.createElement('button');view.type='button';view.className='quiet-button';view.textContent=item.page_id?'查看知识页':'查看记忆';
-          view.onclick=async()=>{
-            if(!current())return;
-            try {
-              if(item.page_id){openDrawer('assistant-knowledge-panel','Wiki');await openKnowledgePage(item.page_id);}
-              else {await loadMemories();if(!current())return;openDrawer('assistant-memory-panel','记忆');
-                const card=$('assistant-memories').querySelector(`[data-memory-id="${CSS.escape(item.memory_id)}"]`);card?.scrollIntoView({block:'center'});}
-            }catch(error){toast(`暂时无法查看：${error.message}`);}
-          };article.append(view);
-        } else if(item.thread_id) {
-          const link=document.createElement('a');link.href=`/assistant?thread=${encodeURIComponent(item.thread_id)}`;link.textContent='查看来源对话';article.append(link);
-        }
-        box.append(article);
+      const data=await api(`/messages?${query}`);
+      if(serial!==messages.serial)return;
+      const box=$('assistant-message-list');
+      if(!append){box.replaceChildren();messages.rows.clear();messages.query=messageQuery().toString();$('assistant-message-scroll').scrollTop=0;}
+      messages.cursor=data.next_cursor;
+      $('assistant-message-more').disabled=false;$('assistant-message-more').hidden=!messages.cursor;
+      data.items.forEach(item=>{if(messages.rows.has(item.id))return;const article=document.createElement('article');article.dataset.messageId=item.id;renderMessageRow(item,article);messages.rows.set(item.id,{item,article});box.append(article);});
+      if(!box.children.length)box.textContent=Array.from(query.entries()).some(([key,value])=>key!=='view'&&value&&value!=='false') || query.get('view')!=='all' ? '此筛选下暂无消息。' : '暂无消息，后续变更会显示在这里。';
+      messageFilterSummary(query);$('assistant-message-error').textContent='';
+    } catch(error) {if(serial===messages.serial)$('assistant-message-error').textContent=`筛选更新失败，仍显示上次结果：${error.message}。请刷新重试。`;}
+  }
+  async function showMessage(id,box) {
+    const serial=messages.serial, detailSerial=++messages.detailSerial;
+    const current=()=>serial===messages.serial && detailSerial===messages.detailSerial && messages.selected===id && !$('assistant-messages-panel').hidden;
+    $('assistant-message-actions').querySelectorAll('button').forEach(button=>button.disabled=true);
+    let item;
+    try {({message:item}=await api(`/messages/${id}`));}
+    catch(error){if(current()){if(!box.querySelector('h3'))box.replaceChildren();box.append(messageElement('p',`读取失败，原预览和列表已保留：${error.message}`));messageReload(id,box);}return false;}
+    if(!current())return false;
+    box.replaceChildren(messageElement('p',messageLabels[item.business_state]),messageElement('h3',messageTitle(item)));
+    $('assistant-message-actions').replaceChildren();$('assistant-message-actions').hidden=true;
+    const existingRow=messages.rows.get(id);if(existingRow){existingRow.item={...existingRow.item,...item};renderMessageRow(existingRow.item,existingRow.article);messages.trigger=existingRow.article.querySelector('button');}
+    const preview=item.detail;
+    const technical=messageElement('details','');technical.append(messageElement('summary','版本与技术详情'));
+    if(item.change_summary && item.change_summary!==messageTitle(item))box.append(messageElement('p',item.change_summary));
+    if(preview?.kind==='source_patch') {
+      technical.append(messageElement('p',`原审核内容 v${preview.content_version} · 目标页 v${preview.target_version} · ${({add_block:'新增正文块',revise_block:'修订正文块',source_integrated:'已纳入来源',source_amended:'已修订正文'}[preview.operation] || '来源修改')}${preview.supersedes_id ? ` · 替代 ${preview.supersedes_id}` : ''}`));
+      if(preview.before)box.append(messageElement('pre',`${preview.operation==='add_block'?'当前内容 · 确认后保留':'修改前'}\n${preview.before.summary || ''}\n${preview.before.blocks.map(b=>`${b.heading}\n${b.markdown}`).join('\n\n')}`));
+      if(preview.after)box.append(messageElement('pre',`${item.business_state==='applied'?'修改后':preview.operation==='add_block'?'拟新增正文块':'拟修改后'}\n${preview.after.blocks.map(b=>`${b.heading}\n${b.markdown}`).join('\n\n')}`));
+    } else if(preview?.payload?.topics) {
+      box.append(messageElement('p','完整计划预览：确认将处理下面全部尚未完成主题；已成功项不会重复保存。'));
+      preview.payload.topics.forEach((topic,index)=>{
+        box.append(messageElement('strong',`${index+1}. ${topic.title} · ${preview.results?.[String(index)]?.status || '待确认'}`));
+        topic.blocks.forEach(block=>box.append(messageElement('p',`${block.heading || ''}\n${block.markdown || ''}`)));
       });
-    } catch(error) {if(current())box.textContent=`加载失败，可手动刷新：${error.message}`;}
+    } else if(preview?.differences) {
+      preview.differences.forEach(diff=>box.append(messageElement('pre',`${diff.heading}\n来源：${diff.source_text}\n目标：${diff.target_text}`)));
+    } else if(preview) {
+      ['before','after'].forEach(key=>{
+        if(!preview[key])return;
+        const value=preview[key];
+        box.append(messageElement('strong',key==='before'?'修改前':'修改后'));
+        box.append(messageElement('pre',value.text || (value.blocks || []).map(b=>`${b.heading || ''}\n${b.markdown || ''}`).join('\n\n') || '无可展示正文'));
+        if(value.materials?.length)box.append(messageElement('p',`材料关联：${value.materials.map(m=>`视频 ${m.video_id} · ${m.relation || '关联'} · ${m.status || ''}`).join('；')}`));
+      });
+    }
+    if(!preview)box.append(messageElement('p',item.reason || '当前记录无可展示正文；已遗忘或失效的内容不会恢复展示。'));
+    else if(item.reason || preview.reason)technical.append(messageElement('p',item.reason || preview.reason));
+    if(['pending','partial'].includes(item.business_state))box.append(messageElement('small',item.business_state==='partial'?'已保存项保持原样；确认将处理尚未完成主题。':'尚未发布；确认后生效。'));
+    box.append(messageElement('h4','来源与时间'));
+    if(!item.links?.length)box.append(messageElement('p','来源未记录或已不可用。'));
+    const times=[...(item.source_times || []).map(t=>`${({dialogue:'对话发生',video_published:'视频发布'}[t.kind] || t.kind || '来源时间')}：${messageTime(t.at)}`),...(item.processing_times || []).map(t=>`${({started_at:'后台开始',completed_at:'后台完成'}[t.kind] || t.kind || '后台处理')}：${messageTime(t.at)}`),item.created_at?`消息生成：${messageTime(item.created_at)}`:'',item.applied_at?`正式修改：${messageTime(item.applied_at)}`:''].filter(Boolean);
+    if(times.length)box.append(messageElement('small',times.join('\n')));
+    (item.links || []).forEach(link=>{
+      if(link.kind==='thread') {const a=messageElement('a','查看来源对话');a.href=`/assistant?thread=${encodeURIComponent(link.id)}`;box.append(a);return;}
+      if(link.kind==='video') {const a=messageElement('a','查看 B站视频');a.href=link.url;a.target='_blank';a.rel='noopener';box.append(a);return;}
+      if(!['wiki','memory'].includes(link.kind))return;
+      const button=messageElement('button',link.kind==='wiki'?'查看当前 Wiki':'查看当前记忆');button.type='button';button.className='quiet-button';
+      button.onclick=async()=>{
+        try {
+          if(link.space_id && Number(link.space_id)!==state.spaceId){$('assistant-space').value=link.space_id;await $('assistant-space').onchange({target:$('assistant-space')});}
+          if(link.kind==='wiki') {openDrawer('assistant-knowledge-panel','Wiki');await openKnowledgePage(link.id,true);}
+          else {await loadMemories();openDrawer('assistant-memory-panel','记忆');$('assistant-memories').querySelector(`[data-memory-id="${CSS.escape(link.id)}"]`)?.scrollIntoView({block:'center'});}
+        } catch(error){toast(`对象暂时无法打开：${error.message}`);}
+      };box.append(button);
+    });
+    if(technical.children.length>1)box.append(technical);
+    const actions=$('assistant-message-actions');actions.hidden=!(item.actions || []).length;
+    let busy=false, conflict=false;
+    (item.actions || []).forEach(action=>{
+      const decisions=['undo','proposal_refresh'].includes(action.kind)?[null]:[true,false];
+      decisions.forEach(accept=>{
+        const button=messageElement('button',action.kind==='undo'?'撤销本次修改':action.kind==='proposal_refresh'?'重新生成建议（消耗正常模型额度）':accept?(action.expected_content_version?(preview?.operation==='add_block'?'确认增补':'确认修订'):preview?.payload?.topics?'确认完整计划':'确认提案'):'拒绝');button.type='button';button.className=accept?'assistant-message-primary':'quiet-button';
+        button.onclick=async()=>{
+          if(busy || conflict || !current())return;busy=true;
+          actions.querySelectorAll('button').forEach(b=>b.disabled=true);
+          const operation=operationKey('message');
+          try {
+            let path,payload;
+            if(action.kind==='undo'){path=`/messages/${id}/undo`;payload={expected_version:action.expected_version,operation_key:operation};}
+            else if(action.kind==='proposal_refresh'){path=`/wiki-actions/proposals/${action.id}/request-refresh`;payload={space_id:action.space_id,operation_key:operation};}
+            else {path=action.kind==='proposal'?`/wiki-actions/proposals/${action.id}/decide`:`/knowledge-plans/${action.id}/decide`;payload={space_id:action.space_id,accept,operation_key:operation};if(action.expected_version)payload.expected_version=action.expected_version;if(action.expected_content_version)payload.expected_content_version=action.expected_content_version;if(action.expected_target_version)payload.expected_target_version=action.expected_target_version;}
+            await api(path,{method:'POST',body:JSON.stringify(payload)});
+            if(current()){const refreshed=await showMessage(id,box);if(refreshed && messages.selected===id && serial===messages.serial && messages.detailSerial===detailSerial+1){const row=messages.rows.get(id);if(row){row.item._notice='状态已更新，刷新后按当前筛选显示';renderMessageRow(row.item,row.article);messages.trigger=row.article.querySelector('button');}await messageCount();}}
+          } catch(error){if(current()){conflict=/conflict|stale|version/.test(error.message);box.append(messageElement('p',`操作失败，当前预览保留${conflict?'，版本已变化，请重新读取后决定':''}：${error.message}`));messageReload(id,box);}}
+          finally {busy=false;if(current())actions.querySelectorAll('button').forEach(b=>b.disabled=conflict);}
+        };actions.append(button);
+      });
+    });
+    // Reading is a separate explicit write; a failed acknowledgement stays visible.
+    try {
+      await api('/messages/read',{method:'POST',body:JSON.stringify({ids:[id]})});
+      if(current()) {
+        const row=messages.rows.get(id);if(row){row.item={...row.item,read_at:true};if($('assistant-message-unread_only').checked)row.item._notice='已读，刷新后移出仅未读列表';renderMessageRow(row.item,row.article);messages.trigger=row.article.querySelector('button');}
+      }
+      await messageCount();
+    }
+    catch(error){if(current())box.append(messageElement('p',`已读未保存，可重新读取重试：${error.message}`));}
+    return current();
   }
-
-  async function loadJobProblems() {
-    const nav=state.navigationSerial, spaceId=state.spaceId;
-    const {jobs} = await api(`/jobs${state.spaceId ? `?space_id=${state.spaceId}` : ''}`);
-    if(!navigationCurrent(nav,spaceId)) return;
-    const note = $('assistant-job-problems'); note.hidden=true; note.textContent='';
-    const blocked = jobs.filter(job => ['blocked','failed','budget_wait'].includes(job.status));
-    if (!blocked.length) return;
-    note.hidden = false;
-    const labels = {memory_extract:'记忆提炼', memory_index:'记忆索引', source_reconcile:'来源同步', source_extract:'材料整理', wiki_integrate:'知识整理'};
-    const counts = {};
-    blocked.forEach(job => { const label = labels[job.kind] || '后台处理'; counts[label] = (counts[label] || 0) + 1; });
-    note.textContent = `暂未完成：${Object.entries(counts).map(([label, count]) => `${label} ${count} 项`).join('、')}。`;
+  function openMessages() {
+    const select=$('assistant-message-space_id');const selected=select.value;
+    select.replaceChildren(new Option('我的全部范围',''));
+    state.spaces.forEach(space=>select.append(new Option(space.name,space.id)));
+    select.value=selected;backToMessages();openDrawer('assistant-messages-panel','消息');loadMessages();
   }
+  $('assistant-open-messages').onclick=openMessages;
+  $('assistant-message-back').onclick=backToMessages;
+  $('assistant-message-filter-toggle').onclick=()=>{const box=$('assistant-message-secondary');box.hidden=!box.hidden;$('assistant-message-filter-toggle').setAttribute('aria-expanded',String(!box.hidden));};
+  $('assistant-message-tabs').querySelectorAll('button').forEach(button=>{button.onclick=()=>{$('assistant-message-view').value=button.dataset.view;$('assistant-message-tabs').querySelectorAll('button').forEach(tab=>tab.setAttribute('aria-pressed',String(tab===button)));loadMessages();};});
+  $('assistant-message-filters').onchange=()=>loadMessages();
+  $('assistant-message-refresh').onclick=()=>loadMessages();
+  $('assistant-message-more').onclick=()=>loadMessages(true);
+  messageCount().catch(()=>{});
   function showFatal(error) {
     $('assistant-thread-state').textContent = '助手暂时不可用';
     ['assistant-new-thread', 'assistant-open-history'].forEach(id => { $(id).disabled = false; });
@@ -1511,7 +1638,7 @@
       `待空闲整理 ${pending.length} 项${pending.some(job => job.status === 'retry_wait') ? ' · 已暂停，稍后继续' : ''}` : '';
   }
   showMaintenance().catch(() => {});
-  setInterval(() => showMaintenance().catch(() => {}), 15000);
+  setInterval(() => {showMaintenance().catch(() => {});messageCount().catch(()=>{});}, 15000);
   $('assistant-new-thread').onclick = () => { beginNavigation(); return newThread(); };
   $('assistant-open-history').onclick = async () => {
     if (state.navigationPending) return;
@@ -1557,10 +1684,9 @@
     await loadMemories();
     if (navigationCurrent(serial, spaceId)) openDrawer('assistant-memory-panel', '记忆');
   };
-  $('assistant-open-settings').onclick = async () => { const nav=state.navigationSerial; await Promise.all([loadCapabilities(), loadJobProblems()]); if(nav!==state.navigationSerial)return; $('assistant-background-state').textContent=backgroundLabel()+' Memory 自动提炼请在记忆面板设置；Wiki 维护模式在 Space 管理中设置。'; openDrawer('assistant-settings-panel', '设置'); };
+  $('assistant-open-settings').onclick = async () => { const nav=state.navigationSerial; await loadCapabilities(); if(nav!==state.navigationSerial)return; $('assistant-background-state').textContent=backgroundLabel()+' Memory 自动提炼请在记忆面板设置；Wiki 维护模式在 Space 管理中设置。'; openDrawer('assistant-settings-panel', '设置'); };
   $('assistant-manage-spaces').onclick = () => { openDrawer('assistant-spaces-panel', 'Space 管理'); loadSpaceManager(); };
-  $('assistant-open-maintenance').onclick = () => { openDrawer('assistant-maintenance-panel','维护动态'); loadMaintenanceActivity(); };
-  $('assistant-refresh-maintenance').onclick = () => loadMaintenanceActivity();
+  $('assistant-open-maintenance').onclick = openMessages;
   $('assistant-close-drawer').onclick = closeDrawer;
   $('assistant-shade').onclick = event => { if (event.target === $('assistant-shade')) closeDrawer(); };
   document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDrawer(); });

@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from shiliu.assistant.store import AssistantConflict
+from shiliu.assistant.runtime_contract import AssistantConflict
 from shiliu.db import utc_now
 
 
@@ -155,6 +155,8 @@ class WikiMerge(StrictBody):
 class WikiProposalDecision(StrictBody):
     space_id: int = Field(ge=1)
     accept: bool
+    expected_content_version: int | None = Field(default=None, ge=1)
+    expected_target_version: int | None = Field(default=None, ge=1)
     operation_key: str | None = Field(default=None, min_length=1, max_length=200)
 
 
@@ -181,21 +183,21 @@ def _runtime(request: Request):
 
 
 @router.get("/spaces")
-async def list_spaces(request: Request) -> dict[str, Any]:
+def list_spaces(request: Request) -> dict[str, Any]:
     return {"spaces": _runtime(request).store.list_spaces()}
 
 
 @router.get('/spaces/{space_id}')
-async def space_detail(space_id: int, request: Request) -> dict:
+def space_detail(space_id: int, request: Request) -> dict:
     runtime = _runtime(request)
     try:
         space = runtime.store.get_space(space_id)
     except KeyError as exc:
         raise HTTPException(404, 'Space 不存在') from exc
     with runtime.store.db.connect() as c:
-        space['sources'] = [dict(row) for row in c.execute('SELECT id,folder_title,status FROM favorite_sources ORDER BY sort_order,id')]
-        space['selected_videos'] = [dict(row) for row in c.execute('SELECT id,title FROM videos WHERE id IN (SELECT value FROM json_each(?)) ORDER BY id',
-            (json.dumps(space['video_ids']),))]
+        space['sources'] = [dict(row) for row in c.execute('SELECT id,folder_title,status FROM favorite_sources WHERE workspace_id=%s ORDER BY sort_order,id', (runtime.store.context.workspace_id,))]
+        space['selected_videos'] = [dict(row) for row in c.execute('SELECT id,title FROM videos WHERE workspace_id=%s AND id=ANY(%s) ORDER BY id',
+            (runtime.store.context.workspace_id,space['video_ids']))]
     return {'space':space}
 
 
@@ -208,7 +210,7 @@ async def maintenance_activity(request: Request, space_id: int = Query(ge=1), li
 
 
 @router.post("/spaces", status_code=201)
-async def create_space(payload: SpaceCreate, request: Request) -> dict[str, Any]:
+def create_space(payload: SpaceCreate, request: Request) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         space = _runtime(request).store.create_space(
@@ -225,7 +227,7 @@ async def create_space(payload: SpaceCreate, request: Request) -> dict[str, Any]
 
 
 @router.patch("/spaces/{space_id}")
-async def update_space(space_id: int, payload: SpaceUpdate, request: Request) -> dict[str, Any]:
+def update_space(space_id: int, payload: SpaceUpdate, request: Request) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         value = _runtime(request).store.update_space(
@@ -248,7 +250,7 @@ async def update_space(space_id: int, payload: SpaceUpdate, request: Request) ->
 
 
 @router.post("/threads", status_code=201)
-async def create_thread(payload: ThreadCreate, request: Request) -> dict[str, Any]:
+def create_thread(payload: ThreadCreate, request: Request) -> dict[str, Any]:
     try:
         return {"thread": _runtime(request).store.create_thread(payload.space_id, title=payload.title)}
     except KeyError as exc:
@@ -256,7 +258,7 @@ async def create_thread(payload: ThreadCreate, request: Request) -> dict[str, An
 
 
 @router.get("/threads")
-async def list_threads(request: Request, space_id: int = Query(ge=1),
+def list_threads(request: Request, space_id: int = Query(ge=1),
                        limit: int = Query(default=30, ge=1, le=50),
                        before_updated_at: str | None = None,
                        before_id: str | None = None) -> dict[str, Any]:
@@ -347,7 +349,7 @@ async def get_thread(thread_id: str, request: Request) -> dict[str, Any]:
 
 
 @router.post("/threads/{thread_id}/runs", status_code=202)
-async def create_run(thread_id: str, payload: RunCreate, request: Request) -> dict[str, Any]:
+def create_run(thread_id: str, payload: RunCreate, request: Request) -> dict[str, Any]:
     try:
         run = _runtime(request).store.create_run(
             thread_id, text=payload.input, request_id=payload.request_id, answer_message_id=payload.answer_message_id,
@@ -364,13 +366,13 @@ async def create_run(thread_id: str, payload: RunCreate, request: Request) -> di
 async def get_run(run_id: str, request: Request) -> dict[str, Any]:
     try:
         runtime = _runtime(request)
-        return {"run": await asyncio.to_thread(_safe_draft, runtime, runtime.store.get_run(run_id))}
+        return {"run": await asyncio.to_thread(lambda: _safe_draft(runtime, runtime.store.get_run(run_id)))}
     except KeyError as exc:
         raise HTTPException(404, "运行不存在") from exc
 
 
 @router.get("/runs/{run_id}/events")
-async def get_run_events(
+def get_run_events(
     run_id: str, request: Request, after_seq: int = Query(default=0, ge=0)
 ) -> dict[str, Any]:
     try:
@@ -380,7 +382,7 @@ async def get_run_events(
 
 
 @router.post("/runs/{run_id}/cancel")
-async def cancel_run(run_id: str, request: Request) -> dict[str, Any]:
+def cancel_run(run_id: str, request: Request) -> dict[str, Any]:
     try:
         return {"run": _runtime(request).store.cancel_run(run_id)}
     except KeyError as exc:
@@ -388,7 +390,7 @@ async def cancel_run(run_id: str, request: Request) -> dict[str, Any]:
 
 
 @router.post("/runs/{run_id}/resume", status_code=202)
-async def resume_run(run_id: str, request: Request) -> dict[str, Any]:
+def resume_run(run_id: str, request: Request) -> dict[str, Any]:
     try:
         return {"run": _runtime(request).store.resume_run(run_id)}
     except KeyError as exc:
@@ -398,7 +400,7 @@ async def resume_run(run_id: str, request: Request) -> dict[str, Any]:
 
 
 @router.post("/runs/{run_id}/finish", status_code=202)
-async def finish_run(run_id: str, request: Request) -> dict[str, Any]:
+def finish_run(run_id: str, request: Request) -> dict[str, Any]:
     try:
         return {"run": _runtime(request).store.request_finish(run_id)}
     except KeyError as exc:
@@ -406,7 +408,7 @@ async def finish_run(run_id: str, request: Request) -> dict[str, Any]:
 
 
 @router.get("/memories")
-async def list_memories(
+def list_memories(
     request: Request,
     space_id: int | None = Query(default=None, ge=1),
     include_inactive: bool = False,
@@ -419,19 +421,111 @@ async def list_memories(
     }
 
 
+class MessageRead(StrictBody):
+    ids: list[str] = Field(min_length=1, max_length=50)
+
+
+class MessageUndo(StrictBody):
+    expected_version: int = Field(ge=1)
+    operation_key: str = Field(min_length=1, max_length=200)
+
+
+def _notifications(request):
+    from shiliu.assistant.notifications import NotificationService
+
+    return NotificationService(_runtime(request))
+
+
+@router.get("/messages")
+def assistant_notifications(
+    request: Request,
+    view: str = Query(default="all", pattern="^(all|pending|updated|issues)$"),
+    object_type: str | None = Query(default=None, pattern="^(wiki|memory)$"),
+    source_type: str | None = Query(
+        default=None, pattern="^(dialogue|auto_memory|video|manual|system)$"
+    ),
+    space_id: int | None = Query(default=None, ge=1),
+    unread_only: bool = False,
+    show_history: bool = False,
+    limit: int = Query(default=20, ge=1, le=50),
+    cursor: str | None = None,
+):
+    try:
+        return _notifications(request).list(
+            view=view,
+            object_type=object_type,
+            source_type=source_type,
+            space_id=space_id,
+            unread_only=unread_only,
+            show_history=show_history,
+            limit=limit,
+            cursor=cursor,
+        )
+    except KeyError as exc:
+        raise HTTPException(404, "范围不存在") from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/messages/unread-count")
+def notification_count(
+    request: Request, space_id: int | None = Query(default=None, ge=1)
+):
+    try:
+        return {
+            "unread_count": _notifications(request).list(space_id=space_id, limit=1)[
+                "unread_count"
+            ]
+        }
+    except KeyError as exc:
+        raise HTTPException(404, "范围不存在") from exc
+
+
+@router.post("/messages/read")
+def read_notifications(payload: MessageRead, request: Request):
+    try:
+        return _notifications(request).read(payload.ids)
+    except KeyError as exc:
+        raise HTTPException(404, "消息不存在") from exc
+
+
+@router.get("/messages/{message_id}")
+def notification_detail(message_id: str, request: Request):
+    try:
+        return {"message": _notifications(request).get(message_id)}
+    except KeyError as exc:
+        raise HTTPException(404, "消息不存在") from exc
+
+
+@router.post("/messages/{message_id}/undo")
+def undo_notification(message_id: str, payload: MessageUndo, request: Request):
+    try:
+        return {
+            "result": _notifications(request).undo(
+                message_id,
+                expected_version=payload.expected_version,
+                operation_key=payload.operation_key,
+            )
+        }
+    except KeyError as exc:
+        raise HTTPException(404, "消息不存在") from exc
+    except AssistantConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
 @router.get("/memory-settings")
-async def memory_settings(request: Request) -> dict[str, bool]:
+def memory_settings(request: Request) -> dict[str, bool]:
     return {"auto_enabled": _runtime(request).memories.auto_enabled()}
 
 
 @router.patch("/memory-settings")
-async def update_memory_settings(payload: AutoMemorySetting, request: Request) -> dict[str, bool]:
+def update_memory_settings(payload: AutoMemorySetting, request: Request) -> dict[str, bool]:
     _runtime(request).store.mark_user_activity()
     return {"auto_enabled": _runtime(request).memories.set_auto_enabled(payload.enabled)}
 
 
 @router.post("/memories", status_code=201)
-async def create_memory(payload: MemoryCreate, request: Request) -> dict[str, Any]:
+def create_memory(payload: MemoryCreate, request: Request) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         normalized = " ".join(payload.text.split())
@@ -463,7 +557,7 @@ async def create_memory(payload: MemoryCreate, request: Request) -> dict[str, An
 
 
 @router.patch("/memories/{memory_id}")
-async def update_memory(
+def update_memory(
     memory_id: str, payload: MemoryUpdate, request: Request
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
@@ -496,7 +590,7 @@ async def update_memory(
 
 
 @router.get("/memory-changes")
-async def memory_changes(
+def memory_changes(
     request: Request,
     after_epoch: int = Query(default=0, ge=0),
     space_id: int | None = Query(default=None, ge=1),
@@ -508,7 +602,7 @@ async def memory_changes(
 
 
 @router.post('/memories/{memory_id}/undo-created')
-async def undo_created_memory(memory_id: str, payload: MemoryCreationUndo, request: Request) -> dict:
+def undo_created_memory(memory_id: str, payload: MemoryCreationUndo, request: Request) -> dict:
     runtime = _runtime(request)
     runtime.store.get_space(payload.space_id)
     try:
@@ -526,7 +620,7 @@ async def undo_created_memory(memory_id: str, payload: MemoryCreationUndo, reque
 
 
 @router.delete("/memories/{memory_id}")
-async def forget_memory(
+def forget_memory(
     memory_id: str,
     request: Request,
     expected_version: int = Query(ge=1),
@@ -548,7 +642,7 @@ async def forget_memory(
 
 
 @router.get("/jobs")
-async def list_jobs(request: Request, space_id: int | None = Query(default=None,ge=1)) -> dict[str, Any]:
+def list_jobs(request: Request, space_id: int | None = Query(default=None,ge=1)) -> dict[str, Any]:
     try:
         return {"jobs": _runtime(request).store.list_jobs(space_id=space_id)}
     except KeyError as exc:
@@ -556,7 +650,7 @@ async def list_jobs(request: Request, space_id: int | None = Query(default=None,
 
 
 @router.post("/jobs/{job_id}/retry", status_code=202)
-async def retry_job(job_id: str, request: Request) -> dict[str, Any]:
+def retry_job(job_id: str, request: Request) -> dict[str, Any]:
     try:
         return {"job": _runtime(request).store.retry_job(job_id)}
     except KeyError as exc:
@@ -566,7 +660,7 @@ async def retry_job(job_id: str, request: Request) -> dict[str, Any]:
 
 
 @router.get("/capabilities")
-async def capabilities(request: Request) -> dict[str, Any]:
+def capabilities(request: Request) -> dict[str, Any]:
     runtime = _runtime(request)
     return {
         "capabilities": runtime.capabilities(),
@@ -575,7 +669,7 @@ async def capabilities(request: Request) -> dict[str, Any]:
 
 
 @router.post("/spaces/{space_id}/bootstrap", status_code=202)
-async def bootstrap_space(
+def bootstrap_space(
     space_id: int, request: Request, limit: int = Query(default=5, ge=1, le=10),
     model_budget: int = Query(default=30, ge=1, le=30), thread_id: str | None = None,
 ) -> dict[str, Any]:
@@ -603,18 +697,18 @@ def _task_scope(request: Request, space_id: int, thread_id: str | None):
 
 
 @router.get("/wiki-management")
-async def wiki_management(request: Request, space_id: int = Query(ge=1), status: str = Query(default="archived", pattern="^(active|archived)$"), thread_id: str | None = None):
+def wiki_management(request: Request, space_id: int = Query(ge=1), status: str = Query(default="archived", pattern="^(active|archived)$"), thread_id: str | None = None):
     wiki = _runtime(request).wiki
     wiki.store.get_space(space_id)
     with wiki.db.connect() as connection:
-        rows = connection.execute("SELECT id FROM assistant_wiki_pages WHERE principal_id=? AND space_id=? AND status=? ORDER BY updated_at DESC", (wiki.principal_id, space_id, status)).fetchall()
+        rows = connection.execute("SELECT id FROM assistant_wiki_pages WHERE workspace_id=%s AND principal_id=%s AND space_id=%s AND status=%s ORDER BY updated_at DESC", (wiki.db.context.workspace_id,wiki.principal_id, space_id, status)).fetchall()
     scope = _task_scope(request, space_id, thread_id)
-    pages = [wiki.management_page(row[0], space_id=space_id, task_scope=scope) for row in rows]
+    pages = [wiki.management_page(row["id"], space_id=space_id, task_scope=scope) for row in rows]
     return {"pages": [page for page in pages if scope is None or page["blocks"] or page["deleted_blocks"]]}
 
 
 @router.get("/wiki/{page_id}/management")
-async def wiki_management_page(page_id: str, request: Request, space_id: int = Query(ge=1), thread_id: str | None = None):
+def wiki_management_page(page_id: str, request: Request, space_id: int = Query(ge=1), thread_id: str | None = None):
     try:
         return {"page": _runtime(request).wiki.management_page(page_id, space_id=space_id, task_scope=_task_scope(request, space_id, thread_id))}
     except KeyError as exc:
@@ -622,7 +716,7 @@ async def wiki_management_page(page_id: str, request: Request, space_id: int = Q
 
 
 @router.post("/wiki/{page_id}/lifecycle")
-async def wiki_lifecycle(page_id: str, payload: WikiLifecycle, request: Request):
+def wiki_lifecycle(page_id: str, payload: WikiLifecycle, request: Request):
     runtime = _runtime(request)
     runtime.store.mark_user_activity()
     try:
@@ -634,7 +728,7 @@ async def wiki_lifecycle(page_id: str, payload: WikiLifecycle, request: Request)
 
 
 @router.post("/knowledge-plans/{plan_id}/items/{item_index}")
-async def knowledge_item_action(plan_id: str, item_index: int, payload: PlanItemAction, request: Request):
+def knowledge_item_action(plan_id: str, item_index: int, payload: PlanItemAction, request: Request):
     runtime = _runtime(request)
     runtime.store.mark_user_activity()
     try:
@@ -646,13 +740,13 @@ async def knowledge_item_action(plan_id: str, item_index: int, payload: PlanItem
 
 
 @router.post("/knowledge-plans/{plan_id}/repair")
-async def knowledge_field_repair(plan_id: str, payload: PlanFieldRepair, request: Request):
+def knowledge_field_repair(plan_id: str, payload: PlanFieldRepair, request: Request):
     runtime = _runtime(request)
     runtime.store.mark_user_activity()
     try:
         # UI is an explicit user operation, not an automatic model repair or a synthetic message.
         with runtime.store.db.connect() as connection:
-            row = connection.execute("SELECT * FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?", (plan_id, runtime.store.principal_id, payload.space_id)).fetchone()
+            row = connection.execute("SELECT * FROM assistant_knowledge_plans WHERE workspace_id=%s AND id=%s AND principal_id=%s AND space_id=%s", (runtime.store.context.workspace_id,plan_id, runtime.store.principal_id, payload.space_id)).fetchone()
         if row is None:
             raise KeyError(plan_id)
         plan = runtime.wiki._decode_knowledge_plan(dict(row))
@@ -673,13 +767,13 @@ async def list_wiki(
     thread_id: str | None = None,
 ) -> dict[str, Any]:
     try:
-        return {"pages": await asyncio.to_thread(_runtime(request).wiki.list_pages, space_id=space_id, query=query, task_scope=_task_scope(request, space_id, thread_id))}
+        return {"pages": await asyncio.to_thread(lambda: _runtime(request).wiki.list_pages(space_id=space_id, query=query, task_scope=_task_scope(request, space_id, thread_id)))}
     except KeyError as exc:
         raise HTTPException(404, "收藏范围不存在") from exc
 
 
 @router.post("/wiki/organize", status_code=202)
-async def organize_wiki(payload: WikiOrganize, request: Request) -> dict[str, Any]:
+def organize_wiki(payload: WikiOrganize, request: Request) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         result = _runtime(request).wiki.request_topic(
@@ -699,19 +793,19 @@ async def list_knowledge_plans(request: Request, space_id: int = Query(ge=1), vi
 
 
 @router.get('/knowledge-plans/{plan_id}')
-async def get_knowledge_plan(plan_id: str, request: Request, space_id: int = Query(ge=1)) -> dict:
+def get_knowledge_plan(plan_id: str, request: Request, space_id: int = Query(ge=1)) -> dict:
     wiki = _runtime(request).wiki
     wiki.store.get_space(space_id)
     with wiki.db.connect() as c:
-        row = c.execute('SELECT * FROM assistant_knowledge_plans WHERE id=? AND principal_id=? AND space_id=?', (plan_id, wiki.principal_id, space_id)).fetchone()
+        row = c.execute('SELECT * FROM assistant_knowledge_plans WHERE workspace_id=%s AND id=%s AND principal_id=%s AND space_id=%s', (wiki.db.context.workspace_id,plan_id, wiki.principal_id, space_id)).fetchone()
     if row is None:
         raise HTTPException(404, '保存计划不存在')
     # Explicit detail only; list never does these checks.
-    return {'plan': await asyncio.to_thread(wiki._present_knowledge_plan, wiki._decode_knowledge_plan(dict(row)))}
+    return {'plan': wiki._present_knowledge_plan(wiki._decode_knowledge_plan(dict(row)))}
 
 
 @router.get('/knowledge-plans/{plan_id}/sources')
-async def knowledge_plan_sources(plan_id: str, request: Request, space_id: int = Query(ge=1),
+def knowledge_plan_sources(plan_id: str, request: Request, space_id: int = Query(ge=1),
                                  query: str = Query(default='', max_length=120)) -> dict[str, Any]:
     try:
         wiki = _runtime(request).wiki
@@ -722,7 +816,7 @@ async def knowledge_plan_sources(plan_id: str, request: Request, space_id: int =
 
 
 @router.patch("/knowledge-plans/{plan_id}")
-async def revise_knowledge_plan(
+def revise_knowledge_plan(
     plan_id: str, payload: KnowledgePlanRevision, request: Request
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
@@ -741,7 +835,7 @@ async def revise_knowledge_plan(
 
 
 @router.post("/knowledge-plans/{plan_id}/decide")
-async def decide_knowledge_plan(
+def decide_knowledge_plan(
     plan_id: str, payload: KnowledgePlanDecision, request: Request
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
@@ -758,7 +852,7 @@ async def decide_knowledge_plan(
 
 
 @router.get("/wiki/{page_id}")
-async def get_wiki(
+def get_wiki(
     page_id: str, request: Request, space_id: int = Query(ge=1), thread_id: str | None = None
 ) -> dict[str, Any]:
     try:
@@ -768,7 +862,7 @@ async def get_wiki(
 
 
 @router.patch("/wiki/{page_id}")
-async def update_wiki(
+def update_wiki(
     page_id: str, payload: WikiBlockUpdate, request: Request
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
@@ -794,7 +888,7 @@ async def update_wiki(
 
 
 @router.post("/wiki/{page_id}/notes", status_code=201)
-async def add_wiki_note(page_id: str, payload: WikiPersonalNote, request: Request) -> dict[str, Any]:
+def add_wiki_note(page_id: str, payload: WikiPersonalNote, request: Request) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         page = _runtime(request).wiki.add_personal_note(
@@ -813,7 +907,7 @@ async def add_wiki_note(page_id: str, payload: WikiPersonalNote, request: Reques
 
 
 @router.get("/wiki/{page_id}/changes")
-async def wiki_changes(
+def wiki_changes(
     page_id: str, request: Request, space_id: int = Query(ge=1), management: bool = False
 ) -> dict[str, Any]:
     try:
@@ -824,7 +918,7 @@ async def wiki_changes(
 
 
 @router.post("/wiki/{page_id}/revert")
-async def revert_wiki(
+def revert_wiki(
     page_id: str, payload: WikiRevert, request: Request
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
@@ -845,7 +939,7 @@ async def revert_wiki(
 
 
 @router.post("/wiki-actions/merge")
-async def merge_wiki(payload: WikiMerge, request: Request) -> dict[str, Any]:
+def merge_wiki(payload: WikiMerge, request: Request) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         result = _runtime(request).wiki.merge_pages(
@@ -861,18 +955,20 @@ async def merge_wiki(payload: WikiMerge, request: Request) -> dict[str, Any]:
 
 
 @router.get("/wiki-actions/proposals")
-async def wiki_proposals(request: Request, space_id: int = Query(ge=1)) -> dict[str, Any]:
+def wiki_proposals(request: Request, space_id: int = Query(ge=1)) -> dict[str, Any]:
     return {"proposals": _runtime(request).wiki.list_proposals(space_id=space_id)}
 
 
 @router.post("/wiki-actions/proposals/{proposal_id}/decide")
-async def decide_wiki_proposal(
+def decide_wiki_proposal(
     proposal_id: str, payload: WikiProposalDecision, request: Request
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
         result = _runtime(request).wiki.decide_proposal(
             proposal_id, accept=payload.accept,
+            expected_content_version=payload.expected_content_version,
+            expected_target_version=payload.expected_target_version,
             operation_key=payload.operation_key or new_operation_key("ui-wiki-proposal"),
             space_id=payload.space_id,
         )
@@ -881,6 +977,44 @@ async def decide_wiki_proposal(
     except AssistantConflict as exc:
         raise HTTPException(409, str(exc)) from exc
     return {"result": result}
+
+
+class SourceProposalAction(StrictBody):
+    space_id: int = Field(ge=1)
+    operation_key: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+@router.post("/wiki-actions/proposals/{proposal_id}/validate")
+def validate_source_proposal(proposal_id: str, payload: SourceProposalAction, request: Request):
+    try:
+        return {
+            "result": _runtime(request).wiki.validate_source_proposal(
+                proposal_id, space_id=payload.space_id
+            )
+        }
+    except KeyError as exc:
+        raise HTTPException(404, "提案不可访问") from exc
+    except AssistantConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
+@router.post("/wiki-actions/proposals/{proposal_id}/request-refresh")
+def refresh_source_proposal(
+    proposal_id: str, payload: SourceProposalAction, request: Request
+):
+    try:
+        return {
+            "result": _runtime(request).wiki.refresh_source_proposal(
+                proposal_id,
+                space_id=payload.space_id,
+                request_key=payload.operation_key
+                or new_operation_key("proposal-refresh"),
+            )
+        }
+    except KeyError as exc:
+        raise HTTPException(404, "提案不可访问") from exc
+    except (AssistantConflict, ValueError) as exc:
+        raise HTTPException(409, str(exc)) from exc
 
 
 def new_operation_key(prefix: str) -> str:

@@ -93,7 +93,6 @@ class DeepSearchService:
         claim_verifier: ClaimVerifier | None = None,
         budget: DeepSearchBudget | None = None,
         embedding_provider: object | None = None,
-        lexical_index_path: Path | None = None,
         v2_budget: V2Budget | None = None,
         require_v2: bool = False,
         reduce_strategy: str = "s",
@@ -114,10 +113,11 @@ class DeepSearchService:
         self.evidence_search = evidence_search or EvidenceSearchService(
             db=db,
             product_search=product_search,
+            artifacts=artifacts,
             authority_mode="live_current_exact_replay",
             runtime_corpus_identity=runtime_corpus_identity,
         )
-        self.materializer = F1Materializer(db) if self.is_v2 else materializer or TranscriptEvidenceMaterializer(db)
+        self.materializer = F1Materializer(db, artifacts, product_search.raw_search.lexical) if self.is_v2 else materializer or TranscriptEvidenceMaterializer(db, artifacts)
         self.context_builder = (DeepV2ContextBuilder(self.v2_budget.final_context_chars) if self.is_v2
             else context_builder or TranscriptContextBuilder(total_character_budget=self.budget.final_evidence_context_chars))
         self.answer_service = GroundedAnswerService(
@@ -152,8 +152,7 @@ class DeepSearchService:
             clock=clock,
         )
         if self.is_v2:
-            lexical = lexical_index_path or Path(os.environ.get("SHILIU_DEEP_V2_LEXICAL_INDEX",
-                str(db.path.parent / "deep-v2-lexical.sqlite")))
+            lexical = product_search.raw_search.lexical
             self.graph = DeepV2Graph(
                 provider_factory=provider_factory,
                 transcripts=F1TranscriptTool(self.evidence_search, embedding_provider, lexical, self.materializer),
@@ -166,7 +165,7 @@ class DeepSearchService:
 
     def _v2_cancelled(self, run_id: str) -> bool:
         with self.db.connect() as connection:
-            row = connection.execute("SELECT lifecycle_status FROM ask_runs WHERE run_id=?", (run_id,)).fetchone()
+            row = connection.execute("SELECT lifecycle_status FROM ask_runs WHERE workspace_id=%s AND run_id=%s", (self.db.workspace_id, run_id)).fetchone()
         return row is not None and row["lifecycle_status"] != "running"
 
     def ask(
@@ -231,6 +230,8 @@ class DeepSearchService:
         *,
         run_id: str,
         created_at: str,
+        evidence_decision: EvidenceDecision | None = None,
+        continuation_envelope: ContinuationEnvelope | None = None,
     ) -> tuple[AskResponse, dict[str, object]]:
         """Execute a Deep run whose durable identity was allocated by the API."""
 
@@ -241,6 +242,8 @@ class DeepSearchService:
                 run_id=run_id,
                 created_at=created_at,
                 started=started,
+                evidence_decision=evidence_decision,
+                continuation_envelope=continuation_envelope,
             )
         except Exception as exc:
             self.run_store.fail(run_id, exc)
@@ -604,7 +607,7 @@ class DeepSearchService:
         }
         trace: dict[str, object] = {
             "reduce_strategy": getattr(self.graph, "reduce_strategy", "legacy"),
-            "runtime_identity": {**_DEEP_RUNTIME_IDENTITY, "database": str(self.db.path.resolve())},
+            "runtime_identity": {**_DEEP_RUNTIME_IDENTITY, "database": "postgresql:" + self.db.workspace_id},
             "run_id": run_id,
             "created_at": created_at,
             "query": request.query,
@@ -732,7 +735,7 @@ class DeepSearchService:
         try:
             if self.is_v2:
                 trace_dir = Path(os.environ.get("SHILIU_DEEP_V2_TRACE_DIR",
-                    str(self.db.path.parent / "logs" / "deep-v2")))
+                    str(self.artifacts.root / "scratch" / "logs" / "deep-v2")))
                 trace_dir.mkdir(parents=True, exist_ok=True)
                 (trace_dir / f"{run_id}.json").write_text(
                     json.dumps(trace, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")

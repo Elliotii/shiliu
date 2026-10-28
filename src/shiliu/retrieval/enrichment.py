@@ -5,13 +5,13 @@ import json
 import re
 import time
 import unicodedata
-from pathlib import Path
 
 from pydantic import ValidationError
 
 from shiliu.artifacts import ArtifactStore
 from shiliu.db import Database
 from shiliu.domain import ImportantChapter, SubtitleSegment
+from shiliu.storage.artifacts import ArtifactError
 from shiliu.retrieval.consolidation import EvidenceWindowDraft, VideoResultGroupDraft
 
 
@@ -25,13 +25,25 @@ _ASCII_TOKEN_PATTERN = (
     r"[A-Za-z][A-Za-z0-9]*(?:(?:[._:/+\-][A-Za-z0-9]+)|\+\+|#)*)"
 )
 _ASCII_TERM = re.compile(_ASCII_TOKEN_PATTERN)
-_ASCII_SPAN = re.compile(
-    rf"{_ASCII_TOKEN_PATTERN}(?:\s+{_ASCII_TOKEN_PATTERN})+"
-)
+_ASCII_SPAN = re.compile(rf"{_ASCII_TOKEN_PATTERN}(?:\s+{_ASCII_TOKEN_PATTERN})+")
 _CJK_TERM = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]{2,}")
 _STOPWORDS = {
-    "的", "了", "和", "与", "是", "在", "如何", "怎么", "怎样", "为什么",
-    "what", "how", "why", "the", "a", "an",
+    "的",
+    "了",
+    "和",
+    "与",
+    "是",
+    "在",
+    "如何",
+    "怎么",
+    "怎样",
+    "为什么",
+    "what",
+    "how",
+    "why",
+    "the",
+    "a",
+    "an",
 }
 
 
@@ -140,12 +152,13 @@ class EvidenceEnricher:
         group.uploader = str(video.get("uploader") or group.uploader)
         group.bvid = str(video.get("source_id") or "")
         group.video_url = str(
-            video.get("video_url") or (
-                f"https://www.bilibili.com/video/{group.bvid}" if group.bvid else ""
-            )
+            video.get("video_url")
+            or (f"https://www.bilibili.com/video/{group.bvid}" if group.bvid else "")
         )
         value = video.get("duration_seconds")
-        group.duration = float(value) if isinstance(value, (int, float)) and value > 0 else None
+        group.duration = (
+            float(value) if isinstance(value, (int, float)) and value > 0 else None
+        )
 
     def _load_segments(
         self,
@@ -156,15 +169,19 @@ class EvidenceEnricher:
         raw_path = video.get("raw_subtitle_path") if video else None
         if not raw_path:
             return None
-        path = Path(str(raw_path)).with_name("subtitle-raw.json")
         try:
-            if not path.is_file():
-                raise FileNotFoundError(path)
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = json.loads(self.artifacts.raw_bytes(str(raw_path)))
             if not isinstance(payload, list):
                 raise ValueError("raw subtitle JSON is not an array")
             return [SubtitleSegment.model_validate(item) for item in payload]
-        except (OSError, UnicodeError, json.JSONDecodeError, ValidationError, ValueError) as exc:
+        except (
+            ArtifactError,
+            OSError,
+            UnicodeError,
+            json.JSONDecodeError,
+            ValidationError,
+            ValueError,
+        ) as exc:
             warnings.append(_warning(video_id, "subtitle", "subtitle_unavailable", exc))
             return None
 
@@ -177,23 +194,22 @@ class EvidenceEnricher:
     ) -> list[_Chapter] | None:
         if not video or not video.get("summary_path"):
             return None
-        directory = Path(str(video["summary_path"])).parent
-        revision = str(video.get("active_revision") or "refined")
-        candidates = [directory / f"summary.{revision}.json", directory / "summary.json"]
-        path = next((item for item in candidates if item.is_file()), None)
-        if path is None:
-            warnings.append(
-                _warning(video_id, "chapter", "summary_unavailable", FileNotFoundError())
-            )
-            return None
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = json.loads(
+                self.artifacts.generated_json_bytes(video["summary_path"])
+            )
             if not isinstance(payload, dict):
                 raise ValueError("summary JSON is not an object")
             raw_chapters = payload.get("important_chapters") or []
             if not isinstance(raw_chapters, list):
                 raise ValueError("important_chapters is not an array")
-        except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        except (
+            ArtifactError,
+            OSError,
+            UnicodeError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as exc:
             warnings.append(_warning(video_id, "chapter", "summary_malformed", exc))
             return None
 
@@ -210,7 +226,11 @@ class EvidenceEnricher:
             start = float(chapter.start_seconds)
             if start in starts:
                 warnings.append(
-                    {"video_id": video_id, "stage": "chapter", "code": "duplicate_chapter_start"}
+                    {
+                        "video_id": video_id,
+                        "stage": "chapter",
+                        "code": "duplicate_chapter_start",
+                    }
                 )
                 continue
             starts.add(start)
@@ -271,21 +291,39 @@ class EvidenceEnricher:
         ]
         if phrase:
             index, segment = min(phrase, key=lambda item: (item[1].start, item[0]))
-            self._apply_anchor(window, segments, index, segment, "exact_query_phrase", "high", (normalized_query,))
+            self._apply_anchor(
+                window,
+                segments,
+                index,
+                segment,
+                "exact_query_phrase",
+                "high",
+                (normalized_query,),
+            )
             return
 
         ascii_terms = _ascii_terms(normalized_query)
         entity = _best_term_match(indexed, ascii_terms)
         if entity is not None:
             index, segment, matched = entity
-            self._apply_anchor(window, segments, index, segment, "exact_entity_term", "high", matched)
+            self._apply_anchor(
+                window, segments, index, segment, "exact_entity_term", "high", matched
+            )
             return
 
         if query_type in {"mixed_entity", "keyword_phrase"}:
             keyword = _best_term_match(indexed, _query_terms(normalized_query))
             if keyword is not None:
                 index, segment, matched = keyword
-                self._apply_anchor(window, segments, index, segment, "keyword_overlap", "medium", matched)
+                self._apply_anchor(
+                    window,
+                    segments,
+                    index,
+                    segment,
+                    "keyword_overlap",
+                    "medium",
+                    matched,
+                )
 
     @staticmethod
     def _apply_anchor(
@@ -385,7 +423,9 @@ def _best_term_match(
         if not matched:
             continue
         total = sum(count for _, count in counts)
-        candidates.append((-len(matched), -total, segment.start, index, segment, matched))
+        candidates.append(
+            (-len(matched), -total, segment.start, index, segment, matched)
+        )
     if not candidates:
         return None
     _, _, _, index, segment, matched = min(candidates)

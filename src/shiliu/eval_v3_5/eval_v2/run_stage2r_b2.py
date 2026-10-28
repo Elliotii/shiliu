@@ -42,10 +42,10 @@ def specs() -> tuple[CanaryCaseSpec, CanaryCaseSpec]:
         "source_language": "zh",
         "source_type": "raw_subtitle",
         "raw_subtitle_json": Path(
-            "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json"
+            "/absolute/historical/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.json"
         ),
         "full_transcript_reference": Path(
-            "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.txt"
+            "/absolute/historical/Documents/Shiliu/videos/BV1o87764Ebs/subtitle-raw.txt"
         ),
         "development_authorization_source": "B2 remaining safe projection only",
         "evaluation_view": "single_video_topic_evidence",

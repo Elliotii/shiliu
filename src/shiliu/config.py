@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +11,10 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 only
     import tomli as tomllib  # type: ignore[no-redef]
 
+
+# An impossible child of the null device prevents libpq from opening a daily
+# password file, without the warning produced by using the device itself.
+LIBPQ_DISABLED_PASSFILE = os.path.join(os.devnull, "shiliu-disabled")
 
 APP_NAME = "Shiliu"
 KEYCHAIN_SERVICE = "app.shiliu.llm"
@@ -291,3 +295,54 @@ def _optional_int(value: object) -> int | None:
     except (TypeError, ValueError):
         return None
     return result if result > 0 else None
+
+
+@dataclass(frozen=True)
+class PostgresConfig:
+    """Explicit PG entrypoint, independent of legacy AppPaths and Application.
+
+    DSNs are process configuration only and are excluded from repr/public_config.
+    No default state/content path is ever consulted by this entrypoint.
+    """
+
+    database_url: str = field(repr=False)
+    artifact_root: Path
+    environment: str
+
+    def __post_init__(self) -> None:
+        from psycopg.conninfo import conninfo_to_dict
+
+        valid = False
+        try:
+            parts = conninfo_to_dict(self.database_url) if self.database_url.strip() else {}
+            # Require explicit target identity rather than libpq's OS/env defaults.
+            valid = all(parts.get(key) for key in ("host", "dbname", "user"))
+            valid = valid and not any(key in parts for key in ("service", "servicefile", "passfile"))
+        except Exception:
+            pass
+        if not valid:
+            raise ValueError("Explicit PostgreSQL host, dbname and user are required") from None
+        if not isinstance(self.artifact_root, Path) or not self.artifact_root.is_absolute():
+            raise ValueError("SHILIU_ARTIFACT_ROOT must be an explicit absolute path")
+        if self.environment not in {"development", "test", "production"}:
+            raise ValueError("SHILIU_ENV must be development, test or production")
+
+
+def load_postgres_config(config_path: Path | None = None) -> PostgresConfig:
+    """Load explicit [postgres] TOML with SHILIU_* environment overrides.
+
+    The caller may pass the existing config path; omission reads environment only.
+    This never calls AppPaths.defaults(), writes configuration or opens a database.
+    """
+    section: dict[str, Any] = {}
+    if config_path is not None:
+        try:
+            section = tomllib.loads(config_path.read_text(encoding="utf-8")).get("postgres", {})
+        except Exception:
+            raise ValueError("Cannot read PostgreSQL configuration") from None
+    dsn = os.environ.get("SHILIU_DATABASE_URL", section.get("database_url", ""))
+    root = os.environ.get("SHILIU_ARTIFACT_ROOT", section.get("artifact_root", ""))
+    environment = os.environ.get("SHILIU_ENV", section.get("environment", ""))
+    if not all(isinstance(value, str) and value.strip() for value in (dsn, root, environment)):
+        raise ValueError("Explicit PostgreSQL DSN, Artifact root and environment are required")
+    return PostgresConfig(dsn, Path(root), environment)

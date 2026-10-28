@@ -14,6 +14,7 @@ from shiliu.evidence.source import (
     authoritative_raw_json_path,
     make_source_artifact_id,
     source_version_for_bytes,
+    read_reference_bytes,
 )
 
 
@@ -28,7 +29,11 @@ def bind_snapshot_manifest_version(
     actual_path = authoritative_raw_json_path(reference.artifact_path)
     declared_source = str(record.get("bvid") or "")
     expected = str(record.get("sha256") or "")
-    if declared_source != reference.source_id or declared_path != actual_path or not expected:
+    if (
+        declared_source != reference.source_id
+        or declared_path != actual_path
+        or not expected
+    ):
         raise EvidenceContractError(
             "Snapshot manifest logical source or path does not match the requested artifact",
             code="source_version_mismatch",
@@ -46,8 +51,11 @@ def bind_pinned_version(
     reference: SourceArtifactReference,
     *,
     expected_source_version: str,
+    artifacts=None,
 ) -> SourceVersionBinding:
-    actual = _read_version(authoritative_raw_json_path(reference.artifact_path))
+    actual = source_version_for_bytes(
+        read_reference_bytes(reference, artifacts=artifacts)
+    )
     if actual != expected_source_version:
         raise EvidenceContractError(
             "Pinned source version does not match current authoritative bytes",
@@ -62,12 +70,17 @@ def bind_live_current_version(
     db: Database,
     video_id: int,
     require_dense_current: bool = False,
+    artifacts=None,
 ) -> SourceVersionBinding:
     with db.connect() as connection:
         row = connection.execute(
-            "SELECT desired_state, lexical_state, dense_state "
-            "FROM retrieval_sync_state WHERE video_id=?",
-            (video_id,),
+            "SELECT s.desired_state,s.lexical_state,s.dense_state FROM shiliu.retrieval_sync_state s "
+            "JOIN shiliu.retrieval_projection_tasks t ON t.workspace_id=s.workspace_id AND t.domain='collection' AND t.resource_key=s.video_id::text "
+            "JOIN shiliu.videos v ON (v.workspace_id,v.id)=(s.workspace_id,s.video_id) "
+            "WHERE s.workspace_id=%s AND s.video_id=%s AND (t.payload->>'ready_generation')::bigint=t.requested_generation "
+            "AND v.raw_subtitle_path=%s AND v.removed_at IS NULL AND NOT v.is_ignored "
+            "AND EXISTS(SELECT 1 FROM shiliu.video_source_memberships m JOIN shiliu.favorite_sources f ON (f.workspace_id,f.id)=(m.workspace_id,m.source_id) WHERE m.workspace_id=v.workspace_id AND m.video_id=v.id AND m.removed_at IS NULL AND f.status='active')",
+            (db.workspace_id, video_id, reference.artifact_path),
         ).fetchone()
     if (
         row is None
@@ -79,7 +92,9 @@ def bind_live_current_version(
             "retrieval sync/index state is not compatible with live exact replay",
             code="index_not_ready",
         )
-    actual = _read_version(authoritative_raw_json_path(reference.artifact_path))
+    actual = source_version_for_bytes(
+        read_reference_bytes(reference, artifacts=artifacts)
+    )
     return _binding(reference, actual, actual, "live_current_exact_replay")
 
 
@@ -93,7 +108,10 @@ def _snapshot_manifest_record(
     matches = []
     for line in lines:
         record = json.loads(line)
-        if record.get("artifact_type") == "raw_subtitle" and record.get("video_id") == video_id:
+        if (
+            record.get("artifact_type") == "raw_subtitle"
+            and record.get("video_id") == video_id
+        ):
             matches.append(record)
     if len(matches) != 1 or matches[0].get("status") != "ok":
         raise EvidenceContractError(

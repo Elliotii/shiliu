@@ -1,7 +1,9 @@
 {
   "provenance": {
-    "source": "synthetic-clarification-contract",
-    "case_id": "V2-C08"
+    "case": "V2-C08",
+    "candidate": "6d0eb98f6d99719b2c2c74f137d487bc94367cf0",
+    "run_id": "ask_run_9d9ee75fba2d4fa5a1ce75e26b02baa9",
+    "source": "locked Full Dev 2 Controller responses"
   },
   "query": "我下个月搬家，应该买多少个纸箱？",
   "decisions": [

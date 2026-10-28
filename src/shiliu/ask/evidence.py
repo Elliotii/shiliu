@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import sqlite3
+from typing import Any
 from typing import Iterable
 
 from shiliu.ask.citations import stable_citation_id
@@ -31,8 +31,9 @@ class MaterializationResult:
 
 
 class TranscriptEvidenceMaterializer:
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database, artifacts) -> None:
         self.db = db
+        self.artifacts = artifacts
 
     def materialize(
         self,
@@ -82,7 +83,7 @@ class TranscriptEvidenceMaterializer:
             )
         reference = _reference(row)
         binding = bind_live_current_version(
-            reference, db=self.db, video_id=span.video_id
+            reference, db=self.db, video_id=span.video_id, artifacts=self.artifacts
         )
         if (
             binding.source_artifact_id != span.source_artifact_id
@@ -93,7 +94,9 @@ class TranscriptEvidenceMaterializer:
                 code="citation_source_version_stale",
             )
         artifact = load_source_artifact(
-            reference, expected_source_version=span.source_version
+            reference,
+            expected_source_version=span.source_version,
+            artifacts=self.artifacts,
         )
         by_id = {segment.segment_id: segment for segment in artifact.segments}
         try:
@@ -154,7 +157,9 @@ class TranscriptEvidenceMaterializer:
             )
         reference = _reference(row)
         artifact = load_source_artifact(
-            reference, expected_source_version=citation.source_version
+            reference,
+            expected_source_version=citation.source_version,
+            artifacts=self.artifacts,
         )
         if artifact.source_artifact_id != citation.source_artifact_id:
             raise EvidenceContractError(
@@ -218,7 +223,7 @@ class TranscriptEvidenceMaterializer:
     def _materialize_candidate(
         self,
         candidate,
-        row: sqlite3.Row,
+        row: dict[str, Any],
         *,
         execution: SearchExecution,
         query_index: int,
@@ -234,7 +239,9 @@ class TranscriptEvidenceMaterializer:
             )
         reference = _reference(row)
         artifact = load_source_artifact(
-            reference, expected_source_version=candidate.source_version
+            reference,
+            expected_source_version=candidate.source_version,
+            artifacts=self.artifacts,
         )
         if artifact.source_artifact_id != candidate.source_artifact_id:
             raise EvidenceContractError(
@@ -283,9 +290,7 @@ class TranscriptEvidenceMaterializer:
             source_version_authority=str(candidate.source_version_authority),
             timeline_run_id=candidate.timeline_run_id,
             segment_ids=tuple(segment.segment_id for segment in segments),
-            segment_ordinals=tuple(
-                segment.original_ordinal for segment in segments
-            ),
+            segment_ordinals=tuple(segment.original_ordinal for segment in segments),
             start_time=start_time,
             end_time=end_time,
             quote_text=_quote(segments),
@@ -299,7 +304,7 @@ class TranscriptEvidenceMaterializer:
                     "query_index": query_index,
                     "rank": candidate.raw_rank,
                     "retrieval_method": candidate.retrieval_method,
-                    "video_ids": list(execution.video_ids),
+                    "video_ids": list(execution.video_ids) if execution.video_ids is not None else None,
                 },
             ),
             segments=tuple(
@@ -315,11 +320,11 @@ class TranscriptEvidenceMaterializer:
             ),
         )
 
-    def _unit_rows(self, unit_ids: Iterable[str]) -> dict[str, sqlite3.Row]:
+    def _unit_rows(self, unit_ids: Iterable[str]) -> dict[str, dict[str, Any]]:
         values = list(dict.fromkeys(unit_ids))
         if not values:
             return {}
-        placeholders = ",".join("?" for _ in values)
+        placeholders = ",".join("%s" for _ in values)
         with self.db.connect() as connection:
             rows = connection.execute(
                 f"""
@@ -327,27 +332,29 @@ class TranscriptEvidenceMaterializer:
                        v.subtitle_language, v.subtitle_source,
                        v.raw_subtitle_path
                 FROM retrieval_units ru
-                JOIN videos v ON v.id=ru.video_id
-                WHERE ru.unit_id IN ({placeholders})
+                JOIN videos v ON (v.workspace_id,v.id)=(ru.workspace_id,ru.video_id)
+                JOIN shiliu.retrieval_projection_tasks t ON t.workspace_id=ru.workspace_id AND t.domain='collection' AND t.resource_key=ru.video_id::text
+                WHERE ru.workspace_id=%s AND ru.generation=t.requested_generation AND NOT v.is_ignored AND v.removed_at IS NULL AND ru.unit_id IN ({placeholders})
                 """,
-                values,
+                [self.db.workspace_id, *values],
             ).fetchall()
         return {str(row["unit_id"]): row for row in rows}
 
-    def _video_row(self, video_id: int) -> sqlite3.Row | None:
+    def _video_row(self, video_id: int) -> dict[str, Any] | None:
         with self.db.connect() as connection:
             return connection.execute(
                 """
                 SELECT id AS video_id, platform, source_id, part, title,
                        video_url, subtitle_language, subtitle_source,
                        raw_subtitle_path
-                FROM videos WHERE id=?
+                FROM videos v WHERE workspace_id=%s AND id=%s AND NOT is_ignored AND removed_at IS NULL
+                AND EXISTS(SELECT 1 FROM shiliu.video_source_memberships m JOIN shiliu.favorite_sources f ON (m.workspace_id,m.source_id)=(f.workspace_id,f.id) WHERE m.workspace_id=v.workspace_id AND m.video_id=v.id AND m.removed_at IS NULL AND f.status='active')
                 """,
-                (video_id,),
+                (self.db.workspace_id, video_id),
             ).fetchone()
 
 
-def _reference(row: sqlite3.Row) -> SourceArtifactReference:
+def _reference(row: dict[str, Any]) -> SourceArtifactReference:
     return SourceArtifactReference(
         platform=str(row["platform"]),
         source_id=str(row["source_id"]),
@@ -382,9 +389,7 @@ def _validate_candidate_segments(
 
 def _quote(segments) -> str:
     return "\n".join(
-        value.source_text.strip()
-        for value in segments
-        if value.source_text.strip()
+        value.source_text.strip() for value in segments if value.source_text.strip()
     )
 
 

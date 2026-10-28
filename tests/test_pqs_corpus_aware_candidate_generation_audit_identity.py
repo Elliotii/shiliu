@@ -6,8 +6,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "research/v3_5/product_query_set_v1/corpus_aware_generation"
-METADATA = "/Users/elliot/Documents/Shiliu/videos/BV1o87764Ebs/metadata.json"
-REAL_TRANSCRIPT = "/Users/elliot/Documents/Shiliu/videos/BV1atjU6KEJF/subtitle-raw.txt"
+METADATA = "/absolute/historical/Documents/Shiliu/videos/BV1o87764Ebs/metadata.json"
+REAL_TRANSCRIPT = "/absolute/historical/Documents/Shiliu/videos/BV1atjU6KEJF/subtitle-raw.txt"
 
 
 def load_jsonl(path: Path) -> list[dict]:

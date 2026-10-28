@@ -16,7 +16,9 @@ from shiliu.ask.contracts import (
 from shiliu.ask.deep.budget import DeepSearchBudget
 from shiliu.ask.deep.service import DeepSearchService
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer
-from shiliu.db import Database
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import json_value
+from shiliu.research.service import _parse_iso
 from shiliu.evidence.continuation import (
     ContinuationEnvelope,
     parse_continuation_envelope,
@@ -107,6 +109,7 @@ class ReceiptBoundDeepResearchExecutor:
         budget: DeepSearchBudget,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.artifacts = artifacts
         self.product_search = product_search
         self.runtime_corpus_identity = runtime_corpus_identity
@@ -166,12 +169,13 @@ class ReceiptBoundResearchProductOrchestrator:
     ) -> None:
         self.db = db
         self.kernel = kernel
+        self.context = db.context
         self.inner = inner
         self.product = product
         self.receipt_service = receipt_service
         self.provider_factory = provider_factory
         self.deep_executor = deep_executor
-        self.materializer = materializer or TranscriptEvidenceMaterializer(db)
+        self.materializer = materializer or inner.materializer
         self.provider_product_authorized = provider_product_authorized
         self.fault_injector = fault_injector or (lambda _point: None)
         self._locks_guard = threading.Lock()
@@ -707,10 +711,8 @@ class ReceiptBoundResearchProductOrchestrator:
                     "Task/control generation changed before finalized response commit"
                 )
             latest_checkpoint = connection.execute(
-                "SELECT checkpoint_id FROM research_checkpoints "
-                "WHERE task_id=? AND attempt_id=? "
-                "ORDER BY sequence DESC LIMIT 1",
-                (task_id, attempt_id),
+                'SELECT checkpoint_id FROM research_checkpoints WHERE research_checkpoints.workspace_id=%s AND  task_id=%s AND attempt_id=%s ORDER BY sequence DESC LIMIT 1',
+                (self.context.workspace_id, task_id, attempt_id),
             ).fetchone()
             if (
                 latest_checkpoint is None
@@ -842,15 +844,15 @@ class ReceiptBoundResearchProductOrchestrator:
             rows = connection.execute(
                 """
                 SELECT observation_json FROM research_inner_actions
-                WHERE task_id=? AND attempt_id=? AND status='succeeded'
-                  AND action_key LIKE ?
+                WHERE research_inner_actions.workspace_id=%s AND  task_id=%s AND attempt_id=%s AND status='succeeded'
+                  AND action_key LIKE %s
                 ORDER BY created_at, action_id
                 """,
-                (task_id, attempt_id, f"provider:{operation_prefix}:%"),
+                (self.context.workspace_id, task_id, attempt_id, f'provider:{operation_prefix}:%'),
             ).fetchall()
         bindings = []
         for row in rows:
-            observation = json.loads(str(row["observation_json"]))
+            observation = json_value(row['observation_json'])
             binding = observation.get("provider_call")
             if isinstance(binding, dict) and binding.get("receipt_hash"):
                 bindings.append(dict(binding))
@@ -888,9 +890,8 @@ class ReceiptBoundResearchProductOrchestrator:
                     now=self.kernel._now(),
                 )
             latest = connection.execute(
-                "SELECT checkpoint_id, attempt_id FROM research_checkpoints "
-                "WHERE task_id=? ORDER BY created_at DESC, sequence DESC LIMIT 1",
-                (task_id,),
+                'SELECT checkpoint_id, attempt_id FROM research_checkpoints WHERE research_checkpoints.workspace_id=%s AND  task_id=%s ORDER BY created_at DESC, sequence DESC LIMIT 1',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             response = {
                 "task_id": task_id,
