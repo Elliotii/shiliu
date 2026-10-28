@@ -30,7 +30,7 @@ from shiliu.research.product_contracts import (
     CreateProductResearchRequest,
     RunProductResearchRequest,
 )
-from shiliu.research.schema import prepare_research_schema_v12
+from shiliu.migration.legacy_schema.research import prepare_research_schema_v12
 from shiliu.retrieval.coordinator import SYNC_STATE_VERSION
 from shiliu.web import create_web_app
 

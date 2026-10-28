@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from shiliu.retrieval.bm25 import RANKING_VERSION
 from dataclasses import dataclass
 import time
 
-from shiliu.retrieval.dense import SQLiteExactDenseIndex
+from shiliu.retrieval.dense import PgExactDenseIndex
 from shiliu.retrieval.models import HybridSearchResult, RetrievalFilters, SearchLevel
-from shiliu.retrieval.service import RetrievalService
+from shiliu.retrieval.service import INDEX_VERSION, RetrievalService
 
 
 FUSION_VERSION = "v3-stage2-rrf-v1"
@@ -22,7 +23,7 @@ class HybridExecution:
 
 
 class HybridRetrievalService:
-    def __init__(self, *, lexical: RetrievalService, dense: SQLiteExactDenseIndex) -> None:
+    def __init__(self, *, lexical: RetrievalService, dense: PgExactDenseIndex) -> None:
         self.lexical = lexical
         self.dense = dense
 
@@ -72,7 +73,11 @@ class HybridRetrievalService:
                 lexical_rank=lr, dense_rank=dr, rrf_score=score, retrieval_method="hybrid",
                 lexical_retrieval_method=lexical_pair[1].retrieval_method if lexical_pair else None,
                 fusion_version=FUSION_VERSION, index_version=FUSION_VERSION,
-                lexical_index_version=source.index_version,
+                lexical_index_version=(
+                    RANKING_VERSION
+                    if level == "transcript_chunk" and len(" ".join(query.split())) >= 3
+                    else INDEX_VERSION
+                ),
                 dense_index_version=meta["dense_index_version"],
                 model_id=self.dense.provider.model_id, projection_version=meta["projection_version"],
                 reading_state=source.reading_state, is_marked=source.is_marked, is_ignored=source.is_ignored,
@@ -87,8 +92,5 @@ class HybridRetrievalService:
         )
 
 
-def _hybrid_sort_key(item: HybridSearchResult) -> tuple[float, int, str]:
-    available = [
-        rank for rank in (item.lexical_rank, item.dense_rank) if rank is not None
-    ]
-    return (-item.rrf_score, min(available), item.unit_id)
+def _hybrid_sort_key(item: HybridSearchResult) -> tuple[float, str]:
+    return (-item.rrf_score, item.unit_id)

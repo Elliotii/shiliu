@@ -1,135 +1,36 @@
-"""Bounded, auditable backfill for Bilibili platform publication timestamps.
+"""Bounded PostgreSQL publication-time backfill with held maintenance intents.
 
-This module deliberately never initializes the application database. Its small
-ledger schema is created only by explicit ``stage``/``apply`` operations, which
-must be pointed at a disposable rehearsal copy before production rollout.
+No Application defaults, credentials, schema creation or SQLite connection is
+used by the service. The CLI owns one explicitly configured Application pool.
 """
 
 from __future__ import annotations
-
 import argparse
 import hashlib
 import json
 import re
-import sqlite3
-import sys
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
+from psycopg.types.json import Jsonb
+from shiliu.db import Database
+from shiliu.storage.dto import json_value
+from shiliu.storage.errors import StorageError
+from shiliu.storage.fences import CoordinationConflict
+from shiliu.storage.scheduler import claim_backfill_job, job_transition
 
 ACCOUNT_ID = "32958899"
-PRODUCTION_DATABASE = Path("/Users/elliot/Library/Application Support/Shiliu/shiliu.db")
 BV_RE = re.compile(r"^BV[0-9A-Za-z]{10}$")
-MIN_EPOCH = 946684800  # 2000-01-01 UTC
-MAX_EPOCH = 4102444800  # 2100-01-01 UTC
+MIN_EPOCH = 946684800
+MAX_EPOCH = 4102444800
+from datetime import datetime
 
 
-def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
-
-
-def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
-    if readonly:
-        connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10)
-    else:
-        connection = sqlite3.connect(path, timeout=10)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA busy_timeout=10000")
-    return connection
-
-
-def ensure_schema(connection: sqlite3.Connection) -> None:
-    """Create only the task's compact run, operation, and durable hold tables."""
-    connection.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS metadata_backfill_runs (
-            run_id TEXT PRIMARY KEY,
-            account_id TEXT NOT NULL,
-            target_sha256 TEXT NOT NULL,
-            state TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS metadata_backfill_operations (
-            run_id TEXT NOT NULL REFERENCES metadata_backfill_runs(run_id),
-            video_id INTEGER NOT NULL,
-            bvid TEXT NOT NULL,
-            part INTEGER NOT NULL,
-            candidate_json TEXT NOT NULL,
-            candidate_sha256 TEXT NOT NULL,
-            state TEXT NOT NULL,
-            old_published_at INTEGER,
-            new_published_at INTEGER,
-            old_metadata_observed_at TEXT,
-            new_metadata_observed_at TEXT,
-            old_updated_at TEXT,
-            new_updated_at TEXT,
-            dirty_generation_before INTEGER,
-            dirty_generation_after INTEGER,
-            old_head_revision TEXT,
-            new_head_revision TEXT,
-            held_job_ids_json TEXT NOT NULL DEFAULT '[]',
-            maintenance_json TEXT NOT NULL DEFAULT '{}',
-            detail TEXT,
-            written_at TEXT,
-            PRIMARY KEY(run_id, video_id)
-        );
-        CREATE TABLE IF NOT EXISTS metadata_backfill_job_holds (
-            job_id TEXT PRIMARY KEY,
-            run_id TEXT NOT NULL REFERENCES metadata_backfill_runs(run_id),
-            video_id INTEGER NOT NULL,
-            reason TEXT NOT NULL,
-            created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS metadata_backfill_wiki_intents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            run_id TEXT NOT NULL REFERENCES metadata_backfill_runs(run_id),
-            video_id INTEGER NOT NULL,
-            page_id TEXT NOT NULL,
-            old_revision TEXT NOT NULL,
-            new_revision TEXT NOT NULL,
-            before_version INTEGER NOT NULL,
-            after_version INTEGER,
-            job_id TEXT NOT NULL UNIQUE,
-            state TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            UNIQUE(run_id,video_id,page_id,old_revision,new_revision)
-        );
-        CREATE INDEX IF NOT EXISTS idx_metadata_backfill_ops_state
-            ON metadata_backfill_operations(run_id, state, video_id);
-        CREATE INDEX IF NOT EXISTS idx_metadata_backfill_wiki_page
-            ON metadata_backfill_wiki_intents(run_id,page_id,id,state);
-        """
-    )
-
-
-def _canonical(value: Any) -> str:
+def _canonical(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def _candidate_hash(candidate: dict[str, Any]) -> str:
-    return hashlib.sha256(_canonical(candidate).encode("utf-8")).hexdigest()
-
-
-def _require_production_backup(database: Path, manifest_path: Path | None) -> None:
-    """Keep production writes locked until a checked pre-migration backup exists."""
-    if database.resolve() != PRODUCTION_DATABASE.resolve():
-        return
-    if manifest_path is None:
-        raise ValueError("production_backup_manifest_required")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    backup = Path(str(manifest.get("snapshot_database") or "")).resolve()
-    if (Path(str(manifest.get("source_database") or "")).resolve() != database.resolve()
-            or backup == database.resolve() or not backup.is_file()
-            or not manifest.get("service_stop")
-            or list(manifest.get("checkpoint") or []) != [0, 0, 0]
-            or manifest.get("migration_applied") is not False):
-        raise ValueError("production_backup_manifest_invalid")
-    actual_hash = hashlib.sha256(backup.read_bytes()).hexdigest()
-    if actual_hash != manifest.get("db_sha256"):
-        raise ValueError("production_backup_hash_mismatch")
+def _candidate_hash(candidate):
+    return hashlib.sha256(_canonical(candidate).encode()).hexdigest()
 
 
 def validate_candidate(candidate: dict[str, Any]) -> None:
@@ -143,11 +44,21 @@ def validate_candidate(candidate: dict[str, Any]) -> None:
         raise ValueError("untrusted_source_field")
     raw = candidate.get("raw_pubdate")
     value = candidate.get("published_at")
-    if isinstance(raw, bool) or not isinstance(raw, (int, str)) or str(raw).strip() != str(value):
+    if (
+        isinstance(raw, bool)
+        or not isinstance(raw, (int, str))
+        or str(raw).strip() != str(value)
+    ):
         raise ValueError("raw_value_mismatch")
-    if isinstance(value, bool) or not isinstance(value, int) or not MIN_EPOCH <= value < MAX_EPOCH:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or not MIN_EPOCH <= value < MAX_EPOCH
+    ):
         raise ValueError("invalid_epoch_seconds")
-    observed = datetime.fromisoformat(str(candidate["metadata_observed_at"]).replace("Z", "+00:00"))
+    observed = datetime.fromisoformat(
+        str(candidate["metadata_observed_at"]).replace("Z", "+00:00")
+    )
     if observed.tzinfo is None:
         raise ValueError("observation_time_missing_timezone")
     if value > int(observed.timestamp()):
@@ -156,805 +67,779 @@ def validate_candidate(candidate: dict[str, Any]) -> None:
         raise ValueError("source_missing")
 
 
-def _target_row(connection: sqlite3.Connection, candidate: dict[str, Any]) -> sqlite3.Row | None:
-    return connection.execute(
-        """SELECT v.id,v.platform,v.source_id,v.part,v.published_at,
-                  v.metadata_observed_at,v.updated_at,v.is_ignored,v.archived_at,v.removed_at,
-                  (SELECT h.current_revision FROM assistant_source_heads h
-                   WHERE h.video_id=v.id) AS head_revision
-           FROM videos v WHERE v.id=? AND v.platform='bilibili' AND v.source_id=? AND v.part=?
-             AND v.removed_at IS NULL AND v.is_ignored=0 AND v.archived_at IS NULL
-             AND EXISTS (
-               SELECT 1 FROM video_source_memberships m
-               JOIN favorite_sources s ON s.id=m.source_id
-               WHERE m.video_id=v.id AND m.removed_at IS NULL AND s.status='active'
-                 AND CAST(s.account_id AS TEXT)=?
-             )""",
-        (candidate["video_id"], candidate["bvid"], candidate["part"], ACCOUNT_ID),
-    ).fetchone()
-
-
-def dry_run(database: Path, candidates: Iterable[dict[str, Any]]) -> dict[str, Any]:
-    connection = _connect(database, readonly=True)
-    try:
-        rows = []
-        for candidate in candidates:
-            try:
-                validate_candidate(candidate)
-                row = _target_row(connection, candidate)
-                if row is None:
-                    state = "identity_or_scope_mismatch"
-                elif row["published_at"] is not None:
-                    state = "already_known_same" if int(row["published_at"]) == candidate["published_at"] else "known_conflict"
-                else:
-                    state = "ready"
-                rows.append({"video_id": candidate.get("video_id"), "bvid": candidate.get("bvid"), "state": state})
-            except (KeyError, TypeError, ValueError) as exc:
-                rows.append({"video_id": candidate.get("video_id"), "bvid": candidate.get("bvid"), "state": str(exc)})
-        return {"count": len(rows), "states": rows}
-    finally:
-        connection.close()
-
-
-def stage(database: Path, run_id: str, candidates: list[dict[str, Any]], *,
-          production_backup_manifest: Path | None = None) -> dict[str, Any]:
-    _require_production_backup(database, production_backup_manifest)
-    validated: list[dict[str, Any]] = []
-    for candidate in candidates:
-        validate_candidate(candidate)
-        for key in ("video_id", "part"):
-            if isinstance(candidate.get(key), bool) or not isinstance(candidate.get(key), int):
-                raise ValueError(f"invalid_{key}")
-        validated.append(candidate)
-    if len({int(c["video_id"]) for c in validated}) != len(validated):
-        raise ValueError("duplicate_video_id")
-    target_hash = hashlib.sha256("\n".join(sorted(_candidate_hash(c) for c in validated)).encode()).hexdigest()
-    connection = _connect(database)
-    try:
-        ensure_schema(connection)
-        connection.execute("BEGIN IMMEDIATE")
-        now = _utc_now()
-        existing = connection.execute("SELECT target_sha256 FROM metadata_backfill_runs WHERE run_id=?", (run_id,)).fetchone()
-        if existing and existing["target_sha256"] != target_hash:
-            raise ValueError("run_id_candidate_manifest_conflict")
-        connection.execute(
-            "INSERT OR IGNORE INTO metadata_backfill_runs(run_id,account_id,target_sha256,state,created_at,updated_at) VALUES(?,?,?,'staged',?,?)",
-            (run_id, ACCOUNT_ID, target_hash, now, now),
-        )
-        for candidate in validated:
-            digest = _candidate_hash(candidate)
-            previous = connection.execute(
-                "SELECT candidate_sha256 FROM metadata_backfill_operations WHERE run_id=? AND video_id=?",
-                (run_id, candidate["video_id"]),
-            ).fetchone()
-            if previous and previous["candidate_sha256"] != digest:
-                raise ValueError("candidate_changed_for_video")
-            connection.execute(
-                """INSERT OR IGNORE INTO metadata_backfill_operations(
-                     run_id,video_id,bvid,part,candidate_json,candidate_sha256,state)
-                   VALUES(?,?,?,?,?,?,'staged')""",
-                (run_id, candidate["video_id"], candidate["bvid"], candidate["part"], _canonical(candidate), digest),
+class MetadataBackfillService:
+    def __init__(self, db: Database, artifacts=None, *, fault_injector=None):
+        if not isinstance(db, Database):
+            raise TypeError(
+                "metadata backfill requires an injected PostgreSQL Database"
             )
-        connection.commit()
-        return {"run_id": run_id, "count": len(validated), "target_sha256": target_hash}
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
+        self.db = db
+        self.context = db.context
+        self.artifacts = artifacts
+        self.fault_injector = fault_injector or (lambda point: None)
+        self.sources = self.store = self.wiki = None
+        if artifacts is not None:
+            from shiliu.assistant.snapshots import SourceSnapshotStore
+            from shiliu.assistant.sources import CollectionSourceService
+            from shiliu.assistant.pg_store import PgAssistantRunStore
+            from shiliu.assistant.wiki import WikiService
 
+            self.sources = CollectionSourceService(
+                db=db, artifacts=artifacts, snapshots=SourceSnapshotStore(db, artifacts)
+            )
+            self.store = PgAssistantRunStore(db)
+            self.wiki = WikiService(
+                db=db,
+                store=self.store,
+                sources=self.sources,
+                principal_id=self.context.user_id,
+            )
 
-def _hold_new_jobs(connection: sqlite3.Connection, run_id: str, video_id: int, generation: int | None) -> list[str]:
-    if generation is None:
-        return []
-    jobs = connection.execute(
-        """SELECT id FROM assistant_jobs WHERE kind='source_reconcile'
-           AND status IN ('queued','retry_wait','budget_wait')
-           AND json_extract(payload_json,'$.video_id')=?
-           AND json_extract(payload_json,'$.dirty_generation')=?""",
-        (video_id, generation),
-    ).fetchall()
-    now = _utc_now()
-    ids = [str(row["id"]) for row in jobs]
-    for job_id in ids:
-        connection.execute(
-            "INSERT OR IGNORE INTO metadata_backfill_job_holds(job_id,run_id,video_id,reason,created_at) VALUES(?,?,?,'publication_timestamp_maintenance_pending',?)",
-            (job_id, run_id, video_id, now),
-        )
-    return ids
+    def _backup(self, path):
+        if self.db.pg.config.environment != "production":
+            return
+        if path is None:
+            raise ValueError("production_backup_manifest_required")
+        manifest = json.loads(Path(path).read_text())
+        from psycopg.conninfo import conninfo_to_dict
 
+        target = conninfo_to_dict(self.db.pg.config.database_url)
+        identity = {key: target.get(key) for key in ("host", "port", "dbname", "user")}
+        identity["workspace_id"] = self.context.workspace_id
+        if not manifest.get("service_stop") or manifest.get(
+            "target_fingerprint"
+        ) != _candidate_hash(identity):
+            raise ValueError("production_backup_manifest_invalid")
+        for name in ("postgres_backup", "artifact_manifest"):
+            item = manifest.get(name) or {}
+            candidate = Path(str(item.get("path") or ""))
+            if (
+                not candidate.is_absolute()
+                or not candidate.is_file()
+                or hashlib.sha256(candidate.read_bytes()).hexdigest()
+                != item.get("sha256")
+            ):
+                raise ValueError("production_backup_hash_mismatch")
 
-def _preflight_source_artifacts(
-    connection: sqlite3.Connection, video_id: int, revision: str,
-    *, assistant_objects_root: Path, videos_dir: Path,
-) -> None:
-    root = assistant_objects_root.resolve()
-    videos_root = videos_dir.resolve()
-    if not root.is_dir() or not videos_root.is_dir():
-        raise ValueError("source_artifact_root_missing")
-    row = connection.execute(
-        """SELECT r.snapshot_ref FROM assistant_source_revisions r
-           JOIN assistant_source_heads h ON h.id=r.head_id
-           WHERE r.revision=? AND h.video_id=? AND h.principal_id='local_operator'""",
-        (revision, video_id),
-    ).fetchone()
-    if row is None:
-        raise ValueError("source_revision_missing")
-    snapshot_path = (root / str(row["snapshot_ref"])).resolve()
-    if not snapshot_path.is_relative_to(root) or not snapshot_path.is_file():
-        raise ValueError("source_snapshot_artifact_missing")
-    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
-    if snapshot.get("revision") != revision or int(snapshot.get("metadata", {}).get("id", -1)) != video_id:
-        raise ValueError("source_snapshot_identity_mismatch")
-    video = connection.execute(
-        "SELECT raw_subtitle_path,transcript_path,summary_path FROM videos WHERE id=?", (video_id,)
-    ).fetchone()
-    columns = {
-        "raw_subtitle": "raw_subtitle_path",
-        "transcript": "transcript_path",
-        "summary": "summary_path",
-    }
-    for kind, expected_hash in snapshot.get("material_hashes", {}).items():
-        column = columns[kind]
-        source_path = Path(str(video[column] or "")).resolve()
-        if not source_path.is_relative_to(videos_root) or not source_path.is_file():
-            raise ValueError(f"source_material_missing:{kind}")
-        actual_hash = hashlib.sha256(source_path.read_bytes()).hexdigest()
-        if actual_hash != expected_hash:
-            raise ValueError(f"source_material_hash_mismatch:{kind}")
-
-
-def _prepare_wiki_rebind(
-    database: Path, run_id: str, video_id: int, page: dict[str, Any],
-    space: dict[str, Any], *, old_revision: str, new_revision: str,
-    job_tag: str | None = None,
-) -> tuple[int, dict[str, Any] | None, str]:
-    from shiliu.db import Database
-
-    now = _utc_now()
-    lease_until = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(timespec="seconds")
-    suffix = job_tag or run_id
-    job_id = f"metadata-backfill-wiki-{suffix}-{video_id}-{page['id']}"
-    payload = {
-        "space_id": int(space["id"]), "video_id": video_id,
-        "revision": new_revision, "scope_version": int(space["scope_version"]),
-    }
-    db = Database(database)
-    with db.connect() as connection:
-        connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            """INSERT OR IGNORE INTO metadata_backfill_wiki_intents(
-                run_id,video_id,page_id,old_revision,new_revision,before_version,
-                job_id,state,created_at,updated_at)
-               VALUES(?,?,?,?,?,?,?,'pending',?,?)""",
-            (run_id, video_id, str(page["id"]), old_revision, new_revision,
-             int(page["version"]), job_id, now, now),
-        )
-        intent = connection.execute(
-            """SELECT * FROM metadata_backfill_wiki_intents
-               WHERE run_id=? AND video_id=? AND page_id=? AND old_revision=? AND new_revision=?""",
-            (run_id, video_id, str(page["id"]), old_revision, new_revision),
+    def _run(self, c, run_id, *, lock=False):
+        row = c.execute(
+            "SELECT * FROM metadata_backfill_runs WHERE workspace_id=%s AND run_id=%s"
+            + (" FOR UPDATE" if lock else ""),
+            (self.context.workspace_id, run_id),
         ).fetchone()
-        intent_id = int(intent["id"])
-        job_id = str(intent["job_id"])
-        state = str(intent["state"])
-        if state in {"rebound", "no_change"}:
-            connection.commit()
-            return intent_id, None, state
-        job_payload = {**payload, "metadata_backfill_run_id": run_id,
-                       "metadata_backfill_intent_id": intent_id}
-        connection.execute(
-            """INSERT OR IGNORE INTO assistant_jobs(
-               id,kind,dedupe_key,status,payload_json,not_before,created_at,updated_at,
-               lease_owner,lease_until,lease_epoch)
-               VALUES(?,'wiki_integrate',?,'running',?,?,?,?,'metadata-backfill',?,1)""",
-            (job_id, f"metadata_backfill_wiki:{suffix}:{video_id}:{page['id']}",
-             _canonical(job_payload), now, now, now, lease_until),
-        )
-        connection.execute(
-            """UPDATE assistant_jobs SET status='running',payload_json=?,lease_owner='metadata-backfill',
-               lease_until=?,lease_epoch=lease_epoch+1,updated_at=?
-               WHERE id=?""",
-            (_canonical(job_payload), lease_until, now, job_id),
-        )
-        connection.execute(
-            """INSERT INTO metadata_backfill_job_holds(job_id,run_id,video_id,reason,created_at)
-               VALUES(?,?,?,'wiki_rebind_intent_pending',?)
-               ON CONFLICT(job_id) DO UPDATE SET run_id=excluded.run_id,
-                 video_id=excluded.video_id,reason=excluded.reason""",
-            (job_id, run_id, video_id, now),
-        )
-        job_row = connection.execute("SELECT * FROM assistant_jobs WHERE id=?", (job_id,)).fetchone()
-        connection.commit()
-    job = dict(job_row)
-    job["payload"] = json.loads(job.pop("payload_json"))
-    return intent_id, job, state
+        if row is None:
+            raise KeyError("backfill run not found in this workspace")
+        return row
 
-
-def _rebind_with_backfill_intent(
-    wiki: Any, page: dict[str, Any], *, space: dict[str, Any], video_id: int,
-    revision: str, job: dict[str, Any], intent_id: int,
-) -> dict[str, Any]:
-    """Use the existing Wiki commit helpers and commit our intent with the page."""
-    now = _utc_now()
-    with wiki.db.connect() as connection:
-        connection.execute("BEGIN IMMEDIATE")
-        wiki._validate_wiki_commit_fence(
-            connection, space_id=int(space["id"]), video_id=video_id,
-            revision=revision, scope_version=int(space["scope_version"]),
-            job_id=str(job["id"]), lease_owner=str(job["lease_owner"]),
-            lease_epoch=int(job["lease_epoch"]), now=now,
-        )
-        page_row = connection.execute(
-            "SELECT * FROM assistant_wiki_pages WHERE id=? AND status='active'",
-            (page["id"],),
+    def _target(self, c, candidate, *, lock=False):
+        return c.execute(
+            """SELECT v.*,h.current_revision AS head_revision FROM videos v
+            LEFT JOIN assistant_source_heads h ON (h.workspace_id,h.video_id)=(v.workspace_id,v.id) AND h.principal_id=%s
+            WHERE v.workspace_id=%s AND v.id=%s AND v.platform='bilibili' AND v.source_id=%s AND v.part=%s
+            AND v.removed_at IS NULL AND NOT v.is_ignored AND v.archived_at IS NULL
+            AND EXISTS(SELECT 1 FROM video_source_memberships m JOIN favorite_sources s ON (s.workspace_id,s.id)=(m.workspace_id,m.source_id)
+              WHERE (m.workspace_id,m.video_id)=(v.workspace_id,v.id) AND m.removed_at IS NULL AND s.status='active' AND s.account_id::text=%s)"""
+            + (" FOR UPDATE OF v" if lock else ""),
+            (
+                self.context.user_id,
+                self.context.workspace_id,
+                candidate["video_id"],
+                candidate["bvid"],
+                candidate["part"],
+                ACCOUNT_ID,
+            ),
         ).fetchone()
-        if page_row is None or int(page_row["version"]) != int(page["version"]):
-            raise RuntimeError("wiki_version_conflict")
-        before = wiki._decode_page(dict(page_row))
-        before_state = wiki._operation_state(connection, str(page["id"]))
-        old_rows = connection.execute(
-            """SELECT DISTINCT d.source_revision,old_card.input_hash AS old_hash,
-                      new_card.input_hash AS new_hash
-               FROM assistant_wiki_dependencies d
-               JOIN assistant_source_cards old_card ON old_card.revision=d.source_revision
-               JOIN assistant_source_cards new_card ON new_card.revision=?
-               WHERE d.page_id=? AND d.video_id=? AND d.source_revision<>?""",
-            (revision, page["id"], video_id, revision),
-        ).fetchall()
-        new_snapshot = wiki.sources._capture_or_load(video_id, revision).snapshot
-        old_revisions = {
-            str(item["source_revision"]) for item in old_rows
-            if item["old_hash"] == item["new_hash"] or wiki._card_body_equivalent(
-                wiki.sources._capture_or_load(video_id, str(item["source_revision"])).snapshot,
-                new_snapshot,
-                wiki.get_source_card(str(item["source_revision"])) or {},
-            )
-        }
-        if not old_revisions:
-            cursor = connection.execute(
-                "UPDATE metadata_backfill_wiki_intents SET state='no_change',after_version=?,updated_at=? WHERE id=? AND state='pending'",
-                (int(page["version"]), now, intent_id),
-            )
-            if cursor.rowcount != 1:
-                raise RuntimeError("metadata_backfill_intent_state_changed")
-            connection.execute(
-                "UPDATE assistant_jobs SET status='succeeded',lease_owner=NULL,lease_until=NULL,updated_at=? WHERE id=?",
-                (now, str(job["id"])),
-            )
-            connection.execute("DELETE FROM metadata_backfill_job_holds WHERE job_id=?", (str(job["id"]),))
-            return {"no_change": True, "page_id": page["id"], "version": int(page["version"])}
 
-        blocks = []
-        for block in before["blocks"]:
-            item = dict(block)
-            item["source_refs"] = list(dict.fromkeys(
-                revision if ref in old_revisions else ref
-                for ref in item.get("source_refs", [])
-            ))
-            blocks.append(item)
-        for old_revision in old_revisions:
-            connection.execute(
-                """INSERT OR IGNORE INTO assistant_wiki_dependencies(
-                     page_id,block_id,source_revision,video_id,dependency_kind,created_at)
-                   SELECT page_id,block_id,?,video_id,dependency_kind,?
-                   FROM assistant_wiki_dependencies
-                   WHERE page_id=? AND video_id=? AND source_revision=?""",
-                (revision, now, page["id"], video_id, old_revision),
-            )
-            connection.execute(
-                "DELETE FROM assistant_wiki_dependencies WHERE page_id=? AND video_id=? AND source_revision=?",
-                (page["id"], video_id, old_revision),
-            )
-        version = int(before["version"]) + 1
-        connection.execute(
-            "UPDATE assistant_wiki_pages SET blocks_json=?,version=?,scope_version=?,updated_at=? WHERE id=?",
-            (json.dumps(blocks, ensure_ascii=False), version, int(space["scope_version"]), now, page["id"]),
-        )
-        connection.execute(
-            "UPDATE assistant_wiki_materials SET source_revision=?,updated_at=? WHERE page_id=? AND video_id=?",
-            (revision, now, page["id"], video_id),
-        )
-        after = wiki._decode_page(dict(connection.execute(
-            "SELECT * FROM assistant_wiki_pages WHERE id=?", (page["id"],)
-        ).fetchone()))
-        connection.execute(
-            """INSERT INTO assistant_wiki_changes(
-                 page_id,version,operation,before_json,after_json,summary,actor,created_at)
-               VALUES(?,?,'source_rebound',?,?,?,'assistant',?)""",
-            (page["id"], version, json.dumps(before, ensure_ascii=False),
-             json.dumps(after, ensure_ascii=False), "等价材料的来源版本已更新", now),
-        )
-        wiki._fts_replace(connection, after)
-        wiki._save_operation_state(connection, str(page["id"]), version, before_state)
-        cursor = connection.execute(
-            "UPDATE metadata_backfill_wiki_intents SET state='rebound',after_version=?,updated_at=? WHERE id=? AND state='pending'",
-            (version, now, intent_id),
-        )
-        if cursor.rowcount != 1:
-            raise RuntimeError("metadata_backfill_intent_state_changed")
-        connection.execute(
-            "UPDATE assistant_jobs SET status='succeeded',lease_owner=NULL,lease_until=NULL,updated_at=? WHERE id=?",
-            (now, str(job["id"])),
-        )
-        connection.execute("DELETE FROM metadata_backfill_job_holds WHERE job_id=?", (str(job["id"]),))
-    return {"page_id": page["id"], "version": version, "no_model_call": True,
-            "reason": "equivalent_source_rebound"}
-
-
-def _wiki_intent_results(database: Path, run_id: str, video_id: int,
-                         old_revision: str, new_revision: str) -> tuple[list[dict[str, Any]], list[str]]:
-    connection = _connect(database)
-    try:
-        rows = connection.execute(
-            """SELECT id,page_id,after_version,state FROM metadata_backfill_wiki_intents
-               WHERE run_id=? AND video_id=? AND old_revision=? AND new_revision=? ORDER BY id""",
-            (run_id, video_id, old_revision, new_revision),
-        ).fetchall()
-        rebound = [{"page_id": str(row["page_id"]), "version": int(row["after_version"]),
-                    "intent_id": int(row["id"]), "old_revision": old_revision,
-                    "new_revision": new_revision}
-                   for row in rows if row["state"] == "rebound" and row["after_version"] is not None]
-        deferred = [str(row["page_id"]) for row in rows if row["state"] == "pending"]
-        return rebound, deferred
-    finally:
-        connection.close()
-
-
-def _persist_operation_maintenance(
-    connection: sqlite3.Connection, run_id: str, video_id: int,
-    maintenance: dict[str, Any],
-) -> None:
-    connection.execute(
-        "UPDATE metadata_backfill_operations SET new_head_revision=?,maintenance_json=? WHERE run_id=? AND video_id=?",
-        (maintenance["new_head_revision"], _canonical(maintenance), run_id, video_id),
-    )
-    connection.commit()
-
-
-def _wiki_versions_match_for_rollback(
-    connection: sqlite3.Connection, run_id: str, video_id: int,
-    maintenance: dict[str, Any],
-) -> bool:
-    for item in maintenance.get("wiki_rebound_pages", []):
-        intent_id = int(item.get("intent_id") or 0)
-        if not intent_id:
-            return False
-        row = connection.execute(
-            "SELECT state FROM metadata_backfill_wiki_intents WHERE id=? AND run_id=? AND video_id=?",
-            (intent_id, run_id, video_id),
-        ).fetchone()
-        if row is None or row["state"] != "rebound":
-            return False
-        later = int(connection.execute(
-            """SELECT count(*) n FROM metadata_backfill_wiki_intents
-               WHERE run_id=? AND page_id=? AND id>? AND state='rebound'""",
-            (run_id, item["page_id"], intent_id),
-        ).fetchone()["n"])
-        expected_version = int(item["version"]) + later
-        page = connection.execute("SELECT version FROM assistant_wiki_pages WHERE id=?", (item["page_id"],)).fetchone()
-        if page is None or int(page["version"]) != expected_version:
-            return False
-    return True
-
-
-def _apply_one(connection: sqlite3.Connection, run_id: str, operation: sqlite3.Row) -> str:
-    candidate = json.loads(operation["candidate_json"])
-    validate_candidate(candidate)
-    row = _target_row(connection, candidate)
-    if row is None:
-        connection.execute("UPDATE metadata_backfill_operations SET state='skipped',detail='identity_or_scope_mismatch' WHERE run_id=? AND video_id=?", (run_id, operation["video_id"]))
-        return "identity_or_scope_mismatch"
-    if row["published_at"] is not None:
-        state = "already_known_same" if int(row["published_at"]) == candidate["published_at"] else "known_conflict"
-        connection.execute("UPDATE metadata_backfill_operations SET state='skipped',detail=? WHERE run_id=? AND video_id=?", (state, run_id, operation["video_id"]))
-        return state
-    now = _utc_now()
-    before_generation_row = connection.execute("SELECT dirty_generation FROM assistant_source_dirty WHERE video_id=?", (operation["video_id"],)).fetchone()
-    before_generation = int(before_generation_row["dirty_generation"]) if before_generation_row else None
-    cursor = connection.execute(
-        """UPDATE videos AS v SET published_at=?,metadata_observed_at=?,updated_at=?
-           WHERE v.id=? AND v.platform='bilibili' AND v.source_id=? AND v.part=?
-             AND v.published_at IS NULL AND v.removed_at IS NULL
-             AND v.is_ignored=0 AND v.archived_at IS NULL
-             AND EXISTS (SELECT 1 FROM video_source_memberships m
-               JOIN favorite_sources s ON s.id=m.source_id
-               WHERE m.video_id=v.id AND m.removed_at IS NULL AND s.status='active'
-                 AND CAST(s.account_id AS TEXT)=?)""",
-        (candidate["published_at"], candidate["metadata_observed_at"], now,
-         operation["video_id"], candidate["bvid"], candidate["part"], ACCOUNT_ID),
-    )
-    if cursor.rowcount != 1:
-        connection.execute("UPDATE metadata_backfill_operations SET state='skipped',detail='cas_or_scope_changed' WHERE run_id=? AND video_id=?", (run_id, operation["video_id"]))
-        return "cas_or_scope_changed"
-    from shiliu.db import Database
-    Database._notify_assistant_source_change(Database, connection, int(operation["video_id"]), reason=f"metadata_backfill:{run_id}")
-    after_generation_row = connection.execute("SELECT dirty_generation FROM assistant_source_dirty WHERE video_id=?", (operation["video_id"],)).fetchone()
-    after_generation = int(after_generation_row["dirty_generation"]) if after_generation_row else None
-    held = _hold_new_jobs(connection, run_id, int(operation["video_id"]), after_generation)
-    updated = connection.execute("SELECT published_at,metadata_observed_at,updated_at FROM videos WHERE id=?", (operation["video_id"],)).fetchone()
-    head_after = connection.execute("SELECT current_revision FROM assistant_source_heads WHERE video_id=?", (operation["video_id"],)).fetchone()
-    connection.execute(
-        """UPDATE metadata_backfill_operations SET state='applied',old_published_at=NULL,
-             new_published_at=?,old_metadata_observed_at=?,new_metadata_observed_at=?,
-             old_updated_at=?,new_updated_at=?,dirty_generation_before=?,dirty_generation_after=?,
-             old_head_revision=?,new_head_revision=?,held_job_ids_json=?,detail='applied',written_at=?
-           WHERE run_id=? AND video_id=?""",
-        (updated["published_at"], row["metadata_observed_at"], updated["metadata_observed_at"],
-         row["updated_at"], updated["updated_at"], before_generation, after_generation,
-         row["head_revision"], str(head_after["current_revision"]) if head_after else None,
-         _canonical(held), now, run_id, operation["video_id"]),
-    )
-    return "applied"
-
-
-def _maintain_existing_source(
-    database: Path, run_id: str, video_id: int, old_revision: str,
-    *, assistant_objects_root: Path, videos_dir: Path, job_tag: str | None = None,
-) -> dict[str, Any]:
-    from shiliu.artifacts import ArtifactStore
-    from shiliu.assistant.snapshots import SourceSnapshotStore
-    from shiliu.assistant.sources import CollectionSourceService
-    from shiliu.assistant.store import AssistantRunStore
-    from shiliu.assistant.wiki import WikiService
-    from shiliu.db import Database
-
-    db = Database(database)
-    artifacts = ArtifactStore(videos_dir)
-    snapshots = SourceSnapshotStore(db, artifacts, assistant_objects_root)
-    sources = CollectionSourceService(db=db, artifacts=artifacts, snapshots=snapshots)
-    store = AssistantRunStore(db)
-    wiki = WikiService(db=db, store=store, sources=sources)
-    old_captured = sources._capture_or_load(video_id, old_revision)
-    captured = snapshots.capture(video_id)
-    result: dict[str, Any] = {
-        "old_head_revision": old_revision,
-        "new_head_revision": captured.revision,
-        "snapshot_ref": captured.snapshot_ref,
-        "card": "missing",
-        "wiki_rebound_pages": [],
-        "wiki_deferred_pages": [],
-    }
-    old_card = wiki.get_source_card(old_revision)
-    if old_card is not None and wiki._card_body_equivalent(old_captured.snapshot, captured.snapshot, old_card):
-        card = dict(old_card)
-        card["published_at"] = captured.snapshot["metadata"].get("published_at")
-        card["metadata_observed_at"] = captured.snapshot["metadata"].get("metadata_observed_at")
-        card["memberships"] = captured.snapshot["memberships"]
-        wiki._commit_source_card(captured, input_hash=wiki._card_input_hash(captured.snapshot), card=card)
-        result["card"] = "reused_time_only"
-    elif old_card is not None:
-        result["card"] = "deferred_for_rejudgment"
-
-    if result["card"] != "reused_time_only":
-        with db.connect() as connection:
-            result["wiki_deferred_pages"] = [
-                str(row["id"]) for row in connection.execute(
-                    """SELECT DISTINCT p.id FROM assistant_wiki_dependencies d
-                       JOIN assistant_wiki_pages p ON p.id=d.page_id
-                       WHERE d.video_id=? AND d.source_revision=? AND p.status='active'""",
-                    (video_id, old_revision),
-                ).fetchall()
-            ]
-
-    if result["card"] == "reused_time_only":
-        with db.connect() as connection:
-            pages = connection.execute(
-                """SELECT DISTINCT p.* FROM assistant_wiki_dependencies d
-                   JOIN assistant_wiki_pages p ON p.id=d.page_id
-                   WHERE d.video_id=? AND d.source_revision=? AND p.status='active'""",
-                (video_id, old_revision),
-            ).fetchall()
-        for raw_page in pages:
-            page_row = dict(raw_page)
-            page = wiki._decode_page(page_row)
-            searchable = " ".join(
-                [str(page.get("summary") or "")]
-                + [str(block.get(k) or "") for block in page.get("blocks", [])
-                   for k in ("heading", "markdown", "applicability", "speaker")]
-            )
-            if re.search(r"\b(?:19|20)\d{2}\b", searchable):
-                result["wiki_deferred_pages"].append(str(page["id"]))
-                continue
-            space = store.get_space(int(page["space_id"]))
-            intent_id, job, intent_state = _prepare_wiki_rebind(
-                database, run_id, video_id, page, space,
-                old_revision=old_revision, new_revision=captured.revision,
-                job_tag=job_tag,
-            )
-            if intent_state == "rebound":
-                continue
-            if intent_state == "no_change":
-                continue
-            try:
-                if job is None:
-                    raise RuntimeError("wiki_rebind_intent_missing_job")
-                outcome = _rebind_with_backfill_intent(
-                    wiki,
-                    page, space=space, video_id=video_id,
-                    revision=captured.revision, job=job, intent_id=intent_id,
+    def dry_run(self, candidates: Iterable[dict]):
+        result = []
+        with self.db.connect(read_only=True) as c:
+            for candidate in candidates:
+                try:
+                    validate_candidate(candidate)
+                    row = self._target(c, candidate)
+                    state = (
+                        "identity_or_scope_mismatch"
+                        if row is None
+                        else "ready"
+                        if row["published_at"] is None
+                        else "already_known_same"
+                        if row["published_at"] == candidate["published_at"]
+                        else "known_conflict"
+                    )
+                except (KeyError, TypeError, ValueError) as exc:
+                    state = str(exc)
+                result.append(
+                    {
+                        "video_id": candidate.get("video_id"),
+                        "bvid": candidate.get("bvid"),
+                        "state": state,
+                    }
                 )
-            except Exception:
-                with db.connect() as connection:
-                    intent = connection.execute("SELECT state FROM metadata_backfill_wiki_intents WHERE id=?", (intent_id,)).fetchone()
-                    if intent and intent["state"] not in {"rebound", "no_change"}:
-                        connection.execute(
-                            "UPDATE assistant_jobs SET status='queued',lease_owner=NULL,lease_until=NULL,updated_at=? WHERE id=?",
-                            (_utc_now(), job["id"] if job else ""),
-                        )
-                        result["wiki_deferred_pages"].append(str(page["id"]))
-            else:
-                if outcome.get("no_model_call"):
-                    # The intent result is committed by WikiService in the same
-                    # transaction as the page/dependency change.
-                    pass
-    result["wiki_rebound_pages"], committed_deferred = _wiki_intent_results(
-        database, run_id, video_id, old_revision, captured.revision,
-    )
-    result["wiki_deferred_pages"] = sorted(set(result["wiki_deferred_pages"]).union(committed_deferred))
-    # Reconciliation is deterministic and the snapshot capture above has done
-    # that work. Retire only this video's held reconcile jobs; held wiki/model
-    # work remains durable for an explicit later review.
-    with db.connect() as connection:
-        held_reconciles = connection.execute(
-            """SELECT h.job_id FROM metadata_backfill_job_holds h
-               JOIN assistant_jobs j ON j.id=h.job_id
-               WHERE h.run_id=? AND h.video_id=? AND j.kind='source_reconcile'""",
-            (run_id, video_id),
-        ).fetchall()
-        for held in held_reconciles:
-            connection.execute(
-                "UPDATE assistant_jobs SET status='succeeded',lease_owner=NULL,lease_until=NULL,updated_at=? WHERE id=? AND status IN ('queued','retry_wait','budget_wait')",
-                (_utc_now(), held["job_id"]),
+        return {"count": len(result), "states": result}
+
+    def stage(self, run_id, candidates, *, production_backup_manifest=None):
+        self._backup(production_backup_manifest)
+        candidates = list(candidates)
+        for candidate in candidates:
+            validate_candidate(candidate)
+            if any(type(candidate.get(key)) is not int for key in ("video_id", "part")):
+                raise ValueError("invalid_video_identity")
+        if len({c["video_id"] for c in candidates}) != len(candidates):
+            raise ValueError("duplicate_video_id")
+        digest = hashlib.sha256(
+            "\n".join(sorted(_candidate_hash(c) for c in candidates)).encode()
+        ).hexdigest()
+        with self.db.connect(guard=True) as c:
+            c.execute(
+                "INSERT INTO metadata_backfill_runs(workspace_id,run_id,account_id,target_sha256,state,created_at,updated_at) VALUES(%s,%s,%s,%s,'staged',clock_timestamp(),clock_timestamp()) ON CONFLICT DO NOTHING",
+                (self.context.workspace_id, run_id, ACCOUNT_ID, digest),
             )
-            connection.execute("DELETE FROM metadata_backfill_job_holds WHERE job_id=?", (held["job_id"],))
-    return result
+            run = self._run(c, run_id, lock=True)
+            if run["target_sha256"] != digest:
+                raise ValueError("run_id_candidate_manifest_conflict")
+            for candidate in candidates:
+                c.execute(
+                    "INSERT INTO metadata_backfill_operations(workspace_id,run_id,video_id,bvid,part,candidate_json,candidate_sha256,state) VALUES(%s,%s,%s,%s,%s,%s,%s,'staged') ON CONFLICT DO NOTHING",
+                    (
+                        self.context.workspace_id,
+                        run_id,
+                        candidate["video_id"],
+                        candidate["bvid"],
+                        candidate["part"],
+                        Jsonb(candidate),
+                        _candidate_hash(candidate),
+                    ),
+                )
+                old = c.execute(
+                    "SELECT candidate_sha256 FROM metadata_backfill_operations WHERE workspace_id=%s AND run_id=%s AND video_id=%s",
+                    (self.context.workspace_id, run_id, candidate["video_id"]),
+                ).fetchone()
+                if old["candidate_sha256"] != _candidate_hash(candidate):
+                    raise ValueError("candidate_changed_for_video")
+        return {"run_id": run_id, "count": len(candidates), "target_sha256": digest}
 
+    def _operations(self, run_id, *, reverse=False):
+        with self.db.connect(read_only=True) as c:
+            self._run(c, run_id)
+            return c.execute(
+                "SELECT * FROM metadata_backfill_operations WHERE workspace_id=%s AND run_id=%s ORDER BY video_id"
+                + (" DESC" if reverse else ""),
+                (self.context.workspace_id, run_id),
+            ).fetchall()
 
-def apply(
-    database: Path, run_id: str, *, assistant_objects_root: Path | None = None,
-    videos_dir: Path | None = None, production_backup_manifest: Path | None = None,
-) -> dict[str, Any]:
-    _require_production_backup(database, production_backup_manifest)
-    connection = _connect(database)
-    try:
-        ensure_schema(connection)
-        operations = connection.execute("SELECT * FROM metadata_backfill_operations WHERE run_id=? ORDER BY video_id", (run_id,)).fetchall()
-        if not operations:
-            raise ValueError("run_not_staged")
-        counts: dict[str, int] = {}
-        for operation in operations:
+    def _hold(self, c, run_id, video_id, generation):
+        if generation is None:
+            return []
+        rows = c.execute(
+            "SELECT id FROM assistant_jobs WHERE workspace_id=%s AND principal_id=%s AND kind='source_reconcile' AND status IN ('queued','retry_wait','budget_wait') AND (payload_json->>'video_id')::bigint=%s AND (payload_json->>'dirty_generation')::bigint=%s",
+            (self.context.workspace_id, self.context.user_id, video_id, generation),
+        ).fetchall()
+        for row in rows:
+            c.execute(
+                "INSERT INTO metadata_backfill_job_holds(workspace_id,job_id,run_id,video_id,reason,created_at) VALUES(%s,%s,%s,%s,'publication_timestamp_maintenance_pending',clock_timestamp()) ON CONFLICT DO NOTHING",
+                (self.context.workspace_id, row["id"], run_id, video_id),
+            )
+        return [row["id"] for row in rows]
+
+    def _preflight(self, video_id, revision):
+        if not revision:
+            return
+        if self.sources is None:
+            raise ValueError("existing_source_head_requires_artifact_resolver")
+        captured = self.sources._capture_or_load(video_id, revision)
+        video = self.db.get_video(video_id)
+        for kind, digest in captured.snapshot.get("material_hashes", {}).items():
+            column = {
+                "raw_subtitle": "raw_subtitle_path",
+                "transcript": "transcript_path",
+                "summary": "summary_path",
+            }[kind]
+            ref = video.get(column)
+            if not ref or not ref.startswith("artifact:"):
+                raise ValueError("source_material_manifest_missing")
+            raw = (
+                self.artifacts.raw_bytes(ref)
+                if kind == "raw_subtitle"
+                else self.artifacts.read_bytes(ref)
+            )
+            if hashlib.sha256(raw).hexdigest() != digest:
+                raise ValueError("source_material_hash_mismatch")
+
+    def _operation_guard(self, c, run_id, video_id):
+        self._run(c, run_id, lock=True)
+        op = c.execute(
+            "SELECT * FROM metadata_backfill_operations WHERE workspace_id=%s AND run_id=%s AND video_id=%s FOR UPDATE",
+            (self.context.workspace_id, run_id, video_id),
+        ).fetchone()
+        if op is None:
+            raise KeyError("backfill operation missing")
+        return op
+
+    def apply(self, run_id, *, production_backup_manifest=None):
+        self._backup(production_backup_manifest)
+        counts = {}
+        for operation in self._operations(run_id):
+            video_id = operation["video_id"]
             if operation["state"] == "applied":
                 if operation["old_head_revision"]:
-                    if assistant_objects_root is None or videos_dir is None:
-                        raise ValueError("existing_source_head_requires_artifact_roots")
-                    current = _target_row(connection, json.loads(operation["candidate_json"]))
-                    if current is None or current["published_at"] != operation["new_published_at"] or current["updated_at"] != operation["new_updated_at"]:
-                        counts["resume_conflict"] = counts.get("resume_conflict", 0) + 1
-                        continue
-                    maintenance = _maintain_existing_source(
-                        database, run_id, int(operation["video_id"]), str(operation["old_head_revision"]),
-                        assistant_objects_root=assistant_objects_root, videos_dir=videos_dir,
+                    self._maintain_and_persist(
+                        run_id, video_id, operation["old_head_revision"]
                     )
-                    _persist_operation_maintenance(connection, run_id, int(operation["video_id"]), maintenance)
                 counts["already_applied"] = counts.get("already_applied", 0) + 1
                 continue
-            if operation["state"] in {"rolled_back", "rollback_pending", "rollback_conflict", "skipped"}:
+            if operation["state"] in {
+                "skipped",
+                "rolled_back",
+                "rollback_pending",
+                "rollback_conflict",
+            }:
                 counts["not_resumed"] = counts.get("not_resumed", 0) + 1
                 continue
-            if operation["old_head_revision"] and (assistant_objects_root is None or videos_dir is None):
-                raise ValueError("existing_source_head_requires_artifact_roots")
-            if operation["old_head_revision"]:
-                _preflight_source_artifacts(
-                    connection, int(operation["video_id"]), str(operation["old_head_revision"]),
-                    assistant_objects_root=assistant_objects_root, videos_dir=videos_dir,
+            candidate = json_value(operation["candidate_json"])
+            with self.db.connect(read_only=True) as c:
+                before = self._target(c, candidate)
+            self._preflight(video_id, before["head_revision"] if before else None)
+            with self.db.connect(guard=True) as c:
+                op = self._operation_guard(c, run_id, video_id)
+                if op["state"] != "staged":
+                    raise ValueError("backfill_operation_changed")
+                row = self._target(c, candidate, lock=True)
+                if (
+                    row is not None
+                    and before is not None
+                    and row["head_revision"] != before["head_revision"]
+                ):
+                    raise ValueError("backfill_source_changed")
+                state = (
+                    "identity_or_scope_mismatch"
+                    if row is None
+                    else "already_known_same"
+                    if row["published_at"] == candidate["published_at"]
+                    else "known_conflict"
+                    if row["published_at"] is not None
+                    else "applied"
                 )
-            connection.execute("BEGIN IMMEDIATE")
-            try:
-                result = _apply_one(connection, run_id, operation)
-                connection.execute("UPDATE metadata_backfill_runs SET state='applying',updated_at=? WHERE run_id=?", (_utc_now(), run_id))
-                connection.commit()
-            except Exception:
-                connection.rollback()
-                raise
-            counts[result] = counts.get(result, 0) + 1
-            applied_operation = connection.execute(
-                "SELECT * FROM metadata_backfill_operations WHERE run_id=? AND video_id=?",
-                (run_id, operation["video_id"]),
-            ).fetchone()
-            if result == "applied" and applied_operation["old_head_revision"]:
-                maintenance = _maintain_existing_source(
-                    database, run_id, int(operation["video_id"]), str(applied_operation["old_head_revision"]),
-                    assistant_objects_root=assistant_objects_root, videos_dir=videos_dir,
+                if state != "applied":
+                    c.execute(
+                        "UPDATE metadata_backfill_operations SET state='skipped',detail=%s WHERE workspace_id=%s AND run_id=%s AND video_id=%s",
+                        (state, self.context.workspace_id, run_id, video_id),
+                    )
+                else:
+                    generation = c.execute(
+                        "SELECT dirty_generation FROM assistant_source_dirty WHERE workspace_id=%s AND video_id=%s",
+                        (self.context.workspace_id, video_id),
+                    ).fetchone()
+                    self.db.update_video(
+                        video_id,
+                        conn=c,
+                        published_at=candidate["published_at"],
+                        metadata_observed_at=candidate["metadata_observed_at"],
+                    )
+                    updated = self.db._video(c, video_id)
+                    after = c.execute(
+                        "SELECT dirty_generation FROM assistant_source_dirty WHERE workspace_id=%s AND video_id=%s",
+                        (self.context.workspace_id, video_id),
+                    ).fetchone()
+                    held = self._hold(
+                        c,
+                        run_id,
+                        video_id,
+                        after["dirty_generation"] if after else None,
+                    )
+                    c.execute(
+                        """UPDATE metadata_backfill_operations SET state='applied',new_published_at=%s,old_metadata_observed_at=%s,new_metadata_observed_at=%s,old_updated_at=%s,new_updated_at=%s,dirty_generation_before=%s,dirty_generation_after=%s,old_head_revision=%s,new_head_revision=%s,held_job_ids_json=%s,detail='applied',written_at=clock_timestamp() WHERE workspace_id=%s AND run_id=%s AND video_id=%s""",
+                        (
+                            updated["published_at"],
+                            row["metadata_observed_at"],
+                            updated["metadata_observed_at"],
+                            row["updated_at"],
+                            updated["updated_at"],
+                            generation["dirty_generation"] if generation else None,
+                            after["dirty_generation"] if after else None,
+                            row["head_revision"],
+                            row["head_revision"],
+                            Jsonb(held),
+                            self.context.workspace_id,
+                            run_id,
+                            video_id,
+                        ),
+                    )
+                c.execute(
+                    "UPDATE metadata_backfill_runs SET state='applying',updated_at=clock_timestamp() WHERE workspace_id=%s AND run_id=%s",
+                    (self.context.workspace_id, run_id),
                 )
-                _persist_operation_maintenance(connection, run_id, int(operation["video_id"]), maintenance)
-        connection.execute("UPDATE metadata_backfill_runs SET state='applied',updated_at=? WHERE run_id=?", (_utc_now(), run_id))
-        connection.commit()
+                self.fault_injector("after_metadata_update")
+            counts[state] = counts.get(state, 0) + 1
+            if state == "applied" and row["head_revision"]:
+                self._maintain_and_persist(run_id, video_id, row["head_revision"])
+        with self.db.connect(guard=True) as c:
+            self._run(c, run_id, lock=True)
+            c.execute(
+                "UPDATE metadata_backfill_runs SET state='applied',updated_at=clock_timestamp() WHERE workspace_id=%s AND run_id=%s",
+                (self.context.workspace_id, run_id),
+            )
         return {"run_id": run_id, "counts": counts}
-    finally:
-        connection.close()
 
+    def _maintenance_guard(self, c, run_id, video_id):
+        op = self._operation_guard(c, run_id, video_id)
+        if op["state"] not in {"applied", "rollback_pending"}:
+            raise ValueError("backfill_operation_changed")
+        row = self._target(c, json_value(op["candidate_json"]), lock=True)
+        suffix = "old" if op["state"] == "rollback_pending" else "new"
+        if row is None or any(
+            row[key] != op[f"{suffix}_{key}"]
+            for key in ("published_at", "metadata_observed_at", "updated_at")
+        ):
+            raise ValueError("backfill_source_changed")
+        return op
 
-def rollback(
-    database: Path, run_id: str, *, assistant_objects_root: Path | None = None,
-    videos_dir: Path | None = None, production_backup_manifest: Path | None = None,
-) -> dict[str, Any]:
-    _require_production_backup(database, production_backup_manifest)
-    connection = _connect(database)
-    try:
-        ensure_schema(connection)
-        # Apply is ordered by video_id ascending; reverse that order when several
-        # videos share a page so each page's dependency chain is unwound in LIFO order.
-        operations = connection.execute("SELECT * FROM metadata_backfill_operations WHERE run_id=? AND state IN ('applied','rollback_pending') ORDER BY video_id DESC", (run_id,)).fetchall()
-        counts: dict[str, int] = {}
-        for operation in operations:
-            connection.execute("BEGIN IMMEDIATE")
+    def _intent(self, c, run_id, video_id, page, space, old_revision, new_revision):
+        values = (
+            self.context.workspace_id,
+            run_id,
+            video_id,
+            page["id"],
+            old_revision,
+            new_revision,
+        )
+        row = c.execute(
+            "SELECT * FROM metadata_backfill_wiki_intents WHERE workspace_id=%s AND run_id=%s AND video_id=%s AND page_id=%s AND old_revision=%s AND new_revision=%s",
+            values,
+        ).fetchone()
+        if row:
+            return row
+        payload = {
+            "space_id": space["id"],
+            "video_id": video_id,
+            "revision": new_revision,
+            "scope_version": space["scope_version"],
+            "metadata_backfill_run_id": run_id,
+        }
+        key = "metadata-backfill:" + _candidate_hash(list(values))
+        job_id = self.store.enqueue_job(
+            c, kind="wiki_integrate", dedupe_key=key, payload=payload
+        )
+        row = c.execute(
+            "INSERT INTO metadata_backfill_wiki_intents(workspace_id,run_id,video_id,page_id,old_revision,new_revision,before_version,job_id,state,created_at,updated_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,'pending',clock_timestamp(),clock_timestamp()) RETURNING *",
+            (*values, page["version"], job_id),
+        ).fetchone()
+        payload["metadata_backfill_intent_id"] = row["id"]
+        c.execute(
+            "UPDATE assistant_jobs SET payload_json=%s WHERE workspace_id=%s AND principal_id=%s AND id=%s",
+            (Jsonb(payload), self.context.workspace_id, self.context.user_id, job_id),
+        )
+        c.execute(
+            "INSERT INTO metadata_backfill_job_holds(workspace_id,job_id,run_id,video_id,reason,created_at) VALUES(%s,%s,%s,%s,'wiki_rebind_intent_pending',clock_timestamp())",
+            (self.context.workspace_id, job_id, run_id, video_id),
+        )
+        return row
+
+    def _claim(self, c, run_id, job_id):
+        from shiliu.storage.scheduler import recover_job
+
+        # Only this service's durable held intents can enter this path. Their
+        # work is deterministic; there is no model dispatch to replay.
+        recover_job(c, self.context, job_id, disposition="replay_safe")
+        job = claim_backfill_job(
+            c, self.context, "metadata-backfill", job_id=job_id, run_id=run_id
+        )
+        if job:
+            job["payload"] = json_value(job["payload_json"])
+        return job
+
+    def _maintain_existing_source(self, run_id, video_id, old_revision):
+        if self.sources is None:
+            raise ValueError("existing_source_head_requires_artifact_resolver")
+        old = self.sources._capture_or_load(video_id, old_revision)
+        captured = self.sources.snapshots.capture(
+            video_id,
+            publish_guard=lambda c: self._maintenance_guard(c, run_id, video_id),
+        )
+        result = {
+            "old_head_revision": old_revision,
+            "new_head_revision": captured.revision,
+            "snapshot_ref": captured.snapshot_ref,
+            "card": "missing",
+            "wiki_rebound_pages": [],
+            "wiki_deferred_pages": [],
+        }
+        card = self.wiki.get_source_card(old_revision)
+        if card is not None and self.wiki._card_body_equivalent(
+            old.snapshot, captured.snapshot, card
+        ):
+            card = dict(
+                card,
+                published_at=captured.snapshot["metadata"].get("published_at"),
+                metadata_observed_at=captured.snapshot["metadata"].get(
+                    "metadata_observed_at"
+                ),
+                memberships=captured.snapshot["memberships"],
+            )
+            with self.db.connect(guard=True) as c:
+                self._maintenance_guard(c, run_id, video_id)
+                self.wiki._commit_source_card(
+                    captured,
+                    input_hash=self.wiki._card_input_hash(captured.snapshot),
+                    card=card,
+                    conn=c,
+                )
+            result["card"] = "reused_time_only"
+        elif card is not None:
+            result["card"] = "deferred_for_rejudgment"
+        with self.db.connect(read_only=True) as c:
+            pages = c.execute(
+                "SELECT DISTINCT p.* FROM assistant_wiki_dependencies d JOIN assistant_wiki_pages p ON (p.workspace_id,p.id)=(d.workspace_id,d.page_id) WHERE d.workspace_id=%s AND d.video_id=%s AND d.source_revision=%s AND p.principal_id=%s AND p.status='active'",
+                (
+                    self.context.workspace_id,
+                    video_id,
+                    old_revision,
+                    self.context.user_id,
+                ),
+            ).fetchall()
+        for raw in pages:
+            page = self.wiki._decode_page(dict(raw))
+            space = self.store.get_space(int(page["space_id"]))
+            with self.db.connect(guard=True) as c:
+                self._maintenance_guard(c, run_id, video_id)
+                intent = self._intent(
+                    c, run_id, video_id, page, space, old_revision, captured.revision
+                )
+            if intent["state"] != "pending":
+                continue
+            searchable = " ".join(
+                [page.get("summary") or ""]
+                + [
+                    str(b.get(k) or "")
+                    for b in page["blocks"]
+                    for k in ("heading", "markdown", "applicability", "speaker")
+                ]
+            )
+            if result["card"] != "reused_time_only" or re.search(
+                r"\b(?:19|20)\d{2}\b", searchable
+            ):
+                continue
+            prepared = self.wiki._prepare_sources_for_write(space_id=int(space["id"]))
+            prepared[captured.revision] = captured.snapshot
             try:
-                candidate = json.loads(operation["candidate_json"])
-                row = _target_row(connection, candidate)
-                head = connection.execute("SELECT current_revision FROM assistant_source_heads WHERE video_id=?", (operation["video_id"],)).fetchone()
-                current_head = str(head["current_revision"]) if head else None
-                maintenance = json.loads(operation["maintenance_json"] or "{}")
-                if operation["state"] == "rollback_pending":
-                    if (row is None or row["published_at"] != operation["old_published_at"]
-                            or row["updated_at"] != operation["old_updated_at"]
-                            or current_head not in {operation["old_head_revision"], operation["new_head_revision"]}
-                            or not _wiki_versions_match_for_rollback(
-                                connection, run_id, int(operation["video_id"]), maintenance,
-                            )):
-                        connection.execute("UPDATE metadata_backfill_operations SET state='rollback_conflict',detail='rollback_resume_state_changed' WHERE run_id=? AND video_id=?", (run_id, operation["video_id"]))
-                        connection.commit()
-                        counts["rollback_conflict"] = counts.get("rollback_conflict", 0) + 1
+                with self.db.connect(guard=True) as c:
+                    self._maintenance_guard(c, run_id, video_id)
+                    job = self._claim(c, run_id, intent["job_id"])
+                    if job is None:
                         continue
-                    if operation["old_head_revision"]:
-                        if assistant_objects_root is None or videos_dir is None:
-                            raise ValueError("existing_source_head_requires_artifact_roots")
-                        # Source snapshot and Wiki recovery use their own connections.
-                        # Release this validation transaction before they write.
-                        connection.commit()
-                        restored = _maintain_existing_source(
-                            database, run_id, int(operation["video_id"]), str(operation["new_head_revision"]),
-                            assistant_objects_root=assistant_objects_root, videos_dir=videos_dir,
-                            job_tag=run_id + "-rollback-resume",
-                        )
-                        connection.execute("BEGIN IMMEDIATE")
-                        row_after = _target_row(connection, candidate)
-                        head_after = connection.execute(
-                            "SELECT current_revision FROM assistant_source_heads WHERE video_id=?",
-                            (operation["video_id"],),
-                        ).fetchone()
-                        current_head_after = str(head_after["current_revision"]) if head_after else None
-                        if (row_after is None or row_after["published_at"] != operation["old_published_at"]
-                                or row_after["updated_at"] != operation["old_updated_at"]
-                                or current_head_after != operation["old_head_revision"]
-                                or not _wiki_versions_match_for_rollback(
-                                    connection, run_id, int(operation["video_id"]), maintenance,
-                                )):
-                            connection.execute(
-                                "UPDATE metadata_backfill_operations SET state='rollback_conflict',detail='rollback_resume_state_changed' WHERE run_id=? AND video_id=?",
-                                (run_id, operation["video_id"]),
-                            )
-                            connection.commit()
-                            counts["rollback_conflict"] = counts.get("rollback_conflict", 0) + 1
-                            continue
-                    else:
-                        restored = {}
-                    with connection:
-                        connection.execute(
-                            "UPDATE metadata_backfill_operations SET state='rolled_back',detail='rolled_back',maintenance_json=?,written_at=? WHERE run_id=? AND video_id=?",
-                            (_canonical({"apply": maintenance, "rollback": restored}), _utc_now(), run_id, operation["video_id"]),
-                        )
-                    counts["rolled_back"] = counts.get("rolled_back", 0) + 1
-                    continue
-                if (row is None or row["published_at"] != operation["new_published_at"]
-                        or row["updated_at"] != operation["new_updated_at"]
-                        or current_head != operation["new_head_revision"]
-                        or not _wiki_versions_match_for_rollback(
-                            connection, run_id, int(operation["video_id"]), maintenance,
-                        )):
-                    connection.execute("UPDATE metadata_backfill_operations SET state='rollback_conflict',detail='current_state_changed' WHERE run_id=? AND video_id=?", (run_id, operation["video_id"]))
-                    connection.commit()
+                    self.fault_injector("before_wiki_rebind")
+                    outcome = self.wiki._rebind_equivalent_source(
+                        page,
+                        space=space,
+                        video_id=video_id,
+                        revision=captured.revision,
+                        job=job,
+                        conn=c,
+                        prepared_sources=prepared,
+                    )
+                    state = "no_change" if outcome.get("no_change") else "rebound"
+                    c.execute(
+                        "UPDATE metadata_backfill_wiki_intents SET state=%s,after_version=%s,updated_at=clock_timestamp() WHERE workspace_id=%s AND id=%s AND state='pending'",
+                        (
+                            state,
+                            outcome["version"],
+                            self.context.workspace_id,
+                            intent["id"],
+                        ),
+                    )
+                    c.execute(
+                        "DELETE FROM metadata_backfill_job_holds WHERE workspace_id=%s AND job_id=%s",
+                        (self.context.workspace_id, job["id"]),
+                    )
+            except StorageError:
+                raise
+            except (CoordinationConflict, RuntimeError):
+                # Claim, page and intent are one transaction: failed writes keep
+                # the original held queued Job, with no fabricated epoch.
+                pass
+        with self.db.connect(guard=True) as c:
+            self._maintenance_guard(c, run_id, video_id)
+            rows = c.execute(
+                "SELECT * FROM metadata_backfill_wiki_intents WHERE workspace_id=%s AND run_id=%s AND video_id=%s AND old_revision=%s AND new_revision=%s ORDER BY id",
+                (
+                    self.context.workspace_id,
+                    run_id,
+                    video_id,
+                    old_revision,
+                    captured.revision,
+                ),
+            ).fetchall()
+            result["wiki_rebound_pages"] = [
+                {
+                    "page_id": r["page_id"],
+                    "version": r["after_version"],
+                    "intent_id": r["id"],
+                    "old_revision": old_revision,
+                    "new_revision": captured.revision,
+                }
+                for r in rows
+                if r["state"] == "rebound"
+            ]
+            result["wiki_deferred_pages"] = [
+                r["page_id"] for r in rows if r["state"] == "pending"
+            ]
+            jobs = c.execute(
+                "SELECT h.job_id FROM metadata_backfill_job_holds h JOIN assistant_jobs j ON (j.workspace_id,j.id)=(h.workspace_id,h.job_id) WHERE h.workspace_id=%s AND h.run_id=%s AND h.video_id=%s AND j.principal_id=%s AND j.kind='source_reconcile' ORDER BY h.job_id",
+                (self.context.workspace_id, run_id, video_id, self.context.user_id),
+            ).fetchall()
+            for row in jobs:
+                job = self._claim(c, run_id, row["job_id"])
+                if job:
+                    job_transition(
+                        c,
+                        self.context,
+                        job["id"],
+                        job["lease_owner"],
+                        job["lease_epoch"],
+                        action="complete",
+                    )
+                    c.execute(
+                        "DELETE FROM metadata_backfill_job_holds WHERE workspace_id=%s AND job_id=%s",
+                        (self.context.workspace_id, job["id"]),
+                    )
+        return result
+
+    def _maintain_and_persist(self, run_id, video_id, old_revision):
+        result = self._maintain_existing_source(run_id, video_id, old_revision)
+        self.fault_injector("after_wiki_commit_before_operation_summary")
+        with self.db.connect(guard=True) as c:
+            op = self._maintenance_guard(c, run_id, video_id)
+            maintenance = (
+                result
+                if op["state"] == "applied"
+                else {"apply": json_value(op["maintenance_json"]), "rollback": result}
+            )
+            c.execute(
+                "UPDATE metadata_backfill_operations SET new_head_revision=%s,maintenance_json=%s,written_at=clock_timestamp() WHERE workspace_id=%s AND run_id=%s AND video_id=%s",
+                (
+                    result["new_head_revision"],
+                    Jsonb(maintenance),
+                    self.context.workspace_id,
+                    run_id,
+                    video_id,
+                ),
+            )
+        return result
+
+    def _wiki_versions_match(self, c, run_id, video_id, maintenance):
+        for item in maintenance.get("wiki_rebound_pages", []):
+            intent = c.execute(
+                "SELECT state FROM metadata_backfill_wiki_intents WHERE workspace_id=%s AND run_id=%s AND video_id=%s AND id=%s",
+                (self.context.workspace_id, run_id, video_id, item["intent_id"]),
+            ).fetchone()
+            later = c.execute(
+                "SELECT count(*) AS n FROM metadata_backfill_wiki_intents WHERE workspace_id=%s AND run_id=%s AND page_id=%s AND id>%s AND state='rebound'",
+                (self.context.workspace_id, run_id, item["page_id"], item["intent_id"]),
+            ).fetchone()["n"]
+            page = c.execute(
+                "SELECT version FROM assistant_wiki_pages WHERE workspace_id=%s AND principal_id=%s AND id=%s FOR UPDATE",
+                (self.context.workspace_id, self.context.user_id, item["page_id"]),
+            ).fetchone()
+            if (
+                not intent
+                or intent["state"] != "rebound"
+                or not page
+                or page["version"] != item["version"] + later
+            ):
+                return False
+        return True
+
+    def _retire_rollback_intents(self, c, run_id, video_id):
+        # Rollback supersedes queued forward-only maintenance. Complete it via
+        # the real lease/lane, never by overwriting a live owner's Job state.
+        rows = c.execute(
+            "SELECT i.id,i.job_id,p.version FROM metadata_backfill_wiki_intents i JOIN assistant_wiki_pages p ON (p.workspace_id,p.id)=(i.workspace_id,i.page_id) WHERE i.workspace_id=%s AND i.run_id=%s AND i.video_id=%s AND i.state='pending' AND p.principal_id=%s ORDER BY i.id",
+            (self.context.workspace_id, run_id, video_id, self.context.user_id),
+        ).fetchall()
+        pending = False
+        for row in rows:
+            job = self._claim(c, run_id, row["job_id"])
+            if job is None:
+                pending = True
+                continue
+            job_transition(
+                c,
+                self.context,
+                job["id"],
+                job["lease_owner"],
+                job["lease_epoch"],
+                action="complete",
+            )
+            c.execute(
+                "UPDATE metadata_backfill_wiki_intents SET state='no_change',after_version=%s,updated_at=clock_timestamp() WHERE workspace_id=%s AND id=%s",
+                (row["version"], self.context.workspace_id, row["id"]),
+            )
+            c.execute(
+                "DELETE FROM metadata_backfill_job_holds WHERE workspace_id=%s AND job_id=%s",
+                (self.context.workspace_id, job["id"]),
+            )
+        # A no-head operation cannot capture a source snapshot. Its obsolete
+        # reconcile intents are retired through the same local Job lease.
+        jobs = c.execute(
+            "SELECT h.job_id FROM metadata_backfill_job_holds h JOIN assistant_jobs j ON (j.workspace_id,j.id)=(h.workspace_id,h.job_id) WHERE h.workspace_id=%s AND h.run_id=%s AND h.video_id=%s AND j.principal_id=%s AND j.kind='source_reconcile' ORDER BY h.job_id",
+            (self.context.workspace_id, run_id, video_id, self.context.user_id),
+        ).fetchall()
+        for row in jobs:
+            job = self._claim(c, run_id, row["job_id"])
+            if job is None:
+                pending = True
+                continue
+            job_transition(
+                c,
+                self.context,
+                job["id"],
+                job["lease_owner"],
+                job["lease_epoch"],
+                action="complete",
+            )
+            c.execute(
+                "DELETE FROM metadata_backfill_job_holds WHERE workspace_id=%s AND job_id=%s",
+                (self.context.workspace_id, job["id"]),
+            )
+        return not pending
+
+    def rollback(self, run_id, *, production_backup_manifest=None):
+        self._backup(production_backup_manifest)
+        counts = {}
+        for original in self._operations(run_id, reverse=True):
+            video_id = original["video_id"]
+            if original["state"] not in {"applied", "rollback_pending"}:
+                continue
+            if original["state"] == "applied" and original["old_head_revision"]:
+                # Recover a committed page/intent whose operation summary was
+                # lost before evaluating the rollback fence.
+                if not json_value(original["maintenance_json"]):
+                    self._maintain_and_persist(
+                        run_id, video_id, original["old_head_revision"]
+                    )
+            with self.db.connect(guard=True) as c:
+                op = self._operation_guard(c, run_id, video_id)
+                row = self._target(c, json_value(op["candidate_json"]), lock=True)
+                maintenance = json_value(op["maintenance_json"])
+                suffix = "old" if op["state"] == "rollback_pending" else "new"
+                valid = row is not None and all(
+                    row[k] == op[f"{suffix}_{k}"]
+                    for k in ("published_at", "metadata_observed_at", "updated_at")
+                )
+                valid = valid and row["head_revision"] in (
+                    {op["old_head_revision"], op["new_head_revision"]}
+                    if suffix == "old"
+                    else {op["new_head_revision"]}
+                )
+                valid = valid and self._wiki_versions_match(
+                    c, run_id, video_id, maintenance
+                )
+                if not valid:
+                    c.execute(
+                        "UPDATE metadata_backfill_operations SET state='rollback_conflict',detail='current_state_changed' WHERE workspace_id=%s AND run_id=%s AND video_id=%s",
+                        (self.context.workspace_id, run_id, video_id),
+                    )
                     counts["rollback_conflict"] = counts.get("rollback_conflict", 0) + 1
                     continue
-                if operation["old_head_revision"] and (assistant_objects_root is None or videos_dir is None):
-                    raise ValueError("existing_source_head_requires_artifact_roots")
-                cursor = connection.execute(
-                    """UPDATE videos SET published_at=NULL,metadata_observed_at=?,updated_at=?
-                       WHERE id=? AND platform='bilibili' AND source_id=? AND part=?
-                         AND published_at=? AND updated_at=? AND removed_at IS NULL
-                         AND is_ignored=0 AND archived_at IS NULL
-                         AND EXISTS (SELECT 1 FROM video_source_memberships m
-                           JOIN favorite_sources s ON s.id=m.source_id
-                           WHERE m.video_id=videos.id AND m.removed_at IS NULL
-                             AND s.status='active' AND CAST(s.account_id AS TEXT)=?)""",
-                    (operation["old_metadata_observed_at"], operation["old_updated_at"], operation["video_id"], candidate["bvid"], candidate["part"], operation["new_published_at"], operation["new_updated_at"], ACCOUNT_ID),
-                )
-                if cursor.rowcount != 1:
-                    raise RuntimeError("rollback_cas_failed")
-                from shiliu.db import Database
-                Database._notify_assistant_source_change(Database, connection, int(operation["video_id"]), reason=f"metadata_backfill_rollback:{run_id}")
-                gen_row = connection.execute("SELECT dirty_generation FROM assistant_source_dirty WHERE video_id=?", (operation["video_id"],)).fetchone()
-                rollback_held = _hold_new_jobs(
-                    connection, run_id, int(operation["video_id"]),
-                    int(gen_row["dirty_generation"]) if gen_row else None,
-                )
-                held_ids = list(json.loads(operation["held_job_ids_json"] or "[]"))
-                held_ids.extend(item for item in rollback_held if item not in held_ids)
-                connection.execute(
-                    "UPDATE metadata_backfill_operations SET held_job_ids_json=? WHERE run_id=? AND video_id=?",
-                    (_canonical(held_ids), run_id, operation["video_id"]),
-                )
-                connection.execute("UPDATE metadata_backfill_operations SET state='rollback_pending',detail='rollback_pending' WHERE run_id=? AND video_id=?", (run_id, operation["video_id"]))
-                connection.commit()
-                if operation["old_head_revision"]:
-                    restored = _maintain_existing_source(
-                        database, run_id, int(operation["video_id"]), str(operation["new_head_revision"]),
-                        assistant_objects_root=assistant_objects_root, videos_dir=videos_dir,
-                        job_tag=run_id + "-rollback",
+                if op["state"] == "applied":
+                    c.execute(
+                        "UPDATE videos SET published_at=%s,metadata_observed_at=%s,updated_at=%s WHERE workspace_id=%s AND id=%s",
+                        (
+                            op["old_published_at"],
+                            op["old_metadata_observed_at"],
+                            op["old_updated_at"],
+                            self.context.workspace_id,
+                            video_id,
+                        ),
                     )
-                    with connection:
-                        full_maintenance = {"apply": maintenance, "rollback": restored}
-                        connection.execute(
-                            "UPDATE metadata_backfill_operations SET state='rolled_back',detail='rolled_back',maintenance_json=?,written_at=? WHERE run_id=? AND video_id=?",
-                            (_canonical(full_maintenance), _utc_now(), run_id, operation["video_id"]),
-                        )
-                else:
-                    with connection:
-                        connection.execute("UPDATE metadata_backfill_operations SET state='rolled_back',detail='rolled_back',written_at=? WHERE run_id=? AND video_id=?", (_utc_now(), run_id, operation["video_id"]))
-                counts["rolled_back"] = counts.get("rolled_back", 0) + 1
-            except Exception:
-                connection.rollback()
-                raise
-        connection.execute("UPDATE metadata_backfill_runs SET state='rolled_back',updated_at=? WHERE run_id=?", (_utc_now(), run_id))
-        connection.commit()
+                    self.db._touch(
+                        c, video_id, reason="metadata_backfill_rollback:" + run_id
+                    )
+                    gen = c.execute(
+                        "SELECT dirty_generation FROM assistant_source_dirty WHERE workspace_id=%s AND video_id=%s",
+                        (self.context.workspace_id, video_id),
+                    ).fetchone()
+                    self._hold(
+                        c, run_id, video_id, gen["dirty_generation"] if gen else None
+                    )
+                    c.execute(
+                        "UPDATE metadata_backfill_operations SET state='rollback_pending',detail='rollback_pending' WHERE workspace_id=%s AND run_id=%s AND video_id=%s",
+                        (self.context.workspace_id, run_id, video_id),
+                    )
+            if op["old_head_revision"]:
+                self._maintain_and_persist(run_id, video_id, op["new_head_revision"])
+            with self.db.connect(guard=True) as c:
+                self._maintenance_guard(c, run_id, video_id)
+                if not self._retire_rollback_intents(c, run_id, video_id):
+                    counts["rollback_pending"] = counts.get("rollback_pending", 0) + 1
+                    continue
+                c.execute(
+                    "UPDATE metadata_backfill_operations SET state='rolled_back',detail='rolled_back',written_at=clock_timestamp() WHERE workspace_id=%s AND run_id=%s AND video_id=%s",
+                    (self.context.workspace_id, run_id, video_id),
+                )
+            counts["rolled_back"] = counts.get("rolled_back", 0) + 1
+        with self.db.connect(guard=True) as c:
+            self._run(c, run_id, lock=True)
+            c.execute(
+                "UPDATE metadata_backfill_runs SET state='rolled_back',updated_at=clock_timestamp() WHERE workspace_id=%s AND run_id=%s",
+                (self.context.workspace_id, run_id),
+            )
         return {"run_id": run_id, "counts": counts}
-    finally:
-        connection.close()
 
 
-def _load_candidates(path: Path) -> list[dict[str, Any]]:
-    value = json.loads(path.read_text(encoding="utf-8"))
+def dry_run(db, candidates):
+    return MetadataBackfillService(db).dry_run(candidates)
+
+
+def stage(db, run_id, candidates, **kwargs):
+    return MetadataBackfillService(db).stage(run_id, candidates, **kwargs)
+
+
+def apply(db, run_id, *, artifacts=None, **kwargs):
+    return MetadataBackfillService(db, artifacts).apply(run_id, **kwargs)
+
+
+def rollback(db, run_id, *, artifacts=None, **kwargs):
+    return MetadataBackfillService(db, artifacts).rollback(run_id, **kwargs)
+
+
+def _load_candidates(path):
+    value = json.loads(Path(path).read_text())
+    if isinstance(value, dict):
+        value = value["candidates"]
     if not isinstance(value, list):
-        raise ValueError("candidate_file_must_be_array")
+        raise ValueError("candidate_manifest_not_list")
     return value
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("dry-run", "stage", "apply", "resume", "rollback"):
-        command = commands.add_parser(name)
-        command.add_argument("--database", type=Path, required=True)
-        if name in {"dry-run", "stage"}:
-            command.add_argument("--candidates", type=Path, required=True)
-        if name != "dry-run":
-            command.add_argument("--run-id", required=True)
-            command.add_argument("--production-backup-manifest", type=Path)
-        if name in {"apply", "resume", "rollback"}:
-            command.add_argument("--assistant-objects-root", type=Path)
-            command.add_argument("--videos-dir", type=Path)
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Explicit PostgreSQL publication timestamp backfill"
+    )
+    parser.add_argument("action", choices=["dry-run", "stage", "apply", "rollback"])
+    parser.add_argument("--run-id")
+    parser.add_argument("--candidates", type=Path)
+    parser.add_argument("--production-backup-manifest", type=Path)
     args = parser.parse_args(argv)
-    try:
-        if args.command == "dry-run":
-            result = dry_run(args.database, _load_candidates(args.candidates))
-        elif args.command == "stage":
-            result = stage(args.database, args.run_id, _load_candidates(args.candidates),
-                           production_backup_manifest=args.production_backup_manifest)
-        elif args.command in {"apply", "resume"}:
-            result = apply(args.database, args.run_id,
-                           assistant_objects_root=args.assistant_objects_root,
-                           videos_dir=args.videos_dir,
-                           production_backup_manifest=args.production_backup_manifest)
-        else:
-            result = rollback(args.database, args.run_id,
-                              assistant_objects_root=args.assistant_objects_root,
-                              videos_dir=args.videos_dir,
-                              production_backup_manifest=args.production_backup_manifest)
-        print(_canonical(result))
-        return 0
-    except Exception as exc:
-        print(_canonical({"error": type(exc).__name__, "message": str(exc)}), file=sys.stderr)
-        return 2
+    if args.action in {"stage", "apply", "rollback"} and not args.run_id:
+        parser.error("--run-id required")
+    if args.action in {"dry-run", "stage"} and not args.candidates:
+        parser.error("--candidates required")
+    from shiliu.app import Application
+
+    with Application() as app:
+        service = MetadataBackfillService(app.db, app.artifacts)
+        options = {"production_backup_manifest": args.production_backup_manifest}
+        result = (
+            service.dry_run(_load_candidates(args.candidates))
+            if args.action == "dry-run"
+            else service.stage(
+                args.run_id, _load_candidates(args.candidates), **options
+            )
+            if args.action == "stage"
+            else getattr(service, args.action)(args.run_id, **options)
+        )
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    return 0
 
 
 if __name__ == "__main__":

@@ -364,11 +364,11 @@ def test_full_focus_suffix_and_memory_invalidation_are_not_json_slices(c2):
     c2.composer.persist(changed)
     pending = c2.composer.prepare(run['id'], provider=c2.provider)
     with c2.db.connect() as connection:
-        connection.execute("UPDATE assistant_memories SET expires_at='2000-01-01T00:00:00+00:00' WHERE id=?", (memory['id'],))
+        connection.execute("UPDATE assistant_memories SET expires_at='2000-01-01T00:00:00+00:00' WHERE id=%s", (memory['id'],))
     with pytest.raises(AssistantConflict, match='working_context_changed'):
         c2.composer.persist(pending)
     with c2.db.connect() as connection:
-        connection.execute('UPDATE assistant_memories SET expires_at=NULL WHERE id=?', (memory['id'],))
+        connection.execute('UPDATE assistant_memories SET expires_at=NULL WHERE id=%s', (memory['id'],))
     c2.memories.forget(memory['id'], expected_version=memory['version'], operation_key='c2-forget')
     valid = c2.composer.prepare(run['id'], provider=c2.provider)
     assert valid.rebuilt and '合成背景条件是离线工作' not in str(valid.request.body)

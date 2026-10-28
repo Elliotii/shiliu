@@ -39,6 +39,10 @@ class CollectionSearchArgs(BaseModel):
     query_variants: list[str] = Field(default_factory=list, max_length=2)
     require_transcript: bool = False
     mode: Literal["auto", "metadata", "content"] = "auto"
+    collection_scope: Literal["all", "video", "transcript_chunk"] = Field(
+        default="all",
+        description="仅Collection内容检索：字幕观点/原话选transcript_chunk（正常长度查询使用字幕BM25；短词仍走导航）；综合/不确定发现选all，视频综合单元选video。metadata及Wiki不受影响。",
+    )
     cursor: str | None = None
     folder_ids: list[int] | None = None
     published_from: int | None = Field(default=None, ge=1)

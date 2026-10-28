@@ -1,4 +1,3 @@
-"""Shiliu V0 application package."""
+"""Shiliu personal evidence-based knowledge assistant."""
 
-__version__ = "0.1.0"
-
+__version__ = "0.4.0"

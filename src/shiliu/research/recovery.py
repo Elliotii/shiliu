@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-import sqlite3
+from shiliu.storage.errors import StorageError
 import threading
 import time
 from datetime import datetime, timezone
@@ -42,6 +42,7 @@ class ResearchRecoveryCoordinator:
         wall_clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
     ) -> None:
         self.application = application
+        self.context = application.db.context
         self.ledger = ResearchExecutionLedger(
             application.db, application.research
         )
@@ -65,41 +66,43 @@ class ResearchRecoveryCoordinator:
             )
             self._thread.start()
 
-    def stop(self) -> None:
+    def request_stop(self) -> None:
         self._stop.set()
         self._wake.set()
+
+    def stop(self, *, timeout: float = 30) -> None:
+        self.request_stop()
         thread = self._thread
         if thread is not None:
-            thread.join(timeout=2)
+            thread.join(timeout=timeout)
 
     def wake(self) -> None:
         self._wake.set()
 
     def run_once(self) -> str | None:
-        now = self.wall_clock().astimezone(timezone.utc).isoformat(
-            timespec="microseconds"
-        )
-        with self.application.db.connect() as connection:
+        if self._stop.is_set():
+            return None
+        with self.application.db.connect(read_only=True) as connection:
             row = connection.execute(
                 """
                 SELECT m.task_id FROM research_execution_metadata m
-                JOIN research_tasks t ON t.task_id=m.task_id
-                WHERE t.status NOT IN ('terminal','waiting_user')
+                JOIN research_tasks t ON (t.workspace_id,t.task_id)=(m.workspace_id,m.task_id)
+                WHERE m.workspace_id=%s AND t.owner_user_id=%s AND t.status NOT IN ('terminal','waiting_user')
                   AND m.scheduling_intent IN ('queued','manual')
                   AND (
                       m.scheduling_status IN ('queued','running')
                       OR (m.scheduling_status='backoff'
-                          AND m.next_retry_at IS NOT NULL AND m.next_retry_at<=?)
+                          AND m.next_retry_at IS NOT NULL AND m.next_retry_at<=clock_timestamp())
                   )
                 ORDER BY m.updated_at, m.task_id LIMIT 1
                 """,
-                (now,),
+                (self.context.workspace_id,self.context.user_id),
             ).fetchone()
         if row is None:
             return None
         task_id = str(row["task_id"])
         with self._guard:
-            if self._active_task_id is not None:
+            if self._stop.is_set() or self._active_task_id is not None:
                 return None
             self._active_task_id = task_id
         try:
@@ -120,24 +123,16 @@ class ResearchRecoveryCoordinator:
             self._wake.clear()
 
     def _claim_and_recover(self, task_id: str) -> tuple[str, int] | None:
-        raw = self.application.research.get_task(task_id)
-        task = raw["task"]
-        runner_id = self.application.research_provider_product.runner_id
-        lease = _parse_time(task.get("lease_until"))
-        if str(task["status"]) in {"terminal", "waiting_user", "blocked"}:
+        kernel=self.application.research
+        runner_id=self.application.research_provider_product.runner_id
+        with kernel._transaction() as connection:
+            task=kernel._task(connection,task_id)
+            live=bool(task["lease_valid"])
+        if str(task["status"]) in {"terminal","waiting_user","blocked"}:
             return None
-        if (
-            str(task.get("owner_id") or "") != runner_id
-            or lease is None
-            or lease <= self.wall_clock().astimezone(timezone.utc)
-        ):
-            if (
-                task.get("owner_id")
-                and lease is not None
-                and lease > self.wall_clock().astimezone(timezone.utc)
-            ):
-                # Another live process still owns the task; this is queue wait.
-                return None
+        if task.get("owner_id") and str(task["owner_id"]) != runner_id and live:
+            return None
+        if str(task.get("owner_id") or "") != runner_id or not live:
             claimed = self.application.research.claim_owner(
                 task_id=task_id,
                 command_id=f"recovery:{task_id}:claim:{task['state_version']}",
@@ -198,16 +193,18 @@ class ResearchRecoveryCoordinator:
                     run_budget=budget,
                 )
                 with self.application.research._transaction() as connection:
+                    current=self.application.research._task(connection,task_id)
+                    if int(current["owner_epoch"]) != owner[1]:
+                        raise ResearchConflict("completion belongs to stale owner")
                     connection.execute(
                         """
                         UPDATE research_execution_metadata
                         SET scheduling_intent='none', scheduling_status='complete',
-                            resume_reason='completed', updated_at=? WHERE task_id=?
+                            resume_reason='completed', updated_at=%s WHERE workspace_id=%s AND task_id=%s
                         """,
                         (
-                            self.application.research._now().isoformat(
-                                timespec="microseconds"
-                            ),
+                            self.application.research._now(),
+                            self.context.workspace_id,
                             task_id,
                         ),
                     )
@@ -261,8 +258,8 @@ class ResearchRecoveryCoordinator:
         except ResearchConflict:
             # A live lease/competing scheduler is queueing, not an execution failure.
             return
-        except sqlite3.OperationalError as exc:
-            if any(token in str(exc).lower() for token in ("locked", "busy")):
+        except StorageError as exc:
+            if exc.category in {"lock_timeout","transaction_retryable"}:
                 self.ledger.record_failure(
                     task_id, code="database_busy", safe_to_retry=True
                 )
@@ -387,9 +384,7 @@ class ResearchRecoveryCoordinator:
         )
 
     def _safe_local_completion_retry(self, task_id: str, error: BaseException) -> bool:
-        if isinstance(error, sqlite3.OperationalError) and any(
-            token in str(error).lower() for token in ("locked", "busy")
-        ):
+        if isinstance(error, StorageError) and error.category in {"lock_timeout","transaction_retryable"}:
             return True
         raw = self.application.research.get_task(task_id)
         effects = list(raw["side_effects"])

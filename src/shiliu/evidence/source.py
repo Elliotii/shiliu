@@ -29,11 +29,18 @@ def canonical_json(value: object) -> bytes:
 
 
 def authoritative_raw_json_path(candidate: str | Path) -> Path:
+    if str(candidate).startswith("artifact:"):
+        raise EvidenceContractError(
+            "manifest resolver required", code="artifact_resolver_required"
+        )
+    # Explicit historical filesystem fixture/export reader, never a new identity.
     return Path(candidate).expanduser().resolve().with_name("subtitle-raw.json")
 
 
 def make_source_artifact_id(reference: SourceArtifactReference) -> str:
-    lineage = str(reference.source_lineage or reference.source_type or "unknown").lower()
+    lineage = str(
+        reference.source_lineage or reference.source_type or "unknown"
+    ).lower()
     if lineage not in {"human", "ai", "asr", "unknown"}:
         lineage = "unknown"
     payload = {
@@ -87,22 +94,39 @@ def make_timeline_run_id(source_version: str, run_ordinal: int) -> str:
     return "timeline_run_" + sha256(canonical_json(payload)).hexdigest()
 
 
+def read_reference_bytes(reference, *, artifacts=None, expected_source_version=None):
+    if str(reference.artifact_path).startswith("artifact:"):
+        if artifacts is None:
+            raise EvidenceContractError(
+                "manifest resolver required", code="artifact_resolver_required"
+            )
+        try:
+            return artifacts.raw_bytes(
+                reference.artifact_path, expected_source_version=expected_source_version
+            )
+        except (OSError, RuntimeError, ValueError) as exc:
+            raise EvidenceContractError(
+                "authoritative artifact unavailable", code="source_unavailable"
+            ) from exc
+    path = authoritative_raw_json_path(reference.artifact_path)
+    try:
+        return path.read_bytes()
+    except OSError as exc:
+        raise EvidenceContractError(
+            "authoritative raw subtitle missing", code="raw_subtitle_missing"
+        ) from exc
+
+
 def load_source_artifact(
     reference: SourceArtifactReference,
     *,
     expected_source_version: str | None = None,
     epsilon_seconds: float = TIMELINE_EPSILON_SECONDS,
+    artifacts=None,
 ) -> ParsedSourceArtifact:
-    path = authoritative_raw_json_path(reference.artifact_path)
-    if not path.is_file():
-        raise EvidenceContractError(
-            f"authoritative raw subtitle is missing: {path}",
-            code="raw_subtitle_missing",
-        )
-    try:
-        raw_bytes = path.read_bytes()
-    except OSError as exc:
-        raise EvidenceContractError(str(exc), code="source_unreadable") from exc
+    raw_bytes = read_reference_bytes(
+        reference, artifacts=artifacts, expected_source_version=expected_source_version
+    )
     version = source_version_for_bytes(raw_bytes)
     if expected_source_version is not None and version != expected_source_version:
         raise EvidenceContractError(
@@ -121,7 +145,9 @@ def load_source_artifact(
             source_artifact_id=artifact_id,
             source_version=version,
             validation_status="source_unreadable",
-            warnings=(EvidenceWarning("source_unreadable", "top-level JSON must be an array"),),
+            warnings=(
+                EvidenceWarning("source_unreadable", "top-level JSON must be an array"),
+            ),
             invalid_segment_ordinals=(),
             timeline_runs=(),
             segments=(),
@@ -136,17 +162,29 @@ def load_source_artifact(
         if not isinstance(item, dict):
             structural_invalid = True
             invalid.append(ordinal)
-            warnings.append(EvidenceWarning("source_unreadable", "segment must be an object", ordinal))
+            warnings.append(
+                EvidenceWarning(
+                    "source_unreadable", "segment must be an object", ordinal
+                )
+            )
             continue
         if not {"from", "to", "content"}.issubset(item):
             structural_invalid = True
             invalid.append(ordinal)
-            warnings.append(EvidenceWarning("source_unreadable", "segment fields are missing", ordinal))
+            warnings.append(
+                EvidenceWarning(
+                    "source_unreadable", "segment fields are missing", ordinal
+                )
+            )
             continue
         if not isinstance(item["content"], str):
             structural_invalid = True
             invalid.append(ordinal)
-            warnings.append(EvidenceWarning("source_unreadable", "segment content must be a string", ordinal))
+            warnings.append(
+                EvidenceWarning(
+                    "source_unreadable", "segment content must be a string", ordinal
+                )
+            )
             continue
         try:
             start = float(item["from"])
@@ -154,12 +192,25 @@ def load_source_artifact(
         except (TypeError, ValueError):
             time_invalid = True
             invalid.append(ordinal)
-            warnings.append(EvidenceWarning("segment_time_invalid", "segment time is not numeric", ordinal))
+            warnings.append(
+                EvidenceWarning(
+                    "segment_time_invalid", "segment time is not numeric", ordinal
+                )
+            )
             continue
-        if not math.isfinite(start) or not math.isfinite(end) or start < 0 or end < start:
+        if (
+            not math.isfinite(start)
+            or not math.isfinite(end)
+            or start < 0
+            or end < start
+        ):
             time_invalid = True
             invalid.append(ordinal)
-            warnings.append(EvidenceWarning("segment_time_invalid", "segment time is invalid", ordinal))
+            warnings.append(
+                EvidenceWarning(
+                    "segment_time_invalid", "segment time is invalid", ordinal
+                )
+            )
             continue
         text = item["content"]
         segments.append(
@@ -231,12 +282,17 @@ def _assign_timeline_runs(
         return segments, ()
     boundaries = [0]
     for index in range(1, len(segments)):
-        if segments[index].start_time < segments[index - 1].start_time - epsilon_seconds:
+        if (
+            segments[index].start_time
+            < segments[index - 1].start_time - epsilon_seconds
+        ):
             boundaries.append(index)
     boundaries.append(len(segments))
     assigned = list(segments)
     runs: list[TimelineRun] = []
-    for run_ordinal, (start_index, stop_index) in enumerate(zip(boundaries, boundaries[1:])):
+    for run_ordinal, (start_index, stop_index) in enumerate(
+        zip(boundaries, boundaries[1:])
+    ):
         run_id = make_timeline_run_id(source_version, run_ordinal)
         values = segments[start_index:stop_index]
         for local, segment in enumerate(values):

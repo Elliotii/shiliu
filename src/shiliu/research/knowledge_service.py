@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
+from psycopg import Connection
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from shiliu.db import Database
+from shiliu.research.errors import ResearchForbidden
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import iso_time, json_value
+from shiliu.research.service import _parse_iso
 from shiliu.research.errors import (
     ResearchConflict,
     ResearchNotFound,
@@ -81,7 +84,7 @@ def _now() -> str:
 
 
 def _json_list(value: object) -> list[Any]:
-    decoded = json.loads(str(value or "[]"))
+    decoded = json_value(value or '[]')
     if not isinstance(decoded, list):
         raise ResearchUnsafeState("persisted JSON list is invalid")
     return decoded
@@ -98,19 +101,21 @@ class ResearchKnowledgeService:
         product: ResearchProductService,
         retrieval: RetrievalService,
         taxonomy: TaxonomyCorpusService | None = None,
-        export_root: Path | None = None,
+        export_root: Path,
         fault_injector: FaultInjector | None = None,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.product = product
-        self.authority = PersistentEvidenceAuthority(db)
+        self.authority = PersistentEvidenceAuthority(db, retrieval.artifacts)
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
         self.lifecycle = ResearchKnowledgeLifecycleService(
             db,
             kernel=kernel,
-            export_root=export_root or db.path.parent / "knowledge-exports",
+            artifacts=retrieval.artifacts,
+            export_root=export_root,
             fault_injector=self.fault_injector,
         )
         self.reuse = ResearchArtifactRouteService(
@@ -165,16 +170,14 @@ class ResearchKnowledgeService:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             event = connection.execute(
-                "SELECT * FROM research_events WHERE task_id=? "
-                "AND event_type='candidate_deltas_materialized' "
-                "ORDER BY sequence DESC LIMIT 1",
-                (task_id,),
+                "SELECT * FROM research_events WHERE research_events.workspace_id=%s AND  task_id=%s AND event_type='candidate_deltas_materialized' ORDER BY sequence DESC LIMIT 1",
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if event is None:
                 raise ResearchUnsafeState(
                     "Task 尚未到达可生成 KnowledgeDelta 的持久边界"
                 )
-            snapshot = json.loads(str(event["payload_json"]))
+            snapshot = json_value(event['payload_json'])
             self._validate_candidate_snapshot(connection, task_id, event, snapshot)
             delta = next(
                 (
@@ -187,10 +190,8 @@ class ResearchKnowledgeService:
             if delta is None:
                 raise ResearchUnsafeState("candidate snapshot 缺少 KnowledgeDelta")
             artifact = connection.execute(
-                "SELECT * FROM research_provisional_artifacts "
-                "WHERE task_id=? AND attempt_id=? "
-                "ORDER BY created_at DESC, artifact_id DESC LIMIT 1",
-                (task_id, str(event["attempt_id"] or "")),
+                'SELECT * FROM research_provisional_artifacts WHERE research_provisional_artifacts.workspace_id=%s AND  task_id=%s AND attempt_id=%s ORDER BY created_at DESC, artifact_id DESC LIMIT 1',
+                (self.context.workspace_id, task_id, str(event['attempt_id'] or '')),
             ).fetchone()
             if delta.get("items") and artifact is None:
                 raise ResearchUnsafeState("KnowledgeDelta 缺少来源 provisional artifact")
@@ -222,41 +223,9 @@ class ResearchKnowledgeService:
                 )
                 connection.execute(
                     """
-                    INSERT OR IGNORE INTO research_knowledge_candidates(
-                        candidate_id, workspace_schema_version, task_id, goal_id,
-                        attempt_id, checkpoint_id, result_id,
-                        provisional_artifact_id, source_event_id,
-                        source_delta_snapshot_id, candidate_kind,
-                        source_boundary_hash, source_delta_hash,
-                        source_item_hash, source_item_index, parent_candidate_id,
-                        claim_text, citation_ids_json, evidence_use_ids_json,
-                        source_payload_json, status, state_version,
-                        created_at, updated_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'KnowledgeDelta', ?, ?, ?, ?, NULL,
-                             ?, ?, ?, ?, 'pending_review', 0, ?, ?)
-                    """,
-                    (
-                        candidate_id,
-                        KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
-                        task_id,
-                        str(event["goal_id"]),
-                        str(event["attempt_id"]),
-                        str(event["checkpoint_id"]) if event["checkpoint_id"] else None,
-                        str(snapshot["result_id"]) if snapshot.get("result_id") else None,
-                        str(artifact["artifact_id"]),
-                        str(event["event_id"]),
-                        str(snapshot["delta_snapshot_id"]),
-                        str(snapshot["boundary_hash"]),
-                        str(delta["candidate_hash"]),
-                        source_item_hash,
-                        index,
-                        claim,
-                        _canonical_json(citations),
-                        _canonical_json(evidence_use_ids),
-                        _canonical_json(item),
-                        now,
-                        now,
-                    ),
+                    INSERT INTO research_knowledge_candidates(workspace_id, candidate_id, workspace_schema_version, task_id, goal_id, attempt_id, checkpoint_id, result_id, provisional_artifact_id, source_event_id, source_delta_snapshot_id, candidate_kind, source_boundary_hash, source_delta_hash, source_item_hash, source_item_index, parent_candidate_id, claim_text, citation_ids_json, evidence_use_ids_json, source_payload_json, status, state_version, created_at, updated_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'KnowledgeDelta', %s, %s, %s, %s, NULL, %s, %s, %s, %s, 'pending_review', 0, %s, %s)
+                     ON CONFLICT DO NOTHING""",
+                    (self.context.workspace_id, candidate_id, KNOWLEDGE_WORKSPACE_SCHEMA_VERSION, task_id, str(event['goal_id']), str(event['attempt_id']), str(event['checkpoint_id']) if event['checkpoint_id'] else None, str(snapshot['result_id']) if snapshot.get('result_id') else None, str(artifact['artifact_id']), str(event['event_id']), str(snapshot['delta_snapshot_id']), str(snapshot['boundary_hash']), str(delta['candidate_hash']), source_item_hash, index, claim, json_field(_canonical_json(citations)), json_field(_canonical_json(evidence_use_ids)), json_field(_canonical_json(item)), _parse_iso(now), _parse_iso(now)),
                 )
                 candidate_ids.append(candidate_id)
             self.fault_injector("after_knowledge_candidate_rows")
@@ -298,11 +267,10 @@ class ResearchKnowledgeService:
             self.fault_injector("after_knowledge_candidate_receipt")
         return {**response, "deduplicated": False}
 
-    @staticmethod
-    def _validate_candidate_snapshot(
-        connection: sqlite3.Connection,
+    def _validate_candidate_snapshot(self,
+        connection: Connection,
         task_id: str,
-        event: sqlite3.Row,
+        event: dict[str, Any],
         snapshot: dict[str, Any],
     ) -> None:
         if (
@@ -329,17 +297,14 @@ class ResearchKnowledgeService:
             ):
                 raise ResearchUnsafeState("candidate delta hash invalid")
         receipt = connection.execute(
-            "SELECT 1 FROM research_command_receipts "
-            "WHERE task_id=? AND command_id=? AND outcome_reference=? "
-            "AND status='committed'",
-            (task_id, str(event["command_id"]), str(event["event_id"])),
+            "SELECT 1 FROM research_command_receipts WHERE research_command_receipts.workspace_id=%s AND  task_id=%s AND command_id=%s AND outcome_reference=%s AND status='committed'",
+            (self.context.workspace_id, task_id, str(event['command_id']), str(event['event_id'])),
         ).fetchone()
         if receipt is None:
             raise ResearchUnsafeState("candidate snapshot lacks committed source receipt")
 
-    @staticmethod
-    def _map_candidate_evidence_uses(
-        connection: sqlite3.Connection,
+    def _map_candidate_evidence_uses(self,
+        connection: Connection,
         *,
         task_id: str,
         attempt_id: str,
@@ -348,16 +313,15 @@ class ResearchKnowledgeService:
     ) -> list[str]:
         if not citation_ids:
             return []
-        placeholders = ",".join("?" for _ in citation_ids)
         rows = connection.execute(
-            f"""
+            """
             SELECT eu.evidence_use_id, ei.evidence_id
             FROM research_evidence_uses eu
-            JOIN research_evidence_identities ei ON ei.evidence_id=eu.evidence_id
-            WHERE eu.task_id=? AND eu.attempt_id=?
-              AND ei.evidence_id IN ({placeholders})
+            JOIN research_evidence_identities ei ON (ei.workspace_id,ei.evidence_id)=(eu.workspace_id,eu.evidence_id)
+            WHERE eu.workspace_id=%s AND eu.task_id=%s AND eu.attempt_id=%s
+              AND ei.evidence_id=ANY(%s)
             """,
-            (task_id, attempt_id, *citation_ids),
+            (self.context.workspace_id, task_id, attempt_id, citation_ids),
         ).fetchall()
         by_evidence = {
             str(row["evidence_id"]): str(row["evidence_use_id"])
@@ -374,6 +338,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = ReviewKnowledgeCandidateRequest.model_validate(
             request.model_dump(mode="json")
         )
@@ -395,8 +361,8 @@ class ResearchKnowledgeService:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             candidate = connection.execute(
-                "SELECT * FROM research_knowledge_candidates WHERE candidate_id=?",
-                (candidate_id,),
+                'SELECT * FROM research_knowledge_candidates WHERE research_knowledge_candidates.workspace_id=%s AND  candidate_id=%s',
+                (self.context.workspace_id, candidate_id),
             ).fetchone()
             if candidate is None or str(candidate["task_id"]) != task_id:
                 raise ResearchNotFound(f"Knowledge Candidate 不存在: {candidate_id}")
@@ -430,10 +396,8 @@ class ResearchKnowledgeService:
                 if not validation["all_current"]:
                     decision_reason = decision_reason or "server_currentness_validation_failed"
                     connection.execute(
-                        "UPDATE research_knowledge_candidates SET "
-                        "status='needs_revalidation', state_version=state_version+1, "
-                        "updated_at=? WHERE candidate_id=?",
-                        (now, candidate_id),
+                        "UPDATE research_knowledge_candidates SET status='needs_revalidation', state_version=state_version+1, updated_at=%s WHERE research_knowledge_candidates.workspace_id=%s AND  candidate_id=%s",
+                        (_parse_iso(now), self.context.workspace_id, candidate_id),
                     )
                     response = {
                         "task_id": task_id,
@@ -452,10 +416,8 @@ class ResearchKnowledgeService:
                     )
                     self.fault_injector("after_initial_fact_revision")
                     connection.execute(
-                        "UPDATE research_knowledge_candidates SET "
-                        "status='accepted', state_version=state_version+1, "
-                        "updated_at=? WHERE candidate_id=?",
-                        (now, candidate_id),
+                        "UPDATE research_knowledge_candidates SET status='accepted', state_version=state_version+1, updated_at=%s WHERE research_knowledge_candidates.workspace_id=%s AND  candidate_id=%s",
+                        (_parse_iso(now), self.context.workspace_id, candidate_id),
                     )
                     response = {
                         "task_id": task_id,
@@ -467,10 +429,8 @@ class ResearchKnowledgeService:
                     }
             elif request.decision == "reject":
                 connection.execute(
-                    "UPDATE research_knowledge_candidates SET "
-                    "status='rejected', state_version=state_version+1, updated_at=? "
-                    "WHERE candidate_id=?",
-                    (now, candidate_id),
+                    "UPDATE research_knowledge_candidates SET status='rejected', state_version=state_version+1, updated_at=%s WHERE research_knowledge_candidates.workspace_id=%s AND  candidate_id=%s",
+                    (_parse_iso(now), self.context.workspace_id, candidate_id),
                 )
                 response = {
                     "task_id": task_id,
@@ -488,10 +448,8 @@ class ResearchKnowledgeService:
                     now=now,
                 )
                 connection.execute(
-                    "UPDATE research_knowledge_candidates SET "
-                    "status='superseded', state_version=state_version+1, updated_at=? "
-                    "WHERE candidate_id=?",
-                    (now, candidate_id),
+                    "UPDATE research_knowledge_candidates SET status='superseded', state_version=state_version+1, updated_at=%s WHERE research_knowledge_candidates.workspace_id=%s AND  candidate_id=%s",
+                    (_parse_iso(now), self.context.workspace_id, candidate_id),
                 )
                 response = {
                     "task_id": task_id,
@@ -504,25 +462,9 @@ class ResearchKnowledgeService:
                 }
             connection.execute(
                 """
-                INSERT INTO research_knowledge_review_decisions(
-                    decision_id, task_id, candidate_id, decision_kind, reason,
-                    edited_candidate_id, fact_revision_id,
-                    expected_candidate_version, command_id, principal_id, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_knowledge_review_decisions(workspace_id, decision_id, task_id, candidate_id, decision_kind, reason, edited_candidate_id, fact_revision_id, expected_candidate_version, command_id, principal_id, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    decision_id,
-                    task_id,
-                    candidate_id,
-                    request.decision,
-                    decision_reason,
-                    edited_candidate_id,
-                    fact_revision_id,
-                    request.expected_state_version,
-                    request.command_id,
-                    principal_id,
-                    now,
-                ),
+                (self.context.workspace_id, decision_id, task_id, candidate_id, request.decision, decision_reason, edited_candidate_id, fact_revision_id, request.expected_state_version, request.command_id, principal_id, _parse_iso(now)),
             )
             self.fault_injector("after_knowledge_review_decision")
             event_id = self.kernel._event(
@@ -575,6 +517,8 @@ class ResearchKnowledgeService:
         confirmation resumes through the existing receipts instead of creating a
         second Fact, Artifact, or Topic Page.
         """
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = PublishResearchKnowledgeRequest.model_validate(
             request.model_dump(mode="json")
         )
@@ -639,9 +583,9 @@ class ResearchKnowledgeService:
 
     def _validate_candidate_evidence(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        candidate: sqlite3.Row,
+        candidate: dict[str, Any],
         command_id: str,
         now: str,
     ) -> dict[str, Any]:
@@ -664,10 +608,10 @@ class ResearchKnowledgeService:
             row = connection.execute(
                 """
                 SELECT eu.*, ei.* FROM research_evidence_uses eu
-                JOIN research_evidence_identities ei ON ei.evidence_id=eu.evidence_id
-                WHERE eu.evidence_use_id=?
+                JOIN research_evidence_identities ei ON ei.workspace_id=eu.workspace_id AND ei.evidence_id=eu.evidence_id
+                WHERE eu.workspace_id=%s AND  eu.evidence_use_id=%s
                 """,
-                (use_id,),
+                (self.context.workspace_id, use_id),
             ).fetchone()
             if (
                 row is None
@@ -698,33 +642,9 @@ class ResearchKnowledgeService:
             )
             connection.execute(
                 """
-                INSERT INTO research_evidence_validations(
-                    observation_id, evidence_use_id, evidence_id, task_id,
-                    goal_id, attempt_id, checkpoint_id,
-                    validation_policy_version, authority_mode,
-                    expected_source_version, observed_source_version,
-                    outcome, reason_code, owner_epoch, observed_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'live_current_exact_replay',
-                         ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_evidence_validations(workspace_id, observation_id, evidence_use_id, evidence_id, task_id, goal_id, attempt_id, checkpoint_id, validation_policy_version, authority_mode, expected_source_version, observed_source_version, outcome, reason_code, owner_epoch, observed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, 'live_current_exact_replay', %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    observation_id,
-                    use_id,
-                    str(row["evidence_id"]),
-                    str(candidate["task_id"]),
-                    str(candidate["goal_id"]),
-                    str(candidate["attempt_id"]),
-                    str(candidate["checkpoint_id"])
-                    if candidate["checkpoint_id"]
-                    else None,
-                    KNOWLEDGE_VALIDATION_POLICY_VERSION,
-                    observation.expected_source_version,
-                    observation.observed_source_version,
-                    observation.outcome,
-                    observation.reason_code,
-                    int(row["owner_epoch"]),
-                    now,
-                ),
+                (self.context.workspace_id, observation_id, use_id, str(row['evidence_id']), str(candidate['task_id']), str(candidate['goal_id']), str(candidate['attempt_id']), str(candidate['checkpoint_id']) if candidate['checkpoint_id'] else None, KNOWLEDGE_VALIDATION_POLICY_VERSION, observation.expected_source_version, observation.observed_source_version, observation.outcome, observation.reason_code, int(row['owner_epoch']), _parse_iso(now)),
             )
             rows.append(
                 {
@@ -749,11 +669,10 @@ class ResearchKnowledgeService:
             "outcomes": outcomes,
         }
 
-    @staticmethod
-    def _create_initial_fact(
-        connection: sqlite3.Connection,
+    def _create_initial_fact(self,
+        connection: Connection,
         *,
-        candidate: sqlite3.Row,
+        candidate: dict[str, Any],
         validation_rows: list[dict[str, str]],
         now: str,
     ) -> str:
@@ -774,81 +693,34 @@ class ResearchKnowledgeService:
             }
         )
         connection.execute(
-            "INSERT INTO research_grounded_facts("
-            "fact_id, workspace_schema_version, task_id, origin_candidate_id, created_at"
-            ") VALUES(?, ?, ?, ?, ?)",
-            (
-                fact_id,
-                KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
-                str(candidate["task_id"]),
-                str(candidate["candidate_id"]),
-                now,
-            ),
+            'INSERT INTO research_grounded_facts(workspace_id, fact_id, workspace_schema_version, task_id, origin_candidate_id, created_at) VALUES(%s, %s, %s, %s, %s, %s)',
+            (self.context.workspace_id, fact_id, KNOWLEDGE_WORKSPACE_SCHEMA_VERSION, str(candidate['task_id']), str(candidate['candidate_id']), _parse_iso(now)),
         )
         connection.execute(
             """
-            INSERT INTO research_fact_revisions(
-                fact_revision_id, fact_id, task_id, revision,
-                parent_revision_id, supersedes_revision_id, origin_candidate_id,
-                claim_text, temporal_scope_json, viewpoint_scope_json,
-                verification_status, content_hash, created_at
-            ) VALUES(?, ?, ?, 1, NULL, NULL, ?, ?, ?, ?,
-                     'accepted_current', ?, ?)
+            INSERT INTO research_fact_revisions(workspace_id, fact_revision_id, fact_id, task_id, revision, parent_revision_id, supersedes_revision_id, origin_candidate_id, claim_text, temporal_scope_json, viewpoint_scope_json, verification_status, content_hash, created_at) VALUES(%s, %s, %s, %s, 1, NULL, NULL, %s, %s, %s, %s, 'accepted_current', %s, %s)
             """,
-            (
-                fact_revision_id,
-                fact_id,
-                str(candidate["task_id"]),
-                str(candidate["candidate_id"]),
-                str(candidate["claim_text"]),
-                _canonical_json(temporal_scope),
-                _canonical_json(viewpoint_scope),
-                content_hash,
-                now,
-            ),
+            (self.context.workspace_id, fact_revision_id, fact_id, str(candidate['task_id']), str(candidate['candidate_id']), str(candidate['claim_text']), json_field(_canonical_json(temporal_scope)), json_field(_canonical_json(viewpoint_scope)), content_hash, _parse_iso(now)),
         )
         for ordinal, value in enumerate(validation_rows):
             connection.execute(
                 """
-                INSERT INTO research_fact_evidence_links(
-                    link_id, task_id, fact_revision_id, evidence_id,
-                    evidence_use_id, validation_observation_id, ordinal, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_fact_evidence_links(workspace_id, link_id, task_id, fact_revision_id, evidence_id, evidence_use_id, validation_observation_id, ordinal, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    _id(
-                        "factevidence",
-                        {
-                            "fact_revision_id": fact_revision_id,
-                            "evidence_use_id": value["evidence_use_id"],
-                        },
-                    ),
-                    str(candidate["task_id"]),
-                    fact_revision_id,
-                    value["evidence_id"],
-                    value["evidence_use_id"],
-                    value["observation_id"],
-                    ordinal,
-                    now,
-                ),
+                (self.context.workspace_id, _id('factevidence', {'fact_revision_id': fact_revision_id, 'evidence_use_id': value['evidence_use_id']}), str(candidate['task_id']), fact_revision_id, value['evidence_id'], value['evidence_use_id'], value['observation_id'], ordinal, _parse_iso(now)),
             )
         connection.execute(
             """
-            INSERT INTO research_knowledge_fact_states(
-                fact_id, task_id, current_revision_id, lifecycle_status,
-                currentness_status, superseded_by_revision_id,
-                latest_observation_set_id, state_version, updated_at
-            ) VALUES(?, ?, ?, 'current', 'current', NULL, NULL, 0, ?)
+            INSERT INTO research_knowledge_fact_states(workspace_id, fact_id, task_id, current_revision_id, lifecycle_status, currentness_status, superseded_by_revision_id, latest_observation_set_id, state_version, updated_at) VALUES(%s, %s, %s, %s, 'current', 'current', NULL, NULL, 0, %s)
             """,
-            (fact_id, str(candidate["task_id"]), fact_revision_id, now),
+            (self.context.workspace_id, fact_id, str(candidate['task_id']), fact_revision_id, _parse_iso(now)),
         )
         return fact_revision_id
 
-    @staticmethod
-    def _create_edited_candidate(
-        connection: sqlite3.Connection,
+    def _create_edited_candidate(self,
+        connection: Connection,
         *,
-        candidate: sqlite3.Row,
+        candidate: dict[str, Any],
         command_id: str,
         claim: str,
         now: str,
@@ -866,49 +738,9 @@ class ResearchKnowledgeService:
         )
         connection.execute(
             """
-            INSERT INTO research_knowledge_candidates(
-                candidate_id, workspace_schema_version, task_id, goal_id,
-                attempt_id, checkpoint_id, result_id,
-                provisional_artifact_id, source_event_id,
-                source_delta_snapshot_id, candidate_kind,
-                source_boundary_hash, source_delta_hash,
-                source_item_hash, source_item_index, parent_candidate_id,
-                claim_text, citation_ids_json, evidence_use_ids_json,
-                source_payload_json, status, state_version, created_at, updated_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'KnowledgeDelta', ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                     'needs_revalidation', 0, ?, ?)
+            INSERT INTO research_knowledge_candidates(workspace_id, candidate_id, workspace_schema_version, task_id, goal_id, attempt_id, checkpoint_id, result_id, provisional_artifact_id, source_event_id, source_delta_snapshot_id, candidate_kind, source_boundary_hash, source_delta_hash, source_item_hash, source_item_index, parent_candidate_id, claim_text, citation_ids_json, evidence_use_ids_json, source_payload_json, status, state_version, created_at, updated_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'KnowledgeDelta', %s, %s, %s, %s, %s, %s, %s, %s, %s, 'needs_revalidation', 0, %s, %s)
             """,
-            (
-                candidate_id,
-                KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
-                str(candidate["task_id"]),
-                str(candidate["goal_id"]),
-                str(candidate["attempt_id"]),
-                str(candidate["checkpoint_id"])
-                if candidate["checkpoint_id"]
-                else None,
-                str(candidate["result_id"]) if candidate["result_id"] else None,
-                str(candidate["provisional_artifact_id"]),
-                str(candidate["source_event_id"]),
-                str(candidate["source_delta_snapshot_id"]),
-                str(candidate["source_boundary_hash"]),
-                str(candidate["source_delta_hash"]),
-                source_item_hash,
-                int(candidate["source_item_index"]),
-                str(candidate["candidate_id"]),
-                claim,
-                str(candidate["citation_ids_json"]),
-                str(candidate["evidence_use_ids_json"]),
-                _canonical_json(
-                    {
-                        "edited_from": str(candidate["candidate_id"]),
-                        "claim_text": claim,
-                        "authority": "user_edit_needs_revalidation",
-                    }
-                ),
-                now,
-                now,
-            ),
+            (self.context.workspace_id, candidate_id, KNOWLEDGE_WORKSPACE_SCHEMA_VERSION, str(candidate['task_id']), str(candidate['goal_id']), str(candidate['attempt_id']), str(candidate['checkpoint_id']) if candidate['checkpoint_id'] else None, str(candidate['result_id']) if candidate['result_id'] else None, str(candidate['provisional_artifact_id']), str(candidate['source_event_id']), str(candidate['source_delta_snapshot_id']), str(candidate['source_boundary_hash']), str(candidate['source_delta_hash']), source_item_hash, int(candidate['source_item_index']), str(candidate['candidate_id']), claim, json_field(candidate['citation_ids_json']), json_field(candidate['evidence_use_ids_json']), json_field(_canonical_json({'edited_from': str(candidate['candidate_id']), 'claim_text': claim, 'authority': 'user_edit_needs_revalidation'})), _parse_iso(now), _parse_iso(now)),
         )
         return candidate_id
 
@@ -975,7 +807,7 @@ class ResearchKnowledgeService:
         kind: str,
         build_input: dict[str, Any],
         finalize: Callable[
-            [sqlite3.Connection, sqlite3.Row, str, str, str], dict[str, Any]
+            [Connection, dict[str, Any], str, str, str], dict[str, Any]
         ],
     ) -> dict[str, Any]:
         input_hash = _hash(build_input)
@@ -1000,9 +832,8 @@ class ResearchKnowledgeService:
                 self.lifecycle.ensure_stage1_heads(connection, task_id)
                 self._validate_build_input(connection, task_id, kind, build_input)
                 run = connection.execute(
-                    "SELECT * FROM research_knowledge_build_runs "
-                    "WHERE task_id=? AND build_kind=? AND input_hash=?",
-                    (task_id, kind, input_hash),
+                    'SELECT * FROM research_knowledge_build_runs WHERE research_knowledge_build_runs.workspace_id=%s AND  task_id=%s AND build_kind=%s AND input_hash=%s',
+                    (self.context.workspace_id, task_id, kind, input_hash),
                 ).fetchone()
                 now = _now()
                 if run is None:
@@ -1012,25 +843,9 @@ class ResearchKnowledgeService:
                     )
                     connection.execute(
                         """
-                        INSERT INTO research_knowledge_build_runs(
-                            build_run_id, workspace_schema_version, task_id,
-                            build_kind, command_id, input_hash, input_json,
-                            status, attempt_count, output_reference,
-                            error_code, error_detail, created_at, updated_at, completed_at
-                        ) VALUES(?, ?, ?, ?, ?, ?, ?, 'running', 1,
-                                 NULL, NULL, NULL, ?, ?, NULL)
+                        INSERT INTO research_knowledge_build_runs(workspace_id, build_run_id, workspace_schema_version, task_id, build_kind, command_id, input_hash, input_json, status, attempt_count, output_reference, error_code, error_detail, created_at, updated_at, completed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, 'running', 1, NULL, NULL, NULL, %s, %s, NULL)
                         """,
-                        (
-                            run_id,
-                            KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
-                            task_id,
-                            kind,
-                            command_id,
-                            input_hash,
-                            _canonical_json(build_input),
-                            now,
-                            now,
-                        ),
+                        (self.context.workspace_id, run_id, KNOWLEDGE_WORKSPACE_SCHEMA_VERSION, task_id, kind, command_id, input_hash, json_field(_canonical_json(build_input)), _parse_iso(now), _parse_iso(now)),
                     )
                 else:
                     run_id = str(run["build_run_id"])
@@ -1055,10 +870,8 @@ class ResearchKnowledgeService:
                     if str(run["status"]) == "failed":
                         raise ResearchUnsafeState("failed BuildRun requires Stage 2 recovery")
                     connection.execute(
-                        "UPDATE research_knowledge_build_runs SET "
-                        "attempt_count=attempt_count+1, updated_at=? "
-                        "WHERE build_run_id=?",
-                        (now, run_id),
+                        'UPDATE research_knowledge_build_runs SET attempt_count=attempt_count+1, updated_at=%s WHERE research_knowledge_build_runs.workspace_id=%s AND  build_run_id=%s',
+                        (_parse_iso(now), self.context.workspace_id, run_id),
                     )
             self.fault_injector(f"after_{kind}_build_reserved")
             with self.kernel._transaction() as connection:
@@ -1072,8 +885,8 @@ class ResearchKnowledgeService:
                 if existing is not None:
                     return {**existing, "deduplicated": True}
                 run = connection.execute(
-                    "SELECT * FROM research_knowledge_build_runs WHERE build_run_id=?",
-                    (run_id,),
+                    'SELECT * FROM research_knowledge_build_runs WHERE research_knowledge_build_runs.workspace_id=%s AND  build_run_id=%s',
+                    (self.context.workspace_id, run_id),
                 ).fetchone()
                 if run is None or str(run["status"]) != "running":
                     raise ResearchConflict("BuildRun state changed during synchronous build")
@@ -1081,10 +894,8 @@ class ResearchKnowledgeService:
                 output = finalize(connection, task, run_id, input_hash, now)
                 output_reference = str(output["output_reference"])
                 connection.execute(
-                    "UPDATE research_knowledge_build_runs SET status='succeeded', "
-                    "output_reference=?, error_code=NULL, error_detail=NULL, "
-                    "updated_at=?, completed_at=? WHERE build_run_id=?",
-                    (output_reference, now, now, run_id),
+                    "UPDATE research_knowledge_build_runs SET status='succeeded', output_reference=%s, error_code=NULL, error_detail=NULL, updated_at=%s, completed_at=%s WHERE research_knowledge_build_runs.workspace_id=%s AND  build_run_id=%s",
+                    (output_reference, _parse_iso(now), _parse_iso(now), self.context.workspace_id, run_id),
                 )
                 self.fault_injector(f"after_{kind}_build_state")
                 response = {
@@ -1108,9 +919,8 @@ class ResearchKnowledgeService:
                 )
             return {**response, "deduplicated": False}
 
-    @staticmethod
-    def _validate_build_input(
-        connection: sqlite3.Connection,
+    def _validate_build_input(self,
+        connection: Connection,
         task_id: str,
         kind: str,
         build_input: dict[str, Any],
@@ -1128,20 +938,20 @@ class ResearchKnowledgeService:
                            SUM(CASE WHEN ev.outcome='current' THEN 0 ELSE 1 END)
                              AS noncurrent_count
                     FROM research_fact_revisions fr
-                    JOIN research_grounded_facts gf ON gf.fact_id=fr.fact_id
+                    JOIN research_grounded_facts gf ON gf.workspace_id=fr.workspace_id AND gf.fact_id=fr.fact_id
                     JOIN research_knowledge_candidates kc
-                      ON kc.candidate_id=gf.origin_candidate_id
-                    JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
+                      ON kc.workspace_id=fr.workspace_id AND kc.candidate_id=gf.origin_candidate_id
+                    JOIN research_knowledge_fact_states fs ON fs.workspace_id=fr.workspace_id AND fs.fact_id=fr.fact_id
                     LEFT JOIN research_fact_evidence_links fel
-                      ON fel.fact_revision_id=fr.fact_revision_id
+                      ON fel.workspace_id=fr.workspace_id AND fel.fact_revision_id=fr.fact_revision_id
                     LEFT JOIN research_evidence_validations ev
-                      ON ev.observation_id=fel.validation_observation_id
-                    WHERE fr.task_id=? AND fr.fact_revision_id=?
+                      ON ev.workspace_id=fr.workspace_id AND ev.observation_id=fel.validation_observation_id
+                    WHERE fr.workspace_id=%s AND  fr.task_id=%s AND fr.fact_revision_id=%s
                     GROUP BY fr.fact_revision_id, fr.verification_status, kc.status,
                              fs.current_revision_id, fs.lifecycle_status,
                              fs.currentness_status
                     """,
-                    (task_id, fact_revision_id),
+                    (self.context.workspace_id, task_id, fact_revision_id),
                 ).fetchone()
                 if (
                     row is None
@@ -1164,7 +974,7 @@ class ResearchKnowledgeService:
             SELECT ar.artifact_id, ar.revision,
                    (SELECT MAX(ar2.revision)
                     FROM research_knowledge_artifact_revisions ar2
-                    WHERE ar2.artifact_id=ar.artifact_id) AS max_revision,
+                    WHERE ar2.workspace_id=ar.workspace_id AND ar2.artifact_id=ar.artifact_id) AS max_revision,
                    SUM(CASE
                      WHEN fs.current_revision_id!=afl.fact_revision_id
                        OR fs.lifecycle_status!='current'
@@ -1172,14 +982,14 @@ class ResearchKnowledgeService:
                      THEN 1 ELSE 0 END) AS stale_fact_count
             FROM research_knowledge_artifact_revisions ar
             LEFT JOIN research_artifact_fact_links afl
-              ON afl.artifact_revision_id=ar.artifact_revision_id
+              ON afl.workspace_id=ar.workspace_id AND afl.artifact_revision_id=ar.artifact_revision_id
             LEFT JOIN research_fact_revisions fr
-              ON fr.fact_revision_id=afl.fact_revision_id
-            LEFT JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
-            WHERE ar.task_id=? AND ar.artifact_revision_id=?
-            GROUP BY ar.artifact_id, ar.revision
+              ON fr.workspace_id=ar.workspace_id AND fr.fact_revision_id=afl.fact_revision_id
+            LEFT JOIN research_knowledge_fact_states fs ON fs.workspace_id=ar.workspace_id AND fs.fact_id=fr.fact_id
+            WHERE ar.workspace_id=%s AND  ar.task_id=%s AND ar.artifact_revision_id=%s
+            GROUP BY ar.workspace_id, ar.artifact_id, ar.revision
             """,
-            (task_id, artifact_id),
+            (self.context.workspace_id, task_id, artifact_id),
         ).fetchone()
         if (
             row is None
@@ -1211,9 +1021,9 @@ class ResearchKnowledgeService:
 
     def _commit_build_receipt(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         command_id: str,
         payload_hash: str,
         kind: str,
@@ -1248,9 +1058,9 @@ class ResearchKnowledgeService:
 
     def _finalize_artifact(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         fact_revision_ids: list[str],
         build_run_id: str,
         input_hash: str,
@@ -1266,12 +1076,12 @@ class ResearchKnowledgeService:
                 SELECT fr.*, kc.result_id AS source_result_id,
                        kc.source_boundary_hash
                 FROM research_fact_revisions fr
-                JOIN research_grounded_facts gf ON gf.fact_id=fr.fact_id
+                JOIN research_grounded_facts gf ON gf.workspace_id=fr.workspace_id AND gf.fact_id=fr.fact_id
                 JOIN research_knowledge_candidates kc
-                  ON kc.candidate_id=gf.origin_candidate_id
-                WHERE fr.task_id=? AND fr.fact_revision_id=?
+                  ON kc.workspace_id=fr.workspace_id AND kc.candidate_id=gf.origin_candidate_id
+                WHERE fr.workspace_id=%s AND  fr.task_id=%s AND fr.fact_revision_id=%s
                 """,
-                (str(task["task_id"]), fact_revision_id),
+                (self.context.workspace_id, str(task['task_id']), fact_revision_id),
             ).fetchone()
             if row is None:
                 raise ResearchValidationError("Fact revision left Task boundary")
@@ -1281,10 +1091,10 @@ class ResearchKnowledgeService:
                        ei.source_version, ei.timeline_run_id
                 FROM research_fact_evidence_links fel
                 JOIN research_evidence_identities ei
-                  ON ei.evidence_id=fel.evidence_id
-                WHERE fel.fact_revision_id=? ORDER BY fel.ordinal
+                  ON ei.workspace_id=fel.workspace_id AND ei.evidence_id=fel.evidence_id
+                WHERE fel.workspace_id=%s AND  fel.fact_revision_id=%s ORDER BY fel.ordinal
                 """,
-                (fact_revision_id,),
+                (self.context.workspace_id, fact_revision_id),
             ).fetchall()
             citations = [str(value["evidence_id"]) for value in evidence_rows]
             for value in evidence_rows:
@@ -1307,8 +1117,8 @@ class ResearchKnowledgeService:
                 }
             )
         goal = connection.execute(
-            "SELECT objective FROM research_goals WHERE goal_id=?",
-            (str(task["active_goal_id"]),),
+            'SELECT objective FROM research_goals WHERE research_goals.workspace_id=%s AND  goal_id=%s',
+            (self.context.workspace_id, str(task['active_goal_id'])),
         ).fetchone()
         topic = str(goal["objective"] if goal else "Research Topic")
         corpus_snapshot = {
@@ -1340,62 +1150,19 @@ class ResearchKnowledgeService:
             }
         )
         connection.execute(
-            "INSERT INTO research_knowledge_artifacts("
-            "artifact_id, workspace_schema_version, task_id, created_at"
-            ") VALUES(?, ?, ?, ?)",
-            (
-                artifact_id,
-                KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
-                str(task["task_id"]),
-                now,
-            ),
+            'INSERT INTO research_knowledge_artifacts(workspace_id, artifact_id, workspace_schema_version, task_id, created_at) VALUES(%s, %s, %s, %s, %s)',
+            (self.context.workspace_id, artifact_id, KNOWLEDGE_WORKSPACE_SCHEMA_VERSION, str(task['task_id']), _parse_iso(now)),
         )
         connection.execute(
             """
-            INSERT INTO research_knowledge_artifact_revisions(
-                artifact_revision_id, artifact_id, task_id, revision,
-                parent_revision_id, supersedes_revision_id, topic, body_json,
-                limitations_json, unresolved_json, build_policy_version,
-                source_result_ids_json, source_boundary_hashes_json,
-                corpus_snapshot_json, input_hash, content_hash, created_at
-            ) VALUES(?, ?, ?, 1, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_knowledge_artifact_revisions(workspace_id, artifact_revision_id, artifact_id, task_id, revision, parent_revision_id, supersedes_revision_id, topic, body_json, limitations_json, unresolved_json, build_policy_version, source_result_ids_json, source_boundary_hashes_json, corpus_snapshot_json, input_hash, content_hash, created_at) VALUES(%s, %s, %s, %s, 1, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                revision_id,
-                artifact_id,
-                str(task["task_id"]),
-                topic,
-                _canonical_json(body),
-                _canonical_json(limitations),
-                _canonical_json(unresolved),
-                KNOWLEDGE_ARTIFACT_POLICY_VERSION,
-                _canonical_json(sorted(result_ids)),
-                _canonical_json(sorted(boundary_hashes)),
-                _canonical_json(corpus_snapshot),
-                input_hash,
-                content_hash,
-                now,
-            ),
+            (self.context.workspace_id, revision_id, artifact_id, str(task['task_id']), topic, json_field(_canonical_json(body)), json_field(_canonical_json(limitations)), json_field(_canonical_json(unresolved)), KNOWLEDGE_ARTIFACT_POLICY_VERSION, json_field(_canonical_json(sorted(result_ids))), json_field(_canonical_json(sorted(boundary_hashes))), json_field(_canonical_json(corpus_snapshot)), input_hash, content_hash, _parse_iso(now)),
         )
         for ordinal, fact_revision_id in enumerate(fact_revision_ids):
             connection.execute(
-                "INSERT INTO research_artifact_fact_links("
-                "link_id, task_id, artifact_revision_id, fact_revision_id, ordinal, created_at"
-                ") VALUES(?, ?, ?, ?, ?, ?)",
-                (
-                    _id(
-                        "artifactfact",
-                        {
-                            "artifact_revision_id": revision_id,
-                            "fact_revision_id": fact_revision_id,
-                        },
-                    ),
-                    str(task["task_id"]),
-                    revision_id,
-                    fact_revision_id,
-                    ordinal,
-                    now,
-                ),
+                'INSERT INTO research_artifact_fact_links(workspace_id, link_id, task_id, artifact_revision_id, fact_revision_id, ordinal, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s)',
+                (self.context.workspace_id, _id('artifactfact', {'artifact_revision_id': revision_id, 'fact_revision_id': fact_revision_id}), str(task['task_id']), revision_id, fact_revision_id, ordinal, _parse_iso(now)),
             )
         self.fault_injector("after_initial_artifact_revision")
         return {
@@ -1407,18 +1174,17 @@ class ResearchKnowledgeService:
 
     def _finalize_topic_page(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         artifact_revision_id: str,
         build_run_id: str,
         input_hash: str,
         now: str,
     ) -> dict[str, Any]:
         artifact = connection.execute(
-            "SELECT * FROM research_knowledge_artifact_revisions "
-            "WHERE task_id=? AND artifact_revision_id=?",
-            (str(task["task_id"]), artifact_revision_id),
+            'SELECT * FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  task_id=%s AND artifact_revision_id=%s',
+            (self.context.workspace_id, str(task['task_id']), artifact_revision_id),
         ).fetchone()
         if artifact is None:
             raise ResearchValidationError("Artifact revision left Task boundary")
@@ -1428,9 +1194,9 @@ class ResearchKnowledgeService:
         revision_id = _id("topicpagerev", {"page_id": page_id, "version": 1})
         slug = f"topic-{page_id.rsplit('_', 1)[-1][:16]}"
         body = {
-            "facts": json.loads(str(artifact["body_json"]))["facts"],
-            "limitations": json.loads(str(artifact["limitations_json"])),
-            "unresolved": json.loads(str(artifact["unresolved_json"])),
+            "facts": json_value(artifact['body_json'])["facts"],
+            "limitations": json_value(artifact['limitations_json']),
+            "unresolved": json_value(artifact['unresolved_json']),
         }
         content_hash = _hash(
             {
@@ -1442,71 +1208,27 @@ class ResearchKnowledgeService:
         )
         connection.execute(
             """
-            INSERT INTO research_topic_pages(
-                page_id, workspace_schema_version, task_id, slug,
-                current_version, published_version, review_status,
-                state_version, created_at, updated_at
-            ) VALUES(?, ?, ?, ?, 1, NULL, 'draft', 0, ?, ?)
+            INSERT INTO research_topic_pages(workspace_id, page_id, workspace_schema_version, task_id, slug, current_version, published_version, review_status, state_version, created_at, updated_at) VALUES(%s, %s, %s, %s, %s, 1, NULL, 'draft', 0, %s, %s)
             """,
-            (
-                page_id,
-                KNOWLEDGE_WORKSPACE_SCHEMA_VERSION,
-                str(task["task_id"]),
-                slug,
-                now,
-                now,
-            ),
+            (self.context.workspace_id, page_id, KNOWLEDGE_WORKSPACE_SCHEMA_VERSION, str(task['task_id']), slug, _parse_iso(now), _parse_iso(now)),
         )
         connection.execute(
             """
-            INSERT INTO research_topic_page_revisions(
-                page_revision_id, page_id, task_id, version,
-                parent_revision_id, supersedes_revision_id,
-                revert_of_revision_id, revision_kind,
-                artifact_revision_id, title, body_json, build_policy_version,
-                input_hash, content_hash, created_at
-            ) VALUES(?, ?, ?, 1, NULL, NULL, NULL, 'initial', ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_topic_page_revisions(workspace_id, page_revision_id, page_id, task_id, version, parent_revision_id, supersedes_revision_id, revert_of_revision_id, revision_kind, artifact_revision_id, title, body_json, build_policy_version, input_hash, content_hash, created_at) VALUES(%s, %s, %s, %s, 1, NULL, NULL, NULL, 'initial', %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                revision_id,
-                page_id,
-                str(task["task_id"]),
-                artifact_revision_id,
-                str(artifact["topic"]),
-                _canonical_json(body),
-                TOPIC_PAGE_POLICY_VERSION,
-                input_hash,
-                content_hash,
-                now,
-            ),
+            (self.context.workspace_id, revision_id, page_id, str(task['task_id']), artifact_revision_id, str(artifact['topic']), json_field(_canonical_json(body)), TOPIC_PAGE_POLICY_VERSION, input_hash, content_hash, _parse_iso(now)),
         )
         fact_ids = [
-            str(row[0])
+            str(row["fact_revision_id"])
             for row in connection.execute(
-                "SELECT fact_revision_id FROM research_artifact_fact_links "
-                "WHERE artifact_revision_id=? ORDER BY ordinal",
-                (artifact_revision_id,),
+                'SELECT fact_revision_id FROM research_artifact_fact_links WHERE research_artifact_fact_links.workspace_id=%s AND  artifact_revision_id=%s ORDER BY ordinal',
+                (self.context.workspace_id, artifact_revision_id),
             ).fetchall()
         ]
         for ordinal, fact_revision_id in enumerate(fact_ids):
             connection.execute(
-                "INSERT INTO research_topic_page_fact_links("
-                "link_id, task_id, page_revision_id, fact_revision_id, ordinal, created_at"
-                ") VALUES(?, ?, ?, ?, ?, ?)",
-                (
-                    _id(
-                        "pagefact",
-                        {
-                            "page_revision_id": revision_id,
-                            "fact_revision_id": fact_revision_id,
-                        },
-                    ),
-                    str(task["task_id"]),
-                    revision_id,
-                    fact_revision_id,
-                    ordinal,
-                    now,
-                ),
+                'INSERT INTO research_topic_page_fact_links(workspace_id, link_id, task_id, page_revision_id, fact_revision_id, ordinal, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s)',
+                (self.context.workspace_id, _id('pagefact', {'page_revision_id': revision_id, 'fact_revision_id': fact_revision_id}), str(task['task_id']), revision_id, fact_revision_id, ordinal, _parse_iso(now)),
             )
         self.fault_injector("after_initial_topic_page_revision")
         return {
@@ -1525,6 +1247,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = ReviewTopicPageRequest.model_validate(request.model_dump(mode="json"))
         payload = {
             "operation": "review_topic_page",
@@ -1544,8 +1268,8 @@ class ResearchKnowledgeService:
             if existing is not None:
                 return {**existing, "deduplicated": True}
             page = connection.execute(
-                "SELECT * FROM research_topic_pages WHERE page_id=? AND task_id=?",
-                (page_id, task_id),
+                'SELECT * FROM research_topic_pages WHERE research_topic_pages.workspace_id=%s AND  page_id=%s AND task_id=%s',
+                (self.context.workspace_id, page_id, task_id),
             ).fetchone()
             if page is None:
                 raise ResearchNotFound(f"Topic Page 不存在: {page_id}")
@@ -1559,9 +1283,8 @@ class ResearchKnowledgeService:
                     f"Topic Page 已完成审查: {page['review_status']}"
                 )
             revision = connection.execute(
-                "SELECT * FROM research_topic_page_revisions "
-                "WHERE page_id=? AND version=?",
-                (page_id, request.expected_version),
+                'SELECT * FROM research_topic_page_revisions WHERE research_topic_page_revisions.workspace_id=%s AND  page_id=%s AND version=%s',
+                (self.context.workspace_id, page_id, request.expected_version),
             ).fetchone()
             if revision is None:
                 raise ResearchUnsafeState("Topic Page current revision missing")
@@ -1572,31 +1295,14 @@ class ResearchKnowledgeService:
             )
             connection.execute(
                 """
-                INSERT INTO research_topic_page_review_decisions(
-                    decision_id, task_id, page_id, page_revision_id,
-                    decision_kind, reason, expected_version,
-                    command_id, principal_id, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_topic_page_review_decisions(workspace_id, decision_id, task_id, page_id, page_revision_id, decision_kind, reason, expected_version, command_id, principal_id, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    decision_id,
-                    task_id,
-                    page_id,
-                    str(revision["page_revision_id"]),
-                    request.decision,
-                    request.reason,
-                    request.expected_version,
-                    request.command_id,
-                    principal_id,
-                    now,
-                ),
+                (self.context.workspace_id, decision_id, task_id, page_id, str(revision['page_revision_id']), request.decision, request.reason, request.expected_version, request.command_id, principal_id, _parse_iso(now)),
             )
             self.fault_injector("after_topic_page_review_decision")
             connection.execute(
-                "UPDATE research_topic_pages SET review_status=?, "
-                "published_version=CASE WHEN ?='published' THEN ? ELSE published_version END, "
-                "state_version=state_version+1, updated_at=? WHERE page_id=?",
-                (status, status, request.expected_version, now, page_id),
+                "UPDATE research_topic_pages SET review_status=%s, published_version=CASE WHEN %s='published' THEN %s ELSE published_version END, state_version=state_version+1, updated_at=%s WHERE research_topic_pages.workspace_id=%s AND  page_id=%s",
+                (status, status, request.expected_version, _parse_iso(now), self.context.workspace_id, page_id),
             )
             self.fault_injector("after_topic_page_review_state")
             event_id = self.kernel._event(
@@ -1641,19 +1347,16 @@ class ResearchKnowledgeService:
         with self.db.connect() as connection:
             self.kernel._task(connection, task_id)
             candidate_rows = connection.execute(
-                "SELECT * FROM research_knowledge_candidates WHERE task_id=? "
-                "ORDER BY created_at, candidate_id",
-                (task_id,),
+                'SELECT * FROM research_knowledge_candidates WHERE research_knowledge_candidates.workspace_id=%s AND  task_id=%s ORDER BY created_at, candidate_id',
+                (self.context.workspace_id, task_id),
             ).fetchall()
             fact_rows = connection.execute(
-                "SELECT * FROM research_fact_revisions WHERE task_id=? "
-                "ORDER BY created_at, fact_revision_id",
-                (task_id,),
+                'SELECT * FROM research_fact_revisions WHERE research_fact_revisions.workspace_id=%s AND  task_id=%s ORDER BY created_at, fact_revision_id',
+                (self.context.workspace_id, task_id),
             ).fetchall()
             artifact_rows = connection.execute(
-                "SELECT * FROM research_knowledge_artifact_revisions WHERE task_id=? "
-                "ORDER BY created_at, artifact_revision_id",
-                (task_id,),
+                'SELECT * FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  task_id=%s ORDER BY created_at, artifact_revision_id',
+                (self.context.workspace_id, task_id),
             ).fetchall()
             page_rows = connection.execute(
                 """
@@ -1661,15 +1364,14 @@ class ResearchKnowledgeService:
                        pr.title, pr.body_json, pr.content_hash, pr.revision_kind
                 FROM research_topic_pages p
                 JOIN research_topic_page_revisions pr
-                  ON pr.page_id=p.page_id AND pr.version=p.current_version
-                WHERE p.task_id=? ORDER BY p.created_at, p.page_id
+                  ON pr.workspace_id=p.workspace_id AND pr.page_id=p.page_id AND pr.version=p.current_version
+                WHERE p.workspace_id=%s AND  p.task_id=%s ORDER BY p.created_at, p.page_id
                 """,
-                (task_id,),
+                (self.context.workspace_id, task_id),
             ).fetchall()
             build_rows = connection.execute(
-                "SELECT * FROM research_knowledge_build_runs WHERE task_id=? "
-                "ORDER BY created_at, build_run_id",
-                (task_id,),
+                'SELECT * FROM research_knowledge_build_runs WHERE research_knowledge_build_runs.workspace_id=%s AND  task_id=%s ORDER BY created_at, build_run_id',
+                (self.context.workspace_id, task_id),
             ).fetchall()
             candidates = [
                 self._candidate_projection(connection, row) for row in candidate_rows
@@ -1774,12 +1476,12 @@ class ResearchKnowledgeService:
                 """
                 SELECT task_id, MAX(updated_at) AS latest_update
                 FROM research_topic_pages
-                WHERE published_version IS NOT NULL
+                WHERE research_topic_pages.workspace_id=%s AND  published_version IS NOT NULL
                 GROUP BY task_id
                 ORDER BY latest_update DESC, task_id
-                LIMIT ?
+                LIMIT %s
                 """,
-                (bounded,),
+                (self.context.workspace_id, bounded),
             ).fetchall()
 
         assets: list[dict[str, Any]] = []
@@ -1826,6 +1528,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.closeout.submit_feedback(
             task_id, request, principal_id=principal_id
@@ -1845,6 +1549,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.reuse.proceed(
             task_id,
@@ -1863,6 +1569,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.personal_workspace.create(
             task_id,
@@ -1878,6 +1586,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.personal_workspace.decide(
             task_id,
@@ -1905,6 +1615,8 @@ class ResearchKnowledgeService:
         current_snapshot_id: int | None = None,
         journey_enabled: bool = False,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         complete_workspace = self.personal_workspace.get_workspace(
             task_id,
             personalization_enabled=personalization_enabled,
@@ -1989,6 +1701,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.propose_update(
             task_id, fact_id, request, principal_id=principal_id
@@ -2002,6 +1716,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.review_update(
             task_id, update_candidate_id, request, principal_id=principal_id
@@ -2015,6 +1731,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.run_operation(
             task_id, operation_id, request, principal_id=principal_id
@@ -2027,6 +1745,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.recover_operations(
             task_id, request, principal_id=principal_id
@@ -2040,6 +1760,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.resolve_operation(
             task_id, operation_id, request, principal_id=principal_id
@@ -2053,6 +1775,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.edit_page(
             task_id, page_id, request, principal_id=principal_id
@@ -2066,6 +1790,8 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.revert_page(
             task_id, page_id, request, principal_id=principal_id
@@ -2086,11 +1812,13 @@ class ResearchKnowledgeService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         self._sync_lifecycle_fault_injector()
         return self.lifecycle.export_page(task_id, request, principal_id=principal_id)
 
     def _candidate_projection(
-        self, connection: sqlite3.Connection, row: sqlite3.Row
+        self, connection: Connection, row: dict[str, Any]
     ) -> dict[str, Any]:
         evidence = []
         for evidence_use_id in _json_list(row["evidence_use_ids_json"]):
@@ -2099,10 +1827,10 @@ class ResearchKnowledgeService:
                 SELECT eu.evidence_use_id, ei.*
                 FROM research_evidence_uses eu
                 JOIN research_evidence_identities ei
-                  ON ei.evidence_id=eu.evidence_id
-                WHERE eu.task_id=? AND eu.attempt_id=? AND eu.evidence_use_id=?
+                  ON ei.workspace_id=eu.workspace_id AND ei.evidence_id=eu.evidence_id
+                WHERE eu.workspace_id=%s AND  eu.task_id=%s AND eu.attempt_id=%s AND eu.evidence_use_id=%s
                 """,
-                (str(row["task_id"]), str(row["attempt_id"]), str(evidence_use_id)),
+                (self.context.workspace_id, str(row['task_id']), str(row['attempt_id']), str(evidence_use_id)),
             ).fetchone()
             if identity is None:
                 evidence.append(
@@ -2159,11 +1887,11 @@ class ResearchKnowledgeService:
                 "item_hash": str(row["source_item_hash"]),
                 "provisional_artifact_id": str(row["provisional_artifact_id"]),
             },
-            "created_at": str(row["created_at"]),
+            "created_at": iso_time(row['created_at'], timespec="microseconds"),
         }
 
     def _fact_projection(
-        self, connection: sqlite3.Connection, row: sqlite3.Row
+        self, connection: Connection, row: dict[str, Any]
     ) -> dict[str, Any]:
         links = connection.execute(
             """
@@ -2171,12 +1899,12 @@ class ResearchKnowledgeService:
                    ev.reason_code AS accepted_reason_code,
                    ev.observed_source_version AS accepted_observed_source_version
             FROM research_fact_evidence_links fel
-            JOIN research_evidence_identities ei ON ei.evidence_id=fel.evidence_id
+            JOIN research_evidence_identities ei ON ei.workspace_id=fel.workspace_id AND ei.evidence_id=fel.evidence_id
             JOIN research_evidence_validations ev
-              ON ev.observation_id=fel.validation_observation_id
-            WHERE fel.fact_revision_id=? ORDER BY fel.ordinal
+              ON ev.workspace_id=fel.workspace_id AND ev.observation_id=fel.validation_observation_id
+            WHERE fel.workspace_id=%s AND  fel.fact_revision_id=%s ORDER BY fel.ordinal
             """,
-            (str(row["fact_revision_id"]),),
+            (self.context.workspace_id, str(row['fact_revision_id'])),
         ).fetchall()
         citations = []
         for link in links:
@@ -2216,39 +1944,37 @@ class ResearchKnowledgeService:
             "verification_status": str(row["verification_status"]),
             "content_hash": str(row["content_hash"]),
             "citations": citations,
-            "created_at": str(row["created_at"]),
+            "created_at": iso_time(row['created_at'], timespec="microseconds"),
         }
 
     @staticmethod
-    def _artifact_projection(row: sqlite3.Row) -> dict[str, Any]:
+    def _artifact_projection(row: dict[str, Any]) -> dict[str, Any]:
         return {
             "artifact_id": str(row["artifact_id"]),
             "artifact_revision_id": str(row["artifact_revision_id"]),
             "revision": int(row["revision"]),
             "topic": str(row["topic"]),
-            "body": json.loads(str(row["body_json"])),
-            "limitations": json.loads(str(row["limitations_json"])),
-            "unresolved": json.loads(str(row["unresolved_json"])),
+            "body": json_value(row['body_json']),
+            "limitations": json_value(row['limitations_json']),
+            "unresolved": json_value(row['unresolved_json']),
             "source": {
-                "result_ids": json.loads(str(row["source_result_ids_json"])),
-                "boundary_hashes": json.loads(
-                    str(row["source_boundary_hashes_json"])
-                ),
-                "corpus_snapshot": json.loads(str(row["corpus_snapshot_json"])),
+                "result_ids": json_value(row['source_result_ids_json']),
+                "boundary_hashes": json_value(row['source_boundary_hashes_json']),
+                "corpus_snapshot": json_value(row['corpus_snapshot_json']),
             },
             "content_hash": str(row["content_hash"]),
-            "created_at": str(row["created_at"]),
+            "created_at": iso_time(row['created_at'], timespec="microseconds"),
         }
 
     @staticmethod
-    def _page_projection(row: sqlite3.Row) -> dict[str, Any]:
+    def _page_projection(row: dict[str, Any]) -> dict[str, Any]:
         return {
             "page_id": str(row["page_id"]),
             "page_revision_id": str(row["page_revision_id"]),
             "version": int(row["current_version"]),
             "slug": str(row["slug"]),
             "title": str(row["title"]),
-            "body": json.loads(str(row["body_json"])),
+            "body": json_value(row['body_json']),
             "artifact_revision_id": str(row["artifact_revision_id"]),
             "review_status": str(row["review_status"]),
             "published_version": (
@@ -2257,12 +1983,12 @@ class ResearchKnowledgeService:
             "revision_kind": str(row["revision_kind"]),
             "state_version": int(row["state_version"]),
             "content_hash": str(row["content_hash"]),
-            "created_at": str(row["created_at"]),
-            "updated_at": str(row["updated_at"]),
+            "created_at": iso_time(row['created_at'], timespec="microseconds"),
+            "updated_at": iso_time(row['updated_at'], timespec="microseconds"),
         }
 
     @staticmethod
-    def _build_projection(row: sqlite3.Row) -> dict[str, Any]:
+    def _build_projection(row: dict[str, Any]) -> dict[str, Any]:
         return {
             "build_run_id": str(row["build_run_id"]),
             "build_kind": str(row["build_kind"]),
@@ -2272,7 +1998,7 @@ class ResearchKnowledgeService:
             "output_reference": (
                 str(row["output_reference"]) if row["output_reference"] else None
             ),
-            "created_at": str(row["created_at"]),
-            "updated_at": str(row["updated_at"]),
-            "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
+            "created_at": iso_time(row['created_at'], timespec="microseconds"),
+            "updated_at": iso_time(row['updated_at'], timespec="microseconds"),
+            "completed_at": iso_time(row['completed_at'], timespec="microseconds") if row["completed_at"] else None,
         }

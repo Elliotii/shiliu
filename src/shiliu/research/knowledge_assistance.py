@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from psycopg import sql
 import hashlib
 import json
 import re
 import unicodedata
 from typing import Any
 
-from shiliu.db import Database
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import json_value
+from shiliu.research.source_refs import source_boundary_row
+from shiliu.research.service import _parse_iso
 from shiliu.taxonomy.corpus import TaxonomyCorpusService
 
 
@@ -53,6 +57,7 @@ class KnowledgeAssistanceProjection:
 
     def __init__(self, db: Database, *, taxonomy: TaxonomyCorpusService) -> None:
         self.db = db
+        self.context = db.context
         self.taxonomy = taxonomy
 
     def project(
@@ -74,7 +79,7 @@ class KnowledgeAssistanceProjection:
             focus, focus_reasons = self._focus(records, principal_id)
             with self.db.connect() as connection:
                 if connection.execute(
-                    "SELECT 1 FROM research_tasks WHERE task_id=?", (task_id,)
+                    'SELECT 1 FROM research_tasks WHERE research_tasks.workspace_id=%s AND research_tasks.owner_user_id=%s AND  task_id=%s', (self.context.workspace_id, self.context.user_id, task_id)
                 ).fetchone() is None:
                     return self._failed(empty, "task_missing")
                 progress, progress_reasons = self._progress(
@@ -410,8 +415,7 @@ class KnowledgeAssistanceProjection:
             )
         )
 
-    @staticmethod
-    def _refs_are_current(
+    def _refs_are_current(self,
         connection: Any, refs: object, *, expected_task_id: str | None = None
     ) -> bool:
         if not isinstance(refs, list) or not refs:
@@ -444,9 +448,9 @@ class KnowledgeAssistanceProjection:
                 else ref["ref_id"]
             )
             row = connection.execute(
-                f"SELECT * FROM {table} WHERE {key}=?", (lookup,)
+                sql.SQL("SELECT * FROM {} WHERE workspace_id=%s AND {}=%s").format(sql.Identifier(table),sql.Identifier(key)), (self.context.workspace_id,lookup,)
             ).fetchone()
-            if row is None or _hash(dict(row)) != ref.get("boundary_hash"):
+            if row is None or _hash(source_boundary_row(row,str(ref["ref_type"]))) != ref.get("boundary_hash"):
                 return False
         return True
 
@@ -458,19 +462,19 @@ class KnowledgeAssistanceProjection:
             SELECT fs.*, fr.claim_text, fr.content_hash AS fact_content_hash,
                    fr.fact_revision_id
             FROM research_knowledge_fact_states fs
-            JOIN research_fact_revisions fr ON fr.fact_revision_id=fs.current_revision_id
-            WHERE fs.task_id=? AND (
+            JOIN research_fact_revisions fr ON fr.workspace_id=fs.workspace_id AND fr.fact_revision_id=fs.current_revision_id
+            WHERE fs.workspace_id=%s AND  fs.task_id=%s AND (
                 fs.lifecycle_status!='current' OR fs.currentness_status!='current'
             )
             ORDER BY fs.updated_at DESC, fs.fact_id
             """,
-            (task_id,),
+            (self.context.workspace_id, task_id),
         ).fetchall()
         cards = []
         for row in rows:
             fact_row = connection.execute(
-                "SELECT * FROM research_fact_revisions WHERE fact_revision_id=?",
-                (row["fact_revision_id"],),
+                'SELECT * FROM research_fact_revisions WHERE research_fact_revisions.workspace_id=%s AND  fact_revision_id=%s',
+                (self.context.workspace_id, row['fact_revision_id']),
             ).fetchone()
             if fact_row is None:
                 continue
@@ -479,27 +483,27 @@ class KnowledgeAssistanceProjection:
                 SELECT ar.artifact_revision_id, ar.content_hash
                 FROM research_artifact_fact_links l
                 JOIN research_knowledge_artifact_revisions ar
-                  ON ar.artifact_revision_id=l.artifact_revision_id
-                WHERE l.task_id=? AND l.fact_revision_id=?
+                  ON ar.workspace_id=l.workspace_id AND ar.artifact_revision_id=l.artifact_revision_id
+                WHERE l.workspace_id=%s AND  l.task_id=%s AND l.fact_revision_id=%s
                   AND ar.revision=(
                     SELECT MAX(ar2.revision)
                     FROM research_knowledge_artifact_revisions ar2
-                    WHERE ar2.artifact_id=ar.artifact_id
+                    WHERE ar2.workspace_id=ar.workspace_id AND ar2.artifact_id=ar.artifact_id
                   )
                 ORDER BY ar.revision DESC, ar.artifact_revision_id
                 """,
-                (task_id, row["fact_revision_id"]),
+                (self.context.workspace_id, task_id, row['fact_revision_id']),
             ).fetchall()
             pages = connection.execute(
                 """
                 SELECT pr.page_revision_id, pr.content_hash
                 FROM research_topic_page_fact_links l
-                JOIN research_topic_page_revisions pr ON pr.page_revision_id=l.page_revision_id
-                JOIN research_topic_pages p ON p.page_id=pr.page_id AND p.current_version=pr.version
-                WHERE l.task_id=? AND l.fact_revision_id=?
+                JOIN research_topic_page_revisions pr ON pr.workspace_id=l.workspace_id AND pr.page_revision_id=l.page_revision_id
+                JOIN research_topic_pages p ON p.workspace_id=l.workspace_id AND p.page_id=pr.page_id AND p.current_version=pr.version
+                WHERE l.workspace_id=%s AND  l.task_id=%s AND l.fact_revision_id=%s
                 ORDER BY pr.version DESC, pr.page_revision_id
                 """,
-                (task_id, row["fact_revision_id"]),
+                (self.context.workspace_id, task_id, row['fact_revision_id']),
             ).fetchall()
             boundary_value = {
                 "fact_revision_id": row["fact_revision_id"],
@@ -507,8 +511,8 @@ class KnowledgeAssistanceProjection:
                 "lifecycle_status": row["lifecycle_status"],
                 "currentness_status": row["currentness_status"],
                 "state_version": row["state_version"],
-                "artifacts": [(value[0], value[1]) for value in artifacts],
-                "pages": [(value[0], value[1]) for value in pages],
+                "artifacts": [(value["artifact_revision_id"], value["content_hash"]) for value in artifacts],
+                "pages": [(value["page_revision_id"], value["content_hash"]) for value in pages],
             }
             boundary = _hash(boundary_value)
             candidate_id = _id(
@@ -517,8 +521,8 @@ class KnowledgeAssistanceProjection:
             refs = [self._ref("fact_revision", dict(fact_row), task_id)]
             if artifacts:
                 artifact_row = connection.execute(
-                    "SELECT * FROM research_knowledge_artifact_revisions WHERE artifact_revision_id=?",
-                    (artifacts[0][0],),
+                    'SELECT * FROM research_knowledge_artifact_revisions WHERE research_knowledge_artifact_revisions.workspace_id=%s AND  artifact_revision_id=%s',
+                    (self.context.workspace_id, artifacts[0]["artifact_revision_id"]),
                 ).fetchone()
                 if artifact_row is not None:
                     refs.append(self._ref("artifact_revision", dict(artifact_row), task_id))
@@ -624,25 +628,25 @@ class KnowledgeAssistanceProjection:
 
     def _snapshot(self, connection: Any, snapshot_id: int) -> dict[str, Any] | None:
         row = connection.execute(
-            "SELECT * FROM taxonomy_corpus_snapshots WHERE id=?", (snapshot_id,)
+            "SELECT * FROM taxonomy_corpus_snapshots WHERE workspace_id=%s AND id=%s", (self.context.workspace_id,snapshot_id,)
         ).fetchone()
         if row is None:
             return None
         value = dict(row)
-        selected = json.loads(str(value["selected_source_ids_json"]))
+        selected = json_value(value['selected_source_ids_json'])
         if not isinstance(selected, list) or any(
             not isinstance(item, int) for item in selected
         ):
             return None
         rows = connection.execute(
-            "SELECT * FROM taxonomy_classification_cards WHERE snapshot_id=? ORDER BY ordinal",
-            (snapshot_id,),
+            "SELECT * FROM taxonomy_classification_cards WHERE workspace_id=%s AND snapshot_id=%s ORDER BY ordinal",
+            (self.context.workspace_id,snapshot_id,),
         ).fetchall()
         cards = []
         for card_row in rows:
             card_value = dict(card_row)
-            stored = json.loads(str(card_value["stored_card_json"]))
-            view = json.loads(str(card_value["discovery_view_json"]))
+            stored = json_value(card_value['stored_card_json'])
+            view = json_value(card_value['discovery_view_json'])
             if (
                 not isinstance(stored, dict)
                 or not isinstance(view, dict)
@@ -695,10 +699,10 @@ class KnowledgeAssistanceProjection:
             if not video_id:
                 continue
             video = connection.execute(
-                "SELECT * FROM videos WHERE id=?", (video_id,)
+                "SELECT * FROM videos WHERE workspace_id=%s AND id=%s", (self.context.workspace_id,video_id,)
             ).fetchone()
             sync = connection.execute(
-                "SELECT * FROM retrieval_sync_state WHERE video_id=?", (video_id,)
+                "SELECT * FROM retrieval_sync_state WHERE workspace_id=%s AND video_id=%s", (self.context.workspace_id,video_id,)
             ).fetchone()
             if (
                 video is None
@@ -709,19 +713,8 @@ class KnowledgeAssistanceProjection:
             ):
                 continue
             try:
-                path = self.taxonomy.artifacts.managed_file(str(video["raw_subtitle_path"]))
-                if path.parent.name != str(video["source_id"]):
-                    continue
-                raw = path.read_bytes()
-                decoded = raw.decode("utf-8")
-                if path.suffix == ".json":
-                    segments = json.loads(decoded)
-                else:
-                    segments = [
-                        {"content": line}
-                        for line in decoded.splitlines()
-                        if line.strip()
-                    ]
+                raw = self.taxonomy.artifacts.raw_bytes(str(video["raw_subtitle_path"]))
+                segments = json.loads(raw)
             except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
                 continue
             if not isinstance(segments, list):
@@ -796,7 +789,7 @@ class KnowledgeAssistanceProjection:
             "ref_type": ref_type,
             "ref_id": ref_id,
             "task_id": task_id,
-            "boundary_hash": _hash(row),
+            "boundary_hash": _hash(source_boundary_row(row,ref_type)),
         }
 
     @staticmethod

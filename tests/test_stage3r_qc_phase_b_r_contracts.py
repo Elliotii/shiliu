@@ -23,7 +23,7 @@ from shiliu.eval_v3_5.stage3r_qc_phase_b import file_sha256
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "research/v3_5/stage3r_qc/phase_b_r"
 SNAPSHOT = Path(
-    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/"
+    "/absolute/historical/Documents/Shiliu/eval/v3_stage6/"
     "20260720T094346Z_c7663365/shiliu_eval.db"
 )
 

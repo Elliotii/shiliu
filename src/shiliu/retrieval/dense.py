@@ -3,35 +3,23 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
-from pathlib import Path
 import re
-import sqlite3
 import time
 from typing import Iterable, Protocol, Sequence
 
 import numpy as np
+import json
+from psycopg.types.json import Jsonb
 
-from shiliu.db import Database
 from shiliu.retrieval.models import (
     DenseSearchResult,
-    FolderContext,
     RetrievalFilters,
-    SearchLevel,
 )
-from shiliu.retrieval.service import RetrievalService, _excerpt
+from shiliu.retrieval.service import _excerpt, _folder_contexts
 
 
-MODEL_ID = "BAAI/bge-small-zh-v1.5"
-EMBEDDING_DIMENSION = 512
-PROJECTION_VERSION = "v3-dense-projection-v2"
-DENSE_INDEX_VERSION = "v3-stage2-dense-bge-small-zh-v1"
 DENSE_INDEX_NAME = "shiliu_dense"
 EMBEDDING_DTYPE = "float32"
-BGE_MODEL_REVISION = "46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59"
-BGE_PROVIDER_VERSION = "v3-fastembed-bge-provider-v1"
-BGE_EMBEDDING_MODE = "fastembed-normalized-512"
-BGE_QUERY_INSTRUCTION_VERSION = "none"
-BGE_INPUT_POLICY_VERSION = "v3-bge-input-512-v1"
 
 # Content-token quotas exclude the one-token field label and model special tokens.
 # Their sum (456), ten one-token labels, and CLS/SEP remain below 480 tokens.
@@ -80,78 +68,7 @@ def provider_identity(provider: EmbeddingProvider) -> DenseModelIdentity:
     method = getattr(provider, "model_identity", None)
     if callable(method):
         return method()
-    # Compatibility for the existing deterministic test providers.
-    return DenseModelIdentity(
-        model_id=provider.model_id,
-        model_revision="test-or-legacy",
-        provider_version="v3-legacy-provider-v1",
-        dimension=provider.dimension,
-        embedding_mode="normalized-float32",
-        projection_version=PROJECTION_VERSION,
-        query_instruction_version="none",
-        input_policy_version="v3-legacy-input-v1",
-        dense_index_version=DENSE_INDEX_VERSION,
-    )
-
-
-class FastEmbedEmbeddingProvider:
-    """Lazy FastEmbed adapter: importing or constructing it does not load a model."""
-
-    model_id = MODEL_ID
-    dimension = EMBEDDING_DIMENSION
-
-    def __init__(self, *, cache_dir: Path | None = None) -> None:
-        self._model: object | None = None
-        self.cache_dir = cache_dir
-
-    def _get_model(self):
-        if self._model is None:
-            from fastembed import TextEmbedding
-
-            self._model = TextEmbedding(
-                model_name=self.model_id,
-                cache_dir=str(self.cache_dir) if self.cache_dir is not None else None,
-            )
-        return self._model
-
-    def embed_documents(self, texts: Sequence[str]) -> list[np.ndarray]:
-        return [_normalize(value) for value in self._get_model().embed(list(texts))]
-
-    def embed_query(self, text: str) -> np.ndarray:
-        model = self._get_model()
-        method = getattr(model, "query_embed", model.embed)
-        return _normalize(next(iter(method([text]))))
-
-    def count_tokens(self, text: str, *, add_special_tokens: bool = True) -> int:
-        tokenizer = self._get_model().model.tokenizer
-        return len(tokenizer.encode(text, add_special_tokens=add_special_tokens).ids)
-
-    def truncate_text(self, text: str, max_content_tokens: int) -> str:
-        if max_content_tokens < 1:
-            return ""
-        if self.count_tokens(text, add_special_tokens=False) <= max_content_tokens:
-            return text
-        low, high = 0, len(text)
-        while low < high:
-            middle = (low + high + 1) // 2
-            if self.count_tokens(text[:middle], add_special_tokens=False) <= max_content_tokens:
-                low = middle
-            else:
-                high = middle - 1
-        return text[:low].rstrip()
-
-    def model_identity(self) -> DenseModelIdentity:
-        return DenseModelIdentity(
-            model_id=self.model_id,
-            model_revision=BGE_MODEL_REVISION,
-            provider_version=BGE_PROVIDER_VERSION,
-            dimension=self.dimension,
-            embedding_mode=BGE_EMBEDDING_MODE,
-            projection_version=PROJECTION_VERSION,
-            query_instruction_version=BGE_QUERY_INSTRUCTION_VERSION,
-            input_policy_version=BGE_INPUT_POLICY_VERSION,
-            dense_index_version=DENSE_INDEX_VERSION,
-        )
+    raise ValueError("complete_embedding_profile_required")
 
 
 class DenseIndexNotReadyError(RuntimeError):
@@ -176,7 +93,9 @@ class DenseRebuildStats:
     def as_dict(self) -> dict[str, object]:
         result = asdict(self)
         result.pop("identity")
-        identity = self.identity or FastEmbedEmbeddingProvider().model_identity()
+        identity = self.identity
+        if identity is None:
+            raise ValueError("complete_embedding_profile_required")
         result.update(
             model_id=identity.model_id,
             model_revision=identity.model_revision,
@@ -210,7 +129,9 @@ def project_embedding_text(
     for source_label, projection_label, token_limit in VIDEO_FIELD_TOKEN_LIMITS:
         value = sections.get(source_label, "")
         accepted: list[str] = []
-        for paragraph in filter(None, (" ".join(p.split()) for p in value.splitlines())):
+        for paragraph in filter(
+            None, (" ".join(p.split()) for p in value.splitlines())
+        ):
             key = paragraph.casefold()
             if key not in seen:
                 seen.add(key)
@@ -236,420 +157,372 @@ def prepare_embedding_document(
     return prepare(projected) if callable(prepare) else projected
 
 
-class SQLiteExactDenseIndex:
-    def __init__(self, *, db: Database, provider: EmbeddingProvider) -> None:
-        self.db = db
-        self.provider = provider
+def profile_identity(provider):
+    identity = provider_identity(provider)
+    if identity.dimension != 512:
+        raise ValueError("embedding_dimension_must_be_512")
+    fields = asdict(identity)
+    # Query instruction is a trace/query policy, not a document profile field.
+    fields.pop("query_instruction_version")
+    fields.update(
+        dtype="float32",
+        normalized=True,
+        max_tokens=512,
+        tokenizer_revision=identity.model_revision,
+        document_policy_version=identity.projection_version,
+    )
+    if any(not value for value in fields.values()):
+        raise ValueError("complete_embedding_profile_required")
+    profile = (
+        "embedding_"
+        + sha256(
+            json.dumps(
+                fields, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode()
+        ).hexdigest()
+    )
+    return profile, fields
 
-    def initialize_schema(self) -> None:
-        with self.db.connect() as connection:
-            connection.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS retrieval_dense_vectors (
-                    unit_id TEXT PRIMARY KEY REFERENCES retrieval_units(unit_id) ON DELETE CASCADE,
-                    model_id TEXT NOT NULL,
-                    embedding_dimension INTEGER NOT NULL,
-                    embedding_dtype TEXT NOT NULL,
-                    normalized INTEGER NOT NULL,
-                    embedding_blob BLOB NOT NULL,
-                    source_content_hash TEXT NOT NULL,
-                    embedding_text_hash TEXT NOT NULL,
-                    projection_version TEXT NOT NULL,
-                    dense_index_version TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS retrieval_dense_index_meta (
-                    index_name TEXT PRIMARY KEY,
-                    dense_index_version TEXT NOT NULL,
-                    model_id TEXT NOT NULL,
-                    embedding_dimension INTEGER NOT NULL,
-                    embedding_dtype TEXT NOT NULL,
-                    normalized INTEGER NOT NULL,
-                    projection_version TEXT NOT NULL,
-                    total_unit_count INTEGER NOT NULL,
-                    video_unit_count INTEGER NOT NULL,
-                    chunk_unit_count INTEGER NOT NULL,
-                    built_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    build_duration_seconds REAL NOT NULL
-                );
-                """
-            )
-            existing = {
-                str(row["name"])
-                for row in connection.execute("PRAGMA table_info(retrieval_dense_index_meta)")
-            }
-            additions = {
-                "model_revision": f"TEXT NOT NULL DEFAULT '{BGE_MODEL_REVISION}'",
-                "provider_version": f"TEXT NOT NULL DEFAULT '{BGE_PROVIDER_VERSION}'",
-                "embedding_mode": f"TEXT NOT NULL DEFAULT '{BGE_EMBEDDING_MODE}'",
-                "query_instruction_version": "TEXT NOT NULL DEFAULT 'none'",
-                "input_policy_version": f"TEXT NOT NULL DEFAULT '{BGE_INPUT_POLICY_VERSION}'",
-            }
-            for name, definition in additions.items():
-                if name not in existing:
-                    connection.execute(
-                        f"ALTER TABLE retrieval_dense_index_meta ADD COLUMN {name} {definition}"
-                    )
 
-    def rebuild(self, *, batch_size: int = 64) -> DenseRebuildStats:
-        self.initialize_schema()
-        identity = provider_identity(self.provider)
-        started = time.monotonic()
-        with self.db.connect() as connection:
-            units = connection.execute(
-                "SELECT unit_id, unit_type, search_text, content_hash FROM retrieval_units ORDER BY unit_id"
-            ).fetchall()
-            old = {
-                str(row["unit_id"]): row
-                for row in connection.execute("SELECT * FROM retrieval_dense_vectors")
-            }
-        desired: list[tuple[sqlite3.Row, str, str]] = []
-        reusable: set[str] = set()
-        metadata_updates: dict[str, str] = {}
-        for row in units:
-            text = prepare_embedding_document(
-                str(row["unit_type"]), str(row["search_text"]), provider=self.provider,
+class EncodedVectors(dict):
+    def __init__(self, values, *, encoded_count, reused_count):
+        super().__init__(values)
+        self.encoded_count = encoded_count
+        self.reused_count = reused_count
+
+
+class PgExactDenseIndex:
+    """Exact pgvector ranking. Encoding never holds a connection."""
+
+    def __init__(self, *, db, provider, lexical=None):
+        self.db, self.provider, self.lexical = db, provider, lexical
+        self.identity = provider_identity(provider)
+        self.profile_id, self.profile = profile_identity(provider)
+
+    def register(self, *, conn=None):
+        with self.db.connect(conn) as c:
+            c.execute(
+                "INSERT INTO shiliu.embedding_profiles(profile_id,model_id,model_revision,dimension,dtype,normalized,provider_version,document_policy_version,tokenizer_revision,max_tokens,identity) VALUES(%s,%s,%s,512,'float32',true,%s,%s,%s,512,%s) ON CONFLICT(profile_id) DO NOTHING",
+                (
+                    self.profile_id,
+                    self.identity.model_id,
+                    self.identity.model_revision,
+                    self.identity.provider_version,
+                    self.identity.projection_version,
+                    self.identity.model_revision,
+                    Jsonb(self.profile),
+                ),
             )
+            old = c.execute(
+                "SELECT identity FROM shiliu.embedding_profiles WHERE profile_id=%s",
+                (self.profile_id,),
+            ).fetchone()
+            if old["identity"] != self.profile:
+                raise ValueError("embedding_profile_conflict")
+        return self.profile_id
+
+    def active_profile(self, *, conn=None):
+        with self.db.connect(conn, read_only=True) as c:
+            row = c.execute(
+                "SELECT embedding_profile_id FROM shiliu.assistant_runtime_state WHERE workspace_id=%s AND principal_id=%s AND embedding_domain='collection'",
+                (self.db.workspace_id, self.db.context.user_id),
+            ).fetchone()
+            return row["embedding_profile_id"] if row else None
+
+    def encode(self, units):
+        texts = [
+            prepare_embedding_document(
+                u.unit_type, u.search_text, provider=self.provider
+            )
+            for u in units
+        ]
+        if any(self.provider.count_tokens(text) > MODEL_MAX_TOKENS for text in texts):
+            raise ValueError("embedding_document_exceeds_512_token_policy")
+        # A freshly prepared document with the same immutable complete profile
+        # and exact input hash has the same encoding. Rebind its source hash and
+        # generation only at the later fenced publication, never in this read.
+        with self.db.connect(read_only=True) as c:
+            cached = {
+                r["unit_id"]: r
+                for r in c.execute(
+                    "SELECT unit_id,embedding_text_hash,embedding FROM shiliu.collection_embeddings WHERE workspace_id=%s AND profile_id=%s AND unit_id=ANY(%s)",
+                    (self.db.workspace_id, self.profile_id, [u.unit_id for u in units]),
+                )
+            }
+        result, missing = {}, []
+        for unit, text in zip(units, texts):
             text_hash = _hash(text)
-            prior = old.get(str(row["unit_id"]))
-            if prior is not None and self._compatible(prior, text_hash):
-                unit_id = str(row["unit_id"])
-                reusable.add(unit_id)
-                if str(prior["source_content_hash"]) != str(row["content_hash"]):
-                    metadata_updates[unit_id] = str(row["content_hash"])
-            else:
-                desired.append((row, text, text_hash))
-
-        # Provider work happens before the replacement transaction.
-        embedded: dict[str, tuple[np.ndarray, str, str]] = {}
-        for offset in range(0, len(desired), batch_size):
-            batch = desired[offset : offset + batch_size]
-            vectors = self.provider.embed_documents([item[1] for item in batch])
-            if len(vectors) != len(batch):
-                raise ValueError("embedding provider returned an unexpected vector count")
-            for (row, _text, text_hash), vector in zip(batch, vectors):
-                checked = _validate_vector(vector, self.provider.dimension)
-                embedded[str(row["unit_id"])] = (
-                    checked,
-                    str(row["content_hash"]),
-                    text_hash,
-                )
-
-        now = _utc_now()
-        current_ids = {str(row["unit_id"]) for row in units}
-        stale = set(old) - current_ids
-        stats = DenseRebuildStats(
-            total_unit_count=len(units),
-            video_unit_count=sum(str(r["unit_type"]) == "video" for r in units),
-            chunk_unit_count=sum(str(r["unit_type"]) == "transcript_chunk" for r in units),
-            embedded_count=len(embedded),
-            reused_count=len(reusable),
-            stale_deleted_count=len(stale),
-            identity=identity,
+            row = cached.get(unit.unit_id)
+            if row and row["embedding_text_hash"] == text_hash:
+                try:
+                    result[unit.unit_id] = (
+                        _validate_vector(row["embedding"].to_numpy(), 512),
+                        text_hash,
+                    )
+                    continue
+                except ValueError:
+                    pass
+            missing.append((unit, text, text_hash))
+        vectors = (
+            self.provider.embed_documents([text for _, text, _ in missing])
+            if missing
+            else []
         )
-        with self.db.connect() as connection:
-            if stale:
-                connection.executemany(
-                    "DELETE FROM retrieval_dense_vectors WHERE unit_id=?",
-                    [(unit_id,) for unit_id in sorted(stale)],
-                )
-            for unit_id, (vector, source_hash, text_hash) in embedded.items():
-                created_at = str(old[unit_id]["created_at"]) if unit_id in old else now
-                connection.execute(
-                    """
-                    INSERT INTO retrieval_dense_vectors VALUES(?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(unit_id) DO UPDATE SET
-                      model_id=excluded.model_id, embedding_dimension=excluded.embedding_dimension,
-                      embedding_dtype=excluded.embedding_dtype, normalized=excluded.normalized,
-                      embedding_blob=excluded.embedding_blob, source_content_hash=excluded.source_content_hash,
-                      embedding_text_hash=excluded.embedding_text_hash,
-                      projection_version=excluded.projection_version,
-                      dense_index_version=excluded.dense_index_version, updated_at=excluded.updated_at
-                    """,
-                    (unit_id, identity.model_id, identity.dimension, EMBEDDING_DTYPE,
-                     vector.astype("<f4").tobytes(), source_hash, text_hash,
-                     identity.projection_version, identity.dense_index_version, created_at, now),
-                )
-            connection.executemany(
-                "UPDATE retrieval_dense_vectors SET source_content_hash=?, updated_at=? WHERE unit_id=?",
-                [
-                    (source_hash, now, unit_id)
-                    for unit_id, source_hash in sorted(metadata_updates.items())
-                ],
+        if len(vectors) != len(missing):
+            raise ValueError("embedding_result_count_mismatch")
+        reused = len(result)
+        result.update(
+            {
+                u.unit_id: (_validate_vector(v, 512), text_hash)
+                for (u, _, text_hash), v in zip(missing, vectors)
+            }
+        )
+        return EncodedVectors(result, encoded_count=len(missing), reused_count=reused)
+
+    def publish(self, conn, units, vectors, generation):
+        self.register(conn=conn)
+        for unit in units:
+            vector, text_hash = vectors[unit.unit_id]
+            conn.execute(
+                "INSERT INTO shiliu.collection_embeddings(unit_id,profile_id,workspace_id,source_content_hash,embedding_text_hash,generation,embedding,created_at,updated_at) "
+                "VALUES(%s,%s,%s,%s,%s,%s,%s,clock_timestamp(),clock_timestamp()) ON CONFLICT(workspace_id,unit_id,profile_id) DO UPDATE SET "
+                "source_content_hash=excluded.source_content_hash,embedding_text_hash=excluded.embedding_text_hash,generation=excluded.generation,embedding=excluded.embedding,updated_at=excluded.updated_at",
+                (
+                    unit.unit_id,
+                    self.profile_id,
+                    self.db.workspace_id,
+                    unit.content_hash,
+                    text_hash,
+                    generation,
+                    vector,
+                ),
             )
-            stats.duration_seconds = time.monotonic() - started
-            connection.execute(
-                """
-                INSERT INTO retrieval_dense_index_meta(
-                  index_name, dense_index_version, model_id, embedding_dimension,
-                  embedding_dtype, normalized, projection_version, total_unit_count,
-                  video_unit_count, chunk_unit_count, built_at, updated_at,
-                  build_duration_seconds, model_revision, provider_version,
-                  embedding_mode, query_instruction_version, input_policy_version
-                ) VALUES(?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(index_name) DO UPDATE SET
-                  dense_index_version=excluded.dense_index_version, model_id=excluded.model_id,
-                  embedding_dimension=excluded.embedding_dimension, embedding_dtype=excluded.embedding_dtype,
-                  normalized=excluded.normalized, projection_version=excluded.projection_version,
-                  total_unit_count=excluded.total_unit_count, video_unit_count=excluded.video_unit_count,
-                  chunk_unit_count=excluded.chunk_unit_count, built_at=excluded.built_at,
-                  updated_at=excluded.updated_at, build_duration_seconds=excluded.build_duration_seconds,
-                  model_revision=excluded.model_revision, provider_version=excluded.provider_version,
-                  embedding_mode=excluded.embedding_mode,
-                  query_instruction_version=excluded.query_instruction_version,
-                  input_policy_version=excluded.input_policy_version
-                """,
-                (DENSE_INDEX_NAME, identity.dense_index_version, identity.model_id,
-                 identity.dimension, EMBEDDING_DTYPE, identity.projection_version,
-                 stats.total_unit_count, stats.video_unit_count, stats.chunk_unit_count,
-                 now, now, stats.duration_seconds, identity.model_revision,
-                 identity.provider_version, identity.embedding_mode,
-                 identity.query_instruction_version, identity.input_policy_version),
+
+    def activate(self):
+        with self.db.connect(guard=True) as c:
+            missing = self._coverage(c)
+            if missing:
+                raise DenseIndexNotReadyError("embedding_profile_coverage_incomplete")
+            c.execute(
+                "INSERT INTO shiliu.assistant_runtime_state(workspace_id,principal_id,key,value,updated_at,embedding_domain,embedding_profile_id) "
+                "VALUES(%s,%s,'embedding:collection:active',%s,clock_timestamp(),'collection',%s) ON CONFLICT(workspace_id,principal_id,key) DO UPDATE SET "
+                "value=excluded.value,embedding_profile_id=excluded.embedding_profile_id,updated_at=excluded.updated_at",
+                (
+                    self.db.workspace_id,
+                    self.db.context.user_id,
+                    self.profile_id,
+                    self.profile_id,
+                ),
             )
+
+    def _coverage(self, c):
+        missing = c.execute(
+            "SELECT COUNT(*) AS n FROM shiliu.videos v WHERE v.workspace_id=%s AND v.removed_at IS NULL "
+            "AND EXISTS(SELECT 1 FROM shiliu.video_source_memberships m JOIN shiliu.favorite_sources s ON s.workspace_id=m.workspace_id AND s.id=m.source_id WHERE m.workspace_id=v.workspace_id AND m.video_id=v.id AND m.removed_at IS NULL AND s.status='active') "
+            "AND NOT EXISTS(SELECT 1 FROM shiliu.retrieval_units u JOIN shiliu.retrieval_projection_tasks t ON t.workspace_id=u.workspace_id AND t.domain='collection' AND t.resource_key=u.video_id::text AND t.requested_generation=u.generation WHERE u.workspace_id=v.workspace_id AND u.video_id=v.id AND u.unit_type='video')",
+            (self.db.workspace_id,),
+        ).fetchone()["n"]
+        where, params = self.lexical._search_filters(
+            level="all", filters=RetrievalFilters(), include_ignored=True
+        )
+        missing += c.execute(
+            "SELECT COUNT(*) AS n "
+            + self.lexical.current_join()
+            + "WHERE "
+            + where
+            + " AND NOT EXISTS(SELECT 1 FROM shiliu.collection_embeddings e WHERE (e.workspace_id,e.unit_id)=(u.workspace_id,u.unit_id) AND e.profile_id=%s AND e.generation=u.generation AND e.source_content_hash=u.content_hash)",
+            [*params, self.profile_id],
+        ).fetchone()["n"]
+        return missing
+
+    def rebuild(self, *, batch_size=64):
+        if self.lexical is None:
+            raise ValueError("lexical_service_required")
+        from shiliu.retrieval.coordinator import ProjectionWorker
+
+        self.register()
+        stats = DenseRebuildStats(identity=self.identity)
+        started = time.monotonic()
+        for video in self.db.list_videos():
+            # Keep the formal generation and active profile valid during a new
+            # profile build; only the requested target/profile payload changes.
+            with self.db.connect(guard=True) as c:
+                row = c.execute(
+                    "SELECT id FROM shiliu.retrieval_projection_tasks WHERE workspace_id=%s AND domain='collection' AND resource_key=%s FOR UPDATE",
+                    (self.db.workspace_id, str(video["id"])),
+                ).fetchone()
+                if row is None:
+                    self.db._touch(c, video["id"], reason="dense_rebuild")
+                c.execute(
+                    "UPDATE shiliu.retrieval_projection_tasks SET payload=payload||%s,status='queued',attempt=0,not_before=clock_timestamp(),updated_at=clock_timestamp() WHERE workspace_id=%s AND domain='collection' AND resource_key=%s",
+                    (
+                        Jsonb({"target_profile": self.profile_id}),
+                        self.db.workspace_id,
+                        str(video["id"]),
+                    ),
+                )
+            result = ProjectionWorker(self.lexical, self).run_one(video_id=video["id"])
+            if result and result.get("dense_state") == "current":
+                stats.embedded_count += result.get("embedded_count", 0)
+                stats.reused_count += result.get("reused_count", 0)
+        self.activate()
+        current = self.statistics()["index"]
+        stats.total_unit_count = current["total_unit_count"]
+        stats.video_unit_count = current["video_unit_count"]
+        stats.chunk_unit_count = current["chunk_unit_count"]
+        stats.duration_seconds = time.monotonic() - started
         return stats
 
-    def replace_video(self, video_id: int) -> DenseRebuildStats:
-        self._assert_configuration_compatible()
-        identity = provider_identity(self.provider)
-        started = time.monotonic()
-        with self.db.connect() as connection:
-            units = connection.execute(
-                """
-                SELECT unit_id, unit_type, search_text, content_hash
-                FROM retrieval_units WHERE video_id=? ORDER BY unit_id
-                """,
-                (video_id,),
-            ).fetchall()
-            old = {
-                str(row["unit_id"]): row
-                for row in connection.execute(
-                    "SELECT d.* FROM retrieval_dense_vectors d "
-                    "JOIN retrieval_units u ON u.unit_id=d.unit_id WHERE u.video_id=?",
-                    (video_id,),
-                )
-            }
-        desired: list[tuple[sqlite3.Row, str, str]] = []
-        metadata_updates: dict[str, str] = {}
-        reused = 0
-        for row in units:
-            text = prepare_embedding_document(
-                str(row["unit_type"]), str(row["search_text"]), provider=self.provider
-            )
-            text_hash = _hash(text)
-            unit_id = str(row["unit_id"])
-            prior = old.get(unit_id)
-            if prior is not None and self._compatible(prior, text_hash):
-                reused += 1
-                if str(prior["source_content_hash"]) != str(row["content_hash"]):
-                    metadata_updates[unit_id] = str(row["content_hash"])
-            else:
-                desired.append((row, text, text_hash))
-        vectors = (
-            self.provider.embed_documents([item[1] for item in desired])
-            if desired else []
-        )
-        if len(vectors) != len(desired):
-            raise ValueError("embedding provider returned an unexpected vector count")
-        embedded = [
-            (row, _validate_vector(vector, self.provider.dimension), text_hash)
-            for (row, _text, text_hash), vector in zip(desired, vectors)
-        ]
-        now = _utc_now()
-        with self.db.connect() as connection:
-            for row, vector, text_hash in embedded:
-                unit_id = str(row["unit_id"])
-                created_at = str(old[unit_id]["created_at"]) if unit_id in old else now
-                connection.execute(
-                    """
-                    INSERT INTO retrieval_dense_vectors VALUES(?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(unit_id) DO UPDATE SET
-                      model_id=excluded.model_id, embedding_dimension=excluded.embedding_dimension,
-                      embedding_dtype=excluded.embedding_dtype, normalized=excluded.normalized,
-                      embedding_blob=excluded.embedding_blob, source_content_hash=excluded.source_content_hash,
-                      embedding_text_hash=excluded.embedding_text_hash,
-                      projection_version=excluded.projection_version,
-                      dense_index_version=excluded.dense_index_version, updated_at=excluded.updated_at
-                    """,
-                    (unit_id, identity.model_id, identity.dimension, EMBEDDING_DTYPE,
-                     vector.astype("<f4").tobytes(), str(row["content_hash"]), text_hash,
-                     identity.projection_version, identity.dense_index_version, created_at, now),
-                )
-            connection.executemany(
-                "UPDATE retrieval_dense_vectors SET source_content_hash=?, updated_at=? WHERE unit_id=?",
-                [(source_hash, now, unit_id) for unit_id, source_hash in sorted(metadata_updates.items())],
-            )
-            self._refresh_meta_counts(connection)
+    def replace_video(self, video_id):
+        if self.lexical is None:
+            raise ValueError("lexical_service_required")
+        from shiliu.retrieval.coordinator import ProjectionWorker
+
+        result = ProjectionWorker(self.lexical, self).run_one(video_id=video_id)
         return DenseRebuildStats(
-            total_unit_count=len(units),
-            video_unit_count=sum(str(row["unit_type"]) == "video" for row in units),
-            chunk_unit_count=sum(str(row["unit_type"]) == "transcript_chunk" for row in units),
-            embedded_count=len(embedded),
-            reused_count=reused,
-            duration_seconds=time.monotonic() - started,
-            identity=identity,
+            embedded_count=(result or {}).get("total_units", 0), identity=self.identity
         )
 
-    def delete_video(self, video_id: int) -> int:
-        self._assert_configuration_compatible()
-        with self.db.connect() as connection:
-            rows = connection.execute(
-                "SELECT v.unit_id FROM retrieval_dense_vectors v JOIN retrieval_units u ON u.unit_id=v.unit_id WHERE u.video_id=?",
-                (video_id,),
-            ).fetchall()
-            connection.executemany(
-                "DELETE FROM retrieval_dense_vectors WHERE unit_id=?", rows
+    def statistics(self):
+        with self.db.connect(read_only=True) as c:
+            active = self.active_profile(conn=c)
+            missing = self._coverage(c) if self.lexical is not None else 0
+            where, params = self.lexical._search_filters(
+                level="all", filters=RetrievalFilters(), include_ignored=True
             )
-            self._refresh_meta_counts(connection)
-        return len(rows)
-
-    @staticmethod
-    def _refresh_meta_counts(connection: sqlite3.Connection) -> None:
-        counts = connection.execute(
-            """
-            SELECT COUNT(*) total,
-                   SUM(u.unit_type='video') videos,
-                   SUM(u.unit_type='transcript_chunk') chunks
-            FROM retrieval_dense_vectors d
-            JOIN retrieval_units u ON u.unit_id=d.unit_id
-            """
-        ).fetchone()
-        connection.execute(
-            """
-            UPDATE retrieval_dense_index_meta
-            SET total_unit_count=?, video_unit_count=?, chunk_unit_count=?, updated_at=?
-            WHERE index_name=?
-            """,
-            (int(counts["total"] or 0), int(counts["videos"] or 0),
-             int(counts["chunks"] or 0), _utc_now(), DENSE_INDEX_NAME),
-        )
-
-    def statistics(self) -> dict[str, object]:
-        self.initialize_schema()
-        with self.db.connect() as connection:
-            meta = connection.execute(
-                "SELECT * FROM retrieval_dense_index_meta WHERE index_name=?", (DENSE_INDEX_NAME,)
+            counts = c.execute(
+                "SELECT COUNT(*) AS total_unit_count,COUNT(*) FILTER(WHERE u.unit_type='video') AS video_unit_count,COUNT(*) FILTER(WHERE u.unit_type='transcript_chunk') AS chunk_unit_count "
+                + self.lexical.current_join()
+                + "JOIN shiliu.collection_embeddings e ON (e.workspace_id,e.unit_id)=(u.workspace_id,u.unit_id) WHERE "
+                + where
+                + " AND e.profile_id=%s AND e.generation=u.generation AND e.source_content_hash=u.content_hash",
+                [*params, self.profile_id],
             ).fetchone()
-            counts = connection.execute(
-                "SELECT COUNT(*) n, SUM(u.unit_type='video') videos, SUM(u.unit_type='transcript_chunk') chunks FROM retrieval_dense_vectors d JOIN retrieval_units u ON u.unit_id=d.unit_id"
-            ).fetchone()
-            blobs = connection.execute(
-                "SELECT embedding_blob FROM retrieval_dense_vectors"
+            tasks = c.execute(
+                "SELECT resource_key,requested_generation,payload->>'ready_generation' AS ready_generation,status,attempt,last_error "
+                "FROM shiliu.retrieval_projection_tasks WHERE workspace_id=%s AND domain='collection' ORDER BY id",
+                (self.db.workspace_id,),
             ).fetchall()
-            damaged_count = sum(
-                len(row["embedding_blob"]) != self.provider.dimension * 4
-                for row in blobs
-            )
         return {
-            "ready": meta is not None,
-            "current": {"total_unit_count": int(counts["n"] or 0), "video_unit_count": int(counts["videos"] or 0), "chunk_unit_count": int(counts["chunks"] or 0), "damaged_vector_count": damaged_count},
-            "index": dict(meta) if meta is not None else None,
+            "index": dict(
+                counts,
+                **asdict(self.identity),
+                embedding_profile=self.profile_id,
+                active_profile=active,
+                ready=active == self.profile_id and missing == 0,
+                missing_count=missing,
+                failed_count=sum(t["status"] == "failed" for t in tasks),
+                pending_count=sum(t["status"] != "completed" for t in tasks),
+                tasks=tasks,
+                embedding_dimension=512,
+            ),
+            "current": dict(counts),
         }
 
-    def search(self, query: str, *, level: SearchLevel = "all", top_k: int = 10,
-               filters: RetrievalFilters | None = None, include_ignored: bool = False) -> list[DenseSearchResult]:
-        normalized = " ".join(query.split())
-        if not normalized:
-            raise ValueError("query must not be empty")
-        if level not in {"video", "transcript_chunk", "all"}:
-            raise ValueError("unsupported search level")
-        if not 1 <= top_k <= 500:
-            raise ValueError("top_k must be between 1 and 500")
-        self._assert_ready()
-        query_vector = _validate_vector(self.provider.embed_query(normalized), self.provider.dimension)
-        where, parameters = RetrievalService._search_filters(
-            level=level, filters=filters or RetrievalFilters(), include_ignored=include_ignored
+    def search(
+        self, query, *, level="all", top_k=10, filters=None, include_ignored=False
+    ):
+        if not query.strip():
+            return []
+        if self.active_profile() != self.profile_id:
+            raise DenseIndexNotReadyError("embedding_profile_not_active")
+        if self.lexical is None:
+            raise ValueError("lexical_service_required")
+        vector = _validate_vector(self.provider.embed_query(query), 512)
+        return self.search_vector(
+            vector,
+            query=query,
+            level=level,
+            top_k=top_k,
+            filters=filters,
+            include_ignored=include_ignored,
         )
-        with self.db.connect() as connection:
-            rows = connection.execute(
-                f"SELECT u.*, d.embedding_blob FROM retrieval_dense_vectors d JOIN retrieval_units u ON u.unit_id=d.unit_id WHERE {where}",
-                parameters,
+
+    def search_vector(
+        self,
+        vector,
+        *,
+        query="",
+        level="all",
+        top_k=10,
+        filters=None,
+        include_ignored=False,
+    ):
+        vector = _validate_vector(vector, 512)
+        if level not in {"all", "video", "transcript_chunk"} or not 1 <= top_k <= 500:
+            raise ValueError("Invalid dense bounds")
+        where, params = self.lexical._search_filters(
+            level=level,
+            filters=filters or RetrievalFilters(),
+            include_ignored=include_ignored,
+        )
+        with self.db.connect(read_only=True) as c:
+            active = self.active_profile(conn=c)
+            if active != self.profile_id:
+                raise DenseIndexNotReadyError("embedding_profile_not_active")
+            rows = c.execute(
+                "SELECT u.*,e.embedding <=> %s AS distance "
+                + self.lexical.current_join()
+                + "JOIN shiliu.collection_embeddings e ON (e.workspace_id,e.unit_id)=(u.workspace_id,u.unit_id) "
+                "JOIN shiliu.embedding_profiles p ON p.profile_id=e.profile_id "
+                "WHERE "
+                + where
+                + " AND e.profile_id=%s AND e.generation=u.generation AND e.source_content_hash=u.content_hash "
+                "ORDER BY distance,u.unit_id LIMIT %s",
+                [vector, *params, active, top_k],
             ).fetchall()
-            ranked: list[tuple[float, sqlite3.Row]] = []
-            for row in rows:
-                if len(row["embedding_blob"]) != self.provider.dimension * 4:
-                    continue
-                vector = np.frombuffer(row["embedding_blob"], dtype="<f4")
-                if vector.size != self.provider.dimension or not np.isfinite(vector).all():
-                    continue
-                ranked.append((float(np.dot(query_vector, vector)), row))
-            ranked.sort(key=lambda item: (-item[0], str(item[1]["unit_id"])))
-            return [self._result(connection, row, score, normalized) for score, row in ranked[:top_k]]
+            folders = _folder_contexts(
+                c, self.db.workspace_id, [r["unit_id"] for r in rows]
+            )
+            return [
+                self._result(
+                    r, 1 - float(r["distance"]), query, folders.get(r["unit_id"], ())
+                )
+                for r in rows
+            ]
 
-    def _assert_ready(self) -> None:
-        self._assert_configuration_compatible()
-        with self.db.connect() as connection:
-            counts = connection.execute(
-                "SELECT (SELECT COUNT(*) FROM retrieval_units) AS units, "
-                "(SELECT COUNT(*) FROM retrieval_dense_vectors) AS vectors, "
-                "(SELECT total_unit_count FROM retrieval_dense_index_meta "
-                " WHERE index_name='shiliu_dense') AS meta_count"
-            ).fetchone()
-        if (
-            int(counts["vectors"]) != int(counts["units"])
-            or int(counts["meta_count"]) != int(counts["units"])
-        ):
-            raise DenseIndexRebuildRequiredError("dense index rebuild required")
-
-    def _assert_configuration_compatible(self) -> None:
-        self.initialize_schema()
-        with self.db.connect() as connection:
-            meta = connection.execute(
-                "SELECT * FROM retrieval_dense_index_meta WHERE index_name=?", (DENSE_INDEX_NAME,)
-            ).fetchone()
-        if meta is None:
-            raise DenseIndexNotReadyError("dense index not ready; run dense-rebuild")
+    def _result(
+        self, row: dict, score: float, query: str, folders: tuple
+    ) -> DenseSearchResult:
         identity = provider_identity(self.provider)
-        expected = (
-            identity.dense_index_version, identity.model_id, identity.model_revision,
-            identity.provider_version, identity.dimension, identity.embedding_mode,
-            identity.projection_version, identity.query_instruction_version,
-            identity.input_policy_version, 1,
-        )
-        actual = (
-            str(meta["dense_index_version"]), str(meta["model_id"]),
-            str(meta["model_revision"]), str(meta["provider_version"]),
-            int(meta["embedding_dimension"]), str(meta["embedding_mode"]),
-            str(meta["projection_version"]), str(meta["query_instruction_version"]),
-            str(meta["input_policy_version"]), int(meta["normalized"]),
-        )
-        if actual != expected:
-            raise DenseIndexRebuildRequiredError("dense index rebuild required")
-
-    def _compatible(self, row: sqlite3.Row, text_hash: str) -> bool:
-        identity = provider_identity(self.provider)
-        return (
-            str(row["model_id"]) == identity.model_id
-            and int(row["embedding_dimension"]) == identity.dimension
-            and str(row["embedding_dtype"]) == EMBEDDING_DTYPE
-            and int(row["normalized"]) == 1
-            and str(row["embedding_text_hash"]) == text_hash
-            and str(row["projection_version"]) == identity.projection_version
-            and str(row["dense_index_version"]) == identity.dense_index_version
-            and len(row["embedding_blob"]) == identity.dimension * 4
-        )
-
-    def _result(self, connection: sqlite3.Connection, row: sqlite3.Row, score: float, query: str) -> DenseSearchResult:
-        identity = provider_identity(self.provider)
-        folders = tuple(FolderContext(int(f["source_db_id"]), int(f["folder_id"]), str(f["folder_title"]), int(f["favorite_time"]) if f["favorite_time"] is not None else None) for f in connection.execute("SELECT source_db_id, folder_id, folder_title, favorite_time FROM retrieval_unit_folders WHERE unit_id=? ORDER BY source_db_id", (row["unit_id"],)))
         return DenseSearchResult(
-            unit_id=str(row["unit_id"]), unit_type=str(row["unit_type"]), video_id=int(row["video_id"]),
-            platform=str(row["platform"]), source_id=str(row["source_id"]), part=int(row["part"]),
-            title=str(row["title"]), uploader=str(row["uploader"]), chunk_id=str(row["chunk_id"]) if row["chunk_id"] else None,
-            source_type=str(row["source_type"]), start_time=float(row["start_time"]) if row["start_time"] is not None else None,
+            unit_id=str(row["unit_id"]),
+            unit_type=str(row["unit_type"]),
+            video_id=int(row["video_id"]),
+            platform=str(row["platform"]),
+            source_id=str(row["source_id"]),
+            part=int(row["part"]),
+            title=str(row["title"]),
+            uploader=str(row["uploader"]),
+            chunk_id=str(row["chunk_id"]) if row["chunk_id"] else None,
+            source_type=str(row["source_type"]),
+            start_time=float(row["start_time"])
+            if row["start_time"] is not None
+            else None,
             end_time=float(row["end_time"]) if row["end_time"] is not None else None,
-            matched_excerpt=_excerpt(str(row["source_text"]), query), dense_score=score, retrieval_method="dense",
-            index_version=str(row["index_version"]), dense_index_version=identity.dense_index_version,
-            model_id=identity.model_id, projection_version=identity.projection_version,
+            matched_excerpt=_excerpt(str(row["source_text"]), query),
+            dense_score=score,
+            retrieval_method="dense",
+            index_version=str(row["index_version"]),
+            dense_index_version=identity.dense_index_version,
+            model_id=identity.model_id,
+            projection_version=identity.projection_version,
             reading_state=str(row["reading_state"]),
-            is_marked=bool(row["is_marked"]), is_ignored=bool(row["is_ignored"]), archived=bool(row["archived_at"]), folders=folders,
+            is_marked=bool(row["is_marked"]),
+            is_ignored=bool(row["is_ignored"]),
+            archived=bool(row["archived_at"]),
+            folders=folders,
         )
 
 
 def _labeled_sections(text: str) -> dict[str, str]:
     matches = list(re.finditer(r"(?m)^\[([^\]]+)\]\n", text))
-    return {m.group(1): text[m.end() : matches[i + 1].start() if i + 1 < len(matches) else len(text)].strip() for i, m in enumerate(matches)}
+    return {
+        m.group(1): text[
+            m.end() : matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        ].strip()
+        for i, m in enumerate(matches)
+    }
 
 
 def _normalize(value: Iterable[float]) -> np.ndarray:
@@ -660,11 +533,16 @@ def _normalize(value: Iterable[float]) -> np.ndarray:
     return vector / norm
 
 
-def _validate_vector(value: Iterable[float], dimension: int) -> np.ndarray:
-    vector = _normalize(value)
+def _validate_vector(value, dimension):
+    vector = np.asarray(value, dtype=np.float32)
     if vector.ndim != 1 or vector.size != dimension:
-        raise ValueError(f"embedding dimension mismatch: expected {dimension}, got {vector.size}")
-    return vector.astype(np.float32)
+        raise ValueError("embedding_dimension_mismatch")
+    if not np.isfinite(vector).all():
+        raise ValueError("embedding_not_finite")
+    norm = float(np.linalg.norm(vector))
+    if norm <= 0 or abs(norm - 1.0) > 0.01:
+        raise ValueError("embedding_norm_invalid")
+    return vector
 
 
 def _hash(text: str) -> str:

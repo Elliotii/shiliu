@@ -11,7 +11,7 @@ pytestmark = pytest.mark.external_artifact
 
 def test_production_workspace_is_external_and_allowlisted():
     workspace = Path("/tmp/shiliu-v3-5-c0-construction-input-v2").resolve()
-    repository = Path("/Users/elliot/new-systems/agent-job-prep/Shiliu").resolve()
+    repository = Path("/absolute/historical/new-systems/agent-job-prep/Shiliu").resolve()
     assert repository not in workspace.parents and workspace not in repository.parents
     audit = audit_workspace(workspace)
     assert audit == {

@@ -9,6 +9,7 @@ from uuid import uuid4
 from shiliu.artifacts import ArtifactStore
 from shiliu.ask.deep.contracts import NavigationDocument, NavigationSourceLabel
 from shiliu.db import Database
+from shiliu.storage.artifacts import ArtifactError
 from shiliu.ask.evidence import _reference
 from shiliu.evidence.authority import bind_live_current_version
 from shiliu.evidence.contracts import EvidenceContractError
@@ -181,8 +182,8 @@ class NavigationService:
             return False
         try:
             reference = _reference(video)
-            binding = bind_live_current_version(reference, db=self.db, video_id=int(video["id"]))
-            artifact = load_source_artifact(reference, expected_source_version=binding.source_version)
+            binding = bind_live_current_version(reference, db=self.db, video_id=int(video["id"]), artifacts=self.artifacts)
+            artifact = load_source_artifact(reference, expected_source_version=binding.source_version, artifacts=self.artifacts)
             return artifact.validation_status in {"valid_single_run", "valid_multiple_runs"} and any(
                 segment.timeline_run_id and segment.source_text.strip() for segment in artifact.segments
             )
@@ -232,19 +233,14 @@ class NavigationService:
     def _artifact_payload(
         self, video: dict[str, Any], kind: str
     ) -> object | None:
-        directory = self.artifacts.videos_dir / str(video["source_id"])
-        revision = str(video.get("active_revision") or "refined")
-        candidates = (
-            directory / f"{kind}.{revision}.json",
-            directory / f"{kind}.json",
-        )
-        path = next((value for value in candidates if value.is_file()), None)
-        if path is None:
+        reference = video.get(kind + "_path")
+        if not reference:
             return None
         try:
-            return json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            return json.loads(self.artifacts.generated_json_bytes(reference))
+        except (OSError, UnicodeError, ValueError, ArtifactError):
             return None
+
 
 
 def _public_video_url(video: dict[str, Any]) -> str | None:

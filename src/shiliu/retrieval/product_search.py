@@ -1,8 +1,9 @@
 from __future__ import annotations
+from psycopg.types.json import Jsonb
+from shiliu.db import collection_dto
 
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
-import json
 import math
 import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -27,7 +28,12 @@ from shiliu.retrieval.enrichment import (
 )
 from shiliu.retrieval.orchestrator import SearchOrchestrator
 from shiliu.retrieval.orchestrator import RawSearchResponse
-from shiliu.retrieval.planner import SearchFilterRequest, SearchMode, Scope, SearchRequest
+from shiliu.retrieval.planner import (
+    SearchFilterRequest,
+    SearchMode,
+    Scope,
+    SearchRequest,
+)
 
 
 PRESENTATION_VERSION = "v3-product-presentation-v1"
@@ -88,9 +94,7 @@ class ProductSearchRequest(BaseModel):
 
     @field_validator("filters", mode="before")
     @classmethod
-    def promote_raw_filter_contract(
-        cls, value: object
-    ) -> object:
+    def promote_raw_filter_contract(cls, value: object) -> object:
         if isinstance(value, SearchFilterRequest) and not isinstance(
             value, ProductSearchFilterRequest
         ):
@@ -235,90 +239,15 @@ class ProductSearchService:
         self.enricher = enricher
         self.corpus_search = CorpusSearchContextProjection(db)
         self.persist_trace = persist_trace
-        if self.persist_trace:
-            self.initialize_schema()
-
-    def initialize_schema(self) -> None:
-        with self.db.connect() as connection:
-            connection.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS retrieval_search_presentations (
-                    trace_id TEXT PRIMARY KEY,
-                    presentation_version TEXT NOT NULL,
-                    consolidation_version TEXT NOT NULL,
-                    jump_anchor_version TEXT NOT NULL,
-                    chapter_enrichment_version TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    requested_result_limit INTEGER NOT NULL,
-                    max_windows_per_video INTEGER NOT NULL,
-                    raw_top_k INTEGER NOT NULL,
-                    merge_gap_seconds REAL NOT NULL,
-                    raw_hit_count INTEGER NOT NULL,
-                    unique_video_count INTEGER NOT NULL,
-                    duplicate_raw_hit_count INTEGER NOT NULL,
-                    duplicate_occupancy_count INTEGER NOT NULL,
-                    duplicate_occupancy_rate REAL NOT NULL,
-                    group_count_before_limit INTEGER NOT NULL,
-                    returned_group_count INTEGER NOT NULL,
-                    total_window_count INTEGER NOT NULL,
-                    returned_window_count INTEGER NOT NULL,
-                    anchored_window_count INTEGER NOT NULL,
-                    chapter_enriched_count INTEGER NOT NULL,
-                    grouping_ms REAL NOT NULL,
-                    anchor_ms REAL NOT NULL,
-                    chapter_ms REAL NOT NULL,
-                    presentation_total_ms REAL NOT NULL,
-                    presentation_trace_ms REAL NOT NULL DEFAULT 0,
-                    status TEXT NOT NULL,
-                    error_stage TEXT,
-                    error_message TEXT,
-                    group_summary_json TEXT NOT NULL DEFAULT '[]',
-                    product_default_wiring_version TEXT,
-                    requested_mode TEXT,
-                    default_applied INTEGER NOT NULL DEFAULT 0,
-                    configured_default_mode TEXT,
-                    router_invoked INTEGER NOT NULL DEFAULT 0,
-                    router_version TEXT,
-                    router_decision TEXT,
-                    effective_mode TEXT,
-                    router_reason_codes_json TEXT NOT NULL DEFAULT '[]',
-                    embedding_invoked INTEGER NOT NULL DEFAULT 0
-                );
-                CREATE INDEX IF NOT EXISTS idx_retrieval_presentations_created
-                    ON retrieval_search_presentations(created_at DESC, trace_id);
-                """
-            )
-            existing_columns = {
-                str(row["name"])
-                for row in connection.execute(
-                    "PRAGMA table_info(retrieval_search_presentations)"
-                )
-            }
-            for name, definition in (
-                ("product_default_wiring_version", "TEXT"),
-                ("requested_mode", "TEXT"),
-                ("default_applied", "INTEGER NOT NULL DEFAULT 0"),
-                ("configured_default_mode", "TEXT"),
-                ("router_invoked", "INTEGER NOT NULL DEFAULT 0"),
-                ("router_version", "TEXT"),
-                ("router_decision", "TEXT"),
-                ("effective_mode", "TEXT"),
-                ("router_reason_codes_json", "TEXT NOT NULL DEFAULT '[]'"),
-                ("embedding_invoked", "INTEGER NOT NULL DEFAULT 0"),
-            ):
-                if name not in existing_columns:
-                    connection.execute(
-                        f"ALTER TABLE retrieval_search_presentations ADD COLUMN {name} {definition}"
-                    )
 
     def search(
         self,
         request: ProductSearchRequest,
         *,
-        video_ids: tuple[int, ...] = (),
+        video_ids: tuple[int, ...] | None = None,
         principal_id: str | None = None,
     ) -> ProductSearchResponse:
-        if video_ids:
+        if video_ids is not None:
             return self.search_with_raw(
                 request, video_ids=video_ids, principal_id=principal_id
             )[1]
@@ -328,7 +257,7 @@ class ProductSearchService:
         self,
         request: ProductSearchRequest,
         *,
-        video_ids: tuple[int, ...] = (),
+        video_ids: tuple[int, ...] | None = None,
         scope_video_ids: tuple[int, ...] | None = None,
         principal_id: str | None = None,
     ) -> tuple[RawSearchResponse, ProductSearchResponse]:
@@ -346,7 +275,7 @@ class ProductSearchService:
             raw = self.raw_search.search_raw(
                 raw_request, scope_video_ids=scope_video_ids
             )
-        elif video_ids:
+        elif video_ids is not None:
             raw = self.raw_search.search_raw(raw_request, video_ids=video_ids)
         else:
             raw = self.raw_search.search_raw(raw_request)
@@ -395,7 +324,9 @@ class ProductSearchService:
         rate = duplicate_occupancy / raw_hit_count if raw_hit_count else 0.0
         warnings = list(enriched.warnings)
         for group in consolidated.groups:
-            warnings.extend({"video_id": group.video_id, **warning} for warning in group.warnings)
+            warnings.extend(
+                {"video_id": group.video_id, **warning} for warning in group.warnings
+            )
         presentation_ms = grouping_ms + enriched.anchor_ms + enriched.chapter_ms
         provisional_timing = ProductSearchTiming(
             raw_search_ms=raw_ms,
@@ -445,21 +376,24 @@ class ProductSearchService:
         except Exception as exc:
             trace_ms = _milliseconds(trace_started)
             return raw, _replace_response_timing(
-                response, started=started, trace_ms=trace_ms, persisted=False,
-                error={"code": "presentation_trace_persistence_failed",
-                       "message": f"{type(exc).__name__}: {exc}"[:300]},
+                response,
+                started=started,
+                trace_ms=trace_ms,
+                persisted=False,
+                error={
+                    "code": "presentation_trace_persistence_failed",
+                    "message": f"{type(exc).__name__}: {exc}"[:300],
+                },
             )
         trace_ms = _milliseconds(trace_started)
         return raw, _replace_response_timing(
             response, started=started, trace_ms=trace_ms, persisted=True, error=None
         )
 
-    def _display_metadata(
-        self, video_ids: list[int]
-    ) -> dict[int, dict[str, object]]:
+    def _display_metadata(self, video_ids: list[int]) -> dict[int, dict[str, object]]:
         if not video_ids:
             return {}
-        placeholders = ",".join("?" for _ in video_ids)
+        placeholders = ",".join("%s" for _ in video_ids)
         with self.db.connect() as connection:
             rows = connection.execute(
                 f"""
@@ -469,10 +403,10 @@ class ProductSearchService:
                 LEFT JOIN video_source_memberships m
                   ON m.video_id=v.id AND m.removed_at IS NULL
                 LEFT JOIN favorite_sources s ON s.id=m.source_id
-                WHERE v.id IN ({placeholders})
+                WHERE v.workspace_id=%s AND v.id IN ({placeholders})
                 ORDER BY v.id, s.sort_order, s.id
                 """,
-                video_ids,
+                [self.db.workspace_id, *video_ids],
             ).fetchall()
         result: dict[int, dict[str, object]] = {}
         for row in rows:
@@ -500,16 +434,14 @@ class ProductSearchService:
     def get_presentation(self, trace_id: str) -> dict[str, object] | None:
         with self.db.connect() as connection:
             row = connection.execute(
-                "SELECT * FROM retrieval_search_presentations WHERE trace_id=?",
-                (trace_id,),
+                "SELECT * FROM retrieval_search_presentations WHERE workspace_id=%s AND trace_id=%s",
+                (self.db.workspace_id, trace_id),
             ).fetchone()
         if row is None:
             return None
-        result = dict(row)
-        result["group_summary"] = json.loads(str(result.pop("group_summary_json")))
-        result["router_reason_codes"] = json.loads(
-            str(result.pop("router_reason_codes_json"))
-        )
+        result = collection_dto(row)
+        result["group_summary"] = result.pop("group_summary_json")
+        result["router_reason_codes"] = result.pop("router_reason_codes_json")
         for name in ("default_applied", "router_invoked", "embedding_invoked"):
             result[name] = bool(result[name])
         return result
@@ -555,24 +487,24 @@ class ProductSearchService:
             "success",
             None,
             None,
-            json.dumps(summary, ensure_ascii=False),
+            Jsonb(summary),
             PRODUCT_DEFAULT_WIRING_VERSION,
             response.plan["requested_mode"],
-            int(bool(response.plan["default_applied"])),
+            bool(response.plan["default_applied"]),
             response.plan["configured_default_mode"],
-            int(bool(response.plan["router_invoked"])),
+            bool(response.plan["router_invoked"]),
             response.plan["router_version"],
             response.plan["router_decision"],
             response.plan["effective_mode"],
-            json.dumps(response.plan["router_reason_codes"], ensure_ascii=False),
-            int(bool(response.plan["embedding_invoked"])),
+            Jsonb(response.plan["router_reason_codes"]),
+            bool(response.plan["embedding_invoked"]),
         )
         trace_started = time.monotonic()
         with self.db.connect() as connection:
             connection.execute(
                 """
                 INSERT INTO retrieval_search_presentations(
-                    trace_id, presentation_version, consolidation_version,
+                    workspace_id, trace_id, presentation_version, consolidation_version,
                     jump_anchor_version, chapter_enrichment_version, created_at,
                     requested_result_limit, max_windows_per_video, raw_top_k,
                     merge_gap_seconds, raw_hit_count, unique_video_count,
@@ -586,18 +518,20 @@ class ProductSearchService:
                     requested_mode, default_applied, configured_default_mode,
                     router_invoked, router_version, router_decision, effective_mode,
                     router_reason_codes_json, embedding_invoked
-                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
-                values,
+                (self.db.workspace_id, *values),
             )
             trace_ms = _milliseconds(trace_started)
             connection.execute(
-                "UPDATE retrieval_search_presentations SET presentation_trace_ms=? WHERE trace_id=?",
-                (trace_ms, response.trace_id),
+                "UPDATE retrieval_search_presentations SET presentation_trace_ms=%s WHERE workspace_id=%s AND trace_id=%s",
+                (trace_ms, self.db.workspace_id, response.trace_id),
             )
 
 
-def _product_plan(raw: RawSearchResponse, request: ProductSearchRequest) -> dict[str, object]:
+def _product_plan(
+    raw: RawSearchResponse, request: ProductSearchRequest
+) -> dict[str, object]:
     """Expose Product-request provenance alongside the existing resolved raw plan."""
     plan = raw.plan.as_dict()
     router_invoked = request.mode == "auto"
@@ -690,7 +624,11 @@ def build_bilibili_jump_url(
     parsed = urlsplit(base)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         return None
-    query = [(key, value) for key, value in parse_qsl(parsed.query, keep_blank_values=True) if key != "t"]
+    query = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if key != "t"
+    ]
     query.append(("t", str(seconds)))
     return urlunsplit(
         (parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment)

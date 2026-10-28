@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+from shiliu.assistant.pg_store import PgAssistantRunStore
+
+from shiliu.storage.dto import json_object
+
 import asyncio
 import json
 import hashlib
+import logging
 import os
 from pathlib import Path
 import re
 import threading
 import time
 import uuid
-from datetime import datetime, timezone
 from typing import Any, Callable, Literal, TypedDict
 from types import SimpleNamespace
 
@@ -18,19 +22,22 @@ from langgraph.graph import END, START, StateGraph
 from shiliu.assistant.context import ContextBudgetExceeded
 from shiliu.assistant.working_context import WorkingContextComposer, WorkingContextCandidate
 from shiliu.assistant.compaction import plan_compaction, checkpoint_proposal
-from shiliu.assistant.dependencies import Context7MCPClient, Mem0SemanticIndex
+from shiliu.assistant.dependencies import Context7MCPClient
 from shiliu.assistant.memory import MemoryService
-from shiliu.assistant.memory_policy import anchored_validity, forbids_auto_save, plausible_personal_excerpt
-from shiliu.assistant.memory_time import has_personal_candidate, checked_validity
 from shiliu.assistant.provider import AssistantModelProvider, ModelTurn, NativeToolCall
 from shiliu.assistant.sources import CollectionSourceService, SourceScope
-from shiliu.assistant.store import AssistantConflict, AssistantRunStore, ModelBudgetWait, ExecutionBudgetExceeded
+from shiliu.assistant.runtime_contract import AssistantConflict, ModelBudgetWait, ExecutionBudgetExceeded
 from shiliu.assistant.task_notes import TaskNoteService
 from shiliu.assistant.tools import AssistantToolRegistry
 from shiliu.assistant.wiki import MaintenanceBudgetExceeded, MaintenanceYield, WikiService
+from shiliu.storage.fences import CoordinationConflict
+from shiliu.storage.scheduler import guard_job
 from shiliu.domain import PipelineError
 from shiliu.db import utc_now
 from shiliu.config import (ASSISTANT_MODEL_DISPATCH_LIMIT, ASSISTANT_TOOL_EXECUTION_LIMIT, ASSISTANT_TOKEN_LIMIT, ASSISTANT_FINAL_SECONDS)
+
+
+logger = logging.getLogger(__name__)
 
 
 FINAL_INSTRUCTION = ("现在结束探索。只据本次已完成且有效的读取给出可证实的结论、实际覆盖范围、缺口和下一步。"
@@ -57,16 +64,18 @@ class AssistantExecutionGraph:
     def __init__(
         self,
         *,
-        store: AssistantRunStore,
+        store: PgAssistantRunStore,
         memories: MemoryService,
         tools: AssistantToolRegistry,
         provider_factory: Callable[[], AssistantModelProvider],
         max_steps: int = ASSISTANT_MODEL_DISPATCH_LIMIT,
         max_tool_calls: int = ASSISTANT_TOOL_EXECUTION_LIMIT,
+        recover_legacy: bool = True,
     ) -> None:
         self.store = store
-        self.store.freeze_legacy_recovery_calls()
-        self.store.freeze_legacy_recovery_calls(stage="w1")
+        if recover_legacy:
+            self.store.freeze_legacy_recovery_calls()
+            self.store.freeze_legacy_recovery_calls(stage="w1")
         self.memories = memories
         self.tools = tools
         self.provider_factory = provider_factory
@@ -104,12 +113,10 @@ class AssistantExecutionGraph:
                 versioned[int(parts[1])] = parts[2]
         if not versioned:
             return True
-        placeholders = ",".join("?" for _ in versioned)
         with self.store.db.connect() as connection:
             rows = connection.execute(
-                f"SELECT video_id,current_revision FROM assistant_source_heads "
-                f"WHERE video_id IN ({placeholders})",
-                list(versioned),
+                "SELECT video_id,current_revision FROM assistant_source_heads WHERE workspace_id=%s AND principal_id=%s AND video_id=ANY(%s)",
+                (self.store.context.workspace_id,self.store.principal_id,list(versioned)),
             ).fetchall()
         current = {int(row["video_id"]): str(row["current_revision"]) for row in rows}
         return all(current.get(video_id) == revision for video_id, revision in versioned.items())
@@ -136,7 +143,10 @@ class AssistantExecutionGraph:
             "context_metadata": dict(working.get("context_observation") or {}),
             "replay_call_ids": [],
         }
-        await self.compiled.ainvoke(state, config={"recursion_limit": 130})
+        # Every store mutation reached while this run executes inherits the
+        # immutable epoch fence, including calls crossing asyncio.to_thread.
+        with self.store.tool_execution_scope(state["run_id"], state["epoch"]):
+            await self.compiled.ainvoke(state, config={"recursion_limit": 130})
 
     def _build(self) -> StateGraph:
         graph = StateGraph(ExecutionState)
@@ -162,6 +172,12 @@ class AssistantExecutionGraph:
             {"model": "model", "stopped": END},
         )
         return graph
+
+    @staticmethod
+    def _dispatch_request_hash(request: Any) -> str:
+        body=getattr(request,"body",request)
+        encoded=json.dumps(body,sort_keys=True,ensure_ascii=False,separators=(",",":"),default=str)
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     async def _recover(self, state: ExecutionState) -> ExecutionState:
         current = self.store.get_run(state["run_id"])
@@ -197,26 +213,26 @@ class AssistantExecutionGraph:
         if not self._run_epoch_active(state):
             return {**state, "route": "stopped"}
         context = self.store.run_context(state["run_id"])
-        usage = state["usage"]
         try:
             provider = self.provider_factory()
             candidate = await self._prepare_dispatch(state, provider=provider, final=True,
                 suffix=FINAL_INSTRUCTION)
             metadata = candidate.metadata
             self.store.save_context_observation(state['run_id'], epoch=state['epoch'], metadata=metadata)
-            reservation = self.store.reserve_model_request(lane="foreground", request_limit=10000)
+            reservation = self.store.reserve_model_request(lane="foreground", request_limit=10000,
+                run_id=state["run_id"],request_hash=self._dispatch_request_hash(candidate.request))
             try:
                 control, turn = await self._wait_for_model(state, lambda call_id: self._provider_turn(provider, state, call_id=call_id,
                     candidate=candidate, allow_finish=True),
                     timeout=min(ASSISTANT_FINAL_SECONDS, self.store.execution_remaining(state["run_id"], final=True)), ignore_finish=True,
                     budget_date=str(reservation["budget_date"]),
+                    dispatch_id=str(reservation["dispatch_id"]),
                     input_tokens=candidate.request.input_tokens, output_tokens=candidate.budget.output_tokens)
                 if control == "cancelled":
                     return {**state, "route": "stopped"}
                 if control == "timeout":
                     raise TimeoutError("final_answer_timeout")
                 assert turn is not None
-                usage = self.store.get_run(state["run_id"])["usage"]
                 if turn.tool_calls or turn.finish_reason != 'stop':
                     raise ValueError("finalizer_returned_tool_calls")
                 self.store.confirm_model_delivery(
@@ -234,7 +250,6 @@ class AssistantExecutionGraph:
                         "observed_memory_epoch": self.store.current_memory_epoch(),
                         "dependency_refs": [], "task_note_version": None}
             turn = ModelTurn(text=self._fallback_progress(context, reason=reason))
-            usage = state["usage"]
         if not self._run_epoch_active(state):
             return {**state, "route": "stopped"}
         return {**state, "route": "final", "turn": turn, "usage": self.store.get_run(state["run_id"])["usage"],
@@ -244,7 +259,7 @@ class AssistantExecutionGraph:
     def _fallback_progress(context: dict[str, Any], *, reason: str) -> str:
         messages = context["thread"].get("messages") or []
         reads = [item for item in messages if item.get("role") == "tool" and
-                 json.loads(item.get("provider_payload_json") or "{}").get("name") == "collection_read"]
+                 json_object(item.get("provider_payload_json") or "{}").get("name") == "collection_read"]
         latest = next((str(item.get("content") or "") for item in reversed(messages)
                        if item.get("role") == "user"), "当前任务")
         return (f"这次已停止探索，当前请求是：{latest[:180]}。已完成 {len(reads)} 次材料读取；"
@@ -301,7 +316,7 @@ class AssistantExecutionGraph:
                                               name="search_knowledge", arguments=args.model_dump())
         if existing and existing.get("result_json"):
             ordinal = max(int(current["tool_count"]), int(existing["ordinal"]))
-            result = json.loads(existing["result_json"])
+            result = json_object(existing["result_json"])
         else:
             try:
                 self.store.dispatch_tool(state["run_id"], epoch=state["epoch"])
@@ -346,7 +361,7 @@ class AssistantExecutionGraph:
                 return {**state, "route": "stopped"}
             return {**state, "route": "stopped"} if not self._run_epoch_active(state) else await self._finish_with_available(state, reason="user_requested")
         self.store.set_knowledge_bootstrap(state["run_id"], epoch=state["epoch"], value={**marker, "status": "completed"})
-        self.store.save_step(state["run_id"], step_count=state["step_count"], tool_count=ordinal, usage=state["usage"])
+        self.store.save_step(state["run_id"], step_count=state["step_count"], tool_count=ordinal, usage=state["usage"], epoch=state["epoch"])
         return None
 
     async def _model(self, state: ExecutionState) -> ExecutionState:
@@ -451,7 +466,7 @@ class AssistantExecutionGraph:
                                   "tool_round_content_characters": len(turn.text)},
             )
         self.store.save_step(
-            state["run_id"], step_count=step_count, tool_count=state["tool_count"], usage=usage
+            state["run_id"], step_count=step_count, tool_count=state["tool_count"], usage=usage, epoch=state["epoch"]
         )
         return {
             **state, "step_count": step_count, "usage": usage, "turn": turn,
@@ -530,7 +545,8 @@ class AssistantExecutionGraph:
             request = provider.prepare_compaction(messages=plan.messages,
                 remaining_tokens=ASSISTANT_TOKEN_LIMIT - int(budget['known_tokens']) - reserve_input - 8192)
             stage = 'dispatch'
-            reservation = self.store.reserve_model_request(lane='foreground', request_limit=10000)
+            reservation = self.store.reserve_model_request(lane='foreground', request_limit=10000,
+                run_id=state['run_id'],request_hash=self._dispatch_request_hash(request))
             def summarize(call_id):
                 nonlocal dispatched, summary_usage
                 dispatched = True
@@ -546,7 +562,7 @@ class AssistantExecutionGraph:
                 timeout=self.store.execution_remaining(state['run_id']),
                 input_tokens=request.input_tokens, output_tokens=request.body['max_tokens'],
                 reserve_input_tokens=reserve_input, publish_draft=False,
-                budget_date=str(reservation['budget_date']))
+                budget_date=str(reservation['budget_date']),dispatch_id=str(reservation['dispatch_id']))
             if control != 'ready':
                 raise ExecutionBudgetExceeded('摘要已停止，转入停止或收尾')
             stage = 'response'
@@ -597,13 +613,14 @@ class AssistantExecutionGraph:
                              candidate: WorkingContextCandidate) -> tuple[str, Any]:
         if not self.store.save_context_observation(state['run_id'], epoch=state['epoch'], metadata=candidate.metadata):
             return 'cancelled', None
-        reservation = self.store.reserve_model_request(lane='foreground', request_limit=10000)
+        reservation = self.store.reserve_model_request(lane='foreground', request_limit=10000,
+            run_id=state['run_id'],request_hash=self._dispatch_request_hash(candidate.request))
         return await self._wait_for_model(state,
             lambda call_id: self._provider_turn(provider, state, candidate=candidate, call_id=call_id),
             timeout=self.store.execution_remaining(state['run_id']),
             input_tokens=candidate.request.input_tokens, output_tokens=candidate.budget.output_tokens,
             reserve_input_tokens=self._final_reserve_input(candidate, provider=provider),
-            budget_date=str(reservation['budget_date']))
+            budget_date=str(reservation['budget_date']),dispatch_id=str(reservation['dispatch_id']))
 
     def _run_epoch_active(self, state: ExecutionState) -> bool:
         run = self.store.get_run(state["run_id"])
@@ -638,6 +655,7 @@ class AssistantExecutionGraph:
                               *, timeout: float | None = None,
                               ignore_finish: bool = False,
                               budget_date: str | None = None,
+                              dispatch_id: str,
                               input_tokens: int | None = None, output_tokens: int | None = None,
                               reserve_input_tokens: int | None = None, publish_draft: bool = True) -> tuple[str, Any | None]:
         """Release the foreground lane on local control, while settling a late call once."""
@@ -646,14 +664,19 @@ class AssistantExecutionGraph:
         # the draft after a replacement call has started.
         call_id = uuid.uuid4().hex
         if publish_draft:
-            self.store.save_answer_draft(state["run_id"], epoch=state["epoch"], text="",
-                                         call_id=call_id, start_call=True, allow_finish=ignore_finish)
+            try:
+                self.store.save_answer_draft(state["run_id"], epoch=state["epoch"], text="",
+                                             call_id=call_id, start_call=True, allow_finish=ignore_finish)
+            except Exception:
+                self.store.release_model_request(dispatch_id)
+                raise
         observation = self.store.get_run(state["run_id"])["working_state"].get("context_observation") or {}
         estimated = int(input_tokens if input_tokens is not None else observation.get("estimated_input_tokens") or 0)
         dispatched = {"value": False}
         remaining = self.store.execution_remaining(state["run_id"], final=ignore_finish)
         timeout = min(timeout if timeout is not None else remaining, remaining)
         if timeout <= 0:
+            self.store.release_model_request(dispatch_id)
             raise ExecutionBudgetExceeded("本段期限已用完")
         def dispatch():
             self.store.dispatch_model(state["run_id"], epoch=state["epoch"], final=ignore_finish,
@@ -670,18 +693,19 @@ class AssistantExecutionGraph:
                     value = pending.result()
                 except BaseException as exc:
                     if not dispatched["value"]:
+                        self.store.release_model_request(dispatch_id)
                         if isinstance(exc, AssistantConflict) and not isinstance(exc, ExecutionBudgetExceeded):
                             return "cancelled", None
                         raise
                     self.store.record_provider_response(state["run_id"], SimpleNamespace(usage=getattr(exc, "usage", {}) or {}), late=False, call_id=call_id)
                     self.store.record_model_usage(lane="foreground", usage=getattr(exc, "usage", None),
                         outcome="error_or_lost", latency_ms=(time.monotonic() - started) * 1000,
-                        budget_date=budget_date)
+                        budget_date=budget_date,dispatch_id=dispatch_id)
                     raise
                 self.store.record_provider_response(state["run_id"], value, late=False, call_id=call_id)
                 self.store.record_model_usage(lane="foreground", usage=getattr(value, "usage", None),
                     outcome="response", latency_ms=(time.monotonic() - started) * 1000,
-                    budget_date=budget_date)
+                    budget_date=budget_date,dispatch_id=dispatch_id)
                 return "ready", value
             current = self.store.get_run(state["run_id"])
             reason = ("cancelled" if current["status"] != "running" or
@@ -698,15 +722,16 @@ class AssistantExecutionGraph:
                     self.store.record_provider_response(state["run_id"], value, late=True, call_id=call_id)
                     self.store.record_model_usage(lane="foreground", usage=usage,
                         outcome="late_response", latency_ms=(time.monotonic() - started) * 1000,
-                        budget_date=budget_date)
+                        budget_date=budget_date,dispatch_id=dispatch_id)
                 except BaseException as exc:
                     if not dispatched["value"]:
+                        self.store.release_model_request(dispatch_id)
                         return
                     known = getattr(exc, "usage", None)
                     self.store.record_provider_response(state["run_id"], SimpleNamespace(usage=known or {}), late=True, call_id=call_id)
                     self.store.record_model_usage(lane="foreground", usage=known,
                         outcome="error_or_lost", latency_ms=(time.monotonic() - started) * 1000,
-                        budget_date=budget_date)
+                        budget_date=budget_date,dispatch_id=dispatch_id)
 
             # Revoke publication before returning to the replacement path.
             # Late completion still settles usage through the callback below.
@@ -714,6 +739,8 @@ class AssistantExecutionGraph:
                 self.store.save_answer_draft(state["run_id"], epoch=state["epoch"], text="",
                                              call_id=uuid.uuid4().hex, start_call=True,
                                              allow_finish=ignore_finish)
+            if dispatched["value"]:
+                self.store.mark_dispatch_unknown(dispatch_id)
             pending.add_done_callback(settle_late)
             return reason, None
 
@@ -753,13 +780,13 @@ class AssistantExecutionGraph:
     def _focus_rounds(self, state: ExecutionState) -> int:
         context = self.store.run_context(state["run_id"])
         with self.store.db.connect() as connection:
-            rows = connection.execute("SELECT call_id,result_json FROM assistant_tool_calls WHERE run_id=?", (state["run_id"],)).fetchall()
-        results = {str(row["call_id"]): json.loads(row["result_json"] or "{}") for row in rows}
+            rows = connection.execute("SELECT call_id,result_json FROM assistant_tool_calls WHERE workspace_id=%s AND run_id=%s", (self.store.context.workspace_id,state["run_id"])).fetchall()
+        results = {str(row["call_id"]): json_object(row["result_json"] or "{}") for row in rows}
         rounds = 0
         for message in reversed(context["thread"]["messages"]):
             if message.get("run_id") != state["run_id"] or message["role"] != "assistant":
                 continue
-            calls = json.loads(message.get("provider_payload_json") or "{}").get("tool_calls") or []
+            calls = json_object(message.get("provider_payload_json") or "{}").get("tool_calls") or []
             if not calls:
                 break
             focus = False
@@ -787,16 +814,16 @@ class AssistantExecutionGraph:
         # Only identical failed save submissions count as no progress. Changed drafts,
         # reads and real edits are never stopped by this check.
         with self.store.db.connect() as c:
-            rows = c.execute("SELECT name,args_json,result_json FROM assistant_tool_calls WHERE run_id=? ORDER BY ordinal DESC LIMIT 2", (state['run_id'],)).fetchall()
+            rows = c.execute("SELECT name,args_json,result_json FROM assistant_tool_calls WHERE workspace_id=%s AND run_id=%s ORDER BY ordinal DESC LIMIT 2", (self.store.context.workspace_id,state['run_id'])).fetchall()
         if len(rows) == 2 and all(r['name'] in {'knowledge_save_discussion', 'memory_save'} and (
-                json.loads(r['result_json'] or '{}').get('status') in {'invalid_arguments','partial'} or
-                (r['name']=='memory_save' and json.loads(r['result_json'] or '{}').get('status')=='unavailable'
-                 and not json.loads(r['result_json'] or '{}').get('retryable'))) for r in rows):
-            failed = [json.loads(r['result_json']) for r in rows]
-            prior_args = json.loads(rows[0]['args_json'])
+                json_object(r['result_json'] or '{}').get('status') in {'invalid_arguments','partial'} or
+                (r['name']=='memory_save' and json_object(r['result_json'] or '{}').get('status')=='unavailable'
+                 and not json_object(r['result_json'] or '{}').get('retryable'))) for r in rows):
+            failed = [json_object(r['result_json']) for r in rows]
+            prior_args = json_object(rows[0]['args_json'])
             repeating = all(call.name == rows[0]['name'] and rows[0]['name'] == rows[1]['name'] and
                 self.tools.normalize_arguments(call.name, call.arguments) == prior_args for call in turn.tool_calls)
-            if repeating and prior_args == json.loads(rows[1]['args_json']) and failed[0].get('error_code') == failed[1].get('error_code') and failed[0].get('items') == failed[1].get('items'):
+            if repeating and prior_args == json_object(rows[1]['args_json']) and failed[0].get('error_code') == failed[1].get('error_code') and failed[0].get('items') == failed[1].get('items'):
                 return await self._finish_with_available(state, reason='unchanged_save_error')
         focus_rounds = self._focus_rounds(state)
         if focus_rounds >= 3:
@@ -831,7 +858,7 @@ class AssistantExecutionGraph:
                 ) if hasattr(self.tools, "reusable_result_valid") else None,
             )
             if existing is not None and existing.get("result_json"):
-                result = json.loads(existing["result_json"])
+                result = json_object(existing["result_json"])
             else:
                 try:
                     self.store.dispatch_tool(state["run_id"], epoch=state["epoch"])
@@ -866,7 +893,7 @@ class AssistantExecutionGraph:
             tool_count += 1
             self.store.save_step(
                 state["run_id"], step_count=state["step_count"],
-                tool_count=tool_count, usage=state["usage"],
+                tool_count=tool_count, usage=state["usage"], epoch=state["epoch"],
             )
             current = self.store.get_run(state["run_id"])
             if current["status"] != "running" or current["run_epoch"] != state["epoch"]:
@@ -876,7 +903,7 @@ class AssistantExecutionGraph:
                 return await self._finish_with_available(
                     {**state, "tool_count": tool_count}, reason="user_requested")
         self.store.save_step(
-            state["run_id"], step_count=state["step_count"], tool_count=tool_count, usage=state["usage"]
+            state["run_id"], step_count=state["step_count"], tool_count=tool_count, usage=state["usage"], epoch=state["epoch"]
         )
         # Only the dedicated save button is a proven operation-only request.
         # Natural-language compound requests still return to the Agent.
@@ -954,9 +981,9 @@ class AssistantExecutionGraph:
 
     def _memory_write_succeeded(self, run_id: str) -> bool:
         with self.store.db.connect() as c:
-            calls = c.execute("SELECT result_json FROM assistant_tool_calls WHERE run_id=? AND name IN ('memory_save','memory_correct') AND status='completed'", (run_id,)).fetchall()
+            calls = c.execute("SELECT result_json FROM assistant_tool_calls WHERE workspace_id=%s AND run_id=%s AND name IN ('memory_save','memory_correct') AND status='completed'", (self.store.context.workspace_id,run_id)).fetchall()
         for row in calls:
-            result = json.loads(row['result_json'] or '{}')
+            result = json_object(row['result_json'] or '{}')
             if result.get('status') != 'ok':
                 continue
             for item in result.get('items') or []:
@@ -1017,25 +1044,28 @@ class AssistantRuntime:
     def __init__(
         self,
         *,
-        store: AssistantRunStore,
+        store: PgAssistantRunStore,
         sources: CollectionSourceService,
-        memory_backend: Mem0SemanticIndex,
         context7: Context7MCPClient,
         provider_factory: Callable[[], AssistantModelProvider],
         extraction_provider_factory: Callable[[], AssistantModelProvider] | None = None,
         embedding_provider: Any = None,
     ) -> None:
+        from shiliu.assistant.pg_store import PgAssistantRunStore
+        if not isinstance(store,PgAssistantRunStore):
+            raise RuntimeError('assistant_pg_runtime_store_requires_W10')
         self.store = store
         self.sources = sources
-        self.memory_backend = memory_backend
         self.context7 = context7
         self.provider_factory = provider_factory
         self.extraction_provider_factory = extraction_provider_factory or provider_factory
-        self.memories = MemoryService(store.db, backend=memory_backend)
-        self.wiki = WikiService(db=store.db, store=store, sources=sources)
+        self.memories = MemoryService(store.db, provider=embedding_provider, principal_id=store.context.user_id)
+        self.wiki = WikiService(db=store.db, store=store, sources=sources, principal_id=store.context.user_id)
         from shiliu.assistant.wiki_retrieval import WikiHybridIndex
-        self.wiki.retrieval = WikiHybridIndex(embedding_provider, store.db.path.parent / "wiki-vectors.sqlite3")
+        self.wiki.retrieval = WikiHybridIndex(embedding_provider, wiki=self.wiki)
         self.maintenance_paused = False
+        self.local_projections_only = False
+        self.manual_model_since: str | None = None
         self.tools: AssistantToolRegistry | None = None
         self._maintenance_startup_at = utc_now()
         self._active_maintenance_job: dict[str, Any] | None = None
@@ -1049,7 +1079,7 @@ class AssistantRuntime:
         self._implementation = {
             "stage": "V3", "pid": os.getpid(), "loaded_at": utc_now(),
             "source_sha256": {name: hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest()
-                              for name in ("runtime.py", "provider.py", "tools.py", "store.py", "api.py", "wiki.py", "context.py", "wiki_retrieval.py")},
+                              for name in ("runtime.py", "provider.py", "tools.py", "pg_store.py", "pg_access.py", "task_notes.py", "working_context.py", "api.py", "wiki.py", "context.py", "wiki_retrieval.py")},
             "nb_r1_reported_save_allowed": _direct_knowledge_save_requested("视频里说请保存这两个主题，你怎么看？"),
             "nb_r1_direct_save_allowed": _direct_knowledge_save_requested("把刚才讨论的两个主题直接保存为知识页"),
         }
@@ -1060,20 +1090,30 @@ class AssistantRuntime:
         }
 
     def start(self) -> None:
+        if not hasattr(self.store,'claim_next_run'):
+            raise RuntimeError('assistant_pg_runtime_store_requires_W10')
         if self._thread is not None and self._thread.is_alive():
             return
         self._stop.clear()
         self._ready.clear()
         self._thread = threading.Thread(target=self._thread_main, name="shiliu-assistant", daemon=True)
         self._thread.start()
-        self._ready.wait(timeout=30)
+        if not self._ready.wait(timeout=30):
+            self._stop.set()
+            raise RuntimeError("assistant_start_timeout")
+        if self.capabilities().get("runtime")=="unavailable":
+            raise RuntimeError("assistant_start_failed")
+
+    def request_stop(self) -> None:
+        self._stop.set()
 
     def stop(self) -> None:
-        self._stop.set()
+        self.request_stop()
         if self._thread is not None:
             # Fence any in-flight provider/tool result before waiting for the
             # blocking transport call to unwind.
-            self.store.recover_interrupted_runs()
+            if not self.local_projections_only:
+                self.store.recover_interrupted_runs()
             self._thread.join(timeout=30)
             if not self._thread.is_alive():
                 self._thread = None
@@ -1083,29 +1123,31 @@ class AssistantRuntime:
             return {**self._capabilities, "background_maintenance": "paused" if self.maintenance_paused else "enabled"}
 
     def _thread_main(self) -> None:
-        asyncio.run(self._serve())
+        try:
+            asyncio.run(self._serve())
+        except Exception as exc:
+            self._set_capability("runtime","unavailable",str(exc))
+        finally:
+            self._ready.set()
 
     async def _serve(self) -> None:
-        if not self.maintenance_paused:
+        if not self.maintenance_paused and not self.local_projections_only:
             self.store.recover_expired_jobs()
-        self.store.recover_interrupted_runs()
-        memory_ready = False
-        try:
-            await asyncio.to_thread(self.memory_backend.start)
-            memory_ready = True
-            if not self.maintenance_paused:
-                self.store.requeue_blocked_memory_jobs()
-            self._set_capability("memory_index", "ready")
-        except Exception as exc:
-            self.memories.backend = None
-            self._set_capability("memory_index", "unavailable", str(exc))
+        if not self.local_projections_only:
+            self.store.recover_interrupted_runs()
+        # Provider is lazy/offline; readiness belongs to scoped PG coverage,
+        # never to opening an external vector directory at startup.
+        self._set_capability('memory_index','lazy' if self.memories.provider is not None else 'unavailable')
         context7_ready = False
-        try:
-            await self.context7.connect()
-            context7_ready = True
-            self._set_capability("context7", "ready")
-        except Exception as exc:
-            self._set_capability("context7", "unavailable", str(exc))
+        if self.local_projections_only:
+            self._set_capability("context7", "disabled")
+        else:
+            try:
+                await self.context7.connect()
+                context7_ready = True
+                self._set_capability("context7", "ready")
+            except Exception as exc:
+                self._set_capability("context7", "unavailable", str(exc))
         registry = AssistantToolRegistry(
             sources=self.sources,
             memories=self.memories,
@@ -1119,29 +1161,33 @@ class AssistantRuntime:
             memories=self.memories,
             tools=registry,
             provider_factory=self.provider_factory,
+            recover_legacy=not self.local_projections_only,
         )
-        try:
-            configured_provider = self.provider_factory()
-            self._set_capability("provider_transport", "sse" if hasattr(configured_provider, "stream_turn") else "nonstream_compatible")
-        except Exception as exc:
-            self._set_capability("provider_transport", "unavailable", str(exc))
+        if self.local_projections_only and self.manual_model_since is None:
+            self._set_capability("provider_transport", "disabled")
+        else:
+            try:
+                configured_provider = self.provider_factory()
+                self._set_capability("provider_transport", "sse" if hasattr(configured_provider, "stream_turn") else "nonstream_compatible")
+            except Exception as exc:
+                self._set_capability("provider_transport", "unavailable", str(exc))
         self._set_capability("runtime", "ready")
         self._ready.set()
         try:
-            loops = [self._foreground_loop(graph)]
-            if not self.maintenance_paused:
+            loops = ([self._foreground_loop(graph)]
+                     if not self.local_projections_only or self.manual_model_since else [])
+            if not self.maintenance_paused or self.local_projections_only:
                 loops.append(self._background_loop())
             await asyncio.gather(*loops)
         finally:
             if context7_ready:
                 await self.context7.close()
-            if memory_ready:
-                await asyncio.to_thread(self.memory_backend.stop)
             self._set_capability("runtime", "stopped")
 
     async def _foreground_loop(self, graph: AssistantExecutionGraph) -> None:
         while not self._stop.is_set():
-            run = self.store.claim_next_run()
+            run = (self.store.claim_next_run(created_after=self.manual_model_since)
+                   if self.local_projections_only else self.store.claim_next_run())
             if run is None:
                 await asyncio.sleep(0.2)
                 continue
@@ -1149,22 +1195,28 @@ class AssistantRuntime:
                 await graph.run(run)
             except Exception as exc:
                 code = str(getattr(exc, "code", None) or type(exc).__name__)
-                self.store.fail_run(str(run["id"]), code=code, message=str(exc))
+                self.store.fail_run(str(run["id"]), code=code, message=str(exc), epoch=int(run["run_epoch"]))
 
     async def _background_loop(self) -> None:
         # Only immediate personal index/purge cleanup may bypass the idle gate.
         while not self._stop.is_set():
-            idle = self._maintenance_idle()
-            job = self.store.claim_job(
-                owner=f"runtime-{uuid.uuid4().hex[:8]}",
-                allow_model_jobs=idle,
-                allow_maintenance=idle,
-                scheduler_reason="idle_180s" if idle else "immediate_index_cleanup",
-            )
-            if job is None:
-                await asyncio.sleep(15)
-                continue
-            await self._process_job(job)
+            try:
+                idle = not self.local_projections_only and self._maintenance_idle()
+                job = self.store.claim_job(
+                    owner=f"runtime-{uuid.uuid4().hex[:8]}",
+                    allow_model_jobs=idle,
+                    allow_maintenance=idle,
+                    scheduler_reason="idle_180s" if idle else "immediate_index_cleanup",
+                    kinds={"memory_index", "memory_purge"} if self.local_projections_only else None,
+                )
+                if job is not None:
+                    await self._process_job(job)
+                    continue
+            except Exception:
+                # A claim/settlement outage belongs to this background round.
+                # CancelledError still escapes, and the normal poll prevents a spin.
+                logger.exception("Assistant background round failed")
+            await asyncio.sleep(15)
 
     def _maintenance_idle(self) -> bool:
         return not self.maintenance_paused and self.store.maintenance_idle(seconds=180, startup_at=self._maintenance_startup_at)
@@ -1174,11 +1226,12 @@ class AssistantRuntime:
             raise MaintenanceYield("maintenance_paused")
         job = self._active_maintenance_job
         if job is not None:
-            valid = connection.execute("SELECT 1 FROM assistant_jobs WHERE id=? AND status='running' "
-                "AND lease_owner=? AND lease_epoch=? AND lease_until>=?",
-                (job["id"], job["lease_owner"], job["lease_epoch"], utc_now())).fetchone()
-            if valid is None:
-                raise MaintenanceYield("maintenance_lease_lost")
+            from shiliu.storage.scheduler import guard_job
+            from shiliu.storage.fences import CoordinationConflict
+            try:
+                guard_job(connection,self.store.context,job["id"],job["lease_owner"],job["lease_epoch"])
+            except CoordinationConflict as exc:
+                raise MaintenanceYield("maintenance_lease_lost") from exc
         if not self.store.maintenance_idle(seconds=180,
                 startup_at=self._maintenance_startup_at, connection=connection):
             raise MaintenanceYield("maintenance_user_returned")
@@ -1194,14 +1247,14 @@ class AssistantRuntime:
                     self.memories.project,
                     memory_id=str(payload["memory_id"]),
                     version=int(payload["version"]),
-                    old_backend_id=payload.get("old_backend_id"),
+                    job=job,
                 )
             elif kind == "memory_purge":
                 result = await asyncio.to_thread(
                     self.memories.purge,
                     memory_id=str(payload["memory_id"]),
                     version=int(payload["version"]),
-                    backend_id=payload.get("backend_id"),
+                    job=job,
                 )
             elif kind == "metadata_refresh":
                 result = (
@@ -1235,31 +1288,56 @@ class AssistantRuntime:
                 )
             else:
                 result = {"superseded": True, "reason": "stage_b_handler_not_enabled"}
+            if kind in {"memory_index", "memory_purge", "memory_extract"}:
+                return
+            # Only the trusted Wiki handler sets this after its atomic commit.
+            # Never persist the internal handoff in a proposal or public result.
+            if result.pop("_job_completed", False) is True:
+                return
             self.store.finish_job(
                 str(job["id"]), proposal=result,
                 owner=str(job["lease_owner"]), lease_epoch=int(job["lease_epoch"]),
             )
-        except ModelBudgetWait as exc:
-            self.store.defer_job_for_budget(job, message=str(exc))
-        except MaintenanceBudgetExceeded as exc:
-            self.store.defer_job_for_batch_budget(job, message=str(exc))
-        except MaintenanceYield:
-            self.store.defer_job_for_activity(job)
         except Exception as exc:
-            code = str(getattr(exc, "code", None) or type(exc).__name__)
-            if str(exc) == 'wiki_maintenance_not_authorized':
-                self.store.finish_job(str(job['id']), proposal={'superseded': True, 'reason': str(exc)},
-                    owner=str(job['lease_owner']), lease_epoch=int(job['lease_epoch']))
+            if isinstance(exc, CoordinationConflict) and str(exc) in {
+                "job_fenced", "lane_fenced", "job_missing",
+            }:
+                logger.info("Assistant job %s lost ownership: %s", job["id"], exc)
                 return
-            blocked = code in {"api_key_missing", "provider_auth", "memory_backend_unavailable"}
-            self.store.fail_job(job, code=code, message=str(exc), blocked=blocked)
+            try:
+                # A handler may have committed before a later read/cleanup failed.
+                # Check ownership before attempting failure/defer; each transition
+                # still performs its own CAS against races after this check.
+                with self.store.db.connect() as connection:
+                    guard_job(connection, self.store.context, job["id"],
+                              job["lease_owner"], job["lease_epoch"])
+                if isinstance(exc, ModelBudgetWait):
+                    self.store.defer_job_for_budget(job, message=str(exc))
+                elif isinstance(exc, MaintenanceBudgetExceeded):
+                    self.store.defer_job_for_batch_budget(job, message=str(exc))
+                elif isinstance(exc, MaintenanceYield):
+                    self.store.defer_job_for_activity(job)
+                elif isinstance(exc, AssistantConflict) and str(exc) == 'wiki_maintenance_not_authorized':
+                    self.store.finish_job(str(job['id']), proposal={'superseded': True, 'reason': str(exc)},
+                        owner=str(job['lease_owner']), lease_epoch=int(job['lease_epoch']))
+                else:
+                    code = str(getattr(exc, "code", None) or type(exc).__name__)
+                    blocked = code in {"api_key_missing", "provider_auth", "memory_embedding_unavailable"}
+                    self.store.fail_job(job, code=code, message=str(exc), blocked=blocked)
+            except CoordinationConflict as conflict:
+                if str(conflict) not in {"job_fenced", "lane_fenced", "job_missing"}:
+                    raise
+                logger.info("Assistant job %s settlement fenced: %s (handler: %s)",
+                            job["id"], conflict, exc)
         finally:
             self._active_maintenance_job = None
             heartbeat.cancel()
-            try:
-                await heartbeat
-            except asyncio.CancelledError:
-                pass
+            # Collect the heartbeat's own cancellation/error as a result while
+            # cancellation of this consumer still propagates through gather.
+            error, = await asyncio.gather(heartbeat, return_exceptions=True)
+            if isinstance(error, Exception):
+                logger.error("Assistant job %s heartbeat cleanup failed", job["id"],
+                             exc_info=(type(error), error, error.__traceback__))
 
     async def _heartbeat_job(self, job: dict[str, Any]) -> None:
         while True:
@@ -1274,179 +1352,13 @@ class AssistantRuntime:
                 return
 
     async def _extract_memories(self, job: dict[str, Any]) -> dict[str, Any]:
-        payload = job["payload"]
-        def policy_matches() -> bool:
-            policy = self.memories.auto_policy()
-            return (payload.get("auto_enabled_at_enqueue") is True
-                    and policy["enabled"]
-                    and int(payload.get("auto_memory_generation", -1)) == policy["generation"])
-        if not policy_matches():
-            return {"proposals": [], "applied_memory_ids": [], "reason": "automatic_memory_policy_changed"}
-        context = self.store.get_thread(str(payload["thread_id"]))
-        message_ids = set(str(value) for value in payload["message_ids"])
-        user_messages = [
-            item for item in context["messages"]
-            if item["id"] in message_ids and item["role"] == "user"
-        ]
-        if not user_messages:
-            return {"proposals": [], "applied_memory_ids": [], "reason": "no_unprocessed_user_messages"}
-        eligible_messages = [item for item in user_messages
-                             if not forbids_auto_save(str(item["content"]))]
-        if not eligible_messages:
-            return {"proposals": [], "applied_memory_ids": [],
-                    "processed_message_ids": list(message_ids), "reason": "user_forbids_auto_save"}
-        if not has_personal_candidate(eligible_messages):
-            return {"proposals": [], "applied_memory_ids": [],
-                    "processed_message_ids": list(message_ids), "reason": "no_personal_background_candidate"}
-        raw_user = "\n".join(
-            f"{item['id']} [{item['created_at']}]: {item['content']}" for item in user_messages
-        )
-        user_text = "\n".join(str(item["content"]) for item in eligible_messages)
-        thread_space = self.store.get_space(int(context["space_id"]))
-        message_positions = [
-            index for index, item in enumerate(context["messages"])
-            if item["id"] in message_ids
-        ]
-        nearby: list[str] = []
-        if message_positions:
-            start = max(0, min(message_positions) - 2)
-            for item in context["messages"][start:min(message_positions)]:
-                nearby.append(
-                    f"{item['role']} [{item['created_at']}]: {str(item['content'])[:2000]}"
-                )
-        nearby_text = "\n".join(nearby) if nearby else "（无）"
-        related = self.memories.recall(user_text[:300], space_id=int(context["space_id"]), limit=5)
-        related_text = "\n".join(
-            f"{item['id']} v{item['version']} [{item['kind']}] {item['text']}"
-            for item in related
-        ) or "（无）"
-        prompt = (
-            "从以下用户消息中提取最多 5 条可跨会话使用的个人背景。"
-            "用户无需说‘记住’：例如‘今天确定接下来三周主要补数据库基础’是可保存的阶段目标，"
-            "应输出 op=add、kind=context、scope_kind=space 的提案；本轮格式要求才输出空列表。"
-            "有日期或持续时长的目标需要保留时间依据；正在比较只能记为探索状态，不得写成决定。"
-            "视频/文档观点、引用内容、工具结果和助手回答不得成为用户立场。"
-            "‘我不同意 X’不等于采用 X；‘我决定采用 X’才是明确决定。"
-            "邻近上下文只用于解释指代，source_excerpt 必须逐字来自本次用户消息。"
-            "事件时间（下个月、下周开始、过段时间）不是 Memory 到期日，无时间也可保存。只有用户明确记忆适用期限时，可返回带时区的 valid_from/expires_at、validity_note 和"
-            "validity_timezone；无法可靠确定精确时间时只保留 validity_note，不猜时间。"
-            "返回 {\"proposals\":[{op,kind,text,subject_key,scope_kind,scope_id,"
-            "source_excerpt,target_memory_id?,expected_version?,valid_from?,expires_at?,"
-            "validity_note?,validity_timezone?}]}。scope 默认 space，时区默认 Asia/Shanghai。\n"
-            f"当前 Space id={thread_space['id']} name={thread_space['name']}。"
-            f"\n相关现有正式记忆（修订须给出这里的 ID 和版本）：\n{related_text}"
-            f"\n邻近解释上下文：\n{nearby_text}"
-            f"\n本次用户消息：\n{raw_user}"
-        )
-        staged = job.get("proposal") or {}
-        if "proposals" in staged:
-            proposals = staged["proposals"]
-        else:
-            provider = self.extraction_provider_factory()
-            self.store.reserve_model_request(lane="background", request_limit=60)
-            started = time.monotonic()
-            try:
-                if not self._maintenance_idle():
-                    raise MaintenanceYield("maintenance_user_returned")
-                proposals = await asyncio.to_thread(provider.extract_memories, prompt=prompt)
-            except BaseException:
-                self.store.record_model_usage(
-                    lane="background", usage=None, outcome="error_or_lost",
-                    latency_ms=(time.monotonic() - started) * 1000,
-                )
-                raise
-            self.store.record_model_usage(
-                lane="background", usage=None, outcome="response_usage_unavailable",
-                latency_ms=(time.monotonic() - started) * 1000,
-            )
-        saved_proposal = {"proposals": proposals}
-        if not self.store.save_job_proposal(
-            str(job["id"]), saved_proposal,
-            owner=str(job["lease_owner"]), lease_epoch=int(job["lease_epoch"]),
-        ):
-            raise RuntimeError("job_lease_lost")
-        if not self._maintenance_idle():
-            raise MaintenanceYield("maintenance_user_returned")
-        if not policy_matches():
-            return {"proposals": proposals, "applied_memory_ids": [],
-                    "reason": "automatic_memory_policy_changed"}
-        applied: list[str] = []
-        for index, proposal in enumerate(proposals[:5]):
-            if not self._maintenance_idle():
-                raise MaintenanceYield("maintenance_user_returned")
-            if not policy_matches():
-                break
-            excerpt = str(proposal.get("source_excerpt") or "")
-            if (
-                not excerpt
-                or excerpt not in user_text
-                or not plausible_personal_excerpt(excerpt, str(proposal.get("kind") or "context"))
-            ):
-                continue
-            source = next((item for item in eligible_messages if excerpt in str(item["content"])), None)
-            if source is None:
-                continue
-            full_source = str(source["content"])
-            excerpt_start = full_source.find(excerpt)
-            lead = full_source[max(0, excerpt_start - 100):excerpt_start]
-            lead_clause = re.split(r"[，。；;,\n]", lead)[-1]
-            tail = full_source[excerpt_start + len(excerpt):excerpt_start + len(excerpt) + 24]
-            if (re.search(r"引用|假设|比如|例如|视频里|作者说|讲者说|有人说|转述|例句|不是我的决定", lead_clause)
-                    or re.search(r"不是我(?:的)?(?:决定|计划|偏好)|只是引用|只是例子|是个假设", tail)):
-                continue
-            source_position = next((position for position, item in enumerate(user_messages)
-                                    if item["id"] == source["id"]), -1)
-            later = [item for item in self.store.get_thread(str(payload['thread_id']))['messages']
-                     if item['role'] == 'user' and int(item['seq']) > int(source['seq'])]
-            excerpt_terms = set(re.findall(r"[\u4e00-\u9fff]{2,}", excerpt))
-            excerpt_pairs = {term[index:index + 2] for term in excerpt_terms
-                             for index in range(len(term) - 1)}
-            subject_key = str(proposal.get("subject_key") or "")
-            if any(
-                re.search(r"撤回|取消|不再|改主意|先别|不要记|并未决定|没有决定", str(item["content"]))
-                and (bool(subject_key and subject_key in str(item["content"]))
-                     or bool(excerpt_pairs.intersection(
-                         {term[index:index + 2]
-                          for term in re.findall(r"[\u4e00-\u9fff]{2,}", str(item["content"]))
-                          for index in range(len(term) - 1)}
-                     ))
-                     or bool(re.search(r"刚才|之前|上述|那个|这项|这个决定|这条|改主意", str(item["content"]))))
-                for item in later
-            ):
-                continue
-            try:
-                time_bounds = checked_validity(excerpt, str(source['created_at']),
-                    {key: proposal[key] for key in ('valid_from', 'expires_at') if key in proposal})
-            except ValueError:
-                continue
-            proposal.update(time_bounds)
-            proposal['stated_at'] = str(source['created_at'])
-            if str(proposal.get("op")) == "revise":
-                if not any(str(item["id"]) == str(proposal.get("target_memory_id"))
-                           and int(item["version"]) == int(proposal.get("expected_version") or 0)
-                           for item in related):
-                    continue
-            requested_scope = str(proposal.get("scope_kind") or "space")
-            global_markers = ("以后默认", "长期", "所有项目", "跨项目")
-            if requested_scope != "user" or not any(marker in excerpt for marker in global_markers):
-                proposal["scope_kind"] = "space"
-                proposal["scope_id"] = int(thread_space["id"])
-            value = self.memories.apply_extracted(
-                proposal,
-                source_message_ids=[str(source["id"])],
-                expected_epoch=int(payload["memory_epoch"]),
-                operation_key=f"extract:{job['id']}:{index}",
-                expected_auto_generation=int(payload.get("auto_memory_generation", -1)),
-                publish_guard=self._require_maintenance_idle,
-            )
-            if value is not None:
-                applied.append(str(value["id"]))
-        return {"proposals": proposals, "applied_memory_ids": applied,
-                "processed_message_ids": [str(item["id"]) for item in user_messages],
-                "message_cursor": payload.get("message_cursor"),
-                "reason": ("applied" if applied else
-                           "automatic_memory_policy_changed" if not policy_matches()
-                           else "no_admissible_proposal")}
+        from shiliu.assistant.memory_extraction import MemoryExtractionService
+
+        return await MemoryExtractionService(
+            self.memories,
+            provider_factory=self.extraction_provider_factory,
+            continue_allowed=self._maintenance_idle,
+        ).process(job)
 
     def _set_capability(self, name: str, status: str, detail: str | None = None) -> None:
         with self._status_lock:

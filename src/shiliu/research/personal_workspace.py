@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
+from psycopg import Connection, sql
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from shiliu.db import Database
+from shiliu.research.errors import ResearchForbidden
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import iso_time, json_value, timestamp_value
+from shiliu.research.source_refs import source_boundary_row
+from shiliu.storage.fences import lock_workspace
+from shiliu.research.service import _parse_iso
 from shiliu.research.errors import (
     ResearchConflict,
     ResearchNotFound,
@@ -100,7 +105,7 @@ def _parse_iso(value: str) -> datetime:
 
 
 def _decode(value: object, expected: type) -> Any:
-    decoded = json.loads(str(value))
+    decoded = json_value(value)
     if not isinstance(decoded, expected):
         raise ResearchConflict("persisted WorkspaceRecord JSON has invalid shape")
     return decoded
@@ -121,6 +126,7 @@ class ResearchPersonalWorkspaceService:
         fault_injector: FaultInjector | None = None,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
@@ -133,6 +139,8 @@ class ResearchPersonalWorkspaceService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = CreateWorkspaceRecordRequest.model_validate(
             request.model_dump(mode="json")
         )
@@ -146,6 +154,7 @@ class ResearchPersonalWorkspaceService:
             }
         )
         with self._command_lock, self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task = self.kernel._task(connection, command_task_id)
             existing = self.kernel._existing_receipt(
                 connection,
@@ -183,12 +192,21 @@ class ResearchPersonalWorkspaceService:
                 source_refs,
             )
             expires_at = self._expires_value(request.expires_at)
-            record_id = _id(
+            legacy_record_id = _id(
                 "workspacerecord",
                 {
                     "owner_scope": "local_user_workspace",
                     "record_kind": request.record_kind,
                     "semantic_key": semantic_key,
+                },
+            )
+            legacy = self._latest(connection,legacy_record_id,required=False)
+            record_id = legacy_record_id if legacy is not None else _id(
+                "workspacerecord", {
+                    "workspace_id":self.context.workspace_id,
+                    "principal_id":self.context.user_id,
+                    "record_kind":request.record_kind,
+                    "semantic_key":semantic_key,
                 },
             )
             source_boundary_hash = _hash(source_refs)
@@ -210,8 +228,8 @@ class ResearchPersonalWorkspaceService:
                 same_content = (
                     _decode(latest["payload_json"], dict) == payload
                     and latest["confidence"] == request.confidence
-                    and (str(latest["expires_at"]) if latest["expires_at"] else None)
-                    == expires_at
+                    and timestamp_value(latest["expires_at"])
+                    == timestamp_value(expires_at)
                 )
                 if same_boundary and same_content:
                     response = {
@@ -259,39 +277,9 @@ class ResearchPersonalWorkspaceService:
             )
             connection.execute(
                 """
-                INSERT INTO research_workspace_records(
-                    record_revision_id, record_id, version, parent_revision_id,
-                    command_task_id, record_kind, authority_class, status,
-                    semantic_key, payload_json, source_refs_json,
-                    source_boundary_hash, confidence, expires_at,
-                    decision_action, reason, principal_id, policy_version,
-                    content_hash, command_id, command_payload_hash, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'create',
-                         ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_workspace_records(workspace_id, record_revision_id, record_id, version, parent_revision_id, command_task_id, record_kind, authority_class, status, semantic_key, payload_json, source_refs_json, source_boundary_hash, confidence, expires_at, decision_action, reason, principal_id, policy_version, content_hash, command_id, command_payload_hash, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'create', %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    revision_id,
-                    record_id,
-                    version,
-                    parent_revision_id,
-                    command_task_id,
-                    request.record_kind,
-                    authority_class,
-                    status,
-                    semantic_key,
-                    _canonical_json(payload),
-                    _canonical_json(source_refs),
-                    source_boundary_hash,
-                    request.confidence,
-                    expires_at,
-                    request.reopen_reason or request.reason,
-                    principal_id,
-                    PERSONAL_WORKSPACE_POLICY_VERSION,
-                    content_hash,
-                    request.command_id,
-                    payload_hash,
-                    _now(),
-                ),
+                (self.context.workspace_id, revision_id, record_id, version, parent_revision_id, command_task_id, request.record_kind, authority_class, status, semantic_key, json_field(_canonical_json(payload)), json_field(_canonical_json(source_refs)), source_boundary_hash, request.confidence, timestamp_value(expires_at), request.reopen_reason or request.reason, principal_id, PERSONAL_WORKSPACE_POLICY_VERSION, content_hash, request.command_id, payload_hash, _parse_iso(_now())),
             )
             self.fault_injector("after_stage4_workspace_record")
             response = {
@@ -318,6 +306,8 @@ class ResearchPersonalWorkspaceService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = DecideWorkspaceRecordRequest.model_validate(
             request.model_dump(mode="json")
         )
@@ -331,6 +321,7 @@ class ResearchPersonalWorkspaceService:
             }
         )
         with self._command_lock, self.kernel._transaction() as connection:
+            lock_workspace(connection,self.context)
             task = self.kernel._task(connection, command_task_id)
             existing = self.kernel._existing_receipt(
                 connection,
@@ -403,39 +394,9 @@ class ResearchPersonalWorkspaceService:
             )
             connection.execute(
                 """
-                INSERT INTO research_workspace_records(
-                    record_revision_id, record_id, version, parent_revision_id,
-                    command_task_id, record_kind, authority_class, status,
-                    semantic_key, payload_json, source_refs_json,
-                    source_boundary_hash, confidence, expires_at,
-                    decision_action, reason, principal_id, policy_version,
-                    content_hash, command_id, command_payload_hash, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_workspace_records(workspace_id, record_revision_id, record_id, version, parent_revision_id, command_task_id, record_kind, authority_class, status, semantic_key, payload_json, source_refs_json, source_boundary_hash, confidence, expires_at, decision_action, reason, principal_id, policy_version, content_hash, command_id, command_payload_hash, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    revision_id,
-                    record_id,
-                    version,
-                    str(latest["record_revision_id"]),
-                    command_task_id,
-                    str(latest["record_kind"]),
-                    authority_class,
-                    status,
-                    str(latest["semantic_key"]),
-                    _canonical_json(next_payload),
-                    str(latest["source_refs_json"]),
-                    str(latest["source_boundary_hash"]),
-                    latest["confidence"],
-                    latest["expires_at"],
-                    request.action,
-                    request.reason,
-                    principal_id,
-                    PERSONAL_WORKSPACE_POLICY_VERSION,
-                    content_hash,
-                    request.command_id,
-                    payload_hash,
-                    _now(),
-                ),
+                (self.context.workspace_id, revision_id, record_id, version, str(latest['record_revision_id']), command_task_id, str(latest['record_kind']), authority_class, status, str(latest['semantic_key']), json_field(_canonical_json(next_payload)), json_field(latest['source_refs_json']), str(latest['source_boundary_hash']), latest['confidence'], timestamp_value(latest['expires_at']), request.action, request.reason, principal_id, PERSONAL_WORKSPACE_POLICY_VERSION, content_hash, request.command_id, payload_hash, _parse_iso(_now())),
             )
             self.fault_injector("after_stage4_workspace_decision")
             response = self._project(self._latest(connection, record_id))
@@ -459,15 +420,17 @@ class ResearchPersonalWorkspaceService:
         personalization_enabled: bool = True,
         principal_id: str | None = None,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         with self.db.connect() as connection:
             self.kernel._task(connection, command_task_id)
             rows = connection.execute(
                 """
                 SELECT * FROM research_workspace_records
-                ORDER BY record_kind, semantic_key, record_id, version
-                """
+                WHERE workspace_id=%s AND principal_id=%s ORDER BY record_kind, semantic_key, record_id, version
+                """, (self.context.workspace_id,self.context.user_id)
             ).fetchall()
-        grouped: dict[str, list[sqlite3.Row]] = {}
+        grouped: dict[str, list[dict[str, Any]]] = {}
         for row in rows:
             grouped.setdefault(str(row["record_id"]), []).append(row)
         all_records = []
@@ -483,7 +446,7 @@ class ResearchPersonalWorkspaceService:
                     "reason": str(row["reason"]),
                     "payload": _decode(row["payload_json"], dict),
                     "content_hash": str(row["content_hash"]),
-                    "created_at": str(row["created_at"]),
+                    "created_at": iso_time(row["created_at"],timespec="microseconds"),
                 }
                 for row in history_rows
             ]
@@ -548,9 +511,9 @@ class ResearchPersonalWorkspaceService:
 
     def _audit_without_revision(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         command_id: str,
         payload_hash: str,
         response: dict[str, Any],
@@ -569,9 +532,9 @@ class ResearchPersonalWorkspaceService:
 
     def _commit_audit(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
+        task: dict[str, Any],
         command_id: str,
         payload_hash: str,
         response: dict[str, Any],
@@ -609,7 +572,7 @@ class ResearchPersonalWorkspaceService:
 
     def _validate_source_refs(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         refs: list[WorkspaceSourceRef],
     ) -> list[dict[str, Any]]:
         canonical = []
@@ -636,9 +599,8 @@ class ResearchPersonalWorkspaceService:
         )
         return canonical
 
-    @staticmethod
-    def _source_row(
-        connection: sqlite3.Connection, ref: WorkspaceSourceRef
+    def _source_row(self,
+        connection: Connection, ref: WorkspaceSourceRef
     ) -> dict[str, Any]:
         mapping = {
             "research_task": ("research_tasks", "task_id"),
@@ -664,13 +626,13 @@ class ResearchPersonalWorkspaceService:
         else:
             lookup = ref.ref_id
         row = connection.execute(
-            f"SELECT * FROM {table} WHERE {key}=?", (lookup,)
+            sql.SQL("SELECT * FROM {} WHERE workspace_id=%s AND {}=%s").format(sql.Identifier(table),sql.Identifier(key)), (self.context.workspace_id,lookup,)
         ).fetchone()
         if row is None:
             raise ResearchValidationError(
                 f"Workspace source ref does not exist: {ref.ref_type}:{ref.ref_id}"
             )
-        value = dict(row)
+        value = source_boundary_row(row,ref.ref_type)
         if ref.ref_type != "taxonomy_snapshot" and str(value["task_id"]) != ref.task_id:
             raise ResearchValidationError("Workspace source ref crossed its Task boundary")
         return value
@@ -681,9 +643,8 @@ class ResearchPersonalWorkspaceService:
             return f"/taxonomy?snapshot_id={ref.ref_id}"
         return f"/research/{ref.task_id}"
 
-    @staticmethod
-    def _validate_feedback_preference_sources(
-        connection: sqlite3.Connection,
+    def _validate_feedback_preference_sources(self,
+        connection: Connection,
         *,
         command_task_id: str,
         source_refs: list[dict[str, Any]],
@@ -711,9 +672,8 @@ class ResearchPersonalWorkspaceService:
 
         for ref in source_refs:
             row = connection.execute(
-                "SELECT task_id, event_id, event_type, payload_json, command_id "
-                "FROM research_events WHERE event_id=?",
-                (ref["ref_id"],),
+                'SELECT task_id, event_id, event_type, payload_json, command_id FROM research_events WHERE research_events.workspace_id=%s AND  event_id=%s',
+                (self.context.workspace_id, ref['ref_id']),
             ).fetchone()
             if (
                 row is None
@@ -724,7 +684,7 @@ class ResearchPersonalWorkspaceService:
                     "preference candidate sources must be same-Task Feedback Events"
                 )
             try:
-                event_payload = json.loads(str(row["payload_json"]))
+                event_payload = json_value(row['payload_json'])
             except (TypeError, ValueError) as exc:
                 raise ResearchConflict("Feedback Event payload is invalid") from exc
             if not isinstance(event_payload, dict):
@@ -759,16 +719,14 @@ class ResearchPersonalWorkspaceService:
             target_hash = str(event_payload.get("target_hash") or "")
             if target_kind == "topic_page_revision":
                 target = connection.execute(
-                    "SELECT content_hash FROM research_topic_page_revisions "
-                    "WHERE task_id=? AND page_revision_id=?",
-                    (command_task_id, target_id),
+                    'SELECT content_hash FROM research_topic_page_revisions WHERE research_topic_page_revisions.workspace_id=%s AND  task_id=%s AND page_revision_id=%s',
+                    (self.context.workspace_id, command_task_id, target_id),
                 ).fetchone()
                 hash_column = "content_hash"
             elif target_kind == "artifact_route":
                 target = connection.execute(
-                    "SELECT expected_authority_hash FROM research_artifact_routes "
-                    "WHERE task_id=? AND record_id=?",
-                    (command_task_id, target_id),
+                    'SELECT expected_authority_hash FROM research_artifact_routes WHERE research_artifact_routes.workspace_id=%s AND  task_id=%s AND record_id=%s',
+                    (self.context.workspace_id, command_task_id, target_id),
                 ).fetchone()
                 hash_column = "expected_authority_hash"
             else:
@@ -779,14 +737,8 @@ class ResearchPersonalWorkspaceService:
                     "Feedback Event target/hash is not the exact immutable target"
                 )
             receipt = connection.execute(
-                "SELECT 1 FROM research_command_receipts "
-                "WHERE task_id=? AND command_id=? AND outcome_reference=? "
-                "AND command_type='v5b_product_feedback' AND status='committed'",
-                (
-                    command_task_id,
-                    str(row["command_id"]),
-                    str(row["event_id"]),
-                ),
+                "SELECT 1 FROM research_command_receipts WHERE research_command_receipts.workspace_id=%s AND  task_id=%s AND command_id=%s AND outcome_reference=%s AND command_type='v5b_product_feedback' AND status='committed'",
+                (self.context.workspace_id, command_task_id, str(row['command_id']), str(row['event_id'])),
             ).fetchone()
             if receipt is None:
                 raise ResearchValidationError(
@@ -915,7 +867,7 @@ class ResearchPersonalWorkspaceService:
 
     @staticmethod
     def _decision_semantics(
-        latest: sqlite3.Row,
+        latest: dict[str, Any],
         request: DecideWorkspaceRecordRequest,
         payload: dict[str, Any],
         source_refs: list[dict[str, Any]],
@@ -1043,24 +995,22 @@ class ResearchPersonalWorkspaceService:
             }
         )
 
-    @staticmethod
-    def _latest(
-        connection: sqlite3.Connection,
+    def _latest(self,
+        connection: Connection,
         record_id: str,
         *,
         required: bool = True,
-    ) -> sqlite3.Row | None:
+    ) -> dict[str, Any] | None:
         row = connection.execute(
-            "SELECT * FROM research_workspace_records WHERE record_id=? "
-            "ORDER BY version DESC LIMIT 1",
-            (record_id,),
+            'SELECT * FROM research_workspace_records WHERE research_workspace_records.workspace_id=%s AND  record_id=%s ORDER BY version DESC LIMIT 1',
+            (self.context.workspace_id, record_id),
         ).fetchone()
         if row is None and required:
             raise ResearchNotFound(f"WorkspaceRecord does not exist: {record_id}")
         return row
 
     @classmethod
-    def _project(cls, row: sqlite3.Row | None) -> dict[str, Any]:
+    def _project(cls, row: dict[str, Any] | None) -> dict[str, Any]:
         if row is None:
             raise ResearchNotFound("WorkspaceRecord does not exist")
         stored_status = str(row["status"])
@@ -1087,13 +1037,13 @@ class ResearchPersonalWorkspaceService:
             "confidence": (
                 float(row["confidence"]) if row["confidence"] is not None else None
             ),
-            "expires_at": str(row["expires_at"]) if row["expires_at"] else None,
+            "expires_at": iso_time(row["expires_at"],timespec="microseconds") if row["expires_at"] else None,
             "decision_action": str(row["decision_action"]),
             "reason": str(row["reason"]),
             "principal_id": str(row["principal_id"]),
             "policy_version": str(row["policy_version"]),
             "content_hash": str(row["content_hash"]),
-            "created_at": str(row["created_at"]),
+            "created_at": iso_time(row["created_at"],timespec="microseconds"),
         }
         projected["user_state_authority"] = (
             projected["authority_class"] in {"user_authored", "user_confirmed"}

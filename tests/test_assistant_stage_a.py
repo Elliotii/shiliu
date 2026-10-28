@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from shiliu.artifacts import ArtifactStore
 from shiliu.app import Application
-from shiliu.assistant.schema import initialize_assistant_foundation_schema
+from shiliu.migration.legacy_schema.assistant import initialize_assistant_foundation_schema
 from shiliu.assistant.contracts import COLLECTION_TOOL_SCHEMAS, CollectionReadArgs
 from shiliu.assistant.dependencies import AssistantProcessLock, CONTEXT7_TOOL_NAME_MAP
 from shiliu.assistant.snapshots import SourceSnapshotStore

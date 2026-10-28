@@ -5,11 +5,7 @@ from shiliu.eval_v3_5.models import (
     MasterCaseCandidate,
     ReviewDecisionTemplate,
 )
-from shiliu.eval_v3_5.packets import (
-    PacketBuildSummary,
-    build_review_assets,
-    validate_review_assets,
-)
+
 
 __all__ = [
     "CompletedReviewDecision",
@@ -19,3 +15,11 @@ __all__ = [
     "build_review_assets",
     "validate_review_assets",
 ]
+
+
+def __getattr__(name):
+    # Formal stage4b semantic analysis must not import offline SQLite packets.
+    if name in {"PacketBuildSummary", "build_review_assets", "validate_review_assets"}:
+        from shiliu.eval_v3_5 import packets
+        return getattr(packets, name)
+    raise AttributeError(name)

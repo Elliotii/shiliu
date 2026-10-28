@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
 from pathlib import Path
-import sqlite3
 import shutil
 import tempfile
 from typing import Any, Mapping, Sequence
@@ -336,7 +337,7 @@ def build_forbidden_values(
         # Include every runtime-exposed identity representation in the mechanical blocklist.
         values["bvid_aid"].append(str(runtime_row["track_b"]["authorized_source_identity"]))
     placeholders = ",".join("?" for _ in target_product_ids)
-    with sqlite3.connect(f"file:{snapshot_db}?mode=ro", uri=True) as connection:
+    with connect_snapshot(snapshot_db) as connection:
         values["full_target_titles"] = [
             str(row[0])
             for row in connection.execute(

@@ -8,7 +8,8 @@ from typing import Any
 from shiliu.db import Database
 from shiliu.research.errors import ResearchConflict, ResearchUnsafeState
 from shiliu.research.schema import RESEARCH_ACTIVE_TIME_POLICY_VERSION
-from shiliu.research.service import ResearchTaskService
+from shiliu.research.service import ResearchTaskService, _parse_iso
+from shiliu.storage.dto import row_dto
 
 
 DEFAULT_ACTIVE_BUDGET_MS = 360_000
@@ -87,6 +88,7 @@ class ResearchExecutionLedger:
         if reservation_ms <= 0:
             raise ValueError("reservation_ms must be positive")
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.reservation_ms = int(reservation_ms)
 
@@ -94,6 +96,7 @@ class ResearchExecutionLedger:
     def insert_v2(
         connection: Any,
         *,
+        context,
         task_id: str,
         now: str,
         run_command_id: str,
@@ -102,30 +105,21 @@ class ResearchExecutionLedger:
     ) -> None:
         connection.execute(
             """
-            INSERT INTO research_execution_metadata(
+            INSERT INTO research_execution_metadata(workspace_id,
                 task_id, time_policy_version, active_budget_ms,
                 scheduling_intent, scheduling_status, run_command_id,
                 resume_reason, created_at, updated_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                task_id,
-                RESEARCH_ACTIVE_TIME_POLICY_VERSION,
-                int(active_budget_ms),
-                "queued" if run_immediately else "none",
-                "queued" if run_immediately else "idle",
-                run_command_id,
-                "initial_run_requested" if run_immediately else None,
-                now,
-                now,
-            ),
+            (context.workspace_id, task_id, RESEARCH_ACTIVE_TIME_POLICY_VERSION, int(active_budget_ms), 'queued' if run_immediately else 'none', 'queued' if run_immediately else 'idle', run_command_id, 'initial_run_requested' if run_immediately else None, _parse_iso(now), _parse_iso(now)),
         )
 
     def snapshot(self, task_id: str, *, required: bool = True) -> ActiveTimeSnapshot | None:
-        with self.db.connect() as connection:
+        with self.db.connect(read_only=True) as connection:
+            self.kernel._task(connection,task_id,lock=False)
             row = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
         if row is None:
             if required:
@@ -137,6 +131,7 @@ class ResearchExecutionLedger:
 
     @staticmethod
     def _snapshot(row: Any) -> ActiveTimeSnapshot:
+        row=row_dto(row,timestamps=("next_retry_at",),timespec="microseconds")
         return ActiveTimeSnapshot(
             task_id=str(row["task_id"]),
             time_policy_version=str(row["time_policy_version"]),
@@ -173,8 +168,8 @@ class ResearchExecutionLedger:
             if str(task["status"]) == "terminal":
                 raise ResearchUnsafeState("terminal Task cannot be scheduled")
             row = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if row is None:
                 raise ResearchUnsafeState(
@@ -190,24 +185,16 @@ class ResearchExecutionLedger:
             connection.execute(
                 """
                 UPDATE research_execution_metadata
-                SET scheduling_intent=?, scheduling_status='queued',
-                    run_command_id=?, resume_reason=?, manual_generation=?,
-                    automatic_failure_count=?, next_retry_at=NULL, updated_at=?
-                WHERE task_id=?
+                SET scheduling_intent=%s, scheduling_status='queued',
+                    run_command_id=%s, resume_reason=%s, manual_generation=%s,
+                    automatic_failure_count=%s, next_retry_at=NULL, updated_at=%s
+                WHERE workspace_id=%s AND  task_id=%s
                 """,
-                (
-                    "manual" if manual else "queued",
-                    command_id,
-                    reason,
-                    generation,
-                    automatic,
-                    now,
-                    task_id,
-                ),
+                ('manual' if manual else 'queued', command_id, reason, generation, automatic, _parse_iso(now), self.context.workspace_id, task_id),
             )
             result = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
         return self._snapshot(result)
 
@@ -219,12 +206,13 @@ class ResearchExecutionLedger:
         segment_id = f"rseg_{uuid.uuid4().hex}"
         with self.kernel._transaction() as connection:
             task = self.kernel._task(connection, task_id)
+            self.kernel._assert_nonterminal(task)
             self.kernel._assert_owner(
                 task, owner_id=owner_id, owner_epoch=owner_epoch, now=now_value
             )
             row = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if row is None:
                 raise ResearchUnsafeState("legacy_time_unaccounted")
@@ -242,44 +230,43 @@ class ResearchExecutionLedger:
                 connection.execute(
                     """
                     UPDATE research_execution_metadata
-                    SET consumed_active_ms=consumed_active_ms+?, reserved_tail_ms=0,
+                    SET consumed_active_ms=consumed_active_ms+%s, reserved_tail_ms=0,
                         segment_id=NULL, segment_owner_id=NULL,
                         segment_owner_epoch=NULL, segment_settled_ms=0,
                         timing_status=CASE
-                            WHEN consumed_active_ms+? >= active_budget_ms
+                            WHEN consumed_active_ms+%s >= active_budget_ms
                             THEN 'exhausted' ELSE 'idle' END,
-                        updated_at=? WHERE task_id=?
+                        updated_at=%s WHERE workspace_id=%s AND  task_id=%s
                     """,
-                    (recovered, recovered, now, task_id),
+                    (recovered, recovered, _parse_iso(now), self.context.workspace_id, task_id),
                 )
                 row = connection.execute(
-                    "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                    (task_id,),
+                    'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                    (self.context.workspace_id, task_id),
                 ).fetchone()
             if str(row["timing_status"]) == "uncertain":
                 raise ResearchUnsafeState("execution_time_uncertain")
             remaining = int(row["active_budget_ms"]) - int(row["consumed_active_ms"])
             if remaining <= 0:
                 connection.execute(
-                    "UPDATE research_execution_metadata SET timing_status='exhausted', "
-                    "scheduling_status='manual_required', updated_at=? WHERE task_id=?",
-                    (now, task_id),
+                    "UPDATE research_execution_metadata SET timing_status='exhausted', scheduling_status='manual_required', updated_at=%s WHERE workspace_id=%s AND  task_id=%s",
+                    (_parse_iso(now), self.context.workspace_id, task_id),
                 )
                 raise ResearchUnsafeState("research active-time budget is exhausted")
             reserved = min(self.reservation_ms, remaining)
             connection.execute(
                 """
                 UPDATE research_execution_metadata
-                SET segment_id=?, segment_owner_id=?, segment_owner_epoch=?,
-                    segment_settled_ms=0, reserved_tail_ms=?, tick_sequence=tick_sequence+1,
-                    timing_status='active', scheduling_status='running', updated_at=?
-                WHERE task_id=?
+                SET segment_id=%s, segment_owner_id=%s, segment_owner_epoch=%s,
+                    segment_settled_ms=0, reserved_tail_ms=%s, tick_sequence=tick_sequence+1,
+                    timing_status='active', scheduling_status='running', updated_at=%s
+                WHERE workspace_id=%s AND  task_id=%s
                 """,
-                (segment_id, owner_id, owner_epoch, reserved, now, task_id),
+                (segment_id, owner_id, owner_epoch, reserved, _parse_iso(now), self.context.workspace_id, task_id),
             )
             result = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
         return segment_id, self._snapshot(result)
 
@@ -305,8 +292,8 @@ class ResearchExecutionLedger:
                 task, owner_id=owner_id, owner_epoch=owner_epoch, now=now_value
             )
             row = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if (
                 row is None
@@ -321,10 +308,10 @@ class ResearchExecutionLedger:
                     UPDATE research_execution_metadata
                     SET timing_status='uncertain', scheduling_status='manual_required',
                         scheduling_intent='none', resume_reason='execution_time_uncertain',
-                        last_failure_code='execution_time_uncertain', updated_at=?
-                    WHERE task_id=?
+                        last_failure_code='execution_time_uncertain', updated_at=%s
+                    WHERE workspace_id=%s AND  task_id=%s
                     """,
-                    (now, task_id),
+                    (_parse_iso(now), self.context.workspace_id, task_id),
                 )
             elif interval_classification == "running":
                 settled = int(row["segment_settled_ms"])
@@ -337,29 +324,20 @@ class ResearchExecutionLedger:
                 connection.execute(
                     """
                     UPDATE research_execution_metadata
-                    SET consumed_active_ms=?, segment_settled_ms=?, reserved_tail_ms=?,
-                        tick_sequence=tick_sequence+1, timing_status=?,
-                        scheduling_status=CASE WHEN ? THEN 'manual_required'
+                    SET consumed_active_ms=%s, segment_settled_ms=%s, reserved_tail_ms=%s,
+                        tick_sequence=tick_sequence+1, timing_status=%s,
+                        scheduling_status=CASE WHEN %s THEN 'manual_required'
                                                ELSE scheduling_status END,
-                        resume_reason=CASE WHEN ? THEN 'active_time_exhausted'
+                        resume_reason=CASE WHEN %s THEN 'active_time_exhausted'
                                            ELSE resume_reason END,
-                        updated_at=? WHERE task_id=?
+                        updated_at=%s WHERE workspace_id=%s AND  task_id=%s
                     """,
-                    (
-                        consumed,
-                        int(elapsed_ms),
-                        reserved,
-                        "exhausted" if exhausted else "active",
-                        exhausted,
-                        exhausted,
-                        now,
-                        task_id,
-                    ),
+                    (consumed, int(elapsed_ms), reserved, 'exhausted' if exhausted else 'active', exhausted, exhausted, _parse_iso(now), self.context.workspace_id, task_id),
                 )
             # Confirmed sleep advances neither settled elapsed nor consumed time.
             result = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
         return self._snapshot(result)
 
@@ -383,6 +361,8 @@ class ResearchExecutionLedger:
         )
         now = _iso(self.kernel._now())
         with self.kernel._transaction() as connection:
+            task=self.kernel._task(connection,task_id)
+            self.kernel._assert_owner(task,owner_id=owner_id,owner_epoch=owner_epoch,now=self.kernel._now())
             cursor = connection.execute(
                 """
                 UPDATE research_execution_metadata
@@ -391,51 +371,35 @@ class ResearchExecutionLedger:
                     timing_status=CASE WHEN consumed_active_ms >= active_budget_ms
                                        THEN 'exhausted' ELSE 'idle' END,
                     scheduling_status=CASE WHEN consumed_active_ms >= active_budget_ms
-                                           THEN 'manual_required' ELSE ? END,
-                    scheduling_intent='none', resume_reason=COALESCE(?, resume_reason),
-                    updated_at=?
-                WHERE task_id=? AND segment_id=? AND segment_owner_id=?
-                  AND segment_owner_epoch=?
+                                           THEN 'manual_required' ELSE %s END,
+                    scheduling_intent='none', resume_reason=COALESCE(%s, resume_reason),
+                    updated_at=%s
+                WHERE workspace_id=%s AND  task_id=%s AND segment_id=%s AND segment_owner_id=%s
+                  AND segment_owner_epoch=%s
                 """,
-                (
-                    scheduling_status,
-                    resume_reason,
-                    now,
-                    task_id,
-                    segment_id,
-                    owner_id,
-                    owner_epoch,
-                ),
+                (scheduling_status, resume_reason, _parse_iso(now), self.context.workspace_id, task_id, segment_id, owner_id, owner_epoch),
             )
             if cursor.rowcount != 1:
                 raise ResearchConflict("stale active-time segment settle")
             row = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
         return self._snapshot(row)
 
     def renew_lease_only(
         self, *, task_id: str, owner_id: str, owner_epoch: int, lease_seconds: int
     ) -> str:
-        now_value = self.kernel._now()
-        now = _iso(now_value)
-        expires = _iso(now_value + timedelta(seconds=lease_seconds))
+        if type(lease_seconds) is not int or not 0<lease_seconds<=60:
+            raise ValueError("invalid_owner_lease")
         with self.kernel._transaction() as connection:
-            task = self.kernel._task(connection, task_id)
-            self.kernel._assert_owner(
-                task, owner_id=owner_id, owner_epoch=owner_epoch, now=now_value
-            )
-            cursor = connection.execute(
-                """
-                UPDATE research_tasks SET lease_until=?, updated_at=?
-                WHERE task_id=? AND owner_id=? AND owner_epoch=?
-                """,
-                (expires, now, task_id, owner_id, owner_epoch),
-            )
-            if cursor.rowcount != 1:
-                raise ResearchConflict("lease-only renewal fence failed")
-        return expires
+            task=self.kernel._task(connection,task_id)
+            self.kernel._assert_owner(task,owner_id=owner_id,owner_epoch=owner_epoch,now=self.kernel._now())
+            row=connection.execute("UPDATE research_tasks SET lease_until=clock_timestamp()+%s*interval '1 second',updated_at=clock_timestamp() "
+                "WHERE workspace_id=%s AND owner_user_id=%s AND task_id=%s AND owner_id=%s AND owner_epoch=%s RETURNING lease_until",
+                (lease_seconds,self.context.workspace_id,self.context.user_id,task_id,owner_id,owner_epoch)).fetchone()
+            if row is None:raise ResearchConflict("lease-only renewal fence failed")
+            return _iso(row["lease_until"])
 
     def record_failure(
         self, task_id: str, *, code: str, safe_to_retry: bool
@@ -443,9 +407,10 @@ class ResearchExecutionLedger:
         now_value = self.kernel._now()
         now = _iso(now_value)
         with self.kernel._transaction() as connection:
+            self.kernel._task(connection,task_id)
             row = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
             if row is None:
                 raise ResearchUnsafeState("legacy_time_unaccounted")
@@ -463,25 +428,16 @@ class ResearchExecutionLedger:
             connection.execute(
                 """
                 UPDATE research_execution_metadata
-                SET automatic_failure_count=?,
+                SET automatic_failure_count=%s,
                     lifetime_automatic_failure_count=lifetime_automatic_failure_count+1,
-                    scheduling_status=?, scheduling_intent=?, next_retry_at=?,
-                    last_failure_code=?, resume_reason=?, updated_at=?
-                WHERE task_id=?
+                    scheduling_status=%s, scheduling_intent=%s, next_retry_at=%s,
+                    last_failure_code=%s, resume_reason=%s, updated_at=%s
+                WHERE workspace_id=%s AND  task_id=%s
                 """,
-                (
-                    count,
-                    status,
-                    intent,
-                    next_retry,
-                    code,
-                    "safe_retry_backoff" if next_retry else code,
-                    now,
-                    task_id,
-                ),
+                (count, status, intent, None if next_retry is None else _parse_iso(next_retry), code, 'safe_retry_backoff' if (None if next_retry is None else _parse_iso(next_retry)) else code, _parse_iso(now), self.context.workspace_id, task_id),
             )
             result = connection.execute(
-                "SELECT * FROM research_execution_metadata WHERE task_id=?",
-                (task_id,),
+                'SELECT * FROM research_execution_metadata WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
             ).fetchone()
         return self._snapshot(result)

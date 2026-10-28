@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -31,7 +33,7 @@ def validate_calibration_assets(
     *,
     root: str | Path = "research/v3_5",
     protocol_path: str | Path = "V3_5_EVAL_PROTOCOL_DRAFT.md",
-    snapshot_db: str | Path = "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
+    snapshot_db: str | Path = "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db",
     gold_path: str | Path = "research/v3_eval/eval_gold.locked.jsonl",
     artifact_manifest_path: str | Path = "research/v3_eval/artifact_manifest.jsonl",
 ) -> dict[str, int]:
@@ -83,7 +85,7 @@ def validate_calibration_assets(
 
     gold = {item["query_id"]: item for item in _jsonl(Path(gold_path))}
     artifacts = _jsonl(Path(artifact_manifest_path))
-    connection = sqlite3.connect(f"file:{Path(snapshot_db).resolve()}?mode=ro&immutable=1", uri=True)
+    connection = connect_snapshot(Path(snapshot_db))
     connection.row_factory = sqlite3.Row
     try:
         for case_id, (query_id, video_id, bvid) in NEW_UNVERIFIABLE_RESERVES.items():

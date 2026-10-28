@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LEDGER_PATH = Path("/Users/elliot/Downloads/V3_5_PQS_V1_USER_DECISION_LEDGER.json")
+LEDGER_PATH = Path("/absolute/historical/Downloads/V3_5_PQS_V1_USER_DECISION_LEDGER.json")
 P3 = ROOT / "research/v3_5/product_query_set_v1/user_validation"
 P4 = ROOT / "research/v3_5/product_query_set_v1/freeze"
 SOURCE = ROOT / "research/v3_5/product_query_set_v1/corpus_aware_generation"

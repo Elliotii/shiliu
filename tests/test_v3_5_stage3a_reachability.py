@@ -110,7 +110,7 @@ def test_heldout_guard_rejects_paths_without_opening_them(relative: str) -> None
         "research/v3_5/gold/V3_5_EVAL_PROTOCOL.locked.md",
         "research/v3_5/gold/HELDOUT_ISOLATION_CONTRACT.md",
         "src/shiliu/evidence/source.py",
-        "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1oa6uBXE8J/subtitle-raw.json",
+        "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts/BV1oa6uBXE8J/subtitle-raw.json",
     ],
 )
 def test_heldout_guard_allows_development_source_and_raw_paths(relative: str) -> None:

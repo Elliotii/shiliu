@@ -29,7 +29,6 @@ from shiliu.evidence.authority import (
     bind_pinned_version,
     bind_snapshot_manifest_version,
 )
-from shiliu.evidence.audit import MappingAuditSummary, audit_snapshot_chunk_mappings
 from shiliu.evidence.search import EvidenceSearchService, SearchExecution
 from shiliu.evidence.decision import (
     EVIDENCE_DECISION_SCHEMA_VERSION,
@@ -139,3 +138,11 @@ __all__ = [
     "serialize_continuation_envelope",
     "serialize_evidence_decision",
 ]
+
+
+def __getattr__(name):
+    # Snapshot auditing is an explicit offline API, separate from live evidence.
+    if name in {"MappingAuditSummary", "audit_snapshot_chunk_mappings"}:
+        from shiliu.evidence import audit
+        return getattr(audit, name)
+    raise AttributeError(name)

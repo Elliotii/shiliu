@@ -14,13 +14,16 @@ class TaskNoteService:
         db: Database,
         memories: MemoryService,
         *,
-        principal_id: str = "local_operator",
+        principal_id: str | None = None,
         source_ref_validator: Callable[[list[str], int], bool] | None = None,
         dependency_ref_validator: Callable[[list[str], int, str, int], bool] | None = None,
     ) -> None:
         self.db = db
         self.memories = memories
-        self.principal_id = principal_id
+        self.context = db.context
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ValueError("task_note_principal_mismatch")
+        self.principal_id = self.context.user_id
         self.source_ref_validator = source_ref_validator
         self.dependency_ref_validator = dependency_ref_validator
 
@@ -29,10 +32,10 @@ class TaskNoteService:
             row = connection.execute(
                 """
                 SELECT n.* FROM assistant_task_notes n
-                JOIN assistant_threads t ON t.id=n.thread_id
-                WHERE n.thread_id=? AND n.task_segment=? AND t.principal_id=?
+                JOIN assistant_threads t ON (t.workspace_id,t.id)=(n.workspace_id,n.thread_id)
+                WHERE n.workspace_id=%s AND n.thread_id=%s AND n.task_segment=%s AND t.principal_id=%s
                 """,
-                (thread_id, task_segment, self.principal_id),
+                (self.context.workspace_id,thread_id, task_segment, self.principal_id),
             ).fetchone()
         return self._decode(dict(row)) if row else None
 
@@ -48,14 +51,13 @@ class TaskNoteService:
         # completed reads. Their dependencies are checked below individually.
         suppressed_message_ids = self.memories.suppressed_source_message_ids(space_id=space_id)
         if suppressed_message_ids and note["source_run_ids"]:
-            placeholders = ",".join("?" for _ in note["source_run_ids"])
             with self.db.connect() as connection:
                 rows = connection.execute(
-                    f"""
+                    """
                     SELECT id FROM assistant_messages
-                    WHERE run_id IN ({placeholders}) AND role='user'
+                    WHERE workspace_id=%s AND thread_id=%s AND run_id=ANY(%s) AND role='user'
                     """,
-                    note["source_run_ids"],
+                    (self.context.workspace_id,thread_id,note["source_run_ids"]),
                 ).fetchall()
             if any(str(row["id"]) in suppressed_message_ids for row in rows):
                 return None
@@ -110,8 +112,8 @@ class TaskNoteService:
                     parts = ref.split(':')
                     if len(parts) != 3 or not parts[2].isdigit():
                         return None
-                    page = connection.execute('SELECT version,status,space_id FROM assistant_wiki_pages WHERE id=?',
-                                               (parts[1],)).fetchone()
+                    page = connection.execute('SELECT version,status,space_id FROM assistant_wiki_pages WHERE workspace_id=%s AND principal_id=%s AND id=%s',
+                                               (self.context.workspace_id,self.principal_id,parts[1])).fetchone()
                     if (not page or int(page['version']) != int(parts[2]) or page['status'] != 'active'
                             or int(page['space_id']) != space_id):
                         return None
@@ -126,12 +128,14 @@ class TaskNoteService:
 
     @staticmethod
     def _decode(value: dict[str, Any]) -> dict[str, Any]:
-        value['checkpoint'] = json.loads(value.pop('checkpoint_json', '{}') or '{}')
+        raw=value.pop('checkpoint_json', {}) or {}
+        value['checkpoint'] = json.loads(raw) if isinstance(raw,str) else raw
         for field in (
             "source_run_ids", "explicit_constraints", "searched_scope_and_material_refs",
             "findings", "open_questions", "next_actions", "dependencies",
         ):
-            value[field] = json.loads(value.pop(f"{field}_json"))
+            raw=value.pop(f"{field}_json")
+            value[field] = json.loads(raw) if isinstance(raw,str) else raw
         return value
 
     @staticmethod

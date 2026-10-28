@@ -40,7 +40,8 @@ from shiliu.config import (
     save_config,
     store_api_key,
 )
-from shiliu.db import Database, LibraryCardCursor, library_card_cursor
+from shiliu.storage.errors import StorageError
+from shiliu.db import LibraryCardCursor, library_card_cursor
 from shiliu.domain import FavoriteScan, PipelineError, SyncMode
 from shiliu.launchd import install_launch_agent
 from shiliu.llm import OpenAICompatibleProvider
@@ -284,23 +285,22 @@ class TaxonomySourcesRequest(BaseModel):
     source_ids: list[int] = Field(min_length=1)
 
 
-def create_web_app(application: Application | None = None, *, background_tasks: bool = True) -> FastAPI:
+def create_web_app(application: Application | None = None, *, background_tasks: bool = True,
+                   local_projections_only: bool = False, manual_model_since: str | None = None) -> FastAPI:
     core = application or Application()
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
-        if core.config.assistant_enabled:
-            core.assistant_runtime.maintenance_paused = not background_tasks
-            core.assistant_runtime.start()
-        if background_tasks:
-            core.research_recovery.start()
         try:
+            start_options = {"background_tasks": background_tasks}
+            if local_projections_only:
+                start_options["local_projections_only"] = True
+                if manual_model_since:
+                    start_options["manual_model_since"] = manual_model_since
+            await asyncio.to_thread(_app.state.core.start, **start_options)
             yield
         finally:
-            if core.config.assistant_enabled:
-                core.assistant_runtime.stop()
-            if background_tasks:
-                core.research_recovery.stop()
+            await asyncio.to_thread(_app.state.core.close)
 
     web = FastAPI(
         title="拾流 Shiliu", docs_url=None, redoc_url=None, lifespan=lifespan
@@ -310,19 +310,46 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
     web.state.core = core
     # The local product boundary supplies this principal. Request payloads cannot
     # choose actor identity, role, or capability.
-    web.state.research_control_principal = "local_operator"
+    web.state.research_control_principal = core.db.context.user_id
     web.state.login_process = None
     web.state.background_lock = threading.Lock()
     web.state.background_thread = None
 
-    try:
-        with ProcessLock(web.state.core.paths.sync_lock):
-            web.state.core.db.recover_stale_sync_runs()
-    except SyncAlreadyRunning:
-        pass
+    @web.exception_handler(StorageError)
+    async def storage_error(_request: Request,error: StorageError):
+        unavailable=error.category in {"connection_unavailable","pool_timeout","pool_unavailable","lock_timeout","transaction_retryable"}
+        conflict=error.sqlstate in {"23505","23503","23514"}
+        return JSONResponse({"ok":False,"code":"storage_unavailable" if unavailable else "storage_conflict" if conflict else "storage_error"},status_code=503 if unavailable else 409 if conflict else 500)
+
+    @web.middleware("http")
+    async def accepting_requests(request: Request,call_next):
+        if getattr(request.app.state.core,"_closing",False):
+            return JSONResponse({"ok":False,"code":"application_stopping"},status_code=503)
+        if local_projections_only:
+            from shiliu.w16_trial import trial_request_allowed
+
+            if not trial_request_allowed(request.method, request.url.path, manual_models=bool(manual_model_since)):
+                return JSONResponse({"ok":False,"code":"trial_operation_paused", "message":"此操作尚未开放；同步、ASR、自动维护、Research执行及外部设置保持暂停。"}, status_code=403)
+            if manual_model_since and request.method == "POST":
+                match = re.fullmatch(r"/api/assistant/runs/([^/]+)/(?:resume|cancel|finish)", request.url.path)
+                if match:
+                    try:
+                        run = await asyncio.to_thread(core.assistant_runtime.store.get_run, match[1])
+                    except KeyError:
+                        return JSONResponse({"ok":False,"code":"run_not_found"}, status_code=404)
+                    from datetime import timezone
+                    created = datetime.fromisoformat(str(run["created_at"]).replace("Z", "+00:00"))
+                    boundary = datetime.fromisoformat(manual_model_since)
+                    if created.astimezone(timezone.utc) < boundary.astimezone(timezone.utc):
+                        return JSONResponse({"ok":False,"code":"trial_historical_run_paused"}, status_code=403)
+        return await call_next(request)
+
+    @web.get("/api/health")
+    async def health(request: Request) -> JSONResponse:
+        return JSONResponse(await asyncio.to_thread(_core(request).health))
 
     @web.get("/", response_class=HTMLResponse)
-    async def home(request: Request) -> HTMLResponse:
+    def home(request: Request) -> HTMLResponse:
         core = _core(request)
         selected_view = request.query_params.get("view", "feed")
         if selected_view not in {"feed", "marked", "noted", "archived"}:
@@ -385,7 +412,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/setup", response_class=HTMLResponse)
-    async def setup_page(request: Request) -> HTMLResponse:
+    def setup_page(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "setup.html",
@@ -397,7 +424,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/search", response_class=HTMLResponse)
-    async def search_page(request: Request) -> HTMLResponse:
+    def search_page(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "search.html",
@@ -405,7 +432,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/ask", response_class=HTMLResponse)
-    async def ask_page(request: Request) -> HTMLResponse:
+    def ask_page(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "ask.html",
@@ -413,7 +440,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/assistant", response_class=HTMLResponse)
-    async def assistant_page(request: Request) -> HTMLResponse:
+    def assistant_page(request: Request) -> HTMLResponse:
         core = _core(request)
         return templates.TemplateResponse(
             request,
@@ -438,7 +465,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/research", response_class=HTMLResponse)
-    async def research_page(request: Request) -> HTMLResponse:
+    def research_page(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "research.html",
@@ -450,7 +477,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/research/{task_id}", response_class=HTMLResponse)
-    async def research_task_page(task_id: str, request: Request) -> HTMLResponse:
+    def research_task_page(task_id: str, request: Request) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "research.html",
@@ -462,7 +489,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/taxonomy", response_class=HTMLResponse)
-    async def taxonomy_page(request: Request) -> HTMLResponse:
+    def taxonomy_page(request: Request) -> HTMLResponse:
         core = _core(request)
         return templates.TemplateResponse(
             request,
@@ -502,14 +529,14 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/api/taxonomy/snapshots/{snapshot_id}")
-    async def taxonomy_snapshot(snapshot_id: int, request: Request) -> JSONResponse:
+    def taxonomy_snapshot(snapshot_id: int, request: Request) -> JSONResponse:
         snapshot = _core(request).taxonomy_corpus.repository.get_snapshot(snapshot_id)
         if snapshot is None:
             raise HTTPException(404, "快照不存在")
         return JSONResponse({"ok": True, "snapshot": snapshot})
 
     @web.get("/api/taxonomy/snapshots/{snapshot_id}/reference-candidates")
-    async def taxonomy_reference_candidates(
+    def taxonomy_reference_candidates(
         snapshot_id: int, request: Request
     ) -> PlainTextResponse:
         try:
@@ -526,7 +553,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/videos/{video_id}/transcript", response_class=HTMLResponse)
-    async def transcript_page(video_id: int, request: Request) -> HTMLResponse:
+    def transcript_page(video_id: int, request: Request) -> HTMLResponse:
         core = _core(request)
         video = core.db.get_video(video_id)
         if video is None:
@@ -544,7 +571,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/media/{video_id}/cover")
-    async def cover(video_id: int, request: Request) -> FileResponse:
+    def cover(video_id: int, request: Request) -> FileResponse:
         core = _core(request)
         video = core.db.get_video(video_id)
         if not video or not video.get("cover_path"):
@@ -556,7 +583,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return FileResponse(path)
 
     @web.get("/media/{video_id}/raw-subtitle")
-    async def raw_subtitle(video_id: int, request: Request) -> FileResponse:
+    def raw_subtitle(video_id: int, request: Request) -> FileResponse:
         core = _core(request)
         video = core.db.get_video(video_id)
         if not video or not video.get("raw_subtitle_path"):
@@ -568,11 +595,11 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return FileResponse(path, media_type="text/plain; charset=utf-8", filename=path.name)
 
     @web.post("/api/sync")
-    async def sync_now(request: Request) -> JSONResponse:
+    def sync_now(request: Request) -> JSONResponse:
         return JSONResponse(_start_background_sync(request.app, _core(request), None), status_code=202)
 
     @web.post("/api/sources/{source_db_id}/sync")
-    async def sync_source(source_db_id: int, request: Request) -> JSONResponse:
+    def sync_source(source_db_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
@@ -582,7 +609,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.post("/api/sources/{source_db_id}/history-drain")
-    async def drain_source_history(source_db_id: int, request: Request) -> JSONResponse:
+    def drain_source_history(source_db_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
@@ -592,7 +619,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/api/sync-runs/{run_id}")
-    async def sync_run_status(run_id: int, request: Request) -> JSONResponse:
+    def sync_run_status(run_id: int, request: Request) -> JSONResponse:
         run = _core(request).db.get_sync_run(run_id)
         if run is None:
             raise HTTPException(404, "同步任务不存在")
@@ -690,6 +717,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
                         if not remaining:
                             try:
                                 await execution
+                            except StorageError:
+                                raise
                             except Exception:
                                 # The durable run_failed/run_interrupted event is wire truth.
                                 pass
@@ -749,7 +778,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         run = await asyncio.to_thread(service.run_store.get_run, run_id)
         if run is None:
             raise HTTPException(404, "AskRun 不存在")
-        if run["lifecycle_status"] == "running" and not service.is_owned(run_id):
+        if not local_projections_only and run["lifecycle_status"] == "running" and not service.is_owned(run_id):
             await asyncio.to_thread(
                 service.run_store.interrupt_owner_loss,
                 run_id,
@@ -786,7 +815,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True, "outcome": outcome}, status_code=202)
 
     @web.get("/api/ask/traces/{run_id}")
-    async def ask_trace(run_id: str, request: Request) -> JSONResponse:
+    def ask_trace(run_id: str, request: Request) -> JSONResponse:
         trace = _core(request).ask_service.get_trace(run_id)
         if trace is None:
             raise HTTPException(404, "Ask Trace 不存在")
@@ -1001,6 +1030,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
                     error=close_error,
                 )
             return
+        except StorageError:
+            raise
         except Exception as exc:
             # Durable services have already committed any controlled stop/failure.
             # A concurrent/stale trigger is fail-closed and the product projection
@@ -2119,7 +2150,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": status_code == 200, **response}, status_code=status_code)
 
     @web.get("/api/evidence-sufficiency/traces/{trace_id}")
-    async def evidence_sufficiency_trace(
+    def evidence_sufficiency_trace(
         trace_id: str, request: Request
     ) -> JSONResponse:
         trace = _core(request).stage5_pipeline.get_trace(trace_id)
@@ -2128,7 +2159,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True, "trace": trace})
 
     @web.get("/api/search/traces/{trace_id}")
-    async def search_trace(trace_id: str, request: Request) -> JSONResponse:
+    def search_trace(trace_id: str, request: Request) -> JSONResponse:
         core = _core(request)
         raw_trace = core.search_orchestrator.get_trace(trace_id)
         if raw_trace is None:
@@ -2144,7 +2175,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.post("/api/videos/{video_id}/ignore")
-    async def ignore(video_id: int, request: Request) -> JSONResponse:
+    def ignore(video_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
@@ -2152,7 +2183,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True})
 
     @web.post("/api/videos/{video_id}/restore")
-    async def restore(video_id: int, request: Request) -> JSONResponse:
+    def restore(video_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
@@ -2160,7 +2191,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True})
 
     @web.patch("/api/videos/{video_id}/reading-state")
-    async def reading_state(
+    def reading_state(
         video_id: int, payload: ReadingStateRequest, request: Request
     ) -> JSONResponse:
         try:
@@ -2170,29 +2201,29 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True, "video": _library_state(video)})
 
     @web.post("/api/videos/{video_id}/mark")
-    async def mark(video_id: int, request: Request) -> JSONResponse:
+    def mark(video_id: int, request: Request) -> JSONResponse:
         return _library_video_response(_core(request), video_id, "mark", True)
 
     @web.delete("/api/videos/{video_id}/mark")
-    async def unmark(video_id: int, request: Request) -> JSONResponse:
+    def unmark(video_id: int, request: Request) -> JSONResponse:
         return _library_video_response(_core(request), video_id, "mark", False)
 
     @web.post("/api/videos/{video_id}/archive")
-    async def archive(video_id: int, request: Request) -> JSONResponse:
+    def archive(video_id: int, request: Request) -> JSONResponse:
         return _library_video_response(_core(request), video_id, "archive", True)
 
     @web.delete("/api/videos/{video_id}/archive")
-    async def unarchive(video_id: int, request: Request) -> JSONResponse:
+    def unarchive(video_id: int, request: Request) -> JSONResponse:
         return _library_video_response(_core(request), video_id, "archive", False)
 
     @web.get("/api/videos/{video_id}/notes")
-    async def list_notes(video_id: int, request: Request) -> JSONResponse:
+    def list_notes(video_id: int, request: Request) -> JSONResponse:
         if _core(request).db.get_video(video_id) is None:
             raise HTTPException(404, "视频不存在")
         return JSONResponse({"ok": True, "notes": [_note_view(item) for item in _core(request).db.list_notes(video_id)]})
 
     @web.post("/api/videos/{video_id}/notes")
-    async def add_note(video_id: int, payload: NoteRequest, request: Request) -> JSONResponse:
+    def add_note(video_id: int, payload: NoteRequest, request: Request) -> JSONResponse:
         try:
             note = _core(request).library.add_note(video_id, payload.content)
         except (LibraryNotFound, LibraryValidationError) as exc:
@@ -2200,7 +2231,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True, "note": _note_view(note)}, status_code=201)
 
     @web.patch("/api/notes/{note_id}")
-    async def update_note(note_id: int, payload: NoteRequest, request: Request) -> JSONResponse:
+    def update_note(note_id: int, payload: NoteRequest, request: Request) -> JSONResponse:
         try:
             note = _core(request).library.update_note(note_id, payload.content)
         except (LibraryNotFound, LibraryValidationError) as exc:
@@ -2208,7 +2239,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True, "note": _note_view(note)})
 
     @web.delete("/api/notes/{note_id}")
-    async def delete_note(note_id: int, request: Request) -> JSONResponse:
+    def delete_note(note_id: int, request: Request) -> JSONResponse:
         try:
             note = _core(request).library.delete_note(note_id)
         except LibraryNotFound as exc:
@@ -2223,12 +2254,14 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         core.db.reset_failed_stages(video_id)
         try:
             await asyncio.to_thread(core.pipeline.process_video, video_id)
+        except StorageError:
+            raise
         except Exception as exc:
             return JSONResponse({"ok": False, "error": f"{type(exc).__name__}: {exc}"}, status_code=400)
         return JSONResponse({"ok": True})
 
     @web.post("/api/videos/{video_id}/refine")
-    async def refine(video_id: int, request: Request) -> JSONResponse:
+    def refine(video_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         video = core.db.get_video(video_id)
         if video is None:
@@ -2241,7 +2274,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.post("/api/videos/{video_id}/asr")
-    async def generate_asr(video_id: int, request: Request) -> JSONResponse:
+    def generate_asr(video_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         video = core.db.get_video(video_id)
         if video is None:
@@ -2294,14 +2327,14 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.get("/api/setup/bilibili-login/qr")
-    async def bilibili_login_qr(request: Request) -> FileResponse:
+    def bilibili_login_qr(request: Request) -> FileResponse:
         path = _core(request).paths.state_dir / "bilibili-login-qr.png"
         if not path.is_file():
             raise HTTPException(404, "二维码尚未生成")
         return FileResponse(path, media_type="image/png")
 
     @web.get("/api/setup/bilibili-login/status")
-    async def bilibili_login_status(request: Request) -> JSONResponse:
+    def bilibili_login_status(request: Request) -> JSONResponse:
         process = request.app.state.login_process
         if process is None:
             return JSONResponse({"status": "not_started"})
@@ -2400,7 +2433,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.post("/api/sources/{source_db_id}/pause")
-    async def pause_source(source_db_id: int, request: Request) -> JSONResponse:
+    def pause_source(source_db_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
@@ -2415,7 +2448,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True})
 
     @web.post("/api/sources/{source_db_id}/resume")
-    async def resume_source(source_db_id: int, request: Request) -> JSONResponse:
+    def resume_source(source_db_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         if core.db.get_source(source_db_id) is None:
             raise HTTPException(404, "来源不存在")
@@ -2430,7 +2463,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True})
 
     @web.post("/api/sources/{source_db_id}/history-coverage")
-    async def update_history_coverage(
+    def update_history_coverage(
         source_db_id: int,
         payload: HistoryCoverageRequest,
         request: Request,
@@ -2460,7 +2493,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         )
 
     @web.post("/api/sources/{source_db_id}/move")
-    async def move_source(
+    def move_source(
         source_db_id: int,
         payload: MoveFavoriteSourceRequest,
         request: Request,
@@ -2474,7 +2507,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         return JSONResponse({"ok": True, "moved": moved})
 
     @web.post("/api/sources/{source_db_id}/remove")
-    async def remove_source(source_db_id: int, request: Request) -> JSONResponse:
+    def remove_source(source_db_id: int, request: Request) -> JSONResponse:
         core = _core(request)
         source = core.db.get_source(source_db_id)
         if source is None:
@@ -2510,6 +2543,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
     async def model_list(payload: ProviderRequest, request: Request) -> JSONResponse:
         try:
             api_key = _resolve_api_key(payload.api_key, _core(request))
+        except StorageError:
+            raise
         except RuntimeError as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
         provider = OpenAICompatibleProvider(
@@ -2535,6 +2570,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
                 reasoning_effort=payload.reasoning_effort if payload.thinking_enabled else None,
             )
             result = await asyncio.to_thread(provider.test_connection)
+        except StorageError:
+            raise
         except (PipelineError, RuntimeError) as exc:
             return JSONResponse(
                 {"ok": False, "error": str(exc), "code": getattr(exc, "code", "api_key_missing")},
@@ -2551,6 +2588,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
             else:
                 try:
                     key = load_api_key(core.config.asr_api_key_ref)
+                except StorageError:
+                    raise
                 except RuntimeError as exc:
                     raise RuntimeError("macOS Keychain 中没有找到 Paraformer API Key") from exc
             provider = ParaformerProvider(
@@ -2571,6 +2610,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
             )
             save_config(config, core.paths)
             core.config = config
+        except StorageError:
+            raise
         except (PipelineError, RuntimeError, OSError, ValueError) as exc:
             return JSONResponse(
                 {"ok": False, "error": str(exc), "code": getattr(exc, "code", "asr_error")},
@@ -2633,6 +2674,8 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
             )
             save_config(config, core.paths)
             core.config = config
+        except StorageError:
+            raise
         except (RuntimeError, OSError, ValueError) as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
         return JSONResponse({"ok": True, "api_key_saved": True})
@@ -2700,13 +2743,16 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
                 auto_sync_enabled=payload.install_scheduler,
             )
             new_paths = save_config(config, core.paths)
-            database = Database(new_paths.database)
-            database.initialize()
-            database.establish_baseline([item.bvid for item in items])
+            await asyncio.to_thread(core.db.establish_baseline,[item.bvid for item in items])
             scheduler_path = None
             if payload.install_scheduler:
                 scheduler_path = str(await asyncio.to_thread(install_launch_agent, new_paths))
-            request.app.state.core = Application()
+            await asyncio.to_thread(core.close)
+            replacement = Application(new_paths,config=config,postgres_config=core.postgres_config,context=core.context)
+            request.app.state.core = replacement
+            await asyncio.to_thread(replacement.start,background_tasks=background_tasks)
+        except StorageError:
+            raise
         except (PipelineError, RuntimeError, OSError) as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
         return JSONResponse(
@@ -2900,6 +2946,8 @@ def _start_background_sync(app: FastAPI, core: Application, source_db_id: int | 
                     source_db_id=source_db_id,
                     run_id=run_id,
                 )
+            except StorageError:
+                raise
             except Exception as exc:
                 run = core.db.get_sync_run(run_id)
                 if run and run.get("status") == "running":
@@ -2911,8 +2959,8 @@ def _start_background_sync(app: FastAPI, core: Application, source_db_id: int | 
                     )
 
         thread = threading.Thread(target=target, name=f"shiliu-sync-{run_id}", daemon=True)
+        core.start_worker(thread)
         app.state.background_thread = thread
-        thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}
 
 
@@ -2928,6 +2976,8 @@ def _start_background_history_drain(
         def target() -> None:
             try:
                 core.sync_service.drain_history(source_db_id, run_id=run_id)
+            except StorageError:
+                raise
             except Exception as exc:
                 run = core.db.get_sync_run(run_id)
                 if run and run.get("status") == "running":
@@ -2941,8 +2991,8 @@ def _start_background_history_drain(
         thread = threading.Thread(
             target=target, name=f"shiliu-history-{run_id}", daemon=True
         )
+        core.start_worker(thread)
         app.state.background_thread = thread
-        thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}
 
 
@@ -2972,6 +3022,8 @@ def _start_background_refinement(
                     processed_count=int(changed),
                     message="精修完成" if changed else "没有可执行的精修阶段",
                 )
+            except StorageError:
+                raise
             except Exception as exc:
                 core.db.finish_sync_run(
                     run_id,
@@ -2981,8 +3033,8 @@ def _start_background_refinement(
                 )
 
         thread = threading.Thread(target=target, name=f"shiliu-refine-{run_id}", daemon=True)
+        core.start_worker(thread)
         app.state.background_thread = thread
-        thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}
 
 
@@ -3032,6 +3084,8 @@ def _start_background_asr(
                         else str(job.get("last_error_message") or "识别尚未完成，将在后续同步恢复")
                     ),
                 )
+            except StorageError:
+                raise
             except Exception as exc:
                 core.db.finish_sync_run(
                     run_id,
@@ -3041,6 +3095,6 @@ def _start_background_asr(
                 )
 
         thread = threading.Thread(target=target, name=f"shiliu-asr-{run_id}", daemon=True)
+        core.start_worker(thread)
         app.state.background_thread = thread
-        thread.start()
     return {"ok": True, "run_id": run_id, "reused": False}

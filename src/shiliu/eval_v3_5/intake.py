@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -29,7 +31,7 @@ ROUND2_ORDER = (
     "CASE_011", "CASE_014", "CASE_016", "CASE_018",
 )
 DEFAULT_SNAPSHOT_DB = Path(
-    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
+    "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db"
 )
 
 
@@ -101,7 +103,7 @@ def validate_human_intake(
     cases = _case_records(root)
     packet_manifest = json.loads((root / "review_packet_manifest.json").read_text(encoding="utf-8"))
     packet_entries = {item["case_id"]: item for item in packet_manifest["packets"]}
-    connection = sqlite3.connect(f"file:{Path(snapshot_db).resolve()}?mode=ro&immutable=1", uri=True)
+    connection = connect_snapshot(Path(snapshot_db))
     connection.row_factory = sqlite3.Row
     warnings: list[dict[str, object]] = []
     case_audits: list[dict[str, object]] = []

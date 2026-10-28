@@ -1,7 +1,9 @@
 {
   "provenance": {
-    "source": "synthetic-clarification-contract",
-    "case_id": "V2-C54"
+    "case": "V2-C54",
+    "candidate": "6d0eb98f6d99719b2c2c74f137d487bc94367cf0",
+    "run_id": "ask_run_4b428f42f2f64c629b17f64ece98542b",
+    "source": "locked Full Dev 2 Controller responses"
   },
   "query": "我这台电脑能流畅跑本地DeepSeek吗？",
   "decisions": [

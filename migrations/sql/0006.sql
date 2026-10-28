@@ -1,0 +1,11 @@
+ALTER TABLE shiliu.research_knowledge_artifact_revisions ADD CONSTRAINT scoped_artifact_revision_id_key UNIQUE(workspace_id,artifact_revision_id);
+ALTER TABLE shiliu.research_fact_revisions ADD CONSTRAINT scoped_fact_revision_id_key UNIQUE(workspace_id,fact_revision_id);
+ALTER TABLE shiliu.research_artifact_routes DROP CONSTRAINT fk_d0fa8aab6e84a7f6c53c;
+ALTER TABLE shiliu.research_artifact_routes ADD CONSTRAINT fk_reuse_648d4a2d99cd5c7f FOREIGN KEY (workspace_id,outcome_artifact_revision_id) REFERENCES shiliu.research_knowledge_artifact_revisions (workspace_id,artifact_revision_id) ON DELETE RESTRICT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE shiliu.research_artifact_fact_links DROP CONSTRAINT fk_a2292f1b4d7d6040b70f;
+ALTER TABLE shiliu.research_artifact_fact_links ADD CONSTRAINT fk_reuse_c6593cce870016af FOREIGN KEY (workspace_id,fact_revision_id) REFERENCES shiliu.research_fact_revisions (workspace_id,fact_revision_id) ON DELETE RESTRICT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE shiliu.research_topic_page_fact_links DROP CONSTRAINT fk_f7fc10a3758a8312c95a;
+ALTER TABLE shiliu.research_topic_page_fact_links ADD CONSTRAINT fk_reuse_9d8714312adf9595 FOREIGN KEY (workspace_id,fact_revision_id) REFERENCES shiliu.research_fact_revisions (workspace_id,fact_revision_id) ON DELETE RESTRICT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE shiliu.research_tasks ADD CONSTRAINT task_parent_identity_key UNIQUE(workspace_id,parent_task_id,task_id);
+ALTER TABLE shiliu.research_artifact_routes ADD CONSTRAINT fk_parent_02e44c92c1fb98e5 FOREIGN KEY (workspace_id,task_id,continuation_task_id) REFERENCES shiliu.research_tasks (workspace_id,parent_task_id,task_id) ON DELETE RESTRICT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE shiliu.research_task_derivations ADD CONSTRAINT fk_parent_d1987ae131363965 FOREIGN KEY (workspace_id,source_task_id,child_task_id) REFERENCES shiliu.research_tasks (workspace_id,parent_task_id,task_id) ON DELETE RESTRICT DEFERRABLE INITIALLY IMMEDIATE;

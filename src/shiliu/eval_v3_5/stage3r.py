@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter, defaultdict
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -8,7 +10,6 @@ import json
 from pathlib import Path
 import re
 import shutil
-import sqlite3
 from statistics import median
 import tempfile
 import traceback
@@ -1021,7 +1022,7 @@ def run_stage3r(
     })
 
     records = load_jsonl(corpus_path)
-    with sqlite3.connect(f"file:{snapshot_db}?mode=ro", uri=True) as connection:
+    with connect_snapshot(snapshot_db) as connection:
         video_ids = {str(row[0]): int(row[1]) for row in connection.execute("SELECT source_id,id FROM videos")}
     config_identity = search_configuration_identity(search_configuration())
     runtime_records = project_runtime_input(

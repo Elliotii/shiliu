@@ -18,7 +18,7 @@ from shiliu.evidence import (
 
 
 SNAPSHOT_ROOT = Path(
-    "/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365"
+    "/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365"
 )
 SNAPSHOT_DB = SNAPSHOT_ROOT / "shiliu_eval.db"
 GOLD_LEDGER = Path("research/v3_eval/eval_gold_review.decisions.amended.jsonl")

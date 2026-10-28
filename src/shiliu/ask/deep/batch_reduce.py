@@ -182,7 +182,8 @@ def snapshots(graph, indices, actions, results, state):
     if graph.navigation is not None and video_ids:
         with graph.navigation.db.connect() as connection:
             descriptions = {row["id"]: (row["description"] or "")[:240] for row in connection.execute(
-                "SELECT id,description FROM videos WHERE id IN (" + ",".join("?" for _ in video_ids) + ")", video_ids)}
+                "SELECT id,description FROM videos WHERE workspace_id=%s AND id=ANY(%s)",
+                (graph.navigation.db.workspace_id,video_ids))}
     output = []
     for i in indices:
         action = actions[i]

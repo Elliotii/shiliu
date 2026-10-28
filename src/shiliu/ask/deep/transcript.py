@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import sqlite3
+from typing import Any
 
 from shiliu.ask.citations import stable_citation_id
 from shiliu.ask.context import fuse_evidence
@@ -44,10 +44,10 @@ class TranscriptSearchService:
         query: str,
         *,
         filters: ProductSearchFilterRequest,
-        video_ids: tuple[int, ...] = (),
+        video_ids: tuple[int, ...] | None = None,
         query_index: int = 0,
     ) -> "TranscriptSearchResult":
-        if len(video_ids) > 8:
+        if video_ids is not None and len(video_ids) > 8:
             raise ValueError("focused transcript search accepts at most 8 videos")
         request = ProductSearchRequest(
             query=query,
@@ -57,9 +57,7 @@ class TranscriptSearchService:
             max_windows_per_video=2,
             filters=filters,
         )
-        execution = self.evidence_search.execute_search(
-            request, video_ids=video_ids
-        )
+        execution = self.evidence_search.execute_search(request, video_ids=video_ids)
         candidates = self.evidence_search.materialize_execution(execution)
         materialized = self.materializer.materialize(
             execution, candidates, query_index=query_index
@@ -70,10 +68,7 @@ class TranscriptSearchService:
         for span in fused:
             if len(selected) >= self.max_spans_per_search:
                 break
-            if (
-                character_count + len(span.quote_text)
-                > self.max_characters_per_search
-            ):
+            if character_count + len(span.quote_text) > self.max_characters_per_search:
                 continue
             selected.append(span)
             character_count += len(span.quote_text)
@@ -108,9 +103,12 @@ class WindowReadResult:
 
 
 class TranscriptWindowReader:
-    def __init__(self, db: Database, materializer: TranscriptEvidenceMaterializer) -> None:
+    def __init__(
+        self, db: Database, materializer: TranscriptEvidenceMaterializer
+    ) -> None:
         self.db = db
         self.materializer = materializer
+        self.artifacts = materializer.artifacts
 
     def read(
         self,
@@ -128,12 +126,17 @@ class TranscriptWindowReader:
                 "window video is unavailable", code="citation_source_unavailable"
             )
         reference = _reference(row)
-        binding = bind_live_current_version(reference, db=self.db, video_id=video_id)
+        binding = bind_live_current_version(
+            reference, db=self.db, video_id=video_id, artifacts=self.artifacts
+        )
         artifact = load_source_artifact(
-            reference, expected_source_version=binding.source_version
+            reference,
+            expected_source_version=binding.source_version,
+            artifacts=self.artifacts,
         )
         matches = [
-            value for value in artifact.segments
+            value
+            for value in artifact.segments
             if value.segment_id == anchor_segment_id
         ]
         if len(matches) != 1:
@@ -143,7 +146,8 @@ class TranscriptWindowReader:
             )
         anchor = matches[0]
         run = [
-            value for value in artifact.segments
+            value
+            for value in artifact.segments
             if value.timeline_run_id == anchor.timeline_run_id
         ]
         run.sort(key=lambda value: value.original_ordinal)
@@ -152,9 +156,7 @@ class TranscriptWindowReader:
             for position, value in enumerate(run)
             if value.segment_id == anchor_segment_id
         )
-        segments = tuple(
-            run[max(0, index - before) : min(len(run), index + after + 1)]
-        )
+        segments = tuple(run[max(0, index - before) : min(len(run), index + after + 1)])
         if not segments or any(
             value.timeline_run_id != anchor.timeline_run_id for value in segments
         ):
@@ -234,54 +236,104 @@ class TranscriptWindowReader:
         self.materializer.validate_current(anchor)
         row = self._video_row(anchor.video_id)
         if row is None:
-            raise EvidenceContractError("source unavailable", code="citation_source_unavailable")
-        artifact = load_source_artifact(_reference(row), expected_source_version=anchor.source_version)
-        run = sorted((segment for segment in artifact.segments if segment.timeline_run_id == anchor.timeline_run_id),
-                     key=lambda segment: segment.original_ordinal)
-        selected = tuple(segment for segment in run
-                         if segment.end_time >= anchor.start_time - before_seconds
-                         and segment.start_time <= anchor.end_time + after_seconds)
+            raise EvidenceContractError(
+                "source unavailable", code="citation_source_unavailable"
+            )
+        artifact = load_source_artifact(
+            _reference(row),
+            expected_source_version=anchor.source_version,
+            artifacts=self.artifacts,
+        )
+        run = sorted(
+            (
+                segment
+                for segment in artifact.segments
+                if segment.timeline_run_id == anchor.timeline_run_id
+            ),
+            key=lambda segment: segment.original_ordinal,
+        )
+        selected = tuple(
+            segment
+            for segment in run
+            if segment.end_time >= anchor.start_time - before_seconds
+            and segment.start_time <= anchor.end_time + after_seconds
+        )
         if not selected:
-            raise EvidenceContractError("read context empty", code="citation_segment_missing")
-        citation_id = stable_citation_id(source_artifact_id=anchor.source_artifact_id,
-                                        source_version=anchor.source_version,
-                                        timeline_run_id=anchor.timeline_run_id, segments=selected)
-        jump_url = build_bilibili_jump_url(str(row["video_url"] or ""), anchor.bvid, selected[0].start_time)
+            raise EvidenceContractError(
+                "read context empty", code="citation_segment_missing"
+            )
+        citation_id = stable_citation_id(
+            source_artifact_id=anchor.source_artifact_id,
+            source_version=anchor.source_version,
+            timeline_run_id=anchor.timeline_run_id,
+            segments=selected,
+        )
+        jump_url = build_bilibili_jump_url(
+            str(row["video_url"] or ""), anchor.bvid, selected[0].start_time
+        )
         if jump_url is None:
-            raise EvidenceContractError("window jump URL unavailable", code="citation_jump_url_invalid")
-        span = anchor.model_copy(update={
-            "citation_id": citation_id,
-            "segment_ids": tuple(segment.segment_id for segment in selected),
-            "segment_ordinals": tuple(segment.original_ordinal for segment in selected),
-            "start_time": selected[0].start_time,
-            "end_time": selected[-1].end_time,
-            "quote_text": "\n".join(segment.source_text.strip() for segment in selected if segment.source_text.strip()),
-            "jump_url": jump_url,
-            "parent_chunk_ids": anchor.parent_chunk_ids,
-            "retrieval_provenance": (*anchor.retrieval_provenance, {"action": "read_context", "anchor_ref": anchor.citation_id,
-                                                     "before_seconds": before_seconds, "after_seconds": after_seconds}),
-            "segments": tuple(EvidenceSegment(segment_id=segment.segment_id, original_ordinal=segment.original_ordinal,
-                run_local_ordinal=segment.run_local_ordinal, start_time=segment.start_time,
-                end_time=segment.end_time, source_text=segment.source_text) for segment in selected),
-        })
+            raise EvidenceContractError(
+                "window jump URL unavailable", code="citation_jump_url_invalid"
+            )
+        span = anchor.model_copy(
+            update={
+                "citation_id": citation_id,
+                "segment_ids": tuple(segment.segment_id for segment in selected),
+                "segment_ordinals": tuple(
+                    segment.original_ordinal for segment in selected
+                ),
+                "start_time": selected[0].start_time,
+                "end_time": selected[-1].end_time,
+                "quote_text": "\n".join(
+                    segment.source_text.strip()
+                    for segment in selected
+                    if segment.source_text.strip()
+                ),
+                "jump_url": jump_url,
+                "parent_chunk_ids": anchor.parent_chunk_ids,
+                "retrieval_provenance": (
+                    *anchor.retrieval_provenance,
+                    {
+                        "action": "read_context",
+                        "anchor_ref": anchor.citation_id,
+                        "before_seconds": before_seconds,
+                        "after_seconds": after_seconds,
+                    },
+                ),
+                "segments": tuple(
+                    EvidenceSegment(
+                        segment_id=segment.segment_id,
+                        original_ordinal=segment.original_ordinal,
+                        run_local_ordinal=segment.run_local_ordinal,
+                        start_time=segment.start_time,
+                        end_time=segment.end_time,
+                        source_text=segment.source_text,
+                    )
+                    for segment in selected
+                ),
+            }
+        )
         self.materializer.validate_current(span)
-        return WindowReadResult(span, before_boundary=selected[0].segment_id == run[0].segment_id,
-                                after_boundary=selected[-1].segment_id == run[-1].segment_id)
+        return WindowReadResult(
+            span,
+            before_boundary=selected[0].segment_id == run[0].segment_id,
+            after_boundary=selected[-1].segment_id == run[-1].segment_id,
+        )
 
-    def _video_row(self, video_id: int) -> sqlite3.Row | None:
+    def _video_row(self, video_id: int) -> dict[str, Any] | None:
         with self.db.connect() as connection:
             return connection.execute(
                 """
                 SELECT id AS video_id, platform, source_id, part, title,
                        video_url, subtitle_language, subtitle_source,
                        raw_subtitle_path
-                FROM videos WHERE id=? AND removed_at IS NULL
+                FROM videos WHERE workspace_id=%s AND id=%s AND removed_at IS NULL
                 """,
-                (video_id,),
+                (self.db.workspace_id, video_id),
             ).fetchone()
 
 
-def _reference(row: sqlite3.Row) -> SourceArtifactReference:
+def _reference(row: dict[str, Any]) -> SourceArtifactReference:
     return SourceArtifactReference(
         platform=str(row["platform"]),
         source_id=str(row["source_id"]),

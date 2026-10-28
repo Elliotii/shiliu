@@ -16,10 +16,10 @@ from shiliu.eval_v3_5.eval_v2.safe_development_source_inventory import (
 )
 
 
-REPOSITORY = Path("/Users/elliot/new-systems/agent-job-prep/Shiliu")
-SNAPSHOT_DB = Path("/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db")
+REPOSITORY = Path("/absolute/historical/new-systems/agent-job-prep/Shiliu")
+SNAPSHOT_DB = Path("/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/shiliu_eval.db")
 SNAPSHOT_HASH = "61589a5b64e9c9e6e5356d33baa6054aa435722e186066501a3213e8e9a6c4e1"
-ARTIFACT_ROOT = Path("/Users/elliot/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts")
+ARTIFACT_ROOT = Path("/absolute/historical/Documents/Shiliu/eval/v3_stage6/20260720T094346Z_c7663365/artifacts")
 ARTIFACT_MANIFEST = REPOSITORY / "research/v3_eval/artifact_manifest.jsonl"
 ARTIFACT_MANIFEST_HASH = "36e63e3a510e840f688b7ce5075fef2a0b1f65086c039960632a9ec726dfd08f"
 CORPUS_MANIFEST = REPOSITORY / "research/v3_eval/corpus_manifest.json"

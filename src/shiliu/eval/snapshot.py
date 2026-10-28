@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import closing
 from hashlib import sha256
 import json
 from pathlib import Path
 import shutil
 import sqlite3
+from shiliu.migration.readonly import connect_snapshot
 from typing import Any, Iterable
 
+
+_CREATED_COPIES = {}
 
 PROTECTED_TABLES = (
     "videos",
@@ -44,10 +48,11 @@ def backup_sqlite(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         raise FileExistsError(destination)
-    source_uri = f"file:{source.resolve()}?mode=ro"
-    with sqlite3.connect(source_uri, uri=True) as source_connection:
-        with sqlite3.connect(destination) as destination_connection:
+    with connect_snapshot(source) as source_connection:
+        with closing(sqlite3.connect(destination)) as destination_connection:
             source_connection.backup(destination_connection)
+    value=destination.stat()
+    _CREATED_COPIES[str(destination.resolve())]=(value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns)
 
 
 def create_corpus_snapshot(
@@ -68,7 +73,7 @@ def create_corpus_snapshot(
 
 
 def validate_snapshot(database: Path) -> dict[str, Any]:
-    with sqlite3.connect(database) as connection:
+    with connect_snapshot(database) as connection:
         connection.row_factory = sqlite3.Row
         integrity = str(connection.execute("PRAGMA integrity_check").fetchone()[0])
         foreign_keys = [dict(row) for row in connection.execute("PRAGMA foreign_key_check")]
@@ -114,7 +119,7 @@ def validate_snapshot(database: Path) -> dict[str, Any]:
 def table_hash(database: Path, table: str) -> tuple[int, str]:
     if table not in PROTECTED_TABLES:
         raise ValueError(f"unsupported protected table: {table}")
-    with sqlite3.connect(database) as connection:
+    with connect_snapshot(database) as connection:
         connection.row_factory = sqlite3.Row
         columns = [str(row[1]) for row in connection.execute(f'PRAGMA table_info("{table}")')]
         order = ",".join(f'"{name}"' for name in columns)
@@ -148,8 +153,12 @@ def write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> None:
 
 
 def _copy_and_rebind_artifacts(database: Path, artifact_root: Path) -> list[dict[str, Any]]:
+    value=database.stat()
+    identity=(value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns)
+    if database.is_symlink() or _CREATED_COPIES.pop(str(database.resolve()),None)!=identity:
+        raise ValueError("artifact rebinding requires a newly created historical copy")
     records: list[dict[str, Any]] = []
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.row_factory = sqlite3.Row
         videos = connection.execute(
             """

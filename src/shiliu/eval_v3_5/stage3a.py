@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from dataclasses import asdict
 import csv
 from hashlib import sha256
 from itertools import combinations
 import json
 from pathlib import Path
-import sqlite3
 from statistics import median
 from typing import Iterable, Mapping, Sequence
 
@@ -96,7 +97,7 @@ class FrozenRawSourceResolver:
         record = self.records.get(video_id)
         if not record or record.get("status") != "ok" or not record.get("snapshot_path"):
             raise EvidenceContractError("no authoritative raw subtitle is available", code="no_supported_subtitle")
-        with sqlite3.connect(f"file:{self.snapshot_db}?mode=ro", uri=True) as connection:
+        with connect_snapshot(self.snapshot_db) as connection:
             row = connection.execute(
                 "SELECT source_id, part, subtitle_source, subtitle_language FROM videos WHERE id=?",
                 (video_id,),

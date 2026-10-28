@@ -56,3 +56,15 @@ research/v3_5/stage3r_qc/track_a_auto_refresh/execution/cases/
 # Keep one small, non-sensitive Stage 3A trace fixture; exclude the remaining bulk.
 research/v3_5/stage3a/trace_samples/*
 !research/v3_5/stage3a/trace_samples/CASE_001.track_a.json
+
+# Release boundary: never stage private runtime packages or generated archives.
+dist/
+*.dump
+*.backup
+*.pgpass
+/backups/
+/artifacts/
+/runtime/
+/resource-binding.json
+**/pair.json
+**/runtime-release.json

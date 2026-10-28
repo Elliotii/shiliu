@@ -12,9 +12,7 @@ from shiliu.retrieval.dense import DenseModelIdentity, _validate_vector
 
 QWEN_MODEL_ID = "Qwen/Qwen3-Embedding-0.6B"
 QWEN_MODEL_REVISION = "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3"
-QWEN_MODEL_PATH = Path(
-    "/Users/elliot/Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B"
-)
+QWEN_MODEL_PATH = (Path.home() / "Library/Caches/Shiliu/model-selection/Qwen3-Embedding-0.6B")
 QWEN_DIMENSION = 512
 QWEN_MAX_TOKENS = 512
 QWEN_PROVIDER_VERSION = "v3-qwen3-embedding-provider-v1"

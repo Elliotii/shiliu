@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from shiliu.assistant.pg_store import PgAssistantRunStore
+
+from shiliu.storage.dto import json_object
+
 import json
 import asyncio
 import time
@@ -16,7 +20,7 @@ from shiliu.assistant.memory_policy import anchored_validity, cancels_time, expl
 from shiliu.assistant.memory_time import checked_validity, time_context as make_time_context, event_signature, validate_event_basis
 from shiliu.assistant.sources import CollectionSourceService, SourceScope
 from shiliu.assistant.delivery import field_value, read_evidence
-from shiliu.assistant.store import AssistantRunStore, AssistantConflict
+from shiliu.assistant.runtime_contract import AssistantConflict
 from shiliu.assistant.wiki import WikiService
 
 
@@ -309,7 +313,7 @@ class AssistantToolRegistry:
         *,
         sources: CollectionSourceService,
         memories: MemoryService,
-        store: AssistantRunStore,
+        store: PgAssistantRunStore,
         context7: Context7MCPClient | None = None,
         wiki: WikiService | None = None,
     ) -> None:
@@ -335,8 +339,8 @@ class AssistantToolRegistry:
 
     def schemas(self) -> list[dict[str, Any]]:
         values = [
-            self._schema("search_knowledge", "发现当前真实资料范围内的 Wiki 与 Collection 候选，默认双源且分源返回，不是已读证据。Wiki 命中后用 page_id/page_version/block_ids 直接 knowledge_read。收藏专属作者/时间/目录筛选、metadata 分页请指定 sources=[collection]；content 保留 query_variants、字幕窗口与真实诊断。", UnifiedSearchArgs),
-            self._schema("collection_read", "按来源版本读取一个材料视图。query 选相关段落；完整阅读从头沿 next_cursor 顺序分批读到末尾。coverage.read_position 是取回范围，模型是否读到由上下文投影决定。", CollectionReadArgs),
+            self._schema("search_knowledge", "发现当前真实资料范围内的 Wiki 与 Collection 候选，默认双源且分源返回，不是已读证据。Wiki 命中后用 page_id/page_version/block_ids 直接 knowledge_read。收藏专属作者/时间/目录筛选、metadata 分页请指定 sources=[collection]；content 的 collection_scope：字幕观点/原话选 transcript_chunk（正常长度用BM25，短词仍导航），综合/不确定选all，视频综合单元选video；默认all。", UnifiedSearchArgs),
+            self._schema("collection_read", "按来源版本读取一个材料视图。有 Search read_hints 时照抄 read_args；无提示可用 query 选相关段落；完整阅读从头沿 next_cursor 顺序分批读到末尾。coverage.read_position 是取回范围，模型是否读到由上下文投影决定。", CollectionReadArgs),
             self._schema("memory_search", "搜索当前有效的用户和 Space 记忆", MemorySearchArgs),
             self._schema("memory_save", "当前用户明确要求时保存个人事实；source_message_ids 可选本线程较早用户原话，授权与事实分开、时间锚定原消息。已知事实直接保存，歧义才回读。kind 仅 preference/constraint/decision/context，计划用 context 或 decision。无时间和模糊计划均可保存；事件不是有效期，不要为下个月/下周计划填写 valid_from/expires_at。未知旧结果先核回执，修改已有记忆用 memory_correct。复合请求继续完成其余动作", MemorySaveArgs),
             self._schema("memory_correct", "使用 memory_search 回执或当前有效记忆行中的真实 memory_id 和 version 纠正；不能把展示文字当 ID。若还有其他要求，继续完成", MemoryCorrectArgs),
@@ -514,7 +518,7 @@ class AssistantToolRegistry:
                 else:
                     old = LegacyKnowledgeReadArgs.model_validate(arguments)
                     page = self.wiki.get_page(old.page_id, space_id=int(space["id"]), task_scope=scope if space.get("task_subset") else None)
-                    found = await asyncio.to_thread(self.wiki.retrieval.search, [page], old.query, limit=1)
+                    found = await asyncio.to_thread(self.wiki.retrieval.search, old.query, page_id=old.page_id, space_id=int(space["id"]), task_scope=scope if space.get("task_subset") else None, thread_id=str(run_context["thread"]["id"]), limit=1)
                     hit_page = next((item for item in found["candidates"] if item["page_id"] == page["id"]), None)
                     if not hit_page:
                         return self._error(call_id, "knowledge_location_changed", "旧定位无法恢复，请重新 Search")
@@ -555,7 +559,7 @@ class AssistantToolRegistry:
                 args = ConversationHistoryArgs.model_validate(arguments)
                 thread_id = str(run_context["thread"]["id"])
                 with self.store.db.connect() as connection:
-                    rows = connection.execute("SELECT id,seq FROM assistant_messages WHERE thread_id=? AND role IN ('user','assistant') ORDER BY seq DESC", (thread_id,)).fetchall()
+                    rows = connection.execute("SELECT id,seq FROM assistant_messages WHERE workspace_id=%s AND thread_id=%s AND role IN ('user','assistant') ORDER BY seq DESC", (self.store.context.workspace_id,thread_id)).fetchall()
                 eligible = []
                 for row in rows:
                     if args.message_id and row['id'] != args.message_id:
@@ -565,7 +569,7 @@ class AssistantToolRegistry:
                         continue
                     try:
                         message = self.store.knowledge_message(row['id'], thread_id=thread_id, allow_operation_receipt=True)
-                        refs = json.loads(message.get('provider_payload_json') or '{}').get('dependency_refs') or []
+                        refs = json_object(message.get('provider_payload_json') or '{}').get('dependency_refs') or []
                         if refs and not self.dependency_refs_valid(refs, int(space['id']), thread_id, int(space['scope_version'])):
                             continue
                     except (AssistantConflict, ValueError, KeyError):
@@ -687,19 +691,19 @@ class AssistantToolRegistry:
                 operation_key = f"tool:{run_context['run']['id']}:{call_id}"
                 # Do not guess which uncertain operation a new call is replacing.
                 with self.store.db.connect() as connection:
-                    uncertain = connection.execute("SELECT c.* FROM assistant_tool_calls c JOIN assistant_runs r ON r.id=c.run_id "
-                        "WHERE r.thread_id=? AND c.name='memory_save' AND c.result_json IS NULL "
-                        "AND NOT (c.run_id=? AND c.call_id=?)", (run_context['thread']['id'], run_context['run']['id'], call_id)).fetchall()
+                    uncertain = connection.execute("SELECT c.* FROM assistant_tool_calls c JOIN assistant_runs r ON (r.workspace_id,r.id)=(c.workspace_id,c.run_id) "
+                        "WHERE r.workspace_id=%s AND r.thread_id=%s AND c.name='memory_save' AND c.result_json IS NULL "
+                        "AND NOT (c.run_id=%s AND c.call_id=%s)", (self.store.context.workspace_id,run_context['thread']['id'], run_context['run']['id'], call_id)).fetchall()
                     for previous in uncertain:
-                        prior_args = json.loads(previous['args_json'])
+                        prior_args = json_object(previous['args_json'])
                         if (prior_args.get('subject_key'), prior_args.get('scope_kind', 'space')) != (args.subject_key, args.scope_kind):
                             continue
-                        prior_ids = prior_args.get('source_message_ids') or [row[0] for row in connection.execute(
-                            "SELECT id FROM assistant_messages WHERE run_id=? AND role='user'", (previous['run_id'],))]
+                        prior_ids = prior_args.get('source_message_ids') or [row["id"] for row in connection.execute(
+                            "SELECT id FROM assistant_messages WHERE workspace_id=%s AND run_id=%s AND role='user'", (self.store.context.workspace_id,previous['run_id']))]
                         if set(prior_ids) != {item['id'] for item in facts}:
                             continue
-                        receipt = connection.execute("SELECT result_json FROM assistant_mutation_receipts WHERE principal_id=? AND operation_key=?",
-                            (self.store.principal_id, previous['operation_key'] or f"tool:{previous['run_id']}:{previous['call_id']}")).fetchone()
+                        receipt = connection.execute("SELECT result_json FROM assistant_mutation_receipts WHERE workspace_id=%s AND principal_id=%s AND operation_key=%s",
+                            (self.store.context.workspace_id,self.store.principal_id, previous['operation_key'] or f"tool:{previous['run_id']}:{previous['call_id']}")).fetchone()
                         if not receipt or prior_args != arguments:
                             return self._error(call_id, 'memory_previous_outcome_unknown', '先按原结果引用核对这次保存的结果；无法确认目标时请澄清，不重复写入')
                         operation_key = previous['operation_key'] or f"tool:{previous['run_id']}:{previous['call_id']}"
@@ -718,6 +722,7 @@ class AssistantToolRegistry:
                     stated_at=str(anchor["created_at"]),
                     time_context=make_time_context(user_words, str(anchor['created_at']), anchor['id']),
                     pinned=args.pinned,
+                    _notification_causes={'run_id':run_context['run']['id'],'thread_id':run_context['thread']['id'],'request_message_id':current_user['id']},
                     **validity,
                 )
                 return ToolResult(
@@ -750,6 +755,7 @@ class AssistantToolRegistry:
                     source_excerpt=str(current_user["content"])[:1000],
                     stated_text=user_words,
                     stated_at=str(current_user["created_at"]),
+                    _notification_causes={'run_id':run_context['run']['id'],'thread_id':run_context['thread']['id'],'request_message_id':current_user['id']},
                     **validity_changes,
                 )
                 return ToolResult(
@@ -762,6 +768,7 @@ class AssistantToolRegistry:
                 result = self.memories.forget(
                     args.memory_id,
                     expected_version=args.expected_version,
+                    _notification_causes={'run_id':run_context['run']['id'],'thread_id':run_context['thread']['id'],'request_message_id':current_user['id']},
                     operation_key=f"tool:{run_context['run']['id']}:{call_id}",
                     source_message_ids=self._memory_mutation_source_message_ids(
                         run_context, args.memory_id, str(current_user["id"])
@@ -1073,9 +1080,9 @@ class AssistantToolRegistry:
                         items=[plan], coverage={"save_feedback": self.wiki.save_feedback(plan)}).model_dump(mode="json")
                 args = KnowledgeConfirmArgs.model_validate(arguments)
                 with self.store.db.connect() as connection:
-                    owner = connection.execute("SELECT m.thread_id FROM assistant_knowledge_plans p JOIN assistant_messages m ON m.id=p.source_message_id WHERE p.id=? AND p.principal_id=? AND p.space_id=?",
-                        (args.plan_id,self.store.principal_id,int(space['id']))).fetchone()
-                if not owner or owner[0] != str(run_context['thread']['id']):
+                    owner = connection.execute("SELECT m.thread_id FROM assistant_knowledge_plans p JOIN assistant_messages m ON (m.workspace_id,m.id)=(p.workspace_id,p.source_message_id) WHERE p.workspace_id=%s AND p.id=%s AND p.principal_id=%s AND p.space_id=%s",
+                        (self.store.context.workspace_id,args.plan_id,self.store.principal_id,int(space['id']))).fetchone()
+                if not owner or owner["thread_id"] != str(run_context['thread']['id']):
                     raise AssistantConflict('knowledge_plan_request_mismatch')
                 plan = self.wiki.decide_discussion_plan(
                     args.plan_id, space_id=int(space["id"]), expected_version=args.expected_version,
@@ -1216,7 +1223,7 @@ class AssistantToolRegistry:
                 resume = old_args.get('resume_result_ref')
             request = self.store.knowledge_save_request(prior['run_id'])
             with self.store.db.connect() as c:
-                if c.execute('SELECT 1 FROM assistant_knowledge_plans WHERE source_message_id=? AND principal_id=?', (request['source_message_id'],self.store.principal_id)).fetchone():
+                if c.execute('SELECT 1 FROM assistant_knowledge_plans WHERE workspace_id=%s AND source_message_id=%s AND principal_id=%s', (self.store.context.workspace_id,request['source_message_id'],self.store.principal_id)).fetchone():
                     raise ValueError('resume_existing_plan_required')
             # Old args remain untrusted. Explicit corrected targets replace rather
             # than merge them; the original UI selection, if any, remains fixed.
@@ -1231,7 +1238,7 @@ class AssistantToolRegistry:
                 m = self.store.knowledge_message(message_id, thread_id=str(context['thread']['id']))
                 if m['role'] != role:
                     raise ValueError('save_message_role_mismatch')
-                refs = json.loads(m.get('provider_payload_json') or '{}').get('dependency_refs') or []
+                refs = json_object(m.get('provider_payload_json') or '{}').get('dependency_refs') or []
                 if refs and not self.dependency_refs_valid(refs, int(context['space']['id']), str(context['thread']['id']), int(context['space']['scope_version'])):
                     raise AssistantConflict('save_answer_dependencies_changed')
         return {**request, 'answer_message_ids': answer_ids, 'user_message_ids': user_ids,
@@ -1261,6 +1268,7 @@ class AssistantToolRegistry:
                         captured = self.sources.snapshots.capture(int(candidate["video_id"]))
                         candidate["revision"] = captured.revision
                         candidate["source_ref"] = f"video:{candidate['video_id']}:{captured.revision}"
+                        candidate["read_hints"], candidate["read_hint_unavailable_reasons"] = self.sources.search_read_hints(candidate, captured)
                     result["source_refs"] = [candidate["source_ref"] for candidate in result["items"]]
                     return {"source": source, "status": result["status"], "candidates": result["items"],
                             "source_refs": result["source_refs"], "coverage": {**result["coverage"],
@@ -1271,7 +1279,7 @@ class AssistantToolRegistry:
                 if self.wiki is None or self.wiki.retrieval is None:
                     raise RuntimeError("wiki_retrieval_unavailable")
                 pages = self.wiki.list_pages(space_id=int(space["id"]), task_scope=scope if space.get("task_subset") else None)
-                result = self.wiki.retrieval.search(pages, str(args.query), limit=args.wiki_limit)
+                result = self.wiki.retrieval.search(str(args.query), space_id=int(space["id"]), task_scope=scope if space.get("task_subset") else None, thread_id=str(run_context["thread"]["id"]), limit=args.wiki_limit)
                 refs, dependencies = set(), set()
                 admitted = []
                 for candidate in result["candidates"]:
@@ -1339,7 +1347,7 @@ class AssistantToolRegistry:
                 for prior in group.get('messages') or []:
                     message = self.store.knowledge_message(prior['message_id'], thread_id=thread_id,
                                                            allow_operation_receipt=True)
-                    refs = json.loads(message.get('provider_payload_json') or '{}').get('dependency_refs') or []
+                    refs = json_object(message.get('provider_payload_json') or '{}').get('dependency_refs') or []
                     if refs and not self.dependency_refs_valid(refs, space_id, thread_id, scope_version):
                         raise ValueError('historical_result_stale')
             return
@@ -1361,13 +1369,13 @@ class AssistantToolRegistry:
                 raise ValueError("historical_result_stale")
             with self.store.db.connect() as connection:
                 rows = connection.execute(
-                    f"SELECT id,kind,payload_json FROM assistant_jobs WHERE id IN ({','.join('?' for _ in job_ids)})",
-                    job_ids,
+                    "SELECT id,kind,payload_json FROM assistant_jobs WHERE workspace_id=%s AND principal_id=%s AND id=ANY(%s)",
+                    (self.store.context.workspace_id,self.store.principal_id,job_ids),
                 ).fetchall()
             if len(rows) != len(job_ids) or any(
                 row["kind"] != "source_reconcile" or
-                int(json.loads(row["payload_json"] or "{}").get("space_id") or 0) != space_id or
-                str(json.loads(row["payload_json"] or "{}").get("task_topic") or "") != str(item.get("topic") or "")
+                int(json_object(row["payload_json"] or "{}").get("space_id") or 0) != space_id or
+                str(json_object(row["payload_json"] or "{}").get("task_topic") or "") != str(item.get("topic") or "")
                 for row in rows
             ):
                 raise ValueError("historical_result_stale")
@@ -1542,12 +1550,10 @@ class AssistantToolRegistry:
                 versioned[int(parts[1])] = parts[2]
         if not versioned:
             return True
-        placeholders = ",".join("?" for _ in versioned)
         with self.store.db.connect() as connection:
             rows = connection.execute(
-                f"SELECT video_id,current_revision FROM assistant_source_heads "
-                f"WHERE video_id IN ({placeholders})",
-                list(versioned),
+                "SELECT video_id,current_revision FROM assistant_source_heads WHERE workspace_id=%s AND principal_id=%s AND video_id=ANY(%s)",
+                (self.store.context.workspace_id,self.store.principal_id,list(versioned)),
             ).fetchall()
         current = {int(row["video_id"]): str(row["current_revision"]) for row in rows}
         return all(current.get(video_id) == revision for video_id, revision in versioned.items())
@@ -1566,8 +1572,8 @@ class AssistantToolRegistry:
         video_id, revision = int(parts[1]), parts[2]
         with self.store.db.connect() as connection:
             row = connection.execute(
-                "SELECT current_revision FROM assistant_source_heads WHERE principal_id=? AND video_id=?",
-                (self.store.principal_id, video_id),
+                "SELECT current_revision FROM assistant_source_heads WHERE workspace_id=%s AND principal_id=%s AND video_id=%s",
+                (self.store.context.workspace_id,self.store.principal_id, video_id),
             ).fetchone()
         if row is None:
             return False
@@ -1626,7 +1632,7 @@ class AssistantToolRegistry:
             if message.get("role") != "tool" or not message.get("run_id"):
                 continue
             try:
-                payload = json.loads(message.get("provider_payload_json") or "{}")
+                payload = json_object(message.get("provider_payload_json") or "{}")
                 result = json.loads(message.get("content") or "{}")
             except (TypeError, ValueError, json.JSONDecodeError):
                 continue
@@ -1684,14 +1690,14 @@ class AssistantToolRegistry:
                             if str(ref).startswith('video:'))
         with self.store.db.connect() as connection:
             rows = connection.execute(
-                "SELECT name,result_json FROM assistant_tool_calls WHERE run_id=? AND status='completed' ORDER BY ordinal",
-                (run_id,),
+                "SELECT name,result_json FROM assistant_tool_calls WHERE workspace_id=%s AND run_id=%s AND status='completed' ORDER BY ordinal",
+                (self.store.context.workspace_id,run_id),
             ).fetchall()
             for row in rows:
                 if row['name'] not in {'collection_search', 'collection_read', 'knowledge_read'}:
                     continue
                 try:
-                    result = json.loads(row['result_json'] or '{}')
+                    result = json_object(row['result_json'] or '{}')
                 except ValueError:
                     continue
                 refs.update(str(ref) for ref in result.get('source_refs') or [] if str(ref).startswith('video:'))
@@ -1703,7 +1709,7 @@ class AssistantToolRegistry:
                 parts = ref.split(':')
                 if len(parts) != 3 or not parts[1].isdigit() or not self._source_refs_current([ref], scope):
                     continue
-                video = connection.execute('SELECT title,uploader FROM videos WHERE id=?', (int(parts[1]),)).fetchone()
+                video = connection.execute('SELECT title,uploader FROM videos WHERE workspace_id=%s AND id=%s', (self.store.context.workspace_id,int(parts[1]))).fetchone()
                 if video:
                     valid.append({'handle': 'S_' + hashlib.sha256(ref.encode()).hexdigest()[:12], 'title': str(video['title']),
                                   'uploader': str(video['uploader'] or ''), 'view': '当前任务材料／知识关联',

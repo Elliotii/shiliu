@@ -1,6 +1,10 @@
 """Recoverable working input shared by normal, recovery and final dispatch."""
 from __future__ import annotations
 
+from shiliu.assistant.pg_store import PgAssistantRunStore
+
+from shiliu.storage.dto import json_object
+
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 import hashlib
@@ -11,7 +15,7 @@ from shiliu.assistant.context import SYSTEM_RULES, CONTEXT_CONTRACT_VERSION, Con
 from shiliu.assistant.delivery import project_tool_result, read_evidence, validate_model_sequence
 from shiliu.assistant.provider import AssistantModelProvider
 from shiliu.assistant.provider_request import PreparedRequest, RequestBudget
-from shiliu.assistant.store import AssistantConflict, AssistantRunStore
+from shiliu.assistant.runtime_contract import AssistantConflict
 from shiliu.assistant.task_notes import TaskNoteService
 from shiliu.config import ASSISTANT_INPUT_TOKENS
 
@@ -47,7 +51,7 @@ def complete_message_groups(messages: list[dict], *, cancelled_run_ids: set[str]
     groups, index = [], 0
     while index < len(messages):
         item = messages[index]
-        payload = json.loads(item.get('provider_payload_json') or '{}')
+        payload = json_object(item.get('provider_payload_json') or '{}')
         calls = payload.get('tool_calls') or []
         if item['role'] == 'tool':
             raise AssistantConflict('working_context_orphan_tool: 原始记录仍可回读')
@@ -59,7 +63,7 @@ def complete_message_groups(messages: list[dict], *, cancelled_run_ids: set[str]
             while index < len(messages) and messages[index]['role'] == 'tool':
                 result = messages[index]
                 group.append(result)
-                results.append(json.loads(result.get('provider_payload_json') or '{}').get('tool_call_id'))
+                results.append(json_object(result.get('provider_payload_json') or '{}').get('tool_call_id'))
                 index += 1
             if not all(ids) or len(ids) != len(set(ids)) or len(results) != len(ids) or set(results) != set(ids):
                 if str(item.get('run_id')) in (cancelled_run_ids or set()):
@@ -122,7 +126,7 @@ class WorkingContextCandidate:
 
 
 class WorkingContextComposer:
-    def __init__(self, *, store: AssistantRunStore, tools: Any,
+    def __init__(self, *, store: PgAssistantRunStore, tools: Any,
                  task_notes: TaskNoteService, system_rules: str = SYSTEM_RULES) -> None:
         self.store, self.tools, self.task_notes = store, tools, task_notes
         self.memories = tools.memories
@@ -150,7 +154,7 @@ class WorkingContextComposer:
             return True
         if item['id'] in suppressed or (item['role'] != 'user' and str(item.get('run_id')) in suppressed_runs):
             return False
-        payload = json.loads(item.get('provider_payload_json') or '{}')
+        payload = json_object(item.get('provider_payload_json') or '{}')
         refs = list(payload.get('dependency_refs') or [])
         if item['role'] == 'tool':
             result = json.loads(item.get('content') or '{}')
@@ -170,7 +174,7 @@ class WorkingContextComposer:
         return self._refs_valid(list(dict.fromkeys(refs)), context, excluded)
 
     def _projection(self, item: dict, *, body_characters: int | None = None) -> dict:
-        payload = json.loads(item.get('provider_payload_json') or '{}')
+        payload = json_object(item.get('provider_payload_json') or '{}')
         stored = payload.get('model_projection')
         if stored:
             if stored.get('format_version') != 1 or stored.get('source_fingerprint') != self.store.message_context_fingerprint(item):
@@ -290,9 +294,9 @@ class WorkingContextComposer:
                 # Invalidated mixed groups cannot be replayed as tool protocol. Keep
                 # verified forget receipts as explicitly labelled execution data.
                 receipts, receipt_refs, receipt_ids = [], [], []
-                calls = json.loads(group[0].get('provider_payload_json') or '{}').get('tool_calls') or []
+                calls = json_object(group[0].get('provider_payload_json') or '{}').get('tool_calls') or []
                 for item in group[1:]:
-                    payload = json.loads(item.get('provider_payload_json') or '{}')
+                    payload = json_object(item.get('provider_payload_json') or '{}')
                     ref = f"run-result:{item['run_id']}:{payload.get('tool_call_id')}"
                     if payload.get('name') == 'memory_forget' and self._refs_valid([ref], context, excluded):
                         call = next((c for c in calls if c['id'] == payload['tool_call_id']), None)
@@ -363,7 +367,7 @@ class WorkingContextComposer:
             if not self._message_valid(original, context, excluded, suppressed, suppressed_runs, current_user['id']):
                 raise AssistantConflict('save_answer_dependencies_changed')
             if mid not in projections:
-                refs = json.loads(original['provider_payload_json']).get('dependency_refs') or []
+                refs = json_object(original['provider_payload_json']).get('dependency_refs') or []
                 answers.append({k: original[k] for k in ('id', 'role', 'created_at', 'content')})
                 save_refs.extend(refs)
         if answer_ids:
@@ -395,7 +399,7 @@ class WorkingContextComposer:
             raise AssistantConflict('working_context_changed_during_prepare')
         return WorkingContextCandidate(run_id, int(run['run_epoch']), int(previous.get('revision') or 0),
             state, projections, request, budget, context, guard, memory_epoch, navigation_guard, checkpoint,
-            {m['id'] for m in raw if json.loads(m['provider_payload_json']).get('model_projection')},
+            {m['id'] for m in raw if json_object(m['provider_payload_json']).get('model_projection')},
             rebuilt=bool(previous and not usable))
 
     def fit_unfrozen_tools(self, candidate: WorkingContextCandidate, *, provider: AssistantModelProvider,
@@ -413,7 +417,7 @@ class WorkingContextComposer:
         for mid in result.message_ids:
             if mid in result.frozen_ids or raw[mid]['role'] != 'tool':
                 continue
-            name = json.loads(raw[mid]['provider_payload_json']).get('name') or ''
+            name = json_object(raw[mid]['provider_payload_json']).get('name') or ''
             if name in {'collection_read', 'knowledge_read'} or name.startswith('context7_'):
                 pageable.append(mid)
         if not pageable:

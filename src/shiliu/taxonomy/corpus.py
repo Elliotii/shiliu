@@ -40,7 +40,9 @@ class TaxonomyCorpusService:
         for row in rows:
             key = f"bilibili:{row['bvid']}:p1"
             grouped.setdefault(key, []).append(row)
-        cards = [self._build_card(key, memberships) for key, memberships in grouped.items()]
+        cards = [
+            self._build_card(key, memberships) for key, memberships in grouped.items()
+        ]
         counts = {level.value: 0 for level in EvidenceLevel}
         for card in cards:
             counts[card.evidence_level.value] += 1
@@ -68,20 +70,32 @@ class TaxonomyCorpusService:
         return self.repository.freeze(preview, snapshot_hash)
 
     def _build_card(self, content_key: str, rows: list[dict[str, Any]]) -> CardPreview:
-        materialized = next((row for row in rows if row.get("video_id") is not None), rows[0])
-        title = _first_text(materialized.get("video_title"), *(row.get("membership_title") for row in rows))
-        uploader = _first_text(materialized.get("video_uploader"), *(row.get("membership_uploader") for row in rows))
+        materialized = next(
+            (row for row in rows if row.get("video_id") is not None), rows[0]
+        )
+        title = _first_text(
+            materialized.get("video_title"),
+            *(row.get("membership_title") for row in rows),
+        )
+        uploader = _first_text(
+            materialized.get("video_uploader"),
+            *(row.get("membership_uploader") for row in rows),
+        )
         description = _description(materialized.get("description"))
         summary = self._load_summary(materialized)
         evidence = _evidence(bool(description), summary is not None)
         memberships = [
             FolderMembership(
                 source_id=int(row["source_id"]),
-                account_id=int(row["account_id"]) if row.get("account_id") is not None else None,
+                account_id=int(row["account_id"])
+                if row.get("account_id") is not None
+                else None,
                 account_name=str(row.get("account_name") or ""),
                 folder_id=int(row["folder_id"]),
                 folder_name=str(row.get("folder_title") or ""),
-                favorite_time=int(row["favorite_time"]) if row.get("favorite_time") is not None else None,
+                favorite_time=int(row["favorite_time"])
+                if row.get("favorite_time") is not None
+                else None,
                 source_position=int(row.get("source_position") or 0),
                 first_observed_at=str(row.get("first_observed_at") or ""),
             )
@@ -89,13 +103,17 @@ class TaxonomyCorpusService:
         ]
         stored = StoredClassificationCard(
             content_key=content_key,
-            video_id=int(materialized["video_id"]) if materialized.get("video_id") is not None else None,
+            video_id=int(materialized["video_id"])
+            if materialized.get("video_id") is not None
+            else None,
             title=title,
             uploader=uploader,
             description=description,
             one_line_summary=summary.conclusion if summary else "",
             key_points=list(summary.key_points) if summary else [],
-            projects_tools_models=_unique_texts(item.name for item in summary.entities) if summary else [],
+            projects_tools_models=_unique_texts(item.name for item in summary.entities)
+            if summary
+            else [],
             source_ids=_unique_ints(item.source_id for item in memberships),
             folder_names=_unique_texts(item.folder_name for item in memberships),
             memberships=memberships,
@@ -117,18 +135,11 @@ class TaxonomyCorpusService:
     def _load_summary(self, row: dict[str, Any]) -> SummaryResult | None:
         if not row.get("summary_path"):
             return None
-        directory = Path(str(row["summary_path"])).expanduser().resolve().parent
-        if not directory.is_relative_to(self.artifacts.videos_dir):
-            return None
         revision = str(row.get("active_revision") or "refined")
-        for path in (directory / f"summary.{revision}.json", directory / "summary.json"):
-            if not path.is_file():
-                continue
-            try:
-                return SummaryResult.model_validate_json(path.read_text(encoding="utf-8"))
-            except (OSError, ValidationError, ValueError):
-                return None
-        return None
+        try:
+            return self.artifacts.load_summary(str(row["bvid"]), revision=revision)
+        except (OSError, ValidationError, ValueError):
+            return None
 
 
 def _evidence(has_description: bool, has_summary: bool) -> EvidenceLevel:
@@ -173,5 +184,7 @@ def _unique_ints(values: Iterable[int]) -> list[int]:
 
 
 def _hash_json(value: object) -> str:
-    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    payload = json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()

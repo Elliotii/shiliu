@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
+from psycopg import Connection
+from psycopg.types.json import Jsonb
+from shiliu.storage.dto import json_object, json_array
+from shiliu.research.service import _parse_iso
 import uuid
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -10,7 +13,8 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from shiliu.db import Database
+from shiliu.storage.errors import StorageError
+from shiliu.db import Database, json_field
 from shiliu.research.errors import (
     ResearchConflict,
     ResearchError,
@@ -100,7 +104,7 @@ class OuterResearchService:
         *,
         db: Database,
         kernel: ResearchTaskService,
-        authority: PersistentEvidenceAuthority | None = None,
+        authority: PersistentEvidenceAuthority,
         clock: Clock = _utc_clock,
         fault_injector: FaultInjector | None = None,
         provider_runs_authorized: bool = False,
@@ -109,8 +113,9 @@ class OuterResearchService:
         ] = (),
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
-        self.authority = authority or PersistentEvidenceAuthority(db)
+        self.authority = authority
         self.clock = clock
         self.fault_injector = fault_injector or (lambda _point: None)
         self.provider_runs_authorized = provider_runs_authorized
@@ -159,7 +164,7 @@ class OuterResearchService:
             )
         try:
             return self._advance(task_id, request)
-        except (ResearchError, SimulatedCrash):
+        except (ResearchError, SimulatedCrash, StorageError):
             raise
         except Exception as exc:
             return self._commit_implementation_failure(
@@ -255,11 +260,11 @@ class OuterResearchService:
             unresolved = int(
                 connection.execute(
                     """
-                    SELECT COUNT(*) FROM research_side_effects
-                    WHERE task_id=? AND status IN ('in_flight', 'unknown')
+                    SELECT COUNT(*) AS value FROM research_side_effects
+                    WHERE workspace_id=%s AND  task_id=%s AND status IN ('in_flight', 'unknown')
                     """,
-                    (task_id,),
-                ).fetchone()[0]
+                    (self.context.workspace_id, task_id),
+                ).fetchone()["value"]
             )
             if unresolved:
                 raise ResearchUnsafeState(
@@ -288,7 +293,7 @@ class OuterResearchService:
                             "artifact_id": str(artifact["artifact_id"]),
                             "answer_status": str(artifact["answer_status"]),
                             "evidence_use_ids": list(
-                                json.loads(str(artifact["evidence_use_ids_json"]))
+                                json_array(artifact["evidence_use_ids_json"])
                             ),
                         },
                     }
@@ -366,12 +371,12 @@ class OuterResearchService:
                 """
                 SELECT progress_fingerprint, budget_after_json
                 FROM research_outer_audits
-                WHERE goal_id=? ORDER BY created_at DESC, audit_id DESC LIMIT 1
+                WHERE workspace_id=%s AND  goal_id=%s ORDER BY created_at DESC, audit_id DESC LIMIT 1
                 """,
-                (str(goal["goal_id"]),),
+                (self.context.workspace_id, str(goal['goal_id'])),
             ).fetchone()
             no_progress = (
-                int(json.loads(str(previous["budget_after_json"]))[
+                int(json_object(previous["budget_after_json"])[
                     "consecutive_semantic_no_progress"
                 ])
                 if previous is not None
@@ -405,15 +410,11 @@ class OuterResearchService:
                 existing_target = connection.execute(
                     """
                     SELECT 1 FROM research_continuation_decisions cd
-                    JOIN research_outer_audits oa ON oa.audit_id=cd.audit_id
-                    WHERE cd.goal_id=? AND cd.target_fingerprint=?
-                      AND oa.progress_fingerprint=?
+                    JOIN research_outer_audits oa ON (oa.workspace_id,oa.audit_id)=(cd.workspace_id,cd.audit_id)
+                    WHERE cd.workspace_id=%s AND  cd.goal_id=%s AND cd.target_fingerprint=%s
+                      AND oa.progress_fingerprint=%s
                     """,
-                    (
-                        str(goal["goal_id"]),
-                        target_fingerprint,
-                        progress_fingerprint,
-                    ),
+                    (self.context.workspace_id, str(goal['goal_id']), target_fingerprint, progress_fingerprint),
                 ).fetchone()
                 if existing_target is not None:
                     decision = self._stop_decision(artifact)
@@ -426,11 +427,11 @@ class OuterResearchService:
                         connection.execute(
                             """
                             SELECT COUNT(DISTINCT target_fingerprint)
-                            FROM research_continuation_decisions
-                            WHERE goal_id=? AND target_fingerprint IS NOT NULL
+                            AS value FROM research_continuation_decisions
+                            WHERE workspace_id=%s AND  goal_id=%s AND target_fingerprint IS NOT NULL
                             """,
-                            (str(goal["goal_id"]),),
-                        ).fetchone()[0]
+                            (self.context.workspace_id, str(goal['goal_id'])),
+                        ).fetchone()["value"]
                     )
                     budget_after.distinct_targeted_objectives = distinct + 1
                     budget_after.total_evidence_uses += sum(
@@ -468,41 +469,9 @@ class OuterResearchService:
             audit_outcome = decision
             connection.execute(
                 """
-                INSERT INTO research_outer_audits(
-                    audit_id, audit_schema_version, audit_policy_version,
-                    task_id, goal_id, attempt_id, source_checkpoint_id,
-                    artifact_id, constraint_snapshot_hash, observation_ids_json,
-                    validation_observation_ids_json, artifact_fingerprint,
-                    evidence_fingerprint, progress_fingerprint, outcome,
-                    blocker, reason_codes_json, budget_before_json,
-                    budget_after_json, candidate_id, owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                         ?, ?, ?, ?, ?)
+                INSERT INTO research_outer_audits(workspace_id, audit_id, audit_schema_version, audit_policy_version, task_id, goal_id, attempt_id, source_checkpoint_id, artifact_id, constraint_snapshot_hash, observation_ids_json, validation_observation_ids_json, artifact_fingerprint, evidence_fingerprint, progress_fingerprint, outcome, blocker, reason_codes_json, budget_before_json, budget_after_json, candidate_id, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    audit_id,
-                    OUTER_AUDIT_SCHEMA_VERSION,
-                    self.AUDIT_POLICY_VERSION,
-                    task_id,
-                    str(goal["goal_id"]),
-                    request.attempt_id,
-                    request.expected_checkpoint_id,
-                    str(artifact["artifact_id"]),
-                    snapshot_hash,
-                    _json(observation_ids),
-                    _json(validation_ids),
-                    str(artifact["artifact_hash"]),
-                    str(artifact["evidence_set_fingerprint"]),
-                    progress_fingerprint,
-                    audit_outcome,
-                    blocker,
-                    _json(reason_codes),
-                    _json(budget_before.model_dump(mode="json")),
-                    _json(budget_after.model_dump(mode="json")),
-                    candidate_id,
-                    request.owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, audit_id, OUTER_AUDIT_SCHEMA_VERSION, self.AUDIT_POLICY_VERSION, task_id, str(goal['goal_id']), request.attempt_id, request.expected_checkpoint_id, str(artifact['artifact_id']), snapshot_hash, Jsonb(observation_ids), Jsonb(validation_ids), str(artifact['artifact_hash']), str(artifact['evidence_set_fingerprint']), progress_fingerprint, audit_outcome, blocker, Jsonb(reason_codes), Jsonb(budget_before.model_dump(mode='json')), Jsonb(budget_after.model_dump(mode='json')), candidate_id, request.owner_epoch, _parse_iso(now)),
             )
             self.fault_injector("after_outer_audit_insert")
             for observation_id, value in zip(
@@ -510,31 +479,9 @@ class OuterResearchService:
             ):
                 connection.execute(
                     """
-                    INSERT INTO research_constraint_audit_observations(
-                        audit_observation_id, audit_id, task_id, goal_id,
-                        attempt_id, artifact_id, constraint_id,
-                        evaluator_policy_version, status, recoverability,
-                        evidence_use_ids_json, validation_observation_ids_json,
-                        reason_codes_json, owner_epoch, observed_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO research_constraint_audit_observations(workspace_id, audit_observation_id, audit_id, task_id, goal_id, attempt_id, artifact_id, constraint_id, evaluator_policy_version, status, recoverability, evidence_use_ids_json, validation_observation_ids_json, reason_codes_json, owner_epoch, observed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
-                    (
-                        observation_id,
-                        audit_id,
-                        task_id,
-                        str(goal["goal_id"]),
-                        request.attempt_id,
-                        str(artifact["artifact_id"]),
-                        value.constraint_id,
-                        self.EVALUATOR_REGISTRY_VERSION,
-                        value.status,
-                        value.recoverability,
-                        _json(value.evidence_use_ids),
-                        _json(value.validation_observation_ids),
-                        _json(value.reason_codes),
-                        request.owner_epoch,
-                        now,
-                    ),
+                    (self.context.workspace_id, observation_id, audit_id, task_id, str(goal['goal_id']), request.attempt_id, str(artifact['artifact_id']), value.constraint_id, self.EVALUATOR_REGISTRY_VERSION, value.status, value.recoverability, Jsonb(value.evidence_use_ids), Jsonb(value.validation_observation_ids), Jsonb(value.reason_codes), request.owner_epoch, _parse_iso(now)),
                 )
             self.fault_injector("after_constraint_observations_insert")
 
@@ -557,27 +504,9 @@ class OuterResearchService:
             )
             connection.execute(
                 """
-                INSERT INTO research_compact_improvement_states(
-                    improvement_state_id, improvement_schema_version,
-                    task_id, goal_id, attempt_id, audit_id,
-                    source_checkpoint_id, artifact_id, state_payload_json,
-                    state_hash, owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_compact_improvement_states(workspace_id, improvement_state_id, improvement_schema_version, task_id, goal_id, attempt_id, audit_id, source_checkpoint_id, artifact_id, state_payload_json, state_hash, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    improvement_id,
-                    COMPACT_IMPROVEMENT_SCHEMA_VERSION,
-                    task_id,
-                    str(goal["goal_id"]),
-                    request.attempt_id,
-                    audit_id,
-                    request.expected_checkpoint_id,
-                    str(artifact["artifact_id"]),
-                    _json(improvement),
-                    canonical_hash(improvement),
-                    request.owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, improvement_id, COMPACT_IMPROVEMENT_SCHEMA_VERSION, task_id, str(goal['goal_id']), request.attempt_id, audit_id, request.expected_checkpoint_id, str(artifact['artifact_id']), Jsonb(improvement), canonical_hash(improvement), request.owner_epoch, _parse_iso(now)),
             )
             self.fault_injector("after_improvement_state_insert")
             outer_state = {
@@ -602,26 +531,9 @@ class OuterResearchService:
             state_json = _json(outer_state)
             connection.execute(
                 """
-                INSERT INTO research_checkpoints(
-                    checkpoint_id, task_id, goal_id, attempt_id,
-                    parent_checkpoint_id, sequence, state_schema_version,
-                    state_hash, state_payload_json, is_complete,
-                    owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                INSERT INTO research_checkpoints(workspace_id, checkpoint_id, task_id, goal_id, attempt_id, parent_checkpoint_id, sequence, state_schema_version, state_hash, state_payload_json, is_complete, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, true, %s, %s)
                 """,
-                (
-                    checkpoint_id,
-                    task_id,
-                    str(goal["goal_id"]),
-                    request.attempt_id,
-                    request.expected_checkpoint_id,
-                    sequence,
-                    OUTER_STATE_SCHEMA_VERSION,
-                    hashlib.sha256(state_json.encode()).hexdigest(),
-                    state_json,
-                    request.owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, checkpoint_id, task_id, str(goal['goal_id']), request.attempt_id, request.expected_checkpoint_id, sequence, OUTER_STATE_SCHEMA_VERSION, hashlib.sha256(state_json.encode()).hexdigest(), json_field(state_json), request.owner_epoch, _parse_iso(now)),
             )
             self.fault_injector("after_outer_checkpoint_insert")
 
@@ -665,17 +577,17 @@ class OuterResearchService:
                     now=now,
                 )
                 connection.execute(
-                    "UPDATE research_attempts SET status='waiting_user' WHERE attempt_id=?",
-                    (request.attempt_id,),
+                    "UPDATE research_attempts SET status='waiting_user' WHERE workspace_id=%s AND  attempt_id=%s",
+                    (self.context.workspace_id, request.attempt_id),
                 )
                 connection.execute(
                     """
                     UPDATE research_tasks
                     SET status='waiting_user', state_version=state_version+1,
-                        updated_at=?
-                    WHERE task_id=?
+                        updated_at=%s
+                    WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s
                     """,
-                    (now, task_id),
+                    (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
                 )
                 task_status = "waiting_user"
                 self.fault_injector("after_outer_blocked_update")
@@ -813,41 +725,9 @@ class OuterResearchService:
             )
             connection.execute(
                 """
-                INSERT INTO research_outer_audits(
-                    audit_id, audit_schema_version, audit_policy_version,
-                    task_id, goal_id, attempt_id, source_checkpoint_id,
-                    artifact_id, constraint_snapshot_hash, observation_ids_json,
-                    validation_observation_ids_json, artifact_fingerprint,
-                    evidence_fingerprint, progress_fingerprint, outcome,
-                    blocker, reason_codes_json, budget_before_json,
-                    budget_after_json, candidate_id, owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', '[]', ?, ?, ?,
-                         'failed', 'implementation_error', ?, ?, ?, NULL, ?, ?)
+                INSERT INTO research_outer_audits(workspace_id, audit_id, audit_schema_version, audit_policy_version, task_id, goal_id, attempt_id, source_checkpoint_id, artifact_id, constraint_snapshot_hash, observation_ids_json, validation_observation_ids_json, artifact_fingerprint, evidence_fingerprint, progress_fingerprint, outcome, blocker, reason_codes_json, budget_before_json, budget_after_json, candidate_id, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '[]', '[]', %s, %s, %s, 'failed', 'implementation_error', %s, %s, %s, NULL, %s, %s)
                 """,
-                (
-                    audit_id,
-                    OUTER_AUDIT_SCHEMA_VERSION,
-                    self.AUDIT_POLICY_VERSION,
-                    task_id,
-                    str(goal["goal_id"]),
-                    request.attempt_id,
-                    request.expected_checkpoint_id,
-                    str(artifact["artifact_id"]),
-                    canonical_hash(
-                        {
-                            "goal_id": str(goal["goal_id"]),
-                            "failure_before_constraint_publication": True,
-                        }
-                    ),
-                    str(artifact["artifact_hash"]),
-                    str(artifact["evidence_set_fingerprint"]),
-                    progress_fingerprint,
-                    _json(["outer_internal_implementation_error"]),
-                    _json(budget.model_dump(mode="json")),
-                    _json(budget.model_dump(mode="json")),
-                    request.owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, audit_id, OUTER_AUDIT_SCHEMA_VERSION, self.AUDIT_POLICY_VERSION, task_id, str(goal['goal_id']), request.attempt_id, request.expected_checkpoint_id, str(artifact['artifact_id']), canonical_hash({'goal_id': str(goal['goal_id']), 'failure_before_constraint_publication': True}), str(artifact['artifact_hash']), str(artifact['evidence_set_fingerprint']), progress_fingerprint, Jsonb(['outer_internal_implementation_error']), Jsonb(budget.model_dump(mode='json')), Jsonb(budget.model_dump(mode='json')), request.owner_epoch, _parse_iso(now)),
             )
             checkpoint_id = _id("checkpoint")
             state = {
@@ -869,38 +749,21 @@ class OuterResearchService:
             state_json = _json(state)
             connection.execute(
                 """
-                INSERT INTO research_checkpoints(
-                    checkpoint_id, task_id, goal_id, attempt_id,
-                    parent_checkpoint_id, sequence, state_schema_version,
-                    state_hash, state_payload_json, is_complete,
-                    owner_epoch, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                INSERT INTO research_checkpoints(workspace_id, checkpoint_id, task_id, goal_id, attempt_id, parent_checkpoint_id, sequence, state_schema_version, state_hash, state_payload_json, is_complete, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, true, %s, %s)
                 """,
-                (
-                    checkpoint_id,
-                    task_id,
-                    str(goal["goal_id"]),
-                    request.attempt_id,
-                    request.expected_checkpoint_id,
-                    int(checkpoint["sequence"]) + 1,
-                    OUTER_STATE_SCHEMA_VERSION,
-                    hashlib.sha256(state_json.encode()).hexdigest(),
-                    state_json,
-                    request.owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, checkpoint_id, task_id, str(goal['goal_id']), request.attempt_id, request.expected_checkpoint_id, int(checkpoint['sequence']) + 1, OUTER_STATE_SCHEMA_VERSION, hashlib.sha256(state_json.encode()).hexdigest(), json_field(state_json), request.owner_epoch, _parse_iso(now)),
             )
             connection.execute(
-                "UPDATE research_attempts SET status='blocked' WHERE attempt_id=?",
-                (request.attempt_id,),
+                "UPDATE research_attempts SET status='blocked' WHERE workspace_id=%s AND  attempt_id=%s",
+                (self.context.workspace_id, request.attempt_id),
             )
             connection.execute(
                 """
                 UPDATE research_tasks
-                SET status='blocked', state_version=state_version+1, updated_at=?
-                WHERE task_id=?
+                SET status='blocked', state_version=state_version+1, updated_at=%s
+                WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s
                 """,
-                (now, task_id),
+                (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
             )
             self.kernel._event(
                 connection,
@@ -952,9 +815,9 @@ class OuterResearchService:
 
     def _safe_failure_budget(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        goal: sqlite3.Row,
+        goal: dict[str, Any],
         now: datetime,
     ) -> OuterBudgetLedger:
         try:
@@ -965,72 +828,72 @@ class OuterResearchService:
     def get_outer_state(self, task_id: str) -> dict[str, Any]:
         tables = {
             "constraint_specs": (
-                "SELECT * FROM research_constraint_specs WHERE task_id=? "
+                "SELECT * FROM research_constraint_specs WHERE workspace_id=%s AND task_id=%s "
                 "ORDER BY goal_revision, ordinal"
             ),
             "audit_candidates": (
-                "SELECT * FROM research_audit_candidates WHERE task_id=? "
+                "SELECT * FROM research_audit_candidates WHERE workspace_id=%s AND task_id=%s "
                 "ORDER BY created_at, candidate_id"
             ),
             "constraint_observations": (
                 "SELECT cao.* FROM research_constraint_audit_observations cao "
-                "JOIN research_outer_audits oa ON oa.audit_id=cao.audit_id "
+                "JOIN research_outer_audits oa ON (oa.workspace_id,oa.audit_id)=(cao.workspace_id,cao.audit_id) "
                 "JOIN research_constraint_specs cs "
-                "ON cs.constraint_id=cao.constraint_id "
-                "WHERE cao.task_id=? ORDER BY oa.rowid, cs.ordinal"
+                "ON (cs.workspace_id,cs.constraint_id)=(cao.workspace_id,cao.constraint_id) "
+                "WHERE cao.workspace_id=%s AND cao.task_id=%s ORDER BY oa.insertion_seq, cs.ordinal"
             ),
             "outer_audits": (
-                "SELECT * FROM research_outer_audits WHERE task_id=? "
-                "ORDER BY rowid"
+                "SELECT * FROM research_outer_audits WHERE workspace_id=%s AND task_id=%s "
+                "ORDER BY created_at"
             ),
             "improvement_states": (
                 "SELECT * FROM research_compact_improvement_states "
-                "WHERE task_id=? ORDER BY rowid"
+                "WHERE workspace_id=%s AND task_id=%s ORDER BY created_at"
             ),
             "continuation_decisions": (
-                "SELECT * FROM research_continuation_decisions WHERE task_id=? "
-                "ORDER BY rowid"
+                "SELECT * FROM research_continuation_decisions WHERE workspace_id=%s AND task_id=%s "
+                "ORDER BY created_at"
             ),
             "continuation_seeds": (
-                "SELECT * FROM research_continuation_seeds WHERE task_id=? "
-                "ORDER BY rowid"
+                "SELECT * FROM research_continuation_seeds WHERE workspace_id=%s AND task_id=%s "
+                "ORDER BY created_at"
             ),
             "result_links": (
-                "SELECT * FROM research_outer_result_links WHERE task_id=? "
-                "ORDER BY rowid"
+                "SELECT * FROM research_outer_result_links WHERE workspace_id=%s AND task_id=%s "
+                "ORDER BY created_at"
             ),
         }
         with self.db.connect() as connection:
-            self.kernel._task(connection, task_id)
+            self.kernel._task(connection, task_id, lock=False)
             result = {
                 key: [
                     self.kernel._decode_row(row)
-                    for row in connection.execute(query, (task_id,)).fetchall()
+                    for row in connection.execute(query, (self.context.workspace_id, task_id,)).fetchall()
                 ]
                 for key, query in tables.items()
             }
             latest = connection.execute(
                 """
                 SELECT state_payload_json FROM research_checkpoints
-                WHERE task_id=? AND state_schema_version=?
+                WHERE workspace_id=%s AND  task_id=%s AND state_schema_version=%s
                 ORDER BY created_at DESC, sequence DESC LIMIT 1
                 """,
-                (task_id, OUTER_STATE_SCHEMA_VERSION),
+                (self.context.workspace_id, task_id, OUTER_STATE_SCHEMA_VERSION),
             ).fetchone()
         result["state"] = (
-            json.loads(str(latest["state_payload_json"])) if latest else None
+            json_object(latest["state_payload_json"]) if latest else None
         )
         return result
 
     def _guard_source(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         task_id: str,
         request: AdvanceOuterResearchRequest,
         now: datetime,
     ) -> tuple[
-        sqlite3.Row, sqlite3.Row, sqlite3.Row, sqlite3.Row, sqlite3.Row
+        dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]
     ]:
         task = self.kernel._task(connection, task_id)
         attempt = self.kernel._attempt(connection, request.attempt_id)
@@ -1053,9 +916,9 @@ class OuterResearchService:
         checkpoint = connection.execute(
             """
             SELECT * FROM research_checkpoints
-            WHERE attempt_id=? ORDER BY sequence DESC LIMIT 1
+            WHERE workspace_id=%s AND  attempt_id=%s ORDER BY sequence DESC LIMIT 1
             """,
-            (request.attempt_id,),
+            (self.context.workspace_id, request.attempt_id),
         ).fetchone()
         if (
             checkpoint is None
@@ -1064,20 +927,20 @@ class OuterResearchService:
             != INNER_RESEARCH_STATE_SCHEMA_VERSION
         ):
             raise ResearchConflict("outer audit 要求最新完整 Stage 2 checkpoint")
-        inner_state = json.loads(str(checkpoint["state_payload_json"]))
+        inner_state = json_object(checkpoint["state_payload_json"])
         if inner_state.get("phase") != "complete":
             raise ResearchUnsafeState("Stage 2 inner loop 尚未形成完整 provisional artifact")
         goal = connection.execute(
-            "SELECT * FROM research_goals WHERE goal_id=?",
-            (str(attempt["goal_id"]),),
+            'SELECT * FROM research_goals WHERE workspace_id=%s AND  goal_id=%s',
+            (self.context.workspace_id, str(attempt['goal_id'])),
         ).fetchone()
         artifact = connection.execute(
             """
             SELECT * FROM research_provisional_artifacts
-            WHERE task_id=? AND goal_id=? AND attempt_id=?
+            WHERE workspace_id=%s AND  task_id=%s AND goal_id=%s AND attempt_id=%s
             ORDER BY created_at DESC, artifact_id DESC LIMIT 1
             """,
-            (task_id, str(attempt["goal_id"]), request.attempt_id),
+            (self.context.workspace_id, task_id, str(attempt['goal_id']), request.attempt_id),
         ).fetchone()
         if goal is None or artifact is None:
             raise ResearchUnsafeState("Goal 或 provisional artifact 不可寻址")
@@ -1087,23 +950,21 @@ class OuterResearchService:
 
     def _constraint_snapshot(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
-        goal: sqlite3.Row,
+        task: dict[str, Any],
+        goal: dict[str, Any],
         now: str,
     ) -> tuple[list[dict[str, Any]], str]:
         created = connection.execute(
-            "SELECT payload_json FROM research_events "
-            "WHERE task_id=? AND event_type='task_created' "
-            "ORDER BY sequence LIMIT 1",
-            (str(task["task_id"]),),
+            "SELECT payload_json FROM research_events WHERE workspace_id=%s AND  task_id=%s AND event_type='task_created' ORDER BY sequence LIMIT 1",
+            (self.context.workspace_id, str(task['task_id'])),
         ).fetchone()
         created_payload = (
-            json.loads(str(created["payload_json"])) if created is not None else {}
+            json_object(created["payload_json"]) if created is not None else {}
         )
         server_profile = created_payload.get("server_constraint_profile")
-        success_constraints = json.loads(str(goal["success_constraints_json"]))
+        success_constraints = json_array(goal["success_constraints_json"])
         trusted_product_profile = (
             is_grounded_current_evidence_profile(server_profile)
             and not success_constraints
@@ -1169,39 +1030,16 @@ class OuterResearchService:
             existing = connection.execute(
                 """
                 SELECT * FROM research_constraint_specs
-                WHERE goal_id=? AND ordinal=?
+                WHERE workspace_id=%s AND  goal_id=%s AND ordinal=%s
                 """,
-                (str(goal["goal_id"]), ordinal),
+                (self.context.workspace_id, str(goal['goal_id']), ordinal),
             ).fetchone()
             if existing is None:
                 connection.execute(
                     """
-                    INSERT INTO research_constraint_specs(
-                        constraint_id, constraint_schema_version, task_id,
-                        goal_id, goal_revision, ordinal, constraint_scope,
-                        original_text, normalized_text, constraint_kind,
-                        is_required, evaluator_policy_json,
-                        evaluator_policy_version, canonical_payload_hash,
-                        created_at
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO research_constraint_specs(workspace_id, constraint_id, constraint_schema_version, task_id, goal_id, goal_revision, ordinal, constraint_scope, original_text, normalized_text, constraint_kind, is_required, evaluator_policy_json, evaluator_policy_version, canonical_payload_hash, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
-                    (
-                        constraint_id,
-                        CONSTRAINT_SPEC_SCHEMA_VERSION,
-                        str(task["task_id"]),
-                        str(goal["goal_id"]),
-                        int(goal["revision"]),
-                        ordinal,
-                        scope,
-                        text,
-                        canonical["normalized_text"],
-                        kind,
-                        int(canonical["is_required"]),
-                        _json(policy),
-                        evaluator_version,
-                        payload_hash,
-                        now,
-                    ),
+                    (self.context.workspace_id, constraint_id, CONSTRAINT_SPEC_SCHEMA_VERSION, str(task['task_id']), str(goal['goal_id']), int(goal['revision']), ordinal, scope, text, canonical['normalized_text'], kind, bool(int(canonical['is_required'])), Jsonb(policy), evaluator_version, payload_hash, _parse_iso(now)),
                 )
             elif (
                 str(existing["constraint_id"]) != constraint_id
@@ -1227,7 +1065,7 @@ class OuterResearchService:
 
     def _insert_candidate(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         request: AdvanceOuterResearchRequest,
         task_id: str,
@@ -1240,51 +1078,36 @@ class OuterResearchService:
         candidate_id = _id("audit_candidate")
         connection.execute(
             """
-            INSERT INTO research_audit_candidates(
-                candidate_id, candidate_schema_version, task_id, goal_id,
-                attempt_id, artifact_id, producer_kind, proposal_json,
-                proposal_hash, provider_side_effect_id, owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, 'deterministic', ?, ?, NULL, ?, ?)
+            INSERT INTO research_audit_candidates(workspace_id, candidate_id, candidate_schema_version, task_id, goal_id, attempt_id, artifact_id, producer_kind, proposal_json, proposal_hash, provider_side_effect_id, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, 'deterministic', %s, %s, NULL, %s, %s)
             """,
-            (
-                candidate_id,
-                self.CANDIDATE_SCHEMA_VERSION,
-                task_id,
-                goal_id,
-                request.attempt_id,
-                artifact_id,
-                _json(self._candidate_payload(request)),
-                canonical_hash(self._candidate_payload(request)),
-                request.owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, candidate_id, self.CANDIDATE_SCHEMA_VERSION, task_id, goal_id, request.attempt_id, artifact_id, Jsonb(self._candidate_payload(request)), canonical_hash(self._candidate_payload(request)), request.owner_epoch, _parse_iso(now)),
         )
         return candidate_id
 
     def _observe_artifact_evidence(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         task_id: str,
         goal_id: str,
         attempt_id: str,
         checkpoint_id: str,
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         owner_epoch: int,
         now: str,
     ) -> tuple[list[str], dict[str, tuple[str, str, CurrentnessResult]]]:
-        use_ids = list(json.loads(str(artifact["evidence_use_ids_json"])))
+        use_ids = list(json_array(artifact["evidence_use_ids_json"]))
         values: dict[str, tuple[str, str, CurrentnessResult]] = {}
         observation_ids: list[str] = []
         for use_id in use_ids:
             row = connection.execute(
                 """
                 SELECT eu.*, ei.* FROM research_evidence_uses eu
-                JOIN research_evidence_identities ei ON ei.evidence_id=eu.evidence_id
-                WHERE eu.evidence_use_id=? AND eu.task_id=? AND eu.goal_id=?
-                  AND eu.attempt_id=?
+                JOIN research_evidence_identities ei ON (ei.workspace_id,ei.evidence_id)=(eu.workspace_id,eu.evidence_id)
+                WHERE eu.workspace_id=%s AND  eu.evidence_use_id=%s AND eu.task_id=%s AND eu.goal_id=%s
+                  AND eu.attempt_id=%s
                 """,
-                (use_id, task_id, goal_id, attempt_id),
+                (self.context.workspace_id, use_id, task_id, goal_id, attempt_id),
             ).fetchone()
             if row is None:
                 raise ResearchUnsafeState(
@@ -1294,31 +1117,9 @@ class OuterResearchService:
             observation_id = _id("evidence_validation")
             connection.execute(
                 """
-                INSERT INTO research_evidence_validations(
-                    observation_id, evidence_use_id, evidence_id, task_id,
-                    goal_id, attempt_id, checkpoint_id,
-                    validation_policy_version, authority_mode,
-                    expected_source_version, observed_source_version,
-                    outcome, reason_code, owner_epoch, observed_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'live_current_exact_replay',
-                         ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_evidence_validations(workspace_id, observation_id, evidence_use_id, evidence_id, task_id, goal_id, attempt_id, checkpoint_id, validation_policy_version, authority_mode, expected_source_version, observed_source_version, outcome, reason_code, owner_epoch, observed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, 'live_current_exact_replay', %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    observation_id,
-                    str(use_id),
-                    str(row["evidence_id"]),
-                    task_id,
-                    goal_id,
-                    attempt_id,
-                    checkpoint_id,
-                    EVIDENCE_VALIDATION_POLICY_VERSION,
-                    observed.expected_source_version,
-                    observed.observed_source_version,
-                    observed.outcome,
-                    observed.reason_code,
-                    owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, observation_id, str(use_id), str(row['evidence_id']), task_id, goal_id, attempt_id, checkpoint_id, EVIDENCE_VALIDATION_POLICY_VERSION, observed.expected_source_version, observed.observed_source_version, observed.outcome, observed.reason_code, owner_epoch, _parse_iso(now)),
             )
             observation_ids.append(observation_id)
             values[str(use_id)] = (
@@ -1331,10 +1132,10 @@ class OuterResearchService:
 
     def _evaluate_constraints(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         specs: list[dict[str, Any]],
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         current_by_use: dict[str, tuple[str, str, CurrentnessResult]],
         validation_ids: list[str],
     ) -> list[ConstraintEvaluation]:
@@ -1348,11 +1149,11 @@ class OuterResearchService:
         prior_continuations = int(
             connection.execute(
                 """
-                SELECT COUNT(*) FROM research_continuation_decisions
-                WHERE goal_id=? AND decision='targeted_continue'
+                SELECT COUNT(*) AS value FROM research_continuation_decisions
+                WHERE workspace_id=%s AND  goal_id=%s AND decision='targeted_continue'
                 """,
-                (str(artifact["goal_id"]),),
-            ).fetchone()[0]
+                (self.context.workspace_id, str(artifact['goal_id'])),
+            ).fetchone()["value"]
         )
         results: list[ConstraintEvaluation] = []
         for spec in specs:
@@ -1441,56 +1242,56 @@ class OuterResearchService:
 
     def _budget(
         self,
-        connection: sqlite3.Connection,
-        goal: sqlite3.Row,
+        connection: Connection,
+        goal: dict[str, Any],
         now: datetime,
     ) -> OuterBudgetLedger:
         latest = connection.execute(
             """
             SELECT budget_after_json FROM research_outer_audits
-            WHERE goal_id=? ORDER BY created_at DESC, audit_id DESC LIMIT 1
+            WHERE workspace_id=%s AND  goal_id=%s ORDER BY created_at DESC, audit_id DESC LIMIT 1
             """,
-            (str(goal["goal_id"]),),
+            (self.context.workspace_id, str(goal['goal_id'])),
         ).fetchone()
         if latest is None:
             budget = OuterBudgetLedger(started_at=str(goal["created_at"]))
         else:
-            budget = OuterBudgetLedger.model_validate_json(
-                str(latest["budget_after_json"])
+            budget = OuterBudgetLedger.model_validate(
+                json_object(latest["budget_after_json"])
             )
         budget.total_inner_actions = int(
             connection.execute(
                 """
-                SELECT COUNT(*) FROM research_inner_actions
-                WHERE goal_id=? AND status != 'planned'
+                SELECT COUNT(*) AS value FROM research_inner_actions
+                WHERE workspace_id=%s AND  goal_id=%s AND status != 'planned'
                 """,
-                (str(goal["goal_id"]),),
-            ).fetchone()[0]
+                (self.context.workspace_id, str(goal['goal_id'])),
+            ).fetchone()["value"]
         )
         budget.total_evidence_uses = int(
             connection.execute(
-                "SELECT COUNT(*) FROM research_evidence_uses WHERE goal_id=?",
-                (str(goal["goal_id"]),),
-            ).fetchone()[0]
+                'SELECT COUNT(*) AS value FROM research_evidence_uses WHERE workspace_id=%s AND  goal_id=%s',
+                (self.context.workspace_id, str(goal['goal_id'])),
+            ).fetchone()["value"]
         )
         budget.targeted_continuations = int(
             connection.execute(
                 """
-                SELECT COUNT(*) FROM research_continuation_decisions
-                WHERE goal_id=? AND decision='targeted_continue'
+                SELECT COUNT(*) AS value FROM research_continuation_decisions
+                WHERE workspace_id=%s AND  goal_id=%s AND decision='targeted_continue'
                 """,
-                (str(goal["goal_id"]),),
-            ).fetchone()[0]
+                (self.context.workspace_id, str(goal['goal_id'])),
+            ).fetchone()["value"]
         )
         budget.distinct_targeted_objectives = int(
             connection.execute(
                 """
                 SELECT COUNT(DISTINCT target_fingerprint)
-                FROM research_continuation_decisions
-                WHERE goal_id=? AND target_fingerprint IS NOT NULL
+                AS value FROM research_continuation_decisions
+                WHERE workspace_id=%s AND  goal_id=%s AND target_fingerprint IS NOT NULL
                 """,
-                (str(goal["goal_id"]),),
-            ).fetchone()[0]
+                (self.context.workspace_id, str(goal['goal_id'])),
+            ).fetchone()["value"]
         )
         _ = now
         return budget
@@ -1533,12 +1334,12 @@ class OuterResearchService:
 
     def _decide(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         goal_id: str,
         evaluations: list[ConstraintEvaluation],
         required_constraint_ids: set[str],
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         budget: OuterBudgetLedger,
         current_by_use: dict[str, tuple[str, str, CurrentnessResult]],
     ) -> tuple[str, str | None, list[str], str | None]:
@@ -1593,7 +1394,7 @@ class OuterResearchService:
         )
 
     @staticmethod
-    def _stop_decision(artifact: sqlite3.Row) -> str:
+    def _stop_decision(artifact: dict[str, Any]) -> str:
         return (
             "stop_partial"
             if str(artifact["answer_status"]) in {"valid_success", "valid_partial"}
@@ -1604,7 +1405,7 @@ class OuterResearchService:
     def _progress_fingerprint(
         *,
         evaluations: list[ConstraintEvaluation],
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         current_by_use: dict[str, tuple[str, str, CurrentnessResult]],
         blocker: str | None,
     ) -> str:
@@ -1636,7 +1437,7 @@ class OuterResearchService:
     def _improvement_payload(
         *,
         evaluations: list[ConstraintEvaluation],
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         budget: OuterBudgetLedger,
         blocker: str | None,
         target: str | None,
@@ -1689,12 +1490,12 @@ class OuterResearchService:
 
     def _commit_continuation(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
-        task: sqlite3.Row,
-        goal: sqlite3.Row,
-        parent_attempt: sqlite3.Row,
-        artifact: sqlite3.Row,
+        task: dict[str, Any],
+        goal: dict[str, Any],
+        parent_attempt: dict[str, Any],
+        artifact: dict[str, Any],
         evaluations: list[ConstraintEvaluation],
         current_by_use: dict[str, tuple[str, str, CurrentnessResult]],
         audit_id: str,
@@ -1712,83 +1513,45 @@ class OuterResearchService:
         result_id = _id("result")
         connection.execute(
             """
-            INSERT INTO research_results(
-                result_id, task_id, goal_id, attempt_id, checkpoint_id,
-                answer_status, termination_reason, failure_class,
-                reason_detail, is_task_terminal, owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, 'targeted_continuation', 'none',
-                     ?, 0, ?, ?)
+            INSERT INTO research_results(workspace_id, result_id, task_id, goal_id, attempt_id, checkpoint_id, answer_status, termination_reason, failure_class, reason_detail, is_task_terminal, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, 'targeted_continuation', 'none', %s, false, %s, %s)
             """,
-            (
-                result_id,
-                task_id,
-                goal_id,
-                parent_attempt_id,
-                outer_checkpoint_id,
-                str(artifact["answer_status"]),
-                "outer audit authorized bounded targeted continuation",
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, result_id, task_id, goal_id, parent_attempt_id, outer_checkpoint_id, str(artifact['answer_status']), 'outer audit authorized bounded targeted continuation', owner_epoch, _parse_iso(now)),
         )
         self.fault_injector("after_outer_parent_result_insert")
         connection.execute(
             """
             UPDATE research_attempts
-            SET status='terminal', result_id=?, ended_at=?
-            WHERE attempt_id=?
+            SET status='terminal', result_id=%s, ended_at=%s
+            WHERE workspace_id=%s AND  attempt_id=%s
             """,
-            (result_id, now, parent_attempt_id),
+            (result_id, _parse_iso(now), self.context.workspace_id, parent_attempt_id),
         )
         connection.execute(
             """
             UPDATE research_traces
-            SET ended_at=?, termination_reason='targeted_continuation'
-            WHERE attempt_id=? AND ended_at IS NULL
+            SET ended_at=%s, termination_reason='targeted_continuation'
+            WHERE workspace_id=%s AND  attempt_id=%s AND ended_at IS NULL
             """,
-            (now, parent_attempt_id),
+            (_parse_iso(now), self.context.workspace_id, parent_attempt_id),
         )
         ordinal = int(
             connection.execute(
-                "SELECT COALESCE(MAX(ordinal), 0) + 1 FROM research_attempts WHERE task_id=?",
-                (task_id,),
-            ).fetchone()[0]
+                'SELECT COALESCE(MAX(ordinal), 0) + 1 AS value FROM research_attempts WHERE workspace_id=%s AND  task_id=%s',
+                (self.context.workspace_id, task_id),
+            ).fetchone()["value"]
         )
         connection.execute(
             """
-            INSERT INTO research_attempts(
-                attempt_id, task_id, goal_id, ordinal, cause,
-                parent_attempt_id, source_checkpoint_id, status,
-                owner_epoch, result_id, started_at, ended_at, created_at
-            ) VALUES(?, ?, ?, ?, 'retry', ?, ?, 'running', ?, NULL, ?, NULL, ?)
+            INSERT INTO research_attempts(workspace_id, attempt_id, task_id, goal_id, ordinal, cause, parent_attempt_id, source_checkpoint_id, status, owner_epoch, result_id, started_at, ended_at, created_at) VALUES(%s, %s, %s, %s, %s, 'retry', %s, %s, 'running', %s, NULL, %s, NULL, %s)
             """,
-            (
-                child_attempt_id,
-                task_id,
-                goal_id,
-                ordinal,
-                parent_attempt_id,
-                outer_checkpoint_id,
-                owner_epoch,
-                now,
-                now,
-            ),
+            (self.context.workspace_id, child_attempt_id, task_id, goal_id, ordinal, parent_attempt_id, outer_checkpoint_id, owner_epoch, _parse_iso(now), _parse_iso(now)),
         )
         trace_id = _id("trace")
         connection.execute(
             """
-            INSERT INTO research_traces(
-                trace_id, task_id, attempt_id, trace_schema_version,
-                started_at, ended_at, termination_reason, retention_class
-            ) VALUES(?, ?, ?, ?, ?, NULL, NULL, 'stage3_targeted_continuation')
+            INSERT INTO research_traces(workspace_id, trace_id, task_id, attempt_id, trace_schema_version, started_at, ended_at, termination_reason, retention_class) VALUES(%s, %s, %s, %s, %s, %s, NULL, NULL, 'stage3_targeted_continuation')
             """,
-            (
-                trace_id,
-                task_id,
-                child_attempt_id,
-                self.kernel.TRACE_SCHEMA_VERSION,
-                now,
-            ),
+            (self.context.workspace_id, trace_id, task_id, child_attempt_id, self.kernel.TRACE_SCHEMA_VERSION, _parse_iso(now)),
         )
         self.fault_injector("after_outer_child_attempt_insert")
         decision_id = self._insert_decision(
@@ -1828,33 +1591,9 @@ class OuterResearchService:
         }
         connection.execute(
             """
-            INSERT INTO research_continuation_seeds(
-                seed_id, seed_schema_version, task_id, goal_id,
-                parent_attempt_id, child_attempt_id,
-                continuation_decision_id, audit_id, source_checkpoint_id,
-                source_artifact_id, targeted_objective, target_fingerprint,
-                carry_evidence_ids_json, seed_payload_hash,
-                owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_continuation_seeds(workspace_id, seed_id, seed_schema_version, task_id, goal_id, parent_attempt_id, child_attempt_id, continuation_decision_id, audit_id, source_checkpoint_id, source_artifact_id, targeted_objective, target_fingerprint, carry_evidence_ids_json, seed_payload_hash, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                seed_id,
-                CONTINUATION_SEED_SCHEMA_VERSION,
-                task_id,
-                goal_id,
-                parent_attempt_id,
-                child_attempt_id,
-                decision_id,
-                audit_id,
-                outer_checkpoint_id,
-                str(artifact["artifact_id"]),
-                target,
-                seed_payload["target_fingerprint"],
-                _json(carry_ids),
-                canonical_hash(seed_payload),
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, seed_id, CONTINUATION_SEED_SCHEMA_VERSION, task_id, goal_id, parent_attempt_id, child_attempt_id, decision_id, audit_id, outer_checkpoint_id, str(artifact['artifact_id']), target, seed_payload['target_fingerprint'], Jsonb(carry_ids), canonical_hash(seed_payload), owner_epoch, _parse_iso(now)),
         )
         self._seed_child_inner_state(
             connection,
@@ -1886,16 +1625,16 @@ class OuterResearchService:
             """
             UPDATE research_tasks
             SET status='running', terminal_result_id=NULL,
-                state_version=state_version+1, updated_at=?
-            WHERE task_id=?
+                state_version=state_version+1, updated_at=%s
+            WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s
             """,
-            (now, task_id),
+            (_parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
         )
         return result_id, child_attempt_id, seed_id
 
     def _seed_child_inner_state(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         task_id: str,
         goal_id: str,
@@ -1910,31 +1649,9 @@ class OuterResearchService:
         action_id = _id("inner_action")
         connection.execute(
             """
-            INSERT INTO research_inner_actions(
-                action_id, task_id, goal_id, attempt_id,
-                originating_checkpoint_id, action_kind,
-                action_schema_version, action_key, request_hash,
-                request_json, status, owner_epoch,
-                retrieval_execution_id, retrieval_trace_id, side_effect_id,
-                observation_json, error_code, error_detail,
-                created_at, started_at, completed_at
-            ) VALUES(?, ?, ?, ?, ?, 'plan', ?, ?, ?, ?, 'planned', ?,
-                     NULL, NULL, NULL, ?, NULL, NULL, ?, NULL, NULL)
+            INSERT INTO research_inner_actions(workspace_id, action_id, task_id, goal_id, attempt_id, originating_checkpoint_id, action_kind, action_schema_version, action_key, request_hash, request_json, status, owner_epoch, retrieval_execution_id, retrieval_trace_id, side_effect_id, observation_json, error_code, error_detail, created_at, started_at, completed_at) VALUES(%s, %s, %s, %s, %s, %s, 'plan', %s, %s, %s, %s, 'planned', %s, NULL, NULL, NULL, %s, NULL, NULL, %s, NULL, NULL)
             """,
-            (
-                action_id,
-                task_id,
-                goal_id,
-                child_attempt_id,
-                None,
-                INNER_ACTION_SCHEMA_VERSION,
-                f"outer-carry:{child_attempt_id}",
-                canonical_hash({"target": target}),
-                _json({"targeted_objective": target}),
-                owner_epoch,
-                _json({"mode": "outer_carry_forward"}),
-                now,
-            ),
+            (self.context.workspace_id, action_id, task_id, goal_id, child_attempt_id, None, INNER_ACTION_SCHEMA_VERSION, f'outer-carry:{child_attempt_id}', canonical_hash({'target': target}), Jsonb({'targeted_objective': target}), owner_epoch, Jsonb({'mode': 'outer_carry_forward'}), _parse_iso(now)),
         )
         child_use_ids: list[str] = []
         for parent_use_id, (evidence_id, _, observed) in current_by_use.items():
@@ -1954,80 +1671,21 @@ class OuterResearchService:
             }
             connection.execute(
                 """
-                INSERT INTO research_evidence_uses(
-                    evidence_use_id, evidence_id, task_id, goal_id, attempt_id,
-                    first_action_id, originating_checkpoint_id, owner_epoch,
-                    use_purpose, use_schema_version, use_payload_hash, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO research_evidence_uses(workspace_id, evidence_use_id, evidence_id, task_id, goal_id, attempt_id, first_action_id, originating_checkpoint_id, owner_epoch, use_purpose, use_schema_version, use_payload_hash, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (
-                    use_id,
-                    evidence_id,
-                    task_id,
-                    goal_id,
-                    child_attempt_id,
-                    action_id,
-                    None,
-                    owner_epoch,
-                    "outer_targeted_carry_forward",
-                    EVIDENCE_USE_SCHEMA_VERSION,
-                    canonical_hash(use_payload),
-                    now,
-                ),
+                (self.context.workspace_id, use_id, evidence_id, task_id, goal_id, child_attempt_id, action_id, None, owner_epoch, 'outer_targeted_carry_forward', EVIDENCE_USE_SCHEMA_VERSION, canonical_hash(use_payload), _parse_iso(now)),
             )
             connection.execute(
                 """
-                INSERT INTO research_evidence_provenance(
-                    provenance_id, evidence_use_id, action_id, execution_id,
-                    search_trace_id, query_fingerprint, rank,
-                    retrieval_method, index_identity_json,
-                    parent_chunk_ids_json, source_version_authority,
-                    mapping_policy_versions_json, provenance_hash, observed_at
-                ) VALUES(?, ?, ?, NULL, NULL, ?, NULL,
-                         'outer_carry_forward', '{}', '[]',
-                         'live_current_exact_replay', ?, ?, ?)
+                INSERT INTO research_evidence_provenance(workspace_id, task_id, goal_id, attempt_id, provenance_id, evidence_use_id, action_id, execution_id, search_trace_id, query_fingerprint, rank, retrieval_method, index_identity_json, parent_chunk_ids_json, source_version_authority, mapping_policy_versions_json, provenance_hash, observed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, NULL, NULL, %s, NULL, 'outer_carry_forward', '{}', '[]', 'live_current_exact_replay', %s, %s, %s)
                 """,
-                (
-                    _id("provenance"),
-                    use_id,
-                    action_id,
-                    canonical_hash({"target": _normalized(target)}),
-                    _json({"stage3": CONTINUATION_SEED_SCHEMA_VERSION}),
-                    canonical_hash(
-                        {
-                            "parent_use_id": parent_use_id,
-                            "evidence_id": evidence_id,
-                            "target": _normalized(target),
-                        }
-                    ),
-                    now,
-                ),
+                (self.context.workspace_id, task_id, goal_id, child_attempt_id, _id('provenance'), use_id, action_id, canonical_hash({'target': _normalized(target)}), Jsonb({'stage3': CONTINUATION_SEED_SCHEMA_VERSION}), canonical_hash({'parent_use_id': parent_use_id, 'evidence_id': evidence_id, 'target': _normalized(target)}), _parse_iso(now)),
             )
             connection.execute(
                 """
-                INSERT INTO research_evidence_validations(
-                    observation_id, evidence_use_id, evidence_id, task_id,
-                    goal_id, attempt_id, checkpoint_id,
-                    validation_policy_version, authority_mode,
-                    expected_source_version, observed_source_version,
-                    outcome, reason_code, owner_epoch, observed_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'live_current_exact_replay',
-                         ?, ?, 'current', 'outer_carry_forward_revalidated', ?, ?)
+                INSERT INTO research_evidence_validations(workspace_id, observation_id, evidence_use_id, evidence_id, task_id, goal_id, attempt_id, checkpoint_id, validation_policy_version, authority_mode, expected_source_version, observed_source_version, outcome, reason_code, owner_epoch, observed_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, 'live_current_exact_replay', %s, %s, 'current', 'outer_carry_forward_revalidated', %s, %s)
                 """,
-                (
-                    _id("evidence_validation"),
-                    use_id,
-                    evidence_id,
-                    task_id,
-                    goal_id,
-                    child_attempt_id,
-                    None,
-                    EVIDENCE_VALIDATION_POLICY_VERSION,
-                    observed.expected_source_version,
-                    observed.observed_source_version,
-                    owner_epoch,
-                    now,
-                ),
+                (self.context.workspace_id, _id('evidence_validation'), use_id, evidence_id, task_id, goal_id, child_attempt_id, None, EVIDENCE_VALIDATION_POLICY_VERSION, observed.expected_source_version, observed.observed_source_version, owner_epoch, _parse_iso(now)),
             )
             child_use_ids.append(use_id)
         state = InnerResearchState(
@@ -2047,36 +1705,20 @@ class OuterResearchService:
         state_json = _json(state.model_dump(mode="json"))
         connection.execute(
             """
-            INSERT INTO research_checkpoints(
-                checkpoint_id, task_id, goal_id, attempt_id,
-                parent_checkpoint_id, sequence, state_schema_version,
-                state_hash, state_payload_json, is_complete,
-                owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, 1, ?, ?, ?, 1, ?, ?)
+            INSERT INTO research_checkpoints(workspace_id, checkpoint_id, task_id, goal_id, attempt_id, parent_checkpoint_id, sequence, state_schema_version, state_hash, state_payload_json, is_complete, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, 1, %s, %s, %s, true, %s, %s)
             """,
-            (
-                checkpoint_id,
-                task_id,
-                goal_id,
-                child_attempt_id,
-                parent_checkpoint_id,
-                INNER_RESEARCH_STATE_SCHEMA_VERSION,
-                hashlib.sha256(state_json.encode()).hexdigest(),
-                state_json,
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, checkpoint_id, task_id, goal_id, child_attempt_id, parent_checkpoint_id, INNER_RESEARCH_STATE_SCHEMA_VERSION, hashlib.sha256(state_json.encode()).hexdigest(), json_field(state_json), owner_epoch, _parse_iso(now)),
         )
 
     def _commit_terminal(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         task_id: str,
         goal_id: str,
         attempt_id: str,
         checkpoint_id: str,
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         evaluations: list[ConstraintEvaluation],
         audit_id: str,
         decision: str,
@@ -2092,24 +1734,9 @@ class OuterResearchService:
         termination = self._termination(decision, artifact, blocker)
         connection.execute(
             """
-            INSERT INTO research_results(
-                result_id, task_id, goal_id, attempt_id, checkpoint_id,
-                answer_status, termination_reason, failure_class,
-                reason_detail, is_task_terminal, owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, 'none', ?, 1, ?, ?)
+            INSERT INTO research_results(workspace_id, result_id, task_id, goal_id, attempt_id, checkpoint_id, answer_status, termination_reason, failure_class, reason_detail, is_task_terminal, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, 'none', %s, true, %s, %s)
             """,
-            (
-                result_id,
-                task_id,
-                goal_id,
-                attempt_id,
-                checkpoint_id,
-                answer_status,
-                termination,
-                f"outer decision: {decision}",
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, result_id, task_id, goal_id, attempt_id, checkpoint_id, answer_status, termination, f'outer decision: {decision}', owner_epoch, _parse_iso(now)),
         )
         self._insert_result_link(
             connection,
@@ -2126,39 +1753,39 @@ class OuterResearchService:
         connection.execute(
             """
             UPDATE research_attempts
-            SET status='terminal', result_id=?, ended_at=? WHERE attempt_id=?
+            SET status='terminal', result_id=%s, ended_at=%s WHERE workspace_id=%s AND  attempt_id=%s
             """,
-            (result_id, now, attempt_id),
+            (result_id, _parse_iso(now), self.context.workspace_id, attempt_id),
         )
         connection.execute(
             """
-            UPDATE research_traces SET ended_at=?, termination_reason=?
-            WHERE attempt_id=? AND ended_at IS NULL
+            UPDATE research_traces SET ended_at=%s, termination_reason=%s
+            WHERE workspace_id=%s AND  attempt_id=%s AND ended_at IS NULL
             """,
-            (now, termination, attempt_id),
+            (_parse_iso(now), termination, self.context.workspace_id, attempt_id),
         )
         connection.execute(
             """
             UPDATE research_tasks
-            SET status='terminal', terminal_result_id=?,
-                state_version=state_version+1, updated_at=?
-            WHERE task_id=?
+            SET status='terminal', terminal_result_id=%s,
+                state_version=state_version+1, updated_at=%s
+            WHERE workspace_id=%s AND owner_user_id=%s AND  task_id=%s
             """,
-            (result_id, now, task_id),
+            (result_id, _parse_iso(now), self.context.workspace_id, self.context.user_id, task_id),
         )
         self.fault_injector("after_outer_terminal_result_insert")
         return result_id
 
     def _insert_result_link(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         result_id: str,
         task_id: str,
         goal_id: str,
         attempt_id: str,
         audit_id: str,
-        artifact: sqlite3.Row,
+        artifact: dict[str, Any],
         evaluations: list[ConstraintEvaluation],
         validation_ids: list[str],
         now: str,
@@ -2171,32 +1798,14 @@ class OuterResearchService:
         )
         connection.execute(
             """
-            INSERT INTO research_outer_result_links(
-                result_id, task_id, goal_id, attempt_id, audit_id,
-                artifact_id, constraint_fingerprint,
-                validation_observation_ids_json, generation_policy_version,
-                audit_policy_version, evaluator_policy_versions_json, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_outer_result_links(workspace_id, result_id, task_id, goal_id, attempt_id, audit_id, artifact_id, constraint_fingerprint, validation_observation_ids_json, generation_policy_version, audit_policy_version, evaluator_policy_versions_json, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                result_id,
-                task_id,
-                goal_id,
-                attempt_id,
-                audit_id,
-                str(artifact["artifact_id"]),
-                constraint_fingerprint,
-                _json(validation_ids),
-                str(artifact["generation_policy_version"]),
-                self.AUDIT_POLICY_VERSION,
-                _json([self.EVALUATOR_REGISTRY_VERSION]),
-                now,
-            ),
+            (self.context.workspace_id, result_id, task_id, goal_id, attempt_id, audit_id, str(artifact['artifact_id']), constraint_fingerprint, Jsonb(validation_ids), str(artifact['generation_policy_version']), self.AUDIT_POLICY_VERSION, Jsonb([self.EVALUATOR_REGISTRY_VERSION]), _parse_iso(now)),
         )
 
     def _insert_decision(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         *,
         task_id: str,
         goal_id: str,
@@ -2218,28 +1827,9 @@ class OuterResearchService:
         )
         connection.execute(
             """
-            INSERT INTO research_continuation_decisions(
-                continuation_decision_id, task_id, goal_id,
-                parent_attempt_id, child_attempt_id, audit_id,
-                improvement_state_id, decision, targeted_objective,
-                target_fingerprint, reason_codes_json, owner_epoch, created_at
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO research_continuation_decisions(workspace_id, continuation_decision_id, task_id, goal_id, parent_attempt_id, child_attempt_id, audit_id, improvement_state_id, decision, targeted_objective, target_fingerprint, reason_codes_json, owner_epoch, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (
-                decision_id,
-                task_id,
-                goal_id,
-                parent_attempt_id,
-                child_attempt_id,
-                audit_id,
-                improvement_id,
-                decision,
-                target,
-                target_fingerprint,
-                _json(reason_codes),
-                owner_epoch,
-                now,
-            ),
+            (self.context.workspace_id, decision_id, task_id, goal_id, parent_attempt_id, child_attempt_id, audit_id, improvement_id, decision, target, target_fingerprint, Jsonb(reason_codes), owner_epoch, _parse_iso(now)),
         )
         return decision_id
 
@@ -2255,7 +1845,7 @@ class OuterResearchService:
 
     @staticmethod
     def _termination(
-        decision: str, artifact: sqlite3.Row, blocker: str | None
+        decision: str, artifact: dict[str, Any], blocker: str | None
     ) -> str:
         del artifact
         if decision == "accept":

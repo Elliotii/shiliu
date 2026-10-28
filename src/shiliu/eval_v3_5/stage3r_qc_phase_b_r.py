@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -244,9 +246,7 @@ def select_frozen_known_positive(repository_root: Path) -> dict[str, Any]:
 
 
 def inspect_index(snapshot_db: Path) -> dict[str, Any]:
-    connection = sqlite3.connect(
-        f"file:{snapshot_db.resolve()}?mode=ro&immutable=1", uri=True
-    )
+    connection = connect_snapshot(snapshot_db)
     connection.row_factory = sqlite3.Row
     try:
         lexical = connection.execute(

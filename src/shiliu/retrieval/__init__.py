@@ -8,7 +8,7 @@ same IDs; changed boundaries or text change the chunk ID and content hash.
 """
 
 from shiliu.retrieval.chunking import ChunkingConfig, build_raw_subtitle_chunks
-from shiliu.retrieval.dense import FastEmbedEmbeddingProvider, SQLiteExactDenseIndex
+from shiliu.retrieval.dense import PgExactDenseIndex
 from shiliu.retrieval.qwen import QwenEmbeddingProvider
 from shiliu.retrieval.coordinator import RetrievalIndexCoordinator
 from shiliu.retrieval.hybrid import HybridRetrievalService
@@ -29,9 +29,8 @@ __all__ = [
     "ChunkingConfig",
     "RetrievalFilters",
     "RetrievalService",
-    "FastEmbedEmbeddingProvider",
     "QwenEmbeddingProvider",
-    "SQLiteExactDenseIndex",
+    "PgExactDenseIndex",
     "HybridRetrievalService",
     "SearchExecutionError",
     "SearchFilterRequest",

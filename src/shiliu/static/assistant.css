@@ -47,3 +47,56 @@
 .assistant-knowledge-plan-body>.assistant-knowledge-card{margin-top:8px}
 
 .assistant-space-list,.assistant-activity-list{display:grid;gap:12px;margin:14px 0 20px}.assistant-space-row,.assistant-activity-item{border:1px solid var(--assistant-line);border-radius:10px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;background:var(--assistant-paper)}.assistant-space-row strong,.assistant-space-row small,.assistant-activity-item strong,.assistant-activity-item>small{width:100%;overflow-wrap:anywhere}.assistant-space-row small,.assistant-activity-item small{font-size:12px;line-height:1.6;color:var(--assistant-muted)}.assistant-space-row button:disabled{opacity:.6;cursor:default}.assistant-space-edit{border:1px solid var(--assistant-line);border-radius:10px;padding:15px;margin-bottom:22px}.assistant-space-edit h3{margin:0;font-size:16px}.assistant-space-form select{width:100%;border:1px solid var(--assistant-line);border-radius:8px;padding:9px;background:var(--assistant-paper)}.assistant-selected-videos p{font-size:12px;line-height:1.8;overflow-wrap:anywhere}.assistant-space-error{font-size:12px;color:#973f32;margin:0}.assistant-space-create>summary{cursor:pointer;padding:12px 0;color:var(--assistant-green)}.assistant-activity-item p{width:100%;font-size:13px;line-height:1.7;margin:0;overflow-wrap:anywhere}.assistant-activity-item a{color:var(--assistant-green);font-size:12px}.assistant-space-row button:hover,.assistant-activity-item button:hover{background:var(--assistant-soft)}
+
+.assistant-message-filters { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+#assistant-message-list pre { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; }
+#assistant-message-list small { white-space:pre-line; display:block; }
+#assistant-message-list a { display:block; margin-block:8px; }
+
+/* Message mode owns its scroll regions; other drawer panels retain their layout. */
+.assistant-drawer-messages{display:flex;flex-direction:column;overflow:hidden}
+.assistant-drawer-messages .assistant-drawer-head{flex:none;margin-bottom:20px}
+#assistant-messages-panel,#assistant-message-list-view,#assistant-message-detail-view{min-height:0;min-width:0;flex:1;display:flex;flex-direction:column}
+#assistant-messages-panel[hidden],#assistant-message-list-view[hidden],#assistant-message-detail-view[hidden],#assistant-message-secondary[hidden],#assistant-message-actions[hidden]{display:none}
+#assistant-message-tabs{display:flex;gap:18px;border-bottom:1px solid var(--assistant-line)}
+.assistant-app #assistant-message-tabs button{border:0;border-bottom:2px solid transparent;padding:10px 0 13px;background:none;color:var(--assistant-muted);font-size:13px;cursor:pointer}
+.assistant-app #assistant-message-tabs button[aria-pressed=true]{border-bottom-color:var(--assistant-green);color:var(--assistant-green);font-weight:600}
+.assistant-message-tools{display:flex;align-items:center;gap:12px;padding:10px 0}
+.assistant-message-tools label{margin-right:auto;font-size:12px;color:var(--assistant-muted);display:flex;align-items:center;gap:5px}
+.assistant-app .assistant-message-tools button{border:0;background:none;padding:6px 0;font-size:12px;color:var(--assistant-muted)}
+#assistant-message-secondary{gap:10px;padding:10px 0;margin:0;border-bottom:1px solid var(--assistant-line)}
+#assistant-message-secondary label{font-size:12px;display:flex;align-items:center;gap:6px;min-width:0}
+#assistant-message-secondary select{min-width:0;max-width:100%;border:1px solid var(--assistant-line);border-radius:8px;padding:7px;background:var(--assistant-paper);color:var(--assistant-ink)}
+#assistant-message-active{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--assistant-green)}
+#assistant-message-active span,#assistant-message-active button{padding:5px 8px;background:var(--assistant-soft);border:0;border-radius:8px;color:inherit;font-size:12px}
+#assistant-message-error{font-size:12px;line-height:1.7;color:var(--assistant-muted);margin:8px 0;overflow-wrap:anywhere}
+#assistant-message-scroll{overflow-y:auto;min-height:0;flex:1;scrollbar-color:var(--assistant-line) transparent}
+#assistant-message-list{display:block;margin:8px 0 18px}
+#assistant-message-list .assistant-activity-item{display:block;border:0;border-bottom:1px solid var(--assistant-line);border-radius:0;padding:0;background:none}
+#assistant-message-list .assistant-activity-item.is-pending{background:var(--assistant-soft);border:1px solid var(--assistant-line);border-radius:12px;margin:8px 0}
+.assistant-app #assistant-message-list .assistant-message-row{display:block;width:100%;border:0;background:none;text-align:left;color:var(--assistant-ink);padding:18px 12px;cursor:pointer;font-size:14px;line-height:1.75;border-radius:inherit;overflow-wrap:anywhere}
+.assistant-message-row-head{display:flex;gap:8px;align-items:baseline}
+#assistant-message-list .assistant-message-row-head strong{font-size:14px;font-weight:600;min-width:0;flex:1;width:auto}
+.assistant-message-unread{flex:none;width:6px;font-size:8px;color:var(--assistant-green)}
+.assistant-message-status{flex:none;font-size:12px;color:var(--assistant-muted)}
+.is-pending .assistant-message-status{color:var(--assistant-green)}
+.assistant-message-summary{display:block;margin:4px 0 8px 14px;font-size:14px;line-height:1.75}
+#assistant-message-list .assistant-message-row small{display:block;margin-left:14px;font-size:12px;color:var(--assistant-muted)}
+.assistant-app #assistant-message-back{align-self:flex-start;border:0;background:none;padding:4px 0 16px;color:var(--assistant-green);font-size:13px}
+#assistant-message-detail{flex:1;min-height:0;overflow-y:auto;overflow-wrap:anywhere;line-height:1.85;font-size:14px;padding-bottom:20px;scrollbar-color:var(--assistant-line) transparent}
+#assistant-message-detail>p:first-child{display:table;color:var(--assistant-green);background:var(--assistant-soft);font-size:12px;border-radius:5px;padding:0 6px;margin:0 0 10px}
+#assistant-message-detail h3{font-size:18px;line-height:1.6;margin:0 0 18px}
+#assistant-message-detail h4{font-size:14px;margin:26px 0 10px}
+#assistant-message-detail pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f5f1;border-radius:10px;padding:14px;margin:10px 0;line-height:1.85}
+#assistant-message-detail pre+pre{background:var(--assistant-soft)}
+#assistant-message-detail small{display:block;white-space:pre-line;font-size:12px;color:var(--assistant-muted)}
+#assistant-message-detail details{border-top:1px solid var(--assistant-line);margin-top:20px;padding-top:12px;color:var(--assistant-muted);font-size:12px}
+#assistant-message-detail summary{cursor:pointer}
+#assistant-message-detail a{display:block;color:var(--assistant-green);margin:10px 0}
+#assistant-message-actions{flex:none;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--assistant-line);padding:14px 0 0;max-height:35vh;overflow-y:auto}
+.assistant-app #assistant-message-actions button{font-size:13px;border-radius:8px;padding:10px 14px;cursor:pointer}
+.assistant-app #assistant-message-actions .assistant-message-primary{background:var(--assistant-green);color:white;border:1px solid var(--assistant-green);font-weight:600}
+#assistant-messages-panel button:disabled{opacity:.5;cursor:default}
+#assistant-messages-panel button:focus-visible,#assistant-message-detail:focus-visible{outline:2px solid var(--assistant-green);outline-offset:2px}
+#assistant-messages-panel input{accent-color:var(--assistant-green)}
+#assistant-messages-panel ::selection{background:var(--assistant-soft);color:var(--assistant-ink)}

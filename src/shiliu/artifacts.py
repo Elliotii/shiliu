@@ -24,7 +24,7 @@ def extract_urls(text: str) -> list[str]:
     return result
 
 
-class ArtifactStore:
+class ExportArtifactStore:
     def __init__(self, videos_dir: Path) -> None:
         self.videos_dir = videos_dir.resolve()
         self.videos_dir.mkdir(parents=True, exist_ok=True)
@@ -41,7 +41,9 @@ class ArtifactStore:
         self.write_json(path, bundle.model_dump(mode="json", by_alias=True))
         return path
 
-    def save_raw_subtitle(self, bvid: str, segments: list[SubtitleSegment]) -> tuple[Path, Path]:
+    def save_raw_subtitle(
+        self, bvid: str, segments: list[SubtitleSegment]
+    ) -> tuple[Path, Path]:
         directory = self.video_dir(bvid)
         json_path = directory / "subtitle-raw.json"
         text_path = directory / "subtitle-raw.txt"
@@ -114,7 +116,9 @@ class ArtifactStore:
             }
         return json.loads(path.read_text(encoding="utf-8"))
 
-    def load_transcript(self, bvid: str, *, revision: str | None = None) -> TranscriptResult:
+    def load_transcript(
+        self, bvid: str, *, revision: str | None = None
+    ) -> TranscriptResult:
         suffix = f".{revision}" if revision else ""
         path = self.video_dir(bvid) / f"transcript{suffix}.json"
         return TranscriptResult.model_validate_json(path.read_text(encoding="utf-8"))
@@ -131,7 +135,9 @@ class ArtifactStore:
         path = self.video_dir(bvid) / "cover.jpg"
         try:
             with httpx.Client(timeout=15, follow_redirects=True) as client:
-                response = client.get(url, headers={"User-Agent": "Mozilla/5.0 Shiliu/0.1"})
+                response = client.get(
+                    url, headers={"User-Agent": "Mozilla/5.0 Shiliu/0.1"}
+                )
                 response.raise_for_status()
                 if not response.content:
                     return None
@@ -150,7 +156,9 @@ class ArtifactStore:
 
     @staticmethod
     def write_json(path: Path, value: Any) -> None:
-        ArtifactStore.write_text(path, json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+        ExportArtifactStore.write_text(
+            path, json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+        )
 
     @staticmethod
     def write_text(path: Path, value: str) -> None:
@@ -178,7 +186,11 @@ def format_timestamp(seconds: float | int) -> str:
 def render_transcript_markdown(transcript: TranscriptResult) -> str:
     chunks: list[str] = []
     for section in transcript.sections:
-        timestamp = f" · {format_timestamp(section.start_seconds)}" if section.start_seconds is not None else ""
+        timestamp = (
+            f" · {format_timestamp(section.start_seconds)}"
+            if section.start_seconds is not None
+            else ""
+        )
         chunks.append(f"## {section.title}{timestamp}")
         chunks.extend(section.paragraphs)
     return "\n\n".join(chunks).strip() + "\n"
@@ -201,7 +213,9 @@ def render_summary_markdown(summary: SummaryResult) -> str:
         chunks.append("## 涉及的模型、工具与项目")
         chunks.append(
             "\n".join(
-                f"- **{item.name}**" + (f"（{item.kind}）" if item.kind else "") + (f"：{item.note}" if item.note else "")
+                f"- **{item.name}**"
+                + (f"（{item.kind}）" if item.kind else "")
+                + (f"：{item.note}" if item.note else "")
                 for item in summary.entities
             )
         )
@@ -214,7 +228,22 @@ def render_summary_markdown(summary: SummaryResult) -> str:
             )
         )
     if summary.limitations:
-        chunks.extend(["## 局限、争议与时效性", "\n".join(f"- {item}" for item in summary.limitations)])
+        chunks.extend(
+            [
+                "## 局限、争议与时效性",
+                "\n".join(f"- {item}" for item in summary.limitations),
+            ]
+        )
     if summary.related_links:
-        chunks.extend(["## 相关链接", "\n".join(f"- [{url}]({url})" for url in summary.related_links)])
+        chunks.extend(
+            [
+                "## 相关链接",
+                "\n".join(f"- [{url}]({url})" for url in summary.related_links),
+            ]
+        )
     return "\n\n".join(chunks).strip() + "\n"
+
+
+# Formal Collection entry point. The old layout class is only an explicit export
+# helper for isolated historical tools; new runtime writes require PG injection.
+from shiliu.storage.video_artifacts import ArtifactStore

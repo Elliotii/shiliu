@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
+from typing import Any
 from typing import Literal
 from uuid import uuid4
 
@@ -36,7 +36,9 @@ from shiliu.retrieval.product_search import (
 )
 
 
-AuthorityMode = Literal["snapshot_manifest", "pinned_request", "live_current_exact_replay"]
+AuthorityMode = Literal[
+    "snapshot_manifest", "pinned_request", "live_current_exact_replay"
+]
 
 
 @dataclass(frozen=True)
@@ -45,7 +47,7 @@ class SearchExecution:
     request: ProductSearchRequest
     raw_response: RawSearchResponse
     product_response: ProductSearchResponse
-    video_ids: tuple[int, ...] = ()
+    video_ids: tuple[int, ...] | None = None
 
 
 class EvidenceSearchService:
@@ -54,6 +56,7 @@ class EvidenceSearchService:
         *,
         db: Database,
         product_search: ProductSearchService,
+        artifacts,
         authority_mode: AuthorityMode,
         snapshot_id: str | None = None,
         artifact_manifest: str | Path | None = None,
@@ -61,6 +64,7 @@ class EvidenceSearchService:
         runtime_corpus_identity: str | None = None,
     ) -> None:
         self.db = db
+        self.artifacts = artifacts
         self.product_search = product_search
         self.authority_mode = authority_mode
         self.snapshot_id = snapshot_id
@@ -76,9 +80,9 @@ class EvidenceSearchService:
         self,
         request: ProductSearchRequest,
         *,
-        video_ids: tuple[int, ...] = (),
+        video_ids: tuple[int, ...] | None = None,
     ) -> SearchExecution:
-        if video_ids:
+        if video_ids is not None:
             raw, product = self.product_search.search_with_raw(
                 request, video_ids=video_ids
             )
@@ -89,12 +93,10 @@ class EvidenceSearchService:
             request=request,
             raw_response=raw,
             product_response=product,
-            video_ids=tuple(dict.fromkeys(video_ids)),
+            video_ids=tuple(dict.fromkeys(video_ids)) if video_ids is not None else None,
         )
 
-    def materialize_execution(
-        self, execution: SearchExecution
-    ) -> SearchCandidateSet:
+    def materialize_execution(self, execution: SearchExecution) -> SearchCandidateSet:
         """Materialize an already-completed retrieval without searching again."""
         request = execution.request
         raw = execution.raw_response
@@ -139,10 +141,10 @@ class EvidenceSearchService:
             reason_codes=reasons,
         )
 
-    def _unit_rows(self, unit_ids: list[str]) -> dict[str, sqlite3.Row]:
+    def _unit_rows(self, unit_ids: list[str]) -> dict[str, dict[str, Any]]:
         if not unit_ids:
             return {}
-        placeholders = ",".join("?" for _ in unit_ids)
+        placeholders = ",".join("%s" for _ in unit_ids)
         with self.db.connect() as connection:
             rows = connection.execute(
                 f"""
@@ -150,20 +152,27 @@ class EvidenceSearchService:
                        v.raw_subtitle_path
                 FROM retrieval_units ru
                 JOIN videos v ON v.id=ru.video_id
-                WHERE ru.unit_id IN ({placeholders})
+                JOIN shiliu.retrieval_projection_tasks t ON t.workspace_id=ru.workspace_id AND t.domain='collection' AND t.resource_key=ru.video_id::text
+                WHERE ru.workspace_id=%s AND ru.generation=t.requested_generation AND NOT v.is_ignored AND v.removed_at IS NULL AND v.archived_at IS NULL AND ru.unit_id IN ({placeholders})
                 """,
-                unit_ids,
+                [self.db.workspace_id, *unit_ids],
             ).fetchall()
         return {str(row["unit_id"]): row for row in rows}
 
-    def _raw_candidate(self, hit, row: sqlite3.Row | None, executed_mode: str) -> SearchRawUnitCandidate:
+    def _raw_candidate(
+        self, hit, row: dict[str, Any] | None, executed_mode: str
+    ) -> SearchRawUnitCandidate:
         if hit.unit_type == "video":
             return _metadata_candidate(hit, row)
         if row is None:
-            return _failed_candidate(hit, None, "source_unavailable", "raw_subtitle_missing")
+            return _failed_candidate(
+                hit, None, "source_unavailable", "raw_subtitle_missing"
+            )
         reference = SourceArtifactReference(
-            platform=str(row["platform"]), source_id=str(row["source_id"]),
-            part=int(row["part"]), source_type=str(row["subtitle_source"] or "unknown"),
+            platform=str(row["platform"]),
+            source_id=str(row["source_id"]),
+            part=int(row["part"]),
+            source_type=str(row["subtitle_source"] or "unknown"),
             source_language=str(row["subtitle_language"] or "unknown"),
             artifact_path=str(row["raw_subtitle_path"] or ""),
         )
@@ -176,11 +185,15 @@ class EvidenceSearchService:
             mapping = map_retrieval_chunk(
                 reference,
                 RetrievalChunkReference(
-                    unit_id=str(row["unit_id"]), chunk_id=str(row["chunk_id"]),
-                    start_time=float(row["start_time"]), end_time=float(row["end_time"]),
-                    source_text=str(row["source_text"]), content_hash=str(row["content_hash"]),
+                    unit_id=str(row["unit_id"]),
+                    chunk_id=str(row["chunk_id"]),
+                    start_time=float(row["start_time"]),
+                    end_time=float(row["end_time"]),
+                    source_text=str(row["source_text"]),
+                    content_hash=str(row["content_hash"]),
                 ),
                 expected_source_version=binding.source_version_expected,
+                artifacts=self.artifacts,
             )
         except EvidenceContractError as exc:
             status = _status_for_error(exc.code)
@@ -191,12 +204,16 @@ class EvidenceSearchService:
         if mapping.mapping_status != "exact_mapped":
             reasons.append(mapping.mapping_status)
         return SearchRawUnitCandidate(
-            unit_id=hit.unit_id, video_id=hit.video_id, unit_type="transcript_chunk",
-            raw_rank=hit.rank, raw_score=hit.score,
+            unit_id=hit.unit_id,
+            video_id=hit.video_id,
+            unit_type="transcript_chunk",
+            raw_rank=hit.rank,
+            raw_score=hit.score,
             retrieval_method=hit.retrieval_method,
             subtitle_source=hit.subtitle_source,
             source_language=str(row["subtitle_language"] or "unknown"),
-            start_time=hit.start_time, end_time=hit.end_time,
+            start_time=hit.start_time,
+            end_time=hit.end_time,
             source_artifact_id=binding.source_artifact_id,
             source_identity_version=binding.source_identity_version,
             source_version=binding.source_version,
@@ -204,7 +221,8 @@ class EvidenceSearchService:
             source_version_verified=binding.source_version_verified,
             source_version_expected=binding.source_version_expected,
             source_version_actual=binding.source_version_actual,
-            segment_ids=mapping.segment_ids, segment_ordinals=mapping.segment_ordinals,
+            segment_ids=mapping.segment_ids,
+            segment_ordinals=mapping.segment_ordinals,
             timeline_run_id=mapping.timeline_run_id,
             mapping_status=mapping.mapping_status,
             candidate_eligibility=mapping.candidate_eligibility,
@@ -214,56 +232,97 @@ class EvidenceSearchService:
             replay_implementation_version=mapping.replay_implementation_version,
         )
 
-    def _bind(self, reference: SourceArtifactReference, video_id: int, executed_mode: str):
+    def _bind(
+        self, reference: SourceArtifactReference, video_id: int, executed_mode: str
+    ):
         if self.authority_mode == "snapshot_manifest":
             if self.artifact_manifest is None:
-                raise EvidenceContractError("Snapshot manifest is required", code="source_unavailable")
+                raise EvidenceContractError(
+                    "Snapshot manifest is required", code="source_unavailable"
+                )
             return bind_snapshot_manifest_version(
                 reference, video_id=video_id, manifest_path=self.artifact_manifest
             )
         if self.authority_mode == "pinned_request":
             expected = self.pinned_source_versions.get(video_id)
             if expected is None:
-                raise EvidenceContractError("Pinned source version is missing", code="source_unavailable")
-            return bind_pinned_version(reference, expected_source_version=expected)
+                raise EvidenceContractError(
+                    "Pinned source version is missing", code="source_unavailable"
+                )
+            return bind_pinned_version(
+                reference, expected_source_version=expected, artifacts=self.artifacts
+            )
         return bind_live_current_version(
-            reference, db=self.db, video_id=video_id,
-            require_dense_current=executed_mode in {"dense", "hybrid"},
+            reference,
+            db=self.db,
+            video_id=video_id,
+            # Retrieval already checks each vector's profile/hash/generation.
+            # A partial hybrid response may contain current lexical-only hits;
+            # raw evidence authority does not depend on every vector being ready.
+            require_dense_current=False,
+            artifacts=self.artifacts,
         )
 
     @staticmethod
     def _video_candidate(rank, value, raw_candidates) -> SearchCandidateVideo:
         components = tuple(
-            candidate.unit_id for candidate in raw_candidates if candidate.video_id == value.video_id
-        )
-        source_types = tuple(dict.fromkeys(
-            candidate.subtitle_source for candidate in raw_candidates
+            candidate.unit_id
+            for candidate in raw_candidates
             if candidate.video_id == value.video_id
-        ))
+        )
+        source_types = tuple(
+            dict.fromkeys(
+                candidate.subtitle_source
+                for candidate in raw_candidates
+                if candidate.video_id == value.video_id
+            )
+        )
         return SearchCandidateVideo(
-            video_id=value.video_id, source_id=value.bvid, product_rank=rank,
-            title=value.title, uploader=value.uploader,
-            best_unit_id=value.best_unit_id, best_unit_type=value.best_unit_type,
-            best_score=value.best_score, component_unit_ids=components,
+            video_id=value.video_id,
+            source_id=value.bvid,
+            product_rank=rank,
+            title=value.title,
+            uploader=value.uploader,
+            best_unit_id=value.best_unit_id,
+            best_unit_type=value.best_unit_type,
+            best_score=value.best_score,
+            component_unit_ids=components,
             retrieval_methods=value.retrieval_methods,
-            product_windows=tuple(value.windows), source_types=source_types,
+            product_windows=tuple(value.windows),
+            source_types=source_types,
             video_level_hit_present=value.video_level_hit_present,
         )
 
 
-def _metadata_candidate(hit, row: sqlite3.Row | None) -> SearchRawUnitCandidate:
+def _metadata_candidate(hit, row: dict[str, Any] | None) -> SearchRawUnitCandidate:
     return SearchRawUnitCandidate(
-        unit_id=hit.unit_id, video_id=hit.video_id, unit_type="video",
-        raw_rank=hit.rank, raw_score=hit.score, retrieval_method=hit.retrieval_method,
+        unit_id=hit.unit_id,
+        video_id=hit.video_id,
+        unit_type="video",
+        raw_rank=hit.rank,
+        raw_score=hit.score,
+        retrieval_method=hit.retrieval_method,
         subtitle_source=hit.subtitle_source,
-        source_language=(str(row["subtitle_language"]) if row and row["subtitle_language"] else None),
-        start_time=None, end_time=None, source_artifact_id=None,
-        source_identity_version=None, source_version=None, source_version_authority=None,
-        source_version_verified=False, source_version_expected=None,
-        source_version_actual=None, segment_ids=(), segment_ordinals=(),
-        timeline_run_id=None, mapping_status="not_applicable",
-        candidate_eligibility=False, reason_codes=(),
-        source_chunk_policy_version=None, mapping_version=None,
+        source_language=(
+            str(row["subtitle_language"]) if row and row["subtitle_language"] else None
+        ),
+        start_time=None,
+        end_time=None,
+        source_artifact_id=None,
+        source_identity_version=None,
+        source_version=None,
+        source_version_authority=None,
+        source_version_verified=False,
+        source_version_expected=None,
+        source_version_actual=None,
+        segment_ids=(),
+        segment_ordinals=(),
+        timeline_run_id=None,
+        mapping_status="not_applicable",
+        candidate_eligibility=False,
+        reason_codes=(),
+        source_chunk_policy_version=None,
+        mapping_version=None,
         replay_implementation_version=None,
     )
 
@@ -272,21 +331,36 @@ def _failed_candidate(
     hit, row, status: MappingStatus, reason: str, *, binding=None
 ) -> SearchRawUnitCandidate:
     return SearchRawUnitCandidate(
-        unit_id=hit.unit_id, video_id=hit.video_id, unit_type="transcript_chunk",
-        raw_rank=hit.rank, raw_score=hit.score, retrieval_method=hit.retrieval_method,
+        unit_id=hit.unit_id,
+        video_id=hit.video_id,
+        unit_type="transcript_chunk",
+        raw_rank=hit.rank,
+        raw_score=hit.score,
+        retrieval_method=hit.retrieval_method,
         subtitle_source=hit.subtitle_source,
-        source_language=(str(row["subtitle_language"]) if row and row["subtitle_language"] else None),
-        start_time=hit.start_time, end_time=hit.end_time,
+        source_language=(
+            str(row["subtitle_language"]) if row and row["subtitle_language"] else None
+        ),
+        start_time=hit.start_time,
+        end_time=hit.end_time,
         source_artifact_id=(binding.source_artifact_id if binding else None),
-        source_identity_version=(binding.source_identity_version if binding else SOURCE_IDENTITY_VERSION),
+        source_identity_version=(
+            binding.source_identity_version if binding else SOURCE_IDENTITY_VERSION
+        ),
         source_version=(binding.source_version if binding else None),
-        source_version_authority=(binding.source_version_authority if binding else None),
+        source_version_authority=(
+            binding.source_version_authority if binding else None
+        ),
         source_version_verified=(binding.source_version_verified if binding else False),
         source_version_expected=(binding.source_version_expected if binding else None),
         source_version_actual=(binding.source_version_actual if binding else None),
-        segment_ids=(), segment_ordinals=(),
-        timeline_run_id=None, mapping_status=status, candidate_eligibility=False,
-        reason_codes=(reason,), source_chunk_policy_version=SOURCE_CHUNK_POLICY_VERSION,
+        segment_ids=(),
+        segment_ordinals=(),
+        timeline_run_id=None,
+        mapping_status=status,
+        candidate_eligibility=False,
+        reason_codes=(reason,),
+        source_chunk_policy_version=SOURCE_CHUNK_POLICY_VERSION,
         mapping_version=CHUNK_MAPPING_VERSION,
         replay_implementation_version=REPLAY_IMPLEMENTATION_VERSION,
     )
@@ -295,7 +369,12 @@ def _failed_candidate(
 def _status_for_error(code: str) -> MappingStatus:
     if code == "source_version_mismatch":
         return "source_version_mismatch"
-    if code in {"raw_subtitle_missing", "source_unavailable", "source_unreadable", "index_not_ready"}:
+    if code in {
+        "raw_subtitle_missing",
+        "source_unavailable",
+        "source_unreadable",
+        "index_not_ready",
+    }:
         return "source_unavailable"
     if code == "chunk_policy_version_mismatch":
         return "chunk_policy_version_mismatch"

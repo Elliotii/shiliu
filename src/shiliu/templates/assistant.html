@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}助手 · 拾流{% endblock %}
-{% block head %}<link rel="stylesheet" href="/static/assistant.css?v=13">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/assistant.css?v=15">{% endblock %}
 {% block content %}
 <main class="assistant-app" data-enabled="{{ 'true' if assistant_enabled else 'false' }}" data-model="{{ model or '' }}">
   <header class="assistant-top">
@@ -8,6 +8,7 @@
     {% if assistant_enabled %}
     <div class="assistant-actions" aria-label="助手操作">
       <button class="quiet-button" id="assistant-new-thread" type="button">＋ 新对话</button>
+      <button class="quiet-button" id="assistant-open-messages" type="button">消息</button>
       <button class="quiet-button" id="assistant-open-history" type="button">历史对话</button>
       <button class="quiet-button" id="assistant-open-knowledge" type="button">Wiki</button>
       <button class="quiet-button" id="assistant-open-memory" type="button">记忆</button>
@@ -109,7 +110,6 @@
         <div class="assistant-setting"><span>对话模型</span><strong id="assistant-model-name">DeepSeek V4 Flash</strong></div>
         <div class="assistant-setting"><span>思考模式</span><strong>关闭</strong></div>
         <div class="assistant-service-note" id="assistant-service-note" hidden></div>
-        <div class="assistant-service-note" id="assistant-job-problems" hidden></div>
       </section>
 
       <section id="assistant-spaces-panel" hidden>
@@ -130,14 +130,35 @@
         </details>
       </section>
 
-      <section id="assistant-maintenance-panel" hidden>
-        <p class="drawer-intro" id="assistant-activity-scope"></p>
-        <button class="quiet-button" id="assistant-refresh-maintenance" type="button">刷新动态</button>
-        <div id="assistant-activity-list" class="assistant-activity-list"></div>
+      <section id="assistant-messages-panel" hidden>
+        <div id="assistant-message-list-view">
+          <div id="assistant-message-filters">
+            <input id="assistant-message-view" type="hidden" value="all">
+            <nav id="assistant-message-tabs" aria-label="消息分类">
+              <button type="button" data-view="all" aria-pressed="true">全部</button><button type="button" data-view="pending" aria-pressed="false">待确认</button><button type="button" data-view="updated" aria-pressed="false">已更新</button><button type="button" data-view="issues" aria-pressed="false">异常</button>
+            </nav>
+            <div class="assistant-message-tools"><label><input type="checkbox" id="assistant-message-unread_only">仅未读</label><button class="quiet-button" id="assistant-message-filter-toggle" type="button" aria-expanded="false" aria-controls="assistant-message-secondary">筛选</button><button class="quiet-button" id="assistant-message-refresh" type="button">刷新</button></div>
+            <div id="assistant-message-secondary" class="assistant-message-filters" hidden>
+          <label>对象<select id="assistant-message-object_type"><option value="">全部对象</option><option value="wiki">Wiki</option><option value="memory">记忆</option></select></label>
+          <label>来源<select id="assistant-message-source_type"><option value="">全部来源</option><option value="dialogue">对话</option><option value="auto_memory">自动记忆</option><option value="video">视频</option><option value="manual">手动</option><option value="system">系统</option></select></label>
+          <label>范围<select id="assistant-message-space_id"><option value="">我的全部范围</option></select></label>
+              <label><input type="checkbox" id="assistant-message-show_history">包含历史消息</label>
+            </div>
+          </div>
+          <div id="assistant-message-active" aria-live="polite"></div>
+          <p id="assistant-message-error" role="status"></p>
+          <div id="assistant-message-scroll"><div id="assistant-message-list" class="assistant-activity-list"></div><button class="quiet-button" id="assistant-message-more" type="button" hidden>加载更多</button></div>
+        </div>
+        <div id="assistant-message-detail-view" hidden>
+          <button class="quiet-button" id="assistant-message-back" type="button">← 返回消息列表</button>
+          <div id="assistant-message-detail" tabindex="-1"></div>
+          <div id="assistant-message-actions" hidden></div>
+        </div>
       </section>
+
     </aside>
   </div>
   {% endif %}
 </main>
 {% endblock %}
-{% block scripts %}{% if assistant_enabled %}<script src="/static/assistant.js?v=nc-15"></script>{% endif %}{% endblock %}
+{% block scripts %}{% if assistant_enabled %}<script src="/static/assistant.js?v=messages-3"></script>{% endif %}{% endblock %}

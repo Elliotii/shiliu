@@ -91,7 +91,11 @@ def _recover_existing_repair(
 
 
 def run(run_id: int) -> dict[str, object]:
-    app = Application()
+    with Application() as app:
+        return _run(app, run_id)
+
+
+def _run(app: Application, run_id: int) -> dict[str, object]:
     run_dir = (
         app.paths.content_dir / "taxonomy" / "runtime" / "runs" / f"run-{run_id:06d}"
     )

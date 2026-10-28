@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,9 +43,7 @@ def audit_snapshot_chunk_mappings(
     snapshot_db: str | Path,
     artifact_manifest: str | Path,
 ) -> MappingAuditSummary:
-    connection = sqlite3.connect(
-        f"file:{Path(snapshot_db).resolve()}?mode=ro&immutable=1", uri=True
-    )
+    connection = connect_snapshot(Path(snapshot_db))
     connection.row_factory = sqlite3.Row
     try:
         rows = connection.execute(

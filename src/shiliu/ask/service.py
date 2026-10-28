@@ -19,7 +19,7 @@ from shiliu.ask.adaptive import (
 )
 from shiliu.ask.candidates import AskCandidateProjector
 from shiliu.ask.context import TranscriptContextBuilder
-from shiliu.ask.f1_context import F1ContextBuilder
+from shiliu.ask.f1_context import FastWide30ContextBuilder
 from shiliu.ask.deep.f1_tools import F1TranscriptTool
 from shiliu.ask.contracts import (
     AskRequest,
@@ -78,25 +78,37 @@ class AskService:
         context_builder: TranscriptContextBuilder | None = None,
         artifacts: ArtifactStore | None = None,
         claim_verifier: ClaimVerifier | None = None,
+        run_store=None,
     ) -> None:
         self.db = db
         self.fast_f1 = fast_f1
         self._owned_runs: set[str] = set()
         self._owned_runs_lock = threading.Lock()
-        self.run_store = AskRunStore(db)
+        self._owned_condition = threading.Condition(self._owned_runs_lock)
+        self._executing_runs: set[str] = set()
+        self._accepting = True
+        self.run_store = run_store if run_store is not None else AskRunStore(db)
         self.candidate_projector = AskCandidateProjector(db, self.run_store)
+        resolved_artifacts = artifacts or getattr(getattr(product_search, "enricher", None), "artifacts", None)
+        if resolved_artifacts is None:
+            raise ValueError("Collection ArtifactStore is required")
         self.evidence_search = evidence_search or EvidenceSearchService(
             db=db,
             product_search=product_search,
+            artifacts=resolved_artifacts,
             authority_mode="live_current_exact_replay",
             runtime_corpus_identity=runtime_corpus_identity,
         )
-        self.materializer = TranscriptEvidenceMaterializer(db)
+        self.materializer = TranscriptEvidenceMaterializer(db, resolved_artifacts)
         self.query_analyzer = QueryAnalyzer(provider_factory)
         self.context_builder = context_builder or TranscriptContextBuilder()
         resolved_answer_provider_factory = answer_provider_factory or provider_factory
         self.answer_service = GroundedAnswerService(
             resolved_answer_provider_factory, self.materializer
+        )
+        self.fast_answer_service = GroundedAnswerService(
+            resolved_answer_provider_factory, self.materializer,
+            fast_request_preflight=True,
         )
         self.finalizer = AnswerFinalizer(
             context_builder=self.context_builder,
@@ -124,7 +136,8 @@ class AskService:
                 claim_verifier=claim_verifier,
                 embedding_provider=deep_embedding_provider,
                 require_v2=deep_embedding_provider is not None,
-                reduce_strategy=deep_reduce_strategy, jev_client=jev_client,
+                reduce_strategy=deep_reduce_strategy,
+                jev_client=jev_client,
             )
             if isinstance(resolved_artifacts, ArtifactStore)
             else None
@@ -135,7 +148,9 @@ class AskService:
             else None
         )
         if fast_f1 and not isinstance(self.f1_transcripts, F1TranscriptTool):
-            raise ValueError("Fast F1 requires ArtifactStore and compatible F1 retrieval resources")
+            raise ValueError(
+                "Fast F1 requires ArtifactStore and compatible F1 retrieval resources"
+            )
 
     def ask(
         self,
@@ -149,18 +164,29 @@ class AskService:
                 "canonical decision and continuation envelope are required together",
                 code="continuation_pair_required",
             )
-        boundary = ContinuationTarget.DEEP if request.mode == "deep" else ContinuationTarget.FAST
+        boundary = (
+            ContinuationTarget.DEEP
+            if request.mode == "deep"
+            else ContinuationTarget.FAST
+        )
         if evidence_decision is not None and continuation_envelope is not None:
-            if request.mode == "fast" and continuation_envelope.target == ContinuationTarget.DEEP:
+            if (
+                request.mode == "fast"
+                and continuation_envelope.target == ContinuationTarget.DEEP
+            ):
                 boundary = ContinuationTarget.DEEP
             validate_continuation_consumption(
                 evidence_decision,
                 continuation_envelope,
                 current_question=request.query,
-                current_scope=request.filters.model_dump(mode="json", exclude_none=True),
+                current_scope=request.filters.model_dump(
+                    mode="json", exclude_none=True
+                ),
                 target=boundary,
             )
-            if boundary == ContinuationTarget.FAST and decision_directive(evidence_decision) in {
+            if boundary == ContinuationTarget.FAST and decision_directive(
+                evidence_decision
+            ) in {
                 "deep_research",
                 "stop",
             }:
@@ -170,23 +196,18 @@ class AskService:
                 )
         if boundary == ContinuationTarget.DEEP:
             if self.deep_service is None:
-                raise AskModeNotImplemented(
-                    "Deep Search 缺少 ArtifactStore 接线"
-                )
-            response, _trace = self.deep_service.ask(
-                request,
-                evidence_decision=evidence_decision,
-                continuation_envelope=continuation_envelope,
-            )
-        else:
-            response = self._ask_fast(
-                request,
-                evidence_decision=evidence_decision,
-                continuation_envelope=continuation_envelope,
-            )
-        return response.model_copy(
-            update={"candidate_disclosure": self._candidate_disclosure(response.run_id)}
-        )
+                raise AskModeNotImplemented("Deep Search 缺少 ArtifactStore 接线")
+            run_id,created_at=self.start_run(request.model_copy(update={"mode":"deep"}),parent_run_id=continuation_envelope.parent_run_id if continuation_envelope else None)
+            self._begin_execution(run_id)
+            try:
+                response,_trace=self.deep_service.execute_started(request,run_id=run_id,created_at=created_at,evidence_decision=evidence_decision,continuation_envelope=continuation_envelope)
+                return response.model_copy(update={"candidate_disclosure":self._candidate_disclosure(run_id)})
+            except Exception as exc:
+                self.run_store.fail(run_id,exc)
+                raise
+            finally:
+                self._end_execution(run_id)
+        return self._ask_fast(request,evidence_decision=evidence_decision,continuation_envelope=continuation_envelope)
 
     def _ask_fast(
         self,
@@ -204,8 +225,9 @@ class AskService:
                 else None
             ),
         )
+        self._begin_execution(run_id)
         try:
-            return self._execute_fast(
+            response = self._execute_fast(
                 request,
                 run_id=run_id,
                 created_at=created_at,
@@ -213,40 +235,43 @@ class AskService:
                 evidence_decision=evidence_decision,
                 continuation_envelope=continuation_envelope,
             )
+            return response.model_copy(update={"candidate_disclosure":self._candidate_disclosure(run_id)})
         except Exception as exc:
             self.run_store.fail(run_id, exc)
             raise
         finally:
-            with self._owned_runs_lock:
-                self._owned_runs.discard(run_id)
+            self._end_execution(run_id)
 
     def start_run(
         self, request: AskRequest, *, parent_run_id: str | None = None
     ) -> tuple[str, str]:
         """Allocate the durable identity before stream/202 delivery."""
 
-        run_id = f"ask_run_{uuid4().hex}"
-        created_at = self.run_store.start(
-            run_id=run_id,
-            query=request.query,
-            mode=request.mode,
-            filters=request.filters.model_dump(mode="json", exclude_none=True),
-            parent_run_id=parent_run_id,
-        )
-        self.run_store.append_event(
-            run_id,
-            "run_created",
-            {"mode": request.mode, "query_hash": sha256_identity(request.query)},
-        )
-        with self._owned_runs_lock:
+        with self._owned_condition:
+            if not self._accepting:
+                raise RuntimeError("ask_service_stopping")
+            run_id = f"ask_run_{uuid4().hex}"
+            created_at = self.run_store.start(
+                run_id=run_id,
+                query=request.query,
+                mode=request.mode,
+                filters=request.filters.model_dump(mode="json", exclude_none=True),
+                parent_run_id=parent_run_id,
+            )
+            self.run_store.append_event(
+                run_id,
+                "run_created",
+                {"mode": request.mode, "query_hash": sha256_identity(request.query)},
+            )
             self._owned_runs.add(run_id)
-        return run_id, created_at
+            return run_id, created_at
 
     def execute_started(
         self, request: AskRequest, *, run_id: str, created_at: str
     ) -> AskResponse:
         """Execute a preallocated Fast/Deep run for NDJSON or durable polling."""
 
+        self._begin_execution(run_id)
         try:
             if request.mode == "deep":
                 if self.deep_service is None:
@@ -255,9 +280,7 @@ class AskService:
                     request, run_id=run_id, created_at=created_at
                 )
                 return response.model_copy(
-                    update={
-                        "candidate_disclosure": self._candidate_disclosure(run_id)
-                    }
+                    update={"candidate_disclosure": self._candidate_disclosure(run_id)}
                 )
             return self._execute_fast(
                 request,
@@ -271,8 +294,34 @@ class AskService:
             self.run_store.fail(run_id, exc)
             raise
         finally:
-            with self._owned_runs_lock:
+            self._end_execution(run_id)
+
+    def _begin_execution(self,run_id: str) -> None:
+        with self._owned_condition:
+            if not self._accepting:
                 self._owned_runs.discard(run_id)
+                raise RuntimeError("ask_service_stopping")
+            self._executing_runs.add(run_id)
+
+    def _end_execution(self,run_id: str) -> None:
+        with self._owned_condition:
+            self._executing_runs.discard(run_id)
+            self._owned_runs.discard(run_id)
+            self._owned_condition.notify_all()
+
+    def request_shutdown(self) -> None:
+        with self._owned_condition:
+            self._accepting=False
+            pending=tuple(self._owned_runs)
+        for run_id in pending:
+            self.run_store.interrupt_owner_loss(run_id,reason="application_stopping")
+
+    def shutdown(self, *, timeout: float = 30) -> None:
+        self.request_shutdown()
+        with self._owned_condition:
+            if not self._owned_condition.wait_for(lambda:not self._executing_runs,timeout=timeout):
+                raise RuntimeError("ask_shutdown_timeout")
+            self._owned_runs.clear()
 
     def is_owned(self, run_id: str) -> bool:
         with self._owned_runs_lock:
@@ -289,7 +338,9 @@ class AskService:
         continuation_envelope: ContinuationEnvelope | None = None,
     ) -> AskResponse:
         if (evidence_decision is None) != (continuation_envelope is None):
-            raise ValueError("canonical decision and continuation envelope are required together")
+            raise ValueError(
+                "canonical decision and continuation envelope are required together"
+            )
         plan = (
             self.query_analyzer.analyze(request.query)
             if evidence_decision is None and not self.fast_f1
@@ -299,7 +350,11 @@ class AskService:
             run_id,
             "requirements_ready",
             {
-                "query_count": 1 if self.fast_f1 else len(plan.queries) if plan is not None else 0,
+                "query_count": 1
+                if self.fast_f1
+                else len(plan.queries)
+                if plan is not None
+                else 0,
                 "analysis_available": plan is not None and plan.error is None,
             },
         )
@@ -312,7 +367,11 @@ class AskService:
         adaptive_rounds: list[dict[str, object]] = []
         adaptive_stop_reason: str | None = None
         inherited_dropped: list[str] = []
-        if not self.fast_f1 and evidence_decision is not None and continuation_envelope is not None:
+        if (
+            not self.fast_f1
+            and evidence_decision is not None
+            and continuation_envelope is not None
+        ):
             inherited = revalidate_inherited_evidence(
                 run_store=self.run_store,
                 materializer=self.materializer,
@@ -363,7 +422,13 @@ class AskService:
                     code="continuation_action_boundary",
                 )
 
-        queries = (request.query,) if self.fast_f1 else plan.queries if plan is not None else ()
+        queries = (
+            (request.query,)
+            if self.fast_f1
+            else plan.queries
+            if plan is not None
+            else ()
+        )
         for query_index, query in enumerate(queries):
             self.run_store.append_event(
                 run_id,
@@ -371,7 +436,9 @@ class AskService:
                 {
                     "query_index": query_index,
                     "query_hash": sha256_identity(query),
-                    "relation_kind": "original_query" if query_index == 0 else "rewrite",
+                    "relation_kind": "original_query"
+                    if query_index == 0
+                    else "rewrite",
                 },
             )
             try:
@@ -381,12 +448,21 @@ class AskService:
                     search_references.extend(result["search_executions"])
                     all_spans.extend(result["spans"])
                     stale_reasons.extend(result["stale"])
-                    self.run_store.append_event(run_id, "search_completed", {
-                        "query_index": query_index,
-                        "search_trace_id": result["trace_id"],
-                        "current_evidence_count": len(result["spans"]),
-                        "stale_evidence_count": len(result["stale"]),
-                    }, provenance={"evidence_reference_ids": [s.citation_id for s in result["spans"]]})
+                    self.run_store.append_event(
+                        run_id,
+                        "search_completed",
+                        {
+                            "query_index": query_index,
+                            "search_trace_id": result["trace_id"],
+                            "current_evidence_count": len(result["spans"]),
+                            "stale_evidence_count": len(result["stale"]),
+                        },
+                        provenance={
+                            "evidence_reference_ids": [
+                                s.citation_id for s in result["spans"]
+                            ]
+                        },
+                    )
                     continue
                 retrieval_request = ProductSearchRequest(
                     query=query,
@@ -396,9 +472,7 @@ class AskService:
                     max_windows_per_video=2,
                     filters=request.filters,
                 )
-                execution = self.evidence_search.execute_search(
-                    retrieval_request
-                )
+                execution = self.evidence_search.execute_search(retrieval_request)
                 search_references.append(
                     {
                         "execution_id": execution.execution_id,
@@ -411,9 +485,7 @@ class AskService:
                         ),
                     }
                 )
-                candidate_set = self.evidence_search.materialize_execution(
-                    execution
-                )
+                candidate_set = self.evidence_search.materialize_execution(execution)
                 result = self.materializer.materialize(
                     execution, candidate_set, query_index=query_index
                 )
@@ -474,7 +546,10 @@ class AskService:
             "query": request.query,
             "mode": "fast",
             "implementation_version": "fast-f1" if self.fast_f1 else "fast-legacy",
-            "runtime_identity": {**_FAST_RUNTIME_IDENTITY, "database": str(self.db.path.resolve())},
+            "runtime_identity": {
+                **_FAST_RUNTIME_IDENTITY,
+                "database": "postgresql:" + self.db.workspace_id,
+            },
             "normalized_intent": (
                 plan.analysis.normalized_intent if plan is not None else request.query
             ),
@@ -482,7 +557,9 @@ class AskService:
             "query_analysis_error": plan.error if plan is not None else None,
             "query_analysis_usage": plan.usage if plan is not None else {},
             "query_analysis_latency_ms": plan.latency_ms if plan is not None else 0,
-            "query_analysis_finish_reason": plan.finish_reason if plan is not None else None,
+            "query_analysis_finish_reason": plan.finish_reason
+            if plan is not None
+            else None,
             "query_analysis_retry_count": plan.retry_count if plan is not None else 0,
             "search_executions": search_references,
             "retrieval_errors": retrieval_errors,
@@ -495,16 +572,19 @@ class AskService:
         if self.fast_f1:
             trace["f1"] = {
                 "retrieval": "original_query_dense50_jieba50_rrf60_top50",
-                "rewrite": False, "rerank": False, "neighborhood": False,
-                "context": "S5_S2Cbase", "payload_chars": 12000,
-                "quote_chars": 2500, "max_spans": 12,
+                "rewrite": False,
+                "rerank": False,
+                "neighborhood": False,
+                "context": "Wide-30",
+                "raw_rank_cutoff": 30,
                 "index_identity": f1_identity,
             }
-            if all_spans:
-                prepared_context = F1ContextBuilder().build(
-                    query=request.query, normalized_intent=request.query, spans=tuple(all_spans)
-                )
-                trace["f1"]["delivered_context"] = prepared_context.model_context
+            prepared_context = FastWide30ContextBuilder().build(
+                query=request.query,
+                normalized_intent=request.query,
+                spans=tuple(all_spans),
+            )
+            trace["f1"]["delivered_context"] = prepared_context.model_context
         if active_decision is None:
             active_decision = create_current_evidence_decision(
                 question=request.query,
@@ -546,6 +626,7 @@ class AskService:
             decision_projection=trace["evidence_decision"],
             run_id=run_id,
             prepared_context=prepared_context,
+            answer_service=self.fast_answer_service if self.fast_f1 else None,
             event_sink=lambda event_type, payload: self.run_store.append_event(
                 run_id, event_type, payload
             ),
@@ -573,7 +654,8 @@ class AskService:
             mode="fast",
             status=final.status,
             execution_outcome=final.execution_outcome,
-            intro=final.intro, outro=final.outro,
+            intro=final.intro,
+            outro=final.outro,
             answer_blocks=list(final.answer_blocks),
             citations=list(final.citations),
             limitations=list(final.limitations),
@@ -613,14 +695,13 @@ class AskService:
                 "execution_outcome": response.execution_outcome,
                 "termination_reason": response.termination_reason,
                 "latency_ms": latency_ms,
-                "citation_ids": [
-                    value.citation_id for value in response.citations
-                ],
+                "citation_ids": [value.citation_id for value in response.citations],
                 "final_evidence": final_evidence_identities(
                     all_spans,
                     {value.citation_id for value in response.citations},
                 ),
-                "intro": response.intro, "outro": response.outro,
+                "intro": response.intro,
+                "outro": response.outro,
                 "answer_blocks": [
                     value.model_dump(mode="json") for value in response.answer_blocks
                 ],
@@ -696,14 +777,18 @@ class AskService:
         execution_outcome = trace.get("execution_outcome")
         if execution_outcome is None:
             completed = [
-                value for value in run["events"] if value["event_type"] == "run_completed"
+                value
+                for value in run["events"]
+                if value["event_type"] == "run_completed"
             ]
             if completed:
                 execution_outcome = completed[-1]["payload"].get("execution_outcome")
         trust = trace.get("trust_summary")
         if trust is None:
             bodies = [
-                value for value in run["events"] if value["event_type"] == "answer_completed"
+                value
+                for value in run["events"]
+                if value["event_type"] == "answer_completed"
             ]
             if bodies:
                 trust = bodies[-1]["payload"].get("trust_summary")
@@ -715,7 +800,9 @@ class AskService:
         )
         answer_version = int(trace.get("answer_version") or 1)
         revisions = [
-            value for value in run["events"] if value["event_type"] == "answer_revision_created"
+            value
+            for value in run["events"]
+            if value["event_type"] == "answer_revision_created"
         ]
         if revisions:
             answer_version = int(revisions[-1]["payload"]["to_version"])
@@ -724,7 +811,8 @@ class AskService:
             mode=run["mode"],
             status=run["answer_status"],
             execution_outcome=execution_outcome,
-            intro=run.get("intro"), outro=run.get("outro"),
+            intro=run.get("intro"),
+            outro=run.get("outro"),
             answer_blocks=run["answer_blocks"],
             citations=run["citations"],
             limitations=run["limitations"],
@@ -739,7 +827,9 @@ class AskService:
                 context_span_count=len(run["final_evidence"]),
                 context_truncated=bool(trace.get("context_truncated", False)),
                 repair_used=bool(repair_used),
-                latency_ms=float(trace.get("latency_ms") or trace.get("total_latency_ms") or 0),
+                latency_ms=float(
+                    trace.get("latency_ms") or trace.get("total_latency_ms") or 0
+                ),
                 termination_reason=run["termination_reason"],
                 decision_rounds=int(trace.get("decision_rounds") or 0),
                 tool_calls=int(trace.get("tool_calls") or 0),
@@ -795,7 +885,8 @@ def _answer_event_payload(response: AskResponse) -> dict[str, object]:
         "answer_version": response.answer_version,
         "status": response.status,
         "execution_outcome": response.execution_outcome,
-        "intro": response.intro, "outro": response.outro,
+        "intro": response.intro,
+        "outro": response.outro,
         "answer_blocks": [
             value.model_dump(mode="json") for value in response.answer_blocks
         ],

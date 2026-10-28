@@ -6,7 +6,7 @@
 
 ## 实际交付
 
-唯一产品目标仍为 `Shiliu-research-next`（`codex/research-next`，基线 `5a8abeb` 加当前未提交产品改动）。隔离分支 `codex/deep-v2-b0-integration` 位于 `/Users/elliot/.codex/worktrees/deep-v2-b0-integration/Shiliu-jev-rerank`。先复制当前产品必要代码/fixture并记录文件hash，原工作区没有stash/reset；本次增量不包含这些已有助手改动。
+唯一产品目标仍为 `Shiliu-research-next`（`codex/research-next`，基线 `5a8abeb` 加当前未提交产品改动）。隔离分支 `codex/deep-v2-b0-integration` 位于 `/absolute/historical/.codex/worktrees/deep-v2-b0-integration/Shiliu-jev-rerank`。先复制当前产品必要代码/fixture并记录文件hash，原工作区没有stash/reset；本次增量不包含这些已有助手改动。
 
 - 定向复用 `v2.py`、`f1_tools.py`、`retrieval/f1.py`、原文追读和相关既有测试。当前 Ask Deep 使用 V2/F1；直接构造旧 Deep 的内部调用者保留原默认行为。
 - 新 `batch_reduce.py` / `jev.py` 实现冻结 B0。Prompt、BatchReduction Schema、C_REL及40%核心/60%补位、精确去重与5秒前序保护已与研究中的纯定义比对一致，固化为自包含fixture；无研究脚本运行时依赖，无BQ/C。
@@ -51,7 +51,7 @@
 
 价格核对：[DeepSeek官方](https://api-docs.deepseek.com/quick_start/pricing/)、[Jev官方](https://docs.typesafe.ai/models)。继续请求旧Flash模型名并记录返回模型；供应商实际模型版本变化不由本次集成控制。
 
-私有证据目录：`/Users/elliot/new-systems/agent-job-prep/Shiliu-b0-integration-runtime`。含 `api-ledger.json`、接收路径记录、真实/fixture Trace、全部源校验、测试XML/日志、助手基线复现、网页关键截图及可复现启动器。原文/数据库/凭据和截图不提交Git，报告只列必要摘要。
+私有证据目录：`/absolute/historical/new-systems/agent-job-prep/Shiliu-b0-integration-runtime`。含 `api-ledger.json`、接收路径记录、真实/fixture Trace、全部源校验、测试XML/日志、助手基线复现、网页关键截图及可复现启动器。原文/数据库/凭据和截图不提交Git，报告只列必要摘要。
 
 ## 合并与切换日常网站的最小步骤
 

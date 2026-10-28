@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import os
 import shutil
 import subprocess
 import sys
@@ -18,13 +19,26 @@ def plist_path() -> Path:
 
 def install_launch_agent(paths: AppPaths, *, load: bool = True) -> Path:
     executable = shutil.which("shiliu")
-    if executable:
+    if os.environ.get("SHILIU_SERVICE_MODULE") == "shiliu.w16_service":
+        arguments = [sys.executable, "-I", "-m", "shiliu.w16_service", "sync", "--scheduled"]
+    elif executable:
         arguments = [executable, "sync", "--scheduled"]
     else:
         arguments = [sys.executable, "-m", "shiliu", "sync", "--scheduled"]
     destination = plist_path()
     destination.parent.mkdir(parents=True, exist_ok=True)
     arguments_xml = "\n".join(f"      <string>{html.escape(item)}</string>" for item in arguments)
+    # launchd does not inherit the caller's shell environment. Keep explicit PG
+    # and state bindings when a deployed instance reinstalls its hourly job.
+    environment = {key: os.environ[key] for key in (
+        "SHILIU_DATABASE_URL", "SHILIU_ARTIFACT_ROOT", "SHILIU_ENV",
+        "SHILIU_STATE_DIR", "SHILIU_CONTENT_DIR", "SHILIU_SERVICE_MODULE",
+        "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "PATH",
+    ) if key in os.environ}
+    environment_xml = "\n".join(
+        f"    <key>{html.escape(key)}</key><string>{html.escape(value)}</string>"
+        for key, value in environment.items()
+    )
     document = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -35,6 +49,10 @@ def install_launch_agent(paths: AppPaths, *, load: bool = True) -> Path:
   <array>
 {arguments_xml}
   </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+{environment_xml}
+  </dict>
   <key>StartInterval</key>
   <integer>3600</integer>
   <key>RunAtLoad</key>

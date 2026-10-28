@@ -12,6 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from shiliu.ask.persistence import AskRunStore
 from shiliu.ask.evidence import TranscriptEvidenceMaterializer, _reference
 from shiliu.ask.contracts import Citation, TranscriptEvidenceSpan
+from psycopg.types.json import Jsonb
+from shiliu.storage.dto import json_value, iso_time
+from shiliu.storage.errors import StorageError
 from shiliu.db import Database
 from shiliu.evidence.authority import bind_live_current_version
 from shiliu.research.knowledge_contracts import (
@@ -70,9 +73,14 @@ class KnowledgeDraftService:
         knowledge: ResearchKnowledgeService,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.ask_runs = AskRunStore(db)
-        self.materializer = TranscriptEvidenceMaterializer(db)
-        self.research_authority = PersistentEvidenceAuthority(db)
+        self.materializer = TranscriptEvidenceMaterializer(
+            db, product.inner.materializer.artifacts
+        )
+        self.research_authority = PersistentEvidenceAuthority(
+            db, product.inner.materializer.artifacts
+        )
         self.product = product
         self.knowledge = knowledge
 
@@ -86,13 +94,18 @@ class KnowledgeDraftService:
             source = self._research_source(request.source_id)
             origin_kind = "research"
             ask_run_id, research_task_id = None, request.source_id
-        if request.expected_source_hash and request.expected_source_hash != source["answer_hash"]:
+        if (
+            request.expected_source_hash
+            and request.expected_source_hash != source["answer_hash"]
+        ):
             raise KnowledgeDraftError(
                 "source answer hash changed", code="draft_source_hash_mismatch"
             )
         dedupe = _hash(
             [
                 "local_user_workspace",
+                self.context.workspace_id,
+                self.context.user_id,
                 origin_kind,
                 request.source_id,
                 source["answer_hash"],
@@ -101,29 +114,39 @@ class KnowledgeDraftService:
         )
         draft_id = f"kdraft_{dedupe[7:39]}"
         payload_hash = _hash(request.model_dump(mode="json"))
-        with self.db.connect() as connection:
+        with self.db.connect(guard=True) as connection:
             existing_command = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions WHERE draft_id=? AND command_id=?",
-                (draft_id, request.command_id),
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_id=%s AND command_id=%s",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    draft_id,
+                    request.command_id,
+                ),
             ).fetchone()
             if existing_command is not None:
                 if str(existing_command["command_payload_hash"]) != payload_hash:
                     raise KnowledgeDraftError(
-                        "command payload mismatch", code="draft_command_payload_mismatch"
+                        "command payload mismatch",
+                        code="draft_command_payload_mismatch",
                     )
                 return self._decode(existing_command)
             existing = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions "
-                "WHERE owner_scope='local_user_workspace' AND dedupe_identity=? "
-                "ORDER BY version DESC LIMIT 1",
-                (dedupe,),
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND owner_scope='local_user_workspace' AND dedupe_identity=%s ORDER BY version DESC LIMIT 1",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    dedupe,
+                ),
             ).fetchone()
             if existing is not None:
                 return self._decode(existing)
-            revision_id = f"kdrev_{hashlib.sha256((draft_id + ':1').encode()).hexdigest()[:32]}"
+            revision_id = (
+                f"kdrev_{hashlib.sha256((draft_id + ':1').encode()).hexdigest()[:32]}"
+            )
             connection.execute(
                 """
-                INSERT INTO knowledge_draft_revisions(
+                INSERT INTO knowledge_draft_revisions(workspace_id,owner_user_id,
                     draft_revision_id,draft_id,draft_schema_version,version,
                     parent_revision_id,owner_scope,origin_kind,ask_run_id,
                     research_task_id,source_answer_snapshot_json,source_answer_hash,
@@ -131,43 +154,55 @@ class KnowledgeDraftService:
                     status,dedupe_identity,materialization_task_id,candidate_ids_json,
                     promotion_output_json,event_kind,command_id,command_payload_hash,
                     reason_json,created_at
-                ) VALUES(?,?,?,1,NULL,'local_user_workspace',?,?,?,?,?,?,?,?,?,
-                         'saved',?,NULL,'[]','{}','saved',?,?,?,?)
+                ) VALUES(%s,%s,%s,%s,%s,1,NULL,'local_user_workspace',%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                         'saved',%s,NULL,'[]','{}','saved',%s,%s,%s,%s)
                 """,
                 (
+                    self.context.workspace_id,
+                    self.context.user_id,
                     revision_id,
                     draft_id,
                     KNOWLEDGE_DRAFT_SCHEMA_VERSION,
                     origin_kind,
                     ask_run_id,
                     research_task_id,
-                    _json(source["snapshot"]),
+                    Jsonb(source["snapshot"]),
                     source["answer_hash"],
-                    _json(source["evidence_refs"]),
-                    _json(source["scope"]),
-                    _json(source["limitations"]),
+                    Jsonb(source["evidence_refs"]),
+                    Jsonb(source["scope"]),
+                    Jsonb(source["limitations"]),
                     "current" if source["current"] else "needs_revalidation",
                     dedupe,
                     request.command_id,
                     payload_hash,
-                    _json({"authority": "draft_only_not_fact_or_citation"}),
+                    Jsonb({"authority": "draft_only_not_fact_or_citation"}),
                     _now(),
                 ),
             )
             row = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions WHERE draft_revision_id=?",
-                (revision_id,),
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_revision_id=%s",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    revision_id,
+                ),
             ).fetchone()
         return self._decode(row)
 
     def get(self, draft_id: str) -> dict[str, Any]:
         with self.db.connect() as connection:
             rows = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions WHERE draft_id=? ORDER BY version",
-                (draft_id,),
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_id=%s ORDER BY version",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    draft_id,
+                ),
             ).fetchall()
         if not rows:
-            raise KnowledgeDraftError("Draft not found", code="draft_not_found", http_status=404)
+            raise KnowledgeDraftError(
+                "Draft not found", code="draft_not_found", http_status=404
+            )
         history = [self._decode(value) for value in rows]
         return {"draft": history[-1], "history": history, "non_authoritative": True}
 
@@ -231,13 +266,17 @@ class KnowledgeDraftService:
             )
             workspace = self.knowledge.get_workspace(task_id)
             candidates = [
-                value for value in workspace["candidates"] if value["status"] == "pending_review"
+                value
+                for value in workspace["candidates"]
+                if value["status"] == "pending_review"
             ]
             if not candidates:
                 raise KnowledgeDraftError(
                     "materialization produced no pending Candidate",
                     code="draft_candidate_missing",
                 )
+        except StorageError:
+            raise
         except Exception as exc:
             self._append(
                 started,
@@ -268,6 +307,12 @@ class KnowledgeDraftService:
     def confirm_promotion(
         self, draft_id: str, request: ConfirmDraftPromotionRequest, *, principal_id: str
     ) -> dict[str, Any]:
+        if principal_id != self.context.user_id:
+            raise KnowledgeDraftError(
+                "principal does not match trusted context",
+                code="draft_forbidden",
+                http_status=403,
+            )
         replay = self._command_replay(
             draft_id, request.command_id, request.model_dump(mode="json")
         )
@@ -277,7 +322,9 @@ class KnowledgeDraftService:
         if current["status"] == "confirmed":
             return current
         if current["status"] != "promotion_ready":
-            raise KnowledgeDraftError("Draft is not promotion ready", code="draft_not_ready")
+            raise KnowledgeDraftError(
+                "Draft is not promotion ready", code="draft_not_ready"
+            )
         try:
             self._assert_source_current(current)
         except KnowledgeDraftError as exc:
@@ -340,7 +387,9 @@ class KnowledgeDraftService:
             return replay
         current = self._expected(draft_id, request.expected_version)
         if current["status"] == "confirmed":
-            raise KnowledgeDraftError("confirmed Knowledge cannot be cancelled", code="draft_confirmed")
+            raise KnowledgeDraftError(
+                "confirmed Knowledge cannot be cancelled", code="draft_confirmed"
+            )
         return self._append(
             current,
             status="cancelled",
@@ -352,9 +401,13 @@ class KnowledgeDraftService:
     def _ask_source(self, run_id: str) -> dict[str, Any]:
         run = self.ask_runs.get_run(run_id)
         if run is None:
-            raise KnowledgeDraftError("AskRun not found", code="draft_source_not_found", http_status=404)
+            raise KnowledgeDraftError(
+                "AskRun not found", code="draft_source_not_found", http_status=404
+            )
         events = self.ask_runs.get_events(run_id)
-        trusted = [value for value in events if value["event_type"] == "minimum_trust_passed"]
+        trusted = [
+            value for value in events if value["event_type"] == "minimum_trust_passed"
+        ]
         unsafe = {"interrupted", "external_side_effect_unknown"}
         if (
             run["lifecycle_status"] != "completed"
@@ -367,8 +420,14 @@ class KnowledgeDraftService:
                 "only a completed trusted answer can become a Draft",
                 code="draft_source_not_eligible",
             )
-        latest_revision = [value for value in events if value["event_type"] == "answer_revision_created"]
-        answer_version = int(latest_revision[-1]["payload"]["to_version"]) if latest_revision else 1
+        latest_revision = [
+            value
+            for value in events
+            if value["event_type"] == "answer_revision_created"
+        ]
+        answer_version = (
+            int(latest_revision[-1]["payload"]["to_version"]) if latest_revision else 1
+        )
         snapshot = {
             "answer_blocks": run["answer_blocks"],
             "citations": run["citations"],
@@ -387,7 +446,10 @@ class KnowledgeDraftService:
                     code="draft_source_evidence_unavailable",
                 )
             binding = bind_live_current_version(
-                _reference(row), db=self.db, video_id=int(evidence["video_id"])
+                _reference(row),
+                db=self.db,
+                artifacts=self.materializer.artifacts,
+                video_id=int(evidence["video_id"]),
             )
             if (
                 binding.source_artifact_id != evidence["source_artifact_id"]
@@ -400,7 +462,9 @@ class KnowledgeDraftService:
         evidence_refs = [
             {
                 **dict(value),
-                "collection_bindings": self._collection_bindings(int(value["video_id"])),
+                "collection_bindings": self._collection_bindings(
+                    int(value["video_id"])
+                ),
             }
             for value in run["final_evidence"]
         ]
@@ -451,9 +515,12 @@ class KnowledgeDraftService:
             )
         with self.db.connect() as connection:
             link = connection.execute(
-                "SELECT * FROM research_outer_result_links "
-                "WHERE result_id=? AND task_id=?",
-                (terminal_result_id, task_id),
+                "SELECT * FROM research_outer_result_links WHERE workspace_id=%s AND result_id=%s AND task_id=%s",
+                (
+                    self.context.workspace_id,
+                    terminal_result_id,
+                    task_id,
+                ),
             ).fetchone()
         if link is None:
             raise KnowledgeDraftError(
@@ -486,14 +553,16 @@ class KnowledgeDraftService:
         answer_blocks = list(artifact.get("answer_blocks") or [])
         use_ids = [str(value) for value in artifact.get("evidence_use_ids") or []]
         evidence_ids = [str(value) for value in artifact.get("evidence_ids") or []]
-        if not self._grounded_research_blocks(answer_blocks, evidence_ids) or not use_ids:
+        if (
+            not self._grounded_research_blocks(answer_blocks, evidence_ids)
+            or not use_ids
+        ):
             raise KnowledgeDraftError(
                 "Research artifact has no grounded Evidence",
                 code="draft_source_not_eligible",
             )
         validation_ids = [
-            str(value)
-            for value in json.loads(str(link["validation_observation_ids_json"]))
+            str(value) for value in json_value(link["validation_observation_ids_json"])
         ]
         if not validation_ids:
             raise KnowledgeDraftError(
@@ -565,8 +634,8 @@ class KnowledgeDraftService:
                 "validation_observation_ids": validation_ids,
                 "generation_policy_version": str(link["generation_policy_version"]),
                 "audit_policy_version": str(link["audit_policy_version"]),
-                "evaluator_policy_versions": json.loads(
-                    str(link["evaluator_policy_versions_json"])
+                "evaluator_policy_versions": json_value(
+                    link["evaluator_policy_versions_json"]
                 ),
             },
             "evidence": evidence_snapshot,
@@ -621,12 +690,14 @@ class KnowledgeDraftService:
             identities = []
             for use_id in use_ids:
                 row = connection.execute(
-                    "SELECT eu.*, ei.* FROM research_evidence_uses eu "
-                    "JOIN research_evidence_identities ei "
-                    "ON ei.evidence_id=eu.evidence_id "
-                    "WHERE eu.evidence_use_id=? AND eu.task_id=? "
-                    "AND eu.goal_id=? AND eu.attempt_id=?",
-                    (use_id, task_id, goal_id, attempt_id),
+                    "SELECT eu.*, ei.* FROM research_evidence_uses eu JOIN research_evidence_identities ei ON (ei.workspace_id,ei.evidence_id)=(eu.workspace_id,eu.evidence_id) WHERE eu.workspace_id=%s AND eu.evidence_use_id=%s AND eu.task_id=%s AND eu.goal_id=%s AND eu.attempt_id=%s",
+                    (
+                        self.context.workspace_id,
+                        use_id,
+                        task_id,
+                        goal_id,
+                        attempt_id,
+                    ),
                 ).fetchone()
                 if row is None:
                     raise KnowledgeDraftError(
@@ -637,10 +708,14 @@ class KnowledgeDraftService:
             validations = []
             for validation_id in validation_ids:
                 row = connection.execute(
-                    "SELECT * FROM research_evidence_validations "
-                    "WHERE observation_id=? AND task_id=? AND goal_id=? "
-                    "AND attempt_id=?",
-                    (validation_id, task_id, goal_id, attempt_id),
+                    "SELECT * FROM research_evidence_validations WHERE workspace_id=%s AND observation_id=%s AND task_id=%s AND goal_id=%s AND attempt_id=%s",
+                    (
+                        self.context.workspace_id,
+                        validation_id,
+                        task_id,
+                        goal_id,
+                        attempt_id,
+                    ),
                 ).fetchone()
                 if row is None:
                     raise KnowledgeDraftError(
@@ -694,16 +769,14 @@ class KnowledgeDraftService:
             ref = {
                 "evidence_use_id": use_id,
                 "evidence_id": str(identity["evidence_id"]),
-                "citation_identity_version": str(
-                    identity["citation_identity_version"]
-                ),
+                "citation_identity_version": str(identity["citation_identity_version"]),
                 "validation_observation_id": str(validation["observation_id"]),
                 "video_id": int(identity["video_id"]),
                 "source_artifact_id": str(identity["source_artifact_id"]),
                 "source_version": str(identity["source_version"]),
                 "timeline_run_id": str(identity["timeline_run_id"]),
-                "segment_ids": json.loads(str(identity["segment_ids_json"])),
-                "segment_ordinals": json.loads(str(identity["segment_ordinals_json"])),
+                "segment_ids": json_value(identity["segment_ids_json"]),
+                "segment_ordinals": json_value(identity["segment_ordinals_json"]),
                 "collection_bindings": self._collection_bindings(
                     int(identity["video_id"])
                 ),
@@ -822,10 +895,9 @@ class KnowledgeDraftService:
         with self.db.connect() as connection:
             for ref in refs:
                 identity = connection.execute(
-                    "SELECT eu.*, ei.* FROM research_evidence_uses eu "
-                    "JOIN research_evidence_identities ei ON ei.evidence_id=eu.evidence_id "
-                    "WHERE eu.evidence_use_id=? AND eu.evidence_id=? AND eu.task_id=?",
+                    "SELECT eu.*, ei.* FROM research_evidence_uses eu JOIN research_evidence_identities ei ON (ei.workspace_id,ei.evidence_id)=(eu.workspace_id,eu.evidence_id) WHERE eu.workspace_id=%s AND eu.evidence_use_id=%s AND eu.evidence_id=%s AND eu.task_id=%s",
                     (
+                        self.context.workspace_id,
                         str(ref.get("evidence_use_id") or ""),
                         str(ref.get("evidence_id") or ""),
                         source_task_id,
@@ -878,9 +950,9 @@ class KnowledgeDraftService:
                 "Draft Evidence identity does not reconstruct exactly",
                 code="draft_source_evidence_changed",
             )
-        if ref.get("segment_ordinals") is not None and list(span.segment_ordinals) != list(
-            ref["segment_ordinals"]
-        ):
+        if ref.get("segment_ordinals") is not None and list(
+            span.segment_ordinals
+        ) != list(ref["segment_ordinals"]):
             raise KnowledgeDraftError(
                 "Draft Evidence segment binding changed",
                 code="draft_source_evidence_changed",
@@ -927,23 +999,28 @@ class KnowledgeDraftService:
     def _collection_bindings(self, video_id: int) -> list[dict[str, Any]]:
         with self.db.connect() as connection:
             rows = connection.execute(
-                """
-                SELECT s.id AS source_db_id, s.platform, s.folder_id,
-                       s.folder_title, s.status AS source_status,
-                       m.favorite_time, m.removed_at
-                FROM video_source_memberships m
-                JOIN favorite_sources s ON s.id=m.source_id
-                WHERE m.video_id=?
-                ORDER BY s.platform, s.folder_id, s.id
-                """,
-                (video_id,),
+                "\n                SELECT s.id AS source_db_id, s.platform, s.folder_id,\n                       s.folder_title, s.status AS source_status,\n                       m.favorite_time, m.removed_at\n                FROM video_source_memberships m\n                JOIN favorite_sources s ON (s.workspace_id,s.id)=(m.workspace_id,m.source_id)\n                WHERE m.workspace_id=%s AND m.video_id=%s\n                ORDER BY s.platform, s.folder_id, s.id\n                ",
+                (
+                    self.context.workspace_id,
+                    video_id,
+                ),
             ).fetchall()
-        return [dict(value) for value in rows]
+        return [
+            {
+                **dict(value),
+                "removed_at": iso_time(value["removed_at"])
+                if value["removed_at"]
+                else None,
+            }
+            for value in rows
+        ]
 
     def _expected(self, draft_id: str, expected_version: int) -> dict[str, Any]:
         current = self.get(draft_id)["draft"]
         if int(current["version"]) != expected_version:
-            raise KnowledgeDraftError("Draft version conflict", code="draft_version_conflict")
+            raise KnowledgeDraftError(
+                "Draft version conflict", code="draft_version_conflict"
+            )
         return current
 
     def _block_revalidation(
@@ -968,8 +1045,13 @@ class KnowledgeDraftService:
         payload_hash = _hash(payload)
         with self.db.connect() as connection:
             row = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions WHERE draft_id=? AND command_id=?",
-                (draft_id, command_id),
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_id=%s AND command_id=%s",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    draft_id,
+                    command_id,
+                ),
             ).fetchone()
         if row is None:
             return None
@@ -996,18 +1078,34 @@ class KnowledgeDraftService:
         version = int(current["version"]) + 1
         payload_hash = _hash(payload)
         revision_id = f"kdrev_{hashlib.sha256((current['draft_id'] + ':' + str(version)).encode()).hexdigest()[:32]}"
-        with self.db.connect() as connection:
+        with self.db.connect(guard=True) as connection:
             existing = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions WHERE draft_id=? AND command_id=?",
-                (current["draft_id"], command_id),
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_id=%s AND command_id=%s",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    current["draft_id"],
+                    command_id,
+                ),
             ).fetchone()
             if existing is not None:
                 if str(existing["command_payload_hash"]) != payload_hash:
-                    raise KnowledgeDraftError("command payload mismatch", code="draft_command_payload_mismatch")
+                    raise KnowledgeDraftError(
+                        "command payload mismatch",
+                        code="draft_command_payload_mismatch",
+                    )
                 return self._decode(existing)
+            latest = connection.execute(
+                "SELECT version FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_id=%s ORDER BY version DESC LIMIT 1",
+                (self.context.workspace_id, self.context.user_id, current["draft_id"]),
+            ).fetchone()
+            if latest is None or latest["version"] != current["version"]:
+                raise KnowledgeDraftError(
+                    "Draft version conflict", code="draft_version_conflict"
+                )
             connection.execute(
                 """
-                INSERT INTO knowledge_draft_revisions(
+                INSERT INTO knowledge_draft_revisions(workspace_id,owner_user_id,
                     draft_revision_id,draft_id,draft_schema_version,version,
                     parent_revision_id,owner_scope,origin_kind,ask_run_id,
                     research_task_id,source_answer_snapshot_json,source_answer_hash,
@@ -1015,23 +1113,52 @@ class KnowledgeDraftService:
                     status,dedupe_identity,materialization_task_id,candidate_ids_json,
                     promotion_output_json,event_kind,command_id,command_payload_hash,
                     reason_json,created_at
-                ) VALUES(?,?,?,?,?,'local_user_workspace',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ) VALUES(%s,%s,%s,%s,%s,%s,%s,'local_user_workspace',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
                 (
-                    revision_id,current["draft_id"],KNOWLEDGE_DRAFT_SCHEMA_VERSION,version,
-                    current["draft_revision_id"],current["origin_kind"],current["ask_run_id"],
-                    current["research_task_id"],_json(current["source_answer_snapshot"]),
-                    current["source_answer_hash"],_json(current["evidence_refs"]),
-                    _json(current["scope"]),_json(current["limitations"]),
-                    revalidation_state or current["revalidation_state"],status,
-                    current["dedupe_identity"],materialization_task_id or current["materialization_task_id"],
-                    _json(candidate_ids if candidate_ids is not None else current["candidate_ids"]),
-                    _json(promotion_output if promotion_output is not None else current["promotion_output"]),
-                    event_kind,command_id,payload_hash,_json(reason or {}),_now(),
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    revision_id,
+                    current["draft_id"],
+                    KNOWLEDGE_DRAFT_SCHEMA_VERSION,
+                    version,
+                    current["draft_revision_id"],
+                    current["origin_kind"],
+                    current["ask_run_id"],
+                    current["research_task_id"],
+                    Jsonb(current["source_answer_snapshot"]),
+                    current["source_answer_hash"],
+                    Jsonb(current["evidence_refs"]),
+                    Jsonb(current["scope"]),
+                    Jsonb(current["limitations"]),
+                    revalidation_state or current["revalidation_state"],
+                    status,
+                    current["dedupe_identity"],
+                    materialization_task_id or current["materialization_task_id"],
+                    Jsonb(
+                        candidate_ids
+                        if candidate_ids is not None
+                        else current["candidate_ids"]
+                    ),
+                    Jsonb(
+                        promotion_output
+                        if promotion_output is not None
+                        else current["promotion_output"]
+                    ),
+                    event_kind,
+                    command_id,
+                    payload_hash,
+                    Jsonb(reason or {}),
+                    _now(),
                 ),
             )
             row = connection.execute(
-                "SELECT * FROM knowledge_draft_revisions WHERE draft_revision_id=?", (revision_id,)
+                "SELECT * FROM knowledge_draft_revisions WHERE workspace_id=%s AND owner_user_id=%s AND draft_revision_id=%s",
+                (
+                    self.context.workspace_id,
+                    self.context.user_id,
+                    revision_id,
+                ),
             ).fetchone()
         return self._decode(row)
 
@@ -1047,7 +1174,8 @@ class KnowledgeDraftService:
             ("promotion_output", "promotion_output_json"),
             ("reason", "reason_json"),
         ):
-            value[target] = json.loads(str(value.pop(source)))
+            value[target] = json_value(value.pop(source))
+        value["created_at"] = iso_time(value["created_at"])
         value["authority"] = "draft_only_not_fact_or_citation"
         return value
 

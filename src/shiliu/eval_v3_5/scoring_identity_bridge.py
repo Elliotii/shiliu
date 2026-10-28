@@ -1,12 +1,13 @@
 """Generic scorer bridge for canonical, segment-backed evidence identity."""
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from hashlib import sha256
 import math
 from pathlib import Path
-import sqlite3
 from typing import Any, Literal
 
 
@@ -90,7 +91,7 @@ class VideoIdentityCanonicalizer:
     def from_sqlite(cls, path: str | Path) -> "VideoIdentityCanonicalizer":
         source_path = Path(path)
         digest = sha256(source_path.read_bytes()).hexdigest()
-        with sqlite3.connect(f"file:{source_path}?mode=ro", uri=True) as connection:
+        with connect_snapshot(source_path) as connection:
             rows = connection.execute(
                 "SELECT platform, source_id, id, part FROM videos ORDER BY id"
             ).fetchall()

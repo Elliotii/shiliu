@@ -11,6 +11,8 @@ from shiliu.artifacts import ArtifactStore, extract_urls
 from shiliu.asr import ASRService
 from shiliu.bilibili import BilibiliAdapter, unavailable_video_error
 from shiliu.db import Database, utc_now
+from shiliu.storage.collection_leases import renewing_lease, worker_id
+from functools import wraps
 from shiliu.domain import (
     PipelineError,
     FavoriteItem,
@@ -45,8 +47,50 @@ ASRServiceFactory = Callable[[], ASRService]
 class _IndexCoordinator(Protocol):
     def safe_sync_video(self, video_id: int, *, trigger: str) -> object: ...
 
+
 FULL_PIPELINE_MAX_SECONDS = 8 * 60
 SUMMARY_ONLY_MAX_SECONDS = 16 * 60
+
+
+def leased_stage(stage_name):
+    def decorate(function):
+        @wraps(function)
+        def execute(self, video, *args, **kwargs):
+            video_id = int(video["id"]) if isinstance(video, dict) else video
+            self.db.ensure_stage(video_id, stage_name)
+            claim = self.db.claim_stage(video_id, stage_name, worker_id())
+            if claim is None:
+                return None
+            with renewing_lease(self.db, "pipeline_stages", claim):
+                if stage_name == StageName.SOURCE_FETCH:
+                    self.db.update_stage(
+                        video_id,
+                        stage_name,
+                        claim=claim,
+                        status="processing",
+                        attempt_count=int(claim["attempt_count"]) + 1,
+                        started_at=utc_now(),
+                    )
+                claim["input_raw"] = self.db.get_video(video_id).get(
+                    "raw_subtitle_path"
+                )
+                batch = self.artifacts.batch(video_id)
+                result = function(
+                    self, video, *args, claim=claim, batch=batch, **kwargs
+                )
+                if (stage_name == StageName.SOURCE_FETCH
+                        and self.db.get_stage(video_id, stage_name)["status"] == "processing"):
+                    self.db.update_stage(
+                        video_id,
+                        stage_name,
+                        claim=claim,
+                        status="completed" if result else "retry_wait",
+                    )
+                return result
+
+        return execute
+
+    return decorate
 
 
 class PipelineService:
@@ -66,10 +110,14 @@ class PipelineService:
         self.provider_factory = provider_factory
         self.asr_service_factory = asr_service_factory
         self.index_coordinator = index_coordinator
-        self._automatic_asr_submissions = 0
 
-    def begin_sync_cycle(self) -> None:
-        self._automatic_asr_submissions = 0
+    def _publication_guard(self, conn, claim, video_id):
+        self.db.check_lease(conn, "pipeline_stages", claim)
+        video = self.db._video(conn, video_id, lock=True)
+        if "input_raw" in claim and video["raw_subtitle_path"] != claim["input_raw"]:
+            from shiliu.storage.fences import CoordinationConflict
+
+            raise CoordinationConflict("source_version_changed")
 
     def sync_favorite_covers(self, items: list[FavoriteItem]) -> None:
         """Covers belong to discovery; they never require subtitle or model work."""
@@ -78,30 +126,43 @@ class PipelineService:
             if video is None or not item.cover_url:
                 continue
             if video.get("error_code") == "video_unavailable" or (
-                    video.get("error_code") == "upstream_error" and
-                    unavailable_video_error(str(video.get("error_message") or ""))):
+                video.get("error_code") == "upstream_error"
+                and unavailable_video_error(str(video.get("error_message") or ""))
+            ):
                 continue
             existing = video.get("cover_path")
-            if video.get("cover_url") == item.cover_url and existing and Path(str(existing)).is_file():
+            if (
+                video.get("cover_url") == item.cover_url
+                and existing
+                and self.artifacts.managed_file(str(existing)).is_file()
+            ):
                 continue
             cover = self.artifacts.download_cover(item.bvid, item.cover_url)
             # A failed image request retains the last usable local image. The next
             # ordinary snapshot retries an absent image without retrying the video.
             if cover is not None:
-                self.db.update_video(int(video["id"]), cover_url=item.cover_url, cover_path=str(cover))
+                self.db.update_video(
+                    int(video["id"]), cover_url=item.cover_url, cover_path=str(cover)
+                )
             elif not existing:
                 self.db.update_video(int(video["id"]), cover_url=item.cover_url)
 
     def process_video(self, video_id: int) -> bool:
         video = self._require_video(video_id)
         status = VideoStatus(video["status"])
-        if status in {VideoStatus.COMPLETED, VideoStatus.SKIPPED_NO_SUBTITLE, VideoStatus.NEEDS_REVIEW}:
+        if status in {
+            VideoStatus.COMPLETED,
+            VideoStatus.SKIPPED_NO_SUBTITLE,
+            VideoStatus.NEEDS_REVIEW,
+        }:
             return False
 
         if not video.get("raw_subtitle_path"):
             asr_job = self.db.get_asr_job(video_id)
             if asr_job is not None:
-                if not self._acquire_asr(video_id, ASRTriggerMode(str(asr_job["trigger_mode"]))):
+                # A persisted manual origin is not a new explicit retry request.
+                # ASRService retains that origin/profile while resuming its task.
+                if not self._acquire_asr(video_id, ASRTriggerMode.AUTOMATIC):
                     return True
                 video = self._require_video(video_id)
             elif not self._fetch_source(video):
@@ -113,8 +174,12 @@ class PipelineService:
             video = self._require_video(video_id)
 
         asr_job = self.db.get_asr_job(video_id)
-        manual_asr = bool(asr_job and str(asr_job.get("trigger_mode")) == ASRTriggerMode.MANUAL.value)
-        policy = processing_policy(int(video.get("duration_seconds") or 0), manual_asr=manual_asr)
+        manual_asr = bool(
+            asr_job and str(asr_job.get("trigger_mode")) == ASRTriggerMode.MANUAL.value
+        )
+        policy = processing_policy(
+            int(video.get("duration_seconds") or 0), manual_asr=manual_asr
+        )
         if policy == "unknown_duration":
             self.db.update_video(
                 video_id,
@@ -140,10 +205,14 @@ class PipelineService:
             try:
                 transcript = self._raw_transcript_for_summary(video)
             except (OSError, ValueError, PipelineError) as exc:
-                error = exc if isinstance(exc, PipelineError) else PipelineError(
-                    "原始字幕无法用于摘要",
-                    code="raw_subtitle_invalid",
-                    retryable=False,
+                error = (
+                    exc
+                    if isinstance(exc, PipelineError)
+                    else PipelineError(
+                        "原始字幕无法用于摘要",
+                        code="raw_subtitle_invalid",
+                        retryable=False,
+                    )
                 )
                 self._mark_video_needs_review(video_id, error)
                 return True
@@ -213,17 +282,25 @@ class PipelineService:
                 last_error_code=None,
                 last_error_message=None,
             )
-            transcript_stage = self.db.ensure_stage(video_id, StageName.REFINED_TRANSCRIPT)
-        self.db.update_video(video_id, refinement_status=RefinementStatus.PROCESSING.value)
+            transcript_stage = self.db.ensure_stage(
+                video_id, StageName.REFINED_TRANSCRIPT
+            )
+        self.db.update_video(
+            video_id, refinement_status=RefinementStatus.PROCESSING.value
+        )
         if transcript_stage["status"] == StageStatus.COMPLETED.value:
             refined_transcript = self.artifacts.load_transcript(
                 str(video["source_id"]), revision="refined"
             )
         else:
             if not _stage_is_due(transcript_stage):
-                self.db.update_video(video_id, refinement_status=RefinementStatus.PENDING.value)
+                self.db.update_video(
+                    video_id, refinement_status=RefinementStatus.PENDING.value
+                )
                 return False
-            refined_transcript = self._run_refined_transcript_stage(video_id, transcript_stage)
+            refined_transcript = self._run_refined_transcript_stage(
+                video_id, transcript_stage
+            )
             if refined_transcript is None:
                 return True
 
@@ -241,53 +318,66 @@ class PipelineService:
             review_stage = self.db.ensure_stage(video_id, StageName.REFINEMENT_REVIEW)
         if not _stage_is_due(review_stage):
             return False
-        return self._run_refinement_review_stage(video_id, refined_transcript, review_stage)
+        return self._run_refinement_review_stage(
+            video_id, refined_transcript, review_stage
+        )
 
-    def _fetch_source(self, video: dict[str, object]) -> bool:
+    @leased_stage(StageName.SOURCE_FETCH)
+    def _fetch_source(
+        self, video: dict[str, object], *, claim=None, batch=None
+    ) -> bool:
         video_id = int(video["id"])
         bvid = str(video["source_id"])
         try:
             bundle = self.adapter.fetch_video_bundle(bvid)
         except PipelineError as exc:
-            if exc.code == "authentication_required":
-                self._mark_video_needs_review(video_id, exc)
-            else:
-                self.db.update_video(
-                    video_id,
-                    status=VideoStatus.RETRY_WAIT.value if exc.retryable else VideoStatus.NEEDS_REVIEW.value,
-                    error_code=exc.code,
-                    error_message=str(exc),
-                    subtitle_next_check_at=_iso_after(minutes=30) if exc.retryable else None,
-                )
+            self._record_stage_failure(
+                video_id, StageName.SOURCE_FETCH,
+                int(claim["attempt_count"]) + 1, exc, claim=claim,
+            )
             return False
 
-        self.artifacts.save_metadata(bundle)
+        batch.save_metadata(bundle)
         previous_cover = video.get("cover_path")
-        if (previous_cover and video.get("cover_url") == bundle.cover_url
-                and Path(str(previous_cover)).is_file()):
-            cover_path = Path(str(previous_cover))
+        if (
+            previous_cover
+            and video.get("cover_url") == bundle.cover_url
+            and self.artifacts.managed_file(str(previous_cover)).is_file()
+        ):
+            cover_path = str(previous_cover)
         else:
-            cover_path = self.artifacts.download_cover(bvid, bundle.cover_url)
+            cover_path = self.artifacts.download_cover(
+                bvid, bundle.cover_url, batch=batch
+            )
         links = extract_urls(bundle.description)
-        self.db.update_video(
-            video_id,
-            title=bundle.title,
-            uploader=bundle.uploader,
-            description=bundle.description,
-            description_links_json=json.dumps(links, ensure_ascii=False),
-            video_url=bundle.video_url,
-            cover_url=bundle.cover_url,
-            cover_path=str(cover_path) if cover_path else None,
-            artifact_dir=str(self.artifacts.video_dir(bvid)),
-            duration_seconds=bundle.duration_seconds,
-            page_count=bundle.page_count,
-            published_at=bundle.published_at,
-            metadata_observed_at=bundle.metadata_observed_at,
-            cid=bundle.cid,
-            part_title=bundle.part_title,
-            uploader_id=bundle.uploader_id,
-            error_code=None,
-            error_message=None,
+        batch.commit(
+            lambda conn: self.db.update_video(
+                video_id,
+                title=bundle.title,
+                uploader=bundle.uploader,
+                description=bundle.description,
+                description_links_json=json.dumps(links, ensure_ascii=False),
+                video_url=bundle.video_url,
+                cover_url=bundle.cover_url,
+                cover_path=str(cover_path) if cover_path else None,
+                artifact_dir=str(self.artifacts.video_dir(bvid)),
+                duration_seconds=bundle.duration_seconds,
+                page_count=bundle.page_count,
+                published_at=bundle.published_at,
+                metadata_observed_at=bundle.metadata_observed_at,
+                cid=bundle.cid,
+                part_title=bundle.part_title,
+                uploader_id=bundle.uploader_id,
+                error_code=None,
+                error_message=None,
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
+                conn=conn,
+            ),
+            validate=lambda conn: self._publication_guard(conn, claim, video_id),
         )
 
         if bundle.duration_seconds <= 0:
@@ -296,6 +386,11 @@ class PipelineService:
                 status=VideoStatus.NEEDS_REVIEW.value,
                 error_code="duration_unknown",
                 error_message="时长未知 · 未自动处理",
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
             )
             return False
 
@@ -303,24 +398,33 @@ class PipelineService:
             if video.get("raw_subtitle_path"):
                 return True
             automatic = self._record_missing_subtitle(
-                video_id, video, duration_seconds=bundle.duration_seconds
+                video_id, video, duration_seconds=bundle.duration_seconds, claim=claim
             )
             if automatic:
                 return self._acquire_asr(video_id, ASRTriggerMode.AUTOMATIC)
             return False
 
-        _, raw_text_path = self.artifacts.save_raw_subtitle(bvid, bundle.subtitle_segments)
+        _, raw_text_path = batch.save_raw_subtitle(bvid, bundle.subtitle_segments)
         track = bundle.subtitle_track
-        self.db.update_video(
-            video_id,
-            subtitle_language=track.language.value,
-            subtitle_source=track.source.value,
-            subtitle_upstream_type=track.upstream_type,
-            raw_subtitle_path=str(raw_text_path),
-            status=VideoStatus.TRANSCRIPT_PROCESSING.value,
-            subtitle_next_check_at=None,
-            error_code=None,
-            error_message=None,
+        batch.commit(
+            lambda conn: self.db.update_video(
+                video_id,
+                subtitle_language=track.language.value,
+                subtitle_source=track.source.value,
+                subtitle_upstream_type=track.upstream_type,
+                raw_subtitle_path=str(raw_text_path),
+                status=VideoStatus.TRANSCRIPT_PROCESSING.value,
+                subtitle_next_check_at=None,
+                error_code=None,
+                error_message=None,
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
+                conn=conn,
+            ),
+            validate=lambda conn: self._publication_guard(conn, claim, video_id),
         )
         self._sync_index(video_id, "source_subtitle_fetched")
         return True
@@ -331,6 +435,7 @@ class PipelineService:
         previous: dict[str, object],
         *,
         duration_seconds: int,
+        claim=None,
     ) -> bool:
         now = datetime.now(timezone.utc)
         count = int(previous.get("subtitle_check_count") or 0) + 1
@@ -338,45 +443,49 @@ class PipelineService:
         first = _parse_time(str(first_text)) if first_text else now
         expired = now - first >= timedelta(hours=24)
         if count >= 3 or expired:
-            short_video = 0 < duration_seconds <= 300 and self.asr_service_factory is not None
-            eligible = short_video and self._automatic_asr_submissions < 1
-            deferred = short_video and not eligible
+            eligible = (
+                0 < duration_seconds <= 300 and self.asr_service_factory is not None
+            )
             self.db.update_video(
                 video_id,
                 status=(
                     VideoStatus.SUBTITLE_PENDING.value
-                    if eligible or deferred
+                    if eligible
                     else VideoStatus.SKIPPED_NO_SUBTITLE.value
                 ),
                 subtitle_check_count=count,
                 subtitle_first_checked_at=first.isoformat(timespec="seconds"),
-                subtitle_next_check_at=_iso_after(minutes=60) if deferred else None,
+                subtitle_next_check_at=None,
                 error_code=(
                     "asr_pending"
                     if eligible
-                    else "asr_deferred_capacity"
-                    if deferred
                     else "no_supported_subtitle"
                 ),
                 error_message=(
                     "未发现站内字幕，将尝试语音识别"
                     if eligible
-                    else "本轮自动识别名额已使用，将在下次同步继续"
-                    if deferred
                     else "无字幕 · 未自动处理"
                 ),
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
             )
-            if eligible:
-                self._automatic_asr_submissions += 1
             return eligible
         self.db.update_video(
             video_id,
             status=VideoStatus.SUBTITLE_PENDING.value,
             subtitle_check_count=count,
             subtitle_first_checked_at=first.isoformat(timespec="seconds"),
-            subtitle_next_check_at=(now + timedelta(hours=1)).isoformat(timespec="seconds"),
+            subtitle_next_check_at=(now + timedelta(hours=1)).isoformat(
+                timespec="seconds"
+            ),
             error_code="subtitle_pending",
             error_message="尚未发现中文或英文字幕，将在后续同步中重试",
+            publish_guard=(lambda c: self.db.check_lease(c, "pipeline_stages", claim))
+            if claim
+            else None,
         )
         return False
 
@@ -405,14 +514,18 @@ class PipelineService:
             )
             return False
 
-    def _run_transcript_stage(self, video_id: int) -> TranscriptResult | None:
+    @leased_stage(StageName.TRANSCRIPT)
+    def _run_transcript_stage(
+        self, video_id: int, *, claim=None, batch=None
+    ) -> TranscriptResult | None:
         stage = self.db.ensure_stage(video_id, StageName.TRANSCRIPT)
         if not _stage_is_due(stage):
             return None
         video = self._require_video(video_id)
         bvid = str(video["source_id"])
-        raw_json_path = self.artifacts.video_dir(bvid) / "subtitle-raw.json"
-        segments_data = json.loads(raw_json_path.read_text(encoding="utf-8"))
+        segments_data = json.loads(
+            self.artifacts.raw_bytes(str(video["raw_subtitle_path"]))
+        )
         segments = [SubtitleSegment.model_validate(item) for item in segments_data]
         language = SubtitleLanguage(str(video["subtitle_language"]))
         attempt = int(stage["attempt_count"]) + 1
@@ -428,8 +541,15 @@ class PipelineService:
             profile=profile,
             thinking_enabled=0,
             reasoning_effort=None,
+            claim=claim,
         )
-        self.db.update_video(video_id, status=VideoStatus.TRANSCRIPT_PROCESSING.value)
+        self.db.update_video(
+            video_id,
+            status=VideoStatus.TRANSCRIPT_PROCESSING.value,
+            publish_guard=(lambda c: self.db.check_lease(c, "pipeline_stages", claim))
+            if claim
+            else None,
+        )
         try:
             started = time.monotonic()
             provider = self._provider("fast_transcript")
@@ -438,18 +558,25 @@ class PipelineService:
                 StageName.TRANSCRIPT,
                 provider=provider.name,
                 model=provider.model,
+                claim=claim,
             )
-            prompt = build_transcript_prompt(title=str(video["title"]), language=language, segments=segments)
+            prompt = build_transcript_prompt(
+                title=str(video["title"]), language=language, segments=segments
+            )
             result = provider.complete_json(
                 prompt,
                 TranscriptResult,
-                max_tokens=transcript_token_limit(int(video.get("duration_seconds") or 0)),
+                max_tokens=transcript_token_limit(
+                    int(video.get("duration_seconds") or 0)
+                ),
             )
         except PipelineError as exc:
-            self._record_stage_failure(video_id, StageName.TRANSCRIPT, attempt, exc)
+            self._record_stage_failure(
+                video_id, StageName.TRANSCRIPT, attempt, exc, claim=claim
+            )
             return None
         revision = "fast" if profile == ProcessingProfile.FAST.value else "refined"
-        _, markdown_path = self.artifacts.save_transcript(bvid, result, revision=revision)
+        _, markdown_path = batch.save_transcript(bvid, result, revision=revision)
         provenance = self._generation_provenance(
             provider=provider,
             prompt_version=TRANSCRIPT_PROMPT_VERSION,
@@ -458,45 +585,64 @@ class PipelineService:
             thinking_enabled=False,
             reasoning_effort=None,
         )
-        self.artifacts.save_generation_provenance(
+        batch.save_generation_provenance(
             bvid, "transcript", provenance, revision=revision
         )
         if revision == "refined":
-            self.artifacts.save_transcript(bvid, result)
-            self.artifacts.save_generation_provenance(bvid, "transcript", provenance)
-        self.db.update_stage(
-            video_id,
-            StageName.TRANSCRIPT,
-            status=StageStatus.COMPLETED.value,
-            provider=provider.name,
-            model=provider.model,
-            completed_at=utc_now(),
-            elapsed_seconds=time.monotonic() - started,
-            last_error_code=None,
-            last_error_message=None,
-        )
-        self.db.update_video(
-            video_id,
-            transcript_path=str(markdown_path),
-            status=VideoStatus.SUMMARY_PROCESSING.value,
-            error_code=None,
-            error_message=None,
+            batch.save_transcript(bvid, result)
+            batch.save_generation_provenance(bvid, "transcript", provenance)
+
+        def publish(conn):
+            self._publication_guard(conn, claim, video_id)
+            self.db.update_stage(
+                video_id,
+                StageName.TRANSCRIPT,
+                status=StageStatus.COMPLETED.value,
+                provider=provider.name,
+                model=provider.model,
+                completed_at=utc_now(),
+                elapsed_seconds=time.monotonic() - started,
+                last_error_code=None,
+                last_error_message=None,
+                claim=claim,
+                conn=conn,
+            )
+            self.db.update_video(
+                video_id,
+                transcript_path=str(markdown_path),
+                status=VideoStatus.SUMMARY_PROCESSING.value,
+                error_code=None,
+                error_message=None,
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
+                conn=conn,
+            )
+
+        batch.commit(
+            publish,
+            validate=lambda conn: self._publication_guard(conn, claim, video_id),
         )
         self._sync_index(video_id, "transcript_completed")
         return result
 
+    @leased_stage(StageName.SUMMARY)
     def _run_summary_stage(
         self,
         video_id: int,
         transcript: TranscriptResult,
         *,
         final_result: bool = False,
+        claim=None,
+        batch=None,
     ) -> SummaryResult | None:
         stage = self.db.ensure_stage(video_id, StageName.SUMMARY)
         if not _stage_is_due(stage):
             return None
         video = self._require_video(video_id)
-        links = _json_list(str(video.get("description_links_json") or "[]"))
+        links = list(video.get("description_links_json") or [])
         attempt = int(stage["attempt_count"]) + 1
         profile = str(video.get("processing_profile") or ProcessingProfile.FORMAL.value)
         self.db.update_stage(
@@ -510,8 +656,15 @@ class PipelineService:
             profile=profile,
             thinking_enabled=1,
             reasoning_effort="high",
+            claim=claim,
         )
-        self.db.update_video(video_id, status=VideoStatus.SUMMARY_PROCESSING.value)
+        self.db.update_video(
+            video_id,
+            status=VideoStatus.SUMMARY_PROCESSING.value,
+            publish_guard=(lambda c: self.db.check_lease(c, "pipeline_stages", claim))
+            if claim
+            else None,
+        )
         try:
             started = time.monotonic()
             provider = self._provider("formal_summary")
@@ -520,6 +673,7 @@ class PipelineService:
                 StageName.SUMMARY,
                 provider=provider.name,
                 model=provider.model,
+                claim=claim,
             )
             prompt = build_summary_prompt(
                 title=str(video["title"]),
@@ -534,14 +688,16 @@ class PipelineService:
             )
             result.related_links = links
         except PipelineError as exc:
-            self._record_stage_failure(video_id, StageName.SUMMARY, attempt, exc)
+            self._record_stage_failure(
+                video_id, StageName.SUMMARY, attempt, exc, claim=claim
+            )
             return None
         revision = (
             "refined"
             if final_result or profile != ProcessingProfile.FAST.value
             else "fast"
         )
-        _, markdown_path = self.artifacts.save_summary(
+        _, markdown_path = batch.save_summary(
             str(video["source_id"]), result, revision=revision
         )
         provenance = self._generation_provenance(
@@ -552,51 +708,74 @@ class PipelineService:
             thinking_enabled=True,
             reasoning_effort="high",
         )
-        self.artifacts.save_generation_provenance(
+        batch.save_generation_provenance(
             str(video["source_id"]), "summary", provenance, revision=revision
         )
         if revision == "refined":
-            self.artifacts.save_summary(str(video["source_id"]), result)
-            self.artifacts.save_generation_provenance(
+            batch.save_summary(str(video["source_id"]), result)
+            batch.save_generation_provenance(
                 str(video["source_id"]), "summary", provenance
             )
         now = utc_now()
-        self.db.update_stage(
-            video_id,
-            StageName.SUMMARY,
-            status=StageStatus.COMPLETED.value,
-            provider=provider.name,
-            model=provider.model,
-            completed_at=now,
-            elapsed_seconds=time.monotonic() - started,
-            last_error_code=None,
-            last_error_message=None,
+
+        def publish(conn):
+            self._publication_guard(conn, claim, video_id)
+            self.db.update_stage(
+                video_id,
+                StageName.SUMMARY,
+                status=StageStatus.COMPLETED.value,
+                provider=provider.name,
+                model=provider.model,
+                completed_at=now,
+                elapsed_seconds=time.monotonic() - started,
+                last_error_code=None,
+                last_error_message=None,
+                claim=claim,
+                conn=conn,
+            )
+            self.db.update_video(
+                video_id,
+                summary_path=str(markdown_path),
+                status=VideoStatus.COMPLETED.value,
+                completed_at=now,
+                active_revision=revision,
+                refinement_status=(
+                    RefinementStatus.PENDING.value
+                    if revision == "fast" and not final_result
+                    else RefinementStatus.NOT_REQUIRED.value
+                ),
+                error_code=None,
+                error_message=None,
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
+                conn=conn,
+            )
+            self.db.add_event(
+                "summary_completed",
+                video_id,
+                {"source_id": video["source_id"]},
+                conn=conn,
+            )
+
+        batch.commit(
+            publish,
+            validate=lambda conn: self._publication_guard(conn, claim, video_id),
         )
-        self.db.update_video(
-            video_id,
-            summary_path=str(markdown_path),
-            status=VideoStatus.COMPLETED.value,
-            completed_at=now,
-            active_revision=revision,
-            refinement_status=(
-                RefinementStatus.PENDING.value
-                if revision == "fast" and not final_result
-                else RefinementStatus.NOT_REQUIRED.value
-            ),
-            error_code=None,
-            error_message=None,
-        )
-        self.db.add_event("summary_completed", video_id, {"source_id": video["source_id"]})
         self._sync_index(video_id, "summary_completed")
         return result
 
+    @leased_stage(StageName.REFINED_TRANSCRIPT)
     def _run_refined_transcript_stage(
-        self, video_id: int, stage: dict[str, object]
+        self, video_id: int, stage: dict[str, object], *, claim=None, batch=None
     ) -> TranscriptResult | None:
         video = self._require_video(video_id)
         bvid = str(video["source_id"])
-        raw_json_path = self.artifacts.video_dir(bvid) / "subtitle-raw.json"
-        segments_data = json.loads(raw_json_path.read_text(encoding="utf-8"))
+        segments_data = json.loads(
+            self.artifacts.raw_bytes(str(video["raw_subtitle_path"]))
+        )
         segments = [SubtitleSegment.model_validate(item) for item in segments_data]
         language = SubtitleLanguage(str(video["subtitle_language"]))
         attempt = int(stage["attempt_count"]) + 1
@@ -611,6 +790,7 @@ class PipelineService:
             profile="refinement",
             thinking_enabled=0,
             reasoning_effort=None,
+            claim=claim,
         )
         started = time.monotonic()
         try:
@@ -620,20 +800,25 @@ class PipelineService:
                 StageName.REFINED_TRANSCRIPT,
                 provider=provider.name,
                 model=provider.model,
+                claim=claim,
             )
-            prompt = build_transcript_prompt(title=str(video["title"]), language=language, segments=segments)
+            prompt = build_transcript_prompt(
+                title=str(video["title"]), language=language, segments=segments
+            )
             result = provider.complete_json(
                 prompt,
                 TranscriptResult,
-                max_tokens=transcript_token_limit(int(video.get("duration_seconds") or 0)),
+                max_tokens=transcript_token_limit(
+                    int(video.get("duration_seconds") or 0)
+                ),
             )
         except PipelineError as exc:
             self._record_refinement_failure(
-                video_id, StageName.REFINED_TRANSCRIPT, attempt, exc
+                video_id, StageName.REFINED_TRANSCRIPT, attempt, exc, claim=claim
             )
             return None
-        self.artifacts.save_transcript(bvid, result, revision="refined")
-        self.artifacts.save_generation_provenance(
+        batch.save_transcript(bvid, result, revision="refined")
+        batch.save_generation_provenance(
             bvid,
             "transcript",
             self._generation_provenance(
@@ -646,26 +831,40 @@ class PipelineService:
             ),
             revision="refined",
         )
-        self.db.update_stage(
-            video_id,
-            StageName.REFINED_TRANSCRIPT,
-            status=StageStatus.COMPLETED.value,
-            completed_at=utc_now(),
-            elapsed_seconds=time.monotonic() - started,
-            last_error_code=None,
-            last_error_message=None,
+
+        def publish(conn):
+            self._publication_guard(conn, claim, video_id)
+            self.db.update_stage(
+                video_id,
+                StageName.REFINED_TRANSCRIPT,
+                status=StageStatus.COMPLETED.value,
+                completed_at=utc_now(),
+                elapsed_seconds=time.monotonic() - started,
+                last_error_code=None,
+                last_error_message=None,
+                claim=claim,
+                conn=conn,
+            )
+
+        batch.commit(
+            publish,
+            validate=lambda conn: self._publication_guard(conn, claim, video_id),
         )
         return result
 
+    @leased_stage(StageName.REFINEMENT_REVIEW)
     def _run_refinement_review_stage(
         self,
         video_id: int,
         refined_transcript: TranscriptResult,
         stage: dict[str, object],
+        *,
+        claim=None,
+        batch=None,
     ) -> bool:
         video = self._require_video(video_id)
         bvid = str(video["source_id"])
-        links = _json_list(str(video.get("description_links_json") or "[]"))
+        links = list(video.get("description_links_json") or [])
         try:
             fast_summary = self.artifacts.load_summary(bvid, revision="fast")
         except FileNotFoundError:
@@ -678,6 +877,7 @@ class PipelineService:
                     code="fast_artifact_missing",
                     retryable=False,
                 ),
+                claim=claim,
             )
             return True
         attempt = int(stage["attempt_count"]) + 1
@@ -692,6 +892,7 @@ class PipelineService:
             profile="refinement",
             thinking_enabled=1,
             reasoning_effort="high",
+            claim=claim,
         )
         started = time.monotonic()
         try:
@@ -701,6 +902,7 @@ class PipelineService:
                 StageName.REFINEMENT_REVIEW,
                 provider=provider.name,
                 model=provider.model,
+                claim=claim,
             )
             prompt = build_refinement_review_prompt(
                 title=str(video["title"]),
@@ -714,7 +916,9 @@ class PipelineService:
                 SummaryReviewResult,
                 max_tokens=summary_token_limit(int(video.get("duration_seconds") or 0)),
             )
-            final_summary = fast_summary if review.decision == "keep" else review.revised_summary
+            final_summary = (
+                fast_summary if review.decision == "keep" else review.revised_summary
+            )
             if final_summary is None:
                 raise PipelineError(
                     "精修摘要缺少 revised_summary",
@@ -724,14 +928,14 @@ class PipelineService:
             final_summary.related_links = links
         except PipelineError as exc:
             self._record_refinement_failure(
-                video_id, StageName.REFINEMENT_REVIEW, attempt, exc
+                video_id, StageName.REFINEMENT_REVIEW, attempt, exc, claim=claim
             )
             return True
 
-        _, transcript_markdown = self.artifacts.save_transcript(
+        _, transcript_markdown = batch.save_transcript(
             bvid, refined_transcript, revision="refined"
         )
-        _, summary_markdown = self.artifacts.save_summary(
+        _, summary_markdown = batch.save_summary(
             bvid, final_summary, revision="refined"
         )
         transcript_provenance = self.artifacts.load_generation_provenance(
@@ -748,41 +952,58 @@ class PipelineService:
             thinking_enabled=True,
             reasoning_effort="high",
         )
-        self.artifacts.save_generation_provenance(
+        batch.save_generation_provenance(
             bvid, "summary", summary_provenance, revision="refined"
         )
         # Keep the V0 filenames as readable aliases for external local-file use.
-        self.artifacts.save_transcript(bvid, refined_transcript)
-        self.artifacts.save_summary(bvid, final_summary)
-        self.artifacts.save_generation_provenance(
-            bvid, "transcript", transcript_provenance
-        )
-        self.artifacts.save_generation_provenance(bvid, "summary", summary_provenance)
+        batch.save_transcript(bvid, refined_transcript)
+        batch.save_summary(bvid, final_summary)
+        batch.save_generation_provenance(bvid, "transcript", transcript_provenance)
+        batch.save_generation_provenance(bvid, "summary", summary_provenance)
         now = utc_now()
-        self.db.update_stage(
-            video_id,
-            StageName.REFINEMENT_REVIEW,
-            status=StageStatus.COMPLETED.value,
-            completed_at=now,
-            elapsed_seconds=time.monotonic() - started,
-            decision=review.decision,
-            change_reasons_json=json.dumps(review.change_reasons, ensure_ascii=False),
-            last_error_code=None,
-            last_error_message=None,
-        )
-        self.db.update_video(
-            video_id,
-            transcript_path=str(transcript_markdown),
-            summary_path=str(summary_markdown),
-            active_revision="refined",
-            refinement_status=RefinementStatus.COMPLETED.value,
-            error_code=None,
-            error_message=None,
-        )
-        self.db.add_event(
-            "refinement_completed",
-            video_id,
-            {"decision": review.decision, "change_reasons": review.change_reasons},
+
+        def publish(conn):
+            self._publication_guard(conn, claim, video_id)
+            self.db.update_stage(
+                video_id,
+                StageName.REFINEMENT_REVIEW,
+                status=StageStatus.COMPLETED.value,
+                completed_at=now,
+                elapsed_seconds=time.monotonic() - started,
+                decision=review.decision,
+                change_reasons_json=json.dumps(
+                    review.change_reasons, ensure_ascii=False
+                ),
+                last_error_code=None,
+                last_error_message=None,
+                claim=claim,
+                conn=conn,
+            )
+            self.db.update_video(
+                video_id,
+                transcript_path=str(transcript_markdown),
+                summary_path=str(summary_markdown),
+                active_revision="refined",
+                refinement_status=RefinementStatus.COMPLETED.value,
+                error_code=None,
+                error_message=None,
+                publish_guard=(
+                    lambda c: self.db.check_lease(c, "pipeline_stages", claim)
+                )
+                if claim
+                else None,
+                conn=conn,
+            )
+            self.db.add_event(
+                "refinement_completed",
+                video_id,
+                {"decision": review.decision, "change_reasons": review.change_reasons},
+                conn=conn,
+            )
+
+        batch.commit(
+            publish,
+            validate=lambda conn: self._publication_guard(conn, claim, video_id),
         )
         self._sync_index(video_id, "refinement_completed")
         return True
@@ -818,26 +1039,42 @@ class PipelineService:
         }
 
     def _record_refinement_failure(
-        self, video_id: int, stage_name: StageName, attempt: int, error: PipelineError
+        self,
+        video_id: int,
+        stage_name: StageName,
+        attempt: int,
+        error: PipelineError,
+        *,
+        claim=None,
     ) -> None:
         retryable = error.retryable and attempt < 3
-        next_retry = _iso_after(minutes=5 if attempt == 1 else 30) if retryable else None
+        next_retry = (
+            _iso_after(minutes=5 if attempt == 1 else 30) if retryable else None
+        )
         self.db.update_stage(
             video_id,
             stage_name,
-            status=(StageStatus.RETRY_WAIT if retryable else StageStatus.NEEDS_REVIEW).value,
+            status=(
+                StageStatus.RETRY_WAIT if retryable else StageStatus.NEEDS_REVIEW
+            ).value,
             attempt_count=attempt,
             next_retry_at=next_retry,
             last_error_code=error.code,
             last_error_message=str(error),
+            claim=claim,
         )
         self.db.update_video(
             video_id,
             refinement_status=(
-                RefinementStatus.PENDING.value if retryable else RefinementStatus.FAILED.value
+                RefinementStatus.PENDING.value
+                if retryable
+                else RefinementStatus.FAILED.value
             ),
             error_code=error.code if not retryable else None,
             error_message=str(error) if not retryable else None,
+            publish_guard=(lambda c: self.db.check_lease(c, "pipeline_stages", claim))
+            if claim
+            else None,
         )
         self.db.add_event(
             "refinement_failed",
@@ -853,7 +1090,13 @@ class PipelineService:
             return self.provider_factory()
 
     def _record_stage_failure(
-        self, video_id: int, stage_name: StageName, attempt: int, error: PipelineError
+        self,
+        video_id: int,
+        stage_name: StageName,
+        attempt: int,
+        error: PipelineError,
+        *,
+        claim=None,
     ) -> None:
         retryable = error.retryable and attempt < 3
         delay = 5 if attempt == 1 else 30
@@ -867,12 +1110,16 @@ class PipelineService:
             next_retry_at=next_retry,
             last_error_code=error.code,
             last_error_message=str(error),
+            claim=claim,
         )
         self.db.update_video(
             video_id,
             status=video_status.value,
             error_code=error.code,
             error_message=str(error),
+            publish_guard=(lambda c: self.db.check_lease(c, "pipeline_stages", claim))
+            if claim
+            else None,
         )
         self.db.add_event(
             "summary_failed",
@@ -880,14 +1127,21 @@ class PipelineService:
             {"stage": stage_name.value, "code": error.code, "retryable": retryable},
         )
 
-    def _mark_video_needs_review(self, video_id: int, error: PipelineError) -> None:
+    def _mark_video_needs_review(
+        self, video_id: int, error: PipelineError, *, claim=None
+    ) -> None:
         self.db.update_video(
             video_id,
             status=VideoStatus.NEEDS_REVIEW.value,
             error_code=error.code,
             error_message=str(error),
+            publish_guard=(lambda c: self.db.check_lease(c, "pipeline_stages", claim))
+            if claim
+            else None,
         )
-        self.db.add_event("summary_failed", video_id, {"stage": "source", "code": error.code})
+        self.db.add_event(
+            "summary_failed", video_id, {"stage": "source", "code": error.code}
+        )
 
     def _load_completed_transcript(self, video_id: int) -> TranscriptResult | None:
         video = self._require_video(video_id)
@@ -896,10 +1150,9 @@ class PipelineService:
             return None
         profile = str(video.get("processing_profile") or "formal")
         revision = "fast" if profile == "fast" else "refined"
-        path = self.artifacts.video_dir(str(video["source_id"])) / f"transcript.{revision}.json"
-        if not path.exists():
-            path = self.artifacts.video_dir(str(video["source_id"])) / "transcript.json"
-        return TranscriptResult.model_validate_json(path.read_text(encoding="utf-8"))
+        return self.artifacts.load_transcript(
+            str(video["source_id"]), revision=revision
+        )
 
     def _load_completed_summary(self, video_id: int) -> SummaryResult | None:
         video = self._require_video(video_id)
@@ -908,14 +1161,12 @@ class PipelineService:
             return None
         profile = str(video.get("processing_profile") or "formal")
         revision = "fast" if profile == "fast" else "refined"
-        path = self.artifacts.video_dir(str(video["source_id"])) / f"summary.{revision}.json"
-        if not path.exists():
-            path = self.artifacts.video_dir(str(video["source_id"])) / "summary.json"
-        return SummaryResult.model_validate_json(path.read_text(encoding="utf-8"))
+        return self.artifacts.load_summary(str(video["source_id"]), revision=revision)
 
     def _raw_transcript_for_summary(self, video: dict[str, object]) -> TranscriptResult:
-        raw_json_path = self.artifacts.video_dir(str(video["source_id"])) / "subtitle-raw.json"
-        segments_data = json.loads(raw_json_path.read_text(encoding="utf-8"))
+        segments_data = json.loads(
+            self.artifacts.raw_bytes(str(video["raw_subtitle_path"]))
+        )
         segments = [SubtitleSegment.model_validate(item) for item in segments_data]
         if not segments:
             raise PipelineError(
@@ -933,7 +1184,11 @@ class PipelineService:
             if not content:
                 continue
             bucket = int(segment.start // 120)
-            if current_bucket is not None and bucket != current_bucket and current_lines:
+            if (
+                current_bucket is not None
+                and bucket != current_bucket
+                and current_lines
+            ):
                 sections.append(
                     TranscriptSection(
                         title=f"原字幕 {_clock_label(current_start)}",
@@ -1002,7 +1257,9 @@ def _clock_label(seconds: float) -> str:
 
 
 def _iso_after(*, minutes: int) -> str:
-    return (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(timespec="seconds")
+    return (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(
+        timespec="seconds"
+    )
 
 
 def _parse_time(value: str) -> datetime:

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from shiliu.migration.readonly import connect_snapshot
+
 from dataclasses import asdict, fields
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
 from pathlib import Path
 import shutil
-import sqlite3
 import tempfile
 from typing import Any, Iterable
 
@@ -303,7 +304,7 @@ def build_audit(records: list[dict[str, Any]], *, manifest_bytes: bytes,
         if candidate["unit_type"] == "transcript_chunk"
     }
     resolved_chunk_ids: set[str] = set()
-    connection = sqlite3.connect(f"file:{Path(snapshot_db).resolve()}?mode=ro&immutable=1", uri=True)
+    connection = connect_snapshot(Path(snapshot_db))
     try:
         if chunk_unit_ids:
             placeholders = ",".join("?" for _ in chunk_unit_ids)

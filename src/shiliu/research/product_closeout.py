@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
+from psycopg import Connection
 import threading
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from shiliu.db import Database
+from shiliu.research.errors import ResearchForbidden
+from shiliu.db import Database, json_field
+from shiliu.storage.dto import iso_time, json_value, row_dto
+from shiliu.research.service import _parse_iso
 from shiliu.research.errors import ResearchNotFound, ResearchValidationError
 from shiliu.research.knowledge_contracts import SubmitKnowledgeFeedbackRequest
 from shiliu.research.service import ResearchTaskService
@@ -33,7 +36,7 @@ def _now() -> str:
 
 
 def _json_object(value: object) -> dict[str, Any]:
-    decoded = json.loads(str(value or "{}"))
+    decoded = json_value(value or '{}')
     return decoded if isinstance(decoded, dict) else {}
 
 
@@ -48,6 +51,7 @@ class ResearchProductCloseoutService:
         fault_injector: FaultInjector | None = None,
     ) -> None:
         self.db = db
+        self.context = db.context
         self.kernel = kernel
         self.fault_injector = fault_injector or (lambda _point: None)
         self._command_lock = threading.RLock()
@@ -88,6 +92,8 @@ class ResearchProductCloseoutService:
         *,
         principal_id: str,
     ) -> dict[str, Any]:
+        if principal_id is not None and principal_id != self.context.user_id:
+            raise ResearchForbidden("principal does not match trusted resource context")
         request = SubmitKnowledgeFeedbackRequest.model_validate(
             request.model_dump(mode="json")
         )
@@ -182,9 +188,8 @@ class ResearchProductCloseoutService:
             self.fault_injector("after_stage5_feedback_receipt")
         return {**response, "deduplicated": False}
 
-    @staticmethod
-    def _feedback_target(
-        connection: sqlite3.Connection,
+    def _feedback_target(self,
+        connection: Connection,
         *,
         task_id: str,
         target_kind: str,
@@ -192,16 +197,14 @@ class ResearchProductCloseoutService:
     ) -> dict[str, str]:
         if target_kind == "topic_page_revision":
             row = connection.execute(
-                "SELECT page_revision_id, content_hash FROM research_topic_page_revisions "
-                "WHERE task_id=? AND page_revision_id=?",
-                (task_id, target_id),
+                'SELECT page_revision_id, content_hash FROM research_topic_page_revisions WHERE research_topic_page_revisions.workspace_id=%s AND  task_id=%s AND page_revision_id=%s',
+                (self.context.workspace_id, task_id, target_id),
             ).fetchone()
             expected_column = "content_hash"
         else:
             row = connection.execute(
-                "SELECT record_id, expected_authority_hash FROM research_artifact_routes "
-                "WHERE task_id=? AND record_id=?",
-                (task_id, target_id),
+                'SELECT record_id, expected_authority_hash FROM research_artifact_routes WHERE research_artifact_routes.workspace_id=%s AND  task_id=%s AND record_id=%s',
+                (self.context.workspace_id, task_id, target_id),
             ).fetchone()
             expected_column = "expected_authority_hash"
         if row is None:
@@ -212,7 +215,7 @@ class ResearchProductCloseoutService:
 
     def _relations(
         self,
-        connection: sqlite3.Connection,
+        connection: Connection,
         task_id: str,
         fact_by_revision: dict[str, dict[str, Any]],
     ) -> dict[str, Any]:
@@ -224,16 +227,16 @@ class ResearchProductCloseoutService:
                    fs.current_revision_id, fs.lifecycle_status, fs.currentness_status
             FROM research_topic_pages p
             JOIN research_topic_page_revisions pr
-              ON pr.page_id=p.page_id AND pr.version=p.published_version
+              ON pr.workspace_id=p.workspace_id AND pr.page_id=p.page_id AND pr.version=p.published_version
             JOIN research_topic_page_fact_links pfl
-              ON pfl.page_revision_id=pr.page_revision_id
+              ON pfl.workspace_id=p.workspace_id AND pfl.page_revision_id=pr.page_revision_id
             JOIN research_fact_revisions fr
-              ON fr.fact_revision_id=pfl.fact_revision_id
-            LEFT JOIN research_knowledge_fact_states fs ON fs.fact_id=fr.fact_id
-            WHERE p.task_id=? AND p.published_version IS NOT NULL
+              ON fr.workspace_id=p.workspace_id AND fr.fact_revision_id=pfl.fact_revision_id
+            LEFT JOIN research_knowledge_fact_states fs ON fs.workspace_id=p.workspace_id AND fs.fact_id=fr.fact_id
+            WHERE p.workspace_id=%s AND  p.task_id=%s AND p.published_version IS NOT NULL
             ORDER BY p.page_id, pfl.ordinal, pfl.fact_revision_id
             """,
-            (task_id,),
+            (self.context.workspace_id, task_id),
         ).fetchall()
         pages: dict[str, dict[str, Any]] = {}
         fact_pages: dict[str, list[str]] = defaultdict(list)
@@ -295,10 +298,10 @@ class ResearchProductCloseoutService:
             SELECT left_fact_revision_id, right_fact_revision_id,
                    conflict_observation_id, reason
             FROM research_knowledge_conflict_observations
-            WHERE task_id=? AND resolution='confirmed_conflict'
+            WHERE research_knowledge_conflict_observations.workspace_id=%s AND  task_id=%s AND resolution='confirmed_conflict'
             ORDER BY created_at, conflict_observation_id
             """,
-            (task_id,),
+            (self.context.workspace_id, task_id),
         ).fetchall()
         for conflict in conflict_rows:
             left_fact = str(conflict["left_fact_revision_id"])
@@ -407,114 +410,112 @@ class ResearchProductCloseoutService:
             "promotion_authority": False,
         }
 
-    @staticmethod
-    def _observability(
-        connection: sqlite3.Connection, task_id: str
+    def _observability(self,
+        connection: Connection, task_id: str
     ) -> dict[str, Any]:
         table_queries = {
-            "events": "SELECT COUNT(*) FROM research_events WHERE task_id=?",
-            "traces": "SELECT COUNT(*) FROM research_traces WHERE task_id=?",
-            "receipts": "SELECT COUNT(*) FROM research_command_receipts WHERE task_id=?",
-            "build_runs": "SELECT COUNT(*) FROM research_knowledge_build_runs WHERE task_id=?",
-            "operations": "SELECT COUNT(*) FROM research_knowledge_update_operations WHERE task_id=?",
-            "artifact_routes": "SELECT COUNT(*) FROM research_artifact_routes WHERE task_id=?",
-            "page_reviews": "SELECT COUNT(*) FROM research_topic_page_review_decisions WHERE task_id=?",
+            "events": "SELECT COUNT(*) AS value FROM research_events WHERE workspace_id=%s AND task_id=%s",
+            "traces": "SELECT COUNT(*) AS value FROM research_traces WHERE workspace_id=%s AND task_id=%s",
+            "receipts": "SELECT COUNT(*) AS value FROM research_command_receipts WHERE workspace_id=%s AND task_id=%s",
+            "build_runs": "SELECT COUNT(*) AS value FROM research_knowledge_build_runs WHERE workspace_id=%s AND task_id=%s",
+            "operations": "SELECT COUNT(*) AS value FROM research_knowledge_update_operations WHERE workspace_id=%s AND task_id=%s",
+            "artifact_routes": "SELECT COUNT(*) AS value FROM research_artifact_routes WHERE workspace_id=%s AND task_id=%s",
+            "page_reviews": "SELECT COUNT(*) AS value FROM research_topic_page_review_decisions WHERE workspace_id=%s AND task_id=%s",
         }
         counts = {
-            name: int(connection.execute(query, (task_id,)).fetchone()[0])
+            name: int(connection.execute(query, (self.context.workspace_id, task_id,)).fetchone()["value"])
             for name, query in table_queries.items()
         }
         feedback_rows = connection.execute(
             """
             SELECT event_id, sequence, payload_json, command_id, created_at
             FROM research_events
-            WHERE task_id=? AND event_type='v5b_product_feedback_recorded'
-            ORDER BY sequence DESC LIMIT ?
+            WHERE research_events.workspace_id=%s AND  task_id=%s AND event_type='v5b_product_feedback_recorded'
+            ORDER BY sequence DESC LIMIT %s
             """,
-            (task_id, MAX_FEEDBACK_ITEMS),
+            (self.context.workspace_id, task_id, MAX_FEEDBACK_ITEMS),
         ).fetchall()
         feedback = [
             {
                 "event_id": str(row["event_id"]),
                 "sequence": int(row["sequence"]),
                 "command_id": str(row["command_id"]),
-                "created_at": str(row["created_at"]),
+                "created_at": iso_time(row['created_at'], timespec="microseconds"),
                 **_json_object(row["payload_json"]),
             }
             for row in feedback_rows
         ]
         feedback_count = int(
             connection.execute(
-                "SELECT COUNT(*) FROM research_events "
-                "WHERE task_id=? AND event_type='v5b_product_feedback_recorded'",
-                (task_id,),
-            ).fetchone()[0]
+                "SELECT COUNT(*) AS value FROM research_events WHERE research_events.workspace_id=%s AND  task_id=%s AND event_type='v5b_product_feedback_recorded'",
+                (self.context.workspace_id, task_id),
+            ).fetchone()["value"]
         )
         status_counts = {
-            "build_runs": ResearchProductCloseoutService._group_counts(
+            "build_runs": self._group_counts(
                 connection,
                 "SELECT status, COUNT(*) AS count FROM research_knowledge_build_runs "
-                "WHERE task_id=? GROUP BY status ORDER BY status",
+                "WHERE workspace_id=%s AND task_id=%s GROUP BY status ORDER BY status",
                 task_id,
             ),
-            "operations": ResearchProductCloseoutService._group_counts(
+            "operations": self._group_counts(
                 connection,
                 "SELECT status, COUNT(*) AS count FROM research_knowledge_update_operations "
-                "WHERE task_id=? GROUP BY status ORDER BY status",
+                "WHERE workspace_id=%s AND task_id=%s GROUP BY status ORDER BY status",
                 task_id,
             ),
-            "artifact_routes": ResearchProductCloseoutService._group_counts(
+            "artifact_routes": self._group_counts(
                 connection,
                 "SELECT status, COUNT(*) AS count FROM research_artifact_routes "
-                "WHERE task_id=? GROUP BY status ORDER BY status",
+                "WHERE workspace_id=%s AND task_id=%s GROUP BY status ORDER BY status",
                 task_id,
             ),
         }
         latest = {
-            "event": ResearchProductCloseoutService._latest_row(
+            "event": self._latest_row(
                 connection,
                 "SELECT event_id, sequence, event_type, created_at FROM research_events "
-                "WHERE task_id=? ORDER BY sequence DESC LIMIT 1",
+                "WHERE workspace_id=%s AND task_id=%s ORDER BY sequence DESC LIMIT 1",
                 task_id,
             ),
-            "trace": ResearchProductCloseoutService._latest_row(
+            "trace": self._latest_row(
                 connection,
                 "SELECT trace_id, ended_at, termination_reason, retention_class "
-                "FROM research_traces WHERE task_id=? ORDER BY started_at DESC LIMIT 1",
+                "FROM research_traces WHERE workspace_id=%s AND task_id=%s ORDER BY started_at DESC LIMIT 1",
                 task_id,
             ),
-            "receipt": ResearchProductCloseoutService._latest_row(
+            "receipt": self._latest_row(
                 connection,
                 "SELECT receipt_id, command_type, status, outcome_reference, completed_at "
-                "FROM research_command_receipts WHERE task_id=? "
+                "FROM research_command_receipts WHERE workspace_id=%s AND task_id=%s "
                 "ORDER BY created_at DESC LIMIT 1",
                 task_id,
             ),
-            "build_run": ResearchProductCloseoutService._latest_row(
+            "build_run": self._latest_row(
                 connection,
                 "SELECT build_run_id, build_kind, status, attempt_count, output_reference, "
                 "error_code, completed_at FROM research_knowledge_build_runs "
-                "WHERE task_id=? ORDER BY created_at DESC LIMIT 1",
+                "WHERE workspace_id=%s AND task_id=%s ORDER BY created_at DESC LIMIT 1",
                 task_id,
             ),
-            "operation": ResearchProductCloseoutService._latest_row(
+            "operation": self._latest_row(
                 connection,
                 "SELECT operation_id, operation_kind, status, attempt_count, error_class, "
                 "error_code, updated_at FROM research_knowledge_update_operations "
-                "WHERE task_id=? ORDER BY created_at DESC LIMIT 1",
+                "WHERE workspace_id=%s AND task_id=%s ORDER BY created_at DESC LIMIT 1",
                 task_id,
             ),
-            "artifact_route": ResearchProductCloseoutService._latest_row(
+            "artifact_route": self._latest_row(
                 connection,
                 "SELECT record_id, route_id, version, final_route, status, "
                 "expected_authority_hash, created_at FROM research_artifact_routes "
-                "WHERE task_id=? ORDER BY created_at DESC, version DESC LIMIT 1",
+                "WHERE workspace_id=%s AND task_id=%s ORDER BY created_at DESC, version DESC LIMIT 1",
                 task_id,
             ),
-            "page_review": ResearchProductCloseoutService._latest_row(
+            "page_review": self._latest_row(
                 connection,
                 "SELECT decision_id, page_id, page_revision_id, decision_kind, created_at "
-                "FROM research_topic_page_review_decisions WHERE task_id=? "
+                "FROM research_topic_page_review_decisions WHERE workspace_id=%s AND task_id=%s "
                 "ORDER BY created_at DESC LIMIT 1",
                 task_id,
             ),
@@ -530,21 +531,22 @@ class ResearchProductCloseoutService:
             "trace_href": f"/research/{task_id}",
         }
 
-    @staticmethod
-    def _group_counts(
-        connection: sqlite3.Connection, query: str, task_id: str
+    def _group_counts(self,
+        connection: Connection, query: str, task_id: str
     ) -> dict[str, int]:
         return {
             str(row["status"]): int(row["count"])
-            for row in connection.execute(query, (task_id,)).fetchall()
+            for row in connection.execute(query, (self.context.workspace_id, task_id,)).fetchall()
         }
 
-    @staticmethod
-    def _latest_row(
-        connection: sqlite3.Connection, query: str, task_id: str
+    def _latest_row(self,
+        connection: Connection, query: str, task_id: str
     ) -> dict[str, Any] | None:
-        row = connection.execute(query, (task_id,)).fetchone()
-        return dict(row) if row is not None else None
+        row = connection.execute(query, (self.context.workspace_id, task_id,)).fetchone()
+        return row_dto(row, timestamps=[key for key in (
+            "created_at", "updated_at", "started_at", "ended_at", "completed_at",
+            "finished_at", "lease_until", "next_attempt_at",
+        ) if key in row], timespec="microseconds") if row is not None else None
 
     @staticmethod
     def _product_paths(artifact_routes: list[dict[str, Any]]) -> dict[str, Any]:
