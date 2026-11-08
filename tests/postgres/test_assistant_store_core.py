@@ -505,6 +505,34 @@ def test_task_navigation_writes_and_job_manual_retry_use_runtime_contracts(assis
     assert activity["items"][0]["id"]==job_id
 
 
+def test_video_maintenance_jobs_follow_active_membership_and_selected_video(assistant_store):
+    from seed_rows import SyntheticGraph
+    store, _ = assistant_store
+    videos = []
+    jobs = []
+    with store.db.connect() as conn:
+        for index in (1, 2):
+            graph = SyntheticGraph(conn, numeric_id=index, suffix=str(index), overrides={
+                'favorite_sources': {'status': 'active'},
+                'videos': {'is_ignored': False, 'archived_at': None},
+                'video_source_memberships': {'removed_at': None},
+            })
+            video = graph.ensure('videos')
+            source = graph.ensure('favorite_sources')
+            graph.overrides['video_source_memberships'].update(video_id=video['id'], source_id=source['id'])
+            membership = graph.ensure('video_source_memberships')
+            videos.append(membership['video_id'])
+            jobs.append(store.enqueue_job(conn, kind='source_reconcile',
+                dedupe_key=f'scoped-video-{index}', payload={'video_id': membership['video_id']}))
+    space = store.create_space(name='video jobs', all_active=True, video_ids=[videos[0]])
+    assert [job['id'] for job in store.list_jobs(space_id=space['id'])] == jobs[:1]
+    assert store.maintenance_activity(space['id'])['counts'] == {'queued': 1}
+    with store.db.connect() as conn:
+        conn.execute('UPDATE video_source_memberships SET removed_at=clock_timestamp() WHERE video_id=%s', (videos[0],))
+    assert store.list_jobs(space_id=space['id']) == []
+    assert store.maintenance_activity(space['id'])['counts'] == {}
+
+
 def test_formal_assistant_router_pg_snapshot_terminal_sse_and_after_seq(assistant_store):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient

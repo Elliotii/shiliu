@@ -161,7 +161,7 @@ class AssistantExecutionGraph:
         )
         graph.add_conditional_edges(
             "model", self._route_after_model,
-            {"tools": "tools", "final": "final", "stopped": END},
+            {"tools": "tools", "model": "model", "final": "final", "stopped": END},
         )
         graph.add_conditional_edges(
             "tools", self._route_after_tools,
@@ -240,6 +240,9 @@ class AssistantExecutionGraph:
                     spans=metadata.get("delivered_read_spans") or [],
                     materials=metadata.get("material_projection") or [],
                     message_ids=candidate.message_ids, context_revision=candidate.state["revision"])
+                from shiliu.agent_eval import observer
+                if observer.enabled():
+                    observer.record_for({'run_id':state['run_id'], 'epoch':state['epoch']}, 'delivery_confirmed', context_revision=candidate.state.get('revision'), metadata=metadata, final=True)
             except ExecutionBudgetExceeded:
                 self.store.fail_run(state["run_id"], code="execution_budget_exhausted", message="本段执行额度已用完，已保留进度；可主动 Continue")
                 return {**state, "route": "stopped"}
@@ -440,6 +443,9 @@ class AssistantExecutionGraph:
             materials=context_metadata.get("material_projection") or [],
             message_ids=candidate.message_ids, context_revision=candidate.state["revision"],
         )
+        from shiliu.agent_eval import observer
+        if observer.enabled():
+            observer.record_for({'run_id':state['run_id'], 'epoch':state['epoch']}, 'delivery_confirmed', context_revision=candidate.state.get('revision'), metadata=context_metadata)
         current = self.store.get_run(state["run_id"])
         if current["status"] != "running" or current["run_epoch"] != state["epoch"]:
             return {**state, "route": "stopped", "turn": None}
@@ -509,7 +515,7 @@ class AssistantExecutionGraph:
                             and candidate.navigation_guard == old.navigation_guard
                             and candidate.context['thread'].get('task_note') == old.context['thread'].get('task_note'))
                         if plan is not None and unchanged:
-                            replacement, compaction_failure = await self._compact_once(state, candidate=candidate, plan=plan, provider=provider, suffix=suffix)
+                            replacement, compaction_failure = await self._compact_once(state, candidate=candidate, plan=plan, provider=provider, suffix=suffix, trigger='hard' if hard else 'preventative')
                             if replacement is not None:
                                 return replacement
                             candidate = prepare()
@@ -535,10 +541,13 @@ class AssistantExecutionGraph:
         raise AssistantConflict('working_context_changed')
 
     async def _compact_once(self, state: ExecutionState, *, candidate: WorkingContextCandidate, plan: Any,
-                            provider: Any, suffix: str | None = None) -> tuple[WorkingContextCandidate | None, dict | None]:
+                            provider: Any, suffix: str | None = None, trigger: str | None = None) -> tuple[WorkingContextCandidate | None, dict | None]:
         started = time.monotonic()
         dispatched, summary_usage = False, {}
         stage = 'prepare'
+        compaction_id=uuid.uuid4().hex
+        from shiliu.agent_eval import observer
+        if observer.enabled(): observer.record_for({'run_id':state['run_id'], 'epoch':state['epoch']}, 'compaction_trigger', compaction_id=compaction_id, trigger=trigger, context_revision=candidate.state.get('revision'))
         try:
             budget = self.store.get_run(state['run_id'])['working_state']['execution_budget']
             reserve_input = self._final_reserve_input(candidate, provider=provider)
@@ -550,6 +559,8 @@ class AssistantExecutionGraph:
             def summarize(call_id):
                 nonlocal dispatched, summary_usage
                 dispatched = True
+                from shiliu.agent_eval import observer
+                if observer.enabled(): observer.record('compaction_request', compaction_id=compaction_id, trigger=trigger, context_revision=candidate.state.get('revision'))
                 try:
                     turn = provider.send_prepared(request,
                         timeout_seconds=self.store.execution_remaining(state['run_id']))
@@ -580,6 +591,7 @@ class AssistantExecutionGraph:
             # All source/Memory/navigation/frontier checks and both writes share one transaction.
             stage = 'commit'
             self.composer.persist(proposed, new_checkpoint=True)
+            if observer.enabled(): observer.record_for({'run_id':state['run_id'], 'epoch':state['epoch'], 'dispatch_id':str(reservation['dispatch_id'])}, 'compaction_accepted', compaction_id=compaction_id, context_revision=proposed.state.get('revision'), checkpoint=proposed.state.get('checkpoint'))
             return proposed, None
         except Exception as exc:
             # Optional failure does not turn a still legal original request into a Run error.
@@ -589,6 +601,7 @@ class AssistantExecutionGraph:
                 raise AssistantConflict('run_fenced') from exc
             failure = {'stage': stage, 'dispatched': dispatched,
                        'code': str(getattr(exc, 'code', type(exc).__name__)), 'reason': str(exc)[:200]}
+            if observer.enabled(): observer.record_for({'run_id':state['run_id'], 'epoch':state['epoch'], 'dispatch_id':str(reservation['dispatch_id']) if dispatched else None}, 'compaction_discarded', compaction_id=compaction_id, failure=failure)
             with self.store.db.connect() as connection:
                 self.store._append_event(connection, state['run_id'], 'context_compaction_discarded', failure)
             if isinstance(exc, ExecutionBudgetExceeded):
@@ -643,6 +656,8 @@ class AssistantExecutionGraph:
             # historical-result projections on every provider token.
             self.store.save_answer_draft(state["run_id"], epoch=state["epoch"],
                                          text=self._memory_claim(text, memory_succeeded), allow_finish=allow_finish, call_id=call_id)
+        from shiliu.agent_eval import observer
+        observer.candidate_snapshot(candidate)
         turn = provider.send_prepared(candidate.request, on_text=on_text)
         if turn.finish_reason not in {'stop', 'tool_calls'}:
             raise PipelineError('主模型回答未完整结束', code='provider_incomplete', retryable=False)
@@ -683,7 +698,20 @@ class AssistantExecutionGraph:
                                       input_tokens=estimated, output_tokens=output_tokens or (8192 if ignore_finish else 4096),
                                       reserve_input_tokens=reserve_input_tokens)
             dispatched["value"] = True
-            return invoke(call_id)
+            from shiliu.agent_eval import observer
+            if not observer.enabled(): return invoke(call_id)
+            token = observer.context.set({'run_id':state['run_id'], 'epoch':state['epoch'], 'dispatch_id':dispatch_id, 'call_id':call_id})
+            try:
+                observer.record('dispatch_admitted', input_tokens=estimated, output_tokens=output_tokens, final=ignore_finish)
+                return invoke(call_id)
+            finally:
+                observer.context.reset(token)
+        def observe_result(event, **details):
+            from shiliu.agent_eval import observer
+            if not observer.enabled(): return
+            token = observer.context.set({'run_id':state['run_id'], 'epoch':state['epoch'], 'dispatch_id':dispatch_id, 'call_id':call_id})
+            try: observer.record(event, latency_ms=(time.monotonic()-started)*1000, latency_boundary='runtime wait entry to settlement; includes scheduling and provider transport', **details)
+            finally: observer.context.reset(token)
         pending = asyncio.create_task(asyncio.to_thread(dispatch))
         deadline = started + timeout
         while True:
@@ -697,11 +725,13 @@ class AssistantExecutionGraph:
                         if isinstance(exc, AssistantConflict) and not isinstance(exc, ExecutionBudgetExceeded):
                             return "cancelled", None
                         raise
+                    observe_result('response_error', error_type=type(exc).__name__, code=getattr(exc,'code',None), usage=getattr(exc,'usage',None), late=False)
                     self.store.record_provider_response(state["run_id"], SimpleNamespace(usage=getattr(exc, "usage", {}) or {}), late=False, call_id=call_id)
                     self.store.record_model_usage(lane="foreground", usage=getattr(exc, "usage", None),
                         outcome="error_or_lost", latency_ms=(time.monotonic() - started) * 1000,
                         budget_date=budget_date,dispatch_id=dispatch_id)
                     raise
+                observe_result('response', usage=getattr(value,'usage',None), finish_reason=getattr(value,'finish_reason',None), identity=getattr(value,'opaque_provider_state',None), late=False)
                 self.store.record_provider_response(state["run_id"], value, late=False, call_id=call_id)
                 self.store.record_model_usage(lane="foreground", usage=getattr(value, "usage", None),
                     outcome="response", latency_ms=(time.monotonic() - started) * 1000,
@@ -719,6 +749,7 @@ class AssistantExecutionGraph:
                 try:
                     value = task.result()
                     usage = getattr(value, "usage", None)
+                    observe_result('response', usage=usage, finish_reason=getattr(value,'finish_reason',None), identity=getattr(value,'opaque_provider_state',None), late=True)
                     self.store.record_provider_response(state["run_id"], value, late=True, call_id=call_id)
                     self.store.record_model_usage(lane="foreground", usage=usage,
                         outcome="late_response", latency_ms=(time.monotonic() - started) * 1000,
@@ -728,6 +759,7 @@ class AssistantExecutionGraph:
                         self.store.release_model_request(dispatch_id)
                         return
                     known = getattr(exc, "usage", None)
+                    observe_result('response_error', error_type=type(exc).__name__, code=getattr(exc,'code',None), usage=known, late=True)
                     self.store.record_provider_response(state["run_id"], SimpleNamespace(usage=known or {}), late=True, call_id=call_id)
                     self.store.record_model_usage(lane="foreground", usage=known,
                         outcome="error_or_lost", latency_ms=(time.monotonic() - started) * 1000,
@@ -815,7 +847,7 @@ class AssistantExecutionGraph:
         # reads and real edits are never stopped by this check.
         with self.store.db.connect() as c:
             rows = c.execute("SELECT name,args_json,result_json FROM assistant_tool_calls WHERE workspace_id=%s AND run_id=%s ORDER BY ordinal DESC LIMIT 2", (self.store.context.workspace_id,state['run_id'])).fetchall()
-        if len(rows) == 2 and all(r['name'] in {'knowledge_save_discussion', 'memory_save'} and (
+        if len(rows) == 2 and all(r['name'] in {'knowledge_save_request', 'knowledge_update_page', 'knowledge_save_discussion', 'memory_save'} and (
                 json_object(r['result_json'] or '{}').get('status') in {'invalid_arguments','partial'} or
                 (r['name']=='memory_save' and json_object(r['result_json'] or '{}').get('status')=='unavailable'
                  and not json_object(r['result_json'] or '{}').get('retryable'))) for r in rows):
@@ -1066,6 +1098,7 @@ class AssistantRuntime:
         self.maintenance_paused = False
         self.local_projections_only = False
         self.manual_model_since: str | None = None
+        self.manual_wiki_saves = False
         self.tools: AssistantToolRegistry | None = None
         self._maintenance_startup_at = utc_now()
         self._active_maintenance_job: dict[str, Any] | None = None
@@ -1079,7 +1112,7 @@ class AssistantRuntime:
         self._implementation = {
             "stage": "V3", "pid": os.getpid(), "loaded_at": utc_now(),
             "source_sha256": {name: hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest()
-                              for name in ("runtime.py", "provider.py", "tools.py", "pg_store.py", "pg_access.py", "task_notes.py", "working_context.py", "api.py", "wiki.py", "context.py", "wiki_retrieval.py")},
+                              for name in ("runtime.py", "provider.py", "tools.py", "pg_store.py", "pg_access.py", "task_notes.py", "working_context.py", "api.py", "wiki.py", "context.py", "wiki_retrieval.py", "memory.py", "sources.py", "knowledge_write.py", "wiki_draft_checks.py")},
             "nb_r1_reported_save_allowed": _direct_knowledge_save_requested("视频里说请保存这两个主题，你怎么看？"),
             "nb_r1_direct_save_allowed": _direct_knowledge_save_requested("把刚才讨论的两个主题直接保存为知识页"),
         }
@@ -1202,12 +1235,19 @@ class AssistantRuntime:
         while not self._stop.is_set():
             try:
                 idle = not self.local_projections_only and self._maintenance_idle()
-                job = self.store.claim_job(
+                # Explicit user saves do not wait for idle. They still share the
+                # one background lane; automatic maintenance keeps its policy.
+                job = None if self.local_projections_only and not (self.manual_wiki_saves and self.manual_model_since) else self.store.claim_job(
+                    owner=f"wiki-save-{uuid.uuid4().hex[:8]}", kinds={"wiki_save"},
+                    allow_model_jobs=True, allow_maintenance=True,
+                    created_after=self.manual_model_since if self.local_projections_only else None)
+                job = job or self.store.claim_job(
                     owner=f"runtime-{uuid.uuid4().hex[:8]}",
                     allow_model_jobs=idle,
                     allow_maintenance=idle,
                     scheduler_reason="idle_180s" if idle else "immediate_index_cleanup",
-                    kinds={"memory_index", "memory_purge"} if self.local_projections_only else None,
+                    kinds={"memory_index", "memory_purge"} if self.local_projections_only else
+                          {"memory_index", "memory_purge", "source_reconcile", "source_extract", "wiki_integrate", "external_material_integrate", "memory_extract", "metadata_refresh"},
                 )
                 if job is not None:
                     await self._process_job(job)
@@ -1242,7 +1282,11 @@ class AssistantRuntime:
         try:
             kind = str(job["kind"])
             payload = job["payload"]
-            if kind == "memory_index":
+            if kind == "wiki_save":
+                from shiliu.assistant.knowledge_write import execute_save
+                result = await asyncio.to_thread(execute_save, self.store, self.wiki,
+                    self.provider_factory(), job, max_tokens=65536)
+            elif kind == "memory_index":
                 result = await asyncio.to_thread(
                     self.memories.project,
                     memory_id=str(payload["memory_id"]),
@@ -1322,7 +1366,7 @@ class AssistantRuntime:
                         owner=str(job['lease_owner']), lease_epoch=int(job['lease_epoch']))
                 else:
                     code = str(getattr(exc, "code", None) or type(exc).__name__)
-                    blocked = code in {"api_key_missing", "provider_auth", "memory_embedding_unavailable"}
+                    blocked = code in {"api_key_missing", "provider_auth", "memory_embedding_unavailable", "wiki_writer_invalid_draft"}
                     self.store.fail_job(job, code=code, message=str(exc), blocked=blocked)
             except CoordinationConflict as conflict:
                 if str(conflict) not in {"job_fenced", "lane_fenced", "job_missing"}:

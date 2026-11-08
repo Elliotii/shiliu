@@ -11,7 +11,7 @@ from shiliu.migration.schema import HEAD_REVISION, MIGRATIONS, upgrade
 
 
 def test_0013_to_0014_constraints_and_resources():
-    assert HEAD_REVISION == "0014_assistant_source_patch"
+    assert HEAD_REVISION == "0015_wiki_source_suppression"
     assert (MIGRATIONS / "sql" / "0014.sql").is_file()
     assert (MIGRATIONS / "versions" / "0014_assistant_source_patch.py").is_file()
     with formal_target(

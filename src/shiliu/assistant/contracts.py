@@ -86,9 +86,9 @@ class CollectionReadArgs(BaseModel):
     )
     view: Literal["overview", "description", "summary", "notes", "transcript"] = "overview"
     revision: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
-    cursor: str | None = None
-    query: str | None = Field(default=None, max_length=200)
-    max_characters: int = Field(default=24000, ge=1000, le=40000)
+    cursor: str | None = Field(default=None, description="同版本同视图向后续读；完整阅读首次不传cursor/query，从字符0开始。")
+    query: str | None = Field(default=None, max_length=200, description="定位相关片段，会跳过前文；重复query可能重复同一段。全文读取不传query/read_hints定位cursor。")
+    max_characters: int = Field(default=24000, ge=1000, le=40000, description="本次最多字符数（非秒/字节）；范围[start,end)，end不含。大预算不使query从头读。")
     refresh_metadata: bool = False
 
 

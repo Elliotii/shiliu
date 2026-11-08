@@ -52,6 +52,12 @@ class RunCreate(StrictBody):
     request_id: str = Field(min_length=1, max_length=200)
 
 
+class WikiSaveCreate(StrictBody):
+    answer_message_id: str = Field(min_length=1, max_length=100)
+    request_id: str = Field(min_length=1, max_length=200)
+    requirement: str = Field(default="整理并保存研究成果，保留依据、条件与重要用户信息。", max_length=10000)
+
+
 class MemoryCreate(StrictBody):
     text: str = Field(min_length=1, max_length=400)
     subject_key: str | None = Field(default=None, min_length=1, max_length=120)
@@ -346,6 +352,43 @@ async def get_thread(thread_id: str, request: Request) -> dict[str, Any]:
         return {"thread": thread}
     except KeyError as exc:
         raise HTTPException(404, "对话不存在") from exc
+
+
+@router.post("/threads/{thread_id}/knowledge-writes", status_code=202)
+def create_wiki_save(thread_id: str, payload: WikiSaveCreate, request: Request):
+    from shiliu.assistant.knowledge_write import accept_save
+    try:
+        return {"job": accept_save(_runtime(request).store, thread_id=thread_id,
+                    answer_message_id=payload.answer_message_id, request_id=payload.request_id,
+                    requirement=payload.requirement, wiki=_runtime(request).wiki)}
+    except KeyError as exc:
+        raise HTTPException(404, "保存对象不存在") from exc
+    except (AssistantConflict, ValueError) as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
+@router.get("/threads/{thread_id}/knowledge-writes")
+def get_wiki_saves(thread_id: str, request: Request):
+    from shiliu.assistant.knowledge_write import list_saves
+    try:
+        return {"jobs": list_saves(_runtime(request).store, thread_id)}
+    except KeyError as exc:
+        raise HTTPException(404, "对话不存在") from exc
+
+
+@router.post("/threads/{thread_id}/knowledge-writes/{job_id}/retry", status_code=202)
+def retry_wiki_save(thread_id: str, job_id: str, request: Request):
+    from shiliu.assistant.knowledge_write import list_saves
+    store = _runtime(request).store
+    try:
+        if not any(j['id'] == job_id for j in list_saves(store, thread_id)):
+            raise KeyError(job_id)
+        store.retry_job(job_id)
+        return {"job": next(j for j in list_saves(store, thread_id) if j['id'] == job_id)}
+    except KeyError as exc:
+        raise HTTPException(404, "保存任务不存在") from exc
+    except AssistantConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
 
 
 @router.post("/threads/{thread_id}/runs", status_code=202)
@@ -840,9 +883,35 @@ def decide_knowledge_plan(
 ) -> dict[str, Any]:
     _runtime(request).store.mark_user_activity()
     try:
+        if payload.accept:
+            from shiliu.assistant.knowledge_write import accept_save
+            runtime = _runtime(request)
+            with runtime.store.db.connect(read_only=True) as c:
+                plan = c.execute("SELECT * FROM assistant_knowledge_plans WHERE workspace_id=%s AND principal_id=%s AND space_id=%s AND id=%s", (runtime.store.workspace_id,runtime.store.principal_id,payload.space_id,plan_id)).fetchone()
+                if not plan or plan['version'] != payload.expected_version:
+                    raise AssistantConflict('knowledge_plan_version_conflict')
+                previous_job = (plan['payload_json'].get('save_request') or {}).get('job_id')
+                if previous_job:
+                    row = c.execute("SELECT * FROM assistant_jobs WHERE workspace_id=%s AND principal_id=%s AND id=%s AND kind='wiki_save'", (runtime.store.workspace_id,runtime.store.principal_id,previous_job)).fetchone()
+                    if not row:
+                        raise KeyError(previous_job)
+                else:
+                    row = None
+                owner = c.execute("SELECT thread_id FROM assistant_messages WHERE workspace_id=%s AND id=%s", (runtime.store.workspace_id,plan['source_message_id'])).fetchone()
+            if row:
+                from shiliu.assistant.knowledge_write import public_job, list_saves
+                if row['status'] in ('queued','running'):
+                    return {'job':public_job(row)}
+                runtime.store.retry_job(previous_job)
+                return {'job':next(j for j in list_saves(runtime.store,row['payload_json']['thread_id']) if j['id']==previous_job)}
+            if not owner:
+                raise KeyError(plan_id)
+            return {"job": accept_save(runtime.store, thread_id=owner['thread_id'], answer_message_id=None,
+                request_id=f"plan:{plan_id}:{payload.expected_version}", requirement='确认历史保存计划', wiki=runtime.wiki,
+                confirmed_plan={'id':plan_id,'version':payload.expected_version})}
         result = _runtime(request).wiki.decide_discussion_plan(
             plan_id, space_id=payload.space_id, expected_version=payload.expected_version,
-            accept=payload.accept, operation_key=payload.operation_key,
+            accept=False, operation_key=payload.operation_key,
         )
     except KeyError as exc:
         raise HTTPException(404, "主题提案不存在") from exc

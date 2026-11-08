@@ -84,7 +84,7 @@ def runtime_report(config):
     """
     import hashlib
     import psycopg
-    from shiliu.migration.schema import HEAD_REVISION, MIGRATIONS
+    from shiliu.migration.schema import MIGRATIONS
     from shiliu.migration.catalog import read_catalog
     from shiliu.migration.values import JsonDocument, logical_hash
     from pgvector import Vector
@@ -97,8 +97,17 @@ def runtime_report(config):
         conn.execute("SET LOCAL search_path=pg_catalog")
         catalog = read_catalog(conn)
         revision = conn.execute("SELECT version_num FROM shiliu.alembic_version").fetchone()
-        if revision["version_num"] != "0014_assistant_source_patch" or HEAD_REVISION != revision["version_num"]:
+        if revision["version_num"] not in (
+            "0014_assistant_source_patch", "0015_wiki_source_suppression"
+        ):
             raise MigrationRejected("runtime_backup_revision_mismatch")
+        # Support the pre-upgrade backup and its independent restoration as
+        # well as the upgraded runtime. Never infer a contract from live data.
+        if revision["version_num"] == "0015_wiki_source_suppression":
+            contract["assistant_memory_suppressions"]["columns"]["wiki_source_message_ids_json"] = {
+                "name": "wiki_source_message_ids_json", "type": "jsonb",
+                "nullable": True, "default": None, "identity": "",
+            }
         if catalog != contract:
             raise MigrationRejected("runtime_backup_catalog_mismatch")
         for name, table in contract.items():
@@ -205,6 +214,11 @@ def _create_pair(config, run_id, directory, read_report):
             "--format=custom",
             "--no-owner",
             "--no-acl",
+            "--schema=shiliu",
+            "--schema=shiliu_migration",
+            "--schema=shiliu_search",
+            "--extension=vector",
+            "--extension=pg_textsearch",
             "--file",
             str(dump),
         ],

@@ -841,9 +841,9 @@ class PgAssistantRunStore(PgAssistantAccess):
         return row["id"]
 
     def claim_job(self, *, owner, lease_seconds=120, allow_model_jobs=True,
-                  allow_maintenance=True, kinds=None, scheduler_reason="normal"):
+                  allow_maintenance=True, kinds=None, scheduler_reason="normal", created_after=None):
         return super().claim_job(owner=owner, lease_seconds=lease_seconds,
-            allow_model_jobs=allow_model_jobs,allow_maintenance=allow_maintenance,kinds=kinds)
+            allow_model_jobs=allow_model_jobs,allow_maintenance=allow_maintenance,kinds=kinds,created_after=created_after)
 
     @staticmethod
     def job_transition(conn, context, job_id: str, owner: str, epoch: int, **kwargs):
@@ -879,11 +879,12 @@ class PgAssistantRunStore(PgAssistantAccess):
             WHERE j.workspace_id=%s AND j.principal_id=%s AND
             (coalesce((j.payload_json->>'space_id')::bigint,t.space_id,m.scope_space_id,b.space_id)=%s OR m.scope_kind='user'
              OR (j.payload_json->>'space_id' IS NULL AND t.id IS NULL AND m.id IS NULL AND b.id IS NULL AND
-                 (j.payload_json->>'video_id')::bigint IN (
-                     SELECT ms.video_id FROM shiliu.video_source_memberships ms JOIN shiliu.favorite_sources fs
+                 EXISTS (
+                     SELECT 1 FROM shiliu.video_source_memberships ms JOIN shiliu.favorite_sources fs
                      ON (fs.workspace_id,fs.id)=(ms.workspace_id,ms.source_id) JOIN shiliu.videos v
                      ON (v.workspace_id,v.id)=(ms.workspace_id,ms.video_id)
-                     WHERE ms.workspace_id=j.workspace_id AND ms.removed_at IS NULL AND fs.status='active'
+                     WHERE ms.workspace_id=j.workspace_id AND ms.video_id=(j.payload_json->>'video_id')::bigint
+                     AND ms.removed_at IS NULL AND fs.status='active'
                      AND NOT v.is_ignored AND v.archived_at IS NULL AND (%s OR ms.source_id=ANY(%s))
                      AND (%s OR ms.video_id=ANY(%s)))))"""
         return joins,(self.workspace_id,self.principal_id,space["id"],space["all_active"],space["source_ids"],not space["video_ids"],space["video_ids"])
@@ -1154,7 +1155,7 @@ class PgAssistantRunStore(PgAssistantAccess):
             count=0
             for row in rows:
                 disposition=("exhausted" if row["attempt"]>=3 else "staged" if row["proposal_json"] is not None
-                    else "replay_safe" if row["kind"] in {"memory_index","memory_purge"} else "unknown")
+                    else "replay_safe" if row["kind"] in {"memory_index","memory_purge","wiki_save"} else "unknown")
                 recovered=self.recover_job(conn,self.context,row["id"],disposition=disposition)
                 count+=bool(recovered)
                 if recovered and disposition=="unknown":
@@ -1173,7 +1174,8 @@ class PgAssistantRunStore(PgAssistantAccess):
             row=conn.execute("SELECT * FROM shiliu.assistant_jobs WHERE workspace_id=%s AND principal_id=%s AND id=%s FOR UPDATE",
                              (self.workspace_id,self.principal_id,job_id)).fetchone()
             if row is None:raise KeyError(job_id)
-            if row["status"] not in {"blocked","failed","retry_wait","budget_wait"}:raise AssistantConflict("job_not_retryable")
+            partial_save = row['kind'] == 'wiki_save' and row['status'] == 'completed' and (row['proposal_json'] or {}).get('outcome') == 'partial'
+            if row["status"] not in {"blocked","failed","retry_wait","budget_wait"} and not partial_save:raise AssistantConflict("job_not_retryable")
             if row["last_error_code"]=="external_side_effect_unknown":raise AssistantConflict("job_outcome_resolution_required")
             payload=dict(row["payload_json"] or {})
             continued=False
@@ -1362,9 +1364,9 @@ class PgAssistantRunStore(PgAssistantAccess):
         if message is None:raise AssistantConflict("task_user_message_missing")
         return {"source_message_id":message["id"],"request_key":"save-message:"+message["id"],"scope_text":message["content"]}
 
-    def knowledge_message(self, message_id, *, thread_id, allow_operation_receipt=False, conn=None):
+    def knowledge_message(self, message_id, *, thread_id, allow_operation_receipt=False, wiki_evidence=False, conn=None):
         row=super().knowledge_message(message_id,thread_id=thread_id,
-            allow_operation_receipt=allow_operation_receipt,conn=conn)
+            allow_operation_receipt=allow_operation_receipt,wiki_evidence=wiki_evidence,conn=conn)
         return row_dto(row,timestamps=("created_at",))
 
     def set_task_subset(self, run_id, *, epoch, video_ids, source_message_id=None, basis_quote=None):

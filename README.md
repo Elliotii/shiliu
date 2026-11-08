@@ -2,7 +2,9 @@
 
 本地运行的个人 Bilibili 收藏知识助手。将收藏夹同步为可追溯的字幕语料，提供检索、带时间戳引用的 Fast/Deep 问答，以及有版本与确认边界的 Assistant、Wiki、Memory。
 
-当前阶段版本 **0.4.0**：PostgreSQL + pgvector + pg_textsearch BM25；Schema HEAD 为 **`0014_assistant_source_patch`**。这是个人本地部署的阶段交付，不是已经验证的公网多用户服务。
+当前阶段版本 **0.4.0**：PostgreSQL + pgvector + pg_textsearch BM25；Schema HEAD 为 **`0015_wiki_source_suppression`**。这是个人本地部署的阶段交付，不是已经验证的公网多用户服务。
+
+本次稳定版更新包含异步 Wiki 保存与更新、Memory/Wiki 生命周期解耦和读取修复，见[更新与验证说明](docs/releases/STABLE_WIKI_0015.md)。
 
 ## 当前能力
 
@@ -48,7 +50,7 @@ export TRANSFORMERS_OFFLINE=1
 
 `shiliu setup` 配置 B 站 CLI、模型与本地凭据；CLI 上游见 `.gitmodules`，首次使用需完成其本地安装与登录。默认 Web 为 `http://127.0.0.1:18520/`，包括 `/search`、`/ask`、`/assistant`、`/setup`。首次核对使用 `--no-background`，不会自动运行后台处理；自动同步默认关闭，启用前确认 ASR/模型费用。后台运行和小时调度由操作者明确启用，不由安装过程启动。
 
-**已有正式实例的运维入口具有精确资源绑定，不是任意 DSN 的安装器。** 此发布不附正式数据、绑定文件或一键生产部署模板；不要复制他人的私有绑定来绕过校验。Schema 升级前停写并保留 PG + Artifact 配对备份；0014 运维入口见 [备份与恢复](docs/operations/POSTGRES_PAIRED_BACKUP.md)。本次版本整理没有重新部署正在运行的实例。
+**已有正式实例的运维入口具有精确资源绑定，不是任意 DSN 的安装器。** 此发布不附正式数据、绑定文件或一键生产部署模板；不要复制他人的私有绑定来绕过校验。Schema 升级前停写并保留 PG + Artifact 配对备份；0014/0015 运维入口见 [备份与恢复](docs/operations/POSTGRES_PAIRED_BACKUP.md)。本次版本整理没有重新部署正在运行的实例。
 
 ## 验证与公开成果
 

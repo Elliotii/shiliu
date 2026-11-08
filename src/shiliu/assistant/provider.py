@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from dataclasses import dataclass, field
 from typing import Any, Protocol, Callable
 
@@ -69,7 +70,9 @@ class AssistantModelProvider(Protocol):
     ) -> dict[str, Any]: ...
 
     def generate_json_with_usage(
-        self, *, system: str, prompt: str, max_tokens: int = 2400
+        self, *, system: str = "", prompt: str = "", max_tokens: int = 2400,
+        messages: list[dict[str, Any]] | None = None, thinking: str = "disabled",
+        reasoning_effort: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]: ...
 
 
@@ -154,6 +157,9 @@ class OpenAICompatibleAssistantProvider:
 
     def _stream_prepared(self, request: PreparedRequest, *, on_text: Callable[[str], None]) -> ModelTurn:
         body = request.body
+        from shiliu.agent_eval import observer
+        started=time.monotonic()
+        observer.record('transport_attempt', body=body, transport='sse')
         text_parts: list[str] = []
         calls: dict[int, dict[str, str]] = {}
         usage: dict[str, Any] = {}
@@ -197,6 +203,7 @@ class OpenAICompatibleAssistantProvider:
                             call["arguments"] += str(function.get("arguments") or "")
                         if choice.get("finish_reason"):
                             finish = str(choice["finish_reason"])
+            if observer.enabled(): observer.record('transport_response', identity=identity, usage=usage, finish_reason=finish, complete=done, latency_ms=(time.monotonic()-started)*1000, latency_boundary='httpx stream entry through SSE consumption; includes network and decoding')
             if not done or finish not in {"stop", "tool_calls"}:
                 raise PipelineError("流式回答未完整结束，已保留进度", code="provider_stream_incomplete", retryable=True)
             parsed_calls = []
@@ -283,6 +290,8 @@ class OpenAICompatibleAssistantProvider:
         """Dispatch exactly the admitted snapshot, without rebuilding its messages."""
         if request.base_url != self.base_url or request.model != self.model:
             raise PipelineError("请求与端点不匹配", code="bad_provider_request", retryable=False)
+        from shiliu.agent_eval import observer
+        observer.record('client_prepared', body=request.body, purpose=request.purpose, model=request.model)
         if request.body.get('stream'):
             return self._stream_prepared(request, on_text=on_text or (lambda text: None))
         payload = self._post(request.body, timeout_seconds=(
@@ -346,21 +355,26 @@ class OpenAICompatibleAssistantProvider:
         )[0]
 
     def generate_json_with_usage(
-        self, *, system: str, prompt: str, max_tokens: int = 2400
+        self, *, system: str = "", prompt: str = "", max_tokens: int = 2400,
+        messages: list[dict[str, Any]] | None = None, thinking: str = "disabled",
+        reasoning_effort: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        payload = self._post(
-            {
+        body = {
                 "model": self.model,
-                "messages": [
+                "messages": messages if messages is not None else [
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt},
                 ],
                 "response_format": {"type": "json_object"},
                 "max_tokens": max_tokens,
-                "thinking": {"type": "disabled"},
+                "thinking": {"type": thinking},
             }
-        )
+        if reasoning_effort is not None:
+            body['reasoning_effort'] = reasoning_effort
+        payload = self._post(body)
         try:
+            if messages is not None and (payload['choices'][0].get('finish_reason') != 'stop' or payload['choices'][0]['message'].get('tool_calls')):
+                raise ValueError('structured_generation_incomplete')
             value = json.loads(payload["choices"][0]["message"]["content"])
         except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
             error = PipelineError("后台整理返回格式无效", code="wiki_proposal_invalid", retryable=False)
@@ -392,6 +406,9 @@ class OpenAICompatibleAssistantProvider:
         )
 
     def _post(self, body: dict[str, Any], *, timeout_seconds: float | None = None) -> dict[str, Any]:
+        from shiliu.agent_eval import observer
+        started=time.monotonic()
+        observer.record('transport_attempt', body=body, transport='http')
         try:
             response = httpx.post(
                 f"{self.base_url}/chat/completions",
@@ -410,6 +427,8 @@ class OpenAICompatibleAssistantProvider:
             raise self._http_error(exc) from exc
         except (httpx.HTTPError, ValueError) as exc:
             raise PipelineError("助手模型网络调用失败", code="provider_network", retryable=True) from exc
+        if observer.enabled() and isinstance(payload, dict):
+            observer.record('transport_response', identity={'response_id':payload.get('id'),'response_model':payload.get('model')}, usage=payload.get('usage'), latency_ms=(time.monotonic()-started)*1000, latency_boundary='httpx post entry through decoded JSON; includes network and decoding')
         if not isinstance(payload, dict):
             raise PipelineError("助手模型返回格式无效", code="provider_schema", retryable=True)
         return payload

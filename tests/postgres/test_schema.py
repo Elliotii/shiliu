@@ -23,7 +23,7 @@ def test_full_upgrade_smoke():
             assert actual==set(expected)|{'alembic_version','assistant_notifications'}
 
 
-@pytest.mark.parametrize('revisions',[('head',),('0001_scope_core','0002_agent_domains','0003_retrieval_artifacts','0004_backfill_scope','0005_dispatch_input_identity','0006_research_reuse_scope','0007_collection_profiles','0008_dispatch_release','0009_research_ancestor_attempts','0010_research_control_lineage','0011_research_candidate_boundary','0012_collection_chunk_bm25','0013_assistant_notifications','0014_assistant_source_patch')])
+@pytest.mark.parametrize('revisions',[('head',),('0001_scope_core','0002_agent_domains','0003_retrieval_artifacts','0004_backfill_scope','0005_dispatch_input_identity','0006_research_reuse_scope','0007_collection_profiles','0008_dispatch_release','0009_research_ancestor_attempts','0010_research_control_lineage','0011_research_candidate_boundary','0012_collection_chunk_bm25','0013_assistant_notifications','0014_assistant_source_patch','0015_wiki_source_suppression')])
 def test_catalog_matches_expanded_contract_and_stepwise_upgrade(revisions):
     from shiliu.migration.catalog import read_catalog,compare_catalog
     with formal_target(load_postgres_config(),revisions=revisions) as (runtime,admin):
@@ -42,6 +42,9 @@ def test_catalog_matches_expanded_contract_and_stepwise_upgrade(revisions):
             assert added_constraints.issubset({c['name'] for c in proposal['constraints']})
             proposal['columns']={k:v for k,v in proposal['columns'].items() if k not in added_columns}
             proposal['constraints']=[c for c in proposal['constraints'] if c['name'] not in added_constraints]
+            suppression = original['assistant_memory_suppressions']
+            wiki_sources = suppression['columns'].pop('wiki_source_message_ids_json')
+            assert wiki_sources['type'] == 'jsonb' and wiki_sources['nullable']
             assert compare_catalog(original,mapping)==[]
             out=Path('/tmp/shiliu-w01-20261023/catalog-'+HEAD_REVISION+'-'+str(len(revisions))+'.json')
             out.write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n')

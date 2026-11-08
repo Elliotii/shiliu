@@ -808,7 +808,13 @@ class CollectionSourceService:
                 "available_views": available_views,
                 "body_coverage": view_model.coverage,
                 "read_position": position,
-                "read_complete": bool(total_characters == end_offset and not query),
+                "read_complete": bool(total_characters > 0 and int(position.get("start") or 0) == 0 and total_characters == end_offset),
+                "has_unread_before": int(position.get("start") or 0) > 0,
+                "has_unread_after": end_offset < total_characters,
+                "range_unit": "characters",
+                "range_convention": "[start,end)",
+                "coverage_note": "body_coverage描述来源可用性；read_complete仅本次当前视图完整，不表示累计已交付/理解。truncated和next_cursor只说明后续，不说明前文。只有同一revision的raw transcript已交付区间累计覆盖[0,total)才能称全文已读取；summary完整只表示摘要完整。部分读取请描述实际范围，不必为无关结论强制补读。",
+                "read_from_start_args": {"source_ref": stable_ref, "view": view},
                 "selection": "relevant_span" if query else "sequential",
                 "model_delivery": "pending_context_projection",
             },
@@ -831,6 +837,8 @@ class CollectionSourceService:
             item.setdefault("provenance", {})["content_position"] = position
             item["content"] = kept
             value.setdefault("coverage", {})["read_position"] = position
+            value['coverage'].update(read_complete=int(position.get('total') or 0) > 0 and start == 0 and end == position.get('total'),
+                has_unread_before=start > 0, has_unread_after=end < int(position.get('total') or 0))
             if len(kept) < len(text):
                 view = value["coverage"]["requested_view"]
                 ref = next(iter(value.get("source_refs") or []), item["source_ref"])
@@ -1172,6 +1180,7 @@ class CollectionSourceService:
             else "single_part",
             "title": video["title"],
             "uploader": video["uploader"],
+            "duration_seconds": video.get("duration_seconds") if (video.get("duration_seconds") or 0) > 0 else None,
             "published_at": _epoch_iso(video.get("published_at")),
             "metadata_observed_at": video.get("metadata_observed_at"),
             "memberships": [
@@ -1273,7 +1282,7 @@ class CollectionSourceService:
                     if isinstance(metadata.get("description_links_json"), str)
                     else list(metadata.get("description_links_json") or [])
                 ),
-                "duration_seconds": metadata.get("duration_seconds"),
+                "duration_seconds": metadata.get("duration_seconds") if (metadata.get("duration_seconds") or 0) > 0 else None,
                 "coverage": "p1_only"
                 if int(metadata.get("page_count") or 1) > 1
                 else "single_part",

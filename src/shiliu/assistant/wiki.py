@@ -5,6 +5,9 @@ import json
 import re
 import uuid
 from contextlib import contextmanager
+from contextvars import ContextVar
+
+_WIKI_SAVE_JOB = ContextVar("wiki_save_job", default=None)
 from psycopg.types.json import Jsonb
 from shiliu.storage.dto import row_dto
 from shiliu.storage.scheduler import guard_job, job_transition
@@ -620,12 +623,124 @@ class WikiService:
         return MemoryService(self.db, principal_id=self.principal_id)
 
     @contextmanager
+    def job_save(self, job):
+        """Only an owned PG Job can supply background write authorization."""
+        with self.db.connect() as c:
+            row, _ = guard_job(c, self.db.context, job['id'], job['lease_owner'], job['lease_epoch'])
+            if row['kind'] != 'wiki_save':
+                raise AssistantConflict('wiki_save_job_required')
+            trusted = {**job, 'payload': row['payload_json']}
+            self._check_save_job(c, trusted)
+        token = _WIKI_SAVE_JOB.set((self, trusted))
+        try:
+            yield
+        finally:
+            _WIKI_SAVE_JOB.reset(token)
+
+    def _save_job(self):
+        value = _WIKI_SAVE_JOB.get()
+        return value[1] if value and value[0] is self else None
+
+    def _check_save_job(self, c, job):
+        payload = job['payload']
+        space = self.store.get_space(payload['space_id'], conn=c)
+        if int(space['scope_version']) != int(payload['scope']['scope_version']):
+            raise AssistantConflict('wiki_scope_changed')
+        thread = self.store.get_thread(payload['thread_id'], conn=c)
+        if int(thread['space_id']) != int(space['id']):
+            raise AssistantConflict('wiki_save_thread_changed')
+        answer = (self.store.knowledge_message(payload['answer_message_id'], thread_id=payload['thread_id'], wiki_evidence=True, conn=c)
+                  if payload.get('answer_message_id') else None)
+        if answer is None and not ((payload.get('edit_topics') or payload.get('confirmed_plan') or payload.get('user_facts')) and payload.get('user_message_id')):
+            raise AssistantConflict('save_answer_not_available')
+        # The frozen answer identifies the authorized save, not a requirement
+        # to keep every exploratory Search result current. Publication checks
+        # the actual blocks' source versions, visibility and delivered evidence.
+        refs = [r for r in ((answer or {}).get('provider_payload_json') or {}).get('dependency_refs', [])
+                if r.startswith('video:')]
+        if refs:
+            from shiliu.assistant.tools import AssistantToolRegistry
+            registry = AssistantToolRegistry(store=self.store, sources=self.sources, memories=self._memories(), wiki=self)
+            if not registry.dependency_refs_valid(refs, int(space['id']), payload['thread_id'], int(space['scope_version']),
+                                                  space_override=payload['scope']):
+                raise AssistantConflict('save_answer_dependencies_changed')
+        frozen_ids = (payload.get('history') or {}).get('message_ids') or []
+        if frozen_ids:
+            suppressed = self._memories().suppressed_source_message_ids(
+                space_id=space['id'], wiki_evidence=True, conn=c
+            )
+            if suppressed and c.execute(
+                """SELECT 1 FROM assistant_messages frozen
+                   JOIN assistant_messages source
+                     ON source.workspace_id=frozen.workspace_id AND source.run_id=frozen.run_id
+                   WHERE frozen.workspace_id=%s AND frozen.thread_id=%s AND frozen.id=ANY(%s)
+                     AND source.id=ANY(%s) AND (frozen.id=source.id OR frozen.role<>'user')
+                   LIMIT 1""",
+                (self.workspace_id, payload['thread_id'], frozen_ids, sorted(suppressed)),
+            ).fetchone():
+                raise AssistantConflict('save_message_suppressed')
+        if payload.get('user_message_id'):
+            user = self.store.knowledge_message(payload['user_message_id'], thread_id=payload['thread_id'], wiki_evidence=True, conn=c)
+            if payload.get('user_facts'):
+                from shiliu.assistant.tools import _direct_knowledge_save_requested
+                if user['role'] != 'user' or not _direct_knowledge_save_requested(user['content']) or not re.search(r'知识页|知识库|[Ww][Ii][Kk][Ii]', user['content']):
+                    raise AssistantConflict('explicit_wiki_save_required')
+        return space
+
+    def _save_message(self, connection, message_id, space_id):
+        job = self._save_job()
+        if job:
+            payload = job['payload']
+            allowed=(None,'None',payload.get('user_message_id'),(payload.get('confirmed_plan') or {}).get('source_message_id'))
+            if int(space_id) != payload['space_id'] or message_id not in allowed:
+                raise AssistantConflict('wiki_save_authorization_mismatch')
+            self._check_save_job(connection, job)
+            return dict(id=payload.get('user_message_id'), thread_id=payload['thread_id'],
+                        content=payload['requirement'])
+        return connection.execute(
+            "SELECT m.*,t.id AS thread_id FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id "
+            "WHERE m.workspace_id=%s AND m.id=%s AND m.role='user' AND t.principal_id=%s AND t.space_id=%s",
+            (self.workspace_id, message_id, self.principal_id, space_id)).fetchone()
+
+    def _save_task_space(self, thread_id, *, conn=None):
+        job = self._save_job()
+        return job['payload']['scope'] if job else self.store.task_space(thread_id, conn=conn)
+
+    def _job_source_delivered(self, ref, view, evidence_ref=''):
+        job = self._save_job()
+        for result in job['payload']['materials']['original_evidence']:
+            if ref.startswith('run-result:') and ref == result.get('result_ref'):
+                return any(item.get('response') for item in result.get('items', []))
+            actual_view = (result.get('coverage') or {}).get('requested_view')
+            for item in result.get('items', []):
+                if not view and evidence_ref and evidence_ref == item.get('evidence_ref') and item.get('blocks'):
+                    page = self.get_page(item['id'], space_id=job['payload']['space_id'])
+                    visible = {b['stable_id'] for b in page['blocks']}
+                    delivered = {b['stable_id'] for b in item['blocks']}
+                    lineage = {r for b in item['blocks'] for r in b.get('source_refs', [])}
+                    if page['version'] == item.get('version') and delivered.issubset(visible) and ref in lineage:
+                        return True
+                identity = item.get('source_ref', '')
+                if identity.startswith('video:') and len(identity.split(':')) == 2 and item.get('revision'):
+                    identity += ':' + item['revision']
+                if ref == identity and item.get('content') and (not view or view == actual_view):
+                    # A direct original read independently proves delivery. As
+                    # on the foreground path, evidence_ref is needed for Wiki
+                    # lineage, not an extra gate on an already delivered video.
+                    return True
+        return False
+
+    @contextmanager
     def _transaction(self, conn=None, *, operation_key="", page_ids=(), job_claim=None):
         from shiliu.assistant.lease_renewal import check_renewal
 
         check_renewal()
         with self.db.connect(conn, guard=True) as c:
             self.store.guard_tool_operation(c, operation_key)
+            active_save = self._save_job()
+            if active_save:
+                guard_job(c, self.db.context, active_save['id'], active_save['lease_owner'], active_save['lease_epoch'])
+                self._check_save_job(c, active_save)
             if job_claim is not None:
                 guard_job(c, self.db.context, *job_claim)
             if page_ids:
@@ -791,7 +906,7 @@ class WikiService:
                     if not user:
                         return False
                     suppressed = c.execute(
-                        "SELECT source_message_ids_json FROM assistant_memory_suppressions WHERE assistant_memory_suppressions.workspace_id=%s AND principal_id=%s AND (scope_kind='user' OR (scope_kind='space' AND scope_id=%s))",
+                        "SELECT COALESCE(wiki_source_message_ids_json, source_message_ids_json) AS source_message_ids_json FROM assistant_memory_suppressions WHERE assistant_memory_suppressions.workspace_id=%s AND principal_id=%s AND (scope_kind='user' OR (scope_kind='space' AND scope_id=%s))",
                         (
                             self.workspace_id,
                             self.principal_id,
@@ -2304,7 +2419,7 @@ class WikiService:
         # Original request message suppression must still hold for review commands.
         if request.get("source_message_id"):
             suppressed = self._memories().suppressed_source_message_ids(
-                space_id=space["id"], conn=c
+                wiki_evidence=True, space_id=space["id"], conn=c
             )
             if request["source_message_id"] in suppressed:
                 raise AssistantConflict("wiki_task_input_stale")
@@ -3164,6 +3279,10 @@ class WikiService:
     def history_source_refs(
         self, page_id: str, *, space_id: int, conn=None
     ) -> list[str]:
+        # get_page has already checked each visible block's material view against
+        # the current source. Track that current source for runtime invalidation;
+        # the block itself retains its original provenance. Requiring the old
+        # revision to equal the head here would reject compatible metadata edits.
         page = self.get_page(page_id, space_id=space_id, conn=conn)
         visible_blocks = {str(block["stable_id"]) for block in page["blocks"]}
         if not visible_blocks:
@@ -3171,7 +3290,7 @@ class WikiService:
         placeholders = ",".join("%s" for _ in visible_blocks)
         with self.db.connect(conn) as connection:
             rows = connection.execute(
-                f"\n                SELECT d.video_id, d.source_revision\n                FROM assistant_wiki_dependencies d\n                JOIN assistant_source_heads h ON h.video_id=d.video_id\n                    AND h.principal_id=%s AND h.current_revision=d.source_revision\n                WHERE d.workspace_id=%s AND d.page_id=%s AND d.block_id IN ({placeholders})\n                ",
+                f"\n                SELECT d.video_id, h.current_revision AS source_revision\n                FROM assistant_wiki_dependencies d\n                JOIN assistant_source_heads h ON h.workspace_id=d.workspace_id AND h.video_id=d.video_id\n                    AND h.principal_id=%s\n                WHERE d.workspace_id=%s AND d.page_id=%s AND d.block_id IN ({placeholders})\n                ",
                 (
                     self.principal_id,
                     self.workspace_id,
@@ -3260,7 +3379,7 @@ class WikiService:
             if source_message is None:
                 raise AssistantConflict("wiki_task_input_stale")
             suppressed = connection.execute(
-                """SELECT source_message_ids_json FROM assistant_memory_suppressions
+                """SELECT COALESCE(wiki_source_message_ids_json, source_message_ids_json) AS source_message_ids_json FROM assistant_memory_suppressions
                 WHERE assistant_memory_suppressions.workspace_id=%s AND principal_id=%s AND (scope_kind='user' OR (scope_kind='space' AND scope_id=%s))""",
                 (
                     self.workspace_id,
@@ -4256,6 +4375,47 @@ class WikiService:
             )
         return self._visible_page(after, conn=conn, snapshot_cache=prepared_sources)
 
+    def _discussion_page(self, connection, space_id, topic):
+        """Resolve a user-bound page without silently creating or retargeting it."""
+        page_id = topic.get('page_id')
+        row = connection.execute(
+            "SELECT id,version,normalized_title,status FROM assistant_wiki_pages WHERE workspace_id=%s "
+            "AND principal_id=%s AND space_id=%s AND " + ("id=%s" if page_id else "normalized_title=%s AND status='active'"),
+            (self.workspace_id,self.principal_id,space_id,page_id or self._normalize_title(topic['title']))).fetchone()
+        if page_id and (not row or row['status'] != 'active'):
+            raise AssistantConflict('wiki_page_missing')
+        if page_id and (row['normalized_title'] != self._normalize_title(topic['title']) or topic.get('expected_version') is None):
+            raise AssistantConflict('wiki_target_binding_required')
+        return row
+
+    def _require_block_edit(self, connection, before, block_id, message, expected_version):
+        from shiliu.assistant.tools import _unreported_knowledge_intent
+        job=self._save_job()
+        if job and not any(t.get('page_id')==before['id'] and t.get('expected_version')==expected_version
+                           for t in job['payload'].get('edit_topics',[])):
+            raise AssistantConflict('explicit_wiki_edit_required')
+        if not (job and job['payload'].get('confirmed_plan')) and not re.search(r'更正|纠正|修改|替换|更新|改为|改成|修订', _unreported_knowledge_intent(message['content'])):
+            raise AssistantConflict('explicit_wiki_edit_required')
+        target = next((b for b in before['blocks'] if b['stable_id'] == block_id), None)
+        if target is None or target.get('deleted'):
+            raise AssistantConflict('wiki_block_unavailable')
+        task = self._save_task_space(message['thread_id'], conn=connection)
+        if task.get('task_subset') and block_id not in {b['stable_id'] for b in
+                self._task_projection(before,self._scope(task),conn=connection)['blocks']}:
+            raise AssistantConflict('wiki_source_out_of_scope')
+        # The same confirmed read contract used by normal source delivery; no
+        # new permission flag can be supplied by the model.
+        if job:
+            delivered=job['payload'].get('edit_read_materials',[])
+        else:
+            delivered = self.store.confirmed_context_materials(connection, thread_id=message['thread_id'])
+            for run in connection.execute('SELECT working_state_json FROM assistant_runs WHERE workspace_id=%s AND thread_id=%s',
+                                          (self.workspace_id,message['thread_id'])):
+                delivered.extend((run['working_state_json'] or {}).get('model_delivered_materials') or [])
+        if not any(m.get('kind') == 'knowledge_read' and m.get('source_ref') == f"wiki:{before['id']}:{expected_version}"
+                   and block_id in (m.get('position') or {}).get('block_ids', []) for m in delivered):
+            raise AssistantConflict('wiki_block_not_read')
+
     def save_discussion(
         self,
         *,
@@ -4268,6 +4428,7 @@ class WikiService:
         source_message_id: str | None = None,
         authorized_plan_id: str | None = None,
         authorized_plan_version: int | None = None,
+        target_page_id: str | None = None,
         conn=None,
         prepared_sources=None,
     ) -> dict[str, Any]:
@@ -4288,7 +4449,7 @@ class WikiService:
         ):
             raise ValueError("invalid_knowledge_save")
         space = self.store.get_space(space_id, conn=conn)
-        if source_message_id is None:
+        if source_message_id is None and not self._save_job():
             raise ValueError("user_source_required")
         now = utc_now()
         with self._transaction(conn, operation_key=operation_key) as connection:
@@ -4306,17 +4467,7 @@ class WikiService:
                     conn=connection,
                     snapshot_cache=prepared_sources,
                 )
-            message = connection.execute(
-                """SELECT m.id,m.content,m.created_at,t.id AS thread_id FROM assistant_messages m
-                JOIN assistant_threads t ON t.id=m.thread_id
-                WHERE m.workspace_id=%s AND m.id=%s AND m.role='user' AND t.principal_id=%s AND t.space_id=%s""",
-                (
-                    self.workspace_id,
-                    source_message_id,
-                    self.principal_id,
-                    space_id,
-                ),
-            ).fetchone()
+            message = self._save_message(connection, source_message_id, space_id)
             if message is None:
                 raise ValueError("user_source_required")
             latest = connection.execute(
@@ -4333,6 +4484,8 @@ class WikiService:
                 if latest
                 else None
             )
+            if self._save_job():
+                task_subset = self._save_job()['payload']['scope'].get('video_ids')
             current_space = connection.execute(
                 "SELECT scope_version FROM assistant_spaces WHERE assistant_spaces.workspace_id=%s AND id=%s",
                 (
@@ -4384,16 +4537,10 @@ class WikiService:
             if inactive and inactive["status"] != "active":
                 raise AssistantConflict("wiki_page_inactive")
             normalized = self._normalize_title(title)
-            row = connection.execute(
-                """SELECT * FROM assistant_wiki_pages WHERE assistant_wiki_pages.workspace_id=%s AND principal_id=%s AND space_id=%s
-                AND normalized_title=%s AND status='active'""",
-                (
-                    self.workspace_id,
-                    self.principal_id,
-                    space_id,
-                    normalized,
-                ),
-            ).fetchone()
+            target = self._discussion_page(connection, space_id,
+                {'title': title, 'page_id': target_page_id, 'expected_version': expected_version})
+            row = connection.execute('SELECT * FROM assistant_wiki_pages WHERE workspace_id=%s AND id=%s',
+                                     (self.workspace_id,target['id'])).fetchone() if target else None
             before = self._decode_page(dict(row)) if row else None
             if before and expected_version != int(before["version"]):
                 raise AssistantConflict("wiki_version_conflict")
@@ -4407,6 +4554,7 @@ class WikiService:
                 else None
             )
             incoming = []
+            replaced = set()
             source_links = []
             personal_links = []
             for item in blocks:
@@ -4445,7 +4593,12 @@ class WikiService:
                     memory_id and role == "source"
                 ):
                     raise ValueError("invalid_memory_dependency")
-                block_id = f"wblock_{uuid.uuid4().hex[:20]}"
+                block_id = item.get('replace_block_id') or f"wblock_{uuid.uuid4().hex[:20]}"
+                if item.get('replace_block_id'):
+                    if not before or not target_page_id or authorized_plan_id is None or block_id in replaced:
+                        raise AssistantConflict('wiki_block_target_ambiguous')
+                    self._require_block_edit(connection,before,block_id,message,expected_version)
+                    replaced.add(block_id)
                 revisions = []
                 source_view = str(item.get("source_view") or "")
                 if source_view and source_view not in {
@@ -4563,11 +4716,11 @@ class WikiService:
                         "analysis": "discussion_analysis",
                         "personal": "personal_note",
                     }[role],
-                    "manual_lock": role == "personal",
+                    "manual_lock": role == "personal" or any(old["stable_id"] == block_id and old.get("manual_lock") for old in old_blocks),
                     "user_input_source": "memory_derived"
                     if memory_id
                     else "discussion",
-                    "source_message_id": source_message_id,
+                    "source_message_id": source_message_id or (self._save_job()["payload"]["answer_message_id"] if self._save_job() else None),
                     "created_at": now,
                     **({"source_view": source_view} if source_view else {}),
                     **({"external_sources": external_links} if external_links else {}),
@@ -4625,15 +4778,15 @@ class WikiService:
                         old
                         for old in old_blocks
                         if not old.get("deleted")
-                        and " ".join(old["heading"].split())
-                        == " ".join(block["heading"].split())
+                        and ((old['stable_id'] == block['stable_id']) if block['stable_id'] in replaced else
+                             " ".join(old["heading"].split()) == " ".join(block["heading"].split()))
                     ]
                     if len(matches) > 1:
                         raise AssistantConflict("wiki_block_target_ambiguous")
                     if not matches:
                         continue
                     old = matches[0]
-                    if old.get("manual_lock"):
+                    if old.get("manual_lock") and block["stable_id"] not in replaced:
                         if all(
                             old.get(k) == block.get(k)
                             for k in (
@@ -4850,6 +5003,8 @@ class WikiService:
     def _read_view_observed(
         self, connection: Any, *, thread_id: str, source_ref: str, view: str, conn=None
     ) -> bool:
+        if self._save_job():
+            return self._job_source_delivered(source_ref, view)
         # Attached descriptions/metadata can be genuinely delivered even when
         # the read's requested view was a transcript. Use confirmed input facts.
         conn = connection if conn is None else conn
@@ -4964,6 +5119,15 @@ class WikiService:
         conn=None,
     ) -> dict:
         conn = connection if conn is None else conn
+        job = self._save_job()
+        if job:
+            payload = job['payload']
+            if not user_message_id:
+                raise ValueError('personal_quote_required')
+            row = self.store.knowledge_message(user_message_id, thread_id=payload['thread_id'], wiki_evidence=True, conn=conn)
+            if row['role'] != 'user' or row['seq'] > payload['message_seq'] or not quote.strip() or quote.strip() not in row['content']:
+                raise ValueError('personal_quote_required')
+            return row
         repair = connection.execute(
             "SELECT payload_json FROM assistant_knowledge_plans WHERE assistant_knowledge_plans.workspace_id=%s AND source_message_id=%s AND principal_id=%s AND space_id=%s ORDER BY updated_at DESC LIMIT 1",
             (
@@ -4995,7 +5159,7 @@ class WikiService:
             ),
         ).fetchone()
         suppressed = self._memories().suppressed_source_message_ids(
-            space_id=space_id, conn=conn
+            wiki_evidence=True, space_id=space_id, conn=conn
         )
         if (
             row is None
@@ -5010,6 +5174,9 @@ class WikiService:
         self, connection: Any, message_id: str, space: dict, *, conn=None
     ) -> None:
         conn = connection if conn is None else conn
+        if self._save_job():
+            self._check_save_job(connection, self._save_job())
+            return
         row = connection.execute(
             "SELECT r.working_state_json,m.thread_id FROM assistant_runs r JOIN assistant_messages m ON m.run_id=r.id WHERE r.workspace_id=%s AND m.id=%s",
             (
@@ -5048,7 +5215,7 @@ class WikiService:
         )
         for answer_id in answer_ids:
             answer = self.store.knowledge_message(
-                answer_id, thread_id=row["thread_id"], conn=conn
+                answer_id, thread_id=row["thread_id"], wiki_evidence=True, conn=conn
             )
             refs = (answer.get("provider_payload_json") or {}).get(
                 "dependency_refs"
@@ -5068,6 +5235,8 @@ class WikiService:
         evidence_ref: str = "",
         conn=None,
     ) -> bool:
+        if self._save_job():
+            return self._job_source_delivered(ref, view, evidence_ref)
         conn = connection if conn is None else conn
         message = connection.execute(
             "SELECT thread_id FROM assistant_messages WHERE assistant_messages.workspace_id=%s AND id=%s",
@@ -5079,7 +5248,7 @@ class WikiService:
         if not message:
             return False
         suppressed = self._memories().suppressed_source_message_ids(
-            space_id=int(
+            wiki_evidence=True, space_id=int(
                 connection.execute(
                     "SELECT space_id FROM assistant_threads WHERE assistant_threads.workspace_id=%s AND id=%s",
                     (
@@ -5283,26 +5452,16 @@ class WikiService:
         if prepared_sources is None:
             prepared_sources = {} if conn is None else {}
         conn = connection if conn is None else conn
-        message = connection.execute(
-            """SELECT m.content,t.id AS thread_id FROM assistant_messages m
-            JOIN assistant_threads t ON t.id=m.thread_id
-            WHERE m.workspace_id=%s AND m.id=%s AND m.role='user' AND t.principal_id=%s AND t.space_id=%s""",
-            (
-                self.workspace_id,
-                source_message_id,
-                self.principal_id,
-                int(space["id"]),
-            ),
-        ).fetchone()
+        message = self._save_message(connection, source_message_id, int(space["id"]))
         if message is None:
             return ["user_source_required"]
         if source_message_id in self._memories().suppressed_source_message_ids(
-            space_id=int(space["id"]), conn=conn
+            wiki_evidence=True, space_id=int(space["id"]), conn=conn
         ):
             return ["user_source_suppressed"]
         self._validate_save_answer(connection, source_message_id, space, conn=conn)
         issues: list[str] = []
-        scope = self._scope(self.store.task_space(str(message["thread_id"]), conn=conn))
+        scope = self._scope(self._save_task_space(str(message["thread_id"]), conn=conn))
         for topic_index, topic in enumerate(topics, 1):
             if topic.get("title") and "expected_version" in topic:
                 page = connection.execute(
@@ -5405,7 +5564,7 @@ class WikiService:
                     if not delivered or not view_observed:
                         # Diagnostics are assembled only on failure, never on the normal save path.
                         suppressed = self._memories().suppressed_source_message_ids(
-                            space_id=int(space["id"]), conn=conn
+                            wiki_evidence=True, space_id=int(space["id"]), conn=conn
                         )
                         invalid_runs = {
                             r["run_id"]
@@ -5515,16 +5674,7 @@ class WikiService:
             raise ValueError("invalid_knowledge_plan")
         space = self.store.get_space(space_id, conn=conn)
         with self._transaction(conn) as connection:
-            message = connection.execute(
-                """SELECT m.content FROM assistant_messages m JOIN assistant_threads t ON t.id=m.thread_id
-                WHERE m.workspace_id=%s AND m.id=%s AND m.role='user' AND t.principal_id=%s AND t.space_id=%s""",
-                (
-                    self.workspace_id,
-                    source_message_id,
-                    self.principal_id,
-                    space_id,
-                ),
-            ).fetchone()
+            message = self._save_message(connection, source_message_id, space_id)
             if message is None:
                 raise ValueError("user_source_required")
             if allow_direct_partial:
@@ -5572,16 +5722,7 @@ class WikiService:
                         f"topics[{topic_index}].title:invalid_knowledge_plan_topic"
                     )
                 names.add(normalized)
-                page = connection.execute(
-                    """SELECT id,version FROM assistant_wiki_pages WHERE assistant_wiki_pages.workspace_id=%s AND principal_id=%s AND space_id=%s
-                    AND normalized_title=%s AND status='active'""",
-                    (
-                        self.workspace_id,
-                        self.principal_id,
-                        space_id,
-                        normalized,
-                    ),
-                ).fetchone()
+                page = self._discussion_page(connection, space_id, item)
                 refs = sorted(
                     {
                         str(ref)
@@ -5674,6 +5815,42 @@ class WikiService:
             prepared_sources=prepared_sources,
         )
 
+    def validate_save_draft(self, *, space_id, topics, source_message_id, create_only=False):
+        """Use the domain's real prerequisites before staging a Writer draft.
+
+        Commit repeats these checks under its existing fences; preflight is not
+        a replacement for CAS, locks or mutation receipts.
+        """
+        prepared = self._prepare_sources_for_write(space_id=space_id)
+        space = self.store.get_space(space_id)
+        with self.db.connect(read_only=True) as connection:
+            message = self._save_message(connection, source_message_id, space_id)
+            if message is None:
+                raise AssistantConflict('user_source_required')
+            names = set()
+            for topic in topics:
+                name = self._normalize_title(topic['title'])
+                if not name or name in names or len(topic['title']) > 120 or len(topic['purpose']) > 600:
+                    raise ValueError('invalid_knowledge_plan_topic')
+                names.add(name)
+                page = self._discussion_page(connection, space_id, topic)
+                if page and create_only:
+                    raise AssistantConflict('wiki_target_exists_use_explicit_edit')
+                if page and topic.get('expected_version') != page['version']:
+                    raise AssistantConflict('wiki_version_conflict')
+                if page:
+                    row = connection.execute('SELECT * FROM assistant_wiki_pages WHERE workspace_id=%s AND principal_id=%s AND id=%s',
+                        (self.workspace_id, self.principal_id, page['id'])).fetchone()
+                    before = self._decode_page(dict(row))
+                    for block in topic['blocks']:
+                        if block.get('replace_block_id'):
+                            self._require_block_edit(connection, before, block['replace_block_id'], message, topic['expected_version'])
+            issues = self._plan_block_issues(connection=connection, space=space,
+                source_message_id=source_message_id, topics=topics, conn=connection,
+                prepared_sources=prepared)
+        if issues:
+            raise ValueError('wiki_writer_draft_invalid:' + ';'.join(issues))
+
     def save_discussion_topics(
         self,
         *,
@@ -5689,17 +5866,7 @@ class WikiService:
         # supplied flag or an old pending plan. Keep the existing plan validator,
         # per-page receipts, version checks and partial-result handling.
         with self.db.connect(conn) as connection:
-            row = connection.execute(
-                """SELECT m.content FROM assistant_messages m
-                JOIN assistant_threads t ON t.id=m.thread_id
-                WHERE m.workspace_id=%s AND m.id=%s AND m.role='user' AND t.principal_id=%s AND t.space_id=%s""",
-                (
-                    self.workspace_id,
-                    source_message_id,
-                    self.principal_id,
-                    space_id,
-                ),
-            ).fetchone()
+            row = self._save_message(connection, source_message_id, space_id)
         if row is None:
             raise AssistantConflict("explicit_knowledge_save_required")
         plan = self.propose_discussion(
@@ -5877,7 +6044,7 @@ class WikiService:
                 if not source or plan[
                     "source_message_id"
                 ] in self._memories().suppressed_source_message_ids(
-                    space_id=space_id, conn=connection
+                    wiki_evidence=True, space_id=space_id, conn=connection
                 ):
                     raise AssistantConflict("knowledge_plan_authorization_changed")
                 space = self.store.get_space(space_id, conn=connection)
@@ -6517,16 +6684,7 @@ class WikiService:
                     refs, self._scope(space), conn=conn
                 ):
                     raise ValueError("source_out_of_scope")
-                page = connection.execute(
-                    """SELECT id,version FROM assistant_wiki_pages WHERE assistant_wiki_pages.workspace_id=%s AND principal_id=%s AND space_id=%s
-                    AND normalized_title=%s AND status='active'""",
-                    (
-                        self.workspace_id,
-                        self.principal_id,
-                        space_id,
-                        normalized,
-                    ),
-                ).fetchone()
+                page = self._discussion_page(connection, space_id, item)
                 prepared.append(
                     {
                         "title": title,
@@ -6536,7 +6694,7 @@ class WikiService:
                         "cross_references": item.get("cross_references") or [],
                         "omitted": item.get("omitted") or [],
                         "page_id": str(page["id"]) if page else None,
-                        "expected_version": int(page["version"]) if page else None,
+                        "expected_version": item.get("expected_version") if item.get("page_id") else (int(page["version"]) if page else None),
                     }
                 )
             issues = self._plan_block_issues(
@@ -6795,6 +6953,7 @@ class WikiService:
                         operation_key=page_key,
                         authorized_plan_id=plan_id,
                         authorized_plan_version=expected_version,
+                        target_page_id=item.get("page_id"),
                         conn=conn,
                         prepared_sources=prepared_sources,
                     )
@@ -6938,7 +7097,7 @@ class WikiService:
             if message is None:
                 return False
             suppressions = connection.execute(
-                """SELECT source_message_ids_json FROM assistant_memory_suppressions
+                """SELECT COALESCE(wiki_source_message_ids_json, source_message_ids_json) AS source_message_ids_json FROM assistant_memory_suppressions
                 WHERE assistant_memory_suppressions.workspace_id=%s AND principal_id=%s AND (scope_kind='user' OR (scope_kind='space' AND scope_id=%s))""",
                 (
                     self.workspace_id,
@@ -8381,7 +8540,7 @@ class WikiService:
                 )
         blocks = []
         suppressed_quotes = self._memories().suppressed_source_message_ids(
-            space_id=int(page["space_id"]), conn=conn
+            wiki_evidence=True, space_id=int(page["space_id"]), conn=conn
         )
         for block in page["blocks"]:
             if block.get("user_message_id") in suppressed_quotes:
