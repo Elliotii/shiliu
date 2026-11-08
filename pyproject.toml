@@ -65,6 +65,7 @@ packages = ["src/shiliu"]
 "migrations/versions/0012_collection_chunk_bm25.py" = "shiliu/migration/alembic/versions/0012_collection_chunk_bm25.py"
 "migrations/versions/0013_assistant_notifications.py" = "shiliu/migration/alembic/versions/0013_assistant_notifications.py"
 "migrations/versions/0014_assistant_source_patch.py" = "shiliu/migration/alembic/versions/0014_assistant_source_patch.py"
+"migrations/versions/0015_wiki_source_suppression.py" = "shiliu/migration/alembic/versions/0015_wiki_source_suppression.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

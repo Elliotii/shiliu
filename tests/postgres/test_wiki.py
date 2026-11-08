@@ -306,6 +306,64 @@ def test_source_view_equivalence_change_and_actual_space_visibility(wiki_parts):
     assert wiki.get_page(page["id"])["blocks"]
 
 
+@pytest.mark.parametrize("hidden", [None, "body", "ignored"])
+def test_knowledge_read_reuses_compatible_sources_and_filters_invalid_blocks(wiki_parts, hidden):
+    import asyncio
+    from shiliu.assistant.pg_store import PgAssistantRunStore
+    from shiliu.assistant.tools import AssistantToolRegistry
+    from shiliu.domain import SubtitleSegment
+
+    db, _, wiki, space, msg, run, sources = wiki_parts
+    first, _, old_ref, _ = add_source(wiki_parts, 1)
+    second, _, second_ref, _ = add_source(wiki_parts, 2)
+    page = wiki.save_discussion(
+        space_id=space, title="可复用的来源", purpose="来源兼容性",
+        source_message_id=msg, operation_key="read-compatible",
+        blocks=[{"role": "source", "heading": heading,
+                 "markdown": "事务提交前必须核验来源版本。",
+                 "source_refs": [ref], "source_view": "transcript"}
+                for heading, ref in [("保留正文", old_ref), ("另一来源", second_ref)]],
+    )
+    db.update_video(first, title="只修改标题，正文不变")
+    current = sources.snapshots.capture(first)
+    assert old_ref != f"video:{first}:{current.revision}"
+    if hidden == "ignored":
+        db.update_video(second, is_ignored=True)
+    elif hidden == "body":
+        batch = sources.artifacts.batch(second)
+        _, ref = batch.save_raw_subtitle(
+            "BV0000000002",
+            [SubtitleSegment.model_validate({"from": 0, "to": 3, "content": "正文已经实质改变。"})],
+        )
+        batch.commit(lambda conn: db.update_video(second, raw_subtitle_path=ref, conn=conn))
+        sources.snapshots.capture(second)
+
+    store = PgAssistantRunStore(db)
+    context = store.run_context(run)
+    registry = AssistantToolRegistry(store=store, sources=sources,
+                                    memories=MemoryService(db), wiki=wiki)
+    arguments = {"mode": "page", "page_id": page["id"], "page_version": 1}
+    result = asyncio.run(registry.execute(name="knowledge_read", arguments=arguments,
+                                        call_id="read-compatible", run_context=context))
+    assert result["status"] == "ok", result
+    blocks = result["items"][0]["blocks"]
+    assert len(blocks) == (2 if hidden is None else 1)
+    assert old_ref in blocks[0]["source_refs"]  # Preserve original provenance.
+    assert f"video:{first}:{current.revision}" in result["source_refs"]
+    if hidden:
+        assert all(not ref.startswith(f"video:{second}:") for ref in result["source_refs"])
+    # Runtime reuse validates the same effective page rather than rejecting its
+    # original provenance for a harmless metadata revision.
+    registry._validate_historical_result(
+        {"run_id": run, "call_id": "read-compatible", "name": "knowledge_read",
+         "arguments": arguments, "result": result},
+        scope=wiki._scope(context["space"]), space_id=space,
+        thread_id=context["thread"]["id"], scope_version=context["space"]["scope_version"],
+    )
+    with pytest.raises(KeyError):
+        wiki.get_page(page["id"], space_id=space + 999)
+
+
 def test_w1_commit_before_plan_result_recovers_from_page_receipt(
     wiki_parts, monkeypatch
 ):

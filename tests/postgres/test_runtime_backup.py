@@ -13,7 +13,8 @@ from shiliu.migration.backup import restore_pair, runtime_report
 from shiliu.migration.safety import TASK_ROOT
 
 
-def test_runtime_pair_keeps_post_import_write_and_restores_vectors_and_audit(monkeypatch):
+@pytest.mark.parametrize("revision", ["0014_assistant_source_patch", "0015_wiki_source_suppression"])
+def test_runtime_pair_keeps_post_import_write_and_restores_vectors_and_audit(monkeypatch, revision):
     import shiliu.migration.backup_cli as cli
     from seed_rows import SyntheticGraph, WORKSPACE, MAPPING
     from hashlib import sha256
@@ -21,7 +22,12 @@ def test_runtime_pair_keeps_post_import_write_and_restores_vectors_and_audit(mon
     payload = b"synthetic paired artifact\n"
     digest = sha256(payload).hexdigest()
     key = WORKSPACE + '/objects/' + digest
-    with formal_target(load_postgres_config()) as (runtime, admin):
+    with formal_target(load_postgres_config(), revisions=(revision,)) as (runtime, admin):
+        from shiliu.migration.schema import grant_roles
+        from isolation import RUN_USER
+        from schema_support import ETL_USER
+        with psycopg.connect(admin.database_url, passfile=LIBPQ_DISABLED_PASSFILE) as conn:
+            grant_roles(conn, runtime_role=RUN_USER, etl_role=ETL_USER)
         target = target_etl(runtime)
         with psycopg.connect(target.database_url, passfile=LIBPQ_DISABLED_PASSFILE) as conn:
             graph = SyntheticGraph(conn, overrides={'artifact_objects': {'sha256': digest, 'relative_key': key, 'byte_size': len(payload)}})
@@ -41,8 +47,15 @@ def test_runtime_pair_keeps_post_import_write_and_restores_vectors_and_audit(mon
         artifact = target.artifact_root / key
         artifact.parent.mkdir(parents=True)
         artifact.write_bytes(payload)
+        # An independently permissioned Eval schema may share the database.
+        # Product backups must not acquire its privileges or capture its rows.
+        with psycopg.connect(admin.database_url, passfile=LIBPQ_DISABLED_PASSFILE) as conn:
+            conn.execute('CREATE SCHEMA isolated_eval')
+            conn.execute('CREATE TABLE isolated_eval.private_grade (id integer PRIMARY KEY)')
+            conn.execute('INSERT INTO isolated_eval.private_grade VALUES (1)')
+            conn.execute('REVOKE ALL ON SCHEMA isolated_eval FROM PUBLIC')
         before = runtime_report(target)
-        assert before["revision"] == "0014_assistant_source_patch"
+        assert before["revision"] == revision
         assert before["counts"]["assistant_notifications"] == 1
         assert len(before["counts"]) == 132
         with psycopg.connect(target.database_url, passfile=LIBPQ_DISABLED_PASSFILE) as conn:
@@ -78,6 +91,8 @@ def test_runtime_pair_keeps_post_import_write_and_restores_vectors_and_audit(mon
             with pytest.raises(MigrationRejected, match="independent_empty_database"):
                 restore_pair(directory, admin2, target2)
             assert runtime_report(target2) == current
+            with psycopg.connect(admin2.database_url, passfile=LIBPQ_DISABLED_PASSFILE) as conn:
+                assert conn.execute("SELECT to_regnamespace('isolated_eval')").fetchone()[0] is None
 
 
 def test_runtime_backup_rejects_catalog_drift_and_connected_writer():
@@ -88,7 +103,10 @@ def test_runtime_backup_rejects_catalog_drift_and_connected_writer():
         target = target_etl(runtime)
         with psycopg.connect(admin.database_url, passfile=LIBPQ_DISABLED_PASSFILE) as conn:
             conn.execute("SET LOCAL search_path=pg_catalog")
-            assert read_catalog(conn) == json.loads((MIGRATIONS / 'contracts/runtime_0014_catalog.json').read_text())
+            catalog = read_catalog(conn)
+            wiki_sources = catalog['assistant_memory_suppressions']['columns'].pop('wiki_source_message_ids_json')
+            assert wiki_sources['type'] == 'jsonb' and wiki_sources['nullable']
+            assert catalog == json.loads((MIGRATIONS / 'contracts/runtime_0014_catalog.json').read_text())
             with pytest.raises(MigrationRejected, match='disconnected_writers'):
                 require_quiescent(target)
             conn.execute("ALTER TABLE shiliu.assistant_notifications ADD COLUMN unapproved text")

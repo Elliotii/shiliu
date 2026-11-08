@@ -8,12 +8,14 @@ from shiliu.domain import PipelineError
 
 
 def trial_request_allowed(
-    method: str, path: str, *, manual_models: bool = False
+    method: str, path: str, *, manual_models: bool = False, wiki_saves: bool = False
 ) -> bool:
     # Setup GETs include credential status, remote folder discovery and login.
     if path == "/api/setup" or path.startswith("/api/setup/"):
         return False
     if method in {"GET", "HEAD", "OPTIONS"}:
+        return True
+    if manual_models and wiki_saves and method == 'POST' and re.fullmatch(r'/api/assistant/threads/[^/]+/knowledge-writes(?:/[^/]+/retry)?', path):
         return True
     if (
         manual_models

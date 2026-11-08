@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
 
-HEAD_REVISION = "0014_assistant_source_patch"
+HEAD_REVISION = "0015_wiki_source_suppression"
 _PACKAGED = Path(__file__).with_name("alembic")
 MIGRATIONS = (
     _PACKAGED

@@ -11,10 +11,10 @@ from shiliu.assistant.wiki_retrieval import WikiHybridIndex
 from shiliu.assistant.wiki_jobs import WikiProjectionWorker
 
 
-def test_forget_cleans_windows_from_suppressed_message_without_direct_memory_dep(
+def test_forget_preserves_independent_wiki_quote_and_revision(
     wiki_parts,
 ):
-    db, _, wiki, space, msg, _, _ = wiki_parts
+    db, store, wiki, space, msg, _, _ = wiki_parts
     text = "我喜欢白天学习数据库"
     page = wiki.save_discussion(
         space_id=space,
@@ -51,20 +51,26 @@ def test_forget_cleans_windows_from_suppressed_message_without_direct_memory_dep
         operation_key="supervisor-save",
         source_message_ids=[msg],
     )
-    memories.forget(m["id"], expected_version=1, operation_key="supervisor-forget")
-    assert not wiki.get_page(page["id"], space_id=space)["blocks"]
-    assert (
-        MemoryJobWorker(memories, owner="supervisor-purge").run_once()["status"]
-        == "purged"
-    )
+    history = wiki.changes(page["id"])
     with db.connect(read_only=True) as c:
-        remaining = c.execute(
-            "SELECT w.window_id,w.text,w.dependency_versions,(SELECT count(*) FROM wiki_embeddings e WHERE e.window_id=w.window_id) AS vectors FROM wiki_windows w WHERE w.page_id=%s AND position(%s in w.text)>0",
+        jobs = c.execute("SELECT id FROM assistant_jobs WHERE kind LIKE 'wiki_%' ORDER BY id").fetchall()
+    memories.forget(m["id"], expected_version=1, operation_key="supervisor-forget")
+    assert memories.recall(text, space_id=space) == []
+    assert msg in memories.suppressed_source_message_ids(space_id=space)
+    assert msg not in memories.suppressed_source_message_ids(space_id=space, wiki_evidence=True)
+    assert wiki.get_page(page["id"], space_id=space)["blocks"][0]["markdown"] == text
+    with db.connect(read_only=True) as c:
+        thread_id = c.execute("SELECT thread_id FROM assistant_messages WHERE id=%s", (msg,)).fetchone()["thread_id"]
+    assert text in store.knowledge_message(msg, thread_id=thread_id, wiki_evidence=True)["content"]
+    assert wiki.changes(page["id"]) == history
+    assert MemoryJobWorker(memories, owner="supervisor-purge").run_once()["status"] == "purged"
+    with db.connect(read_only=True) as c:
+        assert c.execute("SELECT id FROM assistant_jobs WHERE kind LIKE 'wiki_%' ORDER BY id").fetchall() == jobs
+        assert c.execute(
+            "SELECT window_id,text,dependency_versions FROM wiki_windows WHERE page_id=%s AND position(%s in text)>0",
             (page["id"], text),
-        ).fetchall()
-    assert remaining == [], (
-        "Forgotten source-message quote survives in online Wiki text/vector cache"
-    )
+        ).fetchall() == before
+    assert any(item["page_id"] == page["id"] for item in index.search("学习", space_id=space)["candidates"])
 
 
 def test_wrong_profile_worker_cannot_complete_unbuilt_wiki_request(wiki_parts):
@@ -214,7 +220,7 @@ def test_other_owner_can_create_and_read_own_wiki_page(other_parts, wiki_parts):
 
 @pytest.mark.parametrize("scope_kind", ["user", "space"])
 @pytest.mark.parametrize("history", [False, True])
-def test_message_snapshot_forget_scope_history_idempotence(
+def test_legacy_wiki_suppression_cleanup_scope_history_idempotence(
     wiki_parts, other_parts, scope_kind, history
 ):
     from psycopg.types.json import Jsonb
@@ -278,6 +284,8 @@ def test_message_snapshot_forget_scope_history_idempotence(
         source_message_ids=[msg],
     )
     memories.forget(memory["id"], expected_version=1, operation_key="forget")
+    with db.connect() as c:
+        c.execute("UPDATE assistant_memory_suppressions SET wiki_source_message_ids_json=NULL WHERE principal_id=%s", (memories.principal_id,))
     purger = MemoryJobWorker(memories, owner="purger")
     assert purger.run_once()["status"] == "purged"
     with db.connect() as c:
@@ -352,12 +360,12 @@ def test_narrow_undo_does_not_erase_message_quote_cache(wiki_parts):
         ).fetchone()
 
 
-def test_message_forget_during_encoding_cannot_republish_quote(wiki_parts):
+def test_memory_forget_during_encoding_fences_old_build_but_keeps_quote(wiki_parts):
     from shiliu.assistant.wiki_jobs import WikiProjectionStale
 
     db, _, wiki, space, msg, _, _ = wiki_parts
     text = "我喜欢白天学习数据库"
-    wiki.save_discussion(
+    page = wiki.save_discussion(
         space_id=space,
         title="个人原话",
         purpose="引用",
@@ -393,6 +401,8 @@ def test_message_forget_during_encoding_cannot_republish_quote(wiki_parts):
     with db.connect() as c:
         assert not c.execute("SELECT 1 FROM wiki_windows").fetchone()
         assert not c.execute("SELECT 1 FROM wiki_embeddings").fetchone()
+
+    assert any(item["page_id"] == page["id"] for item in index.search("学习", space_id=space)["candidates"])
 
 
 def test_mixed_profile_scope_requests_remain_pending_until_each_worker_builds(

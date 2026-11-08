@@ -14,7 +14,7 @@ from schema_support import formal_target
 
 
 def test_0012_to_0013_resources_constraints_and_runtime_grant():
-    assert HEAD_REVISION == "0014_assistant_source_patch"
+    assert HEAD_REVISION == "0015_wiki_source_suppression"
     assert (MIGRATIONS / "sql" / "0013.sql").is_file()
     assert (MIGRATIONS / "versions" / "0013_assistant_notifications.py").is_file()
     with formal_target(

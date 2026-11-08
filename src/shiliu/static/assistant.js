@@ -50,6 +50,7 @@
     state.draftThreadId = null;
     ++state.knowledgeSerial;
     state.stream?.close(); state.stream = null; state.streamRunId = null;
+    $('assistant-wiki-save-state')?.replaceChildren();
     state.navigationSerial += 1;
     state.historyRequestSerial += 1;
     state.navigationPending = true;
@@ -434,6 +435,7 @@
   }
 
   function renderThread(thread) {
+    const restoringSaveState = state.presentedThreadId !== thread.id || state.navigationPending;
     state.renderedThread = thread;
     const scroll = $('assistant-scroll');
     const followBottom = state.presentedThreadId !== thread.id ||
@@ -542,6 +544,7 @@
     if (followBottom) scroll.scrollTop = scroll.scrollHeight;
     else scroll.scrollTop = previousTop;
     if (run && ['queued','running'].includes(run.status) && !state.stream) schedule();
+    if (restoringSaveState) refreshWikiSaves().catch(() => {});
   }
 
   async function loadThread() {
@@ -554,6 +557,7 @@
       if (!navigationCurrent(serial, spaceId) || requestedId !== state.threadId || state.navigationPending) return;
       if (Number(thread.space_id) !== spaceId) throw new Error('scope_changed');
       renderThread(thread);
+      refreshWikiSaves().catch(() => {});
     } catch (error) {
       if (!navigationCurrent(serial, spaceId) || requestedId !== state.threadId || state.navigationPending) return;
       if (error.message === 'scope_changed' || error.message.includes('对话不存在')) {
@@ -570,6 +574,63 @@
       }
     }, 700);
   }
+
+  let wikiSavePolling = false;
+  let wikiSaveRequestSerial = 0;
+  const wikiSaveState = document.createElement('div');
+  wikiSaveState.id = 'assistant-wiki-save-state';
+  wikiSaveState.setAttribute('aria-live', 'polite');
+  $('assistant-save-discussion').after(wikiSaveState);
+  async function refreshWikiSaves() {
+    if (!state.threadId || state.navigationPending) return;
+    const threadId = state.threadId, serial = state.navigationSerial, spaceId = state.spaceId;
+    const requestSerial = ++wikiSaveRequestSerial;
+    const {jobs} = await api(`/threads/${threadId}/knowledge-writes`);
+    if (requestSerial !== wikiSaveRequestSerial || !navigationCurrent(serial, spaceId) || threadId !== state.threadId) return;
+    wikiSaveState.replaceChildren();
+    wikiSaveState.title = "";
+    wikiSavePolling = jobs.some(job => ["queued", "processing"].includes(job.status));
+    jobs.forEach(job => {
+      const row = document.createElement('div');
+      row.dataset.jobId = job.id;
+      const label = document.createElement('span');
+      label.textContent = `Wiki 保存 · ${{queued:'排队中', processing:'保存中', completed:'完成', failed:'失败', partial:'部分完成'}[job.status] || job.status}`;
+      row.append(label);
+      if (job.error && job.status !== 'completed') row.append(document.createTextNode(`：${job.error}`));
+      (job.pages || []).forEach(page => {
+        const view = document.createElement('button'); view.type = 'button';
+        view.textContent = `查看已保存页 v${page.version}`;
+        view.onclick = async () => {
+          if (!navigationCurrent(serial, spaceId) || state.threadId !== threadId) return;
+          openDrawer('assistant-knowledge-panel', 'Wiki');
+          await openKnowledgePage(page.page_id, true);
+        };
+        row.append(view);
+      });
+      if (job.failures?.length) row.append(document.createTextNode(` · ${job.failures.length} 项未保存`));
+      if (['failed', 'partial'].includes(job.status)) {
+        const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '重试未完成项';
+        retry.onclick = async () => {
+          if (!navigationCurrent(serial, spaceId) || state.threadId !== threadId || retry.disabled) return;
+          retry.disabled = true;
+          try {
+            await api(`/threads/${threadId}/knowledge-writes/${job.id}/retry`, {method:'POST'});
+            await refreshWikiSaves();
+          } catch (error) {
+            if (navigationCurrent(serial, spaceId) && state.threadId === threadId) toast(`重试未确认：${error.message}`);
+            retry.disabled = false;
+          }
+        };
+        row.append(retry);
+      }
+      wikiSaveState.append(row);
+    });
+  }
+  setInterval(() => {
+    if (wikiSavePolling && !state.navigationPending && state.threadId) refreshWikiSaves().catch(() => {
+      if (wikiSaveState.childNodes.length) wikiSaveState.title = '状态暂未刷新，未确认失败';
+    });
+  }, 3000);
 
   async function loadMemories() {
     if (!state.spaceId) return;
@@ -947,11 +1008,17 @@
         button.textContent = accept ? (plan.status === 'pending' ? '确认并逐页保存' : '重试未完成主题') : '拒绝提案';
         if (accept && plan.status === 'pending' && plan.confirmable === false) button.disabled = true;
         button.onclick = async () => {
-          const {plan:updated, save_feedback} = await api(`/knowledge-plans/${plan.id}/decide`, {method:'POST', body:JSON.stringify({
+          const {plan:updated, job, save_feedback} = await api(`/knowledge-plans/${plan.id}/decide`, {method:'POST', body:JSON.stringify({
             space_id:spaceId, expected_version:plan.version, accept,
             operation_key:operationKey('ui-knowledge-plan'),
           })});
           if (!current()) return;
+          if (job) {
+            toast('历史计划已受理，后台保存中；尚未完成');
+            button.disabled = true; button.textContent = '已受理，后台保存中';
+            if (job.thread_id === state.threadId) await refreshWikiSaves();
+            return;
+          }
           toast(updated.status === 'completed' ? '主题页已保存' : updated.status === 'partial' ? '部分主题未完成，请查看原因' : '提案已拒绝');
           if (save_feedback?.count) showSaveFeedback(save_feedback);
           await loadKnowledge(query);
@@ -1444,7 +1511,11 @@
             if(action.kind==='undo'){path=`/messages/${id}/undo`;payload={expected_version:action.expected_version,operation_key:operation};}
             else if(action.kind==='proposal_refresh'){path=`/wiki-actions/proposals/${action.id}/request-refresh`;payload={space_id:action.space_id,operation_key:operation};}
             else {path=action.kind==='proposal'?`/wiki-actions/proposals/${action.id}/decide`:`/knowledge-plans/${action.id}/decide`;payload={space_id:action.space_id,accept,operation_key:operation};if(action.expected_version)payload.expected_version=action.expected_version;if(action.expected_content_version)payload.expected_content_version=action.expected_content_version;if(action.expected_target_version)payload.expected_target_version=action.expected_target_version;}
-            await api(path,{method:'POST',body:JSON.stringify(payload)});
+            const result = await api(path,{method:'POST',body:JSON.stringify(payload)});
+            if (result.job && current()) {
+              box.append(messageElement('p','已受理，后台保存中；尚未完成。可在原对话查看保存状态。'));
+              if (result.job.thread_id === state.threadId) await refreshWikiSaves();
+            }
             if(current()){const refreshed=await showMessage(id,box);if(refreshed && messages.selected===id && serial===messages.serial && messages.detailSerial===detailSerial+1){const row=messages.rows.get(id);if(row){row.item._notice='状态已更新，刷新后按当前筛选显示';renderMessageRow(row.item,row.article);messages.trigger=row.article.querySelector('button');}await messageCount();}}
           } catch(error){if(current()){conflict=/conflict|stale|version/.test(error.message);box.append(messageElement('p',`操作失败，当前预览保留${conflict?'，版本已变化，请重新读取后决定':''}：${error.message}`));messageReload(id,box);}}
           finally {busy=false;if(current())actions.querySelectorAll('button').forEach(b=>b.disabled=conflict);}
@@ -1592,12 +1663,11 @@
       const {thread} = await api(`/threads/${threadId}`);
       if (!navigationCurrent(serial, state.spaceId) || threadId !== state.threadId) return;
       let pending = JSON.parse(localStorage.getItem(key) || 'null');
-      const accepted = pending && thread.runs.find(run => run.request_id === pending.request_id);
-      if (accepted) {
+      const oldRun = pending && thread.runs.find(run => run.request_id === pending.request_id);
+      if (oldRun) {
         localStorage.removeItem(key);
-        state.runId = accepted.id;
         await loadThread();
-        toast('已恢复原保存请求，请查看原结果');
+        toast('已找到原保存请求，请查看原结果');
         return;
       }
       if (thread.runs.some(run => ['queued', 'running', 'interrupted', 'budget_exhausted', 'failed'].includes(run.status))) {
@@ -1607,15 +1677,17 @@
         const answer = thread.can_save && thread.messages.find(message => message.id === thread.save_answer_message_id);
         if (!answer) { toast('还没有可保存的正式回答'); return; }
         pending = {request_id: operationKey('ui-save'), answer_message_id: answer.id,
-          input: '请整理并保存刚才讨论的内容为知识页；多个主题分别成页，保留条件、来源和缺口。'};
-        if (state.capabilities.save_receipt_completion) pending.receipt_only = true;
+          requirement: '请整理并保存刚才讨论的内容为知识页；多个主题分别成页，保留条件、来源和缺口。'};
+
         localStorage.setItem(key, JSON.stringify(pending));
       }
-      const {run} = await api(`/threads/${threadId}/runs`, {method:'POST', body:JSON.stringify(pending)});
+      // Migrate an unsent old UI request without changing its identity.
+      const body = {request_id: pending.request_id, answer_message_id: pending.answer_message_id, requirement: pending.requirement || pending.input};
+      const {job} = await api(`/threads/${threadId}/knowledge-writes`, {method:'POST', body:JSON.stringify(body)});
       localStorage.removeItem(key);
       if (serial !== state.navigationSerial || threadId !== state.threadId || state.navigationPending) return;
-      state.runId = run.id;
-      await loadThread();
+      await refreshWikiSaves();
+      toast('Wiki 保存已受理，可以继续聊天');
     } catch (error) {
       // A definite rejection created no run; network/5xx outcomes retain identity.
       if ([400, 404, 409, 422].includes(error.status)) localStorage.removeItem(key);

@@ -605,6 +605,7 @@ class MemoryService:
                 connection,
                 row,
                 memory_epoch=epoch,
+                memory_only=True,
                 content_hash=self._content_hash(str(row["text"])),
             )
             connection.execute(
@@ -903,6 +904,7 @@ class MemoryService:
                 connection,
                 row_for_suppression,
                 memory_epoch=epoch,
+                memory_only=True,
                 content_hash=self._content_hash(str(row["text"])),
             )
             connection.execute(
@@ -1294,17 +1296,19 @@ class MemoryService:
             ),
         }
 
-    def suppressed_source_message_ids(self, *, space_id: int, conn=None) -> set[str]:
+    def suppressed_source_message_ids(self, *, space_id: int, wiki_evidence: bool = False, conn=None) -> set[str]:
         """Messages fenced by a correction/forget are not default context instructions."""
         with self.db.connect(conn) as connection:
             rows = connection.execute(
                 """
-                SELECT source_message_ids_json FROM assistant_memory_suppressions
+                SELECT CASE WHEN %s THEN COALESCE(wiki_source_message_ids_json, source_message_ids_json)
+                            ELSE source_message_ids_json END AS source_message_ids_json
+                FROM assistant_memory_suppressions
                 WHERE workspace_id=%s AND principal_id=%s AND (
                     scope_kind='user' OR (scope_kind='space' AND scope_id=%s)
                 )
                 """,
-                (self.workspace_id, self.principal_id, str(space_id)),
+                (wiki_evidence, self.workspace_id, self.principal_id, str(space_id)),
             ).fetchall()
         values: set[str] = set()
         for row in rows:
@@ -1834,17 +1838,29 @@ class MemoryService:
         *,
         memory_epoch: int,
         content_hash: str,
+        memory_only: bool = False,
     ) -> None:
         source_ids = row["source_message_ids_json"] or []
         connection.execute(
             """
             INSERT INTO assistant_memory_suppressions(
                 workspace_id, principal_id, scope_kind, scope_id, subject_key, content_hash,
-                source_message_ids_json, memory_epoch, created_at
-            ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                source_message_ids_json, wiki_source_message_ids_json, memory_epoch, created_at
+            ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT(principal_id, scope_kind, scope_id, subject_key, content_hash)
             DO UPDATE SET memory_epoch=excluded.memory_epoch,
-                          source_message_ids_json=excluded.source_message_ids_json,
+                          source_message_ids_json=(
+                              SELECT COALESCE(jsonb_agg(DISTINCT value), '[]'::jsonb)
+                              FROM jsonb_array_elements(assistant_memory_suppressions.source_message_ids_json
+                                                       || excluded.source_message_ids_json)
+                          ),
+                          wiki_source_message_ids_json=(
+                              SELECT COALESCE(jsonb_agg(DISTINCT value), '[]'::jsonb)
+                              FROM jsonb_array_elements(COALESCE(
+                                  assistant_memory_suppressions.wiki_source_message_ids_json,
+                                  assistant_memory_suppressions.source_message_ids_json
+                              ) || excluded.wiki_source_message_ids_json)
+                          ),
                           created_at=excluded.created_at
             """,
             (
@@ -1855,6 +1871,7 @@ class MemoryService:
                 row["subject_key"],
                 content_hash,
                 Jsonb(source_ids),
+                Jsonb([] if memory_only else source_ids),
                 memory_epoch,
                 utc_now(),
             ),
@@ -1918,13 +1935,13 @@ class MemoryService:
             (self.workspace_id, self.principal_id, memory_id),
         ).fetchone()
         if row and row["source_message_ids_json"]:
-            # A genuine forget persists these IDs in the same scope's suppression.
-            # undo_created retains source IDs on the fact but adds no such IDs.
+            # Clean only sources already protected for Wiki, including legacy rows.
+            # Memory-only mutations never add to that protection.
             connection.execute(
                 "DELETE FROM wiki_windows w USING assistant_wiki_pages p WHERE w.workspace_id=%s "
                 "AND (p.workspace_id,p.id)=(w.workspace_id,w.page_id) AND p.principal_id=%s "
                 "AND (%s='user' OR p.space_id::text=%s) AND EXISTS ("
-                "SELECT 1 FROM assistant_memory_suppressions s, jsonb_array_elements_text(s.source_message_ids_json) AS message(id) "
+                "SELECT 1 FROM assistant_memory_suppressions s, jsonb_array_elements_text(COALESCE(s.wiki_source_message_ids_json, s.source_message_ids_json)) AS message(id) "
                 "WHERE s.workspace_id=%s AND s.principal_id=%s AND s.scope_kind=%s AND s.scope_id=%s "
                 "AND message.id=ANY(%s) AND (w.dependency_versions->'messages') ? message.id)",
                 (

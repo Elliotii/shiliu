@@ -286,12 +286,15 @@ class TaxonomySourcesRequest(BaseModel):
 
 
 def create_web_app(application: Application | None = None, *, background_tasks: bool = True,
-                   local_projections_only: bool = False, manual_model_since: str | None = None) -> FastAPI:
+                   local_projections_only: bool = False, manual_model_since: str | None = None,
+                   manual_wiki_saves: bool = False) -> FastAPI:
     core = application or Application()
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         try:
+            if manual_wiki_saves and local_projections_only and manual_model_since:
+                _app.state.core.assistant_runtime.manual_wiki_saves = True
             start_options = {"background_tasks": background_tasks}
             if local_projections_only:
                 start_options["local_projections_only"] = True
@@ -328,7 +331,7 @@ def create_web_app(application: Application | None = None, *, background_tasks: 
         if local_projections_only:
             from shiliu.w16_trial import trial_request_allowed
 
-            if not trial_request_allowed(request.method, request.url.path, manual_models=bool(manual_model_since)):
+            if not trial_request_allowed(request.method, request.url.path, manual_models=bool(manual_model_since), wiki_saves=manual_wiki_saves):
                 return JSONResponse({"ok":False,"code":"trial_operation_paused", "message":"此操作尚未开放；同步、ASR、自动维护、Research执行及外部设置保持暂停。"}, status_code=403)
             if manual_model_since and request.method == "POST":
                 match = re.fullmatch(r"/api/assistant/runs/([^/]+)/(?:resume|cancel|finish)", request.url.path)

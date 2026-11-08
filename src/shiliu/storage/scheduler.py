@@ -10,6 +10,7 @@ from shiliu.storage.scope import ResourceContext
 
 LOCAL_KINDS = ("memory_purge", "memory_index", "source_reconcile")
 MODEL_KINDS = (
+    "wiki_save",
     "memory_extract",
     "source_extract",
     "wiki_integrate",
@@ -40,14 +41,15 @@ def _lease_valid(conn, row):
     ).fetchone()["valid"]
 
 
-def _candidate(conn, context, kinds):
+def _candidate(conn, context, kinds, created_after=None):
     return conn.execute(
         "SELECT j.* FROM shiliu.assistant_jobs j WHERE j.workspace_id=%s AND j.principal_id=%s "
         "AND j.kind=ANY(%s) AND j.status IN ('queued','retry_wait','budget_wait') AND j.not_before<=clock_timestamp() "
+        "AND (%s::timestamptz IS NULL OR j.created_at >= %s::timestamptz) "
         "AND NOT EXISTS (SELECT 1 FROM shiliu.metadata_backfill_job_holds h WHERE h.workspace_id=j.workspace_id AND h.job_id=j.id) "
         "ORDER BY CASE j.kind WHEN 'memory_purge' THEN 0 WHEN 'memory_index' THEN 1 ELSE 2 END,j.created_at,j.id "
         "FOR UPDATE OF j SKIP LOCKED LIMIT 1",
-        (context.workspace_id, context.user_id, list(kinds)),
+        (context.workspace_id, context.user_id, list(kinds), created_after, created_after),
     ).fetchone()
 
 
@@ -62,6 +64,7 @@ def claim_job(
     activity_allowed: bool = True,
     budget_allowed: bool = True,
     kinds: tuple | None = None,
+    created_after: str | None = None,
 ):
     """Local index/purge first, then guard lane before selecting model Jobs.
 
@@ -73,7 +76,7 @@ def claim_job(
     if not owner or not 0 < lease_seconds <= 120:
         raise ValueError("invalid_job_lease")
     local_kinds = tuple(k for k in LOCAL_KINDS if kinds is None or k in kinds)
-    row = _candidate(conn, context, local_kinds)
+    row = _candidate(conn, context, local_kinds, created_after)
     model = False
     if (
         row is None
@@ -88,7 +91,7 @@ def claim_job(
         # Reclaim only lane ownership. An expired Job still needs explicit
         # recovery classification before it can become a runnable candidate.
         row = _candidate(
-            conn, context, tuple(k for k in MODEL_KINDS if kinds is None or k in kinds)
+            conn, context, tuple(k for k in MODEL_KINDS if kinds is None or k in kinds), created_after
         )
         model = row is not None
     if row is None:

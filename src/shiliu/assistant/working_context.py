@@ -221,6 +221,92 @@ class WorkingContextComposer:
                                            stream=hasattr(provider, 'stream_turn'))
         return request, provider.budget_request(request, input_limit_tokens=input_limit_tokens)
 
+    def freeze_for_save(self, context: dict, *, through_seq: int, answer_id: str) -> dict:
+        """Read the existing effective projection at acceptance; no LLM/recall/write.
+
+        Native groups, validity and projections use the normal Composer helpers.
+        A completed answer can follow the last prepared request (button saves).
+        It is appended at its real position, without reopening a foreground Run.
+        """
+        thread, space = context['thread'], context['space']
+        raw = [m for m in thread['messages'] if m['seq'] <= through_seq]
+        by_id = {m['id']: m for m in raw}
+        current_user = next(m for m in reversed(raw) if m['role'] == 'user')
+        excluded = ContextMessages._excluded_memory_kinds(current_user['content'])
+        suppressed = self.memories.suppressed_source_message_ids(space_id=int(space['id']), wiki_evidence=True)
+        suppressed_runs = {str(m.get('run_id')) for m in raw if m['id'] in suppressed}
+        valid = {m['id']: self._message_valid(m, context, excluded, suppressed,
+                                            suppressed_runs, current_user['id']) for m in raw}
+        if not valid.get(answer_id):
+            raise AssistantConflict('save_answer_dependencies_changed')
+        state = thread.get('context_state') or {}
+        checkpoint = None
+        if state.get('checkpoint'):
+            identity = context_identity(self.tools, space, current_user['content'], system_rules=self.system_rules)
+            checkpoint = self.task_notes.checkpoint_for_context(thread['id'], space_id=int(space['id']),
+                scope_version=int(space['scope_version']), identity=identity)
+            if checkpoint and not self._refs_valid(checkpoint.get('dependencies') or [], context, excluded):
+                checkpoint = None
+        usable = bool(state and (not state.get('checkpoint') or checkpoint))
+        entries = state.get('entries', []) if usable else []
+        if any(e['kind'] == 'message' and (e['message_id'] not in by_id or not valid[e['message_id']]) for e in entries):
+            entries, checkpoint, usable = [], None, False
+        messages = [{'role': 'system', 'content': self.system_rules}]
+        evidence, included = [], set()
+        if checkpoint:
+            messages.append({'role': 'system', 'content': self.task_notes.render(checkpoint)})
+
+        def append(item):
+            projection = self._projection(item)
+            message = deepcopy(projection['message'])
+            messages.append(message)
+            included.add(item['id'])
+            if message['role'] == 'tool':
+                evidence.append(json.loads(message['content']))
+
+        for entry in entries:
+            if entry['kind'] == 'message':
+                append(by_id[entry['message_id']])
+            elif (not set(entry.get('source_message_ids') or []).intersection(suppressed)
+                  and set(entry.get('source_message_ids') or []).issubset(by_id)
+                  and self._refs_valid(entry.get('dependency_refs') or [], context, excluded)):
+                messages.append({'role': 'system', 'content': entry['content']})
+        frontier = int(state.get('materialized_through_seq') or 0) if usable else 0
+        tail = [m for m in raw if m['id'] not in included and (m['seq'] > frontier or m['id'] == answer_id)]
+        for group in complete_message_groups(tail,
+                cancelled_run_ids={r['id'] for r in thread['runs'] if r['status'] == 'cancelled'}):
+            if all(valid[m['id']] for m in group):
+                for item in group:
+                    append(item)
+        # A checkpoint may contain only derived evidence. Re-read the already
+        # indexed original sources from the existing snapshots/reader, not a
+        # second model summary or an unbounded scan of all historical messages.
+        if checkpoint:
+            have = {ref for r in evidence for ref in r.get('source_refs', [])}
+            for material in self.task_notes.material_index(checkpoint):
+                ref = str(material.get('source_ref') or '')
+                if not ref.startswith('video:') or ref in have:
+                    continue
+                parts = ref.split(':')
+                if len(parts) != 3 or not parts[1].isdigit() or not parts[2]:
+                    raise AssistantConflict('save_original_evidence_unavailable')
+                captured = self.tools.sources.snapshots.load(int(parts[1]), parts[2])
+                view = material.get('view') if material.get('view') in {'summary','transcript'} else 'transcript'
+                texts = captured.snapshot['materials']
+                text = texts.get('summary', '') if view == 'summary' else (texts.get('raw_subtitle') or texts.get('transcript', ''))
+                if not text:
+                    raise AssistantConflict('save_original_evidence_unavailable')
+                result = {'status': 'ok', 'source_refs': [ref], 'coverage': {'requested_view': view},
+                    'items': [{'source_ref': ref, 'revision': captured.revision, 'content': text,
+                               'provenance': {'snapshot_ref': captured.snapshot_ref, 'immutable': True}}]}
+                evidence.append(result)
+                messages.append({'role': 'system', 'content': application_block('save_original_evidence', result)['content']})
+                have.add(ref)
+        validate_model_sequence(messages)
+        return {'messages': messages, 'original_evidence': evidence, 'through_seq': through_seq,
+                'context_revision': state.get('revision'), 'checkpoint_id': checkpoint['id'] if checkpoint else None,
+                'message_ids': [m['id'] for m in raw if m['id'] in included]}
+
     def prepare(self, run_id: str, *, provider: AssistantModelProvider,
                 tool_schemas: list[dict] | None = None, base_tool_schemas: list[dict] | None = None,
                 output_tokens: int = 4096, input_limit_tokens: int | None = None) -> WorkingContextCandidate:

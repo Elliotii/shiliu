@@ -224,7 +224,7 @@ class PgAssistantAccess:
             )
 
     def knowledge_message(
-        self, message_id, *, thread_id, allow_operation_receipt=False, conn=None
+        self, message_id, *, thread_id, allow_operation_receipt=False, wiki_evidence=False, conn=None
     ):
         from shiliu.assistant.memory import MemoryService
 
@@ -238,7 +238,7 @@ class PgAssistantAccess:
                 raise AssistantConflict("save_message_not_available")
             memory = MemoryService(self.db, principal_id=self.principal_id)
             suppressed = memory.suppressed_source_message_ids(
-                space_id=thread["space_id"], conn=c
+                space_id=thread["space_id"], wiki_evidence=wiki_evidence, conn=c
             )
             users = {
                 r["id"]
@@ -330,6 +330,7 @@ class PgAssistantAccess:
         allow_model_jobs=True,
         allow_maintenance=True,
         kinds=None,
+        created_after=None,
     ):
         from shiliu.storage.scheduler import claim_job
 
@@ -343,6 +344,7 @@ class PgAssistantAccess:
                     allow_model_jobs=allow_model_jobs,
                     allow_maintenance=allow_maintenance,
                     kinds=kinds,
+                    created_after=created_after,
                 )
             )
 

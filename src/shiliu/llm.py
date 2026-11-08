@@ -28,6 +28,7 @@ class CompletionResponse:
     latency_ms: float = 0
     retry_count: int = 0
     response_model: str | None = None
+    system_fingerprint: str | None = None
 
 
 @dataclass(frozen=True)
@@ -465,6 +466,7 @@ class OpenAICompatibleProvider:
             usage=usage if isinstance(usage, dict) else None,
             response_id=response_id,
             reasoning_content=reasoning if isinstance(reasoning, str) else None,
+            system_fingerprint=payload.get("system_fingerprint"),
             latency_ms=(time.monotonic() - started) * 1000,
             retry_count=retry_count,
             response_model=response_model,

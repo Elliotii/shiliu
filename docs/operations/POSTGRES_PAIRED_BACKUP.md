@@ -1,4 +1,4 @@
-# Schema 0014 的 PG + Artifact 配对备份
+# Schema 0014 / 0015 的 PG + Artifact 配对备份
 
 入口：`python -m shiliu.migration.backup_cli create|verify|restore`。复用原 W14 writer/restore、typed row hash 和 Artifact Hash；只接受精确 marker 绑定的隔离实例或已有正式实例，不是通用备份平台。
 
@@ -6,8 +6,8 @@
 
 1. 人工停写 Web、Assistant/投影 Worker、收藏同步及其他写入者，禁止并发启服/定时任务。工具不会停服务；`--writers-stopped` 是操作者确认，另检查同库无其他连接，并在 dump 前后比较完整报告。这不是可以热备份的承诺。
 2. 明确 `SHILIU_DATABASE_URL`、`SHILIU_ARTIFACT_ROOT`、`SHILIU_ENV`。使用绑定 ETL 角色；禁止猜测 DSN、默认目录或邻近环境。原 exact binding、实例版本/目录校验、私有权限和路径保护仍生效。
-3. 备份目录必须是该资源根下 `backups/w14_<唯一名字>` 的新目录。PG18.6 + vector0.8.7 + pg_textsearch1.5.1；Schema 必须为 `0014_assistant_source_patch`。
-4. `migrations/contracts/runtime_0014_catalog.json` 是干净隔离升级产生并独立核对的结构合同，覆盖132张表（含 alembic）、新增消息表和 Proposal 字段/约束。它不包含业务数据。未知版本/结构漂移拒绝，不自动接受当前库作为自己的合同。
+3. 备份目录必须是该资源根下 `backups/w14_<唯一名字>` 的新目录。PG18.6 + vector0.8.7 + pg_textsearch1.5.1；Schema 必须为 `0014_assistant_source_patch` 或 `0015_wiki_source_suppression`。同一工具支持升级前的 0014 备份及独立恢复，也支持升级后的 0015。
+4. `migrations/contracts/runtime_0014_catalog.json` 是干净隔离升级产生并独立核对的结构合同，覆盖132张表（含 alembic）、新增消息表和 Proposal 字段/约束。0015 在此合同上仅增加 `assistant_memory_suppressions.wiki_source_message_ids_json` 可空 JSONB 列，不改写冻结的0014文件。它不包含业务数据。未知版本/结构漂移拒绝，不自动接受当前库作为自己的合同。
 
 ## 备份与离线检查
 
@@ -17,7 +17,7 @@ python -m shiliu.migration.backup_cli create /absolute/bound-root/backups/w14_re
 python -m shiliu.migration.backup_cli verify /absolute/bound-root/backups/w14_release_backup
 ```
 
-输出包含 dump hash、Schema 与对象数；`pair.json` 保存完整 typed row hash、catalog、identity sequence高水位和现存迁移 rebuild audit（不存在则明确为 null）。备份含完整 `pg_dump --format=custom`、全部已登记 Artifact 对象及 manifest。SQL NULL/JSON null 不混同；文件 hash/size 被验证。失败留下现场，不将无 `pair.json` 或验证失败的目录当作可用备份；不要覆盖或复用失败目录。
+输出包含 dump hash、Schema 与对象数；`pair.json` 保存完整 typed row hash、catalog、identity sequence高水位和现存迁移 rebuild audit（不存在则明确为 null）。备份含产品 `shiliu`、`shiliu_migration`、`shiliu_search` 三个 Schema 的 `pg_dump --format=custom`、全部已登记 Artifact 对象及 manifest。同库独立权限的 Eval Schema 不在产品恢复范围，需用其现有角色另行备份并配对其独立 Artifact 根；不向业务ETL角色扩大权限。SQL NULL/JSON null 不混同；文件 hash/size 被验证。失败留下现场，不将无 `pair.json` 或验证失败的目录当作可用备份；不要覆盖或复用失败目录。
 
 ## 恢复
 
